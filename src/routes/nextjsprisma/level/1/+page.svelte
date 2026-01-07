@@ -42,7 +42,7 @@
 
   // Get route params
   $: stackId = $page.params.stackId;
-  $: levelId = parseInt($page.params.levelId);
+  $: levelId = parseInt($page.params.levelId!);
 
   // Level 1 Configuration
   const LEVEL_CONFIG: LevelConfig = {

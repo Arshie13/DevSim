@@ -1,5 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import adapter from '@sveltejs/adapter-node'; // Use Node adapter for WebSocket support
 import { mdsvex } from 'mdsvex';
 import mdsvexConfig from './mdsvex.config.js';
 
@@ -18,7 +17,8 @@ const config = {
 		alias: {
 			$components: 'src/lib/components',
 			$stores: 'src/lib/stores',
-			$utils: 'src/lib/utils'
+			$utils: 'src/lib/utils',
+			$lib: 'src/lib'
 		}
 	}
 };
