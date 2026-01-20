@@ -15,10 +15,14 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		alias: {
+			$lib: 'src/lib',
 			$components: 'src/lib/components',
 			$stores: 'src/lib/stores',
 			$utils: 'src/lib/utils',
-			$lib: 'src/lib'
+			$types: 'src/lib/types',
+			$assets: 'src/lib/assets',
+			$routes: 'src/routes',
+			$mocks: 'src/lib/mocks',
 		}
 	}
 };
