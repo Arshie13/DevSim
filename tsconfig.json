@@ -20,6 +20,7 @@
 			"$mocks": ["src/lib/mocks"],
 			"$types": ["src/lib/types"],
 			"$utils": ["src/lib/utils"],
+			"$styles": ["src/lib/styles"],
 			
 		}
 	}
