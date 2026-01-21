@@ -14,9 +14,19 @@ const docker = new Docker({
 });
 
 export default defineConfig({
+  optimizeDeps: {
+    include: [
+      '@xterm/xterm',
+      '@xterm/addon-fit',
+      '@xterm/addon-web-links'
+    ]
+  },
+  ssr: {
+    noExternal: ['@xterm/xterm', '@xterm/addon-fit', '@xterm/addon-web-links']
+  },
   plugins: [
     sveltekit(),
-    
+
     // 👇 Terminal WebSocket Plugin (dev only)
     {
       name: 'devsim-terminal-ws',
@@ -53,7 +63,7 @@ export default defineConfig({
 
           try {
             const container = docker.getContainer(containerId);
-            
+
             // Optional: verify container exists & is running
             const info = await container.inspect();
             if (info.State.Status !== 'running') {
@@ -99,7 +109,7 @@ export default defineConfig({
             const cleanup = () => {
               try {
                 execStream?.destroy();
-              } catch {}
+              } catch { }
               if (ws.readyState === ws.OPEN) ws.close();
             };
 

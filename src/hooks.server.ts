@@ -7,6 +7,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   });
 
+  /* 
   response.headers.set(
     "Cross-Origin-Opener-Policy",
     "same-origin"
@@ -15,6 +16,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     "Cross-Origin-Embedder-Policy",
     "require-corp"
   );
+  */
 
   return response;
 };

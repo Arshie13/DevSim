@@ -9,9 +9,9 @@ export const GET: RequestHandler = async ({ params }) => {
   try {
     const container = docker.getContainer(params.id);
     const info = await container.inspect();
-    
-    return json({ 
-      success: true, 
+
+    return json({
+      success: true,
       running: info.State.Running,
       status: info.State.Status
     });

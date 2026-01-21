@@ -1,7 +1,7 @@
 <!-- Minimal MD layout -->
 <script>
   export let title;
-  export let content;
+  // export let content;
 </script>
 
 <article class="prose prose-lg max-w-4xl mx-auto py-8 px-4">

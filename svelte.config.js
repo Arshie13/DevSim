@@ -18,7 +18,8 @@ const config = {
 			$components: 'src/lib/components',
 			$stores: 'src/lib/stores',
 			$utils: 'src/lib/utils',
-			$lib: 'src/lib'
+			$lib: 'src/lib',
+			$interface: 'src/lib/interface'
 		}
 	}
 };

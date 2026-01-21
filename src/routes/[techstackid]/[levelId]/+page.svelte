@@ -1,11 +1,8 @@
-<!-- src/routes/coding/[stackId]/[levelId]/+page.svelte -->
 <script lang="ts">
-  import { onMount, onDestroy, tick } from "svelte";
-  import { page } from "$app/stores";
+  import { onMount } from "svelte";
+  import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import loader from "@monaco-editor/loader";
-  import type * as Monaco from "monaco-editor";
-  import { WebContainer } from "@webcontainer/api";
+  import { MonacoInitializer } from "$lib/client/MonacoInitializer";
   import {
     Play,
     Square,
@@ -20,161 +17,14 @@
     Lightbulb,
     BookOpen,
   } from "lucide-svelte";
+  import { TerminalInitializer } from "$lib/client/TerminalInitializer";
 
-  // Types
-  interface Task {
-    id: number;
-    text: string;
-    completed: boolean;
-  }
-
-  interface LevelConfig {
-    level: number;
-    title: string;
-    stack: string;
-    difficulty: string;
-    deadline: number;
-    tasks: Task[];
-    scenario: string;
-    hints: string[];
-    starterFiles: Record<string, any>;
-  }
+  import type { Task } from "$lib/interface/LevelConfig";
+  import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
 
   // Get route params
-  $: stackId = $page.params.stackId;
-  $: levelId = parseInt($page.params.levelId!);
-
-  // Level 1 Configuration
-  const LEVEL_CONFIG: LevelConfig = {
-    level: 1,
-    title: "Setup & First API Route",
-    stack: "Next.js + Prisma",
-    difficulty: "Beginner",
-    deadline: 4 * 60 * 60, // 4 hours in seconds
-    tasks: [
-      {
-        id: 1,
-        text: "Set up Next.js 15 project with TypeScript",
-        completed: false,
-      },
-      { id: 2, text: "Configure Prisma with PostgreSQL", completed: false },
-      { id: 3, text: "Create a simple User model", completed: false },
-      { id: 4, text: "Build GET /api/users endpoint", completed: false },
-    ],
-    scenario: `You've just joined StudentHub as a backend developer! Your first sprint task is to set up the foundation for our course registration system. The team needs you to create the initial Next.js project with Prisma ORM and build your first API endpoint to fetch users.`,
-    hints: [
-      'Use "npx create-next-app@latest" to initialize the project',
-      'Install Prisma with "npm install prisma @prisma/client"',
-      'Initialize Prisma with "npx prisma init"',
-      "Create your User model in schema.prisma",
-      'Generate Prisma Client with "npx prisma generate"',
-    ],
-    starterFiles: {
-      "package.json": {
-        file: {
-          contents: JSON.stringify(
-            {
-              name: "studenthub-api",
-              version: "0.1.0",
-              private: true,
-              scripts: {
-                dev: "next dev",
-                build: "next build",
-                start: "next start",
-              },
-              dependencies: {
-                next: "~14.2.5",
-                react: "~18.3.0",
-                "react-dom": "~18.3.0",
-                "@prisma/client": "^5.0.0",
-              },
-              devDependencies: {
-                "@types/node": "^20.0.0",
-                "@types/react": "~18.3.0",
-                typescript: "^5.0.0",
-                prisma: "^5.0.0",
-              },
-            },
-            null,
-            2,
-          ),
-        },
-      },
-      app: {
-        directory: {
-          "page.tsx": {
-            file: {
-              contents: `export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold">StudentHub API</h1>
-      <p className="mt-4 text-lg">Your Next.js + Prisma backend is ready!</p>
-    </main>
-  );
-}
-`,
-            },
-          },
-          "layout.tsx": {
-            file: {
-              contents: `export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  )
-}
-`,
-            },
-          },
-        },
-      },
-      "tsconfig.json": {
-        file: {
-          contents: JSON.stringify(
-            {
-              compilerOptions: {
-                target: "ES2017",
-                lib: ["dom", "dom.iterable", "esnext"],
-                allowJs: true,
-                skipLibCheck: true,
-                strict: true,
-                forceConsistentCasingInFileNames: true,
-                noEmit: true,
-                esModuleInterop: true,
-                module: "esnext",
-                moduleResolution: "bundler",
-                resolveJsonModule: true,
-                isolatedModules: true,
-                jsx: "preserve",
-                incremental: true,
-                paths: {
-                  "@/*": ["./*"],
-                },
-              },
-              include: ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-              exclude: ["node_modules"],
-            },
-            null,
-            2,
-          ),
-        },
-      },
-      "next.config.js": {
-        file: {
-          contents: `/** @type {import('next').NextConfig} */
-const nextConfig = {}
-
-module.exports = nextConfig
-`,
-        },
-      },
-    },
-  };
+  $: stackId = page.params.techstackid;
+  $: levelId = parseInt(page.params.levelId!);
 
   // State
   let activeTab: "editor" | "terminal" | "preview" = "editor";
@@ -184,11 +34,11 @@ module.exports = nextConfig
   let timeRemaining: number = LEVEL_CONFIG.deadline;
   let isRunning: boolean = false;
   let showHints: boolean = false;
-  let webcontainerInstance: WebContainer | null = null;
-  let terminalInstance: any = null;
+  let containerId: string = "";
+  let terminal: TerminalInitializer | null = null;
+  let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
   let editorValue: string = "";
-  let editorInstance: Monaco.editor.IStandaloneCodeEditor | null = null;
 
   // Refs
   let terminalRef: HTMLDivElement;
@@ -214,22 +64,35 @@ module.exports = nextConfig
     return files;
   }
 
-  // Initialize WebContainer and Terminal
+  // Initialize Docker Container and Terminal
   onMount(async () => {
     const mount = async () => {
       try {
-        // Boot WebContainer
-        const webcontainer = await WebContainer.boot();
-        webcontainerInstance = webcontainer;
+        // Create container
+        const response = await fetch("/api/container/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stackId, levelId }),
+        });
+        const data = await response.json();
 
-        // Mount starter files
-        await webcontainer.mount(LEVEL_CONFIG.starterFiles);
+        if (!data.success) throw new Error(data.error);
+        console.log(data.previewUrl);
+        containerId = data.containerId;
+        previewUrl = data.previewUrl;
 
-        // Read initial file content from WebContainer
+        // Read initial file content from Docker
         try {
-          const content = await webcontainer.fs.readFile(selectedFile, "utf-8");
-          fileContents[selectedFile] = content;
-          editorValue = content;
+          const res = await fetch(`/api/container/${containerId}/files/read`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
+          });
+          const fileData = await res.json();
+          if (fileData.success) {
+            fileContents[selectedFile] = fileData.content;
+            editorValue = fileData.content;
+          }
         } catch (error) {
           console.error("Error reading initial file:", error);
           editorValue = "";
@@ -237,43 +100,22 @@ module.exports = nextConfig
 
         // Initialize Monaco Editor
         if (editorRef) {
-          const monaco = await loader.init();
-          editorInstance = monaco.editor.create(editorRef, {
-            value: editorValue,
-            language: "typescript",
-            theme: "vs-dark",
-            minimap: { enabled: false },
-            fontSize: 14,
-            lineNumbers: "on",
-            roundedSelection: false,
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-          });
-
-          // Listen for editor changes
-          editorInstance?.onDidChangeModelContent(() => {
-            const value = editorInstance?.getValue() || "";
-            fileContents[selectedFile] = value;
-            editorValue = value;
-          });
-
-          // Add save keyboard shortcut
-          editorInstance?.addCommand(
-            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-            () => {
-              saveFile();
+          monacoEditor = new MonacoInitializer();
+          await monacoEditor.initialize(
+            editorRef,
+            editorValue,
+            () => saveFile(),
+            (value) => {
+              fileContents[selectedFile] = value;
+              editorValue = value;
             },
           );
+          monacoEditor.setLanguageFromFilename(selectedFile);
         }
 
-        webcontainer.on('server-ready', (port, url) => {
-          previewUrl = url;
-          isRunning = true;
-          console.log('Server ready at:', url);
-        });
-
-        // Initialize Terminal (only if terminal tab is active or will be accessed)
-        await initializeTerminal(webcontainer);
+        // Initialize Terminal
+        terminal = new TerminalInitializer();
+        await terminal.initializeDockerTerminal(terminalRef, containerId);
       } catch (error) {
         console.error("Failed to initialize environment:", error);
       }
@@ -287,113 +129,26 @@ module.exports = nextConfig
       }, 1000);
       return () => {
         clearInterval(timer);
-        terminalInstance?.dispose();
-        editorInstance?.dispose();
+        terminal?.dispose();
+        monacoEditor?.dispose();
       };
     };
 
     await mount();
   });
 
-  // Separate terminal initialization function
-  async function initializeTerminal(webcontainer: WebContainer) {
-    // Wait a bit more for terminal ref to be available
-    await tick();
-
-    if (!terminalRef) {
-      console.warn("Terminal ref not available yet");
-      return;
-    }
-
-    try {
-      // Dynamic imports for XTerm
-      const { Terminal } = await import("@xterm/xterm");
-      const { FitAddon } = await import("@xterm/addon-fit");
-      const { WebLinksAddon } = await import("@xterm/addon-web-links");
-
-      // Import XTerm CSS dynamically
-      await import("@xterm/xterm/css/xterm.css");
-
-      const terminal = new Terminal({
-        convertEol: true,
-        theme: {
-          background: "#1e1e1e",
-          foreground: "#d4d4d4",
-        },
-      });
-
-      const fitAddon = new FitAddon();
-      terminal.loadAddon(fitAddon);
-      terminal.loadAddon(new WebLinksAddon());
-
-      terminal.open(terminalRef);
-      fitAddon.fit();
-
-      // Connect terminal to WebContainer shell
-      const shellProcess = await webcontainer.spawn("jsh", {
-        terminal: {
-          cols: terminal.cols,
-          rows: terminal.rows,
-        },
-      });
-
-      shellProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            terminal.write(data);
-          },
-        }),
-      );
-
-      const input = shellProcess.input.getWriter();
-      terminal.onData((data) => {
-        input.write(data);
-      });
-
-      terminalInstance = terminal;
-
-      // Welcome message
-      terminal.writeln(
-        "\x1b[1;32m╔════════════════════════════════════════════╗\x1b[0m",
-      );
-      terminal.writeln(
-        "\x1b[1;32m║     Welcome to DevSim Terminal! 🚀        ║\x1b[0m",
-      );
-      terminal.writeln(
-        "\x1b[1;32m╚════════════════════════════════════════════╝\x1b[0m",
-      );
-      terminal.writeln("");
-      terminal.writeln("\x1b[1;36mLevel 1: Setup & First API Route\x1b[0m");
-      terminal.writeln(
-        '\x1b[33mTip: Start by installing dependencies with "npm install"\x1b[0m',
-      );
-      terminal.writeln("");
-    } catch (error) {
-      console.error("Failed to initialize terminal:", error);
-    }
-  }
-
   // Update editor value when file changes
   $: if (
-    editorInstance &&
+    monacoEditor &&
     selectedFile &&
     fileContents[selectedFile] !== undefined
   ) {
-    const currentValue = editorInstance.getValue();
-    const newValue = fileContents[selectedFile];
-    if (currentValue !== newValue) {
-      editorInstance.setValue(newValue);
-    }
+    monacoEditor.setValue(fileContents[selectedFile]);
   }
 
-  // Watch for tab changes and initialize terminal if needed
-  $: if (
-    activeTab === "terminal" &&
-    !terminalInstance &&
-    webcontainerInstance &&
-    terminalRef
-  ) {
-    initializeTerminal(webcontainerInstance);
+  $: if (activeTab === "terminal" && !terminal && containerId && terminalRef) {
+    terminal = new TerminalInitializer();
+    terminal.initializeDockerTerminal(terminalRef, containerId);
   }
 
   // Format time
@@ -404,23 +159,26 @@ module.exports = nextConfig
     return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
 
-  // Handle editor change
-  // function handleEditorChange(value: string | undefined) {
-  //   if (value !== undefined) {
-  //     fileContents[selectedFile] = value;
-  //     editorValue = value;
-  //   }
-  // }
   // Save file
   async function saveFile() {
-    if (!webcontainerInstance || !selectedFile) return;
+    if (!containerId || !selectedFile) return;
 
     try {
-      await webcontainerInstance.fs.writeFile(
-        selectedFile,
-        fileContents[selectedFile] || "",
+      const response = await fetch(
+        `/api/container/${containerId}/files/write`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: `/workspace/${selectedFile}`,
+            content: fileContents[selectedFile] || "",
+          }),
+        },
       );
-      console.log("File saved:", selectedFile);
+      const data = await response.json();
+      if (data.success) {
+        console.log("File saved successfully");
+      }
     } catch (error) {
       console.error("Error saving file:", error);
     }
@@ -428,45 +186,16 @@ module.exports = nextConfig
 
   // Run dev server
   async function runDevServer() {
-    if (!webcontainerInstance || isRunning) return;
-
+    if (!containerId || isRunning) return;
     isRunning = true;
-
-    try {
-      // Install dependencies
-      const installProcess = await webcontainerInstance.spawn("npm", [
-        "install",
-      ]);
-      installProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            terminalInstance?.write(data);
-          },
-        }),
-      );
-
-      const installExitCode = await installProcess.exit;
-      if (installExitCode !== 0) {
-        throw new Error("Installation failed");
-      }
-
-      // Start dev server
-      await webcontainerInstance.spawn("npm", ["run", "dev"]);
-
-      // Wait for server
-      webcontainerInstance.on("server-ready", (port, url) => {
-        previewUrl = url;
-      });
-    } catch (error) {
-      console.error("Error running dev server:", error);
-      isRunning = false;
-    }
+    activeTab = "terminal";
+    terminal?.write("npm install && npm run dev\r");
   }
 
   // Stop dev server
   function stopDevServer() {
+    terminal?.write("\x03");
     isRunning = false;
-    previewUrl = "";
   }
 
   // Toggle task
@@ -480,15 +209,18 @@ module.exports = nextConfig
   async function selectFile(file: string) {
     selectedFile = file;
 
-    // Read file content from WebContainer
-    if (webcontainerInstance) {
+    if (containerId) {
       try {
-        const content = await webcontainerInstance.fs.readFile(file, "utf-8");
-        fileContents[file] = content;
-
-        // Update editor
-        if (editorInstance) {
-          editorInstance.setValue(content);
+        const res = await fetch(`/api/container/${containerId}/files/read`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: `/workspace/${file}` }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          fileContents[file] = data.content;
+          monacoEditor?.setValue(data.content);
+          monacoEditor?.setLanguageFromFilename(file);
         }
       } catch (error) {
         console.error("Error reading file:", error);
@@ -499,6 +231,30 @@ module.exports = nextConfig
   // Navigate back
   function handleBack() {
     goto("/");
+  }
+
+  async function refreshPreview() {
+    try {
+      const response = await fetch("/api/container/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stackId, levelId }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        const currentUrl = new URL(data.previewUrl);
+        currentUrl.searchParams.set("t", Date.now().toString());
+        previewUrl = currentUrl.toString();
+
+        // Explicitly reload the iframe if it's already mounted
+        if (iframeRef) {
+          console.log("Reloading iframe via ref:", previewUrl);
+          iframeRef.src = previewUrl;
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing preview:", error);
+    }
   }
 
   // Calculate progress
@@ -744,7 +500,7 @@ module.exports = nextConfig
             </div>
           </div>
         </div>
-        
+
         <div class:hidden={activeTab !== "terminal"} class="h-full">
           <div class="h-full bg-[#1e1e1e] p-2">
             <div bind:this={terminalRef} class="h-full"></div>
@@ -753,30 +509,47 @@ module.exports = nextConfig
 
         <div class:hidden={activeTab !== "preview"} class="h-full">
           <div class="h-full flex flex-col bg-white">
-            {#if previewUrl}
-              <div class="bg-slate-800 px-4 py-2 flex items-center gap-2">
+            <div
+              class="bg-slate-800 px-4 py-2 flex items-center justify-between"
+            >
+              <div class="flex items-center gap-2">
                 <Globe class="w-4 h-4 text-gray-400" />
-                <span class="text-sm text-gray-400">{previewUrl}</span>
+                <span class="text-sm text-gray-400"
+                  >{previewUrl || "Waiting for server..."}</span
+                >
               </div>
-              <iframe
-                bind:this={iframeRef}
-                src={previewUrl}
-                class="flex-1 w-full border-0"
-                title="Preview"
-              ></iframe>
-            {:else}
+              <button
+                on:click={refreshPreview}
+                class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded transition-all flex items-center gap-1"
+                disabled={!previewUrl}
+              >
+                <Clock class="w-3 h-3" />
+                Refresh
+              </button>
+            </div>
+
+            {#if !previewUrl}
               <div
                 class="flex-1 flex items-center justify-center text-slate-600"
               >
                 <div class="text-center">
                   <Globe class="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p class="text-lg font-semibold">No Preview Available</p>
-                  <p class="text-sm mt-2">
-                    Click "Run" to start the dev server
-                  </p>
+                  <p class="text-lg font-semibold">Preparing Preview...</p>
+                  <p class="text-sm mt-2">Starting dev server...</p>
                 </div>
               </div>
             {/if}
+
+            <div class="flex-1 w-full relative" class:hidden={!previewUrl}>
+              {#key previewUrl}
+                <iframe
+                  bind:this={iframeRef}
+                  src={previewUrl}
+                  class="absolute inset-0 w-full h-full border-0 bg-white"
+                  title="Preview"
+                ></iframe>
+              {/key}
+            </div>
           </div>
         </div>
       </div>
