@@ -90,21 +90,6 @@
             </p>
           </div>
         </div>
-
-        <!-- Quest/Mission indicator -->
-        <div class="hidden lg:flex items-center gap-3 bg-obsidian-surface/80 border border-obsidian-border rounded-lg px-4 py-3">
-          <div class="relative">
-            <Target class="w-5 h-5 text-obsidian-accent" />
-            <div class="absolute inset-0 bg-obsidian-accent/20 blur-md"></div>
-          </div>
-          <div>
-            <p class="text-xs text-obsidian-text-primary/60 uppercase tracking-wider">Daily Quest</p>
-            <p class="text-sm font-medium text-obsidian-text-muted">Complete a Full Stack Sprint</p>
-          </div>
-          <div class="text-xs px-2.5 py-1 rounded-full bg-obsidian-accent/20 text-obsidian-accent border border-obsidian-accent/30 font-medium">
-          +500 XP
-        </div>
-      </div>
     </div>
 
     <!-- Popular Combos -->

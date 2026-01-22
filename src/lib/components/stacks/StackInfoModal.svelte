@@ -48,7 +48,7 @@
     const bestFor: string[] = [];
     const avoidFor: string[] = [];
     let synergy = "";
-    let difficulty = "Beginner";
+  
 
     // Frontend analysis
     if (sel.frontend === "react") {
@@ -59,7 +59,6 @@
       pros.push("Built-in SSR/SSG for optimal performance");
       pros.push("Full-stack capabilities with API routes");
       bestFor.push("SEO-critical applications and e-commerce");
-      difficulty = "Intermediate";
     } else if (sel.frontend === "vue") {
       pros.push("Gentle learning curve with excellent docs");
       pros.push("Flexible and incrementally adoptable");
@@ -72,7 +71,6 @@
       pros.push("Enterprise-ready with strong typing");
       pros.push("Complete framework with built-in tools");
       bestFor.push("Large enterprise applications");
-      difficulty = "Intermediate";
     }
 
     // Backend analysis
@@ -88,7 +86,6 @@
       pros.push("Angular-inspired architecture with DI");
       pros.push("Excellent TypeScript support");
       bestFor.push("Enterprise-grade backend systems");
-      difficulty = "Intermediate";
     } else if (sel.backend === "django") {
       pros.push("Batteries-included Python framework");
       pros.push("Built-in admin panel and ORM");
@@ -144,7 +141,6 @@
       pros.push("Consistent environments across dev and prod");
       pros.push("Easy deployment and scaling");
       bestFor.push("Microservices and complex deployments");
-      difficulty = difficulty === "Beginner" ? "Intermediate" : difficulty;
     } else if (sel.services === "graphql") {
       pros.push("Flexible queries, get exactly what you need");
       pros.push("Strong typing with schema");
@@ -233,7 +229,7 @@
       cons.push("Python backend with JS frontend requires context-switching");
     }
 
-    return { pros, cons, bestFor, avoidFor, synergy, difficulty };
+    return { pros, cons, bestFor, avoidFor, synergy };
   }
 </script>
 
@@ -277,20 +273,6 @@
           </div>
         {/each}
       </div>
-
-      <!-- Difficulty Badge -->
-      <div class="mt-3">
-        <span
-          class="text-xs px-3 py-1 rounded-full font-medium {stackAnalysis.difficulty ===
-          'Beginner'
-            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-            : stackAnalysis.difficulty === 'Intermediate'
-              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-              : 'bg-red-500/20 text-red-400 border border-red-500/30'}"
-        >
-          {stackAnalysis.difficulty} Level
-        </span>
-      </div>
     </div>
 
     <!-- Content -->
@@ -317,9 +299,9 @@
       {#if stackAnalysis.pros.length > 0}
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <ThumbsUp class="w-4 h-4 text-emerald-400" />
+            <ThumbsUp class="w-4 h-4 text-emerald-400 flex-shrink-0" />
             <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider"
+              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
             >
               Advantages
             </h3>
@@ -329,7 +311,7 @@
               <li
                 class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
               >
-                <span class="text-emerald-400 mt-1">+</span>
+                <span class="text-emerald-400 leading-none pt-0.5">+</span>
                 <span>{pro}</span>
               </li>
             {/each}
@@ -341,9 +323,9 @@
       {#if stackAnalysis.cons.length > 0}
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <ThumbsDown class="w-4 h-4 text-rose-400" />
+            <ThumbsDown class="w-4 h-4 text-rose-400 flex-shrink-0" />
             <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider"
+              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
             >
               Considerations
             </h3>
@@ -353,7 +335,7 @@
               <li
                 class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
               >
-                <span class="text-rose-400 mt-1">−</span>
+                <span class="text-rose-400 leading-none pt-0.5">−</span>
                 <span>{con}</span>
               </li>
             {/each}
@@ -365,9 +347,9 @@
       {#if stackAnalysis.bestFor.length > 0}
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <Target class="w-4 h-4 text-obsidian-accent" />
+            <Target class="w-4 h-4 text-obsidian-accent flex-shrink-0" />
             <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider"
+              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
             >
               Best Use Cases
             </h3>
@@ -377,7 +359,7 @@
               <li
                 class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
               >
-                <span class="text-obsidian-accent mt-1">→</span>
+                <span class="text-obsidian-accent leading-none pt-0.5">→</span>
                 <span>{useCase}</span>
               </li>
             {/each}
@@ -389,9 +371,9 @@
       {#if stackAnalysis.avoidFor.length > 0}
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <AlertTriangle class="w-4 h-4 text-amber-400" />
+            <AlertTriangle class="w-4 h-4 text-amber-400 flex-shrink-0" />
             <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider"
+              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
             >
               Not Recommended For
             </h3>
@@ -401,7 +383,7 @@
               <li
                 class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
               >
-                <span class="text-amber-400 mt-1">!</span>
+                <span class="text-amber-400 leading-none pt-0.5">!</span>
                 <span>{avoid}</span>
               </li>
             {/each}

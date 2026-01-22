@@ -22,7 +22,6 @@
     <h3 class="text-xs font-semibold text-obsidian-text-primary/60 uppercase tracking-wider">
       Quick Select — Popular Stacks
     </h3>
-    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-medium">+50 XP Bonus</span>
   </div>
 
   <div class="flex flex-wrap gap-2">
