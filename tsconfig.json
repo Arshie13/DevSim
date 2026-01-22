@@ -14,7 +14,13 @@
 		"baseUrl": ".",
 		"paths": {
 			"@monaco-editor/*": ["node_modules/@monaco-editor/*"],
-			"$lib/*": ["src/lib"],
+			"$lib": ["src/lib"],
+			"$assets": ["src/lib/assets"],
+			"$components": ["src/lib/components"],
+			"$mocks": ["src/lib/mocks"],
+			"$types": ["src/lib/types"],
+			"$utils": ["src/lib/utils"],
+			
 		}
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
