@@ -14,7 +14,7 @@
     Lock,
   } from "lucide-svelte";
   import type { TechStack } from "$types";
-  import { TECH_STACKS, userData } from "$lib/mocks";
+  import { TECH_STACKS, userData } from "$mocks";
 
   let showLevelsModal = false;
   let selectedStack: TechStack | null = null;
