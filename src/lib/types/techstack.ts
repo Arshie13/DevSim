@@ -23,20 +23,6 @@ export interface StackSelection {
   services: string | null;
 }
 
-export interface UserData {
-  username: string;
-  level: number;
-  exp: number;
-  nextLevelExp: number;
-  coins: number;
-  avatar: string;
-  completedStacks: string[];
-  currentStacks: Array<{
-    stackId: string;
-    currentLevel: number;
-    completed: boolean;
-  }>;
-}
 
 // Legacy interface kept for compatibility
 export interface TechStack {
@@ -57,4 +43,32 @@ export interface TechStack {
     tasks: string[];
     rewards: Record<string, number>;
   }>;
+}
+
+export interface StackProgress {
+  id: string;
+  name: string;
+  frontend: string;
+  backend: string;
+  database: string;
+  services?: string;
+  progress: number;
+  currentLevel: number;
+  totalLevels: number;
+  lastActive: string;
+  icon: string;
+}
+
+export interface FinishedStack {
+  id: string;
+  name: string;
+  frontend: string;
+  backend: string;
+  database: string;
+  services?: string;
+  completedAt: string;
+  xpEarned: number;
+  coinsEarned: number;
+  rating: number;
+  icon: string;
 }

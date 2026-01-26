@@ -1,4 +1,4 @@
-import type { TechCategory, TechOption, UserData, StackSelection } from "$types";
+import type { TechCategory, TechOption, StackSelection } from "$types";
 
 // Mix-and-match technology options
 export const FRONTEND_OPTIONS: TechOption[] = [
@@ -183,24 +183,6 @@ export const TECH_CATEGORIES: TechCategory[] = [
     options: SERVICES_OPTIONS,
   },
 ];
-
-// Mock user data
-export const userData: UserData = {
-  username: "dev_rookie",
-  level: 12,
-  exp: 3450,
-  nextLevelExp: 5000,
-  coins: 1250,
-  avatar: "👨‍💻",
-  completedStacks: ["react-express-postgresql"],
-  currentStacks: [
-    {
-      stackId: "nextjs-nestjs-mongodb",
-      currentLevel: 3,
-      completed: false,
-    },
-  ],
-};
 
 // Predefined popular combinations (optional presets)
 export const POPULAR_COMBOS: StackSelection[] = [

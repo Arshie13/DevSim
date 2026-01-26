@@ -17,8 +17,11 @@
 			"$lib": ["src/lib"],
 			"$assets": ["src/lib/assets"],
 			"$components": ["src/lib/components"],
+			"$components/*": ["src/lib/components/*"],
 			"$mocks": ["src/lib/mocks"],
+			"$mocks/*": ["src/lib/mocks/*"],
 			"$types": ["src/lib/types"],
+			"$types/*": ["src/lib/types/*"],
 			"$utils": ["src/lib/utils"],
 			"$styles": ["src/lib/styles"],
 			

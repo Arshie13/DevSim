@@ -1,10 +1,16 @@
 <script lang="ts">
   import { Code, Coins, Zap, Trophy } from "lucide-svelte";
   import type { UserData } from "$types";
+  import { goto } from "$app/navigation";
 
   export let userData: UserData;
 
   $: expPercentage = (userData.exp / userData.nextLevelExp) * 100;
+
+  function navigateToDashboard() {
+    goto("/dashboard");
+  }
+
 </script>
 
 <header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light sticky top-0 z-50">
@@ -12,9 +18,11 @@
     <!-- Logo -->
     <div class="flex items-center gap-3">
       <div class="relative">
+        <button on:click={navigateToDashboard} class="relative z-10">
         <div class="bg-obsidian-text-muted p-2 rounded-lg">
           <Code class="w-5 h-5 text-obsidian-bg" />
         </div>
+        </button>
         <!-- Animated pulse -->
         <div class="absolute inset-0 bg-obsidian-text-muted rounded-lg animate-ping opacity-20"></div>
       </div>

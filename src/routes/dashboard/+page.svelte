@@ -1,0 +1,98 @@
+<script lang="ts">
+  import { goto } from "$app/navigation";
+  import { Plus, ArrowRight } from "lucide-svelte";
+  import Header from "$components/Header.svelte";
+  import KPIs from "$components/dashboard/KPIs.svelte";
+  import CurrentStacks from "$components/dashboard/CurrentStacks.svelte";
+  import FinishedStacks from "$components/dashboard/FinishedStacks.svelte";
+  import ActivityFeed from "$components/dashboard/ActivityFeed.svelte";
+  import WeeklyStats from "$components/dashboard/WeeklyStats.svelte";
+  import LeaderboardSnapshot from "$components/dashboard/LeaderboardSnapshot.svelte";
+  import { 
+    kpiData, 
+    currentStacks, 
+    finishedStacks, 
+    weeklyStats,
+    recentActivity,
+    leaderboardSnapshot ,
+    userData
+  } from "$mocks";
+
+  function navigateToStacks() {
+    goto("/stacks");
+  }
+</script>
+
+<svelte:head>
+  <title>Dashboard | DevSim</title>
+</svelte:head>
+
+<div class="min-h-screen bg-obsidian-bg">
+  <!-- Header -->
+  <Header userData={userData} />
+
+  <!-- Main Content -->
+  <main class="px-8 py-6">
+    <!-- Top Section: Welcome + New Stack Button -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-obsidian-text-muted">
+          Welcome back, <span class="text-obsidian-accent">{userData.username}</span>
+        </h2>
+        <p class="text-sm text-obsidian-text-primary/50 mt-1">
+          Ready to continue your developer journey? Your progress awaits.
+        </p>
+      </div>
+      
+      <!-- Start New Stack Button -->
+      <button
+        on:click={navigateToStacks}
+        class="group flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-obsidian-accent/20 to-cyan-500/10 border border-obsidian-accent/40 hover:border-obsidian-accent/60 rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(7,165,201,0.2)]"
+      >
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-obsidian-accent to-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(7,165,201,0.3)]">
+          <Plus class="w-5 h-5 text-white" />
+        </div>
+        <div class="text-left">
+          <p class="text-sm font-semibold text-obsidian-text-muted">Start New Stack</p>
+          <p class="text-xs text-obsidian-text-primary/50">Begin a new simulation</p>
+        </div>
+        <ArrowRight class="w-4 h-4 text-obsidian-accent group-hover:translate-x-1 transition-transform ml-2" />
+      </button>
+    </div>
+
+    <!-- KPIs Row -->
+    <div class="mb-8">
+      <KPIs kpis={kpiData} />
+    </div>
+
+    <!-- Stacks Section - Side by Side -->
+    <div class="grid grid-cols-2 gap-6 mb-8">
+      <CurrentStacks stacks={currentStacks} {finishedStacks} maxVisible={2} />
+      <FinishedStacks stacks={finishedStacks} maxVisible={3} />
+    </div>
+
+    <!-- Bottom Section: Activity, Weekly Stats, Challenges -->
+    <div class="grid grid-cols-12 gap-6 pb-8">
+      <!-- Activity Feed -->
+      <div class="col-span-6">
+        <ActivityFeed activities={recentActivity} />
+      </div>
+
+      <!-- Weekly Stats + Leaderboard -->
+      <div class="col-span-6 space-y-6">
+        <LeaderboardSnapshot entries={leaderboardSnapshot} />
+        <WeeklyStats stats={weeklyStats} />
+      </div>
+    </div>
+  </main>
+
+  <!-- Ambient Background Effects -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <!-- Grid pattern -->
+    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(7, 165, 201, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(7, 165, 201, 0.5) 1px, transparent 1px); background-size: 50px 50px;"></div>
+    
+    <!-- Glow orbs -->
+    <div class="absolute top-1/4 -left-32 w-96 h-96 bg-obsidian-accent/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px]"></div>
+  </div>
+</div>
