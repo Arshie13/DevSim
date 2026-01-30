@@ -1,14 +1,21 @@
 <script lang="ts">
-  import { Code, Coins, Zap, Trophy } from "lucide-svelte";
+  import { Code, Coins, Zap, Trophy, BarChart3 } from "lucide-svelte";
   import type { UserData } from "$types";
   import { goto } from "$app/navigation";
 
   export let userData: UserData;
+  export let onOpenStats: (() => void) | undefined = undefined;
 
   $: expPercentage = (userData.exp / userData.nextLevelExp) * 100;
 
   function navigateToDashboard() {
     goto("/dashboard");
+  }
+
+  function handleStatsClick() {
+    if (onOpenStats) {
+      onOpenStats();
+    }
   }
 
 </script>
@@ -73,6 +80,17 @@
 
     <!-- User Section -->
     <div class="flex items-center gap-4">
+      <!-- Stats Button -->
+      {#if onOpenStats}
+        <button
+          on:click={handleStatsClick}
+          class="flex items-center gap-2 bg-obsidian-surface/80 hover:bg-obsidian-surface border border-obsidian-border hover:border-obsidian-accent/40 px-4 py-2 rounded-xl transition-all group"
+        >
+          <BarChart3 class="w-4 h-4 text-obsidian-accent group-hover:text-obsidian-accent/80" />
+          <span class="text-sm font-medium text-obsidian-text-muted">Stats</span>
+        </button>
+      {/if}
+      
       <!-- Coins -->
       <div class="flex items-center gap-2 bg-obsidian-surface/80 border border-obsidian-border px-4 py-2 rounded-xl">
         <Coins class="w-4 h-4 text-amber-400" />

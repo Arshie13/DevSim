@@ -23,14 +23,14 @@
   <!-- Top edge glow -->
   <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-text-primary/40 to-transparent"></div>
   <!-- Header -->
-  <div class="flex items-center justify-between px-4 py-3 border-b border-obsidian-border/60">
-    <div class="flex items-center gap-2">
-      <div class="w-7 h-7 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-        <Trophy class="w-3.5 h-3.5 text-yellow-400" />
+  <div class="flex items-center justify-between px-5 py-4 border-b border-obsidian-border/60">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+        <Trophy class="w-4 h-4 text-yellow-400" />
       </div>
       <div>
         <h3 class="text-sm font-semibold text-obsidian-text-muted">Leaderboard</h3>
-        <p class="text-[10px] text-obsidian-text-primary/50">Top developers this season</p>
+        <p class="text-xs text-obsidian-text-primary/50">Top developers this season</p>
       </div>
     </div>
   </div>

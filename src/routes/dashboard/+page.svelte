@@ -5,18 +5,22 @@
   import KPIs from "$components/dashboard/KPIs.svelte";
   import CurrentStacks from "$components/dashboard/CurrentStacks.svelte";
   import FinishedStacks from "$components/dashboard/FinishedStacks.svelte";
-  import ActivityFeed from "$components/dashboard/ActivityFeed.svelte";
-  import WeeklyStats from "$components/dashboard/WeeklyStats.svelte";
-  import LeaderboardSnapshot from "$components/dashboard/LeaderboardSnapshot.svelte";
+  import StatsDrawer from "$components/dashboard/StatsDrawer.svelte";
   import { 
     kpiData, 
     currentStacks, 
     finishedStacks, 
     weeklyStats,
     recentActivity,
-    leaderboardSnapshot ,
+    leaderboardSnapshot,
     userData
   } from "$mocks";
+
+  let isStatsDrawerOpen = false;
+
+  function openStatsDrawer() {
+    isStatsDrawerOpen = true;
+  }
 
   function navigateToStacks() {
     goto("/stacks");
@@ -29,7 +33,15 @@
 
 <div class="min-h-screen bg-obsidian-bg">
   <!-- Header -->
-  <Header userData={userData} />
+  <Header userData={userData} onOpenStats={openStatsDrawer} />
+
+  <!-- Stats Drawer -->
+  <StatsDrawer 
+    bind:isOpen={isStatsDrawerOpen}
+    activities={recentActivity}
+    weeklyStats={weeklyStats}
+    leaderboard={leaderboardSnapshot}
+  />
 
   <!-- Main Content -->
   <main class="px-8 py-6">
@@ -69,20 +81,6 @@
     <div class="grid grid-cols-2 gap-6 mb-8">
       <CurrentStacks stacks={currentStacks} {finishedStacks} maxVisible={2} />
       <FinishedStacks stacks={finishedStacks} maxVisible={3} />
-    </div>
-
-    <!-- Bottom Section: Activity, Weekly Stats, Challenges -->
-    <div class="grid grid-cols-12 gap-6 pb-8">
-      <!-- Activity Feed -->
-      <div class="col-span-6">
-        <ActivityFeed activities={recentActivity} />
-      </div>
-
-      <!-- Weekly Stats + Leaderboard -->
-      <div class="col-span-6 space-y-6">
-        <LeaderboardSnapshot entries={leaderboardSnapshot} />
-        <WeeklyStats stats={weeklyStats} />
-      </div>
     </div>
   </main>
 
