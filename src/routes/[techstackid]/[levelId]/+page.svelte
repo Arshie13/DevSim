@@ -89,6 +89,7 @@
             body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
           });
           const fileData = await res.json();
+          console.log("file data: ", fileData);
           if (fileData.success) {
             fileContents[selectedFile] = fileData.content;
             editorValue = fileData.content;

@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ request }) => {
     });
 
     let container: Docker.Container;
-    let isNew = false;
+    // let isNew = false;
 
     if (existingContainers.length > 0) {
       console.log(`♻️ Reusing existing container: ${existingContainers[0].Id}`);
@@ -49,6 +49,9 @@ export const POST: RequestHandler = async ({ request }) => {
             '3000/tcp': [{ HostPort: '0' }],
             '5173/tcp': [{ HostPort: '0' }]
           },
+          Binds: [
+            "nextjs_scenario_1:/workspace"
+          ],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false
         },
@@ -58,7 +61,7 @@ export const POST: RequestHandler = async ({ request }) => {
         }
       });
       await container.start();
-      isNew = true;
+      // isNew = true;
     }
 
     // Get assigned ports
@@ -67,38 +70,38 @@ export const POST: RequestHandler = async ({ request }) => {
     const port5173 = info.NetworkSettings.Ports['5173/tcp']?.[0]?.HostPort || '5173';
 
     // Check if project is initialized (package.json exists)
-    let needsSetup = isNew;
-    if (!isNew) {
-      try {
-        const checkExec = await container.exec({
-          Cmd: ['ls', '/workspace/package.json'],
-          AttachStdout: true,
-          AttachStderr: true
-        });
-        const stream = await checkExec.start({ hijack: true });
+    // let needsSetup = isNew;
+    // if (!isNew) {
+    //   try {
+    //     const checkExec = await container.exec({
+    //       Cmd: ['ls', '/workspace/package.json'],
+    //       AttachStdout: true,
+    //       AttachStderr: true
+    //     });
+    //     const stream = await checkExec.start({ hijack: true });
 
-        // Wait for it to finish
-        await new Promise<void>((resolve) => {
-          stream.on('data', () => { }); // Consume stream
-          stream.on('end', resolve);
-        });
+    //     // Wait for it to finish
+    //     await new Promise<void>((resolve) => {
+    //       stream.on('data', () => { }); // Consume stream
+    //       stream.on('end', resolve);
+    //     });
 
-        const inspect = await checkExec.inspect();
-        if (inspect.ExitCode !== 0) {
-          console.log(`🔍 package.json not found (exit ${inspect.ExitCode}), triggering setup`);
-          needsSetup = true;
-        }
-      } catch (e) {
-        console.error("🔍 Error checking for package.json:", e);
-        needsSetup = true;
-      }
-    }
+    //     const inspect = await checkExec.inspect();
+    //     if (inspect.ExitCode !== 0) {
+    //       console.log(`🔍 package.json not found (exit ${inspect.ExitCode}), triggering setup`);
+    //       needsSetup = true;
+    //     }
+    //   } catch (e) {
+    //     console.error("🔍 Error checking for package.json:", e);
+    //     needsSetup = true;
+    //   }
+    // }
 
     // Setup files if needed
-    if (needsSetup) {
-      console.log(`🛠️ Setting up project files in container ${container.id}`);
-      await setupProjectFiles(container, stackId, levelId);
-    }
+    // if (needsSetup) {
+    //   console.log(`🛠️ Setting up project files in container ${container.id}`);
+    //   await setupProjectFiles(container, stackId, levelId);
+    // }
 
     let host = new URL(request.url).hostname;
     if (host === 'localhost') host = '127.0.0.1';
@@ -179,4 +182,44 @@ function getStarterFiles(stackId: string, levelId: number): Record<string, strin
   }
 
   return {};
+}
+
+/**
+ * Mounts an existing volume to a node:alpine container
+ * @param {string} volumeName - The name of the existing Docker volume
+ * @param {string} containerName - What to name your new container
+ * @param {string} mountPath - Where the volume should appear inside (e.g., '/app')
+ */
+async function mountVolumeToContainer(volumeName: string, containerName: string, mountPath = '/usr/workspace') {
+  try {
+    // 1. Ensure the image is available locally
+    console.log(`Ensuring node:alpine image exists...`);
+    const pullStream = await docker.pull('node:alpine');
+    await new Promise((resolve, reject) => {
+      docker.modem.followProgress(pullStream, (err, res) => err ? reject(err) : resolve(res));
+    });
+
+    // 2. Create the container
+    console.log(`Creating container: ${containerName}...`);
+    const container = await docker.createContainer({
+      Image: 'node:alpine',
+      name: containerName,
+      Tty: true, // Keeps the container responsive
+      Cmd: ['sh'], // Simple entry point
+      HostConfig: {
+        Binds: [
+          `${volumeName}:${mountPath}` // The magic line: 'name:path'
+        ],
+      },
+    });
+
+    // 3. Start the container
+    await container.start();
+    console.log(`🚀 Container started! Volume "${volumeName}" is mounted at "${mountPath}"`);
+    
+    return container;
+  } catch (error) {
+    console.error('Failed to mount volume:', error);
+    throw error;
+  }
 }
