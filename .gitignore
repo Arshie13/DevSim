@@ -12,6 +12,9 @@ node_modules
 .DS_Store
 Thumbs.db
 
+# prisma generated
+/prisma/src
+
 # Env
 .env
 .env.*
