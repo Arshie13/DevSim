@@ -1,112 +1,202 @@
 <script>
-	let features = [
-		{ title: 'Integrated Systems', desc: 'Learn how frontend, backend, database, and authentication components work together as cohesive systems.' },
-		{ title: 'Realistic Practice', desc: 'Engage in project-based simulations that mimic real-world scenarios to master full-stack development.' },
-		{ title: 'Hands-on Learning', desc: 'Move beyond theory with interactive challenges that teach technologies in an integrated, practical way.' }
-	];
-
-	let currentFeature = 0;
-	function nextFeature() {
-		currentFeature = (currentFeature + 1) % features.length;
-	}
-	function prevFeature() {
-		currentFeature = (currentFeature - 1 + features.length) % features.length;
-	}
+    let features = [
+        { 
+            title: 'Integrated Systems', 
+            desc: 'Learn how frontend, backend, database, and authentication components work together as cohesive systems.',
+            icon: '🔗'
+        },
+        { 
+            title: 'Realistic Practice', 
+            desc: 'Engage in project-based simulations that mimic real-world scenarios to master full-stack development.',
+            icon: '💼'
+        },
+        { 
+            title: 'Hands-on Learning', 
+            desc: 'Move beyond theory with interactive challenges that teach technologies in an integrated, practical way.',
+            icon: '⚡'
+        }
+    ];
 </script>
 
-<section class="relative min-h-screen bg-slate-800 text-zinc-100 antialiased pt-20" style="font-family: 'Inter', 'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
-	<nav class="fixed top-0 left-0 w-full bg-slate-900 border-b border-zinc-800 text-zinc-100 shadow-md z-50">
-		<div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-			<div class="text-xl font-bold">DevSim</div>
-			<ul class="flex items-center gap-6 text-sm">
-				<li><a href="#" class="hover:text-zinc-400">Home</a></li>
-				<li><a href="#about" class="hover:text-zinc-400">About Us</a></li>
-				<li><a href="#features" class="hover:text-zinc-400">Features</a></li>
-				<li><a href="#faq" class="hover:text-zinc-400">FAQ</a></li>
-				<li><a href="/login" class="px-4 py-2 rounded-md bg-blue-500 text-white font-medium hover:bg-blue-600">Sign Up</a></li>
-				<li><a href="#login" class="px-4 py-2 rounded-md bg-zinc-200 text-zinc-950 font-medium hover:brightness-105">Have an account?</a></li>
-			</ul>
-		</div>
-	</nav>
+<section class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-zinc-100 antialiased" style="font-family: 'Poppins', 'Segoe UI', Roboto, system-ui, -apple-system, 'Helvetica Neue', Arial;">
+    <nav class="fixed top-0 left-0 w-full bg-slate-900/80 backdrop-blur-md border-b border-zinc-700/50 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                    DevSim
+                </div>
+                <div class="flex items-center gap-8">
+                    <ul class="hidden md:flex items-center gap-8 text-sm font-medium">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Home</a></li>
+                        <li><a href="#about" class="hover:text-blue-400 transition-colors">About</a></li>
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors">Features</a></li>
+                        <li><a href="#faq" class="hover:text-blue-400 transition-colors">FAQ</a></li>
+                    </ul>
+                    <div class="flex items-center gap-3">
+                        <a href="/login" class="px-5 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-105">
+                            Get Started
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-	<div class="absolute inset-0 pointer-events-none overflow-hidden">
-		<div class="absolute -left-40 -top-24 w-96 h-72 bg-gradient-to-r from-slate-800/40 to-zinc-800/10 blur-3xl transform -rotate-12 opacity-40"></div>
-		<div class="absolute right-6 bottom-6 w-72 h-44 rounded-lg bg-slate-800/60 border border-zinc-800 transform rotate-6 opacity-30"></div>
-	</div>
+    <section class="relative pt-32 pb-20 px-6 overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        </div>
 
-	<div class="relative max-w-6xl mx-auto px-6 py-16">
-		<header class="text-center mb-16">
-			<img src="/images/DevSim.svg" alt="DevSim Logo" class="mx-auto w-auto max-h-64">
-			<p class="mt-4 text-zinc-400 max-w-3xl mx-auto text-lg">An interactive project-based simulation platform designed to help aspiring software developers master full-stack web development through realistic, hands-on practice.</p>
-		</header>
+        <div class="relative max-w-7xl mx-auto">
+            <div class="text-center max-w-4xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-8">
+                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                    Interactive Web Development Platform
+                </div>
 
-		<section id="about" class="text-center py-12 bg-slate-900 rounded-lg border border-zinc-800 mb-16">
-			<h2 class="text-3xl font-bold text-zinc-100">About Us</h2>
-			<p class="mt-4 text-zinc-400 max-w-4xl mx-auto">At DevSim, we believe in learning by doing. Our mission is to empower aspiring developers with the skills they need to succeed in the real world by providing realistic, hands-on simulations that integrate all aspects of full-stack development.</p>
-		</section>
+                <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
+                    Master <span class="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">Full-Stack</span><br/>
+                    Development
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    Learn through realistic, hands-on simulations that integrate frontend, backend, and database technologies
+                </p>
 
-		<section id="features" class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-16">
-			{#each features as f}
-				<article class="p-6 rounded-lg bg-slate-900 border border-zinc-800 hover:scale-[1.02] transition-transform duration-150">
-					<h3 class="text-xl font-semibold text-zinc-100">{f.title}</h3>
-					<p class="mt-3 text-zinc-400 text-sm">{f.desc}</p>
-				</article>
-			{/each}
-		</section>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/get-started" class="group px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold text-lg shadow-xl shadow-blue-500/30 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/40">
+                        Start Learning Free
+                        <span class="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                    </a>
+                    <a href="#features" class="px-8 py-4 rounded-xl bg-slate-800 border border-zinc-700 hover:border-zinc-600 text-white font-semibold text-lg transition-all hover:bg-slate-700">
+                        Explore Features
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <section id="about" class="py-24 px-6 bg-slate-800/50">
+        <div class="max-w-5xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                Learning by <span class="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Doing</span>
+            </h2>
+            <p class="text-xl text-zinc-400 leading-relaxed max-w-3xl mx-auto">
+                DevSim empowers aspiring developers with the skills they need to succeed in the real world. 
+                Our realistic, hands-on simulations integrate all aspects of full-stack development, 
+                preparing you for actual software engineering challenges.
+            </p>
+        </div>
+    </section>
 
-		<section id="faq" class="text-center py-12 bg-slate-900 rounded-lg border border-zinc-800 mb-16">
-			<h2 class="text-3xl font-bold text-zinc-100">Frequently Asked Questions</h2>
-			<div class="mt-8 text-left max-w-4xl mx-auto">
-				<div class="mb-6">
-					<h3 class="text-lg font-semibold text-zinc-100">What is DevSim?</h3>
-					<p class="text-zinc-400">DevSim is an interactive project-based simulation platform designed to help aspiring software developers master full-stack web development through realistic, hands-on practice.</p>
-				</div>
-				<div class="mb-6">
-					<h3 class="text-lg font-semibold text-zinc-100">How is DevSim different from other platforms?</h3>
-					<p class="text-zinc-400">Unlike traditional learning platforms that teach technologies in isolation, DevSim focuses on teaching how frontend, backend, database, and authentication components work together as integrated systems.</p>
-				</div>
-				<div class="mb-6">
-					<h3 class="text-lg font-semibold text-zinc-100">Who is DevSim for?</h3>
-					<p class="text-zinc-400">DevSim is for aspiring software developers who want to learn how to build and integrate full-stack systems through hands-on simulations.</p>
-				</div>
-			</div>
-		</section>
+    <section id="features" class="py-24 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Why Choose DevSim</h2>
+                <p class="text-xl text-zinc-400">Everything you need to become a full-stack developer</p>
+            </div>
 
-		<section class="text-center py-12 bg-slate-900 rounded-lg border border-zinc-800">
-			<h2 class="text-3xl font-bold text-zinc-100">Ready to start learning different tech stacks?</h2>
-			<p class="mt-4 text-zinc-400">Join DevSim today and start mastering full-stack development through hands-on simulations.</p>
-			<div class="mt-6">
-				<a href="/get-started" class="px-8 py-3 rounded-md bg-zinc-200 text-zinc-950 font-medium shadow hover:brightness-105 hover:scale-105 transition-transform">Get Started</a>
-			</div>
-		</section>
-	</div>
+            <div class="grid md:grid-cols-3 gap-6">
+                {#each features as feature}
+                    <div class="group p-8 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-zinc-700/50 hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1">
+                        <div class="text-5xl mb-4">{feature.icon}</div>
+                        <h3 class="text-2xl font-bold mb-3 group-hover:text-blue-400 transition-colors">
+                            {feature.title}
+                        </h3>
+                        <p class="text-zinc-400 leading-relaxed">{feature.desc}</p>
+                    </div>
+                {/each}
+            </div>
+        </div>
+    </section>
 
-	<footer class="bg-slate-900 text-zinc-400 py-6">
-		<div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center">
-			<p>&copy; 2026 DevSim. All rights reserved.</p>
-			<ul class="flex items-center gap-4 text-sm">
-				<li><a href="#" class="hover:text-zinc-100">Privacy Policy</a></li>
-				<li><a href="#" class="hover:text-zinc-100">Terms of Service</a></li>
-				<li><a href="#" class="hover:text-zinc-100">Contact</a></li>
-			</ul>
-		</div>
-	</footer>
+    <section id="faq" class="py-24 px-6 bg-slate-800/50">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16">
+                Frequently Asked Questions
+            </h2>
+            
+            <div class="space-y-4">
+                <details class="group p-6 rounded-xl bg-slate-900 border border-zinc-700 hover:border-zinc-600 transition-colors">
+                    <summary class="text-xl font-semibold cursor-pointer list-none flex justify-between items-center">
+                        What is DevSim?
+                        <span class="text-zinc-500 group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <p class="mt-4 text-zinc-400 leading-relaxed">
+                        DevSim is an interactive project-based simulation platform designed to help aspiring software developers master full-stack web development through realistic, hands-on practice.
+                    </p>
+                </details>
+
+                <details class="group p-6 rounded-xl bg-slate-900 border border-zinc-700 hover:border-zinc-600 transition-colors">
+                    <summary class="text-xl font-semibold cursor-pointer list-none flex justify-between items-center">
+                        How is DevSim different from other platforms?
+                        <span class="text-zinc-500 group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <p class="mt-4 text-zinc-400 leading-relaxed">
+                        Unlike traditional learning platforms that teach technologies in isolation, DevSim focuses on teaching how frontend, backend, database, and authentication components work together as integrated systems.
+                    </p>
+                </details>
+
+                <details class="group p-6 rounded-xl bg-slate-900 border border-zinc-700 hover:border-zinc-600 transition-colors">
+                    <summary class="text-xl font-semibold cursor-pointer list-none flex justify-between items-center">
+                        Who is DevSim for?
+                        <span class="text-zinc-500 group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <p class="mt-4 text-zinc-400 leading-relaxed">
+                        DevSim is for aspiring software developers who want to learn how to build and integrate full-stack systems through hands-on simulations.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="relative p-12 rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 overflow-hidden">
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+                
+                <div class="relative text-center">
+                    <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                        Ready to Start Building?
+                    </h2>
+                    <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                        Join thousands of developers mastering full-stack development through hands-on simulations
+                    </p>
+                    <a href="/get-started" class="inline-block px-10 py-4 rounded-xl bg-white text-blue-600 font-bold text-lg shadow-2xl hover:shadow-3xl transition-all hover:scale-105">
+                        Get Started Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-zinc-800 bg-slate-900 py-12 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                    DevSim
+                </div>
+                <p class="text-zinc-500">&copy; 2026 DevSim. All rights reserved.</p>
+                <ul class="flex gap-8 text-sm text-zinc-400">
+                    <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
 </section>
 
 <style>
-	:global(.logo) {
-		letter-spacing: -0.02em;
-	}
-	:global(.btn-accent) {
-		box-shadow: 0 8px 30px rgba(228, 228, 231, 0.06);
-	}
-	:global(.glow) {
-		box-shadow: inset 0 1px 0 rgba(39, 39, 42, 0.12), 0 6px 30px rgba(2, 6, 23, 0.6);
-	}
-	@media (max-width: 520px) {
-		:global(.logo) {
-			font-size: 1.6rem;
-		}
-	}
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.6; }
+    }
+    
+    .animate-pulse {
+        animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
 </style>
