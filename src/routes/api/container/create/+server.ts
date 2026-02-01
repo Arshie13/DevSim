@@ -34,6 +34,13 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     } else {
       console.log(`🆕 Creating new container for ${stackId} level ${levelId}`);
+
+      // use this for later for mounting a volume on a container
+      // const volume = await docker.createVolume({
+      //   Name: "test-volume",
+      //   Driver: "local"
+      // });
+
       container = await docker.createContainer({
         Image: 'node:20-alpine',
         Cmd: ['/bin/sh'],
