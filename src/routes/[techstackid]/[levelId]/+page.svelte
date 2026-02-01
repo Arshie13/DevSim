@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import { MonacoInitializer } from "$lib/client/MonacoInitializer";
+  import { MonacoInitializer } from "$client/MonacoInitializer";
   import {
     Play,
     Square,
@@ -17,7 +17,7 @@
     Lightbulb,
     BookOpen,
   } from "lucide-svelte";
-  import { TerminalInitializer } from "$lib/client/TerminalInitializer";
+  import { TerminalInitializer } from "$client/TerminalInitializer";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -89,7 +89,6 @@
             body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
           });
           const fileData = await res.json();
-          console.log("file data: ", fileData);
           if (fileData.success) {
             fileContents[selectedFile] = fileData.content;
             editorValue = fileData.content;
