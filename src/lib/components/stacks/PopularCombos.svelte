@@ -6,7 +6,7 @@
     BACKEND_OPTIONS,
     DATABASE_OPTIONS,
     SERVICES_OPTIONS,
-  } from "$lib/mocks";
+  } from "$mocks";
   import { Zap } from "lucide-svelte";
 
   export let onSelectCombo: (combo: StackSelection) => void;

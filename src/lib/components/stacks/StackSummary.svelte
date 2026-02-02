@@ -5,7 +5,7 @@
     BACKEND_OPTIONS,
     DATABASE_OPTIONS,
     SERVICES_OPTIONS,
-  } from "$lib/mocks";
+  } from "$mocks";
   import { Rocket, X, Info, Zap } from "lucide-svelte";
 
   export let selection: StackSelection;
