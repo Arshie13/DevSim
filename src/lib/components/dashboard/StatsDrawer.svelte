@@ -83,7 +83,7 @@
       </div>
 
       <!-- Activity Feed -->
-      <div>
+      <div class="pb-6">
         <ActivityFeed {activities} />
       </div>
     </div>
