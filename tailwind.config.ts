@@ -4,7 +4,8 @@ export default {
   content: ["./src/**/*.{html,js,svelte,ts}"],
 
   theme: {
-    extend: { colors: {
+    extend: {
+      colors: {
         // DevSim Obsidian Terminal palette
         obsidian: {
           bg: {
@@ -19,7 +20,8 @@ export default {
           },
           accent: '#07a5c9',
         }
-      }}
+      }
+    }
   },
 
   plugins: [require("@tailwindcss/typography")]
