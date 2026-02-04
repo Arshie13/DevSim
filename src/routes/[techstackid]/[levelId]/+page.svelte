@@ -21,7 +21,7 @@
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
-    import type { FileListResponse } from "$lib/interface/Files";
+  import type { FileListResponse } from "$lib/interface/Files";
 
   // Get route params
   $: stackId = page.params.techstackid;
