@@ -21,6 +21,7 @@
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
+    import type { FileListResponse } from "$lib/interface/Files";
 
   // Get route params
   $: stackId = page.params.techstackid;
@@ -39,6 +40,7 @@
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
   let editorValue: string = "";
+  let fileTree: string[] = [];
 
   // Refs
   let terminalRef: HTMLDivElement;
@@ -80,6 +82,26 @@
         console.log(data.previewUrl);
         containerId = data.containerId;
         previewUrl = data.previewUrl;
+
+        // Fetch file list from Docker
+        try {
+          const listRes = await fetch(`/api/container/${containerId}/files/list`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+          const listData = await listRes.json() as FileListResponse;
+          if (listData.success) {
+            fileTree = listData.files;
+            // If we have files, select the first one
+            if (fileTree.length > 0 && !fileTree.includes(selectedFile)) {
+              selectedFile = fileTree[0];
+            }
+          }
+        } catch (error) {
+          console.error("Error listing files:", error);
+          // Fallback to mock files if container list fails
+          fileTree = flattenFiles(LEVEL_CONFIG.starterFiles);
+        }
 
         // Read initial file content from Docker
         try {
@@ -260,7 +282,6 @@
   // Calculate progress
   $: completedTasks = tasks.filter((t) => t.completed).length;
   $: progress = (completedTasks / tasks.length) * 100;
-  $: fileTree = flattenFiles(LEVEL_CONFIG.starterFiles);
 </script>
 
 <svelte:head>

@@ -2,7 +2,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import Docker from 'dockerode';
-import { LEVEL_CONFIG } from '$lib/mockdata/mocklevel';
 
 const docker = new Docker();
 
@@ -22,7 +21,6 @@ export const POST: RequestHandler = async ({ request }) => {
     });
 
     let container: Docker.Container;
-    // let isNew = false;
 
     if (existingContainers.length > 0) {
       console.log(`♻️ Reusing existing container: ${existingContainers[0].Id}`);
@@ -57,6 +55,7 @@ export const POST: RequestHandler = async ({ request }) => {
             '5173/tcp': [{ HostPort: '0' }]
           },
           Binds: [
+            // volume_name: /directory for terminal
             "nextjs_scenario_1:/workspace"
           ],
           Memory: 512 * 1024 * 1024,
@@ -68,7 +67,6 @@ export const POST: RequestHandler = async ({ request }) => {
         }
       });
       await container.start();
-      // isNew = true;
     }
 
     // Get assigned ports
@@ -76,39 +74,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const port3000 = info.NetworkSettings.Ports['3000/tcp']?.[0]?.HostPort || '3000';
     const port5173 = info.NetworkSettings.Ports['5173/tcp']?.[0]?.HostPort || '5173';
 
-    // Check if project is initialized (package.json exists)
-    // let needsSetup = isNew;
-    // if (!isNew) {
-    //   try {
-    //     const checkExec = await container.exec({
-    //       Cmd: ['ls', '/workspace/package.json'],
-    //       AttachStdout: true,
-    //       AttachStderr: true
-    //     });
-    //     const stream = await checkExec.start({ hijack: true });
-
-    //     // Wait for it to finish
-    //     await new Promise<void>((resolve) => {
-    //       stream.on('data', () => { }); // Consume stream
-    //       stream.on('end', resolve);
-    //     });
-
-    //     const inspect = await checkExec.inspect();
-    //     if (inspect.ExitCode !== 0) {
-    //       console.log(`🔍 package.json not found (exit ${inspect.ExitCode}), triggering setup`);
-    //       needsSetup = true;
-    //     }
-    //   } catch (e) {
-    //     console.error("🔍 Error checking for package.json:", e);
-    //     needsSetup = true;
-    //   }
-    // }
-
-    // Setup files if needed
-    // if (needsSetup) {
-    //   console.log(`🛠️ Setting up project files in container ${container.id}`);
-    //   await setupProjectFiles(container, stackId, levelId);
-    // }
+    // TODO: Check if project is initialized (has files)
 
     let host = new URL(request.url).hostname;
     if (host === 'localhost') host = '127.0.0.1';
@@ -127,106 +93,3 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({ success: false, error: String(error) }, { status: 500 });
   }
 };
-
-async function setupProjectFiles(container: Docker.Container, stackId: string, levelId: number) {
-  const files = getStarterFiles(stackId, levelId);
-  console.log(`📂 Preparing to write ${Object.keys(files).length} files to container ${container.id}`);
-
-  for (const [path, content] of Object.entries(files)) {
-    try {
-      const exec = await container.exec({
-        Cmd: ['sh', '-c', `mkdir -p $(dirname "${path}") && cat > "${path}"`],
-        AttachStdin: true,
-        AttachStdout: true,
-        AttachStderr: true
-      });
-
-      const stream = await exec.start({ hijack: true, stdin: true });
-
-      await new Promise<void>((resolve, reject) => {
-        stream.on('finish', resolve);
-        stream.on('error', reject);
-        stream.write(content);
-        stream.end();
-      });
-
-      // Wait a bit for the filesystem to catch up
-      const inspect = await exec.inspect();
-      if (inspect.ExitCode !== 0) {
-        console.error(`❌ Failed to write ${path}. Exit code: ${inspect.ExitCode}`);
-      } else {
-        console.log(`✅ Wrote ${path} (${content.length} bytes)`);
-      }
-    } catch (error) {
-      console.error(`❌ Error writing ${path}:`, error);
-    }
-  }
-}
-
-function flattenStarterFiles(structure: any, prefix = '/workspace'): Record<string, string> {
-  const files: Record<string, string> = {};
-
-  for (const [key, value] of Object.entries(structure)) {
-    const path = `${prefix}/${key}`;
-
-    if (value && typeof value === 'object') {
-      if ('file' in value) {
-        files[path] = (value as any).file.contents;
-      } else if ('directory' in value) {
-        Object.assign(files, flattenStarterFiles((value as any).directory, path));
-      }
-    }
-  }
-
-  return files;
-}
-
-function getStarterFiles(stackId: string, levelId: number): Record<string, string> {
-  // For now we only have one level in mocklevel, 
-  // so we'll return it if levelId matches.
-  if (levelId === LEVEL_CONFIG.level) {
-    return flattenStarterFiles(LEVEL_CONFIG.starterFiles);
-  }
-
-  return {};
-}
-
-/**
- * Mounts an existing volume to a node:alpine container
- * @param {string} volumeName - The name of the existing Docker volume
- * @param {string} containerName - What to name your new container
- * @param {string} mountPath - Where the volume should appear inside (e.g., '/app')
- */
-async function mountVolumeToContainer(volumeName: string, containerName: string, mountPath = '/usr/workspace') {
-  try {
-    // 1. Ensure the image is available locally
-    console.log(`Ensuring node:alpine image exists...`);
-    const pullStream = await docker.pull('node:alpine');
-    await new Promise((resolve, reject) => {
-      docker.modem.followProgress(pullStream, (err, res) => err ? reject(err) : resolve(res));
-    });
-
-    // 2. Create the container
-    console.log(`Creating container: ${containerName}...`);
-    const container = await docker.createContainer({
-      Image: 'node:alpine',
-      name: containerName,
-      Tty: true, // Keeps the container responsive
-      Cmd: ['sh'], // Simple entry point
-      HostConfig: {
-        Binds: [
-          `${volumeName}:${mountPath}` // The magic line: 'name:path'
-        ],
-      },
-    });
-
-    // 3. Start the container
-    await container.start();
-    console.log(`🚀 Container started! Volume "${volumeName}" is mounted at "${mountPath}"`);
-    
-    return container;
-  } catch (error) {
-    console.error('Failed to mount volume:', error);
-    throw error;
-  }
-}
