@@ -25,6 +25,7 @@ const config = {
 			$assets: 'src/lib/assets',
 			$routes: 'src/routes',
 			$mocks: 'src/lib/mocks',
+			$styles: 'src/lib/styles',
 		}
 	}
 };

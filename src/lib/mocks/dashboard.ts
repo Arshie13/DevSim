@@ -1,0 +1,205 @@
+import type { StackProgress, FinishedStack, KPIData, ActivityItem, LeaderboardEntry } from "$types";
+
+
+export const kpiData: KPIData[] = [
+  {
+    id: "stacks-completed",
+    label: "Stacks Completed",
+    value: 3,
+    icon: "🏆",
+    trend: { value: 50, isPositive: true },
+    color: "from-amber-500 to-orange-600",
+  },
+  {
+    id: "total-xp",
+    label: "Total XP Earned",
+    value: "12.4K",
+    icon: "⚡",
+    trend: { value: 24, isPositive: true },
+    color: "from-cyan-500 to-blue-600",
+  },
+  {
+    id: "coding-hours",
+    label: "Coding Hours",
+    value: 86,
+    icon: "⏱️",
+    trend: { value: 12, isPositive: true },
+    color: "from-emerald-500 to-green-600",
+  },
+  {
+    id: "current-streak",
+    label: "Day Streak",
+    value: 7,
+    icon: "🔥",
+    trend: { value: 3, isPositive: true },
+    color: "from-rose-500 to-pink-600",
+  },
+];
+
+export const currentStacks: StackProgress[] = [
+  {
+    id: "vue-django",
+    name: "Vue + Django",
+    frontend: "Vue.js",
+    backend: "Django",
+    database: "PostgreSQL",
+    services: "Docker",
+    progress: 65,
+    currentLevel: 4,
+    totalLevels: 6,
+    lastActive: "2 hours ago",
+    icon: "💚",
+  },
+  {
+    id: "svelte-fastify-redis",
+    name: "Svelte + Fastify",
+    frontend: "Svelte",
+    backend: "Fastify",
+    database: "Redis",
+    services: "Prisma",
+    progress: 33,
+    currentLevel: 2,
+    totalLevels: 6,
+    lastActive: "Yesterday",
+    icon: "🔥",
+  },
+  {
+    id: "angular-nestjs",
+    name: "Angular + NestJS",
+    frontend: "Angular",
+    backend: "NestJS",
+    database: "MySQL",
+    services: "GraphQL",
+    progress: 15,
+    currentLevel: 1,
+    totalLevels: 6,
+    lastActive: "3 days ago",
+    icon: "🅰️",
+  },
+
+];
+
+export const finishedStacks: FinishedStack[] = [
+  {
+    id: "mern",
+    name: "MERN Stack",
+    frontend: "React",
+    backend: "Express.js",
+    database: "MongoDB",
+    services: "Prisma",
+    completedAt: "Jan 15, 2026",
+    xpEarned: 4500,
+    coinsEarned: 850,
+    rating: 5,
+    icon: "⚛️",
+  },
+  {
+    id: "pern",
+    name: "PERN Stack",
+    frontend: "React",
+    backend: "Express.js",
+    database: "PostgreSQL",
+    services: "Prisma",
+    completedAt: "Dec 28, 2025",
+    xpEarned: 4200,
+    coinsEarned: 780,
+    rating: 4,
+    icon: "🐘",
+  },
+  {
+    id: "next-supabase",
+    name: "Next.js + Supabase",
+    frontend: "Next.js",
+    backend: "Next.js API",
+    database: "PostgreSQL",
+    services: "Supabase",
+    completedAt: "Dec 10, 2025",
+    xpEarned: 3800,
+    coinsEarned: 720,
+    rating: 5,
+    icon: "▲",
+  },
+];
+
+export const weeklyStats = {
+  codingHours: [2.5, 3.2, 1.8, 4.1, 3.5, 2.2, 3.8],
+  days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  totalHours: 21.1,
+  avgPerDay: 3.0,
+};
+
+export const recentActivity: ActivityItem[] = [
+  {
+    id: "1",
+    type: "achievement",
+    title: "First API Integration",
+    description: "Successfully connected frontend to backend API",
+    timestamp: "2 hours ago",
+    icon: "🏅",
+    xp: 150,
+    coins: 25,
+  },
+  {
+    id: "2",
+    type: "level_up",
+    title: "Level 4 Reached",
+    description: "Advanced to Level 4 in Vue + Django stack",
+    timestamp: "5 hours ago",
+    icon: "⬆️",
+    xp: 500,
+  },
+  {
+    id: "3",
+    type: "daily_login",
+    title: "7-Day Streak!",
+    description: "Logged in for 7 consecutive days",
+    timestamp: "Today",
+    icon: "🔥",
+    xp: 100,
+    coins: 50,
+  },
+  {
+    id: "4",
+    type: "challenge",
+    title: "Debug Master",
+    description: "Fixed 5 bugs in a single session",
+    timestamp: "Yesterday",
+    icon: "🐛",
+    xp: 200,
+    coins: 35,
+  },
+  {
+    id: "5",
+    type: "stack_complete",
+    title: "MERN Stack Completed",
+    description: "Finished all 6 levels of MERN Stack simulation",
+    timestamp: "Jan 15, 2026",
+    icon: "🎉",
+    xp: 1000,
+    coins: 200,
+  },
+];
+
+export const leaderboardSnapshot: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    username: "CodeNinja42",
+    avatar: "🥷",
+    xp: 28500,
+    level: 24,
+  },
+  {
+    rank: 2,
+    username: "DevMaster_X",
+    avatar: "🧙",
+    xp: 26200,
+    level: 22,
+  },
+  {
+    rank: 3,
+    username: "StackOverflow_Pro",
+    avatar: "🦸",
+    xp: 24800,
+    level: 21,
+  }
+];

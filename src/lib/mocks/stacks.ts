@@ -1,224 +1,221 @@
-import type { TechStack } from "$types";
+import type { TechCategory, TechOption, StackSelection } from "$types";
 
-export const TECH_STACKS: TechStack[] = [
+// Mix-and-match technology options
+export const FRONTEND_OPTIONS: TechOption[] = [
   {
-    id: "mern",
-    name: "MERN Stack",
-    description: "MongoDB, Express, React, Node.js",
+    id: "react",
+    name: "React",
     icon: "⚛️",
+    description: "A JavaScript library for building user interfaces",
     color: "from-cyan-500 to-blue-600",
-    levels: 8,
-    tags: ["Full Stack", "NoSQL", "REST API"],
   },
   {
-    id: "next-prisma",
-    name: "Next.js + Prisma",
-    description: "Next.js, Prisma ORM, PostgreSQL",
+    id: "nextjs",
+    name: "Next.js",
     icon: "▲",
-    color: "from-gray-800 to-gray-900",
-    levels: 10,
-    tags: ["Full Stack", "TypeScript", "Server Actions"],
-    sprintLevels: [
-      {
-        level: 1,
-        title: "Setup & First API Route",
-        description:
-          "Initialize Next.js project with Prisma and create your first API endpoint",
-        difficulty: "Beginner",
-        estimatedTime: "2 hours",
-        deadline: 4,
-        tasks: [
-          "Set up Next.js 15 project with TypeScript",
-          "Configure Prisma with PostgreSQL",
-          "Create a simple User model",
-          "Build GET /api/users endpoint",
-        ],
-        rewards: { exp: 150, coins: 50 },
-      },
-      {
-        level: 2,
-        title: "CRUD Operations",
-        description:
-          "Implement full Create, Read, Update, Delete operations for users",
-        difficulty: "Beginner",
-        estimatedTime: "3 hours",
-        deadline: 5,
-        tasks: [
-          "Create POST /api/users endpoint",
-          "Implement PUT /api/users/[id]",
-          "Add DELETE functionality",
-          "Handle validation and errors",
-        ],
-        rewards: { exp: 200, coins: 75 },
-      },
-      {
-        level: 3,
-        title: "Relations & Complex Queries",
-        description:
-          "Work with related data models and implement complex database queries",
-        difficulty: "Intermediate",
-        estimatedTime: "4 hours",
-        deadline: 6,
-        tasks: [
-          "Add Post model with User relation",
-          "Implement nested queries",
-          "Add filtering and pagination",
-          "Create aggregate queries",
-        ],
-        rewards: { exp: 300, coins: 100 },
-      },
-      {
-        level: 4,
-        title: "Authentication System",
-        description:
-          "Build secure authentication with NextAuth.js and session management",
-        difficulty: "Intermediate",
-        estimatedTime: "5 hours",
-        deadline: 8,
-        tasks: [
-          "Install and configure NextAuth.js",
-          "Set up credential provider",
-          "Implement protected routes",
-          "Add JWT tokens and sessions",
-        ],
-        rewards: { exp: 400, coins: 150 },
-      },
-      {
-        level: 5,
-        title: "Server Actions & Mutations",
-        description:
-          "Leverage Next.js 15 Server Actions for seamless data mutations",
-        difficulty: "Intermediate",
-        estimatedTime: "4 hours",
-        deadline: 6,
-        tasks: [
-          "Convert API routes to Server Actions",
-          "Implement revalidatePath",
-          "Add optimistic updates",
-          "Handle form submissions",
-        ],
-        rewards: { exp: 350, coins: 125 },
-      },
-      {
-        level: 6,
-        title: "File Upload & Storage",
-        description:
-          "Implement file upload functionality with cloud storage integration",
-        difficulty: "Advanced",
-        estimatedTime: "5 hours",
-        deadline: 7,
-        tasks: [
-          "Set up file upload API",
-          "Integrate cloud storage (S3/Cloudinary)",
-          "Handle image optimization",
-          "Add file validation and security",
-        ],
-        rewards: { exp: 450, coins: 175 },
-      },
-      {
-        level: 7,
-        title: "Real-time Features",
-        description:
-          "Add real-time capabilities with WebSockets or Server-Sent Events",
-        difficulty: "Advanced",
-        estimatedTime: "6 hours",
-        deadline: 8,
-        tasks: [
-          "Implement WebSocket server",
-          "Add real-time notifications",
-          "Create live chat feature",
-          "Handle reconnection logic",
-        ],
-        rewards: { exp: 500, coins: 200 },
-      },
-      {
-        level: 8,
-        title: "Caching & Performance",
-        description:
-          "Optimize application with caching strategies and performance tuning",
-        difficulty: "Advanced",
-        estimatedTime: "5 hours",
-        deadline: 7,
-        tasks: [
-          "Implement Redis caching",
-          "Add request memoization",
-          "Optimize database queries",
-          "Configure ISR and SSG",
-        ],
-        rewards: { exp: 500, coins: 200 },
-      },
-      {
-        level: 9,
-        title: "Testing & Quality",
-        description: "Write comprehensive tests and ensure code quality",
-        difficulty: "Advanced",
-        estimatedTime: "6 hours",
-        deadline: 8,
-        tasks: [
-          "Set up Jest and Testing Library",
-          "Write unit tests for API routes",
-          "Add integration tests",
-          "Implement E2E tests with Playwright",
-        ],
-        rewards: { exp: 550, coins: 225 },
-      },
-      {
-        level: 10,
-        title: "Deployment & DevOps",
-        description: "Deploy your application and set up CI/CD pipeline",
-        difficulty: "Expert",
-        estimatedTime: "7 hours",
-        deadline: 10,
-        tasks: [
-          "Deploy to Vercel/Railway",
-          "Set up environment variables",
-          "Configure GitHub Actions",
-          "Implement monitoring and logging",
-        ],
-        rewards: { exp: 600, coins: 250 },
-      },
-    ],
+    description: "The React framework for production",
+    color: "from-zinc-700 to-zinc-900",
   },
   {
-    id: "vue-express",
-    name: "Vue + Express",
-    description: "Vue.js, Express, Node.js, MySQL",
+    id: "vue",
+    name: "Vue.js",
     icon: "💚",
-    color: "from-green-500 to-emerald-600",
-    levels: 8,
-    tags: ["Full Stack", "SPA", "REST API"],
+    description: "The progressive JavaScript framework",
+    color: "from-emerald-500 to-green-600",
   },
   {
-    id: "react-firebase",
-    name: "React + Firebase",
-    description: "React, Firebase, Cloud Functions",
+    id: "svelte",
+    name: "Svelte",
     icon: "🔥",
-    color: "from-orange-500 to-yellow-500",
-    levels: 7,
-    tags: ["Frontend Heavy", "BaaS", "Real-time"],
+    description: "Cybernetically enhanced web apps",
+    color: "from-orange-500 to-red-600",
   },
   {
-    id: "svelte-express",
-    name: "Svelte + Express",
-    description: "Svelte, Express, Node.js, SQLite",
-    icon: "🎯",
-    color: "from-red-500 to-orange-600",
-    levels: 8,
-    tags: ["Full Stack", "Lightweight", "Modern"],
+    id: "angular",
+    name: "Angular",
+    icon: "🅰️",
+    description: "Platform for building mobile and desktop apps",
+    color: "from-red-500 to-pink-600",
   },
 ];
 
-// Mock user data - would come from backend/auth
-export const userData = {
-  username: "dev_rookie",
-  level: 12,
-  exp: 3450,
-  nextLevelExp: 5000,
-  coins: 1250,
-  avatar: "👨‍💻",
-  currentStacks: [
-    { stackId: "mern", currentLevel: 3, completed: false },
-    { stackId: "next-prisma", currentLevel: 1, completed: false },
-  ],
-  completedStacks: ["react-firebase"],
-};
+export const BACKEND_OPTIONS: TechOption[] = [
+  {
+    id: "express",
+    name: "Express.js",
+    icon: "🚂",
+    description: "Fast, unopinionated web framework for Node.js",
+    color: "from-zinc-600 to-zinc-800",
+  },
+  {
+    id: "fastify",
+    name: "Fastify",
+    icon: "⚡",
+    description: "Fast and low overhead web framework",
+    color: "from-zinc-500 to-zinc-700",
+  },
+  {
+    id: "nestjs",
+    name: "NestJS",
+    icon: "🐈",
+    description: "Progressive Node.js framework",
+    color: "from-red-600 to-pink-700",
+  },
+  {
+    id: "django",
+    name: "Django",
+    icon: "🐍",
+    description: "High-level Python web framework",
+    color: "from-green-700 to-emerald-800",
+  },
+  {
+    id: "flask",
+    name: "Flask",
+    icon: "🧪",
+    description: "Lightweight WSGI web application framework",
+    color: "from-zinc-600 to-zinc-800",
+  },
+];
+
+export const DATABASE_OPTIONS: TechOption[] = [
+  {
+    id: "postgresql",
+    name: "PostgreSQL",
+    icon: "🐘",
+    description: "Advanced open-source relational database",
+    color: "from-blue-600 to-indigo-700",
+  },
+  {
+    id: "mongodb",
+    name: "MongoDB",
+    icon: "🍃",
+    description: "Document-oriented NoSQL database",
+    color: "from-green-600 to-emerald-700",
+  },
+  {
+    id: "mysql",
+    name: "MySQL",
+    icon: "🐬",
+    description: "World's most popular open source database",
+    color: "from-orange-500 to-amber-600",
+  },
+  {
+    id: "sqlite",
+    name: "SQLite",
+    icon: "📦",
+    description: "Self-contained SQL database engine",
+    color: "from-sky-500 to-blue-600",
+  },
+  {
+    id: "redis",
+    name: "Redis",
+    icon: "🔴",
+    description: "In-memory data structure store",
+    color: "from-red-600 to-rose-700",
+  },
+];
+
+export const SERVICES_OPTIONS: TechOption[] = [
+  {
+    id: "prisma",
+    name: "Prisma",
+    icon: "◮",
+    description: "Next-generation Node.js and TypeScript ORM",
+    color: "from-indigo-600 to-purple-700",
+  },
+  {
+    id: "firebase",
+    name: "Firebase",
+    icon: "🔥",
+    description: "Google's app development platform",
+    color: "from-amber-500 to-orange-600",
+  },
+  {
+    id: "supabase",
+    name: "Supabase",
+    icon: "⚡",
+    description: "Open source Firebase alternative",
+    color: "from-emerald-500 to-green-600",
+  },
+  {
+    id: "docker",
+    name: "Docker",
+    icon: "🐳",
+    description: "Containerization platform",
+    color: "from-blue-500 to-cyan-600",
+  },
+  {
+    id: "graphql",
+    name: "GraphQL",
+    icon: "◈",
+    description: "Query language for your API",
+    color: "from-pink-500 to-fuchsia-600",
+  },
+];
+
+export const TECH_CATEGORIES: TechCategory[] = [
+  {
+    id: "frontend",
+    name: "Frontend",
+    description: "Choose your UI framework",
+    icon: "🎨",
+    options: FRONTEND_OPTIONS,
+  },
+  {
+    id: "backend",
+    name: "Backend",
+    description: "Choose your server framework",
+    icon: "⚙️",
+    options: BACKEND_OPTIONS,
+  },
+  {
+    id: "database",
+    name: "Database",
+    description: "Choose your data storage",
+    icon: "🗄️",
+    options: DATABASE_OPTIONS,
+  },
+  {
+    id: "services",
+    name: "Services",
+    description: "Choose additional tools",
+    icon: "🔧",
+    options: SERVICES_OPTIONS,
+  },
+];
+
+// Predefined popular combinations (optional presets)
+export const POPULAR_COMBOS: StackSelection[] = [
+  {
+    id: "mern",
+    name: "MERN Stack",
+    frontend: "react",
+    backend: "express",
+    database: "mongodb",
+    services: "prisma",
+  },
+    {
+    id: "pern",
+    name: "PERN Stack",
+    frontend: "react",
+    backend: "express",
+    database: "postgresql",
+    services: "prisma",
+  },
+  {
+    id: "next-supabase",
+    name: "Next.js + Supabase",
+    frontend: "nextjs",
+    backend: "nextjs",
+    database: "postgresql",
+    services: "supabase",
+  },
+  {
+    id: "vue-django",
+    name: "Vue + Django",
+    frontend: "vue",
+    backend: "django",
+    database: "postgresql",
+    services: "docker",
+  },
+];
