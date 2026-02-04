@@ -28,6 +28,7 @@
 		"vite": "^7.2.6"
 	},
 	"dependencies": {
+		"@auth/sveltekit": "^1.11.1",
 		"@monaco-editor/loader": "^1.7.0",
 		"@sveltejs/adapter-node": "^5.4.0",
 		"@types/ws": "^8.18.1",

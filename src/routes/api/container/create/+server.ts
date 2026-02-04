@@ -1,12 +1,16 @@
 // src/routes/api/container/create/+server.ts
-import { json } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import Docker from 'dockerode';
 
 const docker = new Docker();
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ locals, request }) => {
   try {
+    const session = await locals.auth();
+    if (!session) {
+      return error(401, 'Unauthorized');
+    }
     const { stackId, levelId } = await request.json();
 
     // Create container
