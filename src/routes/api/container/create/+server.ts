@@ -30,6 +30,8 @@ export const POST: RequestHandler = async ({ request }) => {
       if (!info.State.Running) {
         await container.start();
       }
+
+      // TODO: check if container is empty; if yes, mount volume;
     } else {
       console.log(`🆕 Creating new container for ${stackId} level ${levelId}`);
 
@@ -74,7 +76,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const port3000 = info.NetworkSettings.Ports['3000/tcp']?.[0]?.HostPort || '3000';
     const port5173 = info.NetworkSettings.Ports['5173/tcp']?.[0]?.HostPort || '5173';
 
-    // TODO: Check if project is initialized (has files)
+    // TODO: fix the preview URL such that it accomodates the PERN stack preview;
 
     let host = new URL(request.url).hostname;
     if (host === 'localhost') host = '127.0.0.1';
