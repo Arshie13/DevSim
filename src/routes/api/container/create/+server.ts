@@ -62,7 +62,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
           },
           Binds: [
             // volume_name: /directory for terminal
-            "nextjs_scenario_1:/workspace"
+            "PERN_POS_SYSTEM:/workspace"
           ],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false

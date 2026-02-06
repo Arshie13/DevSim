@@ -1,3 +1,7 @@
+<script lang="ts">
+    import { signIn } from '@auth/sveltekit/client';
+</script>
+
 <section
     class="min-h-screen flex items-center justify-center text-zinc-100 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8 relative overflow-hidden"
     style="font-family: 'Poppins', 'Segoe UI', Roboto, system-ui, -apple-system, 'Helvetica Neue', Arial;"
@@ -29,6 +33,7 @@
 
             <div class="mt-6">
                 <button
+                    on:click={() => signIn('google')}
                     type="button"
                     class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-lg font-semibold shadow-lg shadow-blue-500/25 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/30"
                 >

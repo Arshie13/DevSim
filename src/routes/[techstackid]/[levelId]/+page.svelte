@@ -9,15 +9,11 @@
     FileCode,
     Shell,
     Globe,
-    CheckCircle,
     Clock,
-    Target,
     ChevronLeft,
-    AlertCircle,
-    Lightbulb,
-    BookOpen,
   } from "lucide-svelte";
   import { TerminalInitializer } from "$client/TerminalInitializer";
+  import PrimarySidebar from "$lib/components/devSidebar/PrimarySidebar.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -34,13 +30,15 @@
   let tasks: Task[] = LEVEL_CONFIG.tasks;
   let timeRemaining: number = LEVEL_CONFIG.deadline;
   let isRunning: boolean = false;
-  let showHints: boolean = false;
   let containerId: string = "";
   let terminal: TerminalInitializer | null = null;
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
   let editorValue: string = "";
   let fileTree: string[] = [];
+
+  // Derive project name from level config
+  $: projectName = LEVEL_CONFIG.title.split(" ")[0] || "project";
 
   // Refs
   let terminalRef: HTMLDivElement;
@@ -227,9 +225,10 @@
     );
   }
 
-  // Select file
-  async function selectFile(file: string) {
+  // Select file (with optional line number and search term to highlight)
+  async function selectFile(file: string, lineNumber?: number, searchTerm?: string) {
     selectedFile = file;
+    activeTab = "editor";
 
     if (containerId) {
       try {
@@ -243,6 +242,10 @@
           fileContents[file] = data.content;
           monacoEditor?.setValue(data.content);
           monacoEditor?.setLanguageFromFilename(file);
+          if (lineNumber) {
+            // Small delay to let Monaco render the new content
+            requestAnimationFrame(() => monacoEditor?.revealLine(lineNumber, searchTerm));
+          }
         }
       } catch (error) {
         console.error("Error reading file:", error);
@@ -279,24 +282,21 @@
     }
   }
 
-  // Calculate progress
-  $: completedTasks = tasks.filter((t) => t.completed).length;
-  $: progress = (completedTasks / tasks.length) * 100;
 </script>
 
 <svelte:head>
   <title>Level {LEVEL_CONFIG.level}: {LEVEL_CONFIG.title} - DevSim</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col bg-slate-900 text-white">
+<div class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]">
   <!-- Header -->
   <header
-    class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between"
+    class="bg-[#12192a] border-b border-[#27272a] px-4 py-3 flex items-center justify-between"
   >
     <div class="flex items-center gap-4">
       <button
         on:click={handleBack}
-        class="hover:bg-slate-700 p-2 rounded-lg transition-all"
+        class="hover:bg-[#2d3446] p-2 rounded-lg transition-all"
       >
         <ChevronLeft class="w-5 h-5" />
       </button>
@@ -304,14 +304,14 @@
         <h1 class="font-bold text-lg">
           Level {LEVEL_CONFIG.level}: {LEVEL_CONFIG.title}
         </h1>
-        <p class="text-xs text-gray-400">
+        <p class="text-xs text-[#d0d7dd]/50">
           {LEVEL_CONFIG.stack} • {LEVEL_CONFIG.difficulty}
         </p>
       </div>
     </div>
 
     <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2 bg-slate-700 px-4 py-2 rounded-lg">
+      <div class="flex items-center gap-2 bg-[#2d3446] px-4 py-2 rounded-lg">
         <Clock class="w-4 h-4 text-yellow-400" />
         <span
           class="font-mono {timeRemaining < 3600
@@ -342,7 +342,7 @@
         {/if}
 
         <button
-          class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg font-semibold transition-all"
+          class="bg-[#07a5c9] hover:bg-[#07a5c9]/80 px-4 py-2 rounded-lg font-semibold transition-all"
         >
           Submit Sprint
         </button>
@@ -352,129 +352,28 @@
 
   <div class="flex flex-1 overflow-hidden">
     <!-- Left Sidebar -->
-    <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col">
-      <div class="flex-1 overflow-y-auto">
-        <!-- Scenario -->
-        <div class="p-4 border-b border-slate-700">
-          <div class="flex items-center gap-2 mb-2">
-            <BookOpen class="w-4 h-4 text-blue-400" />
-            <h3 class="font-semibold">Scenario</h3>
-          </div>
-          <p class="text-sm text-gray-400 leading-relaxed">
-            {LEVEL_CONFIG.scenario}
-          </p>
-        </div>
-
-        <!-- Tasks -->
-        <div class="p-4 border-b border-slate-700">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <Target class="w-4 h-4 text-purple-400" />
-              <h3 class="font-semibold">Sprint Tasks</h3>
-            </div>
-            <span class="text-xs text-gray-400"
-              >{completedTasks}/{tasks.length}</span
-            >
-          </div>
-
-          <div class="w-full bg-slate-700 rounded-full h-2 mb-4">
-            <div
-              class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
-              style="width: {progress}%"
-            ></div>
-          </div>
-
-          <div class="space-y-2">
-            {#each tasks as task}
-              <button
-                on:click={() => toggleTask(task.id)}
-                class="w-full flex items-start gap-2 p-2 rounded hover:bg-slate-700 cursor-pointer transition-all text-left"
-              >
-                <div
-                  class="mt-0.5 w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all {task.completed
-                    ? 'bg-green-500 border-green-500'
-                    : 'border-slate-600 hover:border-slate-500'}"
-                >
-                  {#if task.completed}
-                    <CheckCircle class="w-4 h-4 text-white" />
-                  {/if}
-                </div>
-                <span
-                  class="text-sm {task.completed
-                    ? 'line-through text-gray-500'
-                    : 'text-gray-300'}"
-                >
-                  {task.text}
-                </span>
-              </button>
-            {/each}
-          </div>
-        </div>
-
-        <!-- Hints -->
-        <div class="p-4">
-          <button
-            on:click={() => (showHints = !showHints)}
-            class="w-full flex items-center justify-between p-2 hover:bg-slate-700 rounded transition-all"
-          >
-            <div class="flex items-center gap-2">
-              <Lightbulb class="w-4 h-4 text-yellow-400" />
-              <h3 class="font-semibold">Hints</h3>
-            </div>
-            <span class="text-xs text-gray-400"
-              >{LEVEL_CONFIG.hints.length}</span
-            >
-          </button>
-
-          {#if showHints}
-            <div class="mt-2 space-y-2">
-              {#each LEVEL_CONFIG.hints as hint}
-                <div
-                  class="flex items-start gap-2 p-2 bg-yellow-900/20 rounded border border-yellow-700/30"
-                >
-                  <AlertCircle
-                    class="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5"
-                  />
-                  <p class="text-xs text-gray-300">{hint}</p>
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </div>
-
-        <!-- File Explorer -->
-        <div class="p-4 border-t border-slate-700">
-          <div class="flex items-center gap-2 mb-3">
-            <FileCode class="w-4 h-4 text-blue-400" />
-            <h3 class="font-semibold">Files</h3>
-          </div>
-          <div class="space-y-1">
-            {#each fileTree as file}
-              <button
-                on:click={() => selectFile(file)}
-                class="w-full text-left px-3 py-2 rounded text-sm transition-all {selectedFile ===
-                file
-                  ? 'bg-purple-600 text-white'
-                  : 'hover:bg-slate-700 text-gray-300'}"
-              >
-                {file}
-              </button>
-            {/each}
-          </div>
-        </div>
-      </div>
-    </aside>
+    <PrimarySidebar
+      {fileTree}
+      {selectedFile}
+      {projectName}
+      {containerId}
+      scenario={LEVEL_CONFIG.scenario}
+      {tasks}
+      hints={LEVEL_CONFIG.hints}
+      onSelectFile={selectFile}
+      onToggleTask={toggleTask}
+    />
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col">
       <!-- Tab Bar -->
-      <div class="bg-slate-800 border-b border-slate-700 flex">
+      <div class="bg-[#12192a] border-b border-[#27272a] flex">
         <button
           on:click={() => (activeTab = "editor")}
           class="px-4 py-2 flex items-center gap-2 border-b-2 transition-all {activeTab ===
           'editor'
-            ? 'border-purple-500 text-white bg-slate-700'
-            : 'border-transparent text-gray-400 hover:text-white'}"
+            ? 'border-[#07a5c9] text-[#d0d7dd] bg-[#2d3446]'
+            : 'border-transparent text-[#d0d7dd]/40 hover:text-[#d0d7dd]'}"
         >
           <FileCode class="w-4 h-4" />
           Editor
@@ -483,8 +382,8 @@
           on:click={() => (activeTab = "terminal")}
           class="px-4 py-2 flex items-center gap-2 border-b-2 transition-all {activeTab ===
           'terminal'
-            ? 'border-purple-500 text-white bg-slate-700'
-            : 'border-transparent text-gray-400 hover:text-white'}"
+            ? 'border-[#07a5c9] text-[#d0d7dd] bg-[#2d3446]'
+            : 'border-transparent text-[#d0d7dd]/40 hover:text-[#d0d7dd]'}"
         >
           <Shell class="w-4 h-4" />
           Terminal
@@ -493,8 +392,8 @@
           on:click={() => (activeTab = "preview")}
           class="px-4 py-2 flex items-center gap-2 border-b-2 transition-all {activeTab ===
           'preview'
-            ? 'border-purple-500 text-white bg-slate-700'
-            : 'border-transparent text-gray-400 hover:text-white'}"
+            ? 'border-[#07a5c9] text-[#d0d7dd] bg-[#2d3446]'
+            : 'border-transparent text-[#d0d7dd]/40 hover:text-[#d0d7dd]'}"
         >
           <Globe class="w-4 h-4" />
           Preview
@@ -506,12 +405,12 @@
         <div class:hidden={activeTab !== "editor"} class="h-full">
           <div class="h-full flex flex-col">
             <div
-              class="bg-slate-800 px-4 py-2 border-b border-slate-700 flex items-center justify-between"
+              class="bg-[#12192a] px-4 py-2 border-b border-[#27272a] flex items-center justify-between"
             >
-              <span class="text-sm text-gray-400">{selectedFile}</span>
+              <span class="text-sm text-[#d0d7dd]/50">{selectedFile}</span>
               <button
                 on:click={saveFile}
-                class="text-xs bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded transition-all"
+                class="text-xs bg-[#07a5c9] hover:bg-[#07a5c9]/80 px-3 py-1 rounded transition-all"
               >
                 Save (Ctrl+S)
               </button>
@@ -531,17 +430,17 @@
         <div class:hidden={activeTab !== "preview"} class="h-full">
           <div class="h-full flex flex-col bg-white">
             <div
-              class="bg-slate-800 px-4 py-2 flex items-center justify-between"
+              class="bg-[#12192a] px-4 py-2 flex items-center justify-between"
             >
               <div class="flex items-center gap-2">
-                <Globe class="w-4 h-4 text-gray-400" />
-                <span class="text-sm text-gray-400"
+                <Globe class="w-4 h-4 text-[#d0d7dd]/40" />
+                <span class="text-sm text-[#d0d7dd]/40"
                   >{previewUrl || "Waiting for server..."}</span
                 >
               </div>
               <button
                 on:click={refreshPreview}
-                class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded transition-all flex items-center gap-1"
+                class="text-xs bg-[#2d3446] hover:bg-[#2d3446]/80 px-3 py-1 rounded transition-all flex items-center gap-1"
                 disabled={!previewUrl}
               >
                 <Clock class="w-3 h-3" />
@@ -551,10 +450,10 @@
 
             {#if !previewUrl}
               <div
-                class="flex-1 flex items-center justify-center text-slate-600"
+                class="flex-1 flex items-center justify-center text-[#d0d7dd]/30"
               >
                 <div class="text-center">
-                  <Globe class="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <Globe class="w-16 h-16 mx-auto mb-4 opacity-30" />
                   <p class="text-lg font-semibold">Preparing Preview...</p>
                   <p class="text-sm mt-2">Starting dev server...</p>
                 </div>
@@ -586,5 +485,17 @@
       system-ui,
       -apple-system,
       sans-serif;
+  }
+
+  /* Search result highlight in Monaco editor */
+  :global(.search-highlight-match) {
+    background-color: rgba(7, 165, 201, 0.25) !important;
+    border: 1px solid rgba(7, 165, 201, 0.6);
+    border-radius: 2px;
+  }
+
+  :global(.search-highlight-match-inline) {
+    color: #fff !important;
+    font-weight: 600;
   }
 </style>
