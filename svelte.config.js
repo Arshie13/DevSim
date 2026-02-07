@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-node'; // Use Node adapter for WebSocket support
 import { mdsvex } from 'mdsvex';
 import mdsvexConfig from './mdsvex.config.js';
+import path from 'path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -15,7 +16,8 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		alias: {
-			$lib: 'src/lib',
+			$lib: path.resolve('./src/lib'),
+			$client: path.resolve('./src/lib/client'),
 			$components: 'src/lib/components',
 			$stores: 'src/lib/stores',
 			$utils: 'src/lib/utils',

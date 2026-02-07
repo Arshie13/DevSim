@@ -12,35 +12,39 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const exec = await container.exec({
       Cmd: ['cat', path],
       AttachStdout: true,
-      AttachStderr: true
+      AttachStderr: true,
+      Tty: false
     });
 
     const stream = await exec.start({ hijack: true });
-    
-    // Use dockerode's demux to properly handle the stream
+
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
-    
+
     await new Promise<void>((resolve, reject) => {
       container.modem.demuxStream(
         stream,
         {
           write: (chunk: Buffer) => stdout.push(chunk),
-          end: () => {}
+          end: () => { }
         },
         {
           write: (chunk: Buffer) => stderr.push(chunk),
-          end: () => {}
+          end: () => { }
         }
       );
-      
+
       stream.on('end', resolve);
       stream.on('error', reject);
     });
 
     const content = Buffer.concat(stdout).toString('utf8');
+    const errorOutput = Buffer.concat(stderr).toString('utf8');
 
-    console.log("content: ", content);
+    if (errorOutput && !content) {
+      console.error("Read error:", errorOutput);
+      return json({ success: false, error: errorOutput.trim() });
+    }
 
     return json({ success: true, content });
   } catch (error) {
