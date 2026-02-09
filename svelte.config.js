@@ -17,6 +17,7 @@ const config = {
 		adapter: adapter(),
 		alias: {
 			$lib: path.resolve('./src/lib'),
+			$prisma: path.resolve('./prisma/src/generated/prisma/client'),
 			$client: path.resolve('./src/lib/client'),
 			$components: 'src/lib/components',
 			$stores: 'src/lib/stores',
