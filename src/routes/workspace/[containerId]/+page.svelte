@@ -66,26 +66,27 @@
     return files;
   }
 
+  // Get containerId from route params
+  $: containerId = page.params.containerId;
+
   // Initialize Docker Container and Terminal
   onMount(async () => {
+
     const mount = async () => {
       try {
-        // Create container
-        const response = await fetch("/api/container/create", {
+        // Start the existing container
+        const response = await fetch(`/api/docker/container/${containerId}/start`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stackId, levelId }),
         });
         const data = await response.json();
 
         if (!data.success) throw new Error(data.error);
         console.log(data.previewUrl);
-        containerId = data.containerId;
         previewUrl = data.previewUrl;
 
         // Fetch file list from Docker
         try {
-          const listRes = await fetch(`/api/container/${containerId}/files/list`, {
+          const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
@@ -105,7 +106,7 @@
 
         // Read initial file content from Docker
         try {
-          const res = await fetch(`/api/container/${containerId}/files/read`, {
+          const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
@@ -270,7 +271,6 @@
 
         // Explicitly reload the iframe if it's already mounted
         if (iframeRef) {
-          console.log("Reloading iframe via ref:", previewUrl);
           iframeRef.src = previewUrl;
         }
       }

@@ -5,13 +5,13 @@ import Docker from 'dockerode';
 import os from 'os';
 import { Writable } from 'stream';
 
-function getDockerConnection() {
-  const platform = os.platform();
-  if (platform === 'win32') return { socketPath: '//./pipe/docker_engine' };
-  return { socketPath: '/var/run/docker.sock' };
-}
+// function getDockerConnection() {
+//   const platform = os.platform();
+//   if (platform === 'win32') return { socketPath: '//./pipe/docker_engine' };
+//   return { socketPath: '/var/run/docker.sock' };
+// }
 
-const docker = new Docker(getDockerConnection());
+const docker = new Docker();
 
 export async function POST(event: RequestEvent) {
   try {
@@ -83,8 +83,6 @@ export async function POST(event: RequestEvent) {
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.startsWith('/workspace'))
       .map(f => f.replace('/workspace/', ''));
-
-    console.log(`Found ${files.length} files in container ${containerId}`);
 
     return json({ success: true, files });
   } catch (error) {

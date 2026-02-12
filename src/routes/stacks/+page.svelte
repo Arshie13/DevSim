@@ -6,7 +6,8 @@
   import StackSummary from "$components/stacks/StackSummary.svelte";
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
-  import { Layers, Sparkles, Target } from "lucide-svelte";
+  import { Layers, Sparkles } from "lucide-svelte";
+  import { goto } from "$app/navigation";
 
   // Stack selection state
   let selection: StackSelection = {
@@ -21,7 +22,10 @@
   function handleCategorySelect(categoryId: string, optionId: string) {
     selection = {
       ...selection,
-      [categoryId]: selection[categoryId as keyof StackSelection] === optionId ? null : optionId,
+      [categoryId]:
+        selection[categoryId as keyof StackSelection] === optionId
+          ? null
+          : optionId,
     };
   }
 
@@ -45,26 +49,83 @@
     showInfoModal = true;
   }
 
-  function handleStartSprint() {
-    console.log("Starting sprint with:", selection);
-    // Navigate to coding environment
-    // window.location.href = `/workspace/${selection.frontend}-${selection.backend}-${selection.database}`;
+  function navigateToRoute(containerId: string) {
+    goto(`/workspace/${containerId}`);
   }
 
-  $: selectedCount = [
-    selection.frontend,
-    selection.backend,
-    selection.database,
-    selection.services,
-  ].filter(Boolean).length;
+  // Mapping of tech IDs to folder names
+  const techIdToFolderName: Record<string, string> = {
+    postgresql: "postgres",
+    mongodb: "mongo",
+    mysql: "mysql",
+    sqlite: "sqlite",
+    redis: "redis",
+  };
+
+  function buildStackName(selection: StackSelection): string {
+    const parts: string[] = [];
+
+    // Frontend (required)
+    if (selection.frontend) {
+      parts.push(selection.frontend);
+    }
+
+    // Backend
+    if (selection.backend) {
+      parts.push(selection.backend);
+    }
+
+    // Database (required for the project structure)
+    if (selection.database) {
+      parts.push(techIdToFolderName[selection.database] || selection.database);
+    }
+
+    // Services (optional, but included if selected)
+    if (selection.services) {
+      parts.push(selection.services);
+    }
+
+    return parts.join("-");
+  }
+
+  async function handleStartSprint() {
+    const stackName = buildStackName(selection);
+
+    try {
+      // Step 1: Create the container
+      const createResponse = await fetch("/api/docker/container/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          stackName,
+          level: 1, // Default level
+          stacks: selection,
+        }),
+      });
+
+      const createData = await createResponse.json();
+
+      if (!createData.success) {
+        console.error("Failed to create container:", createData.error);
+        alert("Failed to create container");
+        return;
+      }
+      navigateToRoute(createData.containerId);
+    } catch (error) {
+      console.error("Error starting sprint:", error);
+    }
+  }
 </script>
 
 <svelte:head>
   <title>DevSim - Build Your Stack</title>
 </svelte:head>
 
-<div class="min-h-screen bg-obsidian-bg text-obsidian-text-primary custom-scrollbar text-[0.8rem]">
-  
+<div
+  class="min-h-screen bg-obsidian-bg text-obsidian-text-primary custom-scrollbar text-[0.8rem]"
+>
   <div class="relative z-10">
     <Header {userData} />
 
@@ -73,15 +134,23 @@
       <div class="mb-8 flex items-start justify-between">
         <div class="flex items-center gap-4">
           <div class="relative">
-            <div class="w-12 h-12 bg-obsidian-surface border border-obsidian-border rounded-lg flex items-center justify-center">
+            <div
+              class="w-12 h-12 bg-obsidian-surface border border-obsidian-border rounded-lg flex items-center justify-center"
+            >
               <Layers class="w-6 h-6 text-obsidian-text-primary" />
             </div>
             <!-- Corner accents -->
-            <div class="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 border-t-2 border-l-2 border-obsidian-accent/50 rounded-tl-md"></div>
-            <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-b-2 border-r-2 border-obsidian-accent/50 rounded-br-md"></div>
+            <div
+              class="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 border-t-2 border-l-2 border-obsidian-accent/50 rounded-tl-md"
+            ></div>
+            <div
+              class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-b-2 border-r-2 border-obsidian-accent/50 rounded-br-md"
+            ></div>
           </div>
           <div>
-            <h1 class="text-2xl font-bold text-obsidian-text-muted flex items-center gap-2">
+            <h1
+              class="text-2xl font-bold text-obsidian-text-muted flex items-center gap-2"
+            >
               Build Your Stack
               <Sparkles class="w-5 h-5 text-amber-400" />
             </h1>
@@ -90,47 +159,49 @@
             </p>
           </div>
         </div>
-    </div>
-
-    <!-- Popular Combos -->
-    <PopularCombos onSelectCombo={handleQuickSelect} />
-
-    <!-- Divider -->
-    <div class="relative my-8">
-      <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-obsidian-border"></div>
       </div>
-      <div class="relative flex justify-center">
-        <span class="bg-obsidian-bg px-5 text-xs text-obsidian-text-primary/40 uppercase tracking-wider">
-          Or build your own
-        </span>
+
+      <!-- Popular Combos -->
+      <PopularCombos onSelectCombo={handleQuickSelect} />
+
+      <!-- Divider -->
+      <div class="relative my-8">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-obsidian-border"></div>
+        </div>
+        <div class="relative flex justify-center">
+          <span
+            class="bg-obsidian-bg px-5 text-xs text-obsidian-text-primary/40 uppercase tracking-wider"
+          >
+            Or build your own
+          </span>
+        </div>
       </div>
-    </div>
 
-    <!-- Technology Categories -->
-    <div class="space-y-6">
-      {#each TECH_CATEGORIES as category (category.id)}
-        <CategorySection
-          {category}
-          selectedId={selection[category.id as keyof StackSelection]}
-          onSelect={(optionId) => handleCategorySelect(category.id, optionId)}
-        />
-      {/each}
-    </div>
-  </main>
+      <!-- Technology Categories -->
+      <div class="space-y-6">
+        {#each TECH_CATEGORIES as category (category.id)}
+          <CategorySection
+            {category}
+            selectedId={selection[category.id as keyof StackSelection]}
+            onSelect={(optionId) => handleCategorySelect(category.id, optionId)}
+          />
+        {/each}
+      </div>
+    </main>
 
-  <!-- Bottom Summary Bar -->
-  <StackSummary
-    {selection}
-    onClear={handleClearSelection}
-    onStart={handleStartSprint}
-    onShowInfo={handleShowInfo}
-  />
+    <!-- Bottom Summary Bar -->
+    <StackSummary
+      {selection}
+      onClear={handleClearSelection}
+      onStart={handleStartSprint}
+      onShowInfo={handleShowInfo}
+    />
 
-  <!-- Stack Info Modal -->
-  {#if showInfoModal}
-    <StackInfoModal {selection} onClose={() => showInfoModal = false} />
-  {/if}
+    <!-- Stack Info Modal -->
+    {#if showInfoModal}
+      <StackInfoModal {selection} onClose={() => (showInfoModal = false)} />
+    {/if}
   </div>
 </div>
 

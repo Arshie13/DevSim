@@ -24,9 +24,6 @@ model User {
   xp              Int      @default(0)
   coins           Int      @default(0)
   level           Int      @default(1)
-  streak          Int      @default(0)
-  lastLoginAt     DateTime?
-  totalCodingHours Float   @default(0)
   
   // Relations
   currentStacks   UserStack[]
@@ -50,7 +47,6 @@ model TechOption {
   description String
   color       String
   
-  // Relations with explicit names to avoid ambiguity
   frontendStacks UserStack[] @relation("FrontendOption")
   backendStacks  UserStack[] @relation("BackendOption")
   databaseStacks UserStack[] @relation("DatabaseOption")
@@ -107,7 +103,6 @@ model UserStack {
   backend     TechOption @relation("BackendOption", fields: [backendId], references: [id])
   database    TechOption @relation("DatabaseOption", fields: [databaseId], references: [id])
   services    TechOption? @relation("ServiceOption", fields: [servicesId], references: [id])
-  containers  Container[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -164,7 +159,6 @@ model Level {
   // Relations
   scenario    Scenario   @relation(fields: [scenarioId], references: [id])
   tasks       Task[]
-  containers  Container[]
   completions TaskCompletion[]
   
   createdAt   DateTime @default(now())
@@ -221,35 +215,23 @@ model TaskCompletion {
 model Container {
   id          String   @id @default(cuid())
   userId      String
-  stackId     String
-  levelId     String
-  
-  dockerId    String
-  volumeName  String?
-  
+  level       Int
   status      String
-  
-  // Port mappings stored as JSON: { "3000": "32768", "5173": "32769" }
-  ports       Json
-  previewUrl  String?
-  
-  // File system state (optional - can be derived from volume)
-  fileTree    Json?
-  
+
+  containerId String
+
   startedAt   DateTime @default(now())
   stoppedAt   DateTime?
   
+  stacks String[]
+
   // Relations
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stack       UserStack  @relation(fields: [stackId], references: [id])
-  level       Level      @relation(fields: [levelId], references: [id])
   
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  
-  @@unique([dockerId])
+
   @@index([userId])
-  @@index([levelId])
 }
 
 // ============================================

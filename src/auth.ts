@@ -10,8 +10,8 @@ export const { handle } = SvelteKitAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      if (!user.email || !user.name) {
+    async signIn({ user, account, profile }) {
+      if (!user.email) {
         return false;
       }
 
@@ -26,7 +26,7 @@ export const { handle } = SvelteKitAuth({
           await prisma.user.create({
             data: {
               email: user.email,
-              name: user.name,
+              name: user.name || "User",
               image: user.image || null,
             },
           });
@@ -35,8 +35,8 @@ export const { handle } = SvelteKitAuth({
           await prisma.user.update({
             where: { email: user.email },
             data: {
-              name: user.name,
-              image: user.image || null,
+              name: user.name || existingUser.name,
+              image: user.image || existingUser.image,
             },
           });
         }
@@ -46,6 +46,35 @@ export const { handle } = SvelteKitAuth({
         console.error("Error creating/updating user:", error);
         return false;
       }
+    },
+    async jwt({ token, user, account, profile }) {
+      // Initial sign in - get user ID from database using email
+      if (user && user.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+        }
+      }
+
+      // If token.id is not set, try from profile email
+      if (!token.id && profile?.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: profile.email },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+        }
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (token && token.id && session.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
     },
   },
 });
