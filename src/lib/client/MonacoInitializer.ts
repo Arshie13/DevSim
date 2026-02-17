@@ -100,6 +100,50 @@ export class MonacoInitializer {
     }
   }
 
+  revealLine(lineNumber: number, searchTerm?: string) {
+    if (!this.editor) return;
+
+    this.editor.revealLineInCenter(lineNumber);
+
+    if (searchTerm) {
+      const model = this.editor.getModel();
+      if (model) {
+        const lineContent = model.getLineContent(lineNumber);
+        const matchIndex = lineContent.toLowerCase().indexOf(searchTerm.toLowerCase());
+        if (matchIndex !== -1) {
+          const startColumn = matchIndex + 1;
+          const endColumn = startColumn + searchTerm.length;
+          this.editor.setSelection({
+            startLineNumber: lineNumber,
+            startColumn,
+            endLineNumber: lineNumber,
+            endColumn,
+          });
+          this.editor.createDecorationsCollection([
+            {
+              range: {
+                startLineNumber: lineNumber,
+                startColumn,
+                endLineNumber: lineNumber,
+                endColumn,
+              },
+              options: {
+                className: 'search-highlight-match',
+                inlineClassName: 'search-highlight-match-inline',
+              },
+            },
+          ]);
+        } else {
+          this.editor.setPosition({ lineNumber, column: 1 });
+        }
+      }
+    } else {
+      this.editor.setPosition({ lineNumber, column: 1 });
+    }
+
+    this.editor.focus();
+  }
+
   dispose() {
     this.editor?.dispose();
     this.editor = null;
