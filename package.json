@@ -30,7 +30,6 @@
 		"mdsvex": "^0.12.6",
 		"postcss": "^8.5.6",
 		"prisma": "^7.4.0",
-		"prisma": "^7.4.0",
 		"svelte": "^5.45.6",
 		"svelte-check": "^4.3.4",
 		"tailwindcss": "^3.4.9",
