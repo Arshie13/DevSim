@@ -91,6 +91,8 @@
   async function handleStartSprint() {
     const stackName = buildStackName(selection);
 
+    console.log("stack name: ", stackName);
+
     try {
       // Step 1: Create the container
       const createResponse = await fetch("/api/docker/container/create", {

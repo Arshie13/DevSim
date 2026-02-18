@@ -1,10 +1,19 @@
 // src/routes/api/container/create/+server.ts
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Docker from 'dockerode';
-import { saveUserContainer, type UserContainerRequest } from '$lib/server/docker/save-user-container'
+import { saveUserContainer, type UserContainerRequest } from '$lib/server/docker/user/save-user-container'
+import { docker } from '$lib/server/docker/client';
 
-const docker = new Docker();
+interface CreateContainerRequest {
+  stackName: string;
+  level: number;
+  stacks: {
+    frontend?: string;
+    backend?: string;
+    database?: string;
+    services?: string;
+  };
+}
 
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
@@ -12,7 +21,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     if (!session || !session.user || !session.user.id) {
       return error(401, 'Unauthorized');
     }
-    const { stackName, level, stacks } = await request.json(); // needs a type uwu
+    
+    const req: CreateContainerRequest = await request.json()
+    const { stackName, level, stacks } = req;
 
     // Look for existing container with these labels
     const existingContainers = await docker.listContainers({
@@ -31,12 +42,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     if (existingContainers.length > 0) {
       return json({
         success: true,
-        error: 'Container already exists. Reusing...'
+        message: 'Container already exists. Reusing...'
       });
     } else {
-
-      //TODO: check first if selected stackname and scenario exists in submodules
-      // otherwise it will create a container with no files in it.
       const container = await docker.createContainer({
         Image: 'node:20-alpine',
         Cmd: ['/bin/sh'],

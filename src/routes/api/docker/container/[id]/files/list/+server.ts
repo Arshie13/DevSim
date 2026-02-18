@@ -1,17 +1,8 @@
 // src/routes/api/container/[id]/files/list/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
-import Docker from 'dockerode';
-import os from 'os';
+import { docker } from '$lib/server/docker/client';
 import { Writable } from 'stream';
-
-// function getDockerConnection() {
-//   const platform = os.platform();
-//   if (platform === 'win32') return { socketPath: '//./pipe/docker_engine' };
-//   return { socketPath: '/var/run/docker.sock' };
-// }
-
-const docker = new Docker();
 
 export async function POST(event: RequestEvent) {
   try {

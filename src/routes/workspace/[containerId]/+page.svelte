@@ -186,13 +186,12 @@
 
     try {
       const response = await fetch(
-        `/api/container/${containerId}/files/write`,
+        `/api/docker/container/${containerId}/files/write`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            path: `/workspace/${selectedFile}`,
-            content: fileContents[selectedFile] || "",
+            path: `/workspace/${selectedFile}`
           }),
         },
       );
@@ -231,12 +230,14 @@
     selectedFile = file;
     activeTab = "editor";
 
+    console.log("selected file: ", selectedFile);
+
     if (containerId) {
       try {
-        const res = await fetch(`/api/container/${containerId}/files/read`, {
+        const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${file}` }),
+          body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
         });
         const data = await res.json();
         if (data.success) {
@@ -261,7 +262,7 @@
 
   async function refreshPreview() {
     try {
-      const response = await fetch("/api/container/create", {
+      const response = await fetch("/api/docker/container/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stackId, levelId }),

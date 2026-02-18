@@ -1,8 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Docker from 'dockerode';
-
-const docker = new Docker();
+import { docker } from '$lib/server/docker/client';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
   try {
