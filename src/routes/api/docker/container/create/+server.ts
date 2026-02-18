@@ -40,9 +40,19 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     let containerId: string;
 
     if (existingContainers.length > 0) {
+      const existingContainerId = existingContainers[0].Id;
+      
+      // Check if container is not running, start it
+      if (existingContainers[0].State !== 'running') {
+        const existingContainer = docker.getContainer(existingContainerId);
+        await existingContainer.start();
+      }
+      
+      // Return the existing container ID
       return json({
         success: true,
-        message: 'Container already exists. Reusing...'
+        message: 'Container already exists. Reusing...',
+        containerId: existingContainerId
       });
     } else {
       const container = await docker.createContainer({
@@ -74,6 +84,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       });
 
       containerId = container.id;
+
+      // Start the container
+      const startedContainer = docker.getContainer(containerId);
+      await startedContainer.start();
 
       // Convert stacks object to array of strings
       const stacksArray: string[] = [
