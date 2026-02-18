@@ -47,31 +47,33 @@
     transition:fly={{ x: 500, duration: 300 }}
   >
     <!-- Header -->
-    <div class="flex items-center justify-between px-16 py-4 border-b border-obsidian-accent/20 bg-obsidian-bg-light h-[90px]">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10"></line>
-            <line x1="12" y1="20" x2="12" y2="4"></line>
-            <line x1="6" y1="20" x2="6" y2="14"></line>
-          </svg>
+    <div class="border-b border-obsidian-accent/20 bg-obsidian-bg-light">
+      <div class="w-full px-16 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-obsidian-text-muted tracking-tight">Stats & Activity</h2>
+            <p class="text-xs text-obsidian-text-primary/50 uppercase tracking-widest">Your performance overview</p>
+          </div>
         </div>
-        <div>
-          <h2 class="text-xl font-bold text-obsidian-text-muted tracking-tight">Stats & Activity</h2>
-          <p class="text-xs text-obsidian-text-primary/50 uppercase tracking-widest">Your performance overview</p>
-        </div>
+        <button
+          on:click={closeDrawer}
+          class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-obsidian-surface/60 transition-colors group"
+          aria-label="Close drawer"
+        >
+          <X class="w-5 h-5 text-obsidian-text-primary/50 group-hover:text-obsidian-text-muted" />
+        </button>
       </div>
-      <button
-        on:click={closeDrawer}
-        class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-obsidian-surface/60 transition-colors group"
-        aria-label="Close drawer"
-      >
-        <X class="w-5 h-5 text-obsidian-text-primary/50 group-hover:text-obsidian-text-muted" />
-      </button>
     </div>
 
     <!-- Content -->
-    <div class="h-[calc(100%-69px)] overflow-y-auto px-16 py-6 space-y-6">
+    <div class="h-[calc(100%-90px)] overflow-y-auto px-16 py-6 space-y-6">
       <!-- Leaderboard Snapshot -->
       <div>
         <LeaderboardSnapshot entries={leaderboard} />
