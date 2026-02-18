@@ -20,6 +20,8 @@
     }
   }
 
+  $: hasProfileImage = Boolean(userData.avatar && /^https?:\/\//i.test(userData.avatar));
+
 </script>
 
 <header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light sticky top-0 z-50">
@@ -64,7 +66,7 @@
       <!-- User Avatar -->
       <div class="flex items-center gap-3">
         <div class="text-right hidden sm:block">
-          <p class="text-sm font-semibold text-obsidian-text-muted">{userData.username}</p>
+          <p class="text-sm font-semibold text-obsidian-text-muted">{userData.name}</p>
           <p class="text-xs text-obsidian-text-primary/50 uppercase tracking-wider">Developer</p>
         </div>
         <div class="relative">
@@ -72,7 +74,11 @@
           <div
             class="text-2xl w-11 h-11 bg-obsidian-surface border-2 border-obsidian-border rounded-full flex items-center justify-center"
           >
-            {userData.avatar}
+            {#if hasProfileImage}
+              <img src={userData.avatar} alt={userData.name} class="w-full h-full rounded-full object-cover" />
+            {:else}
+              {userData.avatar}
+            {/if}
           </div>
           </button>
           <!-- Online indicator -->

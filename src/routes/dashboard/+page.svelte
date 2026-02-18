@@ -1,5 +1,7 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import type { PageData } from "./$types";
+  import type { UserData } from "$types";
   import { Plus, ArrowRight } from "lucide-svelte";
   import Header from "$components/Header.svelte";
   import KPIs from "$components/dashboard/KPIs.svelte";
@@ -15,9 +17,15 @@
     userData
   } from "$mocks";
 
-  export let data;
+  export let data: PageData;
 
   let isStatsDrawerOpen = false;
+
+  const headerUserData: UserData = {
+    ...userData,
+    name: data.user?.name ?? "No Name",
+    avatar: data.user?.image ?? ''
+  };
 
   function openStatsDrawer() {
     isStatsDrawerOpen = true;
@@ -34,7 +42,7 @@
 
 <div class="min-h-screen bg-obsidian-bg">
   <!-- Header -->
-  <Header userData={userData} onOpenStats={openStatsDrawer} />
+  <Header userData={headerUserData} onOpenStats={openStatsDrawer} />
 
   <!-- Stats Drawer -->
   <StatsDrawer 
@@ -50,7 +58,7 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-2xl font-bold text-obsidian-text-muted">
-          Welcome back, <span class="text-obsidian-accent">{userData.username}</span>
+          Welcome back, <span class="text-obsidian-accent">{headerUserData.name}</span>
         </h2>
         <p class="text-sm text-obsidian-text-primary/50 mt-1">
           Ready to continue your developer journey? Your progress awaits.

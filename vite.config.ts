@@ -7,11 +7,7 @@ import type { Server } from 'http';
 import os from 'os';
 
 // Docker client
-const docker = new Docker({
-  socketPath: os.platform() === 'win32'
-    ? '//./pipe/docker_engine'
-    : '/var/run/docker.sock'
-});
+const docker = new Docker();
 
 export default defineConfig({
   optimizeDeps: {
