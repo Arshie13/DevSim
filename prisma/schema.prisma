@@ -1,8 +1,5 @@
-// Prisma schema for DevSim v2
-// Database provider: PostgreSQL
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "src/generated/prisma"
 }
 
@@ -10,313 +7,148 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============================================
-// USER & AUTHENTICATION
-// ============================================
-
 model User {
-  id              String   @id @default(cuid())
-  email           String   @unique
-  name            String
-  image           String?  // Avatar URL from Google OAuth
-  
+  id           String  @id @default(cuid())
+  dailyLoginId String? @unique
+  email        String  @unique
+  name         String
+  image        String?
+
   // Leveling System
-  xp              Int      @default(0)
-  coins           Int      @default(0)
-  level           Int      @default(1)
-  
+  xp    Int @default(0)
+  coins Int @default(0)
+  level Int @default(1)
+
   // Relations
-  currentStacks   UserStack[]
-  containers      Container[]
-  taskCompletions TaskCompletion[]
-  activities      Activity[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  dailyLogin    DailyLogin?       @relation
+  currentStacks UserStackOptions[]
+  containers    Container[]
+  sessions     Session[]
+  achievements UserAchievement[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
-// ============================================
-// TECH STACK CATALOG
-// ============================================
-
-model TechOption {
-  id          String   @id @default(cuid())
-  category    String
-  name        String
-  icon        String
-  description String
-  color       String
-  
-  frontendStacks UserStack[] @relation("FrontendOption")
-  backendStacks  UserStack[] @relation("BackendOption")
-  databaseStacks UserStack[] @relation("DatabaseOption")
-  serviceStacks  UserStack[] @relation("ServiceOption")
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([category, name])
-}
-
-model StackCombo {
-  id          String   @id @default(cuid())
-  name        String
-  frontendId  String
-  backendId   String
-  databaseId  String
-  servicesId  String?
-  
-  // Relations
-  users       UserStack[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([frontendId, backendId, databaseId, servicesId])
-}
-
-// ============================================
-// USER STACK PROGRESS
-// ============================================
-
-model UserStack {
-  id          String   @id @default(cuid())
+model UserStackOptions {
+  id          String  @id @default(cuid())
   userId      String
-  stackId     String
-  frontendId  String
-  backendId   String
-  databaseId  String
-  servicesId  String?
-  
-  currentLevel Int     @default(1)
-  completed   Boolean  @default(false)
-  completedAt DateTime?
-  
-  // XP and rewards
-  xpEarned    Int      @default(0)
-  coinsEarned  Int      @default(0)
-  
-  // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stack       StackCombo @relation(fields: [stackId], references: [id])
-  frontend    TechOption @relation("FrontendOption", fields: [frontendId], references: [id])
-  backend     TechOption @relation("BackendOption", fields: [backendId], references: [id])
-  database    TechOption @relation("DatabaseOption", fields: [databaseId], references: [id])
-  services    TechOption? @relation("ServiceOption", fields: [servicesId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([userId, stackId])
-  @@index([userId])
-  @@index([stackId])
-}
-
-// ============================================
-// LEVELS & CONFIGURATION
-// ============================================
-
-model Scenario {
-  id          String   @id @default(cuid())
-  name        String   // "REST API", "CRUD App", "Full-Stack Todo"
-  description String
-  difficulty  String   // "Beginner", "Intermediate", "Advanced"
-  
-  // Template definitions stored as JSON
-  // Each TechOption category has files specific to this scenario
-  // Structure:
-  // {
-  //   "frontend": { "react": [...files], "nextjs": [...files] },
-  //   "backend": { "express": [...files], "fastify": [...files] },
-  //   "database": { "postgresql": [...files], "mongodb": [...files] },
-  //   "services": { "prisma": [...files], "docker": [...files] }
-  // }
-  templates   Json
-  
-  // Relations
-  levels      Level[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([name, difficulty])
-}
-
-model Level {
-  id          String   @id @default(cuid())
+  containerId String
+  sessionId   String
   scenarioId  String
-  levelNumber Int
-  title       String
-  difficulty  String
-  deadline    Int
-  scenarioDescription String   // Custom scenario text for this specific level
-  hints       String[]
-  
-  // Rewards
-  xpReward    Int      @default(100)
-  coinReward  Int      @default(50)
-  
-  // Relations
-  scenario    Scenario   @relation(fields: [scenarioId], references: [id])
-  tasks       Task[]
-  completions TaskCompletion[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([scenarioId, levelNumber])
-  @@index([scenarioId])
-}
+  stack       Json
+  isComplete  Boolean
 
-model Task {
-  id          String   @id @default(cuid())
-  levelId     String
-  taskNumber  Int
-  text        String
-  description String?
-  xpReward    Int      @default(25)
-  
   // Relations
-  level       Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  completions TaskCompletion[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([levelId, taskNumber])
-  @@index([levelId])
-}
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  session   Session   @relation(fields: [sessionId], references: [id], onUpdate: Cascade)
+  scenario  Scenario  @relation(fields: [scenarioId], references: [id], onUpdate: Cascade)
 
-model TaskCompletion {
-  id          String   @id @default(cuid())
-  userId      String
-  levelId     String
-  taskId      String
-  completed   Boolean  @default(false)
-  completedAt DateTime?
-  
-  // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  level       Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([userId, taskId])
-  @@index([userId])
-  @@index([levelId])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
-// ============================================
-// CONTAINER MANAGEMENT
-// ============================================
 
 model Container {
-  id          String   @id @default(cuid())
-  userId      String
-  level       Int
-  status      String
+  id     String @id @default(cuid())
+  userId String
+  level  Int
+  status String
 
   containerId String
 
-  startedAt   DateTime @default(now())
-  stoppedAt   DateTime?
-  
+  startedAt DateTime  @default(now())
+  stoppedAt DateTime?
+
   stacks String[]
 
   // Relations
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  userStackOptions UserStackOptions[]
 
   @@index([userId])
 }
 
-// ============================================
-// ACTIVITY & GAMIFICATION
-// ============================================
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  startTime DateTime
+  endTime   DateTime
+  duration  Int
 
-model Activity {
-  id          String   @id @default(cuid())
-  userId      String
-  type        String   // "achievement", "level_up", "stack_complete", "daily_login", "challenge", "task_complete"
-  title       String
-  description String
-  xpEarned    Int      @default(0)
-  coinsEarned Int      @default(0)
-  metadata    Json?    // Additional data (e.g., stack name, level number)
-  
-  // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userStackOptions UserStackOptions[]
+
   @@index([userId])
-  @@index([type])
+}
+
+model Scenario {
+  id          String @id @default(cuid())
+  levelId     String
+  name        String
+  description String
+  difficulty  String
+
+  userStackOptions UserStackOptions[]
+  level            Level              @relation(fields: [levelId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
+model Level {
+  id               String   @id @default(cuid())
+  title            String
+  deadline         DateTime
+  levelDescription String
+  hints            String[]
+  xpReward         Int
+  coinReward       Int
+  task             String[]
+  completedTask    String[]
+
+  scenarios Scenario[]
+}
+
+model DailyLogin {
+  id     String   @id @default(cuid())
+  date   DateTime
+  streak Int      @default(0)
+  userId String   @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Achievement {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   name        String
   description String
   icon        String
   category    String
-  
+
   // Requirements
-  criteria    Json     // { "type": "task_complete", "count": 5 } or sumn idk
-  
-  xpReward    Int      @default(100)
-  coinReward  Int      @default(50)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
+
+  xpReward   Int @default(100)
+  coinReward Int @default(50)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userAchievements UserAchievement[]
+
   @@unique([name])
 }
 
 model UserAchievement {
-  id            String   @id @default(cuid())
-  userId        String
-  achievementId String
-  earnedAt      DateTime @default(now())
-  
+  id             String   @id @default(cuid())
+  userId         String
+  achievementId  String
+  earnedAt       DateTime @default(now())
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
   @@unique([userId, achievementId])
   @@index([userId])
-}
-
-// ============================================
-// DAILY STREAK & LOGGING
-// ============================================
-
-model DailyLogin {
-  id          String   @id @default(cuid())
-  userId      String
-  date        DateTime @db.Date
-  streak      Int
-  
-  createdAt   DateTime @default(now())
-  
-  @@unique([userId, date])
-  @@index([userId])
-}
-
-// ============================================
-// SESSIONS & AUDIT LOG
-// ============================================
-
-model Session {
-  id          String   @id @default(cuid())
-  userId      String
-  startTime   DateTime @default(now())
-  endTime     DateTime?
-  duration    Int?
-  
-  // Activity summary
-  tasksCompleted Int    @default(0)
-  xpEarned      Int    @default(0)
-  
-  @@index([userId])
-  @@index([startTime])
 }
