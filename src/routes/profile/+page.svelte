@@ -64,8 +64,8 @@
   <title>Profile | DevSim</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col bg-obsidian-bg text-obsidian-text-primary text-[0.8rem] overflow-hidden">
-  <div class="w-full px-6 pt-4">
+<div class="h-screen flex flex-col bg-obsidian-bg text-obsidian-text-primary text-sm overflow-hidden">
+  <div class="w-full max-w-[1200px] mx-auto px-4 pt-3 md:px-6 lg:px-8 lg:pt-4">
     <button
       on:click={backToDashboard}
       class="group inline-flex items-center gap-2 px-3.5 py-2 bg-obsidian-surface/70 hover:bg-obsidian-surface border border-obsidian-border/70 hover:border-obsidian-accent/40 rounded-lg text-sm font-medium text-obsidian-text-primary/80 hover:text-obsidian-text-muted transition-all"
@@ -75,10 +75,10 @@
     </button>
   </div>
 
-  <main class="flex-1 w-full px-6 py-3 grid grid-cols-12 gap-4 min-h-0">
+  <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 py-3 md:px-6 lg:px-8 grid grid-cols-12 gap-3 lg:gap-4 xl:gap-5 min-h-0 overflow-y-auto">
 
     <!-- LEFT COLUMN — Full-Height Profile -->
-    <div class="col-span-4 min-h-0">
+    <div class="col-span-12 lg:col-span-4 min-h-0">
       <section class="relative h-full bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-xl overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] flex flex-col">
         <!-- Top glow line -->
         <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-accent/40 to-transparent"></div>
@@ -90,7 +90,7 @@
 
           <!-- Avatar -->
           <div class="relative shrink-0">
-            <div class="w-28 h-28 text-6xl bg-obsidian-bg-light border-[3px] border-obsidian-accent/50 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(7,165,201,0.25),0_8px_32px_rgba(0,0,0,0.4)] ring-4 ring-obsidian-surface/60">
+            <div class="w-20 h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 text-5xl lg:text-6xl bg-obsidian-bg-light border-[3px] border-obsidian-accent/50 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(7,165,201,0.25),0_8px_32px_rgba(0,0,0,0.4)] ring-4 ring-obsidian-surface/60">
               {#if hasProfileImage}
                 <img src={profileUserData.avatar} alt={profileUserData.name} class="w-full h-full rounded-2xl object-cover" />
               {:else}
@@ -165,7 +165,7 @@
     </div>
 
     <!-- RIGHT COLUMN — Progress + Metrics + Friends -->
-    <div class="col-span-8 flex flex-col gap-4 min-h-0">
+    <div class="col-span-12 lg:col-span-8 flex flex-col gap-3 lg:gap-4 min-h-0">
 
       <!-- Progress / Status Snapshot -->
       <section class="relative bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-xl overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)] transition-shadow duration-500">
@@ -225,7 +225,7 @@
       </section>
 
       <!-- Key Metrics -->
-      <section class="grid grid-cols-4 gap-3">
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {#each metrics as metric}
           <div class="group relative bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-xl p-4 hover:border-obsidian-accent/50 transition-all duration-300 overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)] cursor-default">
             <!-- Inner glow -->
@@ -266,8 +266,8 @@
         </div>
 
         <!-- Friends Grid -->
-        <div class="flex-1 p-4 flex items-center">
-          <div class="grid grid-cols-4 gap-4 w-full h-full">
+        <div class="flex-1 p-3 lg:p-4 flex items-center">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 w-full h-full">
             {#each friends as friend}
               <button class="group relative flex flex-col items-center justify-center gap-3 bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-2xl transition-all duration-300 shadow-[0_0_25px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_35px_rgba(7,165,201,0.25)] cursor-pointer overflow-hidden">
                 <!-- Inner glow -->
@@ -276,7 +276,7 @@
                 <div class="absolute inset-0 rounded-2xl bg-obsidian-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <!-- Full-size Avatar with Level -->
                 <div class="relative">
-                  <div class="w-[12rem] h-[12rem] text-[8rem] bg-gradient-to-br from-obsidian-surface to-obsidian-bg-light border-2 border-obsidian-border/50 group-hover:border-obsidian-accent/40 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(7,165,201,0.2)] group-hover:scale-105">
+                  <div class="w-16 h-16 lg:w-24 lg:h-24 xl:w-32 xl:h-32 2xl:w-40 2xl:h-40 text-3xl lg:text-5xl xl:text-6xl 2xl:text-8xl bg-gradient-to-br from-obsidian-surface to-obsidian-bg-light border-2 border-obsidian-border/50 group-hover:border-obsidian-accent/40 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(7,165,201,0.2)] group-hover:scale-105">
                     {friend.avatar}
                   </div>
                   <!-- Level badge on avatar -->

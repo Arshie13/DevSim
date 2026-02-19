@@ -53,11 +53,11 @@
   />
 
   <!-- Main Content -->
-  <main class="px-8 py-6">
+  <main class="px-4 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 max-w-[1200px] mx-auto">
     <!-- Top Section: Welcome + New Stack Button -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4 lg:mb-6">
       <div>
-        <h2 class="text-2xl font-bold text-obsidian-text-muted">
+        <h2 class="text-xl lg:text-2xl font-bold text-obsidian-text-muted">
           Welcome back, <span class="text-obsidian-accent">{headerUserData.name}</span>
         </h2>
         <p class="text-sm text-obsidian-text-primary/50 mt-1">
@@ -82,12 +82,12 @@
     </div>
 
     <!-- KPIs Row -->
-    <div class="mb-8">
+    <div class="mb-5 lg:mb-8">
       <KPIs kpis={kpiData} />
     </div>
 
     <!-- Stacks Section - Side by Side -->
-    <div class="grid grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
       <CurrentStacks containers={data.userContainerList} {finishedStacks} maxVisible={2} />
       <FinishedStacks stacks={finishedStacks} maxVisible={3} />
     </div>

@@ -25,7 +25,7 @@
 </script>
 
 <header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light sticky top-0 z-50">
-  <div class="w-full px-16 py-4 flex items-center justify-between">
+  <div class="w-full max-w-[1200px] px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between mx-auto">
     <!-- Logo -->
     <div class="flex items-center gap-3">
       <div class="relative">
