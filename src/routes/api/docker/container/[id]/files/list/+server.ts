@@ -1,17 +1,8 @@
 // src/routes/api/container/[id]/files/list/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
-import Docker from 'dockerode';
-import os from 'os';
+import { docker } from '$lib/server/docker/client';
 import { Writable } from 'stream';
-
-function getDockerConnection() {
-  const platform = os.platform();
-  if (platform === 'win32') return { socketPath: '//./pipe/docker_engine' };
-  return { socketPath: '/var/run/docker.sock' };
-}
-
-const docker = new Docker(getDockerConnection());
 
 export async function POST(event: RequestEvent) {
   try {
@@ -83,8 +74,6 @@ export async function POST(event: RequestEvent) {
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.startsWith('/workspace'))
       .map(f => f.replace('/workspace/', ''));
-
-    console.log(`Found ${files.length} files in container ${containerId}`);
 
     return json({ success: true, files });
   } catch (error) {

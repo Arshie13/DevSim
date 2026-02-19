@@ -64,26 +64,27 @@
     return files;
   }
 
+  // Get containerId from route params
+  $: containerId = page.params.containerId;
+
   // Initialize Docker Container and Terminal
   onMount(async () => {
+
     const mount = async () => {
       try {
-        // Create container
-        const response = await fetch("/api/container/create", {
+        // Start the existing container
+        const response = await fetch(`/api/docker/container/${containerId}/start`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stackId, levelId }),
         });
         const data = await response.json();
 
         if (!data.success) throw new Error(data.error);
         console.log(data.previewUrl);
-        containerId = data.containerId;
         previewUrl = data.previewUrl;
 
         // Fetch file list from Docker
         try {
-          const listRes = await fetch(`/api/container/${containerId}/files/list`, {
+          const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
@@ -103,7 +104,7 @@
 
         // Read initial file content from Docker
         try {
-          const res = await fetch(`/api/container/${containerId}/files/read`, {
+          const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
@@ -185,13 +186,12 @@
 
     try {
       const response = await fetch(
-        `/api/container/${containerId}/files/write`,
+        `/api/docker/container/${containerId}/files/write`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            path: `/workspace/${selectedFile}`,
-            content: fileContents[selectedFile] || "",
+            path: `/workspace/${selectedFile}`
           }),
         },
       );
@@ -230,12 +230,14 @@
     selectedFile = file;
     activeTab = "editor";
 
+    console.log("selected file: ", selectedFile);
+
     if (containerId) {
       try {
-        const res = await fetch(`/api/container/${containerId}/files/read`, {
+        const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${file}` }),
+          body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
         });
         const data = await res.json();
         if (data.success) {
@@ -260,7 +262,7 @@
 
   async function refreshPreview() {
     try {
-      const response = await fetch("/api/container/create", {
+      const response = await fetch("/api/docker/container/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stackId, levelId }),
@@ -273,7 +275,6 @@
 
         // Explicitly reload the iframe if it's already mounted
         if (iframeRef) {
-          console.log("Reloading iframe via ref:", previewUrl);
           iframeRef.src = previewUrl;
         }
       }

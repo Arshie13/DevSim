@@ -9,11 +9,13 @@
 	<div class="absolute inset-0 overflow-hidden pointer-events-none">
 		<div
 			class="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"
-		></div>
+		>
+		</div>
 		<div
 			class="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"
 			style="animation-delay: 1s;"
-		></div>
+		>
+		</div>
 	</div>
 
 	<div class="w-full flex justify-center px-4 relative z-10">
@@ -41,7 +43,7 @@
 
 			<div class="mt-6">
 				<button
-				onclick={() => signIn("google", { redirectTo: "/dashboard" })}
+					onclick={() => signIn("google", { redirectTo: "/dashboard" })}
 					type="button"
 					class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-lg font-semibold shadow-lg shadow-blue-500/25 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/30"
 				>

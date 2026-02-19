@@ -1,9 +1,7 @@
 // src/routes/api/container/[id]/status/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Docker from 'dockerode';
-
-const docker = new Docker();
+import { docker } from '$lib/server/docker/client';
 
 export const GET: RequestHandler = async ({ params }) => {
   try {
