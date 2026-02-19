@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import { userData } from "$mocks";
   import type { PageData } from "./$types";
   import type { UserData } from "$types";
@@ -56,7 +55,7 @@
   const bio = "Passionate full-stack developer who loves building scalable web applications. Currently exploring systems programming and real-time architectures.";
 
   function backToDashboard() {
-    goto("/dashboard");
+    history.back();
   }
 </script>
 
@@ -71,7 +70,7 @@
       class="group inline-flex items-center gap-2 px-3.5 py-2 bg-obsidian-surface/70 hover:bg-obsidian-surface border border-obsidian-border/70 hover:border-obsidian-accent/40 rounded-lg text-sm font-medium text-obsidian-text-primary/80 hover:text-obsidian-text-muted transition-all"
     >
       <ArrowLeft class="w-4 h-4 text-obsidian-text-primary/70 group-hover:text-obsidian-accent transition-colors" />
-      <span>Back to Dashboard</span>
+      <span>Back</span>
     </button>
   </div>
 
