@@ -184,6 +184,12 @@
   async function saveFile() {
     if (!containerId || !selectedFile) return;
 
+    const content = fileContents[selectedFile] || editorValue;
+    if (!content) {
+      console.error('No content to save');
+      return;
+    }
+
     try {
       const response = await fetch(
         `/api/docker/container/${containerId}/files/write`,
@@ -191,7 +197,8 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            path: `/workspace/${selectedFile}`
+            path: `/workspace/${selectedFile}`,
+            content: content
           }),
         },
       );
