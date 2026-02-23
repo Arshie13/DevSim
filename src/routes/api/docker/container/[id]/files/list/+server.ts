@@ -1,8 +1,8 @@
 // src/routes/api/container/[id]/files/list/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
-import { docker } from '$lib/server/docker/client';
-import { Writable } from 'stream';
+import { getContainerById } from '$lib/server/docker/helpers/get-container-by-id';
+import { streamContainer } from '$lib/server/docker/helpers/stream';
 
 export async function POST(event: RequestEvent) {
   try {
@@ -20,17 +20,13 @@ export async function POST(event: RequestEvent) {
     }
 
     const path = requestData.path || '/workspace';
-    const container = docker.getContainer(containerId);
+    const containerInstance = await getContainerById(containerId);
 
-    // Check if container exists and is running
-    const info = await container.inspect();
-    if (!info.State.Running) {
-      return json({ 
-        success: false, 
-        error: 'Container is not running',
-        files: [] 
-      });
+    if (!containerInstance.success || !containerInstance.container) {
+      return json({ success: false, error: containerInstance.error || 'Container not found', files: [] }, { status: 404 });
     }
+
+    const container = containerInstance.container;
 
     const exec = await container.exec({
       Cmd: ['sh', '-c', `find ${path} -type f ! -path "*/node_modules/*" ! -path "*/.next/*" ! -path "*/.git/*" 2>/dev/null || echo ""`],
@@ -38,35 +34,15 @@ export async function POST(event: RequestEvent) {
       AttachStderr: true
     });
 
-    const stream = await exec.start({});
-
-    let output = '';
-    let errorOutput = '';
-
-    const stdout = new Writable({
-      write(chunk, encoding, callback) {
-        output += chunk.toString();
-        callback();
-      }
-    });
-
-    const stderr = new Writable({
-      write(chunk, encoding, callback) {
-        errorOutput += chunk.toString();
-        callback();
-      }
-    });
-
-    container.modem.demuxStream(stream, stdout, stderr);
-
-    await new Promise((resolve, reject) => {
-      stream.on('end', resolve);
-      stream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 10000); // 10s timeout
-    });
+    const { output, errorOutput } = await streamContainer(exec, container);
 
     if (errorOutput) {
       console.log('Stderr output:', errorOutput);
+      return json({
+        success: false,
+        error: `Error executing command: ${errorOutput.trim()}`,
+        files: []
+      })
     }
 
     const files = output

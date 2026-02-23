@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { docker } from '$lib/server/docker/client';
+import { getContainerById } from '$lib/server/docker/helpers/get-container-by-id';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
   try {
@@ -15,7 +15,13 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       return error(400, 'Container ID is required');
     }
 
-    const container = docker.getContainer(id);
+    const containerInstance = await getContainerById(id);
+
+    if (!containerInstance.success || !containerInstance.container) {
+      return error(404, containerInstance.error || 'Container not found');
+    }
+
+    const container = containerInstance.container;
 
     // Check if container exists and belongs to user
     const info = await container.inspect();

@@ -1,4 +1,3 @@
-// src/routes/api/container/create/+server.ts
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { saveUserContainer, type UserContainerRequest } from '$lib/server/docker/user/save-user-container'
