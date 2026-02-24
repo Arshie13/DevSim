@@ -14,10 +14,14 @@
   } from "lucide-svelte";
   import { TerminalInitializer } from "$client/TerminalInitializer";
   import PrimarySidebar from "$lib/components/devSidebar/PrimarySidebar.svelte";
+  import ConfirmModal from "$lib/components/ConfirmModal.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import type { FileListResponse } from "$lib/interface/Files";
+
+  // Server-loaded data (dbContainerId needed for submit + archive API calls)
+  export let data: { user: any; dbContainerId: string | null };
 
   // Get route params
   $: stackId = page.params.techstackid;
@@ -36,6 +40,13 @@
   let previewUrl: string = "";
   let editorValue: string = "";
   let fileTree: string[] = [];
+
+  // --- Submit Sprint modal state ---
+  let showSubmitModal = false;    // controls visibility of the confirmation modal
+  let isSubmitting = false;       // true while submit + archive requests are in flight
+  let submitError = '';           // error message to show inside the modal
+  let submitSuccess = false;      // true after archive completes successfully
+  let submitRewards = { xp: 0, coins: 0 }; // rewards returned by the submit endpoint
 
   // Derive project name from level config
   $: projectName = LEVEL_CONFIG.title.split(" ")[0] || "project";
@@ -260,6 +271,77 @@
     goto("/");
   }
 
+  function handleSuccessConfirm() {
+    goto("/dashboard");
+  }
+
+  /**
+   * Opens the Submit Sprint confirmation modal.
+   * The actual submission is deferred until the user clicks "Confirm".
+   */
+  function handleSubmitSprint() {
+    submitError = '';
+    submitSuccess = false;
+    showSubmitModal = true;
+  }
+
+  /**
+   * Called when the user confirms in the modal.
+   * Step 1 — submit: marks the container as completed + awards XP/coins.
+   * Step 2 — archive: copies /workspace to a Docker volume and removes the container.
+   * On success the user is redirected to the dashboard.
+   */
+  async function handleConfirmSubmit() {
+    if (!data.dbContainerId) {
+      console.error('[handleConfirmSubmit] dbContainerId is null — URL containerId:', containerId);
+      submitError = 'Could not resolve container record. Please refresh and try again.';
+      return;
+    }
+
+    console.log('[handleConfirmSubmit] dbContainerId:', data.dbContainerId);
+    isSubmitting = true;
+    submitError = '';
+
+    try {
+      // --- Step 1: Mark container as completed ---
+      console.log('[handleConfirmSubmit] Calling submit endpoint...');
+      const submitRes = await fetch(
+        `/api/docker/container/${data.dbContainerId}/submit`,
+        { method: 'POST' }
+      );
+      const submitData = await submitRes.json();
+      console.log('[handleConfirmSubmit] Submit response:', submitRes.status, submitData);
+
+      if (!submitRes.ok) {
+        throw new Error(submitData.message ?? 'Failed to submit sprint.');
+      }
+
+      submitRewards = submitData.rewards;
+
+      // --- Step 2: Archive workspace to Docker volume + remove container ---
+      console.log('[handleConfirmSubmit] Calling archive endpoint...');
+      const archiveRes = await fetch(
+        `/api/docker/container/${data.dbContainerId}/archive`,
+        { method: 'POST' }
+      );
+      const archiveData = await archiveRes.json();
+      console.log('[handleConfirmSubmit] Archive response:', archiveRes.status, archiveData);
+
+      if (!archiveRes.ok) {
+        throw new Error(archiveData.message ?? 'Failed to archive container.');
+      }
+
+      // Both calls succeeded — show the success state briefly then redirect
+      submitSuccess = true;
+      setTimeout(() => goto('/dashboard'), 2000);
+    } catch (err) {
+      console.error('[handleConfirmSubmit] Error:', err);
+      submitError = err instanceof Error ? err.message : String(err);
+    } finally {
+      isSubmitting = false;
+    }
+  }
+
   async function refreshPreview() {
     try {
       const response = await fetch("/api/docker/container/create", {
@@ -343,6 +425,7 @@
         {/if}
 
         <button
+          on:click={handleSubmitSprint}
           class="bg-[#07a5c9] hover:bg-[#07a5c9]/80 px-4 py-2 rounded-lg font-semibold transition-all"
         >
           Submit Sprint
@@ -476,6 +559,68 @@
       </div>
     </div>
   </div>
+
+  <!-- Submit Sprint modal — uses the generic ConfirmModal component -->
+  <ConfirmModal
+    bind:open={showSubmitModal}
+    title="Submit Sprint?"
+    description="This will mark your sprint as <strong class='text-white'>complete</strong>, save your workspace to a Docker volume, and remove the running container. You can restore it later from the dashboard."
+    confirmLabel="Confirm & Archive"
+    loadingLabel="Archiving…"
+    variant="primary"
+    isLoading={isSubmitting}
+    error={submitError}
+    showSuccess={submitSuccess}
+    on:confirm={handleConfirmSubmit}
+  >
+    <!-- Body: task completion summary -->
+    <div class="bg-[#0a0e1a] rounded-lg p-3 mt-4 text-sm">
+      <p class="text-[#d0d7dd]/50 mb-2">Tasks completed</p>
+      <ul class="space-y-1">
+        {#each tasks as task}
+          <li class="flex items-center gap-2">
+            <span class={task.completed ? 'text-green-400' : 'text-[#d0d7dd]/30'}>
+              {task.completed ? '✓' : '○'}
+            </span>
+            <span class={task.completed ? 'text-[#d0d7dd]' : 'text-[#d0d7dd]/40 line-through'}>
+              {task.text}
+            </span>
+          </li>
+        {/each}
+      </ul>
+      <p class="text-xs text-[#d0d7dd]/40 mt-2">
+        {tasks.filter(t => t.completed).length} / {tasks.length} tasks done
+      </p>
+    </div>
+
+    <!-- Success state shown after archive completes -->
+<!-- Success state shown after archive completes -->
+<svelte:fragment slot="success">
+  <div class="text-center py-4">
+    <p class="text-4xl mb-3">🎉</p>
+    <h2 class="text-xl font-bold text-white mb-1">Sprint Submitted!</h2>
+    <p class="text-sm text-[#d0d7dd]/60 mb-4">
+      Your workspace has been archived successfully.
+    </p>
+
+    <div class="flex justify-center gap-6 text-sm mb-6">
+      <span class="text-yellow-400 font-semibold">
+        +{submitRewards.xp} XP ⚡
+      </span>
+      <span class="text-yellow-300 font-semibold">
+        +{submitRewards.coins} Coins 🪙
+      </span>
+    </div>
+
+    <button
+      on:click={handleSuccessConfirm}
+      class="px-6 py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-semibold rounded-lg transition"
+    >
+      OK
+    </button>
+  </div>
+</svelte:fragment>
+  </ConfirmModal>
 </div>
 
 <style>

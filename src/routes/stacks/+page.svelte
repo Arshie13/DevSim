@@ -111,7 +111,12 @@
 
       if (!createData.success) {
         console.error("Failed to create container:", createData.error);
-        alert("Failed to create container");
+        // 401 = stale session — userId missing from DB after a reset
+        if (createResponse.status === 401) {
+          alert("Your session is outdated. Please sign out and sign back in.");
+        } else {
+          alert(`Failed to create container: ${createData.error}`);
+        }
         return;
       }
       navigateToRoute(createData.containerId);

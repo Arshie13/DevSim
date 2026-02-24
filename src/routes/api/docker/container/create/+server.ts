@@ -47,6 +47,25 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         const existingContainer = docker.getContainer(existingContainerId);
         await existingContainer.start();
       }
+
+      // Always upsert the DB record so the workspace page can resolve it.
+      // This handles containers that existed before DB saving was introduced.
+      const stacksArray: string[] = [
+        stacks.frontend,
+        stacks.backend,
+        stacks.database,
+        stacks.services
+      ].filter((s): s is string => s !== null && s !== undefined);
+
+      await saveUserContainer({
+        userId: session.user.id,
+        containerId: existingContainerId,
+        stacks: stacksArray,
+        level,
+        status: 'created'
+      });
+
+      console.log('[create] Reusing existing container, DB record upserted:', existingContainerId);
       
       // Return the existing container ID
       return json({
@@ -112,8 +131,15 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       success: true,
       containerId
     });
-  } catch (error) {
-    console.error('Error handling container request:', error);
-    return json({ success: false, error: String(error) }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Error handling container request:', err);
+
+    // FK violation — stale session whose userId no longer exists in the DB
+    if (message.includes('not found in database')) {
+      return json({ success: false, error: message }, { status: 401 });
+    }
+
+    return json({ success: false, error: message }, { status: 500 });
   }
 };

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Play, Clock, ChevronRight, Container } from "lucide-svelte";
-  import type { Container as ContainerType } from '$prisma';
+  import type { Container as ContainerType } from '$prismaclient';
 
   export let containers: ContainerType[];
   export let finishedStacks: any[] = [];
