@@ -171,13 +171,16 @@
 
   async function saveFile() {
     if (!containerId || !selectedFile) return;
+    
+    const content = fileContents[selectedFile] || [editorValue];
     try {
       const response = await fetch(
         `/api/docker/container/${containerId}/files/write`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
+          body: JSON.stringify({ path: `/workspace/${selectedFile}`, 
+          content: content }),
         },
       );
       const result = await response.json();
