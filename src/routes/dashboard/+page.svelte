@@ -8,7 +8,6 @@
   import StatsDrawer from "$components/dashboard/StatsDrawer.svelte";
   import { 
     kpiData, 
-    finishedStacks, 
     weeklyStats,
     recentActivity,
     leaderboardSnapshot,
@@ -80,8 +79,8 @@
 
     <!-- Stacks Section - Side by Side -->
     <div class="grid grid-cols-2 gap-6 mb-8">
-      <CurrentStacks containers={data.userContainerList} {finishedStacks} maxVisible={2} />
-      <FinishedStacks stacks={finishedStacks} maxVisible={3} />
+      <CurrentStacks containers={data.userContainerList} finishedStacks={data.archivedStacks} maxVisible={2} />
+      <FinishedStacks stacks={data.archivedStacks} maxVisible={3} />
     </div>
   </main>
 
