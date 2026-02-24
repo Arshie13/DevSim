@@ -1,11 +1,54 @@
 <script lang="ts">
-  import { Trophy, Star, ChevronRight, Coins, Zap } from "lucide-svelte";
+  import { goto } from "$app/navigation";
+  import { Trophy, Star, ChevronRight, Coins, Zap, RotateCcw, X, AlertCircle } from "lucide-svelte";
   import type { FinishedStack } from "$types";
 
   export let stacks: FinishedStack[];
   export let maxVisible: number = 2;
+  export let userCoins: number = 0;
 
   $: visibleStacks = stacks.slice(0, maxVisible);
+
+  const RESTORE_COST = 100;
+
+  let paywallStack: FinishedStack | null = null;
+  let isRestoring = false;
+  let restoreError = "";
+
+  function openPaywall(stack: FinishedStack) {
+    paywallStack = stack;
+    restoreError = "";
+  }
+
+  function closePaywall() {
+    if (isRestoring) return;
+    paywallStack = null;
+    restoreError = "";
+  }
+
+  async function handleRestore() {
+    if (!paywallStack) return;
+    isRestoring = true;
+    restoreError = "";
+
+    try {
+      const res = await fetch(`/api/docker/container/${paywallStack.id}/restore`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Request failed (${res.status})`);
+      }
+
+      const data = await res.json();
+      await goto(`/workspace/${data.newContainerId}`);
+    } catch (err) {
+      restoreError = err instanceof Error ? err.message : "Restore failed. Please try again.";
+    } finally {
+      isRestoring = false;
+    }
+  }
 </script>
 
 <div class="relative bg-obsidian-surface/40 border border-amber-500/25 rounded-xl overflow-hidden shadow-[0_0_35px_rgba(251,191,36,0.1)] hover:shadow-[0_0_45px_rgba(251,191,36,0.18)] transition-shadow duration-500">
@@ -83,6 +126,15 @@
                   {stack.completedAt}
                 </div>
               </div>
+
+              <!-- Restore Button -->
+              <button
+                on:click={() => openPaywall(stack)}
+                class="mt-3 w-full flex items-center justify-center gap-2 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium hover:bg-amber-500/20 hover:border-amber-500/50 transition-all duration-200"
+              >
+                <RotateCcw class="w-3 h-3" />
+                Restore Progress
+              </button>
             </div>
           </div>
         {/each}
@@ -97,3 +149,102 @@
     {/if}
   </div>
 </div>
+
+<!-- Paywall Modal -->
+{#if paywallStack}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+    on:click|self={closePaywall}
+  >
+    <div class="relative w-full max-w-sm mx-4 bg-obsidian-surface border border-amber-500/40 rounded-2xl shadow-[0_0_60px_rgba(251,191,36,0.15)] overflow-hidden">
+      <!-- Top glow -->
+      <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"></div>
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-obsidian-border/60">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+            <RotateCcw class="w-4 h-4 text-amber-400" />
+          </div>
+          <h3 class="text-sm font-semibold text-obsidian-text-muted">Restore Progress</h3>
+        </div>
+        <button
+          on:click={closePaywall}
+          class="text-obsidian-text-primary/40 hover:text-obsidian-text-primary/80 transition-colors"
+        >
+          <X class="w-4 h-4" />
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-5 space-y-4">
+        <p class="text-sm text-obsidian-text-primary/70">
+          You're about to restore your saved workspace for:
+        </p>
+        <div class="flex items-center gap-3 bg-obsidian-bg-light border border-obsidian-border/50 rounded-lg px-4 py-3">
+          <span class="text-2xl">{paywallStack.icon}</span>
+          <div>
+            <p class="text-sm font-semibold text-obsidian-text-muted">{paywallStack.name}</p>
+            <p class="text-xs text-obsidian-text-primary/50">{paywallStack.frontend} · {paywallStack.backend} · {paywallStack.database}</p>
+          </div>
+        </div>
+
+        <!-- Cost vs Balance -->
+        <div class="flex items-center justify-between bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-3">
+          <span class="text-sm text-obsidian-text-primary/70">Restore cost</span>
+          <div class="flex items-center gap-1.5 text-amber-400 font-semibold text-sm">
+            <Coins class="w-4 h-4" />
+            <span>{RESTORE_COST} coins</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs text-obsidian-text-primary/50">Your balance</span>
+          <span class="text-xs font-medium {userCoins >= RESTORE_COST ? 'text-emerald-400' : 'text-rose-400'}">
+            🪙 {userCoins} coins
+          </span>
+        </div>
+
+        {#if userCoins < RESTORE_COST}
+          <p class="text-xs text-rose-400/80 text-center">
+            Not enough coins. Earn more by completing sprints.
+          </p>
+        {/if}
+
+        {#if restoreError}
+          <div class="flex items-start gap-2 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2">
+            <AlertCircle class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <p class="text-xs text-rose-400">{restoreError}</p>
+          </div>
+        {/if}
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-3 px-6 pb-5">
+        <button
+          on:click={closePaywall}
+          disabled={isRestoring}
+          class="flex-1 py-2.5 rounded-lg border border-obsidian-border/60 text-sm text-obsidian-text-primary/60 hover:border-obsidian-border hover:text-obsidian-text-primary/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Cancel
+        </button>
+        <button
+          on:click={handleRestore}
+          disabled={isRestoring || userCoins < RESTORE_COST}
+          class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all
+            {userCoins >= RESTORE_COST && !isRestoring
+              ? 'bg-amber-500 hover:bg-amber-400 text-obsidian-bg'
+              : 'bg-amber-500/30 border border-amber-500/20 text-amber-400/50 cursor-not-allowed'}"
+        >
+          {#if isRestoring}
+            Restoring...
+          {:else}
+            Confirm ({RESTORE_COST} 🪙)
+          {/if}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}

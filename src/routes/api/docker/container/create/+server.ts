@@ -57,7 +57,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         stacks.services
       ].filter((s): s is string => s !== null && s !== undefined);
 
-      await saveUserContainer({
+      const { dbContainerId: existingDbId } = await saveUserContainer({
         userId: session.user.id,
         containerId: existingContainerId,
         stacks: stacksArray,
@@ -67,11 +67,12 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
       console.log('[create] Reusing existing container, DB record upserted:', existingContainerId);
       
-      // Return the existing container ID
+      // Return both IDs — frontend navigates via DB id
       return json({
         success: true,
         message: 'Container already exists. Reusing...',
-        containerId: existingContainerId
+        containerId: existingContainerId,
+        dbContainerId: existingDbId
       });
     } else {
       const container = await docker.createContainer({
@@ -124,13 +125,16 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         status: 'created'
       };
 
-      await saveUserContainer(userContainer)
+      const { dbContainerId } = await saveUserContainer(userContainer);
+      return json({
+        success: true,
+        containerId,
+        dbContainerId
+      });
     }
 
-    return json({
-      success: true,
-      containerId
-    });
+    // Fallback (should not be reached)
+    return json({ success: false, error: 'Unexpected state' }, { status: 500 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('Error handling container request:', err);

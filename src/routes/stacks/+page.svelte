@@ -119,7 +119,7 @@
         }
         return;
       }
-      navigateToRoute(createData.containerId);
+      navigateToRoute(createData.dbContainerId);
     } catch (error) {
       console.error("Error starting sprint:", error);
     }

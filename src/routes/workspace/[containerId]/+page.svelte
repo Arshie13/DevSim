@@ -18,8 +18,10 @@
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import type { FileListResponse } from "$lib/interface/Files";
 
-  // Server-loaded data (dbContainerId needed for submit + archive API calls)
-  export let data: { user: any; dbContainerId: string | null };
+  // Server-loaded data:
+  //   dockerContainerId — the real Docker container ID (for Docker API calls)
+  //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
+  export let data: { user: any; dockerContainerId: string | null };
 
   // Get route params
   $: stackId = page.params.techstackid;
@@ -32,7 +34,6 @@
   let tasks: Task[] = LEVEL_CONFIG.tasks;
   let timeRemaining: number = LEVEL_CONFIG.deadline;
   let isRunning: boolean = false;
-  let containerId: string = "";
   let terminal: TerminalInitializer | null = null;
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
@@ -45,9 +46,11 @@
   let editorRef: HTMLDivElement;
   let iframeRef: HTMLIFrameElement;
 
+  // The Docker container ID (from server) — used for all /api/docker/container/{id}/... calls
+  $: containerId = data.dockerContainerId ?? '';
+
   // Derived
   $: projectName = LEVEL_CONFIG.title.split(" ")[0] || "project";
-  $: containerId = page.params.containerId;
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -235,7 +238,7 @@
   }
 
   function handleBack() {
-    goto("/");
+    goto("/dashboard");
   }
 
   function handleSubmitSprint() {
@@ -332,7 +335,7 @@
   <SubmitSprintModal
     bind:this={submitSprintModal}
     {containerId}
-    dbContainerId={data.dbContainerId}
+    dbContainerId={page.params.containerId}
     {tasks}
   />
 </div>
