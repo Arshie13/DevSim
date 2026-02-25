@@ -15,9 +15,12 @@
  * Flow:
  *  1. Validate the DB record is archived and belongs to the user.
  *  2. Validate the user has enough coins (≥ RESTORE_COST).
- *  3. Create + start a new Docker container with the volume mounted at /workspace.
- *  4. In a Prisma transaction: update the SAME Container row + deduct coins.
- *  5. Delete the Docker volume (data is now live in the container).
+ *  3. Create + start a new Docker container WITHOUT a volume mount.
+ *  4. Use a short-lived helper container (volume mounted at /data) to stream
+ *     the archived workspace tar into /workspace of the new container.
+ *     Remove the helper so the volume has zero consumers.
+ *  5. In a Prisma transaction: update the SAME Container row + deduct coins.
+ *  6. Delete the Docker volume — safe now because no container is using it.
  */
 
 import { docker } from '$lib/server/docker/client';
@@ -71,7 +74,10 @@ export async function restoreContainer(
 		throw new Error(`Insufficient coins. You need ${RESTORE_COST} coins to restore this workspace.`);
 	}
 
-	// --- 3. Create a new Docker container with the volume mounted at /workspace ---
+	// --- 3. Create the new container WITHOUT a volume mount ---
+	// We intentionally do NOT bind the volume here. If we mount the volume directly
+	// into the running container, Docker will refuse to delete it (volume in use).
+	// Instead we copy the data in step 4 via a short-lived helper container.
 	const newContainer = await docker.createContainer({
 		Image: 'node:20-alpine',
 		Cmd: ['/bin/sh'],
@@ -87,7 +93,6 @@ export async function restoreContainer(
 				'3000/tcp': [{ HostPort: '0' }],
 				'5173/tcp': [{ HostPort: '0' }]
 			},
-			Binds: [`${record.volumeName}:/workspace`],
 			Memory: 512 * 1024 * 1024,
 			AutoRemove: false
 		},
@@ -98,10 +103,39 @@ export async function restoreContainer(
 		}
 	});
 
-	// --- 4. Start the container ---
+	// --- 4. Start the new container ---
 	await newContainer.start();
 
-	// --- 5. Update the SAME DB record + deduct coins atomically ---
+	// --- 5. Stream volume data into the new container via a helper ---
+	// A short-lived helper mounts the volume at /data so we can read from it,
+	// then we pipe a tar stream directly into /workspace of the new container.
+	// Once the helper is removed the volume has zero consumers and can be deleted.
+	const helper = await docker.createContainer({
+		Image: 'node:20-alpine',
+		Cmd: ['sh', '-c', 'sleep 60'],
+		HostConfig: {
+			Binds: [`${record.volumeName}:/data`]
+		}
+	});
+
+	await helper.start();
+
+	try {
+		// Pull the archived workspace tar out of the volume and push it into the
+		// new container's /workspace directory.
+		const archiveStream = await helper.getArchive({ path: '/data/.' });
+		await newContainer.putArchive(archiveStream as NodeJS.ReadableStream, { path: '/workspace' });
+	} finally {
+		// Always clean up the helper, even if the copy fails.
+		try {
+			await helper.stop({ t: 2 });
+		} catch {
+			/* already stopped */
+		}
+		await helper.remove();
+	}
+
+	// --- 6. Update the SAME DB record + deduct coins atomically ---
 	// The Container.id never changes — only the Docker container ID, archive flag, and volume name.
 	await prisma.$transaction([
 		prisma.container.update({
@@ -119,7 +153,9 @@ export async function restoreContainer(
 		})
 	]);
 
-	// --- 6. Delete the Docker volume — data is now live in the container ---
+	// --- 7. Delete the Docker volume — safe now because the helper is gone ---
+	// The new container holds the data in its own writable layer; the volume is no
+	// longer referenced by any container and Docker will allow the removal.
 	try {
 		const vol = docker.getVolume(record.volumeName);
 		await vol.remove();
