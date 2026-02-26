@@ -2,6 +2,8 @@
   import { signOut } from "@auth/sveltekit/client";
   import Header from "$components/Header.svelte";
   import { userData } from "$mocks";
+  import type { PageData } from "./$types";
+  import type { UserData } from "$types";
   import {
     Calendar,
     Flame,
@@ -20,11 +22,22 @@
     Link as LinkIcon,
     TrendingUp,
     LogOut,
+    ArrowLeft,
   } from "lucide-svelte";
+
+  export let data: PageData;
+
+  const profileUserData: UserData = {
+    ...userData,
+    name: data.user?.name ?? "No Name",
+    avatar: data.user?.image ?? "",
+  };
+
+  $: hasProfileImage = Boolean(profileUserData.avatar && /^https?:\/\//i.test(profileUserData.avatar));
 
   const memberSince = "Sep 12, 2025";
 
-  $: expPercentage = (userData.exp / userData.nextLevelExp) * 100;
+  $: expPercentage = (profileUserData.exp / profileUserData.nextLevelExp) * 100;
   
   // Profile-specific metrics
   const metrics = [
@@ -43,19 +56,31 @@
   ];
 
   const bio = "Passionate full-stack developer who loves building scalable web applications. Currently exploring systems programming and real-time architectures.";
+
+  function backToDashboard() {
+    history.back();
+  }
 </script>
 
 <svelte:head>
   <title>Profile | DevSim</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col bg-obsidian-bg text-obsidian-text-primary text-[0.8rem] overflow-hidden">
-  <Header {userData} />
+<div class="h-screen flex flex-col bg-obsidian-bg text-obsidian-text-primary text-sm overflow-hidden">
+  <div class="w-full max-w-[1200px] mx-auto px-4 pt-3 md:px-6 lg:px-8 lg:pt-4">
+    <button
+      on:click={backToDashboard}
+      class="group inline-flex items-center gap-2 px-3.5 py-2 bg-obsidian-surface/70 hover:bg-obsidian-surface border border-obsidian-border/70 hover:border-obsidian-accent/40 rounded-lg text-sm font-medium text-obsidian-text-primary/80 hover:text-obsidian-text-muted transition-all"
+    >
+      <ArrowLeft class="w-4 h-4 text-obsidian-text-primary/70 group-hover:text-obsidian-accent transition-colors" />
+      <span>Back</span>
+    </button>
+  </div>
 
-  <main class="flex-1 w-full px-6 py-4 grid grid-cols-12 gap-4 min-h-0">
+  <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 py-3 md:px-6 lg:px-8 grid grid-cols-12 gap-3 lg:gap-4 xl:gap-5 min-h-0 overflow-y-auto">
 
     <!-- LEFT COLUMN — Full-Height Profile -->
-    <div class="col-span-4 min-h-0">
+    <div class="col-span-12 lg:col-span-4 min-h-0">
       <section class="relative h-full bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-xl overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] flex flex-col">
         <!-- Top glow line -->
         <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-accent/40 to-transparent"></div>
@@ -67,12 +92,16 @@
 
           <!-- Avatar -->
           <div class="relative shrink-0">
-            <div class="w-28 h-28 text-6xl bg-obsidian-bg-light border-[3px] border-obsidian-accent/50 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(7,165,201,0.25),0_8px_32px_rgba(0,0,0,0.4)] ring-4 ring-obsidian-surface/60">
-              {userData.avatar}
+            <div class="w-20 h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 text-5xl lg:text-6xl bg-obsidian-bg-light border-[3px] border-obsidian-accent/50 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(7,165,201,0.25),0_8px_32px_rgba(0,0,0,0.4)] ring-4 ring-obsidian-surface/60">
+              {#if hasProfileImage}
+                <img src={profileUserData.avatar} alt={profileUserData.name} class="w-full h-full rounded-2xl object-cover" />
+              {:else}
+                {profileUserData.avatar}
+              {/if}
             </div>
             <!-- Level badge -->
             <div class="absolute -bottom-2 -right-2 w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-sm font-bold text-white shadow-[0_0_12px_rgba(251,191,36,0.5)] border-2 border-obsidian-surface/80">
-              {userData.level}
+              {profileUserData.level}
             </div>
             <!-- Online status -->
             <div class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-[2.5px] border-obsidian-surface shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
@@ -80,7 +109,7 @@
 
           <!-- Name & Role -->
           <div class="flex flex-col items-center text-center">
-            <h1 class="text-2xl font-bold text-obsidian-text-muted tracking-tight">{userData.username}</h1>
+            <h1 class="text-2xl font-bold text-obsidian-text-muted tracking-tight">{profileUserData.name}</h1>
             <p class="text-sm text-obsidian-accent font-semibold mt-1 flex items-center gap-1.5">
               <CodeIcon class="w-4 h-4" /> Full-Stack Developer
             </p>
@@ -101,7 +130,7 @@
             <div class="group relative flex flex-col items-center py-3 bg-obsidian-surface/60 rounded-xl border border-obsidian-accent/25 shadow-[0_0_20px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_30px_rgba(7,165,201,0.2)] transition-all duration-300 cursor-default overflow-hidden">
               <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-obsidian-accent/[0.06] to-transparent"></div>
               <div class="absolute inset-0 rounded-xl bg-obsidian-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span class="relative text-lg font-bold text-obsidian-text-muted leading-none">{userData.completedStacks.length}</span>
+              <span class="relative text-lg font-bold text-obsidian-text-muted leading-none">{profileUserData.completedStacks.length}</span>
               <span class="relative text-[0.65rem] text-obsidian-text-primary/40 mt-1.5 uppercase tracking-wider">Mastered</span>
             </div>
             <div class="group relative flex flex-col items-center py-3 bg-obsidian-surface/60 rounded-xl border border-obsidian-accent/25 shadow-[0_0_20px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_30px_rgba(7,165,201,0.2)] transition-all duration-300 cursor-default overflow-hidden">
@@ -144,7 +173,7 @@
     </div>
 
     <!-- RIGHT COLUMN — Progress + Metrics + Friends -->
-    <div class="col-span-8 flex flex-col gap-4 min-h-0">
+    <div class="col-span-12 lg:col-span-8 flex flex-col gap-3 lg:gap-4 min-h-0">
 
       <!-- Progress / Status Snapshot -->
       <section class="relative bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-xl overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)] transition-shadow duration-500">
@@ -172,7 +201,7 @@
                 </defs>
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-lg font-bold text-obsidian-text-muted leading-none">{userData.level}</span>
+                <span class="text-lg font-bold text-obsidian-text-muted leading-none">{profileUserData.level}</span>
                 <span class="text-[0.55rem] text-obsidian-text-primary/40 uppercase tracking-wider">Level</span>
               </div>
             </div>
@@ -181,14 +210,14 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-baseline gap-2 mb-1">
                 <h3 class="text-sm font-semibold text-obsidian-text-muted">Level Progress</h3>
-                <span class="text-[0.65rem] text-obsidian-text-primary/40">{expPercentage.toFixed(0)}% to Level {userData.level + 1}</span>
+                <span class="text-[0.65rem] text-obsidian-text-primary/40">{expPercentage.toFixed(0)}% to Level {profileUserData.level + 1}</span>
               </div>
               <div class="h-2 bg-obsidian-border rounded-full overflow-hidden mb-2">
                 <div class="h-full bg-gradient-to-r from-obsidian-accent to-emerald-400 rounded-full transition-all duration-700" style="width: {expPercentage}%"></div>
               </div>
               <div class="flex items-center gap-5 text-xs text-obsidian-text-primary/50">
-                <span class="flex items-center gap-1"><Zap class="w-3 h-3 text-obsidian-accent" />{userData.exp.toLocaleString()} / {userData.nextLevelExp.toLocaleString()} XP</span>
-                <span class="flex items-center gap-1"><Coins class="w-3 h-3 text-amber-400" />{userData.coins.toLocaleString()} coins</span>
+                <span class="flex items-center gap-1"><Zap class="w-3 h-3 text-obsidian-accent" />{profileUserData.exp.toLocaleString()} / {profileUserData.nextLevelExp.toLocaleString()} XP</span>
+                <span class="flex items-center gap-1"><Coins class="w-3 h-3 text-amber-400" />{profileUserData.coins.toLocaleString()} coins</span>
                 <span class="flex items-center gap-1"><Flame class="w-3 h-3 text-orange-400" />7 day streak</span>
               </div>
             </div>
@@ -204,7 +233,7 @@
       </section>
 
       <!-- Key Metrics -->
-      <section class="grid grid-cols-4 gap-3">
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {#each metrics as metric}
           <div class="group relative bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-xl p-4 hover:border-obsidian-accent/50 transition-all duration-300 overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)] cursor-default">
             <!-- Inner glow -->
@@ -245,8 +274,8 @@
         </div>
 
         <!-- Friends Grid -->
-        <div class="flex-1 p-4 flex items-center">
-          <div class="grid grid-cols-4 gap-4 w-full h-full">
+        <div class="flex-1 p-3 lg:p-4 flex items-center">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 w-full h-full">
             {#each friends as friend}
               <button class="group relative flex flex-col items-center justify-center gap-3 bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-2xl transition-all duration-300 shadow-[0_0_25px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_35px_rgba(7,165,201,0.25)] cursor-pointer overflow-hidden">
                 <!-- Inner glow -->
@@ -255,7 +284,7 @@
                 <div class="absolute inset-0 rounded-2xl bg-obsidian-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <!-- Full-size Avatar with Level -->
                 <div class="relative">
-                  <div class="w-[12rem] h-[12rem] text-[8rem] bg-gradient-to-br from-obsidian-surface to-obsidian-bg-light border-2 border-obsidian-border/50 group-hover:border-obsidian-accent/40 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(7,165,201,0.2)] group-hover:scale-105">
+                  <div class="w-16 h-16 lg:w-24 lg:h-24 xl:w-32 xl:h-32 2xl:w-40 2xl:h-40 text-3xl lg:text-5xl xl:text-6xl 2xl:text-8xl bg-gradient-to-br from-obsidian-surface to-obsidian-bg-light border-2 border-obsidian-border/50 group-hover:border-obsidian-accent/40 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(7,165,201,0.2)] group-hover:scale-105">
                     {friend.avatar}
                   </div>
                   <!-- Level badge on avatar -->
