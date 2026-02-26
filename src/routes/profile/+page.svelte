@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { signOut } from "@auth/sveltekit/client";
   import Header from "$components/Header.svelte";
   import { userData } from "$mocks";
   import {
@@ -18,6 +19,7 @@
     MapPin,
     Link as LinkIcon,
     TrendingUp,
+    LogOut,
   } from "lucide-svelte";
 
   const memberSince = "Sep 12, 2025";
@@ -129,6 +131,12 @@
                 <Settings class="w-3 h-3" /> Settings
               </button>
             </div>
+            <button
+              on:click={() => signOut({ callbackUrl: "/login" })}
+              class="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 transition-all duration-300"
+            >
+              <LogOut class="w-3.5 h-3.5" /> Log Out
+            </button>
           </div>
 
         </div>

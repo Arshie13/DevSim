@@ -2,16 +2,13 @@
   import { Code, Coins, ChartBar } from "lucide-svelte";
   import type { UserData } from "$types";
   import { goto } from "$app/navigation";
+  import ProfileDropDown from "$components/ProfileDropDown.svelte";
 
   export let userData: UserData;
   export let onOpenStats: (() => void) | undefined = undefined;
 
   function navigateToDashboard() {
     goto("/dashboard");
-  }
-
-  function navigateToProfile() {
-    goto("/profile");
   }
 
   function handleStatsClick() {
@@ -67,17 +64,7 @@
           <p class="text-sm font-semibold text-obsidian-text-muted">{userData.username}</p>
           <p class="text-xs text-obsidian-text-primary/50 uppercase tracking-wider">Developer</p>
         </div>
-        <div class="relative">
-          <button on:click={navigateToProfile} class="relative z-10">
-          <div
-            class="text-2xl w-11 h-11 bg-obsidian-surface border-2 border-obsidian-border rounded-full flex items-center justify-center"
-          >
-            {userData.avatar}
-          </div>
-          </button>
-          <!-- Online indicator -->
-          <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-obsidian-bg"></div>
-        </div>
+        <ProfileDropDown {userData} />
       </div>
     </div>
   </div>
