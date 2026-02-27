@@ -43,7 +43,7 @@
 <div
   class="fixed bottom-0 left-0 right-0 bg-obsidian-bg-light border-t border-obsidian-accent/20 py-3 z-40"
 >
-  <div class="w-full px-12 flex items-center justify-between gap-6">
+  <div class="w-full max-w-[1200px] px-4 flex items-center justify-between mx-auto">
     <!-- Selected Stack Preview -->
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2 mb-2">

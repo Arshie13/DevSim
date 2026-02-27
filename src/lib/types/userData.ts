@@ -1,5 +1,5 @@
 export interface UserData {
-  username: string;
+  name: string;
   level: number;
   exp: number;
   nextLevelExp: number;
