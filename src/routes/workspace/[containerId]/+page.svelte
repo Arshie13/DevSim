@@ -39,6 +39,7 @@
   let previewUrl: string = "";
   let editorValue: string = "";
   let fileTree: string[] = [];
+  let directories: string[] = [];
 
   // Component refs
   let submitSprintModal: SubmitSprintModal;
@@ -108,6 +109,7 @@
         const listData = await listRes.json() as FileListResponse;
         if (listData.success) {
           fileTree = listData.files;
+            directories = listData.directories || [];
           if (fileTree.length > 0 && !fileTree.includes(selectedFile)) {
             selectedFile = fileTree[0];
           }
@@ -267,6 +269,108 @@
   function handleTabChange(tab: "editor" | "terminal" | "preview") {
     activeTab = tab;
   }
+  // Create file or folder
+  async function handleCreateFile(fullPath: string, isDirectory: boolean) {
+    if (!containerId || !fullPath) return;
+    
+    try {
+      const response = await fetch(
+        `/api/docker/container/${containerId}/files/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: `/workspace/${fullPath}`, isDirectory }),
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        console.log(isDirectory ? "Folder" : "File", "created successfully");
+        // Refresh file list
+        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        const listData = await listRes.json();
+        if (listData.success) {
+          fileTree = listData.files;
+          directories = listData.directories || [];
+        }
+      }
+    } catch (error) {
+      console.error("Error creating file:", error);
+    }
+  }
+
+  // Delete file or folder
+  async function handleDeleteFile(filePath: string) {
+    if (!containerId || !filePath) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(
+        `/api/docker/container/${containerId}/files/delete`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: `/workspace/${filePath}` }),
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        // Refresh file list
+        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        const listData = await listRes.json();
+        if (listData.success) {
+          fileTree = listData.files;
+          directories = listData.directories || [];
+        }
+      } else {
+        console.error("Delete failed:", data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
+  }
+
+  // Rename file or folder
+  async function handleRenameFile(oldPath: string, newPath: string) {
+    if (!containerId || !oldPath || !newPath) return;
+    
+    try {
+      const response = await fetch(
+        `/api/docker/container/${containerId}/files/rename`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            oldPath: `/workspace/${oldPath}`, 
+            newPath: `/workspace/${newPath}` 
+          }),
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        console.log("File renamed successfully");
+        // Refresh file list
+        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        const listData = await listRes.json();
+        if (listData.success) {
+          fileTree = listData.files;
+          directories = listData.directories || [];
+        }
+      }
+    } catch (error) {
+      console.error("Error renaming file:", error);
+    }
+  }
+
 </script>
 
 <svelte:head>
@@ -292,6 +396,7 @@
     <!-- Left Sidebar -->
     <PrimarySidebar
       {fileTree}
+      {directories}
       {selectedFile}
       {projectName}
       {containerId}
@@ -300,6 +405,9 @@
       hints={LEVEL_CONFIG.hints}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
+      onCreateFile={handleCreateFile}
+      onDeleteFile={handleDeleteFile}
+      onRenameFile={handleRenameFile}
     />
 
     <!-- Main Content -->
