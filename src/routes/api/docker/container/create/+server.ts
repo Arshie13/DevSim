@@ -3,6 +3,7 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { saveUserContainer, type UserContainerRequest } from '$lib/server/docker/user/save-user-container'
 import { docker } from '$lib/server/docker/client';
+import prisma from '$lib/server/client';
 
 interface CreateContainerRequest {
   stackName: string;
@@ -18,9 +19,23 @@ interface CreateContainerRequest {
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     const session = await locals.auth();
-    if (!session || !session.user || !session.user.id) {
+    if (!session || !session.user || !session.user.email) {
       return error(401, 'Unauthorized');
     }
+
+    // Always resolve the user ID from the DB using the session email.
+    // session.user.id can be the OAuth provider's ID (e.g. Google's numeric string)
+    // rather than the DB UUID when token.id is not set, causing container label
+    // mismatches across sessions for the same user.
+    const dbUser = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!dbUser) {
+      return error(401, 'User not found in database. Please sign out and sign in again.');
+    }
+
+    const userId = dbUser.id;
     
     const req: CreateContainerRequest = await request.json()
     const { stackName, level, stacks } = req;
@@ -30,7 +45,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       all: true,
       filters: JSON.stringify({
         label: [
-          `devsim.userId=${session.user.id}`,
+          `devsim.userId=${userId}`,
           `devsim.stack=${stackName}`,
           `devsim.level=${level}`
         ]
@@ -58,7 +73,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       ].filter((s): s is string => s !== null && s !== undefined);
 
       const { dbContainerId: existingDbId } = await saveUserContainer({
-        userId: session.user.id,
+        userId,
         containerId: existingContainerId,
         stacks: stacksArray,
         level,
@@ -97,7 +112,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
           AutoRemove: false
         },
         Labels: {
-          'devsim.userId': session.user.id,
+          'devsim.userId': userId,
           'devsim.stack': stackName,
           'devsim.level': level.toString()
         }
@@ -118,7 +133,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       ].filter((s): s is string => s !== null && s !== undefined);
 
       const userContainer: UserContainerRequest = {
-        userId: session.user.id,
+        userId,
         containerId: container.id,
         stacks: stacksArray,
         level: level,
@@ -133,8 +148,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       });
     }
 
-    // Fallback (should not be reached)
-    return json({ success: false, error: 'Unexpected state' }, { status: 500 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('Error handling container request:', err);
