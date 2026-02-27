@@ -5,6 +5,10 @@ import prisma from "$lib/server/client";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
+  const userData = session?.user;
+  console.log("User: " + userData?.name);
+  console.log("Email:" + userData?.email);
+  console.log("Avatar: " + userData?.image);
 
   if (!session?.user) {
     throw redirect(303, '/')
@@ -24,4 +28,5 @@ export const load: PageServerLoad = async (event) => {
     archivedStacks,
     userCoins: dbUser?.coins ?? 0,
   };
+  
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { StackSelection } from "$types";
   import { TECH_CATEGORIES, userData } from "$mocks";
+  import type { PageData } from "./$types";
   import Header from "$components/Header.svelte";
   import CategorySection from "$components/stacks/CategorySection.svelte";
   import StackSummary from "$components/stacks/StackSummary.svelte";
@@ -8,6 +9,7 @@
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
   import { Layers, Sparkles } from "lucide-svelte";
   import { goto } from "$app/navigation";
+  import type { UserData } from "$types";
 
   // Stack selection state
   let selection: StackSelection = {
@@ -124,6 +126,14 @@
       console.error("Error starting sprint:", error);
     }
   }
+
+   export let data: PageData;
+
+  const headerUserData: UserData = {
+    ...userData,
+    name: data.user?.name ?? "No Name",
+    avatar: data.user?.image ?? ''
+  };
 </script>
 
 <svelte:head>
@@ -134,11 +144,11 @@
   class="min-h-screen bg-obsidian-bg text-obsidian-text-primary custom-scrollbar text-[0.8rem]"
 >
   <div class="relative z-10">
-    <Header {userData} />
+    <Header userData={headerUserData} />
 
-    <main class="w-full px-12 py-8 pb-32">
+    <main class="w-full max-w-[1200px] mx-auto px-4 py-5 pb-28 md:px-6 lg:px-8 lg:py-8 lg:pb-32">
       <!-- Page Header with Gamification -->
-      <div class="mb-8 flex items-start justify-between">
+      <div class="mb-6 lg:mb-8 flex items-start justify-between">
         <div class="flex items-center gap-4">
           <div class="relative">
             <div
