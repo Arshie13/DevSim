@@ -19,6 +19,8 @@
     Trash2,
     Pencil,
   } from "lucide-svelte";
+  import FileActions from "./FileActions.svelte";
+  import Modal from "$lib/components/Modal.svelte";
 
   export let fileTree: string[] = [];
   export let directories: string[] = [];
@@ -158,6 +160,22 @@
     showModal = "createFile";
   }
 
+  function handleCreateFileFromButton() {
+    // Create file at root level
+    modalTargetPath = "";
+    modalIsDirectory = false;
+    modalInput = "";
+    showModal = "createFile";
+  }
+
+  function handleCreateFolderFromButton() {
+    // Create folder at root level
+    modalTargetPath = "";
+    modalIsDirectory = true;
+    modalInput = "";
+    showModal = "createFolder";
+  }
+
   function handleCreateFolder() {
     if (!contextMenu) return;
     const parentPath = contextMenu.node?.path || "";
@@ -241,9 +259,66 @@
       closeContextMenu();
     }
   }
+
+  // Reactive modal props
+  $: modalProps = (() => {
+    switch (showModal) {
+      case "createFile":
+        return {
+          title: "New File",
+          inputPlaceholder: "Enter file name",
+          message: "",
+          confirmText: "Create",
+          showInput: true,
+          confirmButtonColor: "bg-[#07a5c9]",
+        };
+      case "createFolder":
+        return {
+          title: "New Folder",
+          inputPlaceholder: "Enter folder name",
+          message: "",
+          confirmText: "Create",
+          showInput: true,
+          confirmButtonColor: "bg-[#07a5c9]",
+        };
+      case "rename":
+        return {
+          title: `Rename ${modalIsDirectory ? "Folder" : "File"}`,
+          inputPlaceholder: "Enter new name",
+          message: "",
+          confirmText: "Rename",
+          showInput: true,
+          confirmButtonColor: "bg-[#07a5c9]",
+        };
+      case "delete":
+        return {
+          title: `Delete ${modalIsDirectory ? "Folder" : "File"}?`,
+          inputPlaceholder: "",
+          message: `Are you sure you want to delete "${modalTargetName}"? This action cannot be undone.`,
+          confirmText: "Delete",
+          showInput: false,
+          confirmButtonColor: "bg-red-600",
+        };
+      default:
+        return {
+          title: "",
+          inputPlaceholder: "",
+          message: "",
+          confirmText: "",
+          showInput: false,
+          confirmButtonColor: "",
+        };
+    }
+  })();
+
+  $: isModalOpen = showModal !== null;
 </script>
 
 <div class="py-1" on:click={handleWindowClick} role="presentation">
+  <FileActions
+    onCreateFile={handleCreateFileFromButton}
+    onCreateFolder={handleCreateFolderFromButton}
+  />
   {#snippet renderTree(nodes: TreeNode[], depth: number)}
     {#each nodes as node}
       {#if node.isDirectory}
@@ -348,108 +423,15 @@
 {/if}
 
 <!-- Modal -->
-{#if showModal}
-  <div 
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    role="dialog"
-    tabindex="-1"
-  >
-    <div 
-      class="bg-[#1e1e1e] border border-[#27272a] rounded-lg shadow-xl p-4 w-80"
-      role="document"
-    >
-      {#if showModal === 'createFile'}
-        <h3 class="text-lg font-semibold mb-4 text-[#d0d7dd]">New File</h3>
-        <input
-          type="text"
-          bind:value={modalInput}
-          placeholder="Enter file name"
-          class="w-full px-3 py-2 bg-[#2d3446] border border-[#27272a] rounded text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]"
-          autofocus
-          on:keydown={(e) => e.key === 'Enter' && submitModal()}
-        />
-        <div class="flex justify-end gap-2 mt-4">
-          <button
-            on:click={closeModal}
-            class="px-4 py-2 text-sm text-[#d0d7dd] hover:bg-[#2d3446] rounded transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            on:click={submitModal}
-            class="px-4 py-2 text-sm bg-[#07a5c9] text-white rounded hover:bg-[#07a5c9]/80 transition-colors"
-          >
-            Create
-          </button>
-        </div>
-      {:else if showModal === 'createFolder'}
-        <h3 class="text-lg font-semibold mb-4 text-[#d0d7dd]">New Folder</h3>
-        <input
-          type="text"
-          bind:value={modalInput}
-          placeholder="Enter folder name"
-          class="w-full px-3 py-2 bg-[#2d3446] border border-[#27272a] rounded text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]"
-          autofocus
-          on:keydown={(e) => e.key === 'Enter' && submitModal()}
-        />
-        <div class="flex justify-end gap-2 mt-4">
-          <button
-            on:click={closeModal}
-            class="px-4 py-2 text-sm text-[#d0d7dd] hover:bg-[#2d3446] rounded transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            on:click={submitModal}
-            class="px-4 py-2 text-sm bg-[#07a5c9] text-white rounded hover:bg-[#07a5c9]/80 transition-colors"
-          >
-            Create
-          </button>
-        </div>
-      {:else if showModal === 'rename'}
-        <h3 class="text-lg font-semibold mb-4 text-[#d0d7dd]">Rename {modalIsDirectory ? 'Folder' : 'File'}</h3>
-        <input
-          type="text"
-          bind:value={modalInput}
-          placeholder="Enter new name"
-          class="w-full px-3 py-2 bg-[#2d3446] border border-[#27272a] rounded text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]"
-          autofocus
-          on:keydown={(e) => e.key === 'Enter' && submitModal()}
-        />
-        <div class="flex justify-end gap-2 mt-4">
-          <button
-            on:click={closeModal}
-            class="px-4 py-2 text-sm text-[#d0d7dd] hover:bg-[#2d3446] rounded transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            on:click={submitModal}
-            class="px-4 py-2 text-sm bg-[#07a5c9] text-white rounded hover:bg-[#07a5c9]/80 transition-colors"
-          >
-            Rename
-          </button>
-        </div>
-      {:else if showModal === 'delete'}
-        <h3 class="text-lg font-semibold mb-4 text-[#d0d7dd]">Delete {modalIsDirectory ? 'Folder' : 'File'}?</h3>
-        <p class="text-sm text-[#d0d7dd]/70 mb-4">
-          Are you sure you want to delete "{modalTargetName}"? This action cannot be undone.
-        </p>
-        <div class="flex justify-end gap-2">
-          <button
-            on:click={closeModal}
-            class="px-4 py-2 text-sm text-[#d0d7dd] hover:bg-[#2d3446] rounded transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            on:click={confirmDelete}
-            class="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-500 transition-colors"
-          >
-            Delete
-          </button>
-        </div>
-      {/if}
-    </div>
-  </div>
-{/if}
+<Modal
+  show={isModalOpen}
+  title={modalProps.title}
+  inputPlaceholder={modalProps.inputPlaceholder}
+  message={modalProps.message}
+  confirmText={modalProps.confirmText}
+  showInput={modalProps.showInput}
+  confirmButtonColor={modalProps.confirmButtonColor}
+  bind:inputValue={modalInput}
+  onClose={closeModal}
+  onConfirm={showModal === 'delete' ? confirmDelete : submitModal}
+/>
