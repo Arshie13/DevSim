@@ -365,7 +365,6 @@
           bind:value={modalInput}
           placeholder="Enter file name"
           class="w-full px-3 py-2 bg-[#2d3446] border border-[#27272a] rounded text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]"
-          autofocus
           on:keydown={(e) => e.key === 'Enter' && submitModal()}
         />
         <div class="flex justify-end gap-2 mt-4">
@@ -389,7 +388,6 @@
           bind:value={modalInput}
           placeholder="Enter folder name"
           class="w-full px-3 py-2 bg-[#2d3446] border border-[#27272a] rounded text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]"
-          autofocus
           on:keydown={(e) => e.key === 'Enter' && submitModal()}
         />
         <div class="flex justify-end gap-2 mt-4">
@@ -412,8 +410,7 @@
           type="text"
           bind:value={modalInput}
           placeholder="Enter new name"
-          class="w-full px-3 py-2 bg-[#2d3446] border border-[#27272a] rounded text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]"
-          autofocus
+          class="w-full px-3 py-2 bg-[#2d3446] border border-[#27272a] rounded text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]"     
           on:keydown={(e) => e.key === 'Enter' && submitModal()}
         />
         <div class="flex justify-end gap-2 mt-4">
