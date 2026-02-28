@@ -3,8 +3,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { WebSocketServer } from 'ws';
 import Docker from 'dockerode';
-import type { Server } from 'http';
-import os from 'os';
 
 // Docker client
 const docker = new Docker();
