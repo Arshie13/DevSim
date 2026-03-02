@@ -61,15 +61,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         Tty: true,
         OpenStdin: true,
         WorkingDir: '/workspace',
-        ExposedPorts: {
-          '3000/tcp': {},
-          '5173/tcp': {}
-        },
         HostConfig: {
-          PortBindings: {
-            '3000/tcp': [{ HostPort: '0' }],
-            '5173/tcp': [{ HostPort: '0' }]
-          },
+          NetworkMode: 'host',
           Binds: [
             `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`
           ],

@@ -191,7 +191,8 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            path: `/workspace/${selectedFile}`
+            path: `/workspace/${selectedFile}`,
+            content: fileContents[selectedFile]
           }),
         },
       );

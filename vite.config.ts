@@ -7,7 +7,9 @@ import type { Server } from 'http';
 import os from 'os';
 
 // Docker client
-const docker = new Docker();
+const docker = new Docker({
+  socketPath: '/var/run/docker.sock'
+});
 
 export default defineConfig({
   optimizeDeps: {
