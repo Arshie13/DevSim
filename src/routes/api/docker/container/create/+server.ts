@@ -24,7 +24,22 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     const userId = session.user.id;
-    
+
+    // Guard: verify the user actually exists in the DB before touching Docker or writing
+    // any records. A stale session (e.g. after a DB reset) has a valid JWT with a userId
+    // that no longer exists, which would cause a FK violation after the container is
+    // already created. Catching it here prevents any side effects.
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true }
+    });
+    if (!userExists) {
+      return json(
+        { success: false, error: 'User not found in database. Your session is outdated — please sign out and sign back in.' },
+        { status: 401 }
+      );
+    }
+
     const req: CreateContainerRequest = await request.json()
     const { stackName, level, stacks } = req;
 

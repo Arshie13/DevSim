@@ -48,15 +48,35 @@
   let bootError = "";
 
   const BOOT_STEPS = [
-    { icon: "🐳", label: "Booting container engine…",   detail: "Allocating compute resources" },
-    { icon: "📂", label: "Indexing project files…",      detail: "Scanning workspace directory" },
-    { icon: "📄", label: "Loading source code…",         detail: "Reading initial file content" },
-    { icon: "⚡", label: "Igniting Monaco editor…",      detail: "Mounting language server" },
-    { icon: "💻", label: "Connecting terminal…",         detail: "Opening interactive shell" },
+    {
+      icon: "🐳",
+      label: "Booting container engine…",
+      detail: "Allocating compute resources",
+    },
+    {
+      icon: "📂",
+      label: "Indexing project files…",
+      detail: "Scanning workspace directory",
+    },
+    {
+      icon: "📄",
+      label: "Loading source code…",
+      detail: "Reading initial file content",
+    },
+    {
+      icon: "⚡",
+      label: "Igniting Monaco editor…",
+      detail: "Mounting language server",
+    },
+    {
+      icon: "💻",
+      label: "Connecting terminal…",
+      detail: "Opening interactive shell",
+    },
   ];
 
   function handleBootRetry() {
-    bootError = '';
+    bootError = "";
     initWorkspace();
   }
 
@@ -67,7 +87,7 @@
   let iframeRef: HTMLIFrameElement;
 
   // The Docker container ID (from server) — used for all /api/docker/container/{id}/... calls
-  $: containerId = data.dockerContainerId ?? '';
+  $: containerId = data.dockerContainerId ?? "";
 
   // Derived
   $: projectName = LEVEL_CONFIG.title.split(" ")[0] || "project";
@@ -112,9 +132,12 @@
     try {
       // Step 0 — start the container
       bootStep = 0;
-      const response = await fetch(`/api/docker/container/${containerId}/start`, {
-        method: "POST",
-      });
+      const response = await fetch(
+        `/api/docker/container/${containerId}/start`,
+        {
+          method: "POST",
+        },
+      );
       const startData = await response.json();
       if (!startData.success) throw new Error(startData.error);
       previewUrl = startData.previewUrl;
@@ -122,11 +145,14 @@
       // Step 1 — fetch file list
       bootStep = 1;
       try {
-        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-        const listData = await listRes.json() as FileListResponse;
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+        const listData = (await listRes.json()) as FileListResponse;
         if (listData.success) {
           fileTree = listData.files;
           directories = listData.directories || [];
@@ -142,11 +168,14 @@
       // Step 2 — read initial file content
       bootStep = 2;
       try {
-        const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
-        });
+        const res = await fetch(
+          `/api/docker/container/${containerId}/files/read`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
+          },
+        );
         const fileData = await res.json();
         if (fileData.success) {
           fileContents[selectedFile] = fileData.content;
@@ -189,7 +218,11 @@
   // ── Reactive statements ──────────────────────────────────────────────────
 
   // Sync editor content when switching files
-  $: if (monacoEditor && selectedFile && fileContents[selectedFile] !== undefined) {
+  $: if (
+    monacoEditor &&
+    selectedFile &&
+    fileContents[selectedFile] !== undefined
+  ) {
     monacoEditor.setValue(fileContents[selectedFile]);
   }
 
@@ -203,7 +236,7 @@
 
   async function saveFile() {
     if (!containerId || !selectedFile) return;
-    
+
     const content = fileContents[selectedFile] || [editorValue];
     try {
       const response = await fetch(
@@ -211,8 +244,10 @@
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${selectedFile}`, 
-          content: content }),
+          body: JSON.stringify({
+            path: `/workspace/${selectedFile}`,
+            content: content,
+          }),
         },
       );
       const result = await response.json();
@@ -240,24 +275,33 @@
     );
   }
 
-  async function selectFile(file: string, lineNumber?: number, searchTerm?: string) {
+  async function selectFile(
+    file: string,
+    lineNumber?: number,
+    searchTerm?: string,
+  ) {
     selectedFile = file;
     activeTab = "editor";
 
     if (containerId) {
       try {
-        const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
-        });
+        const res = await fetch(
+          `/api/docker/container/${containerId}/files/read`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
+          },
+        );
         const result = await res.json();
         if (result.success) {
           fileContents[file] = result.content;
           monacoEditor?.setValue(result.content);
           monacoEditor?.setLanguageFromFilename(file);
           if (lineNumber) {
-            requestAnimationFrame(() => monacoEditor?.revealLine(lineNumber, searchTerm));
+            requestAnimationFrame(() =>
+              monacoEditor?.revealLine(lineNumber, searchTerm),
+            );
           }
         }
       } catch (error) {
@@ -292,7 +336,7 @@
   // Create file or folder
   async function handleCreateFile(fullPath: string, isDirectory: boolean) {
     if (!containerId || !fullPath) return;
-    
+
     try {
       const response = await fetch(
         `/api/docker/container/${containerId}/files/create`,
@@ -300,16 +344,19 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ path: `/workspace/${fullPath}`, isDirectory }),
-        }
+        },
       );
       const data = await response.json();
       if (data.success) {
         console.log(isDirectory ? "Folder" : "File", "created successfully");
         // Refresh file list
-        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
         const listData = await listRes.json();
         if (listData.success) {
           fileTree = listData.files;
@@ -326,7 +373,7 @@
     if (!containerId || !filePath) {
       return;
     }
-    
+
     try {
       const response = await fetch(
         `/api/docker/container/${containerId}/files/delete`,
@@ -334,15 +381,18 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ path: `/workspace/${filePath}` }),
-        }
+        },
       );
       const data = await response.json();
       if (data.success) {
         // Refresh file list
-        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
         const listData = await listRes.json();
         if (listData.success) {
           fileTree = listData.files;
@@ -359,27 +409,30 @@
   // Rename file or folder
   async function handleRenameFile(oldPath: string, newPath: string) {
     if (!containerId || !oldPath || !newPath) return;
-    
+
     try {
       const response = await fetch(
         `/api/docker/container/${containerId}/files/rename`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            oldPath: `/workspace/${oldPath}`, 
-            newPath: `/workspace/${newPath}` 
+          body: JSON.stringify({
+            oldPath: `/workspace/${oldPath}`,
+            newPath: `/workspace/${newPath}`,
           }),
-        }
+        },
       );
       const data = await response.json();
       if (data.success) {
         console.log("File renamed successfully");
         // Refresh file list
-        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
         const listData = await listRes.json();
         if (listData.success) {
           fileTree = listData.files;
@@ -390,7 +443,6 @@
       console.error("Error renaming file:", error);
     }
   }
-
 </script>
 
 <svelte:head>
@@ -408,7 +460,10 @@
   />
 {/if}
 
-<div class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]" class:invisible={isBooting}>
+<div
+  class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]"
+  class:invisible={isBooting}
+>
   <!-- Header -->
   <WorkspaceHeader
     level={LEVEL_CONFIG.level}
@@ -455,10 +510,7 @@
           bind:editorRef
         />
 
-        <TerminalPanel
-          visible={activeTab === "terminal"}
-          bind:terminalRef
-        />
+        <TerminalPanel visible={activeTab === "terminal"} bind:terminalRef />
 
         <PreviewPanel
           visible={activeTab === "preview"}
@@ -499,6 +551,4 @@
     color: #fff !important;
     font-weight: 600;
   }
-
-
 </style>
