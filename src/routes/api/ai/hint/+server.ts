@@ -151,7 +151,7 @@ export const POST: RequestHandler = async ({ request }) => {
         "X-Title": "DevSim",
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.1-8b-instruct",
+        model: "qwen/qwen3-coder:free",
         messages: [
           {
             role: "user",
