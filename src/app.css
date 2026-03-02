@@ -5,10 +5,43 @@
 
 @layer base {
   :root {
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* ── DevSim Design Tokens ─────────────────────────────────── */
+    --font-sans:  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono:  'Share Tech Mono', 'Courier New', monospace;
+    --font-head:  'Orbitron', sans-serif;
+    --font-body:  'Rajdhani', sans-serif;
+
+    /* Backgrounds */
+    --bg:          #0a0e1a;
+    --bg-light:    #12192a;
+    --surface:     #2d3446;
+
+    /* Borders */
+    --border:      #27272a;
+    --card-border: rgba(7, 165, 201, 0.15);
+    --card-hover:  rgba(7, 165, 201, 0.40);
+
+    /* Text */
+    --text-primary: #d0d7dd;
+    --text-muted:   #8892a0;
+
+    /* Accent */
+    --accent:       #07a5c9;
+    --cyan-bright:  #00f5ff;
+    --accent-glow:  rgba(7, 165, 201, 0.30);
+    --accent-dim:   rgba(7, 165, 201, 0.15);
+    --grid-line:    rgba(7, 165, 201, 0.06);
+
+    /* Status */
+    --success: #00e5a0;
+    --warn:    #ffb400;
+    --danger:  #ff3860;
+    --purple:  #a855f7;
   }
 }
 
 body {
-  @apply bg-gray-50 text-gray-900 font-sans;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
 }

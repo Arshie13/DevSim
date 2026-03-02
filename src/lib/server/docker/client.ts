@@ -1,5 +1,6 @@
 import Docker from 'dockerode';
 
+<<<<<<< feat/ai-helper
 // Configure Docker client based on platform
 // Windows uses named pipe, Linux/Mac use Unix socket
 const isWindows = process.platform === 'win32';
@@ -9,3 +10,8 @@ const dockerOptions: ConstructorParameters<typeof Docker>[0] = isWindows
   : { socketPath: '/var/run/docker.sock' };
 
 export const docker = new Docker(dockerOptions);
+=======
+export const docker = new Docker({
+    socketPath: process.env.SOCKET_PATH
+});
+>>>>>>> main

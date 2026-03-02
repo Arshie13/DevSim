@@ -1,6 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
-import { getAllUserContainer } from "$lib/server/docker/user/get-user-container";
+import { getAllUserContainer, getArchivedContainers } from "$lib/server/docker/user/get-user-container";
+import prisma from "$lib/server/client";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -13,13 +14,19 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, '/')
   }
 
-  const userContainerList = await getAllUserContainer(session.user.id);
+  const [allContainers, archivedStacks, dbUser] = await Promise.all([
+    getAllUserContainer(session.user.id),
+    getArchivedContainers(session.user.id),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { coins: true } }),
+  ]);
 
-  // console.log("container list: ", userContainerList);
+  const userContainerList = allContainers.filter((c) => !c.isArchived);
 
   return {
     user: session.user,
-    userContainerList
+    userContainerList,
+    archivedStacks,
+    userCoins: dbUser?.coins ?? 0,
   };
   
 }

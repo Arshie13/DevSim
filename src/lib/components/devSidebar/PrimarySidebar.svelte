@@ -41,6 +41,7 @@
 
   // Props
   export let fileTree: string[] = [];
+  export let directories: string[] = [];
   export let selectedFile: string = "";
   export let projectName: string = "project";
   export let scenario: string = "";
@@ -51,6 +52,9 @@
   export let fileContents: Record<string, string> = {};
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
   export let onToggleTask: (taskId: number) => void = () => {};
+  export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
+  export let onDeleteFile: (filePath: string) => void = () => {};
+  export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
 
   let activeSidebarPanel: SidebarPanel = "files";
 
@@ -120,9 +124,13 @@
       {#if activeSidebarPanel === "files"}
         <Explorer
           {fileTree}
+          {directories}
           {selectedFile}
           {projectName}
           {onSelectFile}
+          {onCreateFile}
+          {onDeleteFile}
+          {onRenameFile}
         />
       {:else if activeSidebarPanel === "search"}
         <Search

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Play, Clock, ChevronRight, Container } from "lucide-svelte";
-  import type { Container as ContainerType } from '$prisma';
+  import type { Container as ContainerType } from '$prismaclient';
 
   export let containers: ContainerType[];
   export let finishedStacks: any[] = [];
@@ -92,7 +92,7 @@
               </div>
 
               <!-- Continue Button -->
-              <a href="/workspace/{container.containerId}" class="w-full mt-3 py-2 px-4 bg-obsidian-accent/10 border border-obsidian-accent/30 rounded-lg text-xs font-medium text-obsidian-accent hover:bg-obsidian-accent/20 transition-all flex items-center justify-center gap-2">
+              <a href="/workspace/{container.id}" class="w-full mt-3 py-2 px-4 bg-obsidian-accent/10 border border-obsidian-accent/30 rounded-lg text-xs font-medium text-obsidian-accent hover:bg-obsidian-accent/20 transition-all flex items-center justify-center gap-2">
                 <Play class="w-3 h-3" />
                 Continue Sprint
               </a>
