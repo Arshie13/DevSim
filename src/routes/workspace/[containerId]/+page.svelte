@@ -365,9 +365,9 @@
       {containerId}
       scenario={LEVEL_CONFIG.scenario}
       {tasks}
-      hints={LEVEL_CONFIG.hints}
       {userId}
       {userCoins}
+      {fileContents}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
     />

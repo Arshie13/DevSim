@@ -71,7 +71,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
             '5173/tcp': [{ HostPort: '0' }]
           },
           Binds: [
-            `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`
+            `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`.replace(/\\/g, '/')
           ],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false

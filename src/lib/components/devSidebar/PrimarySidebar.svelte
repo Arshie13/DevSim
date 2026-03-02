@@ -1,5 +1,26 @@
 <script lang="ts" context="module">
+  import { writable, derived } from 'svelte/store';
+  import type { Writable } from 'svelte/store';
+
   export type SidebarPanel = "files" | "search" | "scenario" | "tasks" | "hints";
+
+  // Chat message type
+  export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean };
+
+  // Store for AI chat history - persists across tab switches
+  export const aiChatHistory: Writable<ChatMessage[]> = writable([]);
+
+  // Store for coin count - persists across tab switches
+  export const aiCoins: Writable<number> = writable(1000);
+
+  // Store for selected file - persists across tab switches
+  export const aiSelectedFile: Writable<string> = writable("");
+
+  // Store for file tree - persists across tab switches
+  export const aiFileTree: Writable<string[]> = writable([]);
+
+  // Store for file contents - persists across tab switches
+  export const aiFileContents: Writable<Record<string, string>> = writable({});
 </script>
 
 <script lang="ts">
@@ -24,10 +45,10 @@
   export let projectName: string = "project";
   export let scenario: string = "";
   export let tasks: Task[] = [];
-  export let hints: string[] = [];
   export let containerId: string = "";
   export let userId: string = "";
   export let userCoins: number = 0;
+  export let fileContents: Record<string, string> = {};
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
   export let onToggleTask: (taskId: number) => void = () => {};
 
@@ -114,7 +135,16 @@
       {:else if activeSidebarPanel === "tasks"}
         <SprintTask {tasks} {onToggleTask} />
       {:else if activeSidebarPanel === "hints"}
-        <AiHelp {hints} {scenario} {tasks} {containerId} {userId} {userCoins} />
+        <AiHelp 
+          {scenario} 
+          {tasks} 
+          {containerId} 
+          {userId} 
+          initialCoins={userCoins} 
+          initialSelectedFile={selectedFile}
+          initialFileTree={fileTree}
+          initialFileContents={fileContents}
+        />
       {/if}
     </div>
   </aside>

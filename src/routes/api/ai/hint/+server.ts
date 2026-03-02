@@ -35,26 +35,14 @@ function isAskingForCode(message: string): boolean {
 
 // Build the prompt for OpenRouter
 function buildPrompt(message: string, context: string): string {
-  return `You are a helpful AI assistant for a developer simulation platform. Your role is to provide HINTS and GUIDANCE only, not code solutions.
+  return `You are a coding assistant that gives helpful hints (NOT code). 
 
-IMPORTANT RULES:
-1. NEVER provide actual code - only hints and guidance
-2. If the user asks for code, warn them that it's out of scope and redirect to hints
-3. Keep your responses short and helpful
-4. Guide the user to figure things out themselves
-
-Current Context:
+Context:
 ${context}
 
-User Question: ${message}
+User asks: "${message}"
 
-Response Guidelines:
-- Provide a helpful hint, not a solution
-- Ask guiding questions to help them think
-- Reference documentation or concepts they should explore
-- Keep it concise (2-3 sentences max)
-
-Respond with a helpful hint:`;
+Give a brief hint (2-3 sentences max). Do NOT write any code. Guide them to the solution.`;
 }
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -121,8 +109,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const newCoinBalance = user.coins - HINT_COST;
 
     // Check if API key is configured
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey || apiKey === "your openrouter api key here") {
+    const apiKey = process.env.MISTRAL_API_KEY;
+    if (!apiKey || apiKey === "your_mistral_api_key_here") {
       // Refund coins if API call fails
       await prisma.user.update({
         where: { id: userId },
@@ -132,40 +120,70 @@ export const POST: RequestHandler = async ({ request }) => {
       });
       return json({
         success: false,
-        error: "OPENROUTER_API_KEY is not configured. Please add it to your .env file. Get one free at https://openrouter.ai",
+        error: "MISTRAL_API_KEY is not configured. Please add it to your .env file. Get one free at https://console.mistral.ai",
       });
     }
 
     // Build the prompt
     const prompt = buildPrompt(message, context || "No additional context");
 
-    // Call OpenRouter API
-    const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
+    // List of Mistral models to try (fallback mechanism)
+    const models = [
+      "codestral-latest",   // Primary: Best coding model from Mistral
+      "mistral-small",      // Fallback: Good balance of speed and quality
+    ];
 
-    const response = await fetch(openRouterUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://devsim.example.com",
-        "X-Title": "DevSim",
-      },
-      body: JSON.stringify({
-        model: "qwen/qwen3-coder:free",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_tokens: 256,
-        temperature: 0.7,
-      }),
-    });
+    let response = null;
+    let lastError = null;
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("OpenRouter API error:", errorData);
+    // Try each model in sequence until one succeeds
+    for (const model of models) {
+      console.log(`Trying Mistral model: ${model}`);
+      
+      const mistralUrl = "https://api.mistral.ai/v1/chat/completions";
+      
+      const modelResponse = await fetch(mistralUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          max_tokens: 256,
+          temperature: 0.7,
+        }),
+      });
+
+      if (modelResponse.ok) {
+        response = modelResponse;
+        console.log(`Mistral model ${model} succeeded`);
+        break;
+      } else {
+        const errorData = await modelResponse.json();
+        console.log(`Model ${model} failed:`, errorData);
+        lastError = errorData;
+        
+        // If it's a rate limit error (429) or model not found (404), try next model
+        if (modelResponse.status === 429 || modelResponse.status === 404) {
+          continue;
+        } else {
+          // For other errors, don't retry
+          break;
+        }
+      }
+    }
+
+    // If all models failed
+    if (!response || !response.ok) {
+      console.error("All models failed. Last error:", lastError);
+      
       // Refund coins on API error
       await prisma.user.update({
         where: { id: userId },
@@ -175,7 +193,7 @@ export const POST: RequestHandler = async ({ request }) => {
       });
       return json({
         success: false,
-        error: "Failed to get response from AI. Your coins have been refunded. Please try again.",
+        error: `Failed to get response from AI: ${lastError?.error?.message || lastError?.message || "All models unavailable"}. Your coins have been refunded. Please try again.`,
       });
     }
 
