@@ -1,0 +1,201 @@
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import prisma from "$lib/server/client";
+import { SvelteKitAuth } from "@auth/sveltekit";
+import Google from "@auth/sveltekit/providers/google";
+
+// AI Hint cost in coins
+const HINT_COST = 100;
+
+// Interface for the request body
+interface HintRequest {
+  message: string;
+  context: string;
+  containerId: string;
+  userId: string;
+}
+
+// Check if the user is asking for code
+function isAskingForCode(message: string): boolean {
+  const codePatterns = [
+    /\b(write|create|generate|build|make|implement)\s+(code|the|a|an|some|me)\b/i,
+    /\b(give|show|provide)\s+(me\s+)?(the\s+)?(code|solution|answer)\b/i,
+    /\b(code|solution|answer)\s+(please|now|for me)\b/i,
+    /```/,
+    /<code>/,
+    /function\s+\w+\s*\(/,
+    /const\s+\w+\s*=/,
+    /let\s+\w+\s*=/,
+    /import\s+.*from/,
+    /export\s+(default\s+)?(function|class|const)/,
+  ];
+
+  return codePatterns.some((pattern) => pattern.test(message));
+}
+
+// Build the prompt for OpenRouter
+function buildPrompt(message: string, context: string): string {
+  return `You are a helpful AI assistant for a developer simulation platform. Your role is to provide HINTS and GUIDANCE only, not code solutions.
+
+IMPORTANT RULES:
+1. NEVER provide actual code - only hints and guidance
+2. If the user asks for code, warn them that it's out of scope and redirect to hints
+3. Keep your responses short and helpful
+4. Guide the user to figure things out themselves
+
+Current Context:
+${context}
+
+User Question: ${message}
+
+Response Guidelines:
+- Provide a helpful hint, not a solution
+- Ask guiding questions to help them think
+- Reference documentation or concepts they should explore
+- Keep it concise (2-3 sentences max)
+
+Respond with a helpful hint:`;
+}
+
+export const POST: RequestHandler = async ({ request }) => {
+  try {
+    const body: HintRequest = await request.json();
+    const { message, context, userId } = body;
+
+    if (!message || message.trim().length === 0) {
+      return json(
+        { success: false, error: "Message is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if user is asking for code - no coins needed for warnings
+    if (isAskingForCode(message)) {
+      return json({
+        success: true,
+        hint: "⚠️ Out of Scope: I can only provide hints and guidance, not code solutions. I'm here to help you learn by figuring things out yourself. Try asking for a hint instead!",
+        isWarning: true,
+        coinsSpent: 0,
+        coinsRemaining: 0,
+      });
+    }
+
+    // Validate userId
+    if (!userId) {
+      return json({
+        success: false,
+        error: "Please log in to use AI hints. You need coins to use this feature.",
+      });
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return json({
+        success: false,
+        error: "User not found. Please log in again.",
+      });
+    }
+
+    // Check if user has enough coins
+    if (user.coins < HINT_COST) {
+      return json({
+        success: false,
+        error: `Insufficient coins! You need ${HINT_COST} coins per hint. You have ${user.coins} coins. Complete tasks or level up to earn more coins!`,
+        coinsRemaining: user.coins,
+        hintCost: HINT_COST,
+      });
+    }
+
+    // Deduct coins
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        coins: user.coins - HINT_COST,
+      },
+    });
+
+    const newCoinBalance = user.coins - HINT_COST;
+
+    // Check if API key is configured
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey || apiKey === "your openrouter api key here") {
+      // Refund coins if API call fails
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          coins: user.coins,
+        },
+      });
+      return json({
+        success: false,
+        error: "OPENROUTER_API_KEY is not configured. Please add it to your .env file. Get one free at https://openrouter.ai",
+      });
+    }
+
+    // Build the prompt
+    const prompt = buildPrompt(message, context || "No additional context");
+
+    // Call OpenRouter API
+    const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
+
+    const response = await fetch(openRouterUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://devsim.example.com",
+        "X-Title": "DevSim",
+      },
+      body: JSON.stringify({
+        model: "meta-llama/llama-3.1-8b-instruct",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        max_tokens: 256,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenRouter API error:", errorData);
+      // Refund coins on API error
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          coins: user.coins,
+        },
+      });
+      return json({
+        success: false,
+        error: "Failed to get response from AI. Your coins have been refunded. Please try again.",
+      });
+    }
+
+    const data = await response.json();
+
+    // Extract the response text
+    const hint = data.choices?.[0]?.message?.content || 
+                  "Sorry, I couldn't generate a hint. Please try again.";
+
+    return json({
+      success: true,
+      hint: hint.trim(),
+      coinsSpent: HINT_COST,
+      coinsRemaining: newCoinBalance,
+    });
+  } catch (error) {
+    console.error("Error generating hint:", error);
+    return json(
+      { success: false, error: "Failed to generate hint" },
+      { status: 500 }
+    );
+  }
+};

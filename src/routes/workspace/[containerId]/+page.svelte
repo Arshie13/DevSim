@@ -23,6 +23,11 @@
   $: stackId = page.params.techstackid;
   $: levelId = parseInt(page.params.levelId!);
 
+  // Get user data from page data - use export let data for Svelte 5
+  export let data;
+  $: userId = data.userId || "";
+  $: userCoins = data.userCoins || 0;
+
   // State
   let activeTab: "editor" | "terminal" | "preview" = "editor";
   let selectedFile: string = "app/page.tsx";
@@ -361,6 +366,8 @@
       scenario={LEVEL_CONFIG.scenario}
       {tasks}
       hints={LEVEL_CONFIG.hints}
+      {userId}
+      {userCoins}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
     />

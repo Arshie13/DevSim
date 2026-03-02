@@ -26,6 +26,8 @@
   export let tasks: Task[] = [];
   export let hints: string[] = [];
   export let containerId: string = "";
+  export let userId: string = "";
+  export let userCoins: number = 0;
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
   export let onToggleTask: (taskId: number) => void = () => {};
 
@@ -112,7 +114,7 @@
       {:else if activeSidebarPanel === "tasks"}
         <SprintTask {tasks} {onToggleTask} />
       {:else if activeSidebarPanel === "hints"}
-        <AiHelp {hints} />
+        <AiHelp {hints} {scenario} {tasks} {containerId} {userId} {userCoins} />
       {/if}
     </div>
   </aside>
