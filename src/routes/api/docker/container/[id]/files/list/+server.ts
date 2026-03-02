@@ -18,7 +18,6 @@ export async function POST(event: RequestEvent) {
     } catch (parseError) {
       console.warn('Could not parse request body, using defaults:', parseError);
     }
-
     const path = requestData.path || '/workspace';
     const container = docker.getContainer(containerId);
 
@@ -31,13 +30,11 @@ export async function POST(event: RequestEvent) {
         files: [] 
       });
     }
-
     const exec = await container.exec({
       Cmd: ['sh', '-c', `find ${path} -type f ! -path "*/node_modules/*" ! -path "*/.next/*" ! -path "*/.git/*" 2>/dev/null || echo ""`],
       AttachStdout: true,
       AttachStderr: true
     });
-
     const stream = await exec.start({});
 
     let output = '';
@@ -57,12 +54,14 @@ export async function POST(event: RequestEvent) {
       }
     });
 
+
+
     container.modem.demuxStream(stream, stdout, stderr);
 
     await new Promise((resolve, reject) => {
       stream.on('end', resolve);
       stream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 10000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 20000); // 10s timeout
     });
 
     // Also list directories
@@ -88,7 +87,7 @@ export async function POST(event: RequestEvent) {
     await new Promise((resolve, reject) => {
       dirStream.on('end', resolve);
       dirStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 10000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 20000); // 10s timeout
     });
 
     if (errorOutput) {

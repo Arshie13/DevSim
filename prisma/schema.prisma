@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id           String  @id @default(cuid())
+  id           String  @id @default(uuid())
   dailyLoginId String? @unique
   email        String  @unique
   name         String
@@ -61,6 +61,10 @@ model Container {
   stoppedAt DateTime?
 
   stacks String[]
+
+  // Archive fields — used when workspace is saved to a Docker volume before container deletion
+  volumeName String?
+  isArchived Boolean @default(false)
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
