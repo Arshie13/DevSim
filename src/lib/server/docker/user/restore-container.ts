@@ -1,30 +1,6 @@
-/**
- * restore-container.ts
- *
- * Restores an archived container from its saved Docker volume back into a
- * live running container. The DB record (Container.id) stays the same
- * throughout the full lifecycle — only the Docker container and volume are
- * created/destroyed around it.
- *
- * Lifecycle recap:
- *   start  → Container row created, isArchived=false, containerId=<dockerId>
- *   archive → Docker container removed, volume created, isArchived=true, volumeName=<vol>
- *   restore → New Docker container created from volume, volume deleted,
- *             same Container row updated: isArchived=false, containerId=<newDockerI>, volumeName=null
- *
- * Flow:
- *  1. Validate the DB record is archived and belongs to the user.
- *  2. Validate the user has enough coins (≥ RESTORE_COST).
- *  3. Create + start a new Docker container WITHOUT a volume mount.
- *  4. Use a short-lived helper container (volume mounted at /data) to stream
- *     the archived workspace tar into /workspace of the new container.
- *     Remove the helper so the volume has zero consumers.
- *  5. In a Prisma transaction: update the SAME Container row + deduct coins.
- *  6. Delete the Docker volume — safe now because no container is using it.
- */
-
 import { docker } from '$lib/server/docker/client';
 import prisma from '$lib/server/client';
+import crypto from 'crypto';
 
 export const RESTORE_COST = 100;
 
@@ -110,9 +86,11 @@ export async function restoreContainer(
 	// A short-lived helper mounts the volume at /data so we can read from it,
 	// then we pipe a tar stream directly into /workspace of the new container.
 	// Once the helper is removed the volume has zero consumers and can be deleted.
+	const helperSuffix = crypto.randomBytes(4).toString('hex');
 	const helper = await docker.createContainer({
 		Image: 'node:20-alpine',
 		Cmd: ['sh', '-c', 'sleep 60'],
+		name: `devsim-restore-helper-${helperSuffix}`,
 		HostConfig: {
 			Binds: [`${record.volumeName}:/data`]
 		}

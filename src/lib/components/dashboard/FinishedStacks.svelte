@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import { Trophy, Star, ChevronRight, Coins, Zap, RotateCcw, X, AlertCircle } from "lucide-svelte";
   import type { FinishedStack } from "$types";
+  import LoadingSteps from "$lib/components/ui/LoadingSteps.svelte";
 
   export let stacks: FinishedStack[];
   export let maxVisible: number = 2;
@@ -11,9 +12,18 @@
 
   const RESTORE_COST = 100;
 
+  const RESTORE_STEPS = [
+    { icon: "🪙", label: "Validating wallet…",       detail: "Checking coin balance & container ownership" },
+    { icon: "🐳", label: "Spinning up container…",   detail: "Creating a fresh Docker container" },
+    { icon: "📂", label: "Copying workspace data…",  detail: "Streaming saved volume into the new container" },
+    { icon: "✅", label: "Finalising restore…",       detail: "Updating records & removing old volume" },
+  ];
+
   let paywallStack: FinishedStack | null = null;
   let isRestoring = false;
+  let restoreStep = 0;
   let restoreError = "";
+  let stepTimer: ReturnType<typeof setInterval> | null = null;
 
   function openPaywall(stack: FinishedStack) {
     paywallStack = stack;
@@ -26,15 +36,36 @@
     restoreError = "";
   }
 
+  function startStepTimer() {
+    // Advance through steps 0→2 automatically; step 3 is only shown on success.
+    stepTimer = setInterval(() => {
+      if (restoreStep < RESTORE_STEPS.length - 2) {
+        restoreStep += 1;
+      }
+    }, 2200);
+  }
+
+  function stopStepTimer() {
+    if (stepTimer !== null) {
+      clearInterval(stepTimer);
+      stepTimer = null;
+    }
+  }
+
   async function handleRestore() {
     if (!paywallStack) return;
+
     isRestoring = true;
+    restoreStep = 0;
     restoreError = "";
+    startStepTimer();
 
     try {
       const res = await fetch(`/api/docker/container/${paywallStack.id}/restore`, {
         method: "POST",
       });
+
+      stopStepTimer();
 
       if (!res.ok) {
         const text = await res.text();
@@ -42,14 +73,20 @@
       }
 
       const data = await res.json();
+
+      // Flash the final "Finalising" step briefly before navigating.
+      restoreStep = RESTORE_STEPS.length - 1;
+      await new Promise((r) => setTimeout(r, 800));
+
       await goto(`/workspace/${data.newContainerId}`);
     } catch (err) {
+      stopStepTimer();
       restoreError = err instanceof Error ? err.message : "Restore failed. Please try again.";
-    } finally {
       isRestoring = false;
     }
   }
 </script>
+
 
 <div class="relative bg-obsidian-surface/40 border border-amber-500/25 rounded-xl overflow-hidden shadow-[0_0_35px_rgba(251,191,36,0.1)] hover:shadow-[0_0_45px_rgba(251,191,36,0.18)] transition-shadow duration-500">
   <!-- Top edge glow -->
@@ -247,4 +284,20 @@
       </div>
     </div>
   </div>
+{/if}
+
+<!-- ── Restore Loading Overlay ──────────────────────────────────────────── -->
+{#if isRestoring}
+  <LoadingSteps
+    overlay
+    step={restoreStep}
+    steps={RESTORE_STEPS}
+    icon="🔄"
+    title="Restoring Workspace"
+    subtitle="Please keep this window open. This may take a moment."
+    footer="DEVSIM · WORKSPACE RESTORE"
+    error={restoreError}
+    errorPrefix="Restore failed"
+    on:retry={handleRestore}
+  />
 {/if}

@@ -19,28 +19,64 @@ interface CreateContainerRequest {
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     const session = await locals.auth();
-    if (!session || !session.user || !session.user.email) {
+    if (!session || !session.user || !session.user.id) {
       return error(401, 'Unauthorized');
     }
 
-    // Always resolve the user ID from the DB using the session email.
-    // session.user.id can be the OAuth provider's ID (e.g. Google's numeric string)
-    // rather than the DB UUID when token.id is not set, causing container label
-    // mismatches across sessions for the same user.
-    const dbUser = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!dbUser) {
-      return error(401, 'User not found in database. Please sign out and sign in again.');
-    }
-
-    const userId = dbUser.id;
+    const userId = session.user.id;
     
     const req: CreateContainerRequest = await request.json()
     const { stackName, level, stacks } = req;
 
-    // Look for existing container with these labels
+    // Build the canonical stacks array early — needed for both DB lookup and creation.
+    const stacksArray: string[] = [
+      stacks.frontend,
+      stacks.backend,
+      stacks.database,
+      stacks.services
+    ].filter((s): s is string => s !== null && s !== undefined);
+
+    // --- DB-first lookup for an existing active container ---
+    // Checking the DB first is more reliable than matching Docker labels because:
+    //  • Restored containers have labels built from DB stacks (raw IDs, e.g. "postgresql")
+    //    while buildStackName() maps them to folder names (e.g. "postgres"), causing mismatches.
+    //  • A container created before DB tracking was introduced may have no DB record anyway.
+    // Only non-archived containers are reusable (archived ones have no running Docker container).
+    const existingDbContainer = await prisma.container.findFirst({
+      where: {
+        userId,
+        level,
+        isArchived: false,
+        stacks: { equals: stacksArray }
+      }
+    });
+
+    if (existingDbContainer) {
+      const existingDockerContainerId = existingDbContainer.containerId;
+      try {
+        const existingContainer = docker.getContainer(existingDockerContainerId);
+        const info = await existingContainer.inspect();
+        if (!info.State.Running) {
+          await existingContainer.start();
+        }
+        console.log('[create] DB-first: reusing existing container:', existingDockerContainerId);
+      } catch {
+        // The Docker container no longer exists (e.g. was deleted outside the app).
+        // Fall through to create a fresh one and update the DB record.
+        console.warn('[create] DB record found but Docker container is gone — creating fresh container.');
+        return await createFreshContainer();
+      }
+
+      return json({
+        success: true,
+        message: 'Container already exists. Reusing...',
+        containerId: existingDockerContainerId,
+        dbContainerId: existingDbContainer.id
+      });
+    }
+
+    // --- DB found nothing: also check Docker by label as a fallback ---
+    // This handles containers created before DB tracking was introduced.
     const existingContainers = await docker.listContainers({
       all: true,
       filters: JSON.stringify({
@@ -52,26 +88,20 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       })
     });
 
-    let containerId: string;
+    // Guard: only reuse a Docker-found container if it ALSO has a DB record.
+    // restore-container.ts creates the new Docker container (with devsim.userId label)
+    // BEFORE it updates the DB row. Without this check, create would find that
+    // in-progress restore container and insert a duplicate DB entry.
+    const dockerMatch = existingContainers.length > 0 ? existingContainers[0] : null;
+    const dockerMatchDbRecord = dockerMatch
+      ? await prisma.container.findFirst({ where: { containerId: dockerMatch.Id, userId } })
+      : null;
 
-    if (existingContainers.length > 0) {
-      const existingContainerId = existingContainers[0].Id;
-      
-      // Check if container is not running, start it
-      if (existingContainers[0].State !== 'running') {
-        const existingContainer = docker.getContainer(existingContainerId);
-        await existingContainer.start();
+    if (dockerMatch && dockerMatchDbRecord) {
+      const existingContainerId = dockerMatch.Id;
+      if (dockerMatch.State !== 'running') {
+        await docker.getContainer(existingContainerId).start();
       }
-
-      // Always upsert the DB record so the workspace page can resolve it.
-      // This handles containers that existed before DB saving was introduced.
-      const stacksArray: string[] = [
-        stacks.frontend,
-        stacks.backend,
-        stacks.database,
-        stacks.services
-      ].filter((s): s is string => s !== null && s !== undefined);
-
       const { dbContainerId: existingDbId } = await saveUserContainer({
         userId,
         containerId: existingContainerId,
@@ -79,17 +109,22 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         level,
         status: 'created'
       });
-
-      console.log('[create] Reusing existing container, DB record upserted:', existingContainerId);
-      
-      // Return both IDs — frontend navigates via DB id
+      console.log('[create] Docker-label fallback: reusing container, DB upserted:', existingContainerId);
       return json({
         success: true,
         message: 'Container already exists. Reusing...',
         containerId: existingContainerId,
         dbContainerId: existingDbId
       });
-    } else {
+    }
+
+    if (dockerMatch && !dockerMatchDbRecord) {
+      console.log('[create] Docker container found by label but no DB record — restore in progress. Creating fresh container.');
+    }
+
+    return await createFreshContainer();
+
+    async function createFreshContainer() {
       const container = await docker.createContainer({
         Image: 'node:20-alpine',
         Cmd: ['/bin/sh'],
@@ -118,32 +153,21 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         }
       });
 
-      containerId = container.id;
-
-      // Start the container
-      const startedContainer = docker.getContainer(containerId);
-      await startedContainer.start();
-
-      // Convert stacks object to array of strings
-      const stacksArray: string[] = [
-        stacks.frontend,
-        stacks.backend,
-        stacks.database,
-        stacks.services
-      ].filter((s): s is string => s !== null && s !== undefined);
+      await docker.getContainer(container.id).start();
 
       const userContainer: UserContainerRequest = {
         userId,
         containerId: container.id,
         stacks: stacksArray,
-        level: level,
+        level,
         status: 'created'
       };
 
       const { dbContainerId } = await saveUserContainer(userContainer);
+      console.log('[create] Created fresh container:', container.id);
       return json({
         success: true,
-        containerId,
+        containerId: container.id,
         dbContainerId
       });
     }

@@ -13,6 +13,7 @@
   import TerminalPanel from "$lib/components/workspace/TerminalPanel.svelte";
   import PreviewPanel from "$lib/components/workspace/PreviewPanel.svelte";
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
+  import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -40,6 +41,24 @@
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
+
+  // ── Boot loading state ───────────────────────────────────────────────────
+  let isBooting = true;
+  let bootStep = 0;
+  let bootError = "";
+
+  const BOOT_STEPS = [
+    { icon: "🐳", label: "Booting container engine…",   detail: "Allocating compute resources" },
+    { icon: "📂", label: "Indexing project files…",      detail: "Scanning workspace directory" },
+    { icon: "📄", label: "Loading source code…",         detail: "Reading initial file content" },
+    { icon: "⚡", label: "Igniting Monaco editor…",      detail: "Mounting language server" },
+    { icon: "💻", label: "Connecting terminal…",         detail: "Opening interactive shell" },
+  ];
+
+  function handleBootRetry() {
+    bootError = '';
+    initWorkspace();
+  }
 
   // Component refs
   let submitSprintModal: SubmitSprintModal;
@@ -91,16 +110,17 @@
 
   async function initWorkspace() {
     try {
-      // Start the existing container
+      // Step 0 — start the container
+      bootStep = 0;
       const response = await fetch(`/api/docker/container/${containerId}/start`, {
         method: "POST",
       });
       const startData = await response.json();
-
       if (!startData.success) throw new Error(startData.error);
       previewUrl = startData.previewUrl;
 
-      // Fetch file list from Docker
+      // Step 1 — fetch file list
+      bootStep = 1;
       try {
         const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
           method: "POST",
@@ -109,7 +129,7 @@
         const listData = await listRes.json() as FileListResponse;
         if (listData.success) {
           fileTree = listData.files;
-            directories = listData.directories || [];
+          directories = listData.directories || [];
           if (fileTree.length > 0 && !fileTree.includes(selectedFile)) {
             selectedFile = fileTree[0];
           }
@@ -119,7 +139,8 @@
         fileTree = flattenFiles(LEVEL_CONFIG.starterFiles);
       }
 
-      // Read initial file content from Docker
+      // Step 2 — read initial file content
+      bootStep = 2;
       try {
         const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
           method: "POST",
@@ -136,7 +157,8 @@
         editorValue = "";
       }
 
-      // Initialize Monaco Editor
+      // Step 3 — initialize Monaco Editor
+      bootStep = 3;
       if (editorRef) {
         monacoEditor = new MonacoInitializer();
         await monacoEditor.initialize(
@@ -151,11 +173,16 @@
         monacoEditor.setLanguageFromFilename(selectedFile);
       }
 
-      // Initialize Terminal
+      // Step 4 — initialize Terminal
+      bootStep = 4;
       terminal = new TerminalInitializer();
       await terminal.initializeDockerTerminal(terminalRef, containerId);
+
+      // Done — hide the boot screen
+      isBooting = false;
     } catch (error) {
       console.error("Failed to initialize environment:", error);
+      bootError = error instanceof Error ? error.message : String(error);
     }
   }
 
@@ -247,20 +274,13 @@
     submitSprintModal.open();
   }
 
-  async function refreshPreview() {
+  function refreshPreview() {
+    if (!previewUrl) return;
     try {
-      const response = await fetch("/api/docker/container/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stackId, levelId }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        const currentUrl = new URL(result.previewUrl);
-        currentUrl.searchParams.set("t", Date.now().toString());
-        previewUrl = currentUrl.toString();
-        if (iframeRef) iframeRef.src = previewUrl;
-      }
+      const currentUrl = new URL(previewUrl);
+      currentUrl.searchParams.set("t", Date.now().toString());
+      previewUrl = currentUrl.toString();
+      if (iframeRef) iframeRef.src = previewUrl;
     } catch (error) {
       console.error("Error refreshing preview:", error);
     }
@@ -377,7 +397,18 @@
   <title>Level {LEVEL_CONFIG.level}: {LEVEL_CONFIG.title} - DevSim</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]">
+<!-- ── Boot / Loading screen ──────────────────────────────────────────────── -->
+{#if isBooting}
+  <WorkspaceBootScreen
+    step={bootStep}
+    steps={BOOT_STEPS}
+    error={bootError}
+    levelLabel="Level {LEVEL_CONFIG.level} · {LEVEL_CONFIG.title}"
+    on:retry={handleBootRetry}
+  />
+{/if}
+
+<div class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]" class:invisible={isBooting}>
   <!-- Header -->
   <WorkspaceHeader
     level={LEVEL_CONFIG.level}
@@ -442,7 +473,6 @@
   <!-- Submit Sprint modal -->
   <SubmitSprintModal
     bind:this={submitSprintModal}
-    {containerId}
     dbContainerId={page.params.containerId}
     {tasks}
   />
@@ -469,4 +499,6 @@
     color: #fff !important;
     font-weight: 600;
   }
+
+
 </style>
