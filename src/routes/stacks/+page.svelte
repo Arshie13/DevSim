@@ -98,7 +98,7 @@
     try {
       // Pre-flight: verify the session is still valid before creating any resources.
       // This catches stale sessions early without touching Docker or the database.
-      const sessionCheckResponse = await fetch("/api/auth/session");
+      const sessionCheckResponse = await fetch("/auth/session");
       if (!sessionCheckResponse.ok) {
         alert("Your session is outdated. Please sign out and sign back in.");
         return;
