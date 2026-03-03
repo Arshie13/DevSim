@@ -19,16 +19,24 @@
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import type { FileListResponse } from "$lib/interface/Files";
 
+  import type { Session } from "@auth/core/types";
+
   // Server-loaded data:
   //   dockerContainerId — the real Docker container ID (for Docker API calls)
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
-  export let data: { user: any; dockerContainerId: string | null };
+  //   userId — the user's ID for AI hints
+  //   userCoins — the user's coin balance for AI hints
+  export let data: { user: Session["user"]; dockerContainerId: string | null; userId: string; userCoins: number };
 
   // Get route params
   $: stackId = page.params.techstackid;
   $: levelId = parseInt(page.params.levelId!);
 
-  // ── State ────────────────────────────────────────────────────────────────
+  // Get user data from page data
+  $: userId = data.userId || "";
+  $: userCoins = data.userCoins || 0;
+
+  // State
   let activeTab: "editor" | "terminal" | "preview" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
@@ -488,7 +496,9 @@
       {containerId}
       scenario={LEVEL_CONFIG.scenario}
       {tasks}
-      hints={LEVEL_CONFIG.hints}
+      {userId}
+      {userCoins}
+      {fileContents}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
       onCreateFile={handleCreateFile}
