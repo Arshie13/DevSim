@@ -22,22 +22,19 @@
   // Server-loaded data:
   //   dockerContainerId — the real Docker container ID (for Docker API calls)
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
-  export let data: { user: any; dockerContainerId: string | null };
+  //   userId — the user's ID for AI hints
+  //   userCoins — the user's coin balance for AI hints
+  export let data: { user: any; dockerContainerId: string | null; userId: string; userCoins: number };
 
   // Get route params
   $: stackId = page.params.techstackid;
   $: levelId = parseInt(page.params.levelId!);
 
-<<<<<<< feat/ai-helper
-  // Get user data from page data - use export let data for Svelte 5
-  export let data;
+  // Get user data from page data
   $: userId = data.userId || "";
   $: userCoins = data.userCoins || 0;
 
   // State
-=======
-  // ── State ────────────────────────────────────────────────────────────────
->>>>>>> main
   let activeTab: "editor" | "terminal" | "preview" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};

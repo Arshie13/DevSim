@@ -1,11 +1,17 @@
 <script lang="ts">
-  import { Send, AlertTriangle, Bot, User, Coins } from "lucide-svelte";
+  import { Send, AlertTriangle, Bot, User, Coins, X, MessageSquare } from "lucide-svelte";
   import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "./PrimarySidebar.svelte";
+  import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage, formatMessage as formatMessageContent } from "$lib/ai";
 
   export let scenario: string = "";
   export let tasks: { id: number; text: string; completed: boolean }[] = [];
   export let containerId: string = "";
   export let userId: string = "";
+  
+  // Mode: 'chat' for full chat interface, 'quick' for just button-triggered hints
+  // Default to 'quick' to show the button in the AI Helper tab
+  export let mode: 'chat' | 'quick' = 'quick';
+  
   // Allow initial values to be set from parent, but use stores for persistence
   export let initialSelectedFile: string = "";
   export let initialFileTree: string[] = [];
@@ -28,8 +34,12 @@
   $: if (Object.keys(initialFileContents).length > 0) aiFileContents.set(initialFileContents);
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
 
-  // Coin cost per hint
-  const HINT_COST = 100;
+  // Coin costs per hint type
+  const QUICK_HINT_COST = 100;  // Button-triggered hints based on progress
+  const CHAT_HINT_COST = 200;   // Full chat with conversation history
+
+  // Get the appropriate cost based on mode
+  $: hintCost = mode === 'quick' ? QUICK_HINT_COST : CHAT_HINT_COST;
 
   // Chat state - use store for persistence across tab switches
   let userMessage: string = "";
@@ -39,6 +49,11 @@
 
   // Track if user is manually scrolling
   let userScrolling = false;
+
+  // Quick hint mode state
+  let showQuickHint: boolean = false;
+  let quickHintMessage: string = "";
+  let quickHintLoading: boolean = false;
 
   // Only scroll to bottom when new messages are added (not on every change)
   $: {
@@ -61,63 +76,25 @@
     userScrolling = !isAtBottom;
   }
 
-  // Check if user is asking for code or a solution
-  function isAskingForCode(message: string): boolean {
-    const codePatterns = [
-      // Direct code requests
-      /\b(write|create|generate|build|make|implement)\s+(code|the|a|an|some|me)\b/i,
-      /\b(give|show|provide)\s+(me\s+)?(the\s+)?(code|solution|answer)\b/i,
-      /\b(code|solution|answer)\s+(please|now|for me)\b/i,
-      /\bwrite\s+the\s+code\b/i,
-      /\bhow\s+to\s+write\b/i,
-      /\bhow\s+to\s+create\b/i,
-      /\bhow\s+to\s+build\b/i,
-      /\bshow\s+me\s+the\s+code\b/i,
-      /\bshow\s+me\s+how\b/i,
-      /\bcode\s+for\b/i,
-      /\bcode\s+to\b/i,
-      /\bsolution\s+code\b/i,
-      /\bthe\s+code\b/i,
-      /\bfull\s+code\b/i,
-      /\bcomplete\s+code\b/i,
-      /\bentire\s+code\b/i,
-      /\ball\s+the\s+code\b/i,
-      // Code blocks
-      /```/,
-      /<code>/,
-      // Function/class definitions
-      /function\s+\w+\s*\(/,
-      /const\s+\w+\s*=/,
-      /let\s+\w+\s*=/,
-      /import\s+.*from/,
-      /export\s+(default\s+)?(function|class|const)/,
-      /class\s+\w+/,
-      // Request for complete solution
-      /\bfix\s+this\s+for\s+me\b/i,
-      /\bsolve\s+this\s+for\s+me\b/i,
-      /\bdo\s+this\s+for\s+me\b/i,
-    ];
-
-    return codePatterns.some((pattern) => pattern.test(message));
-  }
-
-  // Generate context from current state
+  // Generate context from current state - includes file contents and task progress
   async function generateContext(): Promise<string> {
     let context = `Current Scenario: ${scenario}\n\n`;
     
-    // Add conversation history for context
-    const chatHistory = $aiChatHistory;
-    if (chatHistory.length > 0) {
-      context += `Conversation History:\n`;
-      chatHistory.forEach((msg) => {
-        const role = msg.role === "user" ? "User" : "AI";
-        // Truncate very long messages
-        const content = msg.content.length > 300 
-          ? msg.content.substring(0, 300) + "..."
-          : msg.content;
-        context += `${role}: ${content}\n`;
-      });
-      context += "\n";
+    // Add conversation history for context (for chat mode)
+    if (mode === 'chat') {
+      const chatHistory = $aiChatHistory;
+      if (chatHistory.length > 0) {
+        context += `Conversation History:\n`;
+        chatHistory.forEach((msg) => {
+          const role = msg.role === "user" ? "User" : "AI";
+          // Truncate very long messages
+          const content = msg.content.length > 300 
+            ? msg.content.substring(0, 300) + "..."
+            : msg.content;
+          context += `${role}: ${content}\n`;
+        });
+        context += "\n";
+      }
     }
     
     // Use the reactive current* vars which have latest props data
@@ -216,15 +193,19 @@
       }
     }
     
-    context += `Tasks:\n`;
+    // Add task progress context - this is crucial for context awareness
+    context += `Your Progress (Tasks):\n`;
+    const completedCount = tasks.filter(t => t.completed).length;
+    context += `Completed: ${completedCount}/${tasks.length}\n`;
     tasks.forEach((task) => {
       const status = task.completed ? "[✓]" : "[ ]";
       context += `${status} ${task.text}\n`;
     });
+    
     return context;
   }
 
-  // Send message to AI
+  // Send message to AI (for chat mode)
   async function sendMessage() {
     if (!userMessage.trim() || isLoading) return;
 
@@ -241,8 +222,7 @@
         },
         {
           role: "ai",
-          content:
-            "⚠️ Out of Scope: I can only provide hints and guidance, not code solutions. I'm here to help you learn by figuring things out yourself. Try asking for a hint instead!",
+          content: getCodeWarningMessage(),
           isWarning: true,
         },
       ]);
@@ -250,7 +230,7 @@
     }
 
     // Check if user has enough coins
-    if (currentCoins < HINT_COST) {
+    if (currentCoins < hintCost) {
       aiChatHistory.update(msgs => [
         ...msgs,
         {
@@ -259,7 +239,7 @@
         },
         {
           role: "ai",
-          content: `⚠️ Not enough coins! You need ${HINT_COST} coins per hint. You have ${currentCoins} coins. Complete tasks or level up to earn more coins!`,
+          content: getInsufficientCoinsMessage(hintCost, currentCoins),
           isWarning: true,
         },
       ]);
@@ -281,6 +261,7 @@
           context,
           containerId,
           userId,
+          hintType: mode,
         }),
       });
 
@@ -299,7 +280,7 @@
           ...msgs,
           {
             role: "ai",
-            content: data.error || "Sorry, I couldn't process your request. Please try again.",
+            content: getApiErrorMessage(data.error),
           },
         ]);
       }
@@ -309,12 +290,71 @@
         ...msgs,
         {
           role: "ai",
-          content: "Sorry, something went wrong. Please try again.",
+          content: getErrorMessage(),
         },
       ]);
     } finally {
       isLoading = false;
     }
+  }
+
+  // Quick hint - triggered by button without requiring chat
+  async function requestQuickHint() {
+    if (isLoading || !containerId || !userId) return;
+    
+    // Check coins first
+    if (currentCoins < hintCost) {
+      quickHintMessage = getInsufficientCoinsMessage(hintCost, currentCoins);
+      showQuickHint = true;
+      return;
+    }
+
+    quickHintLoading = true;
+    showQuickHint = true;
+    quickHintMessage = "";
+
+    try {
+      // Build context from current state
+      const context = await generateContext();
+      
+      // Default hint message based on current progress
+      const hintMessage = `I'm working on the current task. Can you give me a hint on what to do next based on my progress?`;
+      
+      const response = await fetch("/api/ai/hint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: hintMessage,
+          context,
+          containerId,
+          userId,
+          hintType: mode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        quickHintMessage = data.hint;
+        // Update coin balance
+        if (data.coinsRemaining !== undefined) {
+          aiCoins.set(data.coinsRemaining);
+          initialCoins = data.coinsRemaining;
+        }
+      } else {
+        quickHintMessage = getApiErrorMessage(data.error);
+      }
+    } catch (error) {
+      console.error("Error getting quick hint:", error);
+      quickHintMessage = getErrorMessage();
+    } finally {
+      quickHintLoading = false;
+    }
+  }
+
+  function closeQuickHint() {
+    showQuickHint = false;
+    quickHintMessage = "";
   }
 
   // Handle enter key
@@ -350,27 +390,89 @@
     return classes;
   }
 
-  // Format message content - convert URLs to links and newlines to <br> tags
+  // Format message content
   function formatMessage(content: string): string {
-    // First escape HTML to prevent XSS
-    let formatted = content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    
-    // Convert newlines to <br> tags
-    formatted = formatted.replace(/\n/g, '<br>');
-    
-    // Convert URLs to clickable links
-    const urlRegex = /(https?:\/\/[^\s<]+)/g;
-    formatted = formatted.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">$1</a>');
-    
-    return formatted;
+    return formatMessageContent(content);
   }
 
   $: canSend = userMessage.trim().length > 0 && !isLoading;
 </script>
 
+<!-- Quick Hint Button - Always visible in AI Helper tab -->
+<div class="p-4 border-b border-zinc-800">
+  <button
+    on:click={requestQuickHint}
+    disabled={quickHintLoading || !containerId || !userId}
+    class="w-full flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 rounded-lg transition-all text-sm font-medium text-white"
+  >
+    <Bot class="w-4 h-4" />
+    Get Quick Hint
+  </button>
+  
+  {#if currentCoins < QUICK_HINT_COST}
+    <p class="text-xs text-yellow-500 text-center mt-2">
+      ⚠️ Not enough coins ({currentCoins}/{QUICK_HINT_COST})
+    </p>
+  {:else}
+    <p class="text-xs text-gray-500 text-center mt-2">
+      💰 Quick hint: {QUICK_HINT_COST} coins | Chat: {CHAT_HINT_COST} coins
+    </p>
+  {/if}
+  
+  <!-- Toggle between Quick and Chat mode -->
+  <div class="flex gap-2 mt-3">
+    <button
+      on:click={() => mode = 'quick'}
+      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'quick' ? 'bg-cyan-500 text-white' : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
+    >
+      ⚡ Quick
+    </button>
+    <button
+      on:click={() => mode = 'chat'}
+      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'chat' ? 'bg-cyan-500 text-white' : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
+    >
+      💬 Chat
+    </button>
+  </div>
+</div>
+
+<!-- Quick Hint Result Modal -->
+{#if showQuickHint}
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" on:click={closeQuickHint}>
+    <div class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full p-4" on:click|stopPropagation>
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <Bot class="w-5 h-5 text-cyan-500" />
+          <span class="font-medium text-gray-200">AI Hint</span>
+        </div>
+        <button on:click={closeQuickHint} class="text-gray-400 hover:text-gray-200">
+          <X class="w-5 h-5" />
+        </button>
+      </div>
+      
+      {#if quickHintLoading}
+        <div class="flex items-center justify-center py-8">
+          <div class="flex gap-1">
+            <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></span>
+            <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></span>
+            <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></span>
+          </div>
+        </div>
+      {:else}
+        <div class="text-sm text-gray-300 whitespace-pre-wrap">
+          {@html formatMessage(quickHintMessage)}
+        </div>
+        <div class="mt-3 pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-gray-500">
+          <span>Coins spent: {QUICK_HINT_COST}</span>
+          <span>Coins remaining: {initialCoins}</span>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
+
+<!-- Chat Section (only show when mode is 'chat') -->
+{#if mode === 'chat'}
 <div class="flex flex-col h-full">
   <!-- Chat Section -->
   <div class="flex-1 flex flex-col min-h-0">
@@ -390,7 +492,7 @@
         </div>
       </div>
       <p class="text-xs text-gray-400 mt-2">
-        💰 Costs {HINT_COST} coins per hint
+        💰 Costs {hintCost} coins per hint
       </p>
     </div>
 
@@ -463,6 +565,7 @@
     </div>
   </div>
 </div>
+{/if}
 
 <style>
   .overflow-y-auto::-webkit-scrollbar {
