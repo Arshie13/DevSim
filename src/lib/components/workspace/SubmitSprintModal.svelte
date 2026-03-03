@@ -79,9 +79,9 @@
   }
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
-  $: modalIcon     = state === 'error' ? '⚠' : '⟨/⟩';
+  $: modalIcon     = state === 'error' ? '⚠' : state === 'loading' ? '' : '⟨/⟩';
   $: iconVariant   = (state === 'error' ? 'danger' : 'accent') as 'accent' | 'danger' | 'warning' | 'success';
-  $: modalTitle    = state === 'error' ? 'Something went wrong' : 'Submit Sprint?';
+  $: modalTitle    = state === 'error' ? 'Something went wrong' : state === 'loading' ? '' : 'Submit Sprint?';
   $: modalSubtitle = state === 'confirm'
     ? 'Are you sure you want to submit this sprint? This will mark the sprint as complete, award you your rewards, and archive your workspace.'
     : '';
@@ -112,23 +112,31 @@
   <!-- Default slot: body changes per state -->
   {#if state === 'confirm'}
     <!-- Task summary -->
-    <div class="ss-task-box">
-      <p class="ss-task-label">Sprint tasks</p>
-      <ul class="ss-task-list">
+    <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3.5 mb-4">
+      <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2.5">Sprint tasks</p>
+      <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
         {#each tasks as task}
-          <li class="ss-task-item" class:done={task.completed}>
-            <span class="ss-check">{task.completed ? '✓' : '○'}</span>
-            <span class="ss-text">{task.text}</span>
+          <li class="flex items-center gap-2.5 font-mono text-[0.88rem] {task.completed ? 'opacity-100' : 'opacity-35'}">
+            <span class="font-bold w-4 text-center {task.completed ? 'text-[#00e5a0]' : 'text-[#2d3446]'}">
+              {task.completed ? '✓' : '○'}
+            </span>
+            <span class="{task.completed ? 'text-[#d0d7dd]' : 'text-[#8892a0] line-through'}">
+              {task.text}
+            </span>
           </li>
         {/each}
       </ul>
-      <p class="ss-task-count">{completedCount} / {tasks.length} completed</p>
+      <p class="mt-2.5 font-mono text-[0.75rem] text-[#8892a0] text-right">{completedCount} / {tasks.length} completed</p>
     </div>
 
     <!-- Reward preview chips -->
-    <div class="ss-reward-chips">
-      <div class="ss-chip xp">⚡ XP incoming</div>
-      <div class="ss-chip coin">🪙 Coins incoming</div>
+    <div class="flex gap-2.5 mb-1">
+      <div class="flex-1 text-center py-2 rounded-[4px] font-mono text-[0.82rem] tracking-[0.04em] border bg-[rgba(15,34,16,0.8)] border-[rgba(22,163,74,0.25)] text-[#4ade80]">
+        ⚡ XP incoming
+      </div>
+      <div class="flex-1 text-center py-2 rounded-[4px] font-mono text-[0.82rem] tracking-[0.04em] border bg-[rgba(31,21,8,0.8)] border-[rgba(202,138,4,0.25)] text-[#fbbf24]">
+        🪙 Coins incoming
+      </div>
     </div>
 
   {:else if state === 'loading'}
@@ -144,180 +152,52 @@
 
   <!-- Success slot -->
   <svelte:fragment slot="success">
-    <div class="ss-success">
-      <div class="ss-burst" aria-hidden="true">🎉</div>
-      <h2 class="ss-success-title">Sprint Complete!</h2>
-      <p class="ss-success-sub">Your workspace has been archived successfully.</p>
+    <div class="text-center py-2">
+      <div class="text-5xl burst-anim" aria-hidden="true">🎉</div>
+      <h2 class="mt-2.5 mb-1 font-['Chakra_Petch',sans-serif] text-[1.6rem] font-bold tracking-[0.08em] text-[#d0d7dd]">
+        Sprint Complete!
+      </h2>
+      <p class="font-mono text-[0.85rem] text-[#8892a0] mb-6">Your workspace has been archived successfully.</p>
 
-      <div class="ss-rewards-row">
-        <div class="ss-badge xp-badge">
-          <span class="ss-badge-icon">⚡</span>
-          <span class="ss-badge-value">+{submitRewards.xp}</span>
-          <span class="ss-badge-unit">XP</span>
+      <div class="flex justify-center gap-4 mb-7">
+        <!-- XP badge -->
+        <div class="flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] border bg-[rgba(15,34,16,0.8)] border-[rgba(22,163,74,0.30)] fade-up-anim">
+          <span class="text-[1.1rem]">⚡</span>
+          <span class="font-mono text-[1.5rem] font-extrabold text-[#4ade80]">+{submitRewards.xp}</span>
+          <span class="font-['Chakra_Petch',sans-serif] text-[0.72rem] font-semibold tracking-[0.12em] text-[#8892a0] self-end pb-0.5">XP</span>
         </div>
-        <div class="ss-badge coin-badge">
-          <span class="ss-badge-icon">🪙</span>
-          <span class="ss-badge-value">+{submitRewards.coins}</span>
-          <span class="ss-badge-unit">Coins</span>
+        <!-- Coin badge -->
+        <div class="flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] border bg-[rgba(31,21,8,0.8)] border-[rgba(180,83,0,0.30)] fade-up-anim [animation-delay:0.25s]">
+          <span class="text-[1.1rem]">🪙</span>
+          <span class="font-mono text-[1.5rem] font-extrabold text-[#fbbf24]">+{submitRewards.coins}</span>
+          <span class="font-['Chakra_Petch',sans-serif] text-[0.72rem] font-semibold tracking-[0.12em] text-[#8892a0] self-end pb-0.5">Coins</span>
         </div>
       </div>
 
-      <button class="ss-btn-done" on:click={handleDone}>Back to Dashboard</button>
+      <button
+        on:click={handleDone}
+        class="px-7 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-[#0a0e1a] border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 hover:text-white fade-up-anim [animation-delay:0.4s]"
+        style="background:linear-gradient(135deg,#07a5c9,#6366f1);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(7,165,201,0.35);"
+      >
+        Back to Dashboard
+      </button>
     </div>
   </svelte:fragment>
 </ConfirmationModal>
 
 <style>
-  /* Task box */
-  .ss-task-box {
-    background: var(--bg, #0a0e1a);
-    border: 1px solid rgba(30, 42, 58, 0.9);
-    border-radius: 4px;
-    padding: 0.875rem 1rem;
-    margin-bottom: 1rem;
+  .burst-anim {
+    animation: burst-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
-  .ss-task-label {
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted, #8892a0);
-    margin: 0 0 0.6rem;
-  }
-  .ss-task-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .ss-task-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.78rem;
-    opacity: 0.35;
-  }
-  .ss-task-item.done { opacity: 1; }
-  .ss-check { color: var(--success, #00e5a0); font-weight: 700; width: 1rem; text-align: center; }
-  .ss-task-item:not(.done) .ss-check { color: var(--surface, #2d3446); }
-  .ss-text { color: var(--text-primary, #d0d7dd); }
-  .ss-task-item:not(.done) .ss-text { color: var(--text-muted, #8892a0); text-decoration: line-through; }
-  .ss-task-count {
-    margin: 0.6rem 0 0;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.65rem;
-    color: var(--text-muted, #8892a0);
-    text-align: right;
-  }
-
-  /* Reward chips */
-  .ss-reward-chips {
-    display: flex;
-    gap: 0.6rem;
-    margin-bottom: 0.25rem;
-  }
-  .ss-chip {
-    flex: 1;
-    text-align: center;
-    padding: 0.45rem 0;
-    border-radius: 4px;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
-    border: 1px solid transparent;
-  }
-  .ss-chip.xp   { background: rgba(15, 34, 16, 0.8);  border-color: rgba(22, 163, 74, 0.25);  color: #4ade80; }
-  .ss-chip.coin { background: rgba(31, 21, 8, 0.8);   border-color: rgba(202, 138, 4, 0.25);  color: #fbbf24; }
-
-  /* Success panel */
-  .ss-success {
-    text-align: center;
-    padding: 0.5rem 0;
-  }
-  .ss-burst {
-    font-size: 3rem;
-    animation: ss-burst-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-  @keyframes ss-burst-pop {
+  @keyframes burst-pop {
     from { transform: scale(0.3); opacity: 0; }
     to   { transform: scale(1);   opacity: 1; }
   }
-  .ss-success-title {
-    margin: 0.6rem 0 0.3rem;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--text-primary, #d0d7dd);
+  .fade-up-anim {
+    animation: fade-up 0.4s 0.15s ease both;
   }
-  .ss-success-sub {
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.75rem;
-    color: var(--text-muted, #8892a0);
-    margin: 0 0 1.5rem;
-  }
-  .ss-rewards-row {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-  }
-  .ss-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.6rem 1.1rem;
-    border-radius: 4px;
-    border: 1px solid transparent;
-    animation: ss-fade-up 0.4s 0.15s ease both;
-  }
-  @keyframes ss-fade-up {
+  @keyframes fade-up {
     from { transform: translateY(10px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
-  }
-  .xp-badge   { background: rgba(15, 34, 16, 0.8);  border-color: rgba(22, 163, 74, 0.30); }
-  .coin-badge { background: rgba(31, 21, 8, 0.8);   border-color: rgba(180, 83, 0, 0.30);  animation-delay: 0.25s; }
-  .ss-badge-icon  { font-size: 1.1rem; }
-  .ss-badge-value {
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 1.3rem;
-    font-weight: 800;
-  }
-  .xp-badge   .ss-badge-value { color: #4ade80; }
-  .coin-badge .ss-badge-value { color: #fbbf24; }
-  .ss-badge-unit {
-    font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    color: var(--text-muted, #8892a0);
-    align-self: flex-end;
-    padding-bottom: 3px;
-  }
-
-  /* Back to Dashboard button */
-  .ss-btn-done {
-    padding: 0.65rem 1.75rem;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--bg, #0a0e1a);
-    background: linear-gradient(135deg, var(--accent, #07a5c9), #6366f1);
-    border: none;
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-    cursor: pointer;
-    transition: opacity 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 16px rgba(7, 165, 201, 0.35);
-    animation: ss-fade-up 0.4s 0.4s ease both;
-  }
-  .ss-btn-done:hover {
-    opacity: 0.88;
-    box-shadow: 0 0 24px rgba(7, 165, 201, 0.55);
-    color: #fff;
   }
 </style>

@@ -14,6 +14,7 @@
   import PreviewPanel from "$lib/components/workspace/PreviewPanel.svelte";
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
+  import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -41,6 +42,11 @@
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
+
+  // ── Panel toggle state ───────────────────────────────────────────────────
+  let aiPanelOpen: boolean = false;
+
+  function toggleAiPanel() { aiPanelOpen = !aiPanelOpen; }
 
   // ── Boot loading state ───────────────────────────────────────────────────
   let isBooting = true;
@@ -472,14 +478,16 @@
     difficulty={LEVEL_CONFIG.difficulty}
     {timeRemaining}
     {isRunning}
+    {aiPanelOpen}
     onBack={handleBack}
     onRun={runDevServer}
     onStop={stopDevServer}
     onSubmit={handleSubmitSprint}
+    onToggleAi={toggleAiPanel}
   />
 
   <div class="flex flex-1 overflow-hidden">
-    <!-- Left Sidebar -->
+    <!-- Left Sidebar (VS Code-style toggle) -->
     <PrimarySidebar
       {fileTree}
       {directories}
@@ -488,7 +496,6 @@
       {containerId}
       scenario={LEVEL_CONFIG.scenario}
       {tasks}
-      hints={LEVEL_CONFIG.hints}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
       onCreateFile={handleCreateFile}
@@ -497,12 +504,12 @@
     />
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex flex-col min-w-0">
       <!-- Tab Bar -->
       <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
 
       <!-- Content Area -->
-      <div class="flex-1 relative">
+      <div class="flex-1 relative overflow-hidden">
         <EditorPanel
           visible={activeTab === "editor"}
           {selectedFile}
@@ -520,6 +527,11 @@
         />
       </div>
     </div>
+
+    <!-- Right AI Hints Panel (toggleable) -->
+    {#if aiPanelOpen}
+      <AiHintsPanel hints={LEVEL_CONFIG.hints} onClose={toggleAiPanel} />
+    {/if}
   </div>
 
   <!-- Submit Sprint modal -->

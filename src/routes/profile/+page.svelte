@@ -33,6 +33,8 @@
     avatar: data.user?.image ?? "",
   };
 
+  const defaultAvatar = ""
+
   $: hasProfileImage = Boolean(profileUserData.avatar && /^https?:\/\//i.test(profileUserData.avatar));
 
   const memberSince = "Sep 12, 2025";

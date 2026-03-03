@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { Trophy, Star, ChevronRight, Coins, Zap, RotateCcw, X, AlertCircle } from "lucide-svelte";
+  import { Trophy, Star, ChevronRight, Coins, Zap, RotateCcw } from "lucide-svelte";
   import type { FinishedStack } from "$types";
   import LoadingSteps from "$lib/components/ui/LoadingSteps.svelte";
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
 
   export let stacks: FinishedStack[];
   export let maxVisible: number = 2;
@@ -20,6 +21,7 @@
   ];
 
   let paywallStack: FinishedStack | null = null;
+  let paywallOpen = false;
   let isRestoring = false;
   let restoreStep = 0;
   let restoreError = "";
@@ -27,12 +29,13 @@
 
   function openPaywall(stack: FinishedStack) {
     paywallStack = stack;
+    paywallOpen = true;
     restoreError = "";
   }
 
   function closePaywall() {
     if (isRestoring) return;
-    paywallStack = null;
+    paywallOpen = false;
     restoreError = "";
   }
 
@@ -60,6 +63,9 @@
     restoreError = "";
     startStepTimer();
 
+    // Close the confirm modal — loading overlay takes over
+    paywallOpen = false;
+
     try {
       const res = await fetch(`/api/docker/container/${paywallStack.id}/restore`, {
         method: "POST",
@@ -83,6 +89,8 @@
       stopStepTimer();
       restoreError = err instanceof Error ? err.message : "Restore failed. Please try again.";
       isRestoring = false;
+      // Re-open the modal to show the error
+      paywallOpen = true;
     }
   }
 </script>
@@ -188,103 +196,55 @@
   </div>
 </div>
 
-<!-- Paywall Modal -->
+<!-- Restore Paywall — ConfirmationModal -->
 {#if paywallStack}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-    on:click|self={closePaywall}
+  <ConfirmationModal
+    bind:open={paywallOpen}
+    icon="🔄"
+    iconVariant="warning"
+    title="Restore Workspace?"
+    confirmLabel="Confirm ({RESTORE_COST} 🪙)"
+    cancelLabel="Cancel"
+    variant="warning"
+    error={restoreError}
+    on:confirm={handleRestore}
+    on:cancel={closePaywall}
   >
-    <div class="relative w-full max-w-sm mx-4 bg-obsidian-bg-light border border-cyber-warn/30 rounded-card shadow-[0_0_60px_rgba(255,180,0,0.12)] overflow-hidden">
-      <!-- Top glow -->
-      <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyber-warn/60 to-transparent"></div>
-
-      <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)]">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-card bg-cyber-warn/15 flex items-center justify-center border border-cyber-warn/30">
-            <RotateCcw class="w-4 h-4 text-cyber-warn" />
-          </div>
-          <h3 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">Restore Progress</h3>
+    <!-- Stack preview + cost/balance info -->
+    <div class="space-y-3">
+      <!-- Stack card -->
+      <div class="flex items-center gap-3 bg-[#0a0e1a] border border-[rgba(7,165,201,0.12)] rounded-[4px] px-4 py-3">
+        <span class="text-2xl">{paywallStack.icon}</span>
+        <div>
+          <p class="font-mono text-[0.85rem] font-semibold text-[#d0d7dd]">{paywallStack.name}</p>
+          <p class="font-mono text-xs text-[#8892a0]">{paywallStack.frontend} · {paywallStack.backend} · {paywallStack.database}</p>
         </div>
-        <button
-          on:click={closePaywall}
-          class="text-obsidian-text-primary/40 hover:text-obsidian-text-primary/80 transition-colors"
-        >
-          <X class="w-4 h-4" />
-        </button>
       </div>
 
-      <!-- Body -->
-      <div class="px-6 py-5 space-y-4">
-        <p class="text-sm font-rajdhani text-obsidian-text-primary/70">
-          You're about to restore your saved workspace for:
+      <!-- Cost row -->
+      <div class="flex items-center justify-between bg-[rgba(255,180,0,0.06)] border border-[rgba(255,180,0,0.2)] rounded-[4px] px-4 py-2.5">
+        <span class="font-mono text-[0.8rem] text-[#8892a0] uppercase tracking-wider">Restore cost</span>
+        <div class="flex items-center gap-1.5 text-[#ffb400] font-mono font-semibold text-[0.85rem]">
+          <Coins class="w-4 h-4" />
+          <span>{RESTORE_COST} coins</span>
+        </div>
+      </div>
+
+      <!-- Balance row -->
+      <div class="flex items-center justify-between px-1">
+        <span class="font-mono text-xs text-[#8892a0]">Your balance</span>
+        <span class="font-mono text-xs font-semibold {userCoins >= RESTORE_COST ? 'text-[#00e5a0]' : 'text-[#ff3860]'}">
+          🪙 {userCoins} coins
+        </span>
+      </div>
+
+      {#if userCoins < RESTORE_COST}
+        <p class="font-mono text-xs text-[#ff3860]/80 text-center">
+          Not enough coins. Earn more by completing sprints.
         </p>
-        <div class="flex items-center gap-3 bg-obsidian-bg border border-[var(--card-border)] rounded-card px-4 py-3">
-          <span class="text-2xl">{paywallStack.icon}</span>
-          <div>
-            <p class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{paywallStack.name}</p>
-            <p class="text-xs font-mono text-[var(--text-muted)]">{paywallStack.frontend} · {paywallStack.backend} · {paywallStack.database}</p>
-          </div>
-        </div>
-
-        <!-- Cost vs Balance -->
-        <div class="flex items-center justify-between bg-cyber-warn/10 border border-cyber-warn/25 rounded-card px-4 py-3">
-          <span class="text-sm font-rajdhani text-obsidian-text-primary/70">Restore cost</span>
-          <div class="flex items-center gap-1.5 text-cyber-warn font-orbitron font-semibold text-sm">
-            <Coins class="w-4 h-4" />
-            <span>{RESTORE_COST} coins</span>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between px-1">
-          <span class="text-xs font-mono text-[var(--text-muted)]">Your balance</span>
-          <span class="text-xs font-orbitron font-medium {userCoins >= RESTORE_COST ? 'text-cyber-success' : 'text-cyber-danger'}">
-            🪙 {userCoins} coins
-          </span>
-        </div>
-
-        {#if userCoins < RESTORE_COST}
-          <p class="text-xs font-rajdhani text-cyber-danger/80 text-center">
-            Not enough coins. Earn more by completing sprints.
-          </p>
-        {/if}
-
-        {#if restoreError}
-          <div class="flex items-start gap-2 bg-cyber-danger/10 border border-cyber-danger/30 rounded-card px-3 py-2">
-            <AlertCircle class="w-4 h-4 text-cyber-danger shrink-0 mt-0.5" />
-            <p class="text-xs font-rajdhani text-cyber-danger">{restoreError}</p>
-          </div>
-        {/if}
-      </div>
-
-      <!-- Actions -->
-      <div class="flex gap-3 px-6 pb-5">
-        <button
-          on:click={closePaywall}
-          disabled={isRestoring}
-          class="btn-cyber btn-cyber-outline flex-1 !py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Cancel
-        </button>
-        <button
-          on:click={handleRestore}
-          disabled={isRestoring || userCoins < RESTORE_COST}
-          class="btn-cyber flex-1 !py-2.5 text-sm font-orbitron font-medium transition-all
-            {userCoins >= RESTORE_COST && !isRestoring
-              ? 'bg-cyber-warn hover:bg-[#ffc933] text-obsidian-bg hover:shadow-[0_0_20px_rgba(255,180,0,0.3)]'
-              : 'bg-cyber-warn/30 border border-cyber-warn/20 text-cyber-warn/50 cursor-not-allowed'}"
-        >
-          {#if isRestoring}
-            Restoring...
-          {:else}
-            Confirm ({RESTORE_COST} 🪙)
-          {/if}
-        </button>
-      </div>
+      {/if}
     </div>
-  </div>
+  </ConfirmationModal>
 {/if}
 
 <!-- ── Restore Loading Overlay ──────────────────────────────────────────── -->
