@@ -19,12 +19,14 @@
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import type { FileListResponse } from "$lib/interface/Files";
 
+  import type { Session } from "@auth/core/types";
+
   // Server-loaded data:
   //   dockerContainerId — the real Docker container ID (for Docker API calls)
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
   //   userId — the user's ID for AI hints
   //   userCoins — the user's coin balance for AI hints
-  export let data: { user: any; dockerContainerId: string | null; userId: string; userCoins: number };
+  export let data: { user: Session["user"]; dockerContainerId: string | null; userId: string; userCoins: number };
 
   // Get route params
   $: stackId = page.params.techstackid;
