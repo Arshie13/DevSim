@@ -43,31 +43,31 @@
 
   <!-- Drawer -->
   <div
-    class="fixed top-0 right-0 h-full w-full max-w-2xl bg-obsidian-bg border-l border-obsidian-accent/30 z-50 shadow-[-10px_0_50px_rgba(0,0,0,0.5)]"
+    class="fixed top-0 right-0 h-full w-full max-w-2xl bg-obsidian-bg border-l border-obsidian-accent/20 z-50 shadow-[-10px_0_50px_rgba(0,0,0,0.5),0_0_40px_rgba(7,165,201,0.08)]"
     transition:fly={{ x: 500, duration: 300 }}
   >
     <!-- Header -->
-    <div class="border-b border-obsidian-accent/20 bg-obsidian-bg-light">
-      <div class="w-full px-16 py-3 flex items-center justify-between">
+    <div class="border-b border-[var(--card-border)] bg-obsidian-bg-light/85 backdrop-blur-2xl">
+      <div class="w-full px-16 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <div class="w-9 h-9 rounded-card bg-gradient-to-br from-obsidian-accent to-cyber-bright flex items-center justify-center shadow-accent-glow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-obsidian-bg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="20" x2="18" y2="10"></line>
               <line x1="12" y1="20" x2="12" y2="4"></line>
               <line x1="6" y1="20" x2="6" y2="14"></line>
             </svg>
           </div>
-          <div class="flex flex-col px-2 py-1">
-            <h2 class="text-xl font-bold text-obsidian-text-muted tracking-tight">Stats & Activity</h2>
-            <p class="text-xs text-obsidian-text-primary/50 uppercase tracking-widest">Your performance overview</p>
+          <div>
+            <h2 class="text-xl font-orbitron font-bold text-obsidian-text-muted tracking-tight">Stats & Activity</h2>
+            <p class="text-xs font-mono text-[var(--text-muted)] uppercase tracking-widest">Your performance overview</p>
           </div>
         </div>
         <button
           on:click={closeDrawer}
-          class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-obsidian-surface/60 transition-colors group"
+          class="w-9 h-9 flex items-center justify-center rounded-card hover:bg-obsidian-accent/10 border border-transparent hover:border-obsidian-accent/30 transition-all group"
           aria-label="Close drawer"
         >
-          <X class="w-5 h-5 text-obsidian-text-primary/50 group-hover:text-obsidian-text-muted" />
+          <X class="w-5 h-5 text-obsidian-text-primary/50 group-hover:text-obsidian-accent" />
         </button>
       </div>
     </div>

@@ -234,85 +234,60 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-<div
-  class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-  on:click={onClose}
->
-  <div
-    class="bg-obsidian-surface border border-obsidian-border rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-    on:click|stopPropagation
-  >
+<div class="modal-overlay" on:click={onClose}>
+  <div class="modal-box" on:click|stopPropagation>
+
+    <!-- Scanline overlay -->
+    <div class="modal-scanlines" aria-hidden="true"></div>
+
+    <!-- Top shimmer -->
+    <div class="modal-shimmer"></div>
+
     <!-- Header -->
-    <div
-      class="relative p-6 border-b border-obsidian-border bg-gradient-to-r from-obsidian-surface via-obsidian-bg-light to-obsidian-surface"
-    >
-      <button
-        on:click={onClose}
-        class="absolute top-4 right-4 p-2 rounded-lg bg-obsidian-bg-light hover:bg-obsidian-border transition-colors"
-      >
-        <X class="w-5 h-5 text-obsidian-text-primary/60" />
+    <div class="modal-header">
+      <button class="close-btn btn-cyber btn-cyber-outline" on:click={onClose}>
+        <X class="w-4 h-4" />
       </button>
 
       <div class="flex items-center gap-2 mb-3">
-        <Sparkles class="w-5 h-5 text-amber-400" />
-        <h2 class="text-xl font-bold text-obsidian-text-muted">
-          Stack Analysis
-        </h2>
+        <Sparkles class="w-4 h-4" style="color: #ffb400;" />
+        <h2 class="modal-title">Stack Analysis</h2>
       </div>
 
-      <!-- Selected Technologies -->
+      <!-- Selected tech pills -->
       <div class="flex items-center gap-2 flex-wrap">
         {#each selectedOptions as option}
-          <div
-            class="flex items-center gap-2 bg-obsidian-bg-light border border-obsidian-border rounded-lg px-3 py-1.5"
-          >
-            <span class="text-lg">{option.icon}</span>
-            <span class="text-sm font-medium text-obsidian-text-muted"
-              >{option.name}</span
-            >
+          <div class="tech-pill">
+            <span class="text-base">{option.icon}</span>
+            <span class="tech-pill-name">{option.name}</span>
           </div>
         {/each}
       </div>
     </div>
 
     <!-- Content -->
-    <div
-      class="p-6 overflow-y-auto max-h-[calc(85vh-180px)] space-y-6"
-    >
-      <!-- Synergy Message -->
+    <div class="modal-content">
+
+      <!-- Synergy message — AI mentor bubble style -->
       {#if stackAnalysis.synergy}
-        <div
-          class="p-4 rounded-xl bg-gradient-to-r from-obsidian-accent/10 to-emerald-500/10 border border-obsidian-accent/20"
-        >
-          <div class="flex items-start gap-3">
-            <Lightbulb
-              class="w-5 h-5 text-obsidian-accent flex-shrink-0 mt-0.5"
-            />
-            <p class="text-sm text-obsidian-text-primary leading-relaxed">
-              {stackAnalysis.synergy}
-            </p>
-          </div>
+        <div class="synergy-box">
+          <Lightbulb class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #07a5c9;" />
+          <p class="synergy-text">{stackAnalysis.synergy}</p>
         </div>
       {/if}
 
       <!-- Pros -->
       {#if stackAnalysis.pros.length > 0}
-        <div>
-          <div class="flex items-center gap-2 mb-3">
-            <ThumbsUp class="w-4 h-4 text-emerald-400 flex-shrink-0" />
-            <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
-            >
-              Advantages
-            </h3>
+        <div class="analysis-section">
+          <div class="section-head">
+            <ThumbsUp class="w-3.5 h-3.5 flex-shrink-0" style="color: #00e5a0;" />
+            <h3 class="section-title" style="color: #00e5a0;">Advantages</h3>
           </div>
-          <ul class="space-y-2">
+          <ul class="item-list">
             {#each stackAnalysis.pros as pro}
-              <li
-                class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
-              >
-                <span class="text-emerald-400 leading-none pt-0.5">+</span>
-                <span>{pro}</span>
+              <li class="item-row">
+                <span class="item-bullet" style="color: #00e5a0;">+</span>
+                <span class="item-text">{pro}</span>
               </li>
             {/each}
           </ul>
@@ -321,22 +296,16 @@
 
       <!-- Cons -->
       {#if stackAnalysis.cons.length > 0}
-        <div>
-          <div class="flex items-center gap-2 mb-3">
-            <ThumbsDown class="w-4 h-4 text-rose-400 flex-shrink-0" />
-            <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
-            >
-              Considerations
-            </h3>
+        <div class="analysis-section">
+          <div class="section-head">
+            <ThumbsDown class="w-3.5 h-3.5 flex-shrink-0" style="color: #ff3860;" />
+            <h3 class="section-title" style="color: #ff3860;">Considerations</h3>
           </div>
-          <ul class="space-y-2">
+          <ul class="item-list">
             {#each stackAnalysis.cons as con}
-              <li
-                class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
-              >
-                <span class="text-rose-400 leading-none pt-0.5">−</span>
-                <span>{con}</span>
+              <li class="item-row">
+                <span class="item-bullet" style="color: #ff3860;">−</span>
+                <span class="item-text">{con}</span>
               </li>
             {/each}
           </ul>
@@ -345,22 +314,16 @@
 
       <!-- Best For -->
       {#if stackAnalysis.bestFor.length > 0}
-        <div>
-          <div class="flex items-center gap-2 mb-3">
-            <Target class="w-4 h-4 text-obsidian-accent flex-shrink-0" />
-            <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
-            >
-              Best Use Cases
-            </h3>
+        <div class="analysis-section">
+          <div class="section-head">
+            <Target class="w-3.5 h-3.5 flex-shrink-0" style="color: #07a5c9;" />
+            <h3 class="section-title" style="color: #07a5c9;">Best Use Cases</h3>
           </div>
-          <ul class="space-y-2">
+          <ul class="item-list">
             {#each stackAnalysis.bestFor as useCase}
-              <li
-                class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
-              >
-                <span class="text-obsidian-accent leading-none pt-0.5">→</span>
-                <span>{useCase}</span>
+              <li class="item-row">
+                <span class="item-bullet" style="color: #07a5c9;">→</span>
+                <span class="item-text">{useCase}</span>
               </li>
             {/each}
           </ul>
@@ -369,22 +332,16 @@
 
       <!-- Avoid For -->
       {#if stackAnalysis.avoidFor.length > 0}
-        <div>
-          <div class="flex items-center gap-2 mb-3">
-            <AlertTriangle class="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <h3
-              class="text-sm font-semibold text-obsidian-text-primary uppercase tracking-wider leading-none"
-            >
-              Not Recommended For
-            </h3>
+        <div class="analysis-section">
+          <div class="section-head">
+            <AlertTriangle class="w-3.5 h-3.5 flex-shrink-0" style="color: #ffb400;" />
+            <h3 class="section-title" style="color: #ffb400;">Not Recommended For</h3>
           </div>
-          <ul class="space-y-2">
+          <ul class="item-list">
             {#each stackAnalysis.avoidFor as avoid}
-              <li
-                class="flex items-start gap-2 text-sm text-obsidian-text-primary/70"
-              >
-                <span class="text-amber-400 leading-none pt-0.5">!</span>
-                <span>{avoid}</span>
+              <li class="item-row">
+                <span class="item-bullet" style="color: #ffb400;">!</span>
+                <span class="item-text">{avoid}</span>
               </li>
             {/each}
           </ul>
@@ -393,3 +350,203 @@
     </div>
   </div>
 </div>
+
+<style>
+  /* Overlay */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 1rem;
+  }
+
+  /* Modal box */
+  .modal-box {
+    position: relative;
+    overflow: hidden;
+    background: #12192a;
+    border: 1px solid rgba(7, 165, 201, 0.30);
+    border-radius: 4px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 60px rgba(7, 165, 201, 0.12), 0 0 120px rgba(0, 0, 0, 0.60);
+  }
+
+  /* Scanlines */
+  .modal-scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Top shimmer accent */
+  .modal-shimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #07a5c9, transparent);
+    z-index: 1;
+  }
+
+  /* Header */
+  .modal-header {
+    position: relative;
+    z-index: 2;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(7, 165, 201, 0.12);
+    background: rgba(10, 14, 26, 0.40);
+  }
+
+  .modal-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #d0d7dd;
+    letter-spacing: 0.05em;
+  }
+
+  /* Tech pills in header */
+  .tech-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba(7, 165, 201, 0.08);
+    border: 1px solid rgba(7, 165, 201, 0.30);
+    border-radius: 4px;
+  }
+  .tech-pill-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: #07a5c9;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Close button */
+  .close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  /* Scrollable content */
+  .modal-content {
+    position: relative;
+    z-index: 2;
+    padding: 1.25rem 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Synergy — AI mentor bubble style */
+  .synergy-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(7, 165, 201, 0.06);
+    border-left: 2px solid #07a5c9;
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.02);
+  }
+  .synergy-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.88rem;
+    color: #d0d7dd;
+    line-height: 1.5;
+  }
+
+  /* Analysis sections */
+  .analysis-section {
+    border-left: 1px solid rgba(7, 165, 201, 0.08);
+    padding-left: 0.875rem;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+  }
+
+  .item-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .item-bullet {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+  .item-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.88rem;
+    color: rgba(208, 215, 221, 0.70);
+    line-height: 1.4;
+  }
+
+  /* Inline cyber button for close */
+  .btn-cyber {
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-cyber-outline {
+    border: 1px solid rgba(7, 165, 201, 0.40);
+    color: rgba(7, 165, 201, 0.70);
+    background: transparent;
+  }
+  .btn-cyber-outline:hover {
+    background: rgba(7, 165, 201, 0.12);
+    color: #07a5c9;
+    border-color: #07a5c9;
+  }
+</style>
