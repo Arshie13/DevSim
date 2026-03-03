@@ -13,6 +13,7 @@
   import TerminalPanel from "$lib/components/workspace/TerminalPanel.svelte";
   import PreviewPanel from "$lib/components/workspace/PreviewPanel.svelte";
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
+  import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -39,6 +40,45 @@
   let previewUrl: string = "";
   let editorValue: string = "";
   let fileTree: string[] = [];
+  let directories: string[] = [];
+
+  // ── Boot loading state ───────────────────────────────────────────────────
+  let isBooting = true;
+  let bootStep = 0;
+  let bootError = "";
+
+  const BOOT_STEPS = [
+    {
+      icon: "🐳",
+      label: "Booting container engine…",
+      detail: "Allocating compute resources",
+    },
+    {
+      icon: "📂",
+      label: "Indexing project files…",
+      detail: "Scanning workspace directory",
+    },
+    {
+      icon: "📄",
+      label: "Loading source code…",
+      detail: "Reading initial file content",
+    },
+    {
+      icon: "⚡",
+      label: "Igniting Monaco editor…",
+      detail: "Mounting language server",
+    },
+    {
+      icon: "💻",
+      label: "Connecting terminal…",
+      detail: "Opening interactive shell",
+    },
+  ];
+
+  function handleBootRetry() {
+    bootError = "";
+    initWorkspace();
+  }
 
   // Component refs
   let submitSprintModal: SubmitSprintModal;
@@ -47,7 +87,7 @@
   let iframeRef: HTMLIFrameElement;
 
   // The Docker container ID (from server) — used for all /api/docker/container/{id}/... calls
-  $: containerId = data.dockerContainerId ?? '';
+  $: containerId = data.dockerContainerId ?? "";
 
   // Derived
   $: projectName = LEVEL_CONFIG.title.split(" ")[0] || "project";
@@ -90,24 +130,32 @@
 
   async function initWorkspace() {
     try {
-      // Start the existing container
-      const response = await fetch(`/api/docker/container/${containerId}/start`, {
-        method: "POST",
-      });
+      // Step 0 — start the container
+      bootStep = 0;
+      const response = await fetch(
+        `/api/docker/container/${containerId}/start`,
+        {
+          method: "POST",
+        },
+      );
       const startData = await response.json();
-
       if (!startData.success) throw new Error(startData.error);
       previewUrl = startData.previewUrl;
 
-      // Fetch file list from Docker
+      // Step 1 — fetch file list
+      bootStep = 1;
       try {
-        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-        const listData = await listRes.json() as FileListResponse;
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+        const listData = (await listRes.json()) as FileListResponse;
         if (listData.success) {
           fileTree = listData.files;
+          directories = listData.directories || [];
           if (fileTree.length > 0 && !fileTree.includes(selectedFile)) {
             selectedFile = fileTree[0];
           }
@@ -117,13 +165,17 @@
         fileTree = flattenFiles(LEVEL_CONFIG.starterFiles);
       }
 
-      // Read initial file content from Docker
+      // Step 2 — read initial file content
+      bootStep = 2;
       try {
-        const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
-        });
+        const res = await fetch(
+          `/api/docker/container/${containerId}/files/read`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
+          },
+        );
         const fileData = await res.json();
         if (fileData.success) {
           fileContents[selectedFile] = fileData.content;
@@ -134,7 +186,8 @@
         editorValue = "";
       }
 
-      // Initialize Monaco Editor
+      // Step 3 — initialize Monaco Editor
+      bootStep = 3;
       if (editorRef) {
         monacoEditor = new MonacoInitializer();
         await monacoEditor.initialize(
@@ -149,18 +202,27 @@
         monacoEditor.setLanguageFromFilename(selectedFile);
       }
 
-      // Initialize Terminal
+      // Step 4 — initialize Terminal
+      bootStep = 4;
       terminal = new TerminalInitializer();
       await terminal.initializeDockerTerminal(terminalRef, containerId);
+
+      // Done — hide the boot screen
+      isBooting = false;
     } catch (error) {
       console.error("Failed to initialize environment:", error);
+      bootError = error instanceof Error ? error.message : String(error);
     }
   }
 
   // ── Reactive statements ──────────────────────────────────────────────────
 
   // Sync editor content when switching files
-  $: if (monacoEditor && selectedFile && fileContents[selectedFile] !== undefined) {
+  $: if (
+    monacoEditor &&
+    selectedFile &&
+    fileContents[selectedFile] !== undefined
+  ) {
     monacoEditor.setValue(fileContents[selectedFile]);
   }
 
@@ -174,7 +236,7 @@
 
   async function saveFile() {
     if (!containerId || !selectedFile) return;
-    
+
     const content = fileContents[selectedFile] || [editorValue];
     try {
       const response = await fetch(
@@ -182,8 +244,10 @@
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${selectedFile}`, 
-          content: content }),
+          body: JSON.stringify({
+            path: `/workspace/${selectedFile}`,
+            content: content,
+          }),
         },
       );
       const result = await response.json();
@@ -211,24 +275,33 @@
     );
   }
 
-  async function selectFile(file: string, lineNumber?: number, searchTerm?: string) {
+  async function selectFile(
+    file: string,
+    lineNumber?: number,
+    searchTerm?: string,
+  ) {
     selectedFile = file;
     activeTab = "editor";
 
     if (containerId) {
       try {
-        const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
-        });
+        const res = await fetch(
+          `/api/docker/container/${containerId}/files/read`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: `/workspace/${selectedFile}` }),
+          },
+        );
         const result = await res.json();
         if (result.success) {
           fileContents[file] = result.content;
           monacoEditor?.setValue(result.content);
           monacoEditor?.setLanguageFromFilename(file);
           if (lineNumber) {
-            requestAnimationFrame(() => monacoEditor?.revealLine(lineNumber, searchTerm));
+            requestAnimationFrame(() =>
+              monacoEditor?.revealLine(lineNumber, searchTerm),
+            );
           }
         }
       } catch (error) {
@@ -245,20 +318,13 @@
     submitSprintModal.open();
   }
 
-  async function refreshPreview() {
+  function refreshPreview() {
+    if (!previewUrl) return;
     try {
-      const response = await fetch("/api/docker/container/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stackId, levelId }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        const currentUrl = new URL(result.previewUrl);
-        currentUrl.searchParams.set("t", Date.now().toString());
-        previewUrl = currentUrl.toString();
-        if (iframeRef) iframeRef.src = previewUrl;
-      }
+      const currentUrl = new URL(previewUrl);
+      currentUrl.searchParams.set("t", Date.now().toString());
+      previewUrl = currentUrl.toString();
+      if (iframeRef) iframeRef.src = previewUrl;
     } catch (error) {
       console.error("Error refreshing preview:", error);
     }
@@ -267,13 +333,137 @@
   function handleTabChange(tab: "editor" | "terminal" | "preview") {
     activeTab = tab;
   }
+  // Create file or folder
+  async function handleCreateFile(fullPath: string, isDirectory: boolean) {
+    if (!containerId || !fullPath) return;
+
+    try {
+      const response = await fetch(
+        `/api/docker/container/${containerId}/files/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: `/workspace/${fullPath}`, isDirectory }),
+        },
+      );
+      const data = await response.json();
+      if (data.success) {
+        console.log(isDirectory ? "Folder" : "File", "created successfully");
+        // Refresh file list
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+        const listData = await listRes.json();
+        if (listData.success) {
+          fileTree = listData.files;
+          directories = listData.directories || [];
+        }
+      }
+    } catch (error) {
+      console.error("Error creating file:", error);
+    }
+  }
+
+  // Delete file or folder
+  async function handleDeleteFile(filePath: string) {
+    if (!containerId || !filePath) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/docker/container/${containerId}/files/delete`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: `/workspace/${filePath}` }),
+        },
+      );
+      const data = await response.json();
+      if (data.success) {
+        // Refresh file list
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+        const listData = await listRes.json();
+        if (listData.success) {
+          fileTree = listData.files;
+          directories = listData.directories || [];
+        }
+      } else {
+        console.error("Delete failed:", data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
+  }
+
+  // Rename file or folder
+  async function handleRenameFile(oldPath: string, newPath: string) {
+    if (!containerId || !oldPath || !newPath) return;
+
+    try {
+      const response = await fetch(
+        `/api/docker/container/${containerId}/files/rename`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            oldPath: `/workspace/${oldPath}`,
+            newPath: `/workspace/${newPath}`,
+          }),
+        },
+      );
+      const data = await response.json();
+      if (data.success) {
+        console.log("File renamed successfully");
+        // Refresh file list
+        const listRes = await fetch(
+          `/api/docker/container/${containerId}/files/list`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+        const listData = await listRes.json();
+        if (listData.success) {
+          fileTree = listData.files;
+          directories = listData.directories || [];
+        }
+      }
+    } catch (error) {
+      console.error("Error renaming file:", error);
+    }
+  }
 </script>
 
 <svelte:head>
   <title>Level {LEVEL_CONFIG.level}: {LEVEL_CONFIG.title} - DevSim</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]">
+<!-- ── Boot / Loading screen ──────────────────────────────────────────────── -->
+{#if isBooting}
+  <WorkspaceBootScreen
+    step={bootStep}
+    steps={BOOT_STEPS}
+    error={bootError}
+    levelLabel="Level {LEVEL_CONFIG.level} · {LEVEL_CONFIG.title}"
+    on:retry={handleBootRetry}
+  />
+{/if}
+
+<div
+  class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]"
+  class:invisible={isBooting}
+>
   <!-- Header -->
   <WorkspaceHeader
     level={LEVEL_CONFIG.level}
@@ -292,6 +482,7 @@
     <!-- Left Sidebar -->
     <PrimarySidebar
       {fileTree}
+      {directories}
       {selectedFile}
       {projectName}
       {containerId}
@@ -300,6 +491,9 @@
       hints={LEVEL_CONFIG.hints}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
+      onCreateFile={handleCreateFile}
+      onDeleteFile={handleDeleteFile}
+      onRenameFile={handleRenameFile}
     />
 
     <!-- Main Content -->
@@ -316,10 +510,7 @@
           bind:editorRef
         />
 
-        <TerminalPanel
-          visible={activeTab === "terminal"}
-          bind:terminalRef
-        />
+        <TerminalPanel visible={activeTab === "terminal"} bind:terminalRef />
 
         <PreviewPanel
           visible={activeTab === "preview"}
@@ -334,7 +525,6 @@
   <!-- Submit Sprint modal -->
   <SubmitSprintModal
     bind:this={submitSprintModal}
-    {containerId}
     dbContainerId={page.params.containerId}
     {tasks}
   />

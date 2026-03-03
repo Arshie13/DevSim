@@ -1,20 +1,3 @@
-/**
- * archive-container.ts
- *
- * Service that archives a completed container's /workspace into a named
- * Docker volume, then stops and removes the original container.
- * This preserves the user's work so it can be restored later via the paywall.
- *
- * Flow:
- *  1. Validate the container belongs to the user and is completed.
- *  2. Create a named Docker volume.
- *  3. Stream /workspace tar out of the source container and into the volume
- *     via a short-lived node:20-alpine helper (already present on the host —
- *     no pull needed, unlike busybox which may not exist).
- *  4. Stop and remove the original container.
- *  5. Update the DB record with volumeName + isArchived = true.
- */
-
 import { docker } from '$lib/server/docker/client';
 import prisma from '$lib/server/client';
 import crypto from 'crypto';
@@ -66,18 +49,31 @@ export async function archiveContainer(
 	await docker.createVolume({ Name: volumeName });
 
 	// --- 4. Copy /workspace into the volume via a helper container ---
+	// Declare helper outside try so the finally block can always clean it up.
+	let helper: Awaited<ReturnType<typeof docker.createContainer>> | null = null;
 	try {
-		// Stream the workspace tar out of the source container
+		// Stream the full workspace tar out of the source container.
+		// Use '/workspace/.' (trailing dot) so the tar contains file entries at the
+		// ROOT level (./file.txt, ./src/, …) rather than wrapped inside a 'workspace/'
+		// directory. When putArchive writes into '/data' on the helper, the volume ends
+		// up with /data/file.txt — NOT /data/workspace/file.txt.
+		// This prevents the nested '/workspace/workspace/…' structure on restore.
 		const sourceContainer = docker.getContainer(record.containerId);
-		const archiveStream = await sourceContainer.getArchive({ path: '/workspace/LIBRARY_MANAGEMENT' });
+		const archiveStream = await sourceContainer.getArchive({ path: '/workspace/.' });
 
 		// Use node:20-alpine — already present on the host (same image as all user containers).
-		// It mounts the new volume at /data and stays alive long enough to receive the tar.
-		const helper = await docker.createContainer({
+		// AutoRemove: false so we can call remove() ourselves — this guarantees the volume
+		// consumer is fully gone before any subsequent vol.remove() call.
+		// 'sleep' is PID 1 directly so SIGTERM exits it immediately on stop().
+		const helperSuffix = crypto.randomBytes(4).toString('hex');
+		helper = await docker.createContainer({
 			Image: 'node:20-alpine',
-			Cmd: ['sh', '-c', 'sleep 60'],
+			Cmd: ['sleep', '3600'],
+			name: `devsim-archive-helper-${helperSuffix}`,
+			Labels: { 'devsim.internal': 'archive-helper' },
 			HostConfig: {
-				Binds: [`${volumeName}:/data`]
+				Binds: [`${volumeName}:/data`],
+				AutoRemove: false
 			}
 		});
 
@@ -85,10 +81,6 @@ export async function archiveContainer(
 
 		// Push the tar archive into /data — Docker writes through the mount into the volume
 		await helper.putArchive(archiveStream as NodeJS.ReadableStream, { path: '/data' });
-
-		// Clean up: stop + remove the short-lived helper
-		await helper.stop({ t: 2 });
-		await helper.remove();
 	} catch (copyErr) {
 		// If copy fails, remove the volume so we don't leave orphans
 		try {
@@ -98,6 +90,14 @@ export async function archiveContainer(
 			/* best-effort cleanup */
 		}
 		throw new Error(`Failed to copy workspace to volume: ${String(copyErr)}`);
+	} finally {
+		// Stop then explicitly remove the helper — ensures the volume has zero consumers
+		// before we return. AutoRemove:false + explicit remove() is synchronous from our
+		// perspective, unlike AutoRemove:true which lets Docker remove it asynchronously.
+		if (helper) {
+			try { await (helper as any).stop({ t: 2 }); } catch { /* already stopped */ }
+			try { await (helper as any).remove(); } catch { /* already removed */ }
+		}
 	}
 
 	// --- 5. Stop & remove the original Docker container ---

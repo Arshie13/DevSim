@@ -96,6 +96,19 @@
     console.log("stack name: ", stackName);
 
     try {
+      // Pre-flight: verify the session is still valid before creating any resources.
+      // This catches stale sessions early without touching Docker or the database.
+      const sessionCheckResponse = await fetch("/api/auth/session");
+      if (!sessionCheckResponse.ok) {
+        alert("Your session is outdated. Please sign out and sign back in.");
+        return;
+      }
+      const sessionData = await sessionCheckResponse.json();
+      if (!sessionData?.user?.id) {
+        alert("Your session is outdated. Please sign out and sign back in.");
+        return;
+      }
+
       // Step 1: Create the container
       const createResponse = await fetch("/api/docker/container/create", {
         method: "POST",
