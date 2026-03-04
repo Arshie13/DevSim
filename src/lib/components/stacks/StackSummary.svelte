@@ -6,12 +6,24 @@
     DATABASE_OPTIONS,
     SERVICES_OPTIONS,
   } from "$mocks";
-  import { Rocket, X, Info, Zap } from "lucide-svelte";
+  import { Rocket, X, Info, Zap, Loader } from "lucide-svelte";
 
   export let selection: StackSelection;
   export let onClear: (category: keyof StackSelection) => void;
-  export let onStart: () => void;
+  export let onStart: () => Promise<void>;
   export let onShowInfo: () => void;
+
+  let isLoading = false;
+
+  async function handleStart() {
+    if (isLoading || !hasValidStack) return;
+    isLoading = true;
+    try {
+      await onStart();
+    } finally {
+      isLoading = false;
+    }
+  }
 
   function getOption(
     options: TechOption[],
@@ -178,14 +190,21 @@
 
       <!-- Start Button -->
       <button
-        on:click={onStart}
-        disabled={!hasValidStack}
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 {hasValidStack
+        on:click={handleStart}
+        disabled={!hasValidStack || isLoading}
+        aria-disabled={!hasValidStack || isLoading}
+        aria-busy={isLoading}
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 {hasValidStack && !isLoading
           ? 'bg-gradient-to-r from-obsidian-accent to-emerald-500 text-white hover:from-obsidian-accent hover:to-emerald-400 shadow-[0_0_25px_rgba(7,165,201,0.3)]'
           : 'bg-obsidian-surface text-obsidian-text-primary/50 cursor-not-allowed border border-obsidian-border'}"
       >
-        <Rocket class="w-4 h-4" />
-        <span>{hasValidStack ? 'Start Sprint' : `Select ${2 - selectedCount} more`}</span>
+        {#if isLoading}
+          <Loader class="w-4 h-4 animate-spin" />
+          <span>Starting...</span>
+        {:else}
+          <Rocket class="w-4 h-4" />
+          <span>{hasValidStack ? 'Start Sprint' : `Select ${2 - selectedCount} more`}</span>
+        {/if}
       </button>
     </div>
   </div>
