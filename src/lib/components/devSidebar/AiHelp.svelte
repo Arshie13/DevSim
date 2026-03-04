@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Send, AlertTriangle, Bot, User, Coins, X, MessageSquare } from "lucide-svelte";
+  import { Send, AlertTriangle, Bot, User, Coins, X } from "lucide-svelte";
   import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "./PrimarySidebar.svelte";
   import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage, formatMessage as formatMessageContent } from "$lib/ai";
 

@@ -15,6 +15,7 @@
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
   import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
+  import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -326,7 +327,8 @@
     }
   }
 
-  function handleBack() {
+  async function handleBack() {
+    await fetch(`/api/docker/container/${containerId}/stop`, { method: "POST" });
     goto("/dashboard");
   }
 
@@ -547,7 +549,7 @@
 
     <!-- Right AI Hints Panel (toggleable) -->
     {#if aiPanelOpen}
-      <AiHintsPanel hints={LEVEL_CONFIG.hints} onClose={toggleAiPanel} />
+      <AiHelp containerId={page.params.containerId} userId={data.userId} />
     {/if}
   </div>
 

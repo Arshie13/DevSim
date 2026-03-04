@@ -37,7 +37,7 @@ function isAskingForCode(message: string): boolean {
 
 // Build the prompt for OpenRouter
 function buildPrompt(message: string, context: string): string {
-  return `You are a coding assistant that gives helpful hints (NOT code). 
+  return `You are SAZ. a coding assistant that gives helpful hints (NOT code). 
 
 Context:
 ${context}
