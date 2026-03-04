@@ -10,6 +10,7 @@
   import ConfirmationModal from "$components/ui/ConfirmationModal.svelte";
   import { Layers, Sparkles } from "lucide-svelte";
   import { goto } from "$app/navigation";
+  import { toast } from "$lib/stores/toast";
   import type { UserData } from "$types";
 
   // Stack selection state
@@ -106,12 +107,12 @@
       // This catches stale sessions early without touching Docker or the database.
       const sessionCheckResponse = await fetch("/auth/session");
       if (!sessionCheckResponse.ok) {
-        alert("Your session is outdated. Please sign out and sign back in.");
+        toast.error("Your session is outdated. Please sign out and sign back in.");
         return;
       }
       const sessionData = await sessionCheckResponse.json();
       if (!sessionData?.user?.id) {
-        alert("Your session is outdated. Please sign out and sign back in.");
+        toast.error("Your session is outdated. Please sign out and sign back in.");
         return;
       }
 
@@ -134,9 +135,9 @@
         console.error("Failed to create container:", createData.error);
         // 401 = stale session — userId missing from DB after a reset
         if (createResponse.status === 401) {
-          alert("Your session is outdated. Please sign out and sign back in.");
+          toast.error("Your session is outdated. Please sign out and sign back in.");
         } else {
-          alert(`Failed to create container: ${createData.error}`);
+          toast.error(`Failed to create container: ${createData.error}`);
         }
         return;
       }

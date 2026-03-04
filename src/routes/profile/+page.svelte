@@ -10,6 +10,7 @@
   import MetricsSection   from "$components/profile/MetricsSection.svelte";
   import FriendsSection   from "$components/profile/FriendsSection.svelte";
   import EditProfile      from "$components/profile/EditProfile.svelte";
+  import { toast }        from "$lib/stores/toast";
 
   // ── Page data ─────────────────────────────────────────────────────────────────
   export let data: PageData;
@@ -39,9 +40,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ avatarPath: updated.avatar }),
         });
+        toast.success('Avatar updated');
       } catch (err) {
         console.error('Failed to persist avatar:', err);
+        toast.error('Failed to save avatar');
       }
+    } else {
+      toast.success('Profile updated');
     }
   }
 

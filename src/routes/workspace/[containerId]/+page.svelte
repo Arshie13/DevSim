@@ -21,6 +21,7 @@
   import type { FileListResponse } from "$lib/interface/Files";
 
   import type { Session } from "@auth/core/types";
+  import { toast } from "$lib/stores/toast";
 
   // Server-loaded data:
   //   dockerContainerId — the real Docker container ID (for Docker API calls)
@@ -265,9 +266,10 @@
         },
       );
       const result = await response.json();
-      if (result.success) console.log("File saved successfully");
+      if (result.success) toast.success("File saved");
     } catch (error) {
       console.error("Error saving file:", error);
+      toast.error("Failed to save file");
     }
   }
 
@@ -362,7 +364,7 @@
       );
       const data = await response.json();
       if (data.success) {
-        console.log(isDirectory ? "Folder" : "File", "created successfully");
+        toast.success(`${isDirectory ? 'Folder' : 'File'} created`);
         // Refresh file list
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
@@ -379,6 +381,7 @@
       }
     } catch (error) {
       console.error("Error creating file:", error);
+      toast.error(`Failed to create ${isDirectory ? 'folder' : 'file'}`);
     }
   }
 
@@ -414,9 +417,11 @@
         }
       } else {
         console.error("Delete failed:", data.error);
+        toast.error(`Delete failed: ${data.error}`);
       }
     } catch (error) {
       console.error("Error deleting file:", error);
+      toast.error("Failed to delete");
     }
   }
 
@@ -438,7 +443,7 @@
       );
       const data = await response.json();
       if (data.success) {
-        console.log("File renamed successfully");
+        toast.success("Renamed successfully");
         // Refresh file list
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
@@ -455,6 +460,7 @@
       }
     } catch (error) {
       console.error("Error renaming file:", error);
+      toast.error("Failed to rename");
     }
   }
 </script>
