@@ -291,7 +291,7 @@
   /* Page heading — Orbitron */
   .page-title {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.4rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: #d0d7dd;
     letter-spacing: 0.04em;
@@ -300,14 +300,14 @@
   /* Subtitle — Rajdhani */
   .page-subtitle {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     color: rgba(208, 215, 221, 0.55);
   }
 
   /* Divider label — Share Tech Mono */
   .divider-label {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: rgba(208, 215, 221, 0.30);

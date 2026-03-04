@@ -64,7 +64,7 @@
 <style>
   .section-label {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.10em;
     color: rgba(208, 215, 221, 0.50);
@@ -112,7 +112,7 @@
 
   .combo-name {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.88rem;
     color: #d0d7dd;
     white-space: nowrap;
     letter-spacing: 0.04em;

@@ -158,7 +158,7 @@
 
   .bar-label {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.10em;
     color: rgba(208, 215, 221, 0.45);
@@ -176,7 +176,7 @@
   }
   .xp-badge span {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     font-weight: 700;
     color: #ffb400;
     letter-spacing: 0.06em;
@@ -185,7 +185,7 @@
   /* Count tag */
   .count-tag {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     padding: 0.15rem 0.5rem;
     border-radius: 2px;
     color: rgba(208, 215, 221, 0.45);
@@ -218,13 +218,13 @@
 
   .pill-name {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.68rem;
+    font-size: 0.84rem;
     color: #d0d7dd;
     letter-spacing: 0.04em;
   }
   .pill-empty-label {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     color: rgba(208, 215, 221, 0.40);
   }
 
@@ -240,14 +240,14 @@
   .arrow {
     font-family: 'Share Tech Mono', monospace;
     color: rgba(208, 215, 221, 0.25);
-    font-size: 0.75rem;
+    font-size: 0.9rem;
   }
 
   /* Buttons — cyberpunk clip-path */
   .btn-cyber {
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.10em;
     text-transform: uppercase;

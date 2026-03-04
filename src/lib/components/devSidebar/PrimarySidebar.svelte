@@ -36,6 +36,7 @@
   import Scenario from "./Scenario.svelte";
   import SprintTask from "./SprintTask.svelte";
   import Search from "./Search.svelte";
+  import AiHelp from './AiHelp.svelte';
 
   // Props
   export let fileTree: string[] = [];
@@ -69,6 +70,7 @@
     search: "Search",
     scenario: "Scenario",
     tasks: "Sprint Tasks",
+    hints: ''
   };
 
   // Activity bar items
@@ -177,4 +179,5 @@
       {/if}
     </div>
   </aside>
+  {/if}
 </div>

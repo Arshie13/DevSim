@@ -113,7 +113,7 @@
 
   .card-name {
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.88rem;
     font-weight: 600;
     color: #d0d7dd;
     letter-spacing: 0.04em;
@@ -126,7 +126,7 @@
 
   .card-desc {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     color: rgba(208, 215, 221, 0.55);
     line-height: 1.35;
   }

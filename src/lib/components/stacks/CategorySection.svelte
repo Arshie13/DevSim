@@ -87,7 +87,7 @@
 
   .cat-name {
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.85rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #d0d7dd;
     letter-spacing: 0.05em;
@@ -96,12 +96,12 @@
     gap: 0.4rem;
   }
   .diamond {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
   }
 
   .cat-desc {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.92rem;
     color: rgba(208, 215, 221, 0.50);
     margin-top: 1px;
   }
@@ -109,7 +109,7 @@
   /* Share Tech Mono tag — muted style */
   .opt-tag {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 0.2rem 0.6rem;
