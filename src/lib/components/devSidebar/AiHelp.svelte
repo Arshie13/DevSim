@@ -3,6 +3,19 @@
   import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "./PrimarySidebar.svelte";
   import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage, formatMessage as formatMessageContent } from "$lib/ai";
 
+  // SAZ - AI Assistant Name
+  const AI_NAME = "SAZ";
+  
+  // SAZ Profile Image
+  const AI_AVATAR = "/images/saz.png";
+  
+  // Track if avatar image failed to load
+  let avatarFailed = false;
+  
+  function handleAvatarError() {
+    avatarFailed = true;
+  }
+
   export let scenario: string = "";
   export let tasks: { id: number; text: string; completed: boolean }[] = [];
   export let containerId: string = "";
@@ -400,6 +413,32 @@
 
 <!-- Quick Hint Button - Always visible in AI Helper tab -->
 <div class="p-4 border-b border-zinc-800">
+  <!-- SAZ Profile Header -->
+  <div class="flex items-center gap-3 mb-4">
+    {#if avatarFailed}
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+        SAZ
+      </div>
+    {:else}
+      <img 
+        src={AI_AVATAR} 
+        alt="{AI_NAME} avatar" 
+        class="w-10 h-10 rounded-full object-cover shadow-lg"
+        on:error={handleAvatarError}
+      />
+    {/if}
+    <div class="flex-1 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold text-gray-200">{AI_NAME}</p>
+        <p class="text-xs text-gray-400">AI Coding Assistant</p>
+      </div>
+      <div class="flex items-center gap-1 bg-yellow-600/20 px-2 py-1 rounded-lg">
+        <Coins class="w-3 h-3 text-yellow-500" />
+        <span class="text-xs font-medium text-yellow-500">{currentCoins}</span>
+      </div>
+    </div>
+  </div>
+  
   <button
     on:click={requestQuickHint}
     disabled={quickHintLoading || !containerId || !userId}
@@ -408,16 +447,6 @@
     <Bot class="w-4 h-4" />
     Get Quick Hint
   </button>
-  
-  {#if currentCoins < QUICK_HINT_COST}
-    <p class="text-xs text-yellow-500 text-center mt-2">
-      ⚠️ Not enough coins ({currentCoins}/{QUICK_HINT_COST})
-    </p>
-  {:else}
-    <p class="text-xs text-gray-500 text-center mt-2">
-      💰 Quick hint: {QUICK_HINT_COST} coins | Chat: {CHAT_HINT_COST} coins
-    </p>
-  {/if}
   
   <!-- Toggle between Quick and Chat mode -->
   <div class="flex gap-2 mt-3">
@@ -442,8 +471,19 @@
     <div class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full p-4" on:click|stopPropagation>
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
-          <Bot class="w-5 h-5 text-cyan-500" />
-          <span class="font-medium text-gray-200">AI Hint</span>
+          {#if avatarFailed}
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+              SAZ
+            </div>
+          {:else}
+            <img 
+              src={AI_AVATAR} 
+              alt="{AI_NAME} avatar" 
+              class="w-8 h-8 rounded-full object-cover"
+              on:error={handleAvatarError}
+            />
+          {/if}
+          <span class="font-medium text-gray-200">{AI_NAME}</span>
         </div>
         <button on:click={closeQuickHint} class="text-gray-400 hover:text-gray-200">
           <X class="w-5 h-5" />
@@ -479,33 +519,34 @@
     <div class="p-4 border-b border-zinc-800">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-300">
-            Ask for Hints
-          </h3>
-          <p class="text-xs text-gray-400 mt-1">
-            Ask me for hints only. I won't provide code solutions.
-          </p>
+          <!-- No avatar or title here -->
         </div>
-        <div class="flex items-center gap-1 bg-yellow-600/20 px-2 py-1 rounded-lg">
-          <Coins class="w-3 h-3 text-yellow-500" />
-          <span class="text-xs font-medium text-yellow-500">{currentCoins}</span>
-        </div>
+        <!-- Coin counter removed from here -->
       </div>
-      <p class="text-xs text-gray-400 mt-2">
-        💰 Costs {hintCost} coins per hint
-      </p>
+      <!-- Costs text removed -->
     </div>
 
     <!-- Messages -->
     <div bind:this={chatContainer} class="flex-1 overflow-y-auto p-4 space-y-4" on:scroll={handleScroll}>
       {#if $aiChatHistory.length === 0}
-        <div class="text-center py-8">
-          <Bot class="w-12 h-12 mx-auto text-cyan-500/50 mb-3" />
+        <div class="flex flex-col items-center justify-center py-8">
+          {#if avatarFailed}
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-xl mb-3 shadow-lg mx-auto">
+              SAZ
+            </div>
+          {:else}
+            <img 
+              src={AI_AVATAR} 
+              alt="{AI_NAME} avatar" 
+              class="w-16 h-16 rounded-full object-cover mb-3 shadow-lg mx-auto"
+              on:error={handleAvatarError}
+            />
+          {/if}
           <p class="text-sm text-gray-200">
-            Need help? Ask me for hints!
+            Hi! I'm {AI_NAME}, your coding assistant!
           </p>
-          <p class="text-xs text-gray-400 mt-2">
-            Examples: "How do I start?", "I'm stuck on the first task"
+          <p class="text-xs text-gray-400 mt-1">
+            Ask me for hints or help with your tasks
           </p>
         </div>
       {:else}
@@ -517,7 +558,18 @@
               {:else if msg.isWarning}
                 <AlertTriangle class="w-3 h-3 text-white" />
               {:else}
-                <Bot class="w-3 h-3 text-cyan-500" />
+                {#if avatarFailed}
+                  <div class="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                    SZ
+                  </div>
+                {:else}
+                  <img 
+                    src={AI_AVATAR} 
+                    alt="{AI_NAME} avatar" 
+                    class="w-6 h-6 rounded-full object-cover"
+                    on:error={handleAvatarError}
+                  />
+                {/if}
               {/if}
             </div>
             <div class={getMessageClasses(msg)}>
@@ -528,9 +580,18 @@
 
         {#if isLoading}
           <div class="flex gap-3">
-            <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center">
-              <Bot class="w-3 h-3 text-cyan-500" />
-            </div>
+            {#if avatarFailed}
+              <div class="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                SZ
+              </div>
+            {:else}
+              <img 
+                src={AI_AVATAR} 
+                alt="{AI_NAME} avatar" 
+                class="w-6 h-6 rounded-full object-cover"
+                on:error={handleAvatarError}
+              />
+            {/if}
             <div class="bg-slate-900/60 p-3 rounded-lg">
               <div class="flex gap-1">
                 <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></span>

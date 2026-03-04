@@ -68,7 +68,7 @@
     search: "Search",
     scenario: "Scenario",
     tasks: "Sprint Tasks",
-    hints: "AI Hints",
+    hints: "SAZ",
   };
 
   // Activity bar items
@@ -84,7 +84,7 @@
     { panel: "search", icon: SearchIcon, title: "Search" },
     { panel: "scenario", icon: BookOpen, title: "Scenario" },
     { panel: "tasks", icon: Target, title: "Sprint Tasks", badge: remainingTasks > 0 ? remainingTasks : undefined },
-    { panel: "hints", icon: Bot, title: "AI Hints" },
+    { panel: "hints", icon: Bot, title: "SAZ" },
   ] satisfies ActivityItem[];
 
   function setPanel(panel: SidebarPanel) {
