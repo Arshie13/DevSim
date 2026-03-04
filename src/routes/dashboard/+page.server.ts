@@ -17,13 +17,18 @@ export const load: PageServerLoad = async (event) => {
   const [allContainers, archivedStacks, dbUser] = await Promise.all([
     getAllUserContainer(session.user.id),
     getArchivedContainers(session.user.id),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { coins: true } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { coins: true, image: true } }),
   ]);
 
   const userContainerList = allContainers.filter((c) => !c.isArchived);
 
   return {
-    user: session.user,
+    user: {
+      ...session.user,
+      // Override session image with live DB value so avatar changes are
+      // reflected immediately without requiring a re-login.
+      image: dbUser?.image ?? session.user.image,
+    },
     userContainerList,
     archivedStacks,
     userCoins: dbUser?.coins ?? 0,

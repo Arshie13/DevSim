@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="cd_bg" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#0a2535"/>
+      <stop offset="50%" stop-color="#061520"/>
+      <stop offset="100%" stop-color="#030a12"/>
+    </radialGradient>
+    <radialGradient id="cd_face" cx="45%" cy="38%" r="55%">
+      <stop offset="0%" stop-color="#e8f4f8"/>
+      <stop offset="50%" stop-color="#b8dce8"/>
+      <stop offset="100%" stop-color="#7ab8cc"/>
+    </radialGradient>
+    <radialGradient id="cd_jellyhood" cx="50%" cy="80%" r="60%">
+      <stop offset="0%" stop-color="#ff7a9a" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#e0559a" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#9b2d7a" stop-opacity="0.4"/>
+    </radialGradient>
+    <radialGradient id="cd_glow_teal" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e5c8" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#00e5c8" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="cd_bloom">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cd_soft">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cd_verysoft">
+      <feGaussianBlur stdDeviation="0.8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="cd_oval">
+      <ellipse cx="100" cy="100" rx="88" ry="90"/>
+    </clipPath>
+  </defs>
+
+  <!-- ===== FRAME ===== -->
+  <!-- Outer pearl ring -->
+  <ellipse cx="100" cy="100" rx="96" ry="98" fill="none" stroke="#e8c8d8" stroke-width="0.5" stroke-opacity="0.4"/>
+  <!-- Main decorative ring - iridescent coral -->
+  <ellipse cx="100" cy="100" rx="92" ry="94" fill="none" stroke="url(#cd_jellyhood)" stroke-width="4" stroke-opacity="0.7"/>
+  <!-- Thin inner ring -->
+  <ellipse cx="100" cy="100" rx="89" ry="91" fill="none" stroke="#00e5c8" stroke-width="0.8" stroke-opacity="0.4"/>
+  <!-- Second thin ring -->
+  <ellipse cx="100" cy="100" rx="87" ry="89" fill="none" stroke="#ff7a9a" stroke-width="0.5" stroke-opacity="0.3"/>
+
+  <!-- Pearl dots on outer ring - evenly spaced -->
+  <g filter="url(#cd_verysoft)">
+    <circle cx="100" cy="7" r="3.5" fill="#f0e8f0" fill-opacity="0.9"/>
+    <circle cx="136" cy="15" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+    <circle cx="163" cy="37" r="2" fill="#f0e8f0" fill-opacity="0.6"/>
+    <circle cx="179" cy="67" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+    <circle cx="185" cy="100" r="3" fill="#f0e8f0" fill-opacity="0.85"/>
+    <circle cx="179" cy="133" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+    <circle cx="163" cy="163" r="2" fill="#f0e8f0" fill-opacity="0.6"/>
+    <circle cx="136" cy="185" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+    <circle cx="100" cy="193" r="3.5" fill="#f0e8f0" fill-opacity="0.9"/>
+    <circle cx="64" cy="185" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+    <circle cx="37" cy="163" r="2" fill="#f0e8f0" fill-opacity="0.6"/>
+    <circle cx="21" cy="133" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+    <circle cx="15" cy="100" r="3" fill="#f0e8f0" fill-opacity="0.85"/>
+    <circle cx="21" cy="67" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+    <circle cx="37" cy="37" r="2" fill="#f0e8f0" fill-opacity="0.6"/>
+    <circle cx="64" cy="15" r="2.5" fill="#f0e8f0" fill-opacity="0.7"/>
+  </g>
+
+  <!-- ===== BACKGROUND ===== -->
+  <ellipse cx="100" cy="100" rx="87" ry="89" fill="url(#cd_bg)"/>
+
+  <!-- Underwater caustic light patterns -->
+  <g clip-path="url(#cd_oval)" opacity="0.12">
+    <ellipse cx="60" cy="50" rx="20" ry="8" fill="#00e5c8" transform="rotate(-20,60,50)"/>
+    <ellipse cx="140" cy="40" rx="15" ry="6" fill="#00e5c8" transform="rotate(15,140,40)"/>
+    <ellipse cx="50" cy="120" rx="18" ry="7" fill="#00e5c8" transform="rotate(10,50,120)"/>
+    <ellipse cx="155" cy="130" rx="12" ry="5" fill="#00e5c8" transform="rotate(-15,155,130)"/>
+    <ellipse cx="100" cy="170" rx="25" ry="8" fill="#00e5c8" transform="rotate(5,100,170)"/>
+  </g>
+
+  <!-- Deep glow center -->
+  <ellipse cx="100" cy="85" rx="45" ry="55" fill="#003855" fill-opacity="0.6" clip-path="url(#cd_oval)" filter="url(#cd_bloom)"/>
+  <!-- Coral bioluminescent ambient -->
+  <ellipse cx="100" cy="80" rx="30" ry="35" fill="#ff7a9a" fill-opacity="0.05" clip-path="url(#cd_oval)" filter="url(#cd_bloom)"/>
+
+  <!-- Floating bubbles -->
+  <g clip-path="url(#cd_oval)" opacity="0.5">
+    <circle cx="35" cy="80" r="3" fill="none" stroke="#00e5c8" stroke-width="0.7"/>
+    <circle cx="40" cy="60" r="1.8" fill="none" stroke="#00e5c8" stroke-width="0.5"/>
+    <circle cx="28" cy="110" r="2.2" fill="none" stroke="#00e5c8" stroke-width="0.5"/>
+    <circle cx="165" cy="90" r="2.5" fill="none" stroke="#ff7a9a" stroke-width="0.6"/>
+    <circle cx="170" cy="65" r="1.5" fill="none" stroke="#ff7a9a" stroke-width="0.5"/>
+    <circle cx="158" cy="115" r="3" fill="none" stroke="#00e5c8" stroke-width="0.7"/>
+    <!-- Bubble highlight dot -->
+    <circle cx="33.5" cy="79" r="0.7" fill="white" fill-opacity="0.8"/>
+    <circle cx="164.5" cy="89" r="0.6" fill="white" fill-opacity="0.7"/>
+  </g>
+
+  <!-- ===== BODY ===== -->
+  <path d="M 15 200 L 30 155 Q 45 130 60 122 L 75 115 Q 88 110 100 110 Q 112 110 125 115 L 140 122 Q 155 130 170 155 L 185 200 Z" 
+        fill="#040e1a" clip-path="url(#cd_oval)"/>
+  <!-- Translucent jellyfish-skin robe -->
+  <path d="M 45 160 Q 55 135 68 124 L 80 116 L 100 114 L 120 116 L 132 124 Q 145 135 155 160" 
+        fill="#ff7a9a" fill-opacity="0.08" stroke="#ff7a9a" stroke-width="0.6" stroke-opacity="0.3" clip-path="url(#cd_oval)"/>
+  <!-- Bioluminescent necklace -->
+  <path d="M 78 115 Q 100 128 122 115" fill="none" stroke="#00e5c8" stroke-width="1" stroke-opacity="0.6" filter="url(#cd_soft)"/>
+  <!-- Necklace dots -->
+  <circle cx="78" cy="115" r="2" fill="#00e5c8" fill-opacity="0.7" filter="url(#cd_verysoft)"/>
+  <circle cx="89" cy="120" r="1.5" fill="#00e5c8" fill-opacity="0.5"/>
+  <circle cx="100" cy="122" r="2.5" fill="#ff7a9a" fill-opacity="0.8" filter="url(#cd_verysoft)"/>
+  <circle cx="111" cy="120" r="1.5" fill="#00e5c8" fill-opacity="0.5"/>
+  <circle cx="122" cy="115" r="2" fill="#00e5c8" fill-opacity="0.7" filter="url(#cd_verysoft)"/>
+
+  <!-- ===== JELLYFISH HAIR ===== -->
+  <!-- Main jellyfish bell / hood of hair -->
+  <ellipse cx="100" cy="70" rx="32" ry="28" fill="url(#cd_jellyhood)" filter="url(#cd_soft)" clip-path="url(#cd_oval)"/>
+  <ellipse cx="100" cy="70" rx="32" ry="28" fill="none" stroke="#ff9ab8" stroke-width="0.8" stroke-opacity="0.5" clip-path="url(#cd_oval)"/>
+  <!-- Inner bell texture rings -->
+  <ellipse cx="100" cy="72" rx="22" ry="18" fill="none" stroke="#f0b0cc" stroke-width="0.5" stroke-opacity="0.4" clip-path="url(#cd_oval)"/>
+  <ellipse cx="100" cy="73" rx="14" ry="12" fill="none" stroke="#f0b0cc" stroke-width="0.5" stroke-opacity="0.3" clip-path="url(#cd_oval)"/>
+  <!-- Bell glow center -->
+  <ellipse cx="100" cy="65" rx="12" ry="10" fill="#ffaac8" fill-opacity="0.3" clip-path="url(#cd_oval)" filter="url(#cd_soft)"/>
+
+  <!-- Jellyfish tentacles as hair tendrils - organic flowing paths -->
+  <g clip-path="url(#cd_oval)" filter="url(#cd_verysoft)">
+    <!-- Left side tendrils -->
+    <path d="M 72 82 Q 60 95 58 112 Q 56 128 62 138" fill="none" stroke="#ff7a9a" stroke-width="1.5" stroke-opacity="0.7" stroke-linecap="round"/>
+    <path d="M 74 86 Q 58 100 50 118 Q 44 135 48 150" fill="none" stroke="#e055a0" stroke-width="1" stroke-opacity="0.5" stroke-linecap="round"/>
+    <path d="M 76 90 Q 64 108 68 128 Q 70 140 66 152" fill="none" stroke="#ff9ab8" stroke-width="0.8" stroke-opacity="0.5" stroke-linecap="round"/>
+    <path d="M 69 88 Q 44 108 38 130 Q 34 148 40 162" fill="none" stroke="#ff7a9a" stroke-width="0.6" stroke-opacity="0.4" stroke-linecap="round"/>
+    <!-- Right side tendrils -->
+    <path d="M 128 82 Q 140 95 142 112 Q 144 128 138 138" fill="none" stroke="#ff7a9a" stroke-width="1.5" stroke-opacity="0.7" stroke-linecap="round"/>
+    <path d="M 126 86 Q 142 100 150 118 Q 156 135 152 150" fill="none" stroke="#e055a0" stroke-width="1" stroke-opacity="0.5" stroke-linecap="round"/>
+    <path d="M 124 90 Q 136 108 132 128 Q 130 140 134 152" fill="none" stroke="#ff9ab8" stroke-width="0.8" stroke-opacity="0.5" stroke-linecap="round"/>
+    <path d="M 131 88 Q 156 108 162 130 Q 166 148 160 162" fill="none" stroke="#ff7a9a" stroke-width="0.6" stroke-opacity="0.4" stroke-linecap="round"/>
+    <!-- Teal bioluminescent tendrils -->
+    <path d="M 88 96 Q 80 115 84 135 Q 86 150 80 165" fill="none" stroke="#00e5c8" stroke-width="0.8" stroke-opacity="0.6" stroke-linecap="round"/>
+    <path d="M 112 96 Q 120 115 116 135 Q 114 150 120 165" fill="none" stroke="#00e5c8" stroke-width="0.8" stroke-opacity="0.6" stroke-linecap="round"/>
+    <!-- Tendril glow dots -->
+    <circle cx="62" cy="138" r="1.5" fill="#ff7a9a" fill-opacity="0.8"/>
+    <circle cx="138" cy="138" r="1.5" fill="#ff7a9a" fill-opacity="0.8"/>
+    <circle cx="84" cy="135" r="1.2" fill="#00e5c8" fill-opacity="0.8"/>
+    <circle cx="116" cy="135" r="1.2" fill="#00e5c8" fill-opacity="0.8"/>
+  </g>
+
+  <!-- ===== FACE ===== -->
+  <ellipse cx="100" cy="93" rx="22" ry="24" fill="url(#cd_face)"/>
+  <!-- Face translucency hint -->
+  <ellipse cx="100" cy="93" rx="22" ry="24" fill="none" stroke="#c8e8f0" stroke-width="0.6" stroke-opacity="0.5"/>
+
+  <!-- Closed serene eyes — long lashes -->
+  <!-- Left eye -->
+  <path d="M 84 89 Q 91 85 98 89" fill="none" stroke="#6090a8" stroke-width="2" stroke-linecap="round"/>
+  <!-- Left lashes -->
+  <line x1="85" y1="89" x2="83" y2="86" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="88" y1="87" x2="87" y2="84" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="91" y1="86" x2="91" y2="83" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="94" y1="87" x2="95" y2="84" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="97" y1="88" x2="99" y2="86" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Right eye -->
+  <path d="M 102 89 Q 109 85 116 89" fill="none" stroke="#6090a8" stroke-width="2" stroke-linecap="round"/>
+  <!-- Right lashes -->
+  <line x1="103" y1="89" x2="101" y2="86" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="106" y1="87" x2="105" y2="84" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="109" y1="86" x2="109" y2="83" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="112" y1="87" x2="113" y2="84" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="115" y1="88" x2="117" y2="86" stroke="#6090a8" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Under-eye bioluminescent marks -->
+  <path d="M 85 91 Q 91 93 97 91" fill="none" stroke="#00e5c8" stroke-width="0.6" stroke-opacity="0.5"/>
+  <path d="M 103 91 Q 109 93 115 91" fill="none" stroke="#00e5c8" stroke-width="0.6" stroke-opacity="0.5"/>
+
+  <!-- Tiny nose -->
+  <ellipse cx="100" cy="97" rx="2.5" ry="1.5" fill="#8ab8c8" fill-opacity="0.6"/>
+
+  <!-- Small soft smile -->
+  <path d="M 93 104 Q 100 110 107 104" fill="none" stroke="#7aacccc8" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Cheek glows - bioluminescent -->
+  <ellipse cx="85" cy="97" rx="7" ry="4" fill="#ff7a9a" fill-opacity="0.15" filter="url(#cd_verysoft)"/>
+  <ellipse cx="115" cy="97" rx="7" ry="4" fill="#ff7a9a" fill-opacity="0.15" filter="url(#cd_verysoft)"/>
+  <!-- Teal freckle dots -->
+  <circle cx="87" cy="96" r="0.8" fill="#00e5c8" fill-opacity="0.7"/>
+  <circle cx="90" cy="98" r="0.6" fill="#00e5c8" fill-opacity="0.5"/>
+  <circle cx="113" cy="96" r="0.8" fill="#00e5c8" fill-opacity="0.7"/>
+  <circle cx="110" cy="98" r="0.6" fill="#00e5c8" fill-opacity="0.5"/>
+
+  <!-- Forehead jewel -->
+  <ellipse cx="100" cy="80" rx="4" ry="3" fill="#ff7a9a" fill-opacity="0.8" filter="url(#cd_soft)"/>
+  <ellipse cx="100" cy="80" rx="2" ry="1.5" fill="#ffb8d0"/>
+  <!-- Jewel accent lines -->
+  <line x1="96" y1="80" x2="92" y2="78" stroke="#ff7a9a" stroke-width="0.5" stroke-opacity="0.5"/>
+  <line x1="104" y1="80" x2="108" y2="78" stroke="#ff7a9a" stroke-width="0.5" stroke-opacity="0.5"/>
+</svg>

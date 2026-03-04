@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="es_bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#0d1a0a"/>
+      <stop offset="55%" stop-color="#070e05"/>
+      <stop offset="100%" stop-color="#020501"/>
+    </radialGradient>
+    <radialGradient id="es_face" cx="45%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#d4b890"/>
+      <stop offset="60%" stop-color="#b89068"/>
+      <stop offset="100%" stop-color="#8a6040"/>
+    </radialGradient>
+    <radialGradient id="es_ember" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff8020"/>
+      <stop offset="60%" stop-color="#e04010"/>
+      <stop offset="100%" stop-color="#801000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="es_antler" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4a3010"/>
+      <stop offset="60%" stop-color="#6a4820"/>
+      <stop offset="100%" stop-color="#8a6030"/>
+    </linearGradient>
+    <filter id="es_bloom">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="es_glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="es_soft">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="es_circle">
+      <circle cx="100" cy="100" r="87"/>
+    </clipPath>
+  </defs>
+
+  <!-- ===== RUNE CIRCLE FRAME ===== -->
+  <!-- Outermost ring -->
+  <circle cx="100" cy="100" r="97" fill="none" stroke="#4a5a20" stroke-width="0.5" stroke-opacity="0.4"/>
+  <!-- Main frame ring - textured bark-like stroke -->
+  <circle cx="100" cy="100" r="93" fill="none" stroke="#6a4820" stroke-width="3" stroke-dasharray="180 4 60 4 120 4 90 4" stroke-linecap="round" opacity="0.7"/>
+  <!-- Inner ring - mossy green -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#3a6020" stroke-width="1" stroke-opacity="0.6"/>
+  <!-- Rune ring - tiny symbols -->
+  <circle cx="100" cy="100" r="87.5" fill="none" stroke="#c88020" stroke-width="0.6" stroke-opacity="0.5"/>
+
+  <!-- Rune marks (simplified angular glyphs) on frame ring -->
+  <!-- These are stylized angular marks positioned around the circle -->
+  <g fill="#c88020" fill-opacity="0.65" font-family="serif" font-size="8">
+    <!-- Top -->
+    <text x="97" y="11" transform="rotate(0,100,100)">ᚱ</text>
+    <!-- Top-right quadrant marks -->
+    <text x="130" y="22" transform="rotate(0,100,100)">ᚢ</text>
+    <text x="153" y="44" transform="rotate(0,100,100)">ᚦ</text>
+    <text x="166" y="72" transform="rotate(0,100,100)">ᚨ</text>
+    <!-- Right -->
+    <text x="170" y="103" transform="rotate(0,100,100)">ᚾ</text>
+    <!-- Bottom-right -->
+    <text x="163" y="132" transform="rotate(0,100,100)">ᛁ</text>
+    <text x="148" y="157" transform="rotate(0,100,100)">ᛃ</text>
+    <text x="126" y="175" transform="rotate(0,100,100)">ᛇ</text>
+    <!-- Bottom -->
+    <text x="96" y="186" transform="rotate(0,100,100)">ᛈ</text>
+    <!-- Bottom-left -->
+    <text x="66" y="178" transform="rotate(0,100,100)">ᛉ</text>
+    <text x="44" y="162" transform="rotate(0,100,100)">ᛊ</text>
+    <text x="28" y="138" transform="rotate(0,100,100)">ᛏ</text>
+    <!-- Left -->
+    <text x="18" y="104" transform="rotate(0,100,100)">ᛒ</text>
+    <!-- Top-left -->
+    <text x="24" y="74" transform="rotate(0,100,100)">ᛖ</text>
+    <text x="38" y="50" transform="rotate(0,100,100)">ᛗ</text>
+    <text x="60" y="28" transform="rotate(0,100,100)">ᛚ</text>
+  </g>
+
+  <!-- 8 ornamental nodes at cardinal + diagonal -->
+  <g filter="url(#es_soft)">
+    <circle cx="100" cy="8" r="3" fill="#c88020" fill-opacity="0.8"/>
+    <circle cx="168" cy="32" r="2" fill="#6a9020" fill-opacity="0.8"/>
+    <circle cx="192" cy="100" r="3" fill="#c88020" fill-opacity="0.8"/>
+    <circle cx="168" cy="168" r="2" fill="#6a9020" fill-opacity="0.8"/>
+    <circle cx="100" cy="192" r="3" fill="#c88020" fill-opacity="0.8"/>
+    <circle cx="32" cy="168" r="2" fill="#6a9020" fill-opacity="0.8"/>
+    <circle cx="8" cy="100" r="3" fill="#c88020" fill-opacity="0.8"/>
+    <circle cx="32" cy="32" r="2" fill="#6a9020" fill-opacity="0.8"/>
+  </g>
+
+  <!-- ===== BACKGROUND ===== -->
+  <circle cx="100" cy="100" r="87" fill="url(#es_bg)"/>
+
+  <!-- Ambient ember glow at bottom -->
+  <ellipse cx="100" cy="150" rx="55" ry="35" fill="#ff4010" fill-opacity="0.06" clip-path="url(#es_circle)" filter="url(#es_bloom)"/>
+  <!-- Forest green ambient top -->
+  <ellipse cx="100" cy="60" rx="50" ry="40" fill="#204010" fill-opacity="0.3" clip-path="url(#es_circle)" filter="url(#es_bloom)"/>
+
+  <!-- Firefly particles -->
+  <g clip-path="url(#es_circle)" filter="url(#es_soft)">
+    <circle cx="40" cy="120" r="1.5" fill="#ffe050" fill-opacity="0.8"/>
+    <circle cx="55" cy="145" r="1" fill="#ffe050" fill-opacity="0.6"/>
+    <circle cx="30" cy="90" r="1.2" fill="#ffe050" fill-opacity="0.7"/>
+    <circle cx="160" cy="110" r="1.5" fill="#ffe050" fill-opacity="0.8"/>
+    <circle cx="155" cy="135" r="1" fill="#ffe050" fill-opacity="0.6"/>
+    <circle cx="170" cy="80" r="1.2" fill="#ffe050" fill-opacity="0.7"/>
+    <circle cx="75" cy="160" r="1.3" fill="#ffe050" fill-opacity="0.6"/>
+    <circle cx="130" cy="165" r="1" fill="#ffe050" fill-opacity="0.5"/>
+  </g>
+
+  <!-- Moss texture elements on lower sides -->
+  <g clip-path="url(#es_circle)" opacity="0.5">
+    <ellipse cx="28" cy="140" rx="12" ry="8" fill="#3a6020" filter="url(#es_soft)"/>
+    <ellipse cx="22" cy="125" rx="8" ry="6" fill="#2a5015" filter="url(#es_soft)"/>
+    <ellipse cx="172" cy="140" rx="12" ry="8" fill="#3a6020" filter="url(#es_soft)"/>
+    <ellipse cx="178" cy="125" rx="8" ry="6" fill="#2a5015" filter="url(#es_soft)"/>
+  </g>
+
+  <!-- ===== BODY — robed forest sage ===== -->
+  <path d="M 14 187 L 28 158 Q 42 132 58 120 L 74 112 Q 88 107 100 107 Q 112 107 126 112 L 142 120 Q 158 132 172 158 L 186 187 Z"
+        fill="#0d1a0a" clip-path="url(#es_circle)"/>
+  <!-- Cloak layering -->
+  <path d="M 14 187 L 28 158 Q 40 134 55 122 L 68 114 L 100 110 L 100 187 Z" 
+        fill="#162210" clip-path="url(#es_circle)"/>
+  <path d="M 186 187 L 172 158 Q 160 134 145 122 L 132 114 L 100 110 L 100 187 Z" 
+        fill="#1a2a12" clip-path="url(#es_circle)"/>
+  <!-- Cloak robe embroidery - vine pattern -->
+  <path d="M 72 116 Q 68 128 70 140 Q 72 152 66 162" fill="none" stroke="#4a8020" stroke-width="0.8" stroke-opacity="0.5" clip-path="url(#es_circle)"/>
+  <path d="M 128 116 Q 132 128 130 140 Q 128 152 134 162" fill="none" stroke="#4a8020" stroke-width="0.8" stroke-opacity="0.5" clip-path="url(#es_circle)"/>
+  <!-- Embroidery leaf details -->
+  <ellipse cx="70" cy="133" rx="5" ry="3" fill="#4a8020" fill-opacity="0.4" transform="rotate(-20,70,133)" clip-path="url(#es_circle)"/>
+  <ellipse cx="130" cy="133" rx="5" ry="3" fill="#4a8020" fill-opacity="0.4" transform="rotate(20,130,133)" clip-path="url(#es_circle)"/>
+  <!-- Chest rune medallion -->
+  <circle cx="100" cy="125" r="10" fill="#0a1208" stroke="#c88020" stroke-width="0.8" stroke-opacity="0.6" clip-path="url(#es_circle)"/>
+  <!-- Medallion inner glow -->
+  <circle cx="100" cy="125" r="6" fill="#ff8020" fill-opacity="0.12" clip-path="url(#es_circle)" filter="url(#es_soft)"/>
+  <circle cx="100" cy="125" r="3" fill="#ff8020" fill-opacity="0.2" clip-path="url(#es_circle)"/>
+  <!-- Medallion spokes -->
+  <g stroke="#c88020" stroke-width="0.5" stroke-opacity="0.5" clip-path="url(#es_circle)">
+    <line x1="100" y1="115" x2="100" y2="119"/>
+    <line x1="100" y1="131" x2="100" y2="135"/>
+    <line x1="90" y1="125" x2="94" y2="125"/>
+    <line x1="106" y1="125" x2="110" y2="125"/>
+    <line x1="93" y1="118" x2="96" y2="121"/>
+    <line x1="107" y1="118" x2="104" y2="121"/>
+    <line x1="93" y1="132" x2="96" y2="129"/>
+    <line x1="107" y1="132" x2="104" y2="129"/>
+  </g>
+
+  <!-- ===== ANTLERS ===== -->
+  <!-- Left antler -->
+  <g clip-path="url(#es_circle)" fill="none" stroke="url(#es_antler)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main left beam -->
+    <path d="M 82 66 Q 74 50 68 34 Q 64 20 68 12" stroke-width="4"/>
+    <!-- Left brow tine -->
+    <path d="M 76 52 Q 66 48 58 42" stroke-width="2.5"/>
+    <!-- Left bez tine -->
+    <path d="M 72 40 Q 65 32 62 24" stroke-width="2"/>
+    <!-- Left royal tine -->
+    <path d="M 68 28 Q 60 18 58 10" stroke-width="1.8"/>
+    <path d="M 68 28 Q 76 22 80 14" stroke-width="1.5"/>
+    <!-- Right antler main beam -->
+    <path d="M 118 66 Q 126 50 132 34 Q 136 20 132 12" stroke-width="4"/>
+    <!-- Right brow tine -->
+    <path d="M 124 52 Q 134 48 142 42" stroke-width="2.5"/>
+    <!-- Right bez tine -->
+    <path d="M 128 40 Q 135 32 138 24" stroke-width="2"/>
+    <!-- Right royal tine -->
+    <path d="M 132 28 Q 140 18 142 10" stroke-width="1.8"/>
+    <path d="M 132 28 Q 124 22 120 14" stroke-width="1.5"/>
+  </g>
+  <!-- Antler ember glow touches -->
+  <circle cx="68" cy="12" r="3" fill="#ff8020" fill-opacity="0.4" filter="url(#es_soft)" clip-path="url(#es_circle)"/>
+  <circle cx="132" cy="12" r="3" fill="#ff8020" fill-opacity="0.4" filter="url(#es_soft)" clip-path="url(#es_circle)"/>
+  <circle cx="58" cy="10" r="2" fill="#ff8020" fill-opacity="0.3" filter="url(#es_soft)"/>
+  <circle cx="142" cy="10" r="2" fill="#ff8020" fill-opacity="0.3" filter="url(#es_soft)"/>
+
+  <!-- Moss on antlers -->
+  <ellipse cx="76" cy="50" rx="6" ry="3" fill="#3a6010" fill-opacity="0.6" transform="rotate(-30,76,50)" clip-path="url(#es_circle)"/>
+  <ellipse cx="124" cy="50" rx="6" ry="3" fill="#3a6010" fill-opacity="0.6" transform="rotate(30,124,50)" clip-path="url(#es_circle)"/>
+
+  <!-- ===== HEAD ===== -->
+  <ellipse cx="100" cy="88" rx="24" ry="26" fill="url(#es_face)"/>
+  <!-- Leaf crown / headdress at forehead -->
+  <path d="M 78 76 Q 82 64 90 60 Q 96 58 100 60 Q 104 58 110 60 Q 118 64 122 76" 
+        fill="#1e3a10" stroke="#4a8020" stroke-width="0.8" stroke-opacity="0.7"/>
+  <!-- Leaf details in crown -->
+  <path d="M 82 76 Q 85 68 90 65" fill="none" stroke="#6ab030" stroke-width="0.8" stroke-opacity="0.6"/>
+  <path d="M 118 76 Q 115 68 110 65" fill="none" stroke="#6ab030" stroke-width="0.8" stroke-opacity="0.6"/>
+  <path d="M 100 60 L 100 74" stroke="#6ab030" stroke-width="0.6" stroke-opacity="0.5"/>
+  <!-- Crown ember gem -->
+  <ellipse cx="100" cy="72" rx="4" ry="3" fill="#ff8020" fill-opacity="0.7" filter="url(#es_soft)"/>
+  <ellipse cx="100" cy="72" rx="2" ry="1.5" fill="#ffb050"/>
+
+  <!-- Eyes - deep amber, knowing -->
+  <ellipse cx="91" cy="88" rx="8.5" ry="7.5" fill="#0a0802"/>
+  <ellipse cx="91" cy="88" rx="6.5" ry="6" fill="#3a2008"/>
+  <ellipse cx="91" cy="88" rx="4.5" ry="4.5" fill="#c87010" fill-opacity="0.9" filter="url(#es_soft)"/>
+  <ellipse cx="91" cy="88" rx="2.5" ry="2.5" fill="#080403"/>
+  <!-- Amber iris glow ring -->
+  <ellipse cx="91" cy="88" rx="4.5" ry="4.5" fill="none" stroke="#e09020" stroke-width="0.8" stroke-opacity="0.7"/>
+  <circle cx="89" cy="86" r="1.5" fill="white" fill-opacity="0.5"/>
+
+  <ellipse cx="109" cy="88" rx="8.5" ry="7.5" fill="#0a0802"/>
+  <ellipse cx="109" cy="88" rx="6.5" ry="6" fill="#3a2008"/>
+  <ellipse cx="109" cy="88" rx="4.5" ry="4.5" fill="#c87010" fill-opacity="0.9" filter="url(#es_soft)"/>
+  <ellipse cx="109" cy="88" rx="2.5" ry="2.5" fill="#080403"/>
+  <ellipse cx="109" cy="88" rx="4.5" ry="4.5" fill="none" stroke="#e09020" stroke-width="0.8" stroke-opacity="0.7"/>
+  <circle cx="107" cy="86" r="1.5" fill="white" fill-opacity="0.5"/>
+
+  <!-- Calm brows -->
+  <path d="M 83 81 Q 89 78 98 80" fill="none" stroke="#7a5030" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M 117 81 Q 111 78 102 80" fill="none" stroke="#7a5030" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Nose -->
+  <path d="M 97 96 L 100 101 L 103 96" fill="none" stroke="#906040" stroke-width="1.2" stroke-linejoin="round" opacity="0.7"/>
+
+  <!-- Serene smile -->
+  <path d="M 90 107 Q 100 114 110 107" fill="none" stroke="#8a6040" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Facial markings - forest spirit tribal -->
+  <!-- Center forehead -->
+  <path d="M 100 76 L 100 82" stroke="#c88020" stroke-width="1" stroke-opacity="0.6"/>
+  <!-- Left cheek mark -->
+  <path d="M 83 93 L 80 98 L 83 101" fill="none" stroke="#6ab030" stroke-width="0.8" stroke-linecap="round" stroke-opacity="0.7"/>
+  <!-- Right cheek mark -->
+  <path d="M 117 93 L 120 98 L 117 101" fill="none" stroke="#6ab030" stroke-width="0.8" stroke-linecap="round" stroke-opacity="0.7"/>
+  <!-- Amber tear mark under right eye -->
+  <path d="M 111 94 Q 113 98 112 102" fill="none" stroke="#c88020" stroke-width="0.8" stroke-opacity="0.5" stroke-linecap="round"/>
+</svg>

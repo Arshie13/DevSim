@@ -56,10 +56,10 @@
   };
 
   const confirmBtnClass: Record<typeof variant, string> = {
-    primary: 'btn-confirm--primary',
-    danger:  'btn-confirm--danger',
-    warning: 'btn-confirm--warning',
-    success: 'btn-confirm--success',
+    primary: 'cm-btn-confirm--primary',
+    danger:  'cm-btn-confirm--danger',
+    warning: 'cm-btn-confirm--warning',
+    success: 'cm-btn-confirm--success',
   };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -112,13 +112,17 @@
         <!-- ── CONFIRMATION STATE ─────────────────────────────────────────── -->
 
         <!-- Header -->
-        <div class="cm-header">
-          <span class="cm-icon {iconGlowClass[iconVariant]}" aria-hidden="true">{icon}</span>
-          <h2 id="cm-title" class="cm-title">{title}</h2>
-          {#if subtitle}
-            <p class="cm-subtitle">{subtitle}</p>
-          {/if}
-        </div>
+        {#if title}
+          <div class="cm-header">
+            {#if icon}
+              <span class="cm-icon {iconGlowClass[iconVariant]}" aria-hidden="true">{icon}</span>
+            {/if}
+            <h2 id="cm-title" class="cm-title">{title}</h2>
+            {#if subtitle}
+              <p class="cm-subtitle">{subtitle}</p>
+            {/if}
+          </div>
+        {/if}
 
         <!-- Optional description -->
         {#if description}
@@ -233,8 +237,8 @@
 
   .cm-title {
     margin: 0.45rem 0 0.3rem;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 1.15rem;
+    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-size: 1.3rem;
     font-weight: 700;
     letter-spacing: 0.07em;
     color: var(--text-primary, #d0d7dd);
@@ -242,16 +246,16 @@
 
   .cm-subtitle {
     margin: 0;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.72rem;
-    line-height: 1.55;
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.82rem;
+    line-height: 1.6;
     color: rgba(7, 165, 201, 0.7);
   }
 
   /* ── Description ──────────────────────────────────────────────────────── */
   .cm-description {
-    font-family: var(--font-body, 'Rajdhani', sans-serif);
-    font-size: 0.9rem;
+    font-family: var(--font-body, 'Exo 2', sans-serif);
+    font-size: 1rem;
     color: rgba(208, 215, 221, 0.75);
     margin: 0 0 1.25rem;
     line-height: 1.6;
@@ -265,8 +269,8 @@
     border: 1px solid rgba(255, 56, 96, 0.35);
     border-radius: 4px;
     color: #fca5a5;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.75rem;
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.82rem;
     line-height: 1.5;
   }
 
@@ -282,8 +286,8 @@
   .cm-btn-cancel {
     position: relative;
     padding: 0.6rem 1.25rem;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 0.68rem;
+    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -307,46 +311,57 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.4rem;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 0.68rem;
+    padding: 0.65rem 1.5rem;
+    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #fff;
-    border: none;
+    background: transparent;
     clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
     cursor: pointer;
-    transition: opacity 0.2s, box-shadow 0.2s;
-    overflow: hidden;
+    transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.1s;
   }
-  .cm-btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+  .cm-btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+  .cm-btn-confirm:not(:disabled):active { transform: scale(0.97); }
 
   /* Confirm variants */
   .cm-btn-confirm--primary {
-    background: linear-gradient(135deg, var(--accent, #07a5c9), #6366f1);
-    box-shadow: 0 0 14px rgba(7, 165, 201, 0.35);
+    color: var(--accent, #07a5c9);
+    border: 1px solid rgba(7, 165, 201, 0.55);
   }
   .cm-btn-confirm--primary:hover:not(:disabled) {
-    opacity: 0.88;
-    box-shadow: 0 0 22px rgba(7, 165, 201, 0.55);
+    border-color: rgba(7, 165, 201, 0.90);
+    background: rgba(7, 165, 201, 0.10);
+    box-shadow: 0 0 16px rgba(7, 165, 201, 0.25);
   }
   .cm-btn-confirm--danger {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
-    box-shadow: 0 0 14px rgba(220, 38, 38, 0.35);
+    color: var(--danger, #ff3860);
+    border: 1px solid rgba(255, 56, 96, 0.55);
   }
-  .cm-btn-confirm--danger:hover:not(:disabled) { opacity: 0.88; }
+  .cm-btn-confirm--danger:hover:not(:disabled) {
+    border-color: rgba(255, 56, 96, 0.90);
+    background: rgba(255, 56, 96, 0.10);
+    box-shadow: 0 0 16px rgba(255, 56, 96, 0.25);
+  }
   .cm-btn-confirm--warning {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
+    color: var(--warn, #ffb400);
+    border: 1px solid rgba(255, 180, 0, 0.55);
   }
-  .cm-btn-confirm--warning:hover:not(:disabled) { opacity: 0.88; }
+  .cm-btn-confirm--warning:hover:not(:disabled) {
+    border-color: rgba(255, 180, 0, 0.90);
+    background: rgba(255, 180, 0, 0.10);
+    box-shadow: 0 0 16px rgba(255, 180, 0, 0.25);
+  }
   .cm-btn-confirm--success {
-    background: linear-gradient(135deg, var(--success, #00e5a0), #059669);
-    color: #06161a;
-    box-shadow: 0 0 14px rgba(0, 229, 160, 0.35);
+    color: var(--success, #00e5a0);
+    border: 1px solid rgba(0, 229, 160, 0.55);
   }
-  .cm-btn-confirm--success:hover:not(:disabled) { opacity: 0.88; }
+  .cm-btn-confirm--success:hover:not(:disabled) {
+    border-color: rgba(0, 229, 160, 0.90);
+    background: rgba(0, 229, 160, 0.10);
+    box-shadow: 0 0 16px rgba(0, 229, 160, 0.25);
+  }
 
   /* Spinner inside button */
   .cm-spinner {
@@ -376,15 +391,15 @@
   }
   .cm-success-title {
     margin: 0.6rem 0 0.3rem;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 1.3rem;
+    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--text-primary, #d0d7dd);
   }
   .cm-success-sub {
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.75rem;
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.85rem;
     color: var(--text-muted, #8892a0);
     margin: 0;
   }

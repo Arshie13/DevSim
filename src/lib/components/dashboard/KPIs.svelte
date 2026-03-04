@@ -7,28 +7,21 @@
 
 <div class="grid grid-cols-4 gap-4">
   {#each kpis as kpi}
-    <div class="group relative bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-xl p-4 hover:border-obsidian-accent/50 transition-all duration-300 overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)]">
-      <!-- Glow effect on hover -->
-      <div class="absolute inset-0 bg-gradient-to-br {kpi.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+    <div class="group card-cyber p-4 hover:translate-y-[-2px]">
       <!-- Subtle inner glow -->
-      <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-obsidian-accent/[0.06] to-transparent"></div>
-      
-      <!-- Cyber grid pattern -->
-      <div class="absolute inset-0 opacity-5">
-        <div class="absolute inset-0" style="background-image: linear-gradient(rgba(7, 165, 201, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(7, 165, 201, 0.1) 1px, transparent 1px); background-size: 20px 20px;"></div>
-      </div>
+      <div class="absolute inset-0 rounded-card bg-gradient-to-br from-obsidian-accent/[0.04] to-transparent"></div>
 
       <div class="relative flex items-start justify-between">
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-2">
             <span class="text-xl">{kpi.icon}</span>
-            <p class="text-xs text-obsidian-text-primary/60 uppercase tracking-wider font-medium">{kpi.label}</p>
+            <p class="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider">{kpi.label}</p>
           </div>
-          <p class="text-3xl font-bold text-obsidian-text-muted tracking-tight">{kpi.value}</p>
+          <p class="text-3xl font-orbitron font-bold text-obsidian-accent tracking-tight">{kpi.value}</p>
         </div>
 
         {#if kpi.trend}
-          <div class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium {kpi.trend.isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">
+          <div class="tag-cyber {kpi.trend.isPositive ? 'tag-green' : 'bg-[rgba(255,56,96,0.08)] border border-cyber-danger/40 text-cyber-danger'} flex items-center gap-1">
             {#if kpi.trend.isPositive}
               <TrendingUp class="w-3 h-3" />
             {:else}

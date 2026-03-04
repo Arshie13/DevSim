@@ -23,8 +23,15 @@
   const headerUserData: UserData = {
     ...userData,
     name: data.user?.name ?? "No Name",
-    avatar: data.user?.image ?? ''
+    avatar: data.user?.image ?? '',
+    coins: data.userCoins,
   };
+
+  function firstName (fullName: string) {
+    return fullName.split(" ")[0];
+  }
+
+  console.log("Dashboard data:", data);
 
   function openStatsDrawer() {
     isStatsDrawerOpen = true;
@@ -39,7 +46,7 @@
   <title>Dashboard | DevSim</title>
 </svelte:head>
 
-<div class="min-h-screen bg-obsidian-bg">
+<div class="min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber">
   <!-- Header -->
   <Header userData={headerUserData} onOpenStats={openStatsDrawer} />
 
@@ -52,14 +59,15 @@
   />
 
   <!-- Main Content -->
-  <main class="px-4 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 max-w-[1200px] mx-auto">
+  <main class="relative z-10 py-6">
+    <div class="max-w-[1200px] mx-auto px-6">
     <!-- Top Section: Welcome + New Stack Button -->
     <div class="flex items-center justify-between mb-4 lg:mb-6">
       <div>
-        <h2 class="text-xl lg:text-2xl font-bold text-obsidian-text-muted">
-          Welcome back, <span class="text-obsidian-accent">{headerUserData.name}</span>
+        <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
+          Welcome back, <span class="bg-gradient-to-r from-white via-obsidian-accent to-cyber-bright bg-clip-text text-transparent">{firstName(headerUserData.name)  }</span>
         </h2>
-        <p class="text-sm text-obsidian-text-primary/50 mt-1">
+        <p class="text-sm font-rajdhani text-obsidian-text-primary/50 mt-1">
           Ready to continue your developer journey? Your progress awaits.
         </p>
       </div>
@@ -67,16 +75,16 @@
       <!-- Start New Stack Button -->
       <button
         on:click={navigateToStacks}
-        class="group flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-obsidian-accent/20 to-cyan-500/10 border border-obsidian-accent/40 hover:border-obsidian-accent/60 rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(7,165,201,0.2)]"
+        class="btn-cyber btn-cyber-solid group flex items-center gap-3 !px-5 !py-3"
       >
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-obsidian-accent to-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(7,165,201,0.3)]">
+        <div class="w-10 h-10 rounded-card bg-obsidian-bg/30 flex items-center justify-center">
           <Plus class="w-5 h-5 text-white" />
         </div>
         <div class="text-left">
-          <p class="text-sm font-semibold text-obsidian-text-muted">Start New Stack</p>
-          <p class="text-xs text-obsidian-text-primary/50">Begin a new simulation</p>
+          <p class="text-sm font-orbitron font-semibold text-obsidian-bg">Start New Stack</p>
+          <p class="text-[0.6rem] font-mono text-obsidian-bg/70 normal-case tracking-normal">Begin a new simulation</p>
         </div>
-        <ArrowRight class="w-4 h-4 text-obsidian-accent group-hover:translate-x-1 transition-transform ml-2" />
+        <ArrowRight class="w-4 h-4 text-obsidian-bg group-hover:translate-x-1 transition-transform ml-2" />
       </button>
     </div>
 
@@ -90,15 +98,13 @@
       <CurrentStacks containers={data.userContainerList} finishedStacks={data.archivedStacks} maxVisible={2} />
       <FinishedStacks stacks={data.archivedStacks} userCoins={data.userCoins} maxVisible={3} />
     </div>
+    </div><!-- end max-width wrapper -->
   </main>
 
   <!-- Ambient Background Effects -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <!-- Grid pattern -->
-    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(7, 165, 201, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(7, 165, 201, 0.5) 1px, transparent 1px); background-size: 50px 50px;"></div>
-    
     <!-- Glow orbs -->
-    <div class="absolute top-1/4 -left-32 w-96 h-96 bg-obsidian-accent/10 rounded-full blur-[120px]"></div>
-    <div class="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px]"></div>
+    <div class="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(7,165,201,0.12);"></div>
+    <div class="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(168,85,247,0.08);"></div>
   </div>
 </div>

@@ -27,22 +27,20 @@
   }
 </script>
 
-<div class="relative bg-obsidian-surface/40 border border-obsidian-accent/25 rounded-xl overflow-hidden shadow-[0_0_35px_rgba(7,165,201,0.12)] hover:shadow-[0_0_45px_rgba(7,165,201,0.2)] transition-shadow duration-500">
-  <!-- Top edge glow -->
-  <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-text-primary/40 to-transparent"></div>
+<div class="card-cyber shadow-card-glow hover:shadow-card-glow-hover transition-shadow duration-500">
   <!-- Header -->
-  <div class="flex items-center justify-between px-5 py-4 border-b border-obsidian-border/60">
+  <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--card-border)]">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-obsidian-accent/20 flex items-center justify-center">
+      <div class="w-8 h-8 rounded-card bg-obsidian-accent/15 flex items-center justify-center border border-obsidian-accent/30">
         <Play class="w-4 h-4 text-obsidian-accent" />
       </div>
       <div>
-        <h3 class="text-sm font-semibold text-obsidian-text-muted">In Progress</h3>
-        <p class="text-xs text-obsidian-text-primary/50">{containers.length} active container{containers.length !== 1 ? 's' : ''}</p>
+        <h3 class="text-sm font-orbitron font-bold text-obsidian-text-muted">In Progress</h3>
+        <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} active container{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
     <button
-      class="flex items-center gap-1 text-xs text-obsidian-accent hover:text-obsidian-accent/80 transition-colors font-medium"
+      class="tag-cyber tag-cyan flex items-center gap-1 hover:bg-obsidian-accent/15 transition-colors cursor-pointer"
     >
       See All
       <ChevronRight class="w-3 h-3" />
@@ -54,45 +52,47 @@
     {#if containers.length > 0}
       <div class="space-y-3">
         {#each visibleContainers as container}
-          <div class="group relative bg-obsidian-bg-light border border-obsidian-border/60 rounded-lg p-4 hover:border-obsidian-accent/30 transition-all duration-300">
+          <div class="group relative bg-obsidian-bg border border-[var(--card-border)] rounded-card p-4 hover:border-[var(--card-hover)] transition-all duration-300 hover:translate-x-1">
             <!-- Hover glow -->
-            <div class="absolute inset-0 rounded-lg bg-obsidian-accent/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="absolute inset-0 rounded-card bg-obsidian-accent/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <!-- Top shimmer -->
+            <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             
             <div class="relative">
               <div class="flex items-start justify-between mb-3">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-obsidian-accent/20 flex items-center justify-center text-obsidian-accent">
+                  <div class="w-10 h-10 rounded-card bg-obsidian-accent/10 border border-obsidian-accent/25 flex items-center justify-center text-obsidian-accent">
                     <Container class="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 class="text-sm font-semibold text-obsidian-text-muted">{getStackName(container.stacks)}</h4>
-                    <p class="text-xs text-obsidian-text-primary/50">
+                    <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{getStackName(container.stacks)}</h4>
+                    <p class="text-xs font-mono text-[var(--text-muted)]">
                       Level {container.level} • {container.status}
                     </p>
                   </div>
                 </div>
-                <div class="flex items-center gap-1 text-xs text-obsidian-text-primary/40">
+                <div class="flex items-center gap-1 font-mono text-xs text-[var(--text-muted)]">
                   <Clock class="w-3 h-3" />
                   <span>{formatLastActive(container.startedAt)}</span>
                 </div>
               </div>
 
-              <!-- Progress (showing level as progress) -->
+              <!-- Progress (XP bar style) -->
               <div class="mb-2">
                 <div class="flex justify-between text-xs mb-1.5">
-                  <span class="text-obsidian-text-primary/60">Level {container.level}</span>
-                  <span class="text-obsidian-accent font-medium">{container.status}</span>
+                  <span class="font-mono text-[var(--text-muted)]">Level {container.level}</span>
+                  <span class="tag-cyber tag-cyan">{container.status}</span>
                 </div>
-                <div class="h-2 bg-obsidian-border rounded-full overflow-hidden">
+                <div class="xp-track">
                   <div 
-                    class="h-full bg-gradient-to-r from-obsidian-accent to-cyan-400 rounded-full transition-all duration-500"
+                    class="xp-fill"
                     style="width: {container.status === 'running' ? 100 : 50}%"
                   ></div>
                 </div>
               </div>
 
-              <!-- Continue Button -->
-              <a href="/workspace/{container.id}" class="w-full mt-3 py-2 px-4 bg-obsidian-accent/10 border border-obsidian-accent/30 rounded-lg text-xs font-medium text-obsidian-accent hover:bg-obsidian-accent/20 transition-all flex items-center justify-center gap-2">
+              <!-- Continue Button (clip-path) -->
+              <a href="/workspace/{container.id}" class="btn-cyber btn-cyber-outline w-full mt-3 !py-2 !px-4 flex items-center justify-center gap-2 text-xs">
                 <Play class="w-3 h-3" />
                 Continue Sprint
               </a>
@@ -102,12 +102,12 @@
       </div>
     {:else}
       <div class="flex-1 flex items-center justify-center">
-        <div class="text-center text-obsidian-text-primary/40">
-          <p class="text-lg">No stacks in progress</p>
+        <div class="text-center">
+          <p class="text-lg font-orbitron text-obsidian-text-primary/40">No stacks in progress</p>
           {#if finishedStacks.length > 0}
-            <p class="text-md mt-1">Browse available stacks to start learning!</p>
+            <p class="text-md font-rajdhani text-[var(--text-muted)] mt-1">Browse available stacks to start learning!</p>
           {:else}
-            <p class="text-md mt-1">Start a new stack to begin your journey!</p>
+            <p class="text-md font-rajdhani text-[var(--text-muted)] mt-1">Start a new stack to begin your journey!</p>
           {/if}
         </div>
       </div>
