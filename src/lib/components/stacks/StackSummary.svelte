@@ -148,9 +148,9 @@
         disabled={!hasValidStack || isLoading}
         aria-disabled={!hasValidStack || isLoading}
         aria-busy={isLoading}
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 {hasValidStack && !isLoading
-          ? 'bg-gradient-to-r from-obsidian-accent to-emerald-500 text-white hover:from-obsidian-accent hover:to-emerald-400 shadow-[0_0_25px_rgba(7,165,201,0.3)]'
-          : 'bg-obsidian-surface text-obsidian-text-primary/50 cursor-not-allowed border border-obsidian-border'}"
+        class="btn-cyber flex items-center gap-1.5 {hasValidStack && !isLoading
+          ? 'btn-cyber-solid'
+          : 'btn-cyber-disabled'}"
       >
         {#if isLoading}
           <Loader class="w-4 h-4 animate-spin" />

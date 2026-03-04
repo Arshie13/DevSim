@@ -7,6 +7,7 @@
   import StackSummary from "$components/stacks/StackSummary.svelte";
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
+  import ConfirmationModal from "$components/ui/ConfirmationModal.svelte";
   import { Layers, Sparkles } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import type { UserData } from "$types";
@@ -20,6 +21,11 @@
   };
 
   let showInfoModal = false;
+
+  // Existing-container confirmation dialog
+  let showExistingModal = false;
+  let existingContainerDbId = '';
+  let existingContainerMessage = '';
 
   function handleCategorySelect(categoryId: string, optionId: string) {
     selection = {
@@ -134,6 +140,15 @@
         }
         return;
       }
+
+      // Existing container found — ask the user what to do instead of auto-navigating
+      if (createData.alreadyExists) {
+        existingContainerDbId = createData.dbContainerId;
+        existingContainerMessage = createData.message;
+        showExistingModal = true;
+        return;
+      }
+
       navigateToRoute(createData.dbContainerId);
     } catch (error) {
       console.error("Error starting sprint:", error);
@@ -233,6 +248,21 @@
     {#if showInfoModal}
       <StackInfoModal {selection} onClose={() => (showInfoModal = false)} />
     {/if}
+
+    <!-- Existing Container Dialog -->
+    <ConfirmationModal
+      bind:open={showExistingModal}
+      icon="⟨◉⟩"
+      iconVariant="accent"
+      title="Active Session Detected"
+      subtitle="Existing workspace found"
+      description={existingContainerMessage}
+      confirmLabel="Continue to Workspace"
+      cancelLabel="Cancel"
+      variant="primary"
+      on:confirm={() => { showExistingModal = false; navigateToRoute(existingContainerDbId); }}
+      on:cancel={() => { showExistingModal = false; existingContainerDbId = ''; }}
+    />
   </div>
 </div>
 

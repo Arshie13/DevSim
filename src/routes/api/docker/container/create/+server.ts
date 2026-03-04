@@ -74,7 +74,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         if (!info.State.Running) {
           await existingContainer.start();
         }
-        console.log('[create] DB-first: reusing existing container:', existingDockerContainerId);
+        console.log('[create] DB-first: existing container found:', existingDockerContainerId);
       } catch {
         // The Docker container no longer exists (e.g. was deleted outside the app).
         // Fall through to create a fresh one and update the DB record.
@@ -84,7 +84,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
       return json({
         success: true,
-        message: 'Container already exists. Reusing...',
+        alreadyExists: true,
+        message: 'You already have an active workspace for this stack and scenario. Resume your existing session or cancel to choose a different configuration.',
         containerId: existingDockerContainerId,
         dbContainerId: existingDbContainer.id
       });
@@ -124,10 +125,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         level,
         status: 'created'
       });
-      console.log('[create] Docker-label fallback: reusing container, DB upserted:', existingContainerId);
+      console.log('[create] Existing Container Found:', existingContainerId);
       return json({
         success: true,
-        message: 'Container already exists. Reusing...',
+        alreadyExists: true,
+        message: 'You already have an active workspace for this stack and scenario. Resume your existing session or cancel to choose a different configuration.',
         containerId: existingContainerId,
         dbContainerId: existingDbId
       });
