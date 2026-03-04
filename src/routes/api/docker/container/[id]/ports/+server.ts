@@ -2,7 +2,7 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
 
-export const POST: RequestHandler = async ({ locals, params }) => {
+export const GET: RequestHandler = async ({ locals, params }) => {
   try {
     const session = await locals.auth();
     if (!session || !session.user || !session.user.id) {
@@ -24,11 +24,12 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       return error(403, 'Container does not belong to user');
     }
 
-    // Start the container if not already running
+    // Check if container is running
     if (!info.State.Running) {
-      await container.start();
-    } else {
-      console.log(`♻️ Container already running: ${id}`);
+      return json({
+        success: false,
+        error: 'Container is not running'
+      }, { status: 400 });
     }
 
     // Get all assigned ports from NetworkSettings
@@ -47,20 +48,16 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       }
     }
 
-    // Get host from request
-    const host = '127.0.0.1'; // Default for container access
-
-    // Use the first available port for preview, or default to 3000
-    const firstPort = Object.values(previewPorts)[0] || 3000;
+    const host = '127.0.0.1';
+    const firstPort = Object.values(previewPorts)[0];
 
     return json({
       success: true,
-      id,
-      previewPorts,
-      previewUrl: `http://${host}:${firstPort}`
+      ports: previewPorts,
+      previewUrl: firstPort ? `http://${host}:${firstPort}` : null
     });
-  } catch (error) {
-    console.error('Error starting container:', error);
-    return json({ success: false, error: String(error) }, { status: 500 });
+  } catch (err) {
+    console.error('Error getting container ports:', err);
+    return json({ success: false, error: String(err) }, { status: 500 });
   }
 };
