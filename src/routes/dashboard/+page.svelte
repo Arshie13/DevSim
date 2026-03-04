@@ -23,7 +23,8 @@
   const headerUserData: UserData = {
     ...userData,
     name: data.user?.name ?? "No Name",
-    avatar: data.user?.image ?? ''
+    avatar: data.user?.image ?? '',
+    coins: data.userCoins,
   };
 
   function firstName (fullName: string) {
@@ -64,7 +65,7 @@
     <div class="flex items-center justify-between mb-4 lg:mb-6">
       <div>
         <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
-          Welcome back, <span class="bg-gradient-to-r from-white via-obsidian-accent to-cyber-bright bg-clip-text text-transparent">{firstName(data.user.name)  }</span>
+          Welcome back, <span class="bg-gradient-to-r from-white via-obsidian-accent to-cyber-bright bg-clip-text text-transparent">{firstName(headerUserData.name)  }</span>
         </h2>
         <p class="text-sm font-rajdhani text-obsidian-text-primary/50 mt-1">
           Ready to continue your developer journey? Your progress awaits.

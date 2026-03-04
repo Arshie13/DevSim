@@ -19,7 +19,7 @@
 
   const SUBMIT_STEPS = [
     { icon: '🏁', label: 'Recording completion…', detail: 'Marking sprint as complete & awarding rewards' },
-    { icon: '📦', label: 'Archiving workspace…' },
+    { icon: '📦', label: 'Archiving workspace…', detail: 'You can always restore progress later'},
   ];
 
   $: completedCount = tasks.filter(t => t.completed).length;
@@ -157,7 +157,7 @@
       <h2 class="mt-2.5 mb-1 font-['Chakra_Petch',sans-serif] text-[1.6rem] font-bold tracking-[0.08em] text-[#d0d7dd]">
         Sprint Complete!
       </h2>
-      <p class="font-mono text-[0.85rem] text-[#8892a0] mb-6">Your workspace has been archived successfully.</p>
+      <p class="font-mono text-[0.85rem] text-[#8892a0] mb-6">Your workspace has been submitted successfully.</p>
 
       <div class="flex justify-center gap-4 mb-7">
         <!-- XP badge -->

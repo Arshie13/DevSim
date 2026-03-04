@@ -145,7 +145,8 @@
   const headerUserData: UserData = {
     ...userData,
     name: data.user?.name ?? "No Name",
-    avatar: data.user?.image ?? ''
+    avatar: data.user?.image ?? '',
+    coins: data.userCoins,
   };
 </script>
 

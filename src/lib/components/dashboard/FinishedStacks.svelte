@@ -95,9 +95,7 @@
   }
 </script>
 
-<div class="relative bg-obsidian-surface/40 border border-amber-500/25 rounded-xl overflow-hidden shadow-[0_0_35px_rgba(251,191,36,0.1)] hover:shadow-[0_0_45px_rgba(251,191,36,0.18)] transition-shadow duration-500">
-  <!-- Top edge glow -->
-  <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-text-primary/40 to-transparent"></div>
+<div class="card-cyber shadow-card-glow hover:shadow-card-glow-hover transition-shadow duration-500 relative overflow-hidden">
   <!-- Header -->
   <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--card-border)]">
     <div class="flex items-center gap-3">

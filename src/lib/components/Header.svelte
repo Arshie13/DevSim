@@ -17,7 +17,6 @@
     }
   }
 
-  $: hasProfileImage = Boolean(userData.avatar && /^https?:\/\//i.test(userData.avatar));
 
 </script>
 
