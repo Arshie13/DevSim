@@ -1,6 +1,27 @@
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import type { WebLinksAddon } from "@xterm/addon-web-links";
+import { PUBLIC_WS_URL } from "$env/static/public";
+
+// Get WebSocket URL for terminal connection
+// In production, set PUBLIC_WS_URL environment variable to the WebSocket server URL
+// e.g., PUBLIC_WS_URL=ws://localhost:3001
+function getTerminalWsUrl(containerId: string): string {
+  // Check for custom WebSocket URL (set in production)
+  // const wsUrl = (typeof window !== 'undefined' 
+  //   ? (window as any).ENV?.PUBLIC_WS_URL 
+  //   : null) || process.env.PUBLIC_WS_URL;
+
+  const wsUrl = PUBLIC_WS_URL;
+  
+  if (wsUrl) {
+    return `${wsUrl}/terminal?containerId=${containerId}`;
+  }
+  
+  // Development: use same host
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}/terminal?containerId=${containerId}`;
+}
 
 export class TerminalInitializer {
   private terminal: Terminal | null = null;
@@ -49,8 +70,7 @@ export class TerminalInitializer {
       this.fitAddon!.fit();
 
       // Connect to Socket
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/terminal?containerId=${containerId}`;
+      const wsUrl = getTerminalWsUrl(containerId);
       const socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {

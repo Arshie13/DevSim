@@ -1,0 +1,181 @@
+import { WebSocketServer, WebSocket } from 'ws';
+import Docker from 'dockerode';
+import http from 'http';
+
+// Docker client configuration
+const docker = new Docker();
+
+// Server configuration
+const PORT = parseInt(process.env.PORT || '8080', 10);
+
+interface TerminalConnection {
+  ws: WebSocket;
+  containerId: string;
+  execStream: any;
+}
+
+const activeConnections: Map<string, TerminalConnection> = new Map();
+
+function createWSServer(server: http.Server): WebSocketServer {
+  const wss = new WebSocketServer({ noServer: true });
+
+  // Handle upgrade requests
+  server.on('upgrade', (request, socket, head) => {
+    const url = new URL(request.url || '', `http://localhost:${PORT}`);
+    
+    // Only handle /terminal path
+    if (url.pathname === '/terminal' || request.url?.startsWith('/terminal')) {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
+
+  // Handle connections
+  wss.on('connection', async (ws: WebSocket, request: http.IncomingMessage) => {
+    const url = new URL(request.url || '', `http://localhost:${PORT}`);
+    const containerId = url.searchParams.get('containerId');
+
+    if (!containerId) {
+      ws.close(1008, 'Missing containerId parameter');
+      return;
+    }
+
+    console.log(`🔌 Terminal connected to container: ${containerId}`);
+
+    let execStream: any = null;
+    const connectionKey = `${containerId}-${Date.now()}`;
+
+    try {
+      const container = docker.getContainer(containerId);
+
+      // Verify container exists & is running
+      const info = await container.inspect();
+      if (info.State.Status !== 'running') {
+        ws.send('\x1b[31m⚠️ Container is not running.\x1b[0m\r\n');
+        ws.close(1011, 'Container not running');
+        return;
+      }
+
+      // Create interactive shell
+      const exec = await container.exec({
+        Cmd: ['/bin/sh'],
+        AttachStdin: true,
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: true,
+      });
+
+      execStream = await exec.start({
+        hijack: true,
+        stdin: true,
+        Tty: true,
+      });
+
+      // Store connection for cleanup
+      activeConnections.set(connectionKey, {
+        ws,
+        containerId,
+        execStream,
+      });
+
+      // Send welcome message
+      execStream.write('cd /workspace && clear\r\n');
+      execStream.write('\x1b[1;32m$ \x1b[0m');
+
+      // Forward browser → container
+      ws.on('message', (data: Buffer) => {
+        if (execStream?.writable) {
+          execStream.write(data);
+        }
+      });
+
+      // Forward container → browser
+      execStream.on('data', (chunk: Buffer) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(chunk);
+        }
+      });
+
+      // Cleanup function
+      const cleanup = () => {
+        activeConnections.delete(connectionKey);
+        try {
+          execStream?.destroy();
+        } catch { }
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        }
+      };
+
+      ws.on('close', cleanup);
+      execStream.on('end', cleanup);
+      execStream.on('error', (err: Error) => {
+        console.error('Exec stream error:', err);
+        cleanup();
+      });
+
+      console.log(`✅ Terminal shell created for container: ${containerId}`);
+
+    } catch (error: any) {
+      console.error('Terminal setup failed:', error);
+      ws.send(`\x1b[31m💥 Terminal error: ${error.message || 'unknown'}\x1b[0m\r\n`);
+      ws.close(1011, 'Internal error');
+    }
+  });
+
+  return wss;
+}
+
+// Graceful shutdown
+function gracefulShutdown(wss: WebSocketServer, server: http.Server) {
+  console.log('🛑 Shutting down WebSocket server...');
+  
+  // Close all connections
+  activeConnections.forEach((conn, key) => {
+    try {
+      conn.execStream?.destroy();
+      conn.ws.close();
+    } catch { }
+  });
+  activeConnections.clear();
+
+  wss.close(() => {
+    server.close(() => {
+      console.log('✅ WebSocket server closed');
+      process.exit(0);
+    });
+  });
+
+  // Force exit after 10 seconds
+  setTimeout(() => {
+    console.error('Forced exit after timeout');
+    process.exit(1);
+  }, 10000);
+}
+
+// Main function
+async function main() {
+  const server = http.createServer();
+  const wss = createWSServer(server);
+
+  server.listen(PORT, () => {
+    console.log(`✅ Terminal WebSocket server ready`);
+    console.log(`   WS endpoint: ws://localhost:${PORT}/terminal`);
+    console.log(`   Press Ctrl+C to stop`);
+  });
+
+  // Handle errors
+  server.on('error', (err) => {
+    console.error('Server error:', err);
+    process.exit(1);
+  });
+
+  // Graceful shutdown
+  process.on('SIGINT', () => gracefulShutdown(wss, server));
+  process.on('SIGTERM', () => gracefulShutdown(wss, server));
+}
+
+main().catch(console.error);
