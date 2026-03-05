@@ -31,8 +31,6 @@
     return fullName.split(" ")[0];
   }
 
-  console.log("Dashboard data:", data);
-
   function openStatsDrawer() {
     isStatsDrawerOpen = true;
   }
