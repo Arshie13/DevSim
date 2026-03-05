@@ -18,14 +18,17 @@
   let submitRewards = { xp: 0, coins: 0 };
 
   const SUBMIT_STEPS = [
-    { icon: '🏁', label: 'Recording completion…', detail: 'Marking sprint as complete & awarding rewards' },
-    { icon: '📦', label: 'Archiving workspace…', detail: 'You can always restore progress later'},
+    { icon: '🏁', label: 'Recording completion…', detail: 'Recording your progress & awarding rewards' },
+    { icon: '📦', label: 'Advancing level…', detail: 'Preparing the next challenge'},
   ];
 
   $: completedCount = tasks.filter(t => t.completed).length;
 
   // -- Events -------------------------------------------------------------------
-  const dispatch = createEventDispatcher<{ submitted: { xp: number; coins: number } }>();
+  const dispatch = createEventDispatcher<{ submitted: { xp: number; coins: number; advanceToNextLevel: boolean } }>();
+
+  // Track if we're advancing to next level (for success UI)
+  let advancingToNextLevel = false;
 
   // -- Public API ---------------------------------------------------------------
   export function open() {
@@ -54,20 +57,63 @@
     submitError = '';
 
     try {
-      // Step 0 - mark completed
-      const submitRes = await fetch(`/api/docker/container/${dbContainerId}/submit`, { method: 'POST' });
-      const submitData = await submitRes.json();
-      if (!submitRes.ok) throw new Error(submitData.message ?? 'Failed to submit sprint.');
-      submitRewards = submitData.rewards;
+      // Step 0 - mark all completed tasks
+      // Submit each completed task one by one
+      const completedTasks = tasks.filter(t => t.completed);
+      
+      // If no tasks completed, don't proceed
+      if (completedTasks.length === 0) {
+        submitError = 'No tasks have been completed yet.';
+        state = 'error';
+        return;
+      }
+      
+      // Submit each completed task one by one
+      let allLevelsComplete = false;
+      
+      for (let i = 0; i < completedTasks.length; i++) {
+        const task = completedTasks[i];
+        const submitRes = await fetch(`/api/docker/container/${dbContainerId}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId: task.text })
+        });
+        const submitData = await submitRes.json();
+        
+        if (!submitRes.ok) {
+          throw new Error(submitData.message ?? `Failed to submit task: ${task.text}`);
+        }
+        
+        // Collect rewards (last one will have the full reward)
+        submitRewards = submitData.rewards;
+        
+        // Check if all levels are now complete
+        allLevelsComplete = submitData.allLevelsComplete ?? false;
+        
+        // If all levels complete, stop submitting more tasks
+        if (allLevelsComplete) {
+          break;
+        }
+      }
 
-      // Step 1 - archive
-      submitStep = 1;
-      const archiveRes = await fetch(`/api/docker/container/${dbContainerId}/archive`, { method: 'POST' });
-      const archiveData = await archiveRes.json();
-      if (!archiveRes.ok) throw new Error(archiveData.message ?? 'Failed to archive container.');
+      // Step 1 - archive ONLY if all levels complete
+      if (allLevelsComplete) {
+        submitStep = 1;
+        const archiveRes = await fetch(`/api/docker/container/${dbContainerId}/archive`, { method: 'POST' });
+        const archiveData = await archiveRes.json();
+        
+        // If archive fails but submit succeeded, still show success
+        if (!archiveRes.ok && !archiveData.success) {
+          console.warn('Archive failed:', archiveData.message);
+        }
+      }
 
+      // Determine what to do next based on level completion
+      const advanceToNextLevel = allLevelsComplete === false;
+      advancingToNextLevel = advanceToNextLevel;
+      
       state = 'success';
-      dispatch('submitted', submitRewards);
+      dispatch('submitted', { ...submitRewards, advanceToNextLevel });
     } catch (err) {
       submitError = err instanceof Error ? err.message : String(err);
       state = 'error';
@@ -78,14 +124,22 @@
     goto('/dashboard');
   }
 
+  function handleContinueWorking() {
+    // Close modal and let parent reload the page
+    showModal = false;
+    state = 'confirm';
+    // Dispatch event to notify parent to reload
+    dispatch('submitted', { ...submitRewards, advanceToNextLevel: true });
+  }
+
   // -- Derived props fed into ConfirmationModal ----------------------------------
   $: modalIcon     = state === 'error' ? '⚠' : state === 'loading' ? '' : '⟨/⟩';
   $: iconVariant   = (state === 'error' ? 'danger' : 'accent') as 'accent' | 'danger' | 'warning' | 'success';
   $: modalTitle    = state === 'error' ? 'Something went wrong' : state === 'loading' ? '' : 'Submit Sprint?';
   $: modalSubtitle = state === 'confirm'
-    ? 'Are you sure you want to submit this sprint? This will mark the sprint as complete, award you your rewards, and archive your workspace.'
+    ? 'Are you sure you want to submit your completed tasks? This will award you XP and coins, and advance you to the next level if all tasks are complete.'
     : '';
-  $: confirmLabel  = state === 'error' ? 'Retry' : 'Confirm & Archive';
+  $: confirmLabel  = state === 'error' ? 'Retry' : 'Submit & Continue';
   $: cancelLabel   = state === 'error' ? 'Close'  : 'Cancel';
   $: variant       = (state === 'error' ? 'danger' : 'primary') as 'primary' | 'danger' | 'warning' | 'success';
   $: modalError    = state === 'error' ? submitError : '';
@@ -145,7 +199,7 @@
       card={false}
       step={submitStep}
       steps={SUBMIT_STEPS}
-      title="Archiving Sprint…"
+      title={advancingToNextLevel ? 'Advancing Level…' : 'Completing Sprint…'}
       subtitle="Please keep this window open."
     />
   {/if}
@@ -155,9 +209,13 @@
     <div class="text-center py-2">
       <div class="text-5xl burst-anim" aria-hidden="true">🎉</div>
       <h2 class="mt-2.5 mb-1 font-['Chakra_Petch',sans-serif] text-[1.6rem] font-bold tracking-[0.08em] text-[#d0d7dd]">
-        Sprint Complete!
+        {advancingToNextLevel ? 'Level Complete!' : 'Sprint Complete!'}
       </h2>
-      <p class="font-mono text-[0.85rem] text-[#8892a0] mb-6">Your workspace has been submitted successfully.</p>
+      <p class="font-mono text-[0.85rem] text-[#8892a0] mb-6">
+        {advancingToNextLevel 
+          ? 'Great job! You can continue working on the next level.' 
+          : 'Your workspace has been submitted successfully.'}
+      </p>
 
       <div class="flex justify-center gap-4 mb-7">
         <!-- XP badge -->
@@ -174,13 +232,24 @@
         </div>
       </div>
 
-      <button
-        on:click={handleDone}
-        class="px-7 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-[#0a0e1a] border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 hover:text-white fade-up-anim [animation-delay:0.4s]"
-        style="background:linear-gradient(135deg,#07a5c9,#6366f1);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(7,165,201,0.35);"
-      >
-        Back to Dashboard
-      </button>
+      <div class="flex justify-center gap-3">
+        {#if advancingToNextLevel}
+          <button
+            on:click={handleContinueWorking}
+            class="px-5 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-white border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 fade-up-anim"
+            style="background:linear-gradient(135deg,#10b981,#059669);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(16,185,129,0.35);"
+          >
+            Continue Working →
+          </button>
+        {/if}
+        <button
+          on:click={handleDone}
+          class="px-7 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-[#0a0e1a] border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 hover:text-white fade-up-anim {advancingToNextLevel ? '[animation-delay:0.1s]' : ''}"
+          style="background:linear-gradient(135deg,#07a5c9,#6366f1);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(7,165,201,0.35);"
+        >
+          Back to Dashboard
+        </button>
+      </div>
     </div>
   </svelte:fragment>
 </ConfirmationModal>

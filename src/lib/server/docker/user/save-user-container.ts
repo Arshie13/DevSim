@@ -15,7 +15,6 @@ export interface UserContainerRequest {
  * (P2003 FK violation — usually caused by a stale session after a DB reset).
  */
 export async function saveUserContainer(data: UserContainerRequest): Promise<{ dbContainerId: string }> {
-  console.log('[saveUserContainer] Received data:', data);
 
   const isExisting = await prisma.container.findFirst({
     where: {

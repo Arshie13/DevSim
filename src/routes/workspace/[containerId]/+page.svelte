@@ -14,7 +14,6 @@
   import PreviewPanel from "$lib/components/workspace/PreviewPanel.svelte";
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
-  import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
   import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
@@ -29,7 +28,15 @@
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
   //   userId — the user's ID for AI hints
   //   userCoins — the user's coin balance for AI hints
-  export let data: { user: Session["user"]; dockerContainerId: string | null; userId: string; userCoins: number };
+  export let data: {
+    user: Session["user"];
+    dockerContainerId: string | null;
+    userId: string;
+    userCoins: number;
+    completedTasks: string[]; // List of completed task texts for this level
+    levelTasks: string[]; // List of all task texts for this level
+    level: number; // Current level number (for task panel display)
+  };
 
   // Get route params
   $: stackId = page.params.techstackid;
@@ -43,7 +50,7 @@
   let activeTab: "editor" | "terminal" | "preview" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
-  let tasks: Task[] = LEVEL_CONFIG.tasks;
+  let tasks: Task[] = []; // Will be populated from server data
   let timeRemaining: number = LEVEL_CONFIG.deadline;
   let isRunning: boolean = false;
   let terminal: TerminalInitializer | null = null;
@@ -52,6 +59,17 @@
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
+
+  // Initialize tasks from server data
+  $: {
+    const completedTasks = data.completedTasks || [];
+    const levelTasks = data.levelTasks || [];
+    tasks = levelTasks.map((text: string, index: number) => ({
+      id: index + 1,
+      text,
+      completed: completedTasks.includes(text)
+    }));
+  }
 
   // ── Panel toggle state ───────────────────────────────────────────────────
   let aiPanelOpen: boolean = false;
@@ -287,9 +305,37 @@
   }
 
   function toggleTask(taskId: number) {
-    tasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task,
-    );
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !containerId) return;
+
+    const taskText = task.text;
+    
+    // Call submit API to mark task as complete
+    fetch(`/api/docker/container/${containerId}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId: taskText })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        // Update local task state
+        tasks = tasks.map((t) =>
+          t.id === taskId ? { ...t, completed: !t.completed } : t,
+        );
+        
+        // Show feedback
+        if (data.levelComplete) {
+          toast.success(`Level ${data.nextLevel} unlocked! 🎉`);
+        } else {
+          toast.success(`+${data.rewards.xp} XP earned!`);
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Failed to submit task:', err);
+      toast.error('Failed to submit task');
+    });
   }
 
   async function selectFile(
@@ -334,6 +380,15 @@
 
   function handleSubmitSprint() {
     submitSprintModal.open();
+  }
+
+  async function handleSubmitted(event: CustomEvent) {
+    const { advanceToNextLevel } = event.detail;
+    
+    if (advanceToNextLevel) {
+      // Reload the page data to get new level tasks by navigating to same URL with invalidate
+      goto(`?reload=${Date.now()}`, { invalidateAll: true, replaceState: true, noScroll: true });
+    }
   }
 
   function refreshPreview() {
@@ -515,6 +570,7 @@
       {userId}
       {userCoins}
       {fileContents}
+      currentLevel={data.level}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
       onCreateFile={handleCreateFile}
@@ -556,8 +612,9 @@
   <!-- Submit Sprint modal -->
   <SubmitSprintModal
     bind:this={submitSprintModal}
-    dbContainerId={page.params.containerId}
+    dbContainerId={containerId}
     {tasks}
+    on:submitted={handleSubmitted}
   />
 </div>
 

@@ -1,23 +1,29 @@
 <script lang="ts">
   import { CheckCircle } from "lucide-svelte";
-  import type { Task } from "$lib/interface/LevelConfig";
 
-  export let tasks: Task[] = [];
+  export let tasks: { id: number; text: string; completed: boolean }[] = [];
   export let onToggleTask: (taskId: number) => void = () => {};
+  export let levelTitle: string = "";
 
-  $: completedTasks = tasks.filter((t) => t.completed).length;
-  $: progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
+  $: completedCount = tasks.filter((t) => t.completed).length;
+  $: progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
 </script>
 
 <div class="p-4">
+  {#if levelTitle}
+    <div class="mb-3">
+      <span class="text-xs font-medium text-cyan-400">{levelTitle}</span>
+    </div>
+  {/if}
+
   <div class="flex items-center justify-between mb-3">
-    <span class="text-xs text-[#d0d7dd]/50">{completedTasks}/{tasks.length} completed</span>
+    <span class="text-xs text-[#d0d7dd]/50">{completedCount}/{tasks.length} completed</span>
   </div>
 
   <div class="w-full bg-[#2d3446] rounded-full h-1.5 mb-4">
     <div
-      class="bg-gradient-to-r from-[#07a5c9] to-[#07a5c9]/60 h-1.5 rounded-full transition-all duration-500"
-      style="width: {progress}%"
+      class="h-1.5 rounded-full transition-all duration-500"
+      style="width: {progress}%; background: linear-gradient(90deg, #07a5c9, rgba(7, 165, 201, 0.6));"
     ></div>
   </div>
 
@@ -46,4 +52,10 @@
       </button>
     {/each}
   </div>
+
+  {#if tasks.length === 0}
+    <div class="text-center py-4">
+      <p class="text-xs text-gray-500">No tasks available</p>
+    </div>
+  {/if}
 </div>

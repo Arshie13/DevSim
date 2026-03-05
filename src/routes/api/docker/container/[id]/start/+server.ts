@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
     if (!info.State.Running) {
       await container.start();
     } else {
-      console.log(`♻️ Container already running: ${id}`);
+      console.log(`♻️ Container already running!`);
     }
 
     // Get assigned ports

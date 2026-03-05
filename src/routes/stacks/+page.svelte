@@ -100,8 +100,6 @@
   async function handleStartSprint() {
     const stackName = buildStackName(selection);
 
-    console.log("stack name: ", stackName);
-
     try {
       // Pre-flight: verify the session is still valid before creating any resources.
       // This catches stale sessions early without touching Docker or the database.

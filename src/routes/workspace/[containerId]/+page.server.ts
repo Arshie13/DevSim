@@ -20,20 +20,42 @@ export const load: PageServerLoad = async (event) => {
   const dbId = event.params.containerId;
   const userId = session.user.id;
 
-  console.log('[page.server] dbId:', dbId, '| userId:', userId);
-
   const record = await prisma.container.findFirst({
     where: { id: dbId, userId },
-    select: { containerId: true, status: true }
+    select: { 
+      containerId: true, 
+      status: true,
+      level: true,
+      completedTasks: true
+    }
   });
 
-  console.log('[page.server] DB record:', record);
+  // Get level info based on container's current level
+  let levelTasks: string[] = [];
+  let levelTitle = '';
+  
+  if (record) {
+    const level = await prisma.level.findFirst({
+      where: { order: record.level },
+      orderBy: { order: 'asc' },
+      select: { task: true, title: true }
+    });
+    if (level) {
+      levelTasks = level.task || [];
+      levelTitle = level.title || '';
+    }
+  }
 
   return {
     user: session.user,
     userId: user?.id || "",
     userCoins: user?.coins || 0,
     // The actual Docker container ID — used by the client for all Docker API calls
-    dockerContainerId: record?.containerId ?? null
+    dockerContainerId: record?.containerId ?? null,
+    // Level info for tasks
+    level: record?.level || 1,
+    completedTasks: record?.completedTasks || [],
+    levelTasks,
+    levelTitle
   };
 };

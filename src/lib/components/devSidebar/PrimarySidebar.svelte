@@ -60,6 +60,9 @@
   let activeSidebarPanel: SidebarPanel = "files";
   let isOpen: boolean = true;
 
+  // Current level for display in tasks panel
+  export let currentLevel: number = 1;
+
   // Compute remaining tasks for badge
   $: completedTasks = tasks.filter((t) => t.completed).length;
   $: remainingTasks = tasks.length - completedTasks;
@@ -164,7 +167,7 @@
       {:else if activeSidebarPanel === "scenario"}
         <Scenario {scenario} />
       {:else if activeSidebarPanel === "tasks"}
-        <SprintTask {tasks} {onToggleTask} />
+        <SprintTask {tasks} {onToggleTask} levelTitle={tasks.length > 0 ? `Level ${currentLevel}` : ""} />
       {:else if activeSidebarPanel === "hints"}
         <AiHelp 
           {scenario} 

@@ -33,8 +33,9 @@ async function main() {
   // Define levels with progressive difficulty
   const levels = [
     {
-      id: 'level-beginner',
+      id: 'level-1',
       title: 'Beginner Fundamentals',
+      order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       levelDescription: 'Learn the basics of full-stack development. Set up your development environment, understand project structure, and create simple features.',
       hints: [
@@ -56,8 +57,9 @@ async function main() {
       completedTask: []
     },
     {
-      id: 'level-intermediate',
+      id: 'level-2',
       title: 'Intermediate Development',
+      order: 2,
       deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
       levelDescription: 'Build upon the fundamentals. Implement authentication, handle form submissions, and create RESTful APIs.',
       hints: [
@@ -79,8 +81,9 @@ async function main() {
       completedTask: []
     },
     {
-      id: 'level-advanced',
+      id: 'level-3',
       title: 'Advanced Full-Stack',
+      order: 3,
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       levelDescription: 'Master advanced concepts. Optimize performance, implement real-time features, and deploy to production.',
       hints: [
@@ -102,8 +105,9 @@ async function main() {
       completedTask: []
     },
     {
-      id: 'level-expert',
+      id: 'level-4',
       title: 'Expert DevOps',
+      order: 4,
       deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
       levelDescription: 'Become a DevOps expert. Master containerization, orchestration, and infrastructure as code.',
       hints: [
@@ -138,43 +142,43 @@ async function main() {
   const scenarios = [
     // NestJS + PostgreSQL + Prisma scenarios
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'NestJS Money Tracker - Basic Setup',
       description: 'Set up a basic money tracking application with NestJS, PostgreSQL, and Prisma. Create your first database model and API endpoint.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'NestJS Account API',
       description: 'Create a simple account management API. Learn about NestJS controllers, services, and Prisma CRUD operations.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'NestJS Authentication',
       description: 'Implement JWT authentication with Passport. Create protected routes and user registration/login flows.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'NestJS Transaction Management',
       description: 'Build transaction handling for money transfers. Implement validation and error handling for financial operations.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'NestJS Real-time Notifications',
       description: 'Add WebSocket support for real-time transaction notifications. Learn about NestJS gateways and event-driven architecture.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'NestJS Report Generation',
       description: 'Create automated report generation with PDF export. Implement background jobs and scheduled tasks.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-expert',
+      levelId: 'level-4',
       name: 'NestJS Microservices',
       description: 'Refactor the application into microservices. Implement service communication and API gateway.',
       difficulty: 'expert'
@@ -182,43 +186,43 @@ async function main() {
 
     // Next.js scenarios
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'Next.js Basic Page',
       description: 'Create your first Next.js page. Learn about file-based routing and React Server Components.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'Next.js API Routes',
       description: 'Build API routes in Next.js. Understand GET, POST requests and data fetching patterns.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'Next.js Authentication',
       description: 'Implement NextAuth.js authentication. Create protected routes and session management.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'Next.js Database Integration',
       description: 'Connect to PostgreSQL using Prisma. Perform CRUD operations with React Server Actions.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'Next.js Real-time Chat',
       description: 'Build a real-time chat application using WebSockets and Server-Sent Events.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'Next.js Performance Optimization',
       description: 'Optimize application performance with caching, image optimization, and code splitting.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-expert',
+      levelId: 'level-4',
       name: 'Next.js Full-stack Deployment',
       description: 'Deploy Next.js with Docker and Kubernetes. Set up CI/CD and monitoring.',
       difficulty: 'expert'
@@ -226,43 +230,43 @@ async function main() {
 
     // React + Express + PostgreSQL scenarios
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'React Express Setup',
       description: 'Set up a React frontend with Express backend. Learn about CORS and proxy configuration.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'Express REST API',
       description: 'Build a RESTful API with Express. Learn about routing, middleware, and error handling.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'React State Management',
       description: 'Implement state management with Redux or Context API. Handle complex form states.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'Express Authentication',
       description: 'Create JWT-based authentication system. Implement refresh tokens and secure routes.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'React Real-time Dashboard',
       description: 'Build a real-time dashboard with WebSocket updates. Implement live data visualization.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'Express Performance',
       description: 'Optimize Express API performance. Implement caching, rate limiting, and compression.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-expert',
+      levelId: 'level-4',
       name: 'Full-stack Microservices',
       description: 'Convert monolithic app to microservices. Implement service discovery and load balancing.',
       difficulty: 'expert'
@@ -270,43 +274,43 @@ async function main() {
 
     // Next.js + Supabase scenarios
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'Supabase Quickstart',
       description: 'Connect Next.js to Supabase. Set up authentication and database in minutes.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'Supabase Database Basics',
       description: 'Create tables and manage data with Supabase JavaScript client. Learn about Row Level Security.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'Supabase Auth Deep Dive',
       description: 'Implement advanced authentication with Supabase. Handle social login and email confirmation.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'Supabase Realtime',
       description: 'Use Supabase Realtime for live data. Implement presence and broadcast features.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'Supabase Edge Functions',
       description: 'Write serverless Edge Functions. Implement custom API logic with Deno.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'Supabase Storage',
       description: 'Implement file upload and management with Supabase Storage. Add image transformations.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-expert',
+      levelId: 'level-4',
       name: 'Supabase Multi-tenant',
       description: 'Build a multi-tenant application using Supabase. Implement row-level isolation.',
       difficulty: 'expert'
@@ -314,43 +318,43 @@ async function main() {
 
     // Next.js + shadcn/ui scenarios
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'shadcn/ui Setup',
       description: 'Install and configure shadcn/ui components. Build your first responsive layout.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-beginner',
+      levelId: 'level-1',
       name: 'Building Forms',
       description: 'Create forms using React Hook Form and Zod validation with shadcn/ui components.',
       difficulty: 'easy'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'Dashboard Layout',
       description: 'Build a complete dashboard layout with sidebar, header, and data tables.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-intermediate',
+      levelId: 'level-2',
       name: 'Interactive Components',
       description: 'Implement modals, dropdowns, and complex UI interactions with shadcn/ui.',
       difficulty: 'medium'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'Theme Customization',
       description: 'Customize the theme with CSS variables. Create dark/light mode and brand colors.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-advanced',
+      levelId: 'level-3',
       name: 'Advanced Data Display',
       description: 'Build complex data tables with sorting, filtering, and pagination.',
       difficulty: 'hard'
     },
     {
-      levelId: 'level-expert',
+      levelId: 'level-4',
       name: 'Component Library',
       description: 'Create a reusable component library using shadcn/ui patterns and best practices.',
       difficulty: 'expert'

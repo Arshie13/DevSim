@@ -57,6 +57,10 @@ model Container {
 
   containerId String
 
+  // Current progress tracking
+  currentScenarioId String?
+  completedTasks    String[] @default([])
+
   startedAt DateTime  @default(now())
   stoppedAt DateTime?
 
@@ -103,6 +107,7 @@ model Scenario {
 model Level {
   id               String   @id @default(cuid())
   title            String
+  order            Int      @default(0) // For ordering levels (1, 2, 3, 4)
   deadline         DateTime
   levelDescription String
   hints            String[]
