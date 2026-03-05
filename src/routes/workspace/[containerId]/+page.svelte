@@ -392,19 +392,50 @@
   }
 
   function refreshPreview() {
-    if (!previewUrl) return;
-    try {
-      const currentUrl = new URL(previewUrl);
-      currentUrl.searchParams.set("t", Date.now().toString());
-      previewUrl = currentUrl.toString();
-      if (iframeRef) iframeRef.src = previewUrl;
-    } catch (error) {
-      console.error("Error refreshing preview:", error);
-    }
+    // Fetch live ports from Docker
+    fetch(`/api/docker/container/${containerId}/ports`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.previewUrl) {
+          previewUrl = data.previewUrl;
+          if (iframeRef) {
+            iframeRef.src = previewUrl + '?t=' + Date.now();
+          }
+        } else {
+          // Fallback to existing previewUrl with cache-bust
+          if (previewUrl) {
+            try {
+              const currentUrl = new URL(previewUrl);
+              currentUrl.searchParams.set('t', Date.now().toString());
+              previewUrl = currentUrl.toString();
+              if (iframeRef) iframeRef.src = previewUrl;
+            } catch (error) {
+              console.error('Error refreshing preview:', error);
+            }
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching ports:', err);
+        if (previewUrl) {
+          try {
+            const currentUrl = new URL(previewUrl);
+            currentUrl.searchParams.set('t', Date.now().toString());
+            previewUrl = currentUrl.toString();
+            if (iframeRef) iframeRef.src = previewUrl;
+          } catch (error) {
+            console.error('Error refreshing preview:', error);
+          }
+        }
+      });
   }
 
   function handleTabChange(tab: "editor" | "terminal" | "preview") {
     activeTab = tab;
+    // Auto-refresh preview when switching to preview tab
+    if (tab === "preview") {
+      refreshPreview();
+    }
   }
   // Create file or folder
   async function handleCreateFile(fullPath: string, isDirectory: boolean) {

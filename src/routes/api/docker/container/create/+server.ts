@@ -19,16 +19,12 @@ interface CreateContainerRequest {
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     const session = await locals.auth();
+    
     if (!session || !session.user || !session.user.id) {
       return error(401, 'Unauthorized');
     }
 
     const userId = session.user.id;
-
-    // Guard: verify the user actually exists in the DB before touching Docker or writing
-    // any records. A stale session (e.g. after a DB reset) has a valid JWT with a userId
-    // that no longer exists, which would cause a FK violation after the container is
-    // already created. Catching it here prevents any side effects.
     const userExists = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true }
@@ -174,10 +170,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         WorkingDir: '/workspace',
         HostConfig: {
           NetworkMode: 'host',
-          PortBindings: {
-            '3000/tcp': [{ HostPort: '0' }],
-            '5173/tcp': [{ HostPort: '0' }]
-          },
           Binds: [volumeMountConfig],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false
