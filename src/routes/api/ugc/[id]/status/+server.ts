@@ -14,13 +14,20 @@ import prisma from "$lib/server/client";
 export const PATCH: RequestHandler = async (event) => {
   const session = await event.locals.auth();
 
-  if (!session?.user?.id) {
+  const userId = session?.user?.id;
+
+  if (!userId) {
     throw error(401, "Unauthorized");
   }
 
-  // TODO: Add admin role check here when auth system is ready
-  // For now, we'll check if user is admin via a field or just allow all authenticated users
-  // You should add an isAdmin field to User model or check via auth provider
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (user?.role !== "admin") {
+    throw error(403, "Forbidden");
+  }
 
   const id = event.params.id;
 

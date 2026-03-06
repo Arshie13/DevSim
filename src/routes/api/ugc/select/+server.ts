@@ -100,6 +100,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     // Default mount config (fallback)
     let volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/empty:/workspace`.replace(/\\/g, '/');
 
+    // FIX #7: Track whether we're using fallback mode
+    let usingFallback = false;
+
     // Check if volume already exists
     let useVolume = false;
 
@@ -117,13 +120,29 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         useVolume = true;
         console.log(`[ugc-select] Created new volume: ${volumeName}`);
       } catch (volError) {
-        console.warn(`[ugc-select] Failed to create volume, using bind mount:`, volError);
+        console.warn(`[ugc-select] Failed to create volume, using bind mount fallback:`, volError);
+        usingFallback = true;
       }
     }
 
     // Set up mount configuration
     if (useVolume) {
       volumeMountConfig = `${volumeName}:/workspace`;
+    } else {
+      // FIX #7: Validate fallback path exists before using it
+      try {
+        const fs = await import('fs');
+        const bindMountPath = volumeMountConfig.split(':')[0];
+        if (!fs.existsSync(bindMountPath)) {
+          console.warn(`[ugc-select] Fallback bind mount path does not exist: ${bindMountPath}`);
+          // Try to create the directory if it doesn't exist
+          fs.mkdirSync(bindMountPath, { recursive: true });
+          console.log(`[ugc-select] Created fallback directory: ${bindMountPath}`);
+        }
+      } catch (fsError) {
+        console.error(`[ugc-select] Failed to validate/create fallback directory:`, fsError);
+        // Continue anyway - container creation will fail with a clearer error
+      }
     }
 
     // Create the Docker container using node:20-alpine (git will be installed later)

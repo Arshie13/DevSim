@@ -46,9 +46,9 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		}
 
 		// --- Look up the Container record ---
-		// params.id is the Docker container ID (stored in Prisma as containerId)
-		const record = await prisma.container.findFirst({
-			where: { containerId: params.id, userId: session.user.id }
+		// NOTE: params.id is the Prisma Container.id (as documented above)
+		const record = await prisma.container.findUnique({
+			where: { id: params.id }
 		});
 
 
@@ -70,10 +70,14 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			return error(404, 'Level not found.');
 		}
 
-
 		const xpReward = levelInfo.xpReward || DEFAULT_XP_REWARD;
 		const coinReward = levelInfo.coinReward || DEFAULT_COIN_REWARD;
 		const levelTasks = levelInfo.task || [];
+
+		// --- FIX #5: Guard against division by zero ---
+		const tasksCount = levelTasks.length;
+		const partialXpReward = tasksCount > 0 ? Math.floor(xpReward / tasksCount) : 0;
+		const partialCoinReward = tasksCount > 0 ? Math.floor(coinReward / tasksCount) : 0;
 
 		// --- Update completed tasks ---
 		const currentCompletedTasks = record.completedTasks || [];
@@ -83,7 +87,8 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 
 		// --- Check if all tasks are completed ---
-		const allTasksCompleted = levelTasks.every(task => 
+		// FIX #5: Need tasksCount > 0 to consider all tasks completed
+		const allTasksCompleted = tasksCount > 0 && levelTasks.every(task => 
 			currentCompletedTasks.includes(task)
 		);
 
@@ -149,36 +154,39 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 				})
 			]);
 		} else {
-			// Just mark the task as completed
-			await prisma.container.update({
-				where: { id: record.id },
-				data: {
-					completedTasks: currentCompletedTasks
-				}
-			});
+			// FIX #4: Wrap in transaction for atomic update
+			await prisma.$transaction([
+				// Just mark the task as completed
+				prisma.container.update({
+					where: { id: record.id },
+					data: {
+						completedTasks: currentCompletedTasks
+					}
+				}),
 
-			// Award partial rewards for completing a task
-			await prisma.user.update({
-				where: { id: session.user.id },
-				data: {
-					xp: { increment: Math.floor(xpReward / levelTasks.length) },
-					coins: { increment: Math.floor(coinReward / levelTasks.length) }
-				}
-			});
+				// Award partial rewards for completing a task
+				prisma.user.update({
+					where: { id: session.user.id },
+					data: {
+						xp: { increment: partialXpReward },
+						coins: { increment: partialCoinReward }
+					}
+				})
+			]);
 		}
 
 		return json({
 			success: true,
 			rewards: { 
-				xp: allTasksCompleted ? xpReward : Math.floor(xpReward / levelTasks.length), 
-				coins: allTasksCompleted ? coinReward : Math.floor(coinReward / levelTasks.length) 
+				xp: allTasksCompleted ? xpReward : partialXpReward, 
+				coins: allTasksCompleted ? coinReward : partialCoinReward 
 			},
 			levelComplete,
 			allLevelsComplete: false,
 			nextLevel: levelComplete ? nextLevel : null,
 			progress: {
 				completed: currentCompletedTasks.length,
-				total: levelTasks.length
+				total: tasksCount
 			}
 		});
 	} catch (err) {

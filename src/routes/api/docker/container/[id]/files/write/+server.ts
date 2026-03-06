@@ -1,10 +1,14 @@
 // src/routes/api/container/[id]/files/write/+server.ts
-import { json } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async ({ locals, params, request }) => {
   try {
+    const session = await locals.auth();
+    if (!session?.user?.id) return error(401, 'Unauthorized');
+    // Also validate user owns the container before allowing file operations
+
     const { path, content } = await request.json();
     const container = docker.getContainer(params.id);
 

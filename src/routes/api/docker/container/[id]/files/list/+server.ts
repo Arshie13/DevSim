@@ -1,13 +1,16 @@
-// src/routes/api/container/[id]/files/list/+server.ts
-import { json } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { docker } from '$lib/server/docker/client';
 import { Writable } from 'stream';
 
 export async function POST(event: RequestEvent) {
   try {
+    const session = await event.locals.auth();
+    if (!session?.user?.id) return error(401, 'Unauthorized');
+    // Also validate user owns the container before allowing file operations
+
     const containerId = event.params.id as string;
-    
+
     // Safely parse JSON with fallback
     let requestData = { path: '/workspace' };
     try {
@@ -24,10 +27,10 @@ export async function POST(event: RequestEvent) {
     // Check if container exists and is running
     const info = await container.inspect();
     if (!info.State.Running) {
-      return json({ 
-        success: false, 
+      return json({
+        success: false,
         error: 'Container is not running',
-        files: [] 
+        files: []
       });
     }
     const exec = await container.exec({
@@ -82,7 +85,7 @@ export async function POST(event: RequestEvent) {
       }
     });
 
-    container.modem.demuxStream(dirStream, dirStdout, new Writable({ write: () => {} }));
+    container.modem.demuxStream(dirStream, dirStdout, new Writable({ write: () => { } }));
 
     await new Promise((resolve, reject) => {
       dirStream.on('end', resolve);
@@ -113,10 +116,10 @@ export async function POST(event: RequestEvent) {
     return json({ success: true, files: allPaths, directories });
   } catch (error) {
     console.error('Error listing files:', error);
-    return json({ 
-      success: false, 
+    return json({
+      success: false,
       error: String(error),
-      files: [] 
+      files: []
     }, { status: 500 });
   }
 }

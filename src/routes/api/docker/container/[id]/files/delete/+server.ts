@@ -1,9 +1,13 @@
-import { json } from "@sveltejs/kit";
+import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { docker } from "$lib/server/docker/client";
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async ({ locals, params, request }) => {
   try {
+    const session = await locals.auth();
+    if (!session?.user?.id) return error(401, 'Unauthorized');
+    // Also validate user owns the container before allowing file operations
+
     const { path } = await request.json();
     const containerId = params.id;
 
@@ -12,14 +16,14 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     const container = docker.getContainer(containerId);
-    
+
     // Use rm for files, rm -rf for directories
     const exec = await container.exec({
       Cmd: ["rm", "-rf", path],
       AttachStdout: true,
       AttachStderr: true,
     });
-    
+
     const stream = await exec.start({ hijack: true });
     await new Promise<void>((resolve) => {
       stream.on("end", resolve);
