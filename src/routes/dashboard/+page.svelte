@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation";
   import type { PageData } from "./$types";
   import type { UserData } from "$types";
-  import { Plus, ArrowRight } from "lucide-svelte";
+  import { Plus, ArrowRight, Users } from "lucide-svelte";
   import Header from "$components/Header.svelte";
   import KPIs from "$components/dashboard/KPIs.svelte";
   import CurrentStacks from "$components/dashboard/CurrentStacks.svelte";
@@ -38,6 +38,10 @@
   function navigateToStacks() {
     goto("/stacks");
   }
+
+  function navigateToUgcSelect() {
+    goto("/ugc/select");
+  }
 </script>
 
 <svelte:head>
@@ -71,19 +75,36 @@
       </div>
       
       <!-- Start New Stack Button -->
-      <button
-        on:click={navigateToStacks}
-        class="btn-cyber btn-cyber-solid group flex items-center gap-3 !px-5 !py-3"
-      >
-        <div class="w-10 h-10 rounded-card bg-obsidian-bg/30 flex items-center justify-center">
-          <Plus class="w-5 h-5 text-white" />
-        </div>
-        <div class="text-left">
-          <p class="text-sm font-orbitron font-semibold text-obsidian-bg">Start New Stack</p>
-          <p class="text-[0.6rem] font-mono text-obsidian-bg/70 normal-case tracking-normal">Begin a new simulation</p>
-        </div>
-        <ArrowRight class="w-4 h-4 text-obsidian-bg group-hover:translate-x-1 transition-transform ml-2" />
-      </button>
+      <div class="flex items-center gap-3">
+        <!-- Community Stacks Button -->
+        <button
+          on:click={navigateToUgcSelect}
+          class="btn-cyber btn-cyber-outline group flex items-center gap-3 !px-4 !py-3"
+        >
+          <div class="w-10 h-10 rounded-card bg-obsidian-bg/30 flex items-center justify-center">
+            <Users class="w-5 h-5 text-cyber-bright" />
+          </div>
+          <div class="text-left">
+            <p class="text-sm font-orbitron font-semibold text-cyber-bright">Community Stacks</p>
+            <p class="text-[0.6rem] font-mono text-obsidian-text-muted normal-case tracking-normal">Try user-generated content</p>
+          </div>
+        </button>
+
+        <!-- Start New Stack Button -->
+        <button
+          on:click={navigateToStacks}
+          class="btn-cyber btn-cyber-solid group flex items-center gap-3 !px-5 !py-3"
+        >
+          <div class="w-10 h-10 rounded-card bg-obsidian-bg/30 flex items-center justify-center">
+            <Plus class="w-5 h-5 text-white" />
+          </div>
+          <div class="text-left">
+            <p class="text-sm font-orbitron font-semibold text-obsidian-bg">Start New Stack</p>
+            <p class="text-[0.6rem] font-mono text-obsidian-bg/70 normal-case tracking-normal">Begin a new simulation</p>
+          </div>
+          <ArrowRight class="w-4 h-4 text-obsidian-bg group-hover:translate-x-1 transition-transform ml-2" />
+        </button>
+      </div>
     </div>
 
     <!-- KPIs Row -->
