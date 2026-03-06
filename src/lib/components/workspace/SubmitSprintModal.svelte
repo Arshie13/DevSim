@@ -7,19 +7,36 @@
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
+  export let containerId: string; // Docker container ID for file operations
   export let tasks: Task[];
+  export let level: number = 1;
+  export let fileContents: Record<string, string> = {};
+  export let existingFiles: string[] = [];
 
   // -- State --------------------------------------------------------------------
-  type ModalState = 'confirm' | 'loading' | 'success' | 'error';
+  type ModalState = 'confirm' | 'testing' | 'loading' | 'success' | 'error';
   let state: ModalState = 'confirm';
   let showModal = false;
   let submitStep = 0;
   let submitError = '';
   let submitRewards = { xp: 0, coins: 0 };
 
+  // Test results state
+  let testResults: {
+    passed: boolean;
+    failedTasks: Array<{ taskId: number; taskText: string; errors: string[] }>;
+    summary: { total: number; passed: number; failed: number };
+  } | null = null;
+
   const SUBMIT_STEPS = [
+    { icon: '🧪', label: 'Running tests…', detail: 'Validating your work against level requirements' },
     { icon: '🏁', label: 'Recording completion…', detail: 'Recording your progress & awarding rewards' },
     { icon: '📦', label: 'Advancing level…', detail: 'Preparing the next challenge'},
+  ];
+
+  // Add testing step
+  const TESTING_STEPS = [
+    { icon: '🧪', label: 'Running tests…', detail: 'Validating your work against level requirements' },
   ];
 
   $: completedCount = tasks.filter(t => t.completed).length;
@@ -36,6 +53,7 @@
     submitStep = 0;
     state = 'confirm';
     showModal = true;
+    testResults = null;
   }
 
   function close() {
@@ -55,15 +73,93 @@
     state = 'loading';
     submitStep = 0;
     submitError = '';
+    testResults = null;
 
     try {
-      // Step 0 - mark all completed tasks
-      // Submit each completed task one by one
+      // Step 0 - Run tests to validate user work
+      submitStep = 0;
+      
+      // Fetch file list if not provided
+      let filesToCheck = existingFiles;
+      let contentsToCheck = fileContents;
+      
+      if (containerId && Object.keys(fileContents).length === 0) {
+        try {
+          const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+          });
+          const listData = await listRes.json();
+          if (listData.success) {
+            filesToCheck = listData.files || [];
+            
+            // Read key files for validation
+            const keyFiles = ['package.json', 'prisma/schema.prisma', 'app/api/users/route.ts', 'app/api/users/+server.ts'];
+            for (const file of keyFiles) {
+              try {
+                const readRes = await fetch(`/api/docker/container/${containerId}/files/read`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ path: `/workspace/${file}` })
+                });
+                const readData = await readRes.json();
+                if (readData.success) {
+                  contentsToCheck[file] = readData.content;
+                }
+              } catch (e) {
+                // File might not exist
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Could not fetch file list:', e);
+        }
+      }
+      
+      // Run tests
+      const testRes = await fetch('/api/tests/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level,
+          tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
+          fileContents: contentsToCheck,
+          existingFiles: filesToCheck
+        })
+      });
+      
+      const testData = await testRes.json();
+      testResults = {
+        passed: testData.passed,
+        failedTasks: testData.failedTasks || [],
+        summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
+      };
+      
+      // If tests failed, show error with details
+      if (!testData.passed) {
+        state = 'error';
+        const failedCount = testData.failedTasks?.length || 0;
+        submitError = `Tests failed! ${failedCount} task(s) did not pass validation.\n\n`;
+        submitError += testData.failedTasks?.map((t: any) => 
+          `• ${t.taskText}:\n  ${t.errors?.join('\n  ') || 'Validation failed'}`
+        ).join('\n\n') || 'Please review your work and try again.';
+        return;
+      }
+
+      // Step 1 - Submit completed tasks
+      submitStep = 1;
       const completedTasks = tasks.filter(t => t.completed);
       
-      // If no tasks completed, don't proceed
-      if (completedTasks.length === 0) {
-        submitError = 'No tasks have been completed yet.';
+      // Check if ALL tasks are completed before allowing submission
+      if (completedTasks.length < tasks.length) {
+        const remainingCount = tasks.length - completedTasks.length;
+        submitError = `You must complete all ${tasks.length} tasks before submitting.
+
+` +
+          `Currently completed: ${completedTasks.length}/${tasks.length}
+` +
+          `Remaining: ${remainingCount} task(s)`;
         state = 'error';
         return;
       }
@@ -96,9 +192,9 @@
         }
       }
 
-      // Step 1 - archive ONLY if all levels complete
+      // Step 2 - archive ONLY if all levels complete
       if (allLevelsComplete) {
-        submitStep = 1;
+        submitStep = 2;
         const archiveRes = await fetch(`/api/docker/container/${dbContainerId}/archive`, { method: 'POST' });
         const archiveData = await archiveRes.json();
         
@@ -134,16 +230,18 @@
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
   $: modalIcon     = state === 'error' ? '⚠' : state === 'loading' ? '' : '⟨/⟩';
-  $: iconVariant   = (state === 'error' ? 'danger' : 'accent') as 'accent' | 'danger' | 'warning' | 'success';
-  $: modalTitle    = state === 'error' ? 'Something went wrong' : state === 'loading' ? '' : 'Submit Sprint?';
+  $: iconVariant   = (state === 'error' ? 'danger' : state === 'testing' ? 'warning' : 'accent') as 'accent' | 'danger' | 'warning' | 'success';
+  $: modalTitle    = state === 'error' ? 'Tests Failed' : state === 'loading' ? '' : state === 'testing' ? 'Running Tests…' : 'Submit Sprint?';
   $: modalSubtitle = state === 'confirm'
-    ? 'Are you sure you want to submit your completed tasks? This will award you XP and coins, and advance you to the next level if all tasks are complete.'
+    ? 'Are you sure you want to submit your completed tasks? This will validate your work and award XP and coins if all tests pass.'
+    : state === 'testing'
+    ? 'Please wait while we validate your work against the level requirements...'
     : '';
   $: confirmLabel  = state === 'error' ? 'Retry' : 'Submit & Continue';
-  $: cancelLabel   = state === 'error' ? 'Close'  : 'Cancel';
-  $: variant       = (state === 'error' ? 'danger' : 'primary') as 'primary' | 'danger' | 'warning' | 'success';
+  $: cancelLabel   = state === 'error' ? 'Close'  : state === 'testing' ? 'Cancel' : 'Cancel';
+  $: variant       = (state === 'error' ? 'danger' : state === 'testing' ? 'warning' : 'primary') as 'primary' | 'danger' | 'warning' | 'success';
   $: modalError    = state === 'error' ? submitError : '';
-  $: hideActions   = state === 'loading';
+  $: hideActions   = state === 'loading' || state === 'testing';
   $: showSuccess   = state === 'success';
 </script>
 
@@ -193,15 +291,32 @@
       </div>
     </div>
 
-  {:else if state === 'loading'}
+  {:else if state === 'loading' || state === 'testing'}
     <!-- LoadingSteps fills the body; action row is hidden via hideActions -->
-    <LoadingSteps
-      card={false}
-      step={submitStep}
-      steps={SUBMIT_STEPS}
-      title={advancingToNextLevel ? 'Advancing Level…' : 'Completing Sprint…'}
-      subtitle="Please keep this window open."
-    />
+    {#if state === 'testing'}
+      <!-- Testing state - show progress with test info -->
+      <div class="flex flex-col items-center justify-center py-6">
+        <div class="text-4xl mb-4 animate-pulse">🧪</div>
+        <h3 class="font-['Chakra_Petch',sans-serif] text-lg font-bold text-[#d0d7dd] mb-2">
+          Running Tests...
+        </h3>
+        <p class="font-mono text-sm text-[#8892a0] text-center max-w-xs">
+          Validating your work against level {level} requirements
+        </p>
+        <!-- Progress indicator -->
+        <div class="mt-6 w-64 h-2 bg-[#1a2234] rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-[#10b981] to-[#059669] animate-pulse" style="width: 60%"></div>
+        </div>
+      </div>
+    {:else}
+      <LoadingSteps
+        card={false}
+        step={submitStep}
+        steps={SUBMIT_STEPS}
+        title={advancingToNextLevel ? 'Advancing Level…' : 'Completing Sprint…'}
+        subtitle="Please keep this window open."
+      />
+    {/if}
   {/if}
 
   <!-- Success slot -->

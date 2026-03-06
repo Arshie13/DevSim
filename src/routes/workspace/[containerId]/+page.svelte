@@ -18,6 +18,7 @@
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
+  import { getLevelConfig, hasTestsForLevel } from "$lib/tests/levels";
   import type { FileListResponse } from "$lib/interface/Files";
 
   import type { Session } from "@auth/core/types";
@@ -51,7 +52,7 @@
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
   let tasks: Task[] = []; // Will be populated from server data
-  let timeRemaining: number = LEVEL_CONFIG.deadline;
+  let timeRemaining: number = 4 * 60 * 60; // Default to 4 hours
   let isRunning: boolean = false;
   let terminal: TerminalInitializer | null = null;
   let monacoEditor: MonacoInitializer | null = null;
@@ -69,6 +70,32 @@
       text,
       completed: completedTasks.includes(text)
     }));
+  }
+
+  // Get level-specific config from server data
+  $: currentLevel = data.level || 1;
+  $: levelTestConfig = getLevelConfig(currentLevel);
+  $: hasTests = hasTestsForLevel(currentLevel);
+  
+  // Merge test config with mockdata for UI fields (test config has tasks, mockdata has UI fields)
+  $: actualLevelConfig = levelTestConfig ? {
+    ...LEVEL_CONFIG,
+    ...levelTestConfig,
+    level: currentLevel,
+    // Keep UI fields from LEVEL_CONFIG
+    stack: LEVEL_CONFIG.stack,
+    difficulty: LEVEL_CONFIG.difficulty,
+    deadline: LEVEL_CONFIG.deadline,
+    scenario: LEVEL_CONFIG.scenario,
+    hints: LEVEL_CONFIG.hints,
+    starterFiles: LEVEL_CONFIG.starterFiles,
+    // Use tasks from server data
+    tasks: tasks
+  } : LEVEL_CONFIG;
+
+  // Update timeRemaining when level config changes
+  $: if (actualLevelConfig) {
+    timeRemaining = actualLevelConfig.deadline || (4 * 60 * 60);
   }
 
   // ── Panel toggle state ───────────────────────────────────────────────────
@@ -309,6 +336,15 @@
     if (!task || !containerId) return;
 
     const taskText = task.text;
+    const isCompleting = !task.completed; // Check if we're completing or un-completing
+    
+    // If un-completing a task, just update local state without calling API
+    if (!isCompleting) {
+      tasks = tasks.map((t) =>
+        t.id === taskId ? { ...t, completed: false } : t
+      );
+      return;
+    }
     
     // Call submit API to mark task as complete
     fetch(`/api/docker/container/${containerId}/submit`, {
@@ -318,18 +354,25 @@
     })
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
+      // Only show success toast if task wasn't already completed
+      // (i.e., this is a fresh completion, not a re-submission)
+      if (data.success && data.nextLevel !== null) {
         // Update local task state
         tasks = tasks.map((t) =>
-          t.id === taskId ? { ...t, completed: !t.completed } : t,
+          t.id === taskId ? { ...t, completed: true } : t,
         );
         
-        // Show feedback
-        if (data.levelComplete) {
+        // Show feedback only when level advances or first-time completion
+        if (data.levelComplete && data.nextLevel) {
           toast.success(`Level ${data.nextLevel} unlocked! 🎉`);
-        } else {
+        } else if (data.rewards?.xp > 0) {
           toast.success(`+${data.rewards.xp} XP earned!`);
         }
+      } else if (data.success) {
+        // Task was already completed - just update UI without toast
+        tasks = tasks.map((t) =>
+          t.id === taskId ? { ...t, completed: true } : t,
+        );
       }
     })
     .catch(err => {
@@ -574,10 +617,10 @@
 >
   <!-- Header -->
   <WorkspaceHeader
-    level={LEVEL_CONFIG.level}
-    title={LEVEL_CONFIG.title}
-    stack={LEVEL_CONFIG.stack}
-    difficulty={LEVEL_CONFIG.difficulty}
+    level={actualLevelConfig.level}
+    title={actualLevelConfig.title}
+    stack={actualLevelConfig.stack}
+    difficulty={actualLevelConfig.difficulty}
     {timeRemaining}
     {isRunning}
     {aiPanelOpen}
@@ -644,7 +687,11 @@
   <SubmitSprintModal
     bind:this={submitSprintModal}
     dbContainerId={containerId}
+    {containerId}
     {tasks}
+    level={currentLevel}
+    fileContents={fileContents}
+    existingFiles={fileTree}
     on:submitted={handleSubmitted}
   />
 </div>
