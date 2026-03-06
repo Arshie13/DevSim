@@ -206,7 +206,7 @@ export const POPULAR_COMBOS: StackSelection[] = [
     id: "next-supabase",
     name: "Next.js + Supabase",
     frontend: "nextjs",
-    backend: "nextjs",
+    backend: null,
     database: "postgresql",
     services: "supabase",
   },
