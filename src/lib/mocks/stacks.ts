@@ -151,6 +151,13 @@ export const SERVICES_OPTIONS: TechOption[] = [
     description: "Query language for your API",
     color: "from-pink-500 to-fuchsia-600",
   },
+  {
+    id: "shadcn-ui",
+    name: "shadcn/ui",
+    icon: "🎨",
+    description: "Beautifully designed component library for React",
+    color: "from-zinc-600 to-zinc-800",
+  },
 ];
 
 export const TECH_CATEGORIES: TechCategory[] = [
@@ -187,14 +194,6 @@ export const TECH_CATEGORIES: TechCategory[] = [
 // Predefined popular combinations (optional presets)
 export const POPULAR_COMBOS: StackSelection[] = [
   {
-    id: "mern",
-    name: "MERN Stack",
-    frontend: "react",
-    backend: "express",
-    database: "mongodb",
-    services: "prisma",
-  },
-    {
     id: "pern",
     name: "PERN Stack",
     frontend: "react",
@@ -211,11 +210,19 @@ export const POPULAR_COMBOS: StackSelection[] = [
     services: "supabase",
   },
   {
-    id: "vue-django",
-    name: "Vue + Django",
-    frontend: "vue",
-    backend: "django",
+    id: "nestjs-postgres-prisma",
+    name: "NestJS + PostgreSQL",
+    frontend: null,
+    backend: "nestjs",
     database: "postgresql",
-    services: "docker",
+    services: "prisma",
+  },
+  {
+    id: "nextjs-shadcn-ui",
+    name: "Next.js + shadcn/ui",
+    frontend: "nextjs",
+    backend: null,
+    database: null,
+    services: "shadcn-ui",
   },
 ];
