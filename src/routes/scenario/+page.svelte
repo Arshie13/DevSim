@@ -25,10 +25,10 @@
   <div class="bg-orb" aria-hidden="true"></div>
   <div class="bg-scanlines" aria-hidden="true"></div>
 
-  <div class="relative z-10">
+  <div class="relative z-10 flex flex-col min-h-screen">
     <Header userData={headerUserData} />
 
-    <main class="w-full max-w-[1200px] mx-auto px-4 py-8 pb-32 md:px-6 lg:px-8">
+      <main class="w-full max-w-[1200px] mx-auto px-4 py-4 md:px-6 lg:px-8">
       <ScenarioList
         scenarios={data.scenarios}
         stackName={data.stackName}

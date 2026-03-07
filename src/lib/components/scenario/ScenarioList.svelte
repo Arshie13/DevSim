@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import { goto } from '$app/navigation';
   import { toast } from '$lib/stores/toast';
   import type { ScenarioMeta, StackSelection } from '$types';
@@ -9,27 +9,24 @@
     SERVICES_OPTIONS,
   } from '$mocks';
   import ScenarioHeader from './ScenarioHeader.svelte';
-  import ScenarioCard from './ScenarioCard.svelte';
   import EmptyState from './EmptyState.svelte';
-  import ScenarioDetailModal from './ScenarioDetailModal.svelte';
   import ConfirmationModal from '$components/ui/ConfirmationModal.svelte';
+  import ScenarioDetailModal from './ScenarioDetailModal.svelte';
+  import ScenarioCarousel from './ScenarioCarousel.svelte';
 
   export let scenarios: ScenarioMeta[];
   export let stackName: string;
   export let selection: StackSelection;
 
-  let selectedScenarioId: string | null = null;
+  let activeIndex = 0;
   let isLoading = false;
   let showDetailModal = false;
-
-  // Existing-container dialog state
   let showExistingModal = false;
   let existingContainerDbId = '';
   let existingContainerMessage = '';
 
-  $: selectedScenario = scenarios.find((s) => s.id === selectedScenarioId) ?? null;
+  $: activeScenario = scenarios[activeIndex] ?? null;
 
-  // Build human-readable display name from the StackSelection object
   $: stackDisplayName = (() => {
     const parts: string[] = [];
     const lookup = [
@@ -46,69 +43,51 @@
     return parts.join(' + ');
   })();
 
-  function handleSelect(id: string) {
-    selectedScenarioId = id;
-    showDetailModal = true;
-  }
-
-  function handleModalClose() {
-    showDetailModal = false;
-    selectedScenarioId = null;
-  }
-
   function navigateToWorkspace(containerId: string) {
     goto(`/workspace/${containerId}`);
   }
 
   async function handleStartSprint() {
-    if (!selectedScenarioId || !selectedScenario || isLoading) return;
-
+    if (!activeScenario || isLoading) return;
     isLoading = true;
     try {
-      // Pre-flight: verify the session is still valid
-      const sessionCheckResponse = await fetch('/auth/session');
-      if (!sessionCheckResponse.ok) {
-        toast.error('Your session is outdated. Please sign out and sign back in.');
-        return;
-      }
-      const sessionData = await sessionCheckResponse.json();
+      const sessionRes = await fetch('/auth/session');
+      const sessionData = sessionRes.ok ? await sessionRes.json() : null;
       if (!sessionData?.user?.id) {
         toast.error('Your session is outdated. Please sign out and sign back in.');
         return;
       }
 
-      const createResponse = await fetch('/api/docker/container/create', {
+      const createRes = await fetch('/api/docker/container/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           stackName,
           level: 1,
           stacks: selection,
-          scenarioId: selectedScenario.id,
-          projectFolder: selectedScenario.projectFolder,
-          scenarioTitle: selectedScenario.title,
+          scenarioId: activeScenario.id,
+          projectFolder: activeScenario.projectFolder,
+          scenarioTitle: activeScenario.title,
         }),
       });
 
-      const createData = await createResponse.json();
+      const data = await createRes.json();
 
-      if (!createData.success) {
-        if (createResponse.status === 401) {
-          toast.error('Your session is outdated. Please sign out and sign back in.');
-        } else {
-          toast.error(`Failed to create container: ${createData.error}`);
-        }
+      if (!data.success) {
+        toast.error(createRes.status === 401
+          ? 'Your session is outdated. Please sign out and sign back in.'
+          : `Failed to create container: ${data.error}`);
         return;
       }
 
-      if (createData.alreadyExists) {
-        existingContainerDbId = createData.dbContainerId;
-        existingContainerMessage = createData.message;
+      if (data.alreadyExists) {
+        existingContainerDbId = data.dbContainerId;
+        existingContainerMessage = data.message;
         showExistingModal = true;
         return;
       }
 
-      navigateToWorkspace(createData.dbContainerId);
+      navigateToWorkspace(data.dbContainerId);
     } catch (err) {
       console.error('Error starting sprint:', err);
       toast.error('An unexpected error occurred. Please try again.');
@@ -119,36 +98,30 @@
 </script>
 
 <div class="w-full">
-  <ScenarioHeader
-    {stackDisplayName}
-    scenarioCount={scenarios.length}
-    summary={null}
-  />
-
+  <ScenarioHeader {stackDisplayName} scenarioCount={scenarios.length} summary={null} />
+  <div class="mt-10">
   {#if scenarios.length === 0}
     <EmptyState {stackName} />
   {:else}
-    <!-- auto-fill grid needs CSS; Tailwind has no auto-fill minmax utility -->
-    <div class="cards-grid mb-8">
-      {#each scenarios as scenario (scenario.id)}
-        <ScenarioCard
-          {scenario}
-          isSelected={selectedScenarioId === scenario.id}
-          onSelect={handleSelect}
-        />
-      {/each}
-    </div>
-
-    <!-- Scenario detail modal -->
-    <ScenarioDetailModal
-      bind:open={showDetailModal}
-      scenario={selectedScenario}
+    <ScenarioCarousel
+      {scenarios}
       {isLoading}
-      on:startSprint={handleStartSprint}
-      on:close={handleModalClose}
+      bind:activeIndex
+      on:launchSprint={handleStartSprint}
+      on:showDetails={() => { showDetailModal = true; }}
     />
   {/if}
+  </div>
 </div>
+
+<!-- Scenario detail modal -->
+<ScenarioDetailModal
+  bind:open={showDetailModal}
+  scenario={activeScenario}
+  {isLoading}
+  on:startSprint={() => { showDetailModal = false; handleStartSprint(); }}
+  on:close={() => { showDetailModal = false; }}
+/>
 
 <!-- Existing container dialog -->
 <ConfirmationModal
@@ -164,12 +137,3 @@
   on:confirm={() => { showExistingModal = false; navigateToWorkspace(existingContainerDbId); }}
   on:cancel={() => { showExistingModal = false; existingContainerDbId = ''; }}
 />
-
-<style>
-  /* auto-fill minmax grid — not expressible in Tailwind without arbitrary values per breakpoint */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1rem;
-  }
-</style>

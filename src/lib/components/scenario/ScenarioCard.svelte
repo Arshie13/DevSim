@@ -1,149 +1,275 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
+  import { Loader, Star, Layers, Zap } from 'lucide-svelte';
   import type { ScenarioMeta } from '$types';
-  import { Star, Layers, ArrowUpRight } from 'lucide-svelte';
 
+  /** The scenario data to display */
   export let scenario: ScenarioMeta;
-  export let isSelected: boolean;
-  export let onSelect: (id: string) => void;
+  /** Whether this card is the focused center card */
+  export let isActive: boolean;
+  /** Signed ring distance from active (0=center, ±1=sides, else hidden) */
+  export let dist: number;
+  /** Pre-computed CSS transform string from the carousel */
+  export let transform: string;
+  /** Hex color derived from the scenario difficulty */
+  export let diffColor: string;
+  /** Whether a sprint launch is in progress (disables launch button) */
+  export let isLoading: boolean = false;
 
-  function handleClick() {
-    onSelect(scenario.id);
-  }
+  const dispatch = createEventDispatcher<{
+    launchSprint: void;
+    showDetails: void;
+    select: void;
+  }>();
 
-  // Map difficulty base word → color token
-  const difficultyColors: Record<string, string> = {
-    beginner: '#00e5a0',
-    easy:     '#00e5a0',
-    medium:   '#ffb400',
-    hard:     '#ff3860',
-    expert:   '#ff3860',
-    master:   '#a855f7',
-    advanced: '#ffb400',
-  };
-
-  $: diffBase = scenario.difficulty.split(/[→\s]/)[0].trim().toLowerCase();
-  $: diffColor = difficultyColors[diffBase] ?? '#07a5c9';
-
-  $: shortDesc =
-    scenario.description.length > 200
-      ? scenario.description.slice(0, 200).trimEnd() + '…'
-      : scenario.description;
+  $: isAdj = Math.abs(dist) === 1;
 </script>
 
-<button
-  class="card-scenario w-full text-left {isSelected ? 'card-scenario--selected' : ''}"
-  on:click={handleClick}
-  aria-pressed={isSelected}
-  aria-label="Select scenario {scenario.number}: {scenario.title}"
->
-  <!-- Left selected-accent bar -->
-  {#if isSelected}
-    <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-[var(--accent)] shadow-[0_0_8px_rgba(7,165,201,0.5)]" aria-hidden="true"></div>
-  {/if}
+{#if isActive}
+  <!-- ── Active card (center) ── -->
+  <div
+    class="carousel-card is-active"
+    role="article"
+    aria-label="Scenario {scenario.number}: {scenario.title}"
+    style="--diff-color:{diffColor}; transform:{transform};"
+  >
+    <!-- Accent top bar -->
+    <div class="card-top-bar" style="background:{diffColor};"></div>
 
-  <div class="p-5 pl-6">
-    <!-- Header row: badge + title + chevron -->
-    <div class="flex items-start justify-between gap-3 mb-3.5">
-      <div class="flex items-center gap-3 min-w-0">
-        <!-- Scenario number badge -->
-        <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-[4px]
-                    bg-[var(--accent)]/10 border border-[var(--accent)]/30" aria-hidden="true">
-          <span class="font-label text-[0.72rem] font-bold text-[var(--accent)] tracking-wide">
-            S{scenario.number.toString().padStart(2, '0')}
+    <!-- Ghost watermark number -->
+    <span class="card-watermark">{scenario.number.toString().padStart(2, '0')}</span>
+
+    <span class="bracket bracket-tl" aria-hidden="true"></span>
+    <span class="bracket bracket-tr" aria-hidden="true"></span>
+    <span class="bracket bracket-bl" aria-hidden="true"></span>
+    <span class="bracket bracket-br" aria-hidden="true"></span>
+    <div class="scan-sweep" aria-hidden="true"></div>
+
+    <div class="relative z-[2] flex flex-col h-full px-6 pt-5 pb-5 flex-1">
+      <!-- Top row: number badge + difficulty pill -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-baseline gap-0.5 font-['Chakra_Petch',monospace] font-bold">
+          <span class="text-[0.6rem] tracking-widest uppercase opacity-60" style="color:{diffColor}">SCN</span>
+          <span class="text-[1.6rem] leading-none tracking-tight ml-1" style="color:{diffColor}">
+            {scenario.number.toString().padStart(2, '0')}
           </span>
         </div>
-        <div class="min-w-0">
-          <h3 class="font-heading text-base font-semibold text-[var(--text-primary)] tracking-wide
-                     leading-tight truncate">
-            {scenario.title}
-          </h3>
-          <p class="font-label text-[0.63rem] text-[var(--text-muted)]/65 uppercase tracking-widest mt-0.5">
-            Scenario {scenario.number}
-          </p>
+        <div
+          class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
+          style="color:{diffColor}; border-color:{diffColor}55; background:{diffColor}14;"
+        >
+          <Star class="w-2.5 h-2.5 flex-shrink-0" />
+          <span>{scenario.difficulty}</span>
         </div>
       </div>
-      <!-- Details icon -->
-      <div class="details-icon mt-1 flex-shrink-0">
-        <ArrowUpRight class="w-4 h-4" />
-      </div>
-    </div>
 
-    <!-- Description -->
-    {#if shortDesc}
-      <p class="font-body text-[0.88rem] text-[var(--text-primary)]/60 leading-relaxed mb-4">
-        {shortDesc}
-      </p>
-    {/if}
+      <div class="card-divider" aria-hidden="true"></div>
 
-    <!-- Footer row: difficulty + level count -->
-    <div class="flex items-center gap-2.5 flex-wrap">
-      <!-- Difficulty tag — dynamic color via inline style -->
-      <div
-        class="tag-cyber flex items-center gap-1.5"
-        style="color:{diffColor}; border:1px solid {diffColor}99; background:{diffColor}18;"
-      >
-        <Star class="w-3 h-3 flex-shrink-0" />
-        <span>{scenario.difficulty}</span>
-      </div>
+      <!-- Title -->
+      <h2 class="font-['Chakra_Petch',monospace] text-[1.15rem] font-bold text-[#e2e8f0] tracking-wide leading-snug line-clamp-2 mb-3">
+        {scenario.title}
+      </h2>
 
-      {#if scenario.hasLevels}
-        <div class="tag-cyber flex items-center gap-1.5
-                    text-[var(--text-muted)]/75 border border-[var(--text-muted)]/18">
-          <Layers class="w-3 h-3 flex-shrink-0" />
-          <span>{scenario.levelCount} Level{scenario.levelCount !== 1 ? 's' : ''}</span>
-        </div>
-      {:else}
-        <div class="tag-cyber text-[var(--text-muted)]/50 border border-[var(--text-muted)]/18 opacity-50">
-          No levels defined
-        </div>
+      <!-- Short description -->
+      {#if scenario.description}
+        <p class="text-[0.78rem] leading-[1.65] text-[rgba(208,215,221,0.45)] line-clamp-2 mb-3">
+          {scenario.description}
+        </p>
       {/if}
+
+      <!-- Project folder pill -->
+      <div class="flex items-center gap-1.5 text-[0.6rem] font-mono tracking-widest uppercase text-[rgba(7,165,201,0.45)] border border-[rgba(7,165,201,0.12)] bg-[rgba(7,165,201,0.04)] px-2 py-1 rounded-[2px] w-fit">
+        <span class="opacity-60">/</span>
+        <span>{scenario.projectFolder}</span>
+      </div>
+
+      <div class="flex-1"></div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-[rgba(7,165,201,0.1)] gap-3">
+        <div class="flex items-center gap-1.5 text-[0.65rem] font-mono tracking-[0.04em]" style="color:{diffColor}99;">
+          <Layers class="w-3 h-3" />
+          {#if scenario.hasLevels}
+            <span>{scenario.levelCount} Level{scenario.levelCount !== 1 ? 's' : ''}</span>
+          {:else}
+            <span class="opacity-40">No levels</span>
+          {/if}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            class="flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[rgba(208,215,221,0.5)] bg-transparent border border-[rgba(208,215,221,0.15)] px-3 py-2 rounded-[3px] cursor-pointer hover:text-[#e2e8f0] hover:border-[rgba(208,215,221,0.35)] transition-colors duration-200"
+            on:click={() => dispatch('showDetails')}
+            aria-label="View scenario details"
+          >
+            Details
+          </button>
+
+          <button
+            class="launch-btn flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[#07a5c9] bg-[rgba(7,165,201,0.08)] border border-[rgba(7,165,201,0.35)] px-4 py-2 rounded-[3px] relative overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            on:click={() => dispatch('launchSprint')}
+            disabled={isLoading}
+            aria-busy={isLoading}
+          >
+            {#if isLoading}
+              <Loader class="w-3.5 h-3.5 animate-spin" />
+              <span>Starting…</span>
+            {:else}
+              <Zap class="w-3.5 h-3.5" />
+              <span>Launch Sprint</span>
+            {/if}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-</button>
+
+{:else}
+  <!-- ── Non-active card (side / hidden, clickable) ── -->
+  <button
+    class="carousel-card {isAdj ? 'is-adj' : 'is-far'}"
+    style="--diff-color:{diffColor}; transform:{transform};"
+    on:click={() => dispatch('select')}
+    aria-label="Go to scenario {scenario.number}: {scenario.title}"
+  >
+    <div class="card-top-bar" style="background:{diffColor}; opacity:0.5;"></div>
+    <span class="card-watermark">{scenario.number.toString().padStart(2, '0')}</span>
+
+    <div class="relative z-[2] flex flex-col h-full px-6 pt-5 pb-5 flex-1">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-baseline gap-0.5 font-['Chakra_Petch',monospace] font-bold">
+          <span class="text-[0.6rem] tracking-widest uppercase opacity-60" style="color:{diffColor}">SCN</span>
+          <span class="text-[1.6rem] leading-none tracking-tight ml-1" style="color:{diffColor}">
+            {scenario.number.toString().padStart(2, '0')}
+          </span>
+        </div>
+        <div
+          class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
+          style="color:{diffColor}; border-color:{diffColor}55; background:{diffColor}14;"
+        >
+          <Star class="w-2.5 h-2.5 flex-shrink-0" />
+          <span>{scenario.difficulty}</span>
+        </div>
+      </div>
+
+      <div class="card-divider" aria-hidden="true"></div>
+
+      <h2 class="font-['Chakra_Petch',monospace] text-[1.15rem] font-bold text-[#e2e8f0] tracking-wide leading-snug line-clamp-2">
+        {scenario.title}
+      </h2>
+    </div>
+  </button>
+{/if}
 
 <style>
-  /* card-scenario wraps card-cyber behaviour but needs shimmer + selected state */
-  .card-scenario {
-    background: var(--bg-light);
-    border: 1px solid var(--card-border);
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    padding: 0;
-    transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
-  }
-  .card-scenario::before {
-    content: '';
+  /* ── Card base ───────────────────────────────────────────────── */
+  .carousel-card {
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  .card-scenario:hover {
-    border-color: var(--card-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px var(--accent-glow);
-  }
-  .card-scenario:hover::before,
-  .card-scenario--selected::before {
-    opacity: 1;
-  }
-  .card-scenario--selected {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(7, 165, 201, 0.25);
+    left: 50%;
+    top: 50%;
+    width: 520px;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+    border: 1px solid rgba(7, 165, 201, 0.12);
+    background: linear-gradient(155deg, #0d1525 0%, #0a0e1a 60%, #0d1525 100%);
+    overflow: hidden;
+    transform-origin: center center;
+    transition:
+      transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.5s ease,
+      filter 0.5s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+    will-change: transform, opacity;
+    cursor: default;
+    z-index: 10;
   }
 
-  /* Details icon — shows on hover / selected */
-  .details-icon {
-    color: rgba(136, 146, 160, 0.35);
-    transition: color 0.2s ease, transform 0.2s ease;
+  .carousel-card.is-adj { opacity: 0.45; filter: blur(1px); cursor: pointer; z-index: 5; }
+  .carousel-card.is-far { opacity: 0; filter: blur(3px); pointer-events: none; z-index: 1; }
+
+  .carousel-card.is-active {
+    opacity: 1;
+    border-color: rgba(7, 165, 201, 0.45);
+    animation: pulse-glow 3.5s ease-in-out infinite;
   }
-  .card-scenario:hover .details-icon,
-  .card-scenario--selected .details-icon {
-    color: var(--accent);
-    transform: translate(1px, -1px);
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(7,165,201,0.12), 0 0 32px rgba(7,165,201,0.12), 0 0 80px rgba(7,165,201,0.06), inset 0 1px 0 rgba(7,165,201,0.08); }
+    50%       { box-shadow: 0 0 0 1px rgba(7,165,201,0.22), 0 0 48px rgba(7,165,201,0.22), 0 0 100px rgba(7,165,201,0.10), inset 0 1px 0 rgba(7,165,201,0.14); }
+  }
+
+  /* ── Corner brackets (active card only) ─────────────────────── */
+  .bracket { position: absolute; width: 14px; height: 14px; opacity: 0; transition: opacity 0.3s ease; }
+  .is-active .bracket { opacity: 1; }
+  .bracket-tl { top: 8px;    left:  8px;  border-top:    1.5px solid var(--diff-color); border-left:   1.5px solid var(--diff-color); }
+  .bracket-tr { top: 8px;    right: 8px;  border-top:    1.5px solid var(--diff-color); border-right:  1.5px solid var(--diff-color); }
+  .bracket-bl { bottom: 8px; left:  8px;  border-bottom: 1.5px solid var(--diff-color); border-left:   1.5px solid var(--diff-color); }
+  .bracket-br { bottom: 8px; right: 8px;  border-bottom: 1.5px solid var(--diff-color); border-right:  1.5px solid var(--diff-color); }
+
+  /* ── Scan sweep (active card only) ──────────────────────────── */
+  .scan-sweep {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 0%, rgba(7,165,201,0.04) 50%, transparent 100%);
+    background-size: 100% 40%;
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @keyframes scan {
+    0%   { background-position: 0 -40%; }
+    100% { background-position: 0 140%; }
+  }
+
+  /* ── Accent top bar ──────────────────────────────────────────── */
+  .card-top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    z-index: 3;
+  }
+
+  /* ── Ghost watermark ─────────────────────────────────────────── */
+  .card-watermark {
+    position: absolute;
+    bottom: -10px;
+    right: 12px;
+    font-family: 'Chakra Petch', monospace;
+    font-size: 5rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.025);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+  }
+
+  /* ── Card divider ────────────────────────────────────────────── */
+  .card-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(7,165,201,0.2), transparent);
+    margin-bottom: 12px;
+  }
+
+  /* ── Launch button shimmer ───────────────────────────────────── */
+  .launch-btn { clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); }
+  .launch-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(7,165,201,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+  }
+  .launch-btn:hover:not(:disabled) { background: rgba(7,165,201,0.18); border-color: rgba(7,165,201,0.7); box-shadow: 0 0 20px rgba(7,165,201,0.25); color: #fff; }
+  .launch-btn:hover:not(:disabled)::before { transform: translateX(100%); }
+
+  /* ── Responsive ──────────────────────────────────────────────── */
+  @media (max-width: 700px) {
+    .carousel-card { width: min(86vw, 360px); height: 220px; }
   }
 </style>
