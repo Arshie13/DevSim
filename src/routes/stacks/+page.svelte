@@ -97,6 +97,7 @@
   const headerUserData: UserData = {
     ...userData,
     name: data.user?.name ?? "No Name",
+    fullName: data.user?.fullName ?? data.user?.name ?? "No Name",
     avatar: data.user?.image ?? '',
     coins: data.userCoins,
   };
@@ -149,7 +150,7 @@
       </div>
 
       <!-- Popular Combos -->
-      <PopularCombos onSelectCombo={handleQuickSelect} />
+      <PopularCombos onSelectCombo={handleQuickSelect} {selection} />
 
       <!-- Divider -->
       <div class="relative my-8">

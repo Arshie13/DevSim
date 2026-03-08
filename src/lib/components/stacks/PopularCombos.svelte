@@ -10,9 +10,19 @@
   import { Zap } from "lucide-svelte";
 
   export let onSelectCombo: (combo: StackSelection) => void;
+  export let selection: StackSelection = { frontend: null, backend: null, database: null, services: null };
 
   function getOption(options: TechOption[], id: string): TechOption | null {
     return options.find((o) => o.id === id) || null;
+  }
+
+  function isSelected(combo: StackSelection): boolean {
+    return (
+      combo.frontend === selection.frontend &&
+      combo.backend  === selection.backend  &&
+      combo.database === selection.database &&
+      combo.services === selection.services
+    );
   }
 </script>
 
@@ -32,6 +42,7 @@
       <button
         on:click={() => onSelectCombo(combo)}
         class="combo-card group relative"
+        class:is-selected={isSelected(combo)}
       >
         <!-- Top shimmer -->
         <div class="shimmer"></div>
@@ -84,6 +95,18 @@
     border-color: rgba(7, 165, 201, 0.45);
     transform: translateX(4px);
     box-shadow: 0 0 16px rgba(7, 165, 201, 0.12);
+  }
+
+  .combo-card.is-selected {
+    border-color: rgba(7, 165, 201, 0.70);
+    background: rgba(7, 165, 201, 0.10);
+    box-shadow: 0 0 20px rgba(7, 165, 201, 0.18), inset 0 0 12px rgba(7, 165, 201, 0.06);
+  }
+  .combo-card.is-selected .shimmer {
+    opacity: 1;
+  }
+  .combo-card.is-selected .combo-name {
+    color: #07a5c9;
   }
 
   .shimmer {

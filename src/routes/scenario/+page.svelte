@@ -10,6 +10,7 @@
   const headerUserData: UserData = {
     ...userData,
     name: data.user?.name ?? 'No Name',
+    fullName: data.user?.fullName ?? data.user?.name ?? 'No Name',
     avatar: data.user?.image ?? '',
     coins: data.userCoins,
   };
