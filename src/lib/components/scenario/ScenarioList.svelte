@@ -11,7 +11,6 @@
   import ScenarioHeader from './ScenarioHeader.svelte';
   import EmptyState from './EmptyState.svelte';
   import ConfirmationModal from '$components/ui/ConfirmationModal.svelte';
-  import ScenarioDetailModal from './ScenarioDetailModal.svelte';
   import ScenarioCarousel from './ScenarioCarousel.svelte';
 
   export let scenarios: ScenarioMeta[];
@@ -20,7 +19,6 @@
 
   let activeIndex = 0;
   let isLoading = false;
-  let showDetailModal = false;
   let showExistingModal = false;
   let existingContainerDbId = '';
   let existingContainerMessage = '';
@@ -99,7 +97,7 @@
 
 <div class="w-full">
   <ScenarioHeader {stackDisplayName} scenarioCount={scenarios.length} summary={null} />
-  <div class="mt-10">
+  <div class="mt-6">
   {#if scenarios.length === 0}
     <EmptyState {stackName} />
   {:else}
@@ -108,20 +106,10 @@
       {isLoading}
       bind:activeIndex
       on:launchSprint={handleStartSprint}
-      on:showDetails={() => { showDetailModal = true; }}
     />
   {/if}
   </div>
 </div>
-
-<!-- Scenario detail modal -->
-<ScenarioDetailModal
-  bind:open={showDetailModal}
-  scenario={activeScenario}
-  {isLoading}
-  on:startSprint={() => { showDetailModal = false; handleStartSprint(); }}
-  on:close={() => { showDetailModal = false; }}
-/>
 
 <!-- Existing container dialog -->
 <ConfirmationModal

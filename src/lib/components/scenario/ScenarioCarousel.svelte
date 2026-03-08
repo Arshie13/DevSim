@@ -10,7 +10,6 @@
 
   const dispatch = createEventDispatcher<{
     launchSprint: void;
-    showDetails: void;
   }>();
 
   let isTransitioning = false;
@@ -59,10 +58,10 @@
   /** CSS transform for a card at `dist` positions from active */
   function getCardTransform(dist: number): string {
     if (dist === 0)  return 'translateX(-50%) translateY(-50%) rotateY(0deg) scale(1)';
-    if (dist === 1)  return 'translateX(calc(-50% + 270px)) translateY(-50%) rotateY(-44deg) scale(0.78)';
-    if (dist === -1) return 'translateX(calc(-50% - 270px)) translateY(-50%) rotateY(44deg) scale(0.78)';
+    if (dist === 1)  return 'translateX(calc(-50% + 300px)) translateY(-50%) rotateY(-44deg) scale(0.78)';
+    if (dist === -1) return 'translateX(calc(-50% - 300px)) translateY(-50%) rotateY(44deg) scale(0.78)';
     const dir = Math.sign(dist);
-    return `translateX(calc(-50% + ${dir * 600}px)) translateY(-50%) rotateY(${dir > 0 ? -60 : 60}deg) scale(0.5)`;
+    return `translateX(calc(-50% + ${dir * 660}px)) translateY(-50%) rotateY(${dir > 0 ? -60 : 60}deg) scale(0.5)`;
   }
 
   onMount(() => {
@@ -124,7 +123,6 @@
         {diffColor}
         {isLoading}
         on:launchSprint={() => dispatch('launchSprint')}
-        on:showDetails={() => dispatch('showDetails')}
         on:select={() => goTo(i)}
       />
     {/each}
@@ -159,7 +157,7 @@
     perspective: 1200px;
     perspective-origin: 50% 40%;
     position: relative;
-    height: 280px;
+    height: 360px;
     margin: 16px 0 12px;
   }
 
@@ -208,6 +206,6 @@
 
   /* ── Responsive ──────────────────────────────────────────────── */
   @media (max-width: 700px) {
-    .carousel-scene { height: 260px; }
+    .carousel-scene { height: 300px; }
   }
 </style>

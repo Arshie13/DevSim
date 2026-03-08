@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { Loader, Star, Layers, Zap } from 'lucide-svelte';
+  import { createEventDispatcher, tick } from 'svelte';
+  import { Loader, Star, Layers, Zap, ChevronDown, ChevronUp } from 'lucide-svelte';
   import type { ScenarioMeta } from '$types';
 
   /** The scenario data to display */
@@ -18,11 +18,28 @@
 
   const dispatch = createEventDispatcher<{
     launchSprint: void;
-    showDetails: void;
     select: void;
   }>();
 
+  let showMore = false;
+  let needsExpand = false;
+  let descP: HTMLParagraphElement;
+
+  // When the active card or scenario changes, reset and detect clamp
+  $: if (isActive && scenario) {
+    showMore = false;
+    tick().then(detectClamp);
+  }
+  $: if (!isActive) { showMore = false; needsExpand = false; }
+
+  function detectClamp() {
+    if (!descP) return;
+    // scrollHeight > clientHeight means the text is clamped
+    needsExpand = descP.scrollHeight > descP.clientHeight + 2;
+  }
+
   $: isAdj = Math.abs(dist) === 1;
+  $: desc = scenario.description ?? '';
 </script>
 
 {#if isActive}
@@ -45,9 +62,9 @@
     <span class="bracket bracket-br" aria-hidden="true"></span>
     <div class="scan-sweep" aria-hidden="true"></div>
 
-    <div class="relative z-[2] flex flex-col h-full px-6 pt-5 pb-5 flex-1">
-      <!-- Top row: number badge + difficulty pill -->
-      <div class="flex items-center justify-between mb-3">
+    <div class="relative z-[2] flex flex-col h-full px-6 pt-5 pb-5">
+      <!-- Top row: number badge + difficulty pill (fixed, never shrinks) -->
+      <div class="flex-shrink-0 flex items-center justify-between mb-3">
         <div class="flex items-baseline gap-0.5 font-['Chakra_Petch',monospace] font-bold">
           <span class="text-[0.6rem] tracking-widest uppercase opacity-60" style="color:{diffColor}">SCN</span>
           <span class="text-[1.6rem] leading-none tracking-tight ml-1" style="color:{diffColor}">
@@ -63,30 +80,47 @@
         </div>
       </div>
 
-      <div class="card-divider" aria-hidden="true"></div>
+      <div class="card-divider flex-shrink-0" aria-hidden="true"></div>
 
-      <!-- Title -->
-      <h2 class="font-['Chakra_Petch',monospace] text-[1.15rem] font-bold text-[#e2e8f0] tracking-wide leading-snug line-clamp-2 mb-3">
+      <!-- Title (fixed, never shrinks) -->
+      <h2 class="flex-shrink-0 font-['Chakra_Petch',monospace] text-[1.15rem] font-bold text-[#e2e8f0] tracking-wide leading-snug line-clamp-2 mb-2">
         {scenario.title}
       </h2>
 
-      <!-- Short description -->
-      {#if scenario.description}
-        <p class="text-[0.78rem] leading-[1.65] text-[rgba(208,215,221,0.45)] line-clamp-2 mb-3">
-          {scenario.description}
-        </p>
-      {/if}
-
-      <!-- Project folder pill -->
-      <div class="flex items-center gap-1.5 text-[0.6rem] font-mono tracking-widest uppercase text-[rgba(7,165,201,0.45)] border border-[rgba(7,165,201,0.12)] bg-[rgba(7,165,201,0.04)] px-2 py-1 rounded-[2px] w-fit">
-        <span class="opacity-60">/</span>
-        <span>{scenario.projectFolder}</span>
+      <!-- Description area: flex-1 so it fills remaining space; scrolls when expanded -->
+      <div class="desc-area">
+        {#if desc}
+          <div class="desc-scroll" class:expanded={showMore}>
+            <div class="desc-block" style="border-left-color:{diffColor}55;">
+              <p
+                bind:this={descP}
+                class="desc-text"
+                class:clamped={!showMore}
+              >
+                {desc}
+              </p>
+            </div>
+          </div>
+          {#if needsExpand || showMore}
+            <button
+              class="show-more-btn flex-shrink-0 mt-1.5"
+              style="color:{diffColor};"
+              on:click|stopPropagation={() => (showMore = !showMore)}
+              aria-expanded={showMore}
+            >
+              {#if showMore}
+                <ChevronUp class="w-3 h-3" /> Show less
+              {:else}
+                <ChevronDown class="w-3 h-3" /> Show more
+              {/if}
+            </button>
+          {/if}
+        {/if}
       </div>
 
-      <div class="flex-1"></div>
 
-      <!-- Footer -->
-      <div class="flex items-center justify-between pt-3 border-t border-[rgba(7,165,201,0.1)] gap-3">
+      <!-- Footer (fixed, never shrinks) -->
+      <div class="flex-shrink-0 flex items-center justify-between pt-3 border-t border-[rgba(7,165,201,0.1)] gap-3">
         <div class="flex items-center gap-1.5 text-[0.65rem] font-mono tracking-[0.04em]" style="color:{diffColor}99;">
           <Layers class="w-3 h-3" />
           {#if scenario.hasLevels}
@@ -96,30 +130,20 @@
           {/if}
         </div>
 
-        <div class="flex items-center gap-2">
-          <button
-            class="flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[rgba(208,215,221,0.5)] bg-transparent border border-[rgba(208,215,221,0.15)] px-3 py-2 rounded-[3px] cursor-pointer hover:text-[#e2e8f0] hover:border-[rgba(208,215,221,0.35)] transition-colors duration-200"
-            on:click={() => dispatch('showDetails')}
-            aria-label="View scenario details"
-          >
-            Details
-          </button>
-
-          <button
-            class="launch-btn flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[#07a5c9] bg-[rgba(7,165,201,0.08)] border border-[rgba(7,165,201,0.35)] px-4 py-2 rounded-[3px] relative overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            on:click={() => dispatch('launchSprint')}
-            disabled={isLoading}
-            aria-busy={isLoading}
-          >
-            {#if isLoading}
-              <Loader class="w-3.5 h-3.5 animate-spin" />
-              <span>Starting…</span>
-            {:else}
-              <Zap class="w-3.5 h-3.5" />
-              <span>Launch Sprint</span>
-            {/if}
-          </button>
-        </div>
+        <button
+          class="launch-btn flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[#07a5c9] bg-[rgba(7,165,201,0.08)] border border-[rgba(7,165,201,0.35)] px-4 py-2 rounded-[3px] relative overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          on:click={() => dispatch('launchSprint')}
+          disabled={isLoading}
+          aria-busy={isLoading}
+        >
+          {#if isLoading}
+            <Loader class="w-3.5 h-3.5 animate-spin" />
+            <span>Starting…</span>
+          {:else}
+            <Zap class="w-3.5 h-3.5" />
+            <span>Launch Sprint</span>
+          {/if}
+        </button>
       </div>
     </div>
   </div>
@@ -167,8 +191,8 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 520px;
-    height: 280px;
+    width: 560px;
+    height: 360px;
     display: flex;
     flex-direction: column;
     border-radius: 6px;
@@ -255,6 +279,72 @@
     margin-bottom: 12px;
   }
 
+  /* ── Description area (flex fill between title and footer) ─── */
+  .desc-area {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 10px;
+  }
+
+  /* Scrollable wrapper — clipped by default, scrollable when expanded */
+  .desc-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .desc-scroll.expanded {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(7,165,201,0.25) transparent;
+  }
+  .desc-scroll.expanded::-webkit-scrollbar { width: 4px; }
+  .desc-scroll.expanded::-webkit-scrollbar-thumb { background: rgba(7,165,201,0.25); border-radius: 2px; }
+
+  /* ── Description block ───────────────────────────────────────── */
+  .desc-block {
+    border-left: 2px solid rgba(7,165,201,0.35);
+    padding-left: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  /* Description text */
+  .desc-text {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: rgba(208, 215, 221, 0.82);
+    margin: 0;
+  }
+  /* CSS line-clamp for collapsed state — only truncates if text genuinely overflows */
+  .desc-text.clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 7;
+    line-clamp: 7;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Show more/less button ───────────────────────────────────── */
+  .show-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.68rem;
+    font-family: 'Chakra Petch', monospace;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.2s;
+  }
+  .show-more-btn:hover { opacity: 1; }
+
   /* ── Launch button shimmer ───────────────────────────────────── */
   .launch-btn { clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); }
   .launch-btn::before {
@@ -270,6 +360,6 @@
 
   /* ── Responsive ──────────────────────────────────────────────── */
   @media (max-width: 700px) {
-    .carousel-card { width: min(86vw, 360px); height: 220px; }
+    .carousel-card { width: min(86vw, 380px); height: 300px; }
   }
 </style>
