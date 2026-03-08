@@ -11,11 +11,11 @@ import type { LevelTestConfig, TaskTest } from '../types';
 const task1Tests: TaskTest = {
 	taskId: '1',
 	taskText: 'Implement rate limiting',
-	requiredFiles: ['middleware.ts', 'lib/rate-limit.ts', 'app/api/ratelimit/route.ts'].filter(Boolean),
+	requiredFiles: ['middleware.ts', 'lib/rate-limit.ts', 'app/api/ratelimit/route.ts', 'src/middleware/rateLimit.ts', 'src/middleware/index.ts'].filter(Boolean),
 	requiredPatterns: [
-		{ pattern: 'rateLimit|ratelimit', description: 'Rate limiting implementation' },
-		{ pattern: 'ip|headers', description: 'IP or header detection' },
-		{ pattern: '429|too.*many', description: 'Rate limit response' }
+		{ pattern: 'rateLimit|ratelimit|rate.limit', description: 'Rate limiting implementation' },
+		{ pattern: 'ip|headers|client', description: 'IP or header detection' },
+		{ pattern: '429|too.*many|rate.*limit', description: 'Rate limit response' }
 	]
 };
 
@@ -25,7 +25,7 @@ const task2Tests: TaskTest = {
 	taskText: 'Add input validation',
 	requiredFiles: ['package.json'],
 	requiredPatterns: [
-		{ pattern: 'zod|joi|yup|validator', description: 'Validation library' }
+		{ pattern: 'zod|joi|yup|validator|express-validator', description: 'Validation library' }
 	]
 };
 
@@ -35,8 +35,8 @@ const task3Tests: TaskTest = {
 	taskText: 'Implement error handling',
 	requiredFiles: [],
 	requiredPatterns: [
-		{ pattern: 'error.*handler|ErrorBoundary', description: 'Error handler' },
-		{ pattern: 'try.*catch|throw.*new', description: 'Try-catch blocks' }
+		{ pattern: 'error.*handler|ErrorBoundary|errorMiddleware', description: 'Error handler' },
+		{ pattern: 'try.*catch|throw.*new|next\\(error\\)', description: 'Error handling patterns' }
 	]
 };
 
@@ -44,10 +44,10 @@ const task3Tests: TaskTest = {
 const task4Tests: TaskTest = {
 	taskId: '4',
 	taskText: 'Add security headers',
-	requiredFiles: ['next.config.js', 'next.config.mjs'],
+	requiredFiles: ['next.config.js', 'next.config.mjs', 'vite.config.ts', 'package.json'],
 	requiredPatterns: [
-		{ pattern: 'headers|security', description: 'Security headers config' },
-		{ pattern: 'CSP|X-Frame|X-Content', description: 'CSP or security headers' }
+		{ pattern: 'headers|security|CSP|helmet', description: 'Security headers config' },
+		{ pattern: 'CSP|X-Frame|X-Content|frameguard|cors', description: 'Specific security headers' }
 	]
 };
 

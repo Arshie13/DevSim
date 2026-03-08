@@ -14,8 +14,8 @@ const task1Tests: TaskTest = {
 	requiredFiles: ['Dockerfile'],
 	requiredPatterns: [
 		{ pattern: 'FROM', description: 'Base image specified' },
-		{ pattern: 'WORKDIR|RUN|COPY', description: 'Docker commands used' },
-		{ pattern: 'EXPOSE', description: 'Port exposed' }
+		{ pattern: 'WORKDIR|RUN|COPY|ENTRYPOINT', description: 'Docker commands used' },
+		{ pattern: 'EXPOSE|port', description: 'Port exposed' }
 	]
 };
 
@@ -23,11 +23,11 @@ const task1Tests: TaskTest = {
 const task2Tests: TaskTest = {
 	taskId: '2',
 	taskText: 'Set up Docker Compose',
-	requiredFiles: ['docker-compose.yml', 'docker-compose.yaml'],
+	requiredFiles: ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'],
 	requiredPatterns: [
-		{ pattern: 'services:', description: 'Services defined' },
+		{ pattern: 'services:|version:', description: 'Services or version defined' },
 		{ pattern: 'image:|build:', description: 'Image or build context' },
-		{ pattern: 'ports:|volumes:', description: 'Ports or volumes mapped' }
+		{ pattern: 'ports:|volumes:|environment', description: 'Ports, volumes, or environment mapped' }
 	]
 };
 

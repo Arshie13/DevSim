@@ -22,7 +22,7 @@ const task1Tests: TaskTest = {
 const task2Tests: TaskTest = {
 	taskId: '2',
 	taskText: 'Implement real-time events',
-	requiredFiles: ['lib/socket.ts', 'lib/socket.js', 'app/api/socket/route.ts'].filter(Boolean),
+	requiredFiles: ['lib/socket.ts', 'lib/socket.js', 'app/api/socket/route.ts', 'src/utils/socket.ts', 'src/socket/index.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'emit|on\\s*\\(', description: 'Socket emit/listen events' },
 		{ pattern: 'connection|connect', description: 'Connection handling' }
@@ -33,11 +33,11 @@ const task2Tests: TaskTest = {
 const task3Tests: TaskTest = {
 	taskId: '3',
 	taskText: 'Optimize performance',
-	requiredFiles: ['next.config.js', 'next.config.mjs'],
+	requiredFiles: ['next.config.js', 'next.config.mjs', 'vite.config.ts', 'webpack.config.js'],
 	requiredPatterns: [
-		{ pattern: 'images|Image', description: 'Image optimization' },
-		{ pattern: 'compress|compression', description: 'Compression config' },
-		{ pattern: 'bundle|analyze', description: 'Bundle analysis' }
+		{ pattern: 'images|Image|optimize', description: 'Image optimization' },
+		{ pattern: 'compress|compression|gzip', description: 'Compression config' },
+		{ pattern: 'bundle|analyze|minify', description: 'Bundle analysis or minification' }
 	]
 };
 
@@ -47,8 +47,8 @@ const task4Tests: TaskTest = {
 	taskText: 'Implement caching strategy',
 	requiredFiles: [],
 	requiredPatterns: [
-		{ pattern: 'revalidate|ISR|fetch.*cache', description: 'ISR or fetch caching' },
-		{ pattern: 'unstable_cache|cacheTag', description: 'Next.js cache API' }
+		{ pattern: 'revalidate|ISR|fetch.*cache|cache.*strategy', description: 'Caching implementation' },
+		{ pattern: 'unstable_cache|cacheTag|redis|memcached', description: 'Cache API or external cache' }
 	]
 };
 

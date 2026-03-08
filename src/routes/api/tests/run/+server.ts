@@ -40,6 +40,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return error(400, 'Missing required fields: level, tasks');
 		}
 
+		console.log('[TEST RUNNER] Received fileContents:', fileContents ? Object.keys(fileContents).length : 0, 'files');
+		console.log('[TEST RUNNER] Files:', fileContents ? Object.keys(fileContents) : []);
+
 		// Run the tests
 		const result = await runLevelTests({
 			level,
@@ -47,6 +50,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			fileContents: fileContents || {},
 			existingFiles: existingFiles || []
 		});
+
+		console.log('[TEST RUNNER] Test results:', JSON.stringify(result.overallResult).slice(0, 200));
 
 		return json({
 			success: result.success,

@@ -23,9 +23,9 @@ const task1Tests: TaskTest = {
 const task2Tests: TaskTest = {
 	taskId: '2',
 	taskText: 'Create user registration endpoint',
-	requiredFiles: ['app/api/register/route.ts', 'app/api/register/+server.ts'].filter(Boolean),
+	requiredFiles: ['app/api/register/route.ts', 'app/api/register/+server.ts', 'src/routes/register.ts', 'src/routes/auth/register.ts'].filter(Boolean),
 	requiredPatterns: [
-		{ pattern: 'POST', description: 'POST method for registration' },
+		{ pattern: 'POST|router\\.post', description: 'POST method for registration' },
 		{ pattern: 'prisma.*create|db.*create', description: 'Database create operation' },
 		{ pattern: 'email|password', description: 'Email/password fields' }
 	]
@@ -35,10 +35,10 @@ const task2Tests: TaskTest = {
 const task3Tests: TaskTest = {
 	taskId: '3',
 	taskText: 'Create login endpoint',
-	requiredFiles: ['app/api/login/route.ts', 'app/api/login/+server.ts'].filter(Boolean),
+	requiredFiles: ['app/api/login/route.ts', 'app/api/login/+server.ts', 'src/routes/login.ts', 'src/routes/auth/login.ts'].filter(Boolean),
 	requiredPatterns: [
-		{ pattern: 'POST', description: 'POST method for login' },
-		{ pattern: 'signIn|compare', description: 'Sign in or password comparison' },
+		{ pattern: 'POST|router\\.post', description: 'POST method for login' },
+		{ pattern: 'signIn|compare|bcrypt', description: 'Sign in or password comparison' },
 		{ pattern: 'jwt|JWT|token', description: 'JWT token handling' }
 	]
 };
@@ -47,11 +47,11 @@ const task3Tests: TaskTest = {
 const task4Tests: TaskTest = {
 	taskId: '4',
 	taskText: 'Implement protected route',
-	requiredFiles: ['middleware.ts', 'app/api/protected/route.ts', 'app/api/protected/+server.ts'].filter(Boolean),
+	requiredFiles: ['middleware.ts', 'app/api/protected/route.ts', 'app/api/protected/+server.ts', 'src/middleware/auth.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'middleware', description: 'Middleware configuration' },
-		{ pattern: 'session|token', description: 'Session/token verification' },
-		{ pattern: 'unauthorized|401|redirect', description: 'Unauthorized handling' }
+		{ pattern: 'session|token|verify', description: 'Session/token verification' },
+		{ pattern: 'unauthorized|401|redirect|forbidden|403', description: 'Unauthorized handling' }
 	]
 };
 

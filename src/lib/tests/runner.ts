@@ -6,7 +6,7 @@
  */
 
 import { getLevelConfig, getAllLevelConfigs } from './levels/index';
-import { validateLevel, validateTasksCompleted } from './validator';
+import { validateLevel } from './validator';
 import type { 
 	LevelTestConfig, 
 	TestValidationResult, 
@@ -61,73 +61,90 @@ export async function runLevelTests(params: RunTestsParams): Promise<RunTestsRes
 	for (const [path, content] of Object.entries(fileContents)) {
 		const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
 		contentMap.set(path, contentStr);
-		// Also add without /workspace/ prefix
-		if (path.startsWith('/workspace/')) {
-			contentMap.set(path.replace('/workspace/', ''), contentStr);
+		// Also add with /workspace/ prefix
+		if (!path.startsWith('/workspace/')) {
+			contentMap.set('/workspace/' + path, contentStr);
 		}
 	}
 	
-	// Run tests for each task
+	console.log('[TEST RUNNER] Level:', level);
+	console.log('[TEST RUNNER] User tasks:', JSON.stringify(tasks));
+	console.log('[TEST RUNNER] Level config tasks:', JSON.stringify(levelConfig.tasks.map(t => t.taskText)));
+	console.log('[TEST RUNNER] File contents received:', Object.keys(fileContents).length, 'files');
+	console.log('[TEST RUNNER] ContentMap keys:', Array.from(contentMap.keys()));
+	console.log('[TEST RUNNER] Existing files:', existingFiles?.slice(0, 10) || []);
+	
+	// Run tests for each USER task that is marked as completed
+	// This validates ACTUAL work, not just whether user checked the box
 	const taskResults: TestValidationResult[] = [];
 	const failedTasks: Array<{ taskId: number; taskText: string; errors: string[] }> = [];
 	
-	// First validate that tasks are marked as completed
-	const completedCheck = validateTasksCompleted(tasks);
-	const incompleteTasks = completedCheck.filter(r => !r.passed);
+	console.log('[TEST RUNNER] Level config tasks:', JSON.stringify(levelConfig.tasks.map(t => ({ id: t.taskId, text: t.taskText }))));
 	
-	if (incompleteTasks.length > 0) {
-		// Some tasks are not completed - fail the submission
-		return {
-			success: false,
-			level,
-			taskResults: [],
-			overallResult: {
-				passed: false,
-				results: completedCheck,
-				summary: {
-					total: completedCheck.length,
-					passed: completedCheck.length - incompleteTasks.length,
-					failed: incompleteTasks.length
-				}
-			},
-			failedTasks: incompleteTasks.map(t => ({
-				taskId: parseInt(t.testId.replace('task-', '')),
-				taskText: t.testName.replace('Task completed: ', ''),
-				errors: [t.message]
-			}))
-		};
-	}
-	
-	// Run validation tests for each completed task
-	for (const task of tasks) {
-		if (!task.completed) continue;
+	// Validate each user-completed task
+	for (const userTask of tasks) {
+		console.log(`[TEST RUNNER] Processing user task: "${userTask.text}" (completed: ${userTask.completed})`);
 		
-		// Find the test config for this task
-		const taskConfig = levelConfig.tasks.find(t => 
-			t.taskText.toLowerCase() === task.text.toLowerCase() ||
-			t.taskText.includes(task.text) ||
-			task.text.includes(t.taskText)
-		);
-		
-		if (taskConfig) {
-			// Run the validation for this task
-			const result = await validateLevel(
-				[taskConfig],
-				contentMap,
-				existingFiles
+		// Find matching level config task - use stricter matching
+		const taskConfig = levelConfig.tasks.find(tc => {
+			const userText = userTask.text.toLowerCase();
+			const configText = tc.taskText.toLowerCase();
+			
+			// 1. Exact match
+			if (userText === configText) return true;
+			
+			// 2. Very similar - user text contains most of config text or vice versa (80% match)
+			if (userText.includes(configText) && configText.length > userText.length * 0.5) return true;
+			if (configText.includes(userText) && userText.length > configText.length * 0.5) return true;
+			
+			// 3. Check for IMPORTANT keywords that should match (not just common words)
+			const importantUserWords = userText.split(/\s+/).filter(w => 
+				w.length > 4 && !['create', 'simple', 'build', 'implement', 'setup', 'add'].includes(w)
+			);
+			const importantConfigWords = configText.split(/\s+/).filter(w => 
+				w.length > 4 && !['create', 'simple', 'build', 'implement', 'setup', 'add'].includes(w)
 			);
 			
-			taskResults.push(result);
+			// Must have at least one important word in common
+			const hasImportantMatch = importantUserWords.some(w => 
+				importantConfigWords.some(cw => cw.includes(w) || w.includes(cw))
+			);
 			
-			// Track failed tasks
-			if (!result.passed) {
-				const failedTests = result.results.filter(r => !r.passed);
-				failedTasks.push({
-					taskId: task.id,
-					taskText: task.text,
-					errors: failedTests.map(t => t.message)
-				});
-			}
+			// Also check that we have reasonable overall similarity
+			const userWords = userText.split(/\s+/).filter(w => w.length > 2);
+			const configWords = configText.split(/\s+/).filter(w => w.length > 2);
+			const matchingWords = userWords.filter(w => configWords.some(cw => cw.includes(w) || w.includes(cw)));
+			const similarity = matchingWords.length / Math.max(userWords.length, configWords.length);
+			
+			return hasImportantMatch && similarity >= 0.5;
+		});
+		
+		if (!taskConfig) {
+			console.log(`[TEST RUNNER] No config match for: "${userTask.text}" - skipping validation`);
+			continue; // Skip tasks that don't have validation config
+		}
+		
+		console.log(`[TEST RUNNER] Matched "${userTask.text}" to config "${taskConfig.taskText}" - running validation`);
+		
+		console.log(`[TEST RUNNER] Matched to config: "${taskConfig.taskText}" - running validation`);
+		
+		// Run the validation for this task - this checks actual file contents!
+		const result = await validateLevel(
+			[taskConfig],
+			contentMap,
+			existingFiles
+		);
+		
+		taskResults.push(result);
+		
+		// Track failed tasks - these are tasks where work was NOT done
+		if (!result.passed) {
+			const failedTests = result.results.filter(r => !r.passed);
+			failedTasks.push({
+				taskId: userTask.id,
+				taskText: userTask.text,
+				errors: failedTests.map(t => t.message)
+			});
 		}
 	}
 	

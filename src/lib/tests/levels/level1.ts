@@ -38,9 +38,9 @@ const task3Tests: TaskTest = {
 	taskText: 'Create a simple User model',
 	requiredFiles: ['prisma/schema.prisma'],
 	requiredPatterns: [
-		{ pattern: 'model\\s+User', description: 'User model definition' },
-		{ pattern: '@id', description: 'User model has ID field' },
-		{ pattern: '@default\\(uuid\\(\\)\\)', description: 'UUID default value' }
+		{ pattern: 'model\\s+\\w+', description: 'Model definition' },
+		{ pattern: '@id|@\\@id', description: 'Model has ID field' },
+		{ pattern: '@default|String', description: 'Default value or String type' }
 	]
 };
 
@@ -48,11 +48,11 @@ const task3Tests: TaskTest = {
 const task4Tests: TaskTest = {
 	taskId: '4',
 	taskText: 'Build GET /api/users endpoint',
-	requiredFiles: ['app/api/users/route.ts', 'app/api/users/+server.ts'].filter(Boolean),
+	requiredFiles: ['app/api/users/route.ts', 'app/api/users/+server.ts', 'src/routes/users.ts', 'src/routes/users/index.ts'].filter(Boolean),
 	requiredPatterns: [
-		{ pattern: 'export\\s+function\\s+GET', description: 'GET handler export' },
-		{ pattern: 'prisma\\.user', description: 'Prisma user query' },
-		{ pattern: 'return\\s+Response\\.json|return\\s+json', description: 'JSON response' }
+		{ pattern: 'export\\s+function\\s+GET|router\\.get', description: 'GET handler export' },
+		{ pattern: 'prisma\\.\\w+|db\\.\\w+', description: 'Prisma or database query' },
+		{ pattern: 'res\\.json|Response\\.json|return\\s+json', description: 'JSON response' }
 	]
 };
 

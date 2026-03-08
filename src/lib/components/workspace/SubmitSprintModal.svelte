@@ -28,6 +28,20 @@
     summary: { total: number; passed: number; failed: number };
   } | null = null;
 
+  // AI review accordion state
+  let aiReviewOpen = false;
+
+  // AI Scoring state
+  let aiScoring: {
+    stars: number;
+    score: number;
+    feedback: string;
+    improvements: string;
+    nextTime: string;
+    loading: boolean;
+    done: boolean;
+  } = { stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false };
+
   const SUBMIT_STEPS = [
     { icon: '🧪', label: 'Running tests…', detail: 'Validating your work against level requirements' },
     { icon: '🏁', label: 'Recording completion…', detail: 'Recording your progress & awarding rewards' },
@@ -54,6 +68,8 @@
     state = 'confirm';
     showModal = true;
     testResults = null;
+    aiReviewOpen = false;
+    aiScoring = { stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false };
   }
 
   function close() {
@@ -79,12 +95,14 @@
       // Step 0 - Run tests to validate user work
       submitStep = 0;
       
-      // Fetch file list if not provided
+      // Always fetch ALL files from the container for complete AI analysis
+      // Start with any already-provided file contents (e.g. currently open file)
       let filesToCheck = existingFiles;
-      let contentsToCheck = fileContents;
+      let contentsToCheck: Record<string, string> = { ...fileContents };
       
-      if (containerId && Object.keys(fileContents).length === 0) {
+      if (containerId) {
         try {
+          console.log('AI SCORING: Fetching file list from container...');
           const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -93,10 +111,24 @@
           const listData = await listRes.json();
           if (listData.success) {
             filesToCheck = listData.files || [];
+            console.log('AI SCORING: Total files in workspace:', filesToCheck.length);
             
-            // Read key files for validation
-            const keyFiles = ['package.json', 'prisma/schema.prisma', 'app/api/users/route.ts', 'app/api/users/+server.ts'];
-            for (const file of keyFiles) {
+            // Read ALL files from the workspace
+            let filesRead = 0;
+            let filesFailed = 0;
+            for (const file of filesToCheck) {
+              // Skip if already read
+              if (contentsToCheck[file]) {
+                console.log('AI SCORING: ↩ Already have:', file);
+                continue;
+              }
+              // Skip node_modules, .git, dist, .next
+              if (file.includes('node_modules') || file.includes('/.git/') || file.includes('/.next/') || file.includes('/dist/')) continue;
+              // Skip binary files
+              if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.gif') || file.endsWith('.ico')) continue;
+              if (file.endsWith('.mp4') || file.endsWith('.zip') || file.endsWith('.tar') || file.endsWith('.gz')) continue;
+              if (file.endsWith('.lock') || file.endsWith('.log')) continue;
+              
               try {
                 const readRes = await fetch(`/api/docker/container/${containerId}/files/read`, {
                   method: 'POST',
@@ -106,16 +138,32 @@
                 const readData = await readRes.json();
                 if (readData.success) {
                   contentsToCheck[file] = readData.content;
+                  filesRead++;
+                  console.log('AI SCORING: ✓ Read file:', file, '(' + readData.content.length + ' chars)');
+                } else {
+                  filesFailed++;
+                  console.log('AI SCORING: ✗ Failed:', file, '-', readData.message || 'unknown error');
                 }
               } catch (e) {
-                // File might not exist
+                filesFailed++;
+                console.log('AI SCORING: ✗ Exception:', file, '-', e);
               }
             }
+            console.log('AI SCORING: ==============================');
+            console.log('AI SCORING: Files read:', filesRead, '| Failed:', filesFailed);
+            console.log('AI SCORING: All files for AI:', Object.keys(contentsToCheck));
+            console.log('AI SCORING: ==============================');
+          } else {
+            console.warn('AI SCORING: File list fetch failed:', listData);
           }
         } catch (e) {
-          console.warn('Could not fetch file list:', e);
+          console.warn('AI SCORING: Could not fetch file list:', e);
         }
       }
+      
+      console.log('=== TEST RUN: Starting test validation ===');
+      console.log('TEST: Level:', level, '| Tasks:', tasks.length);
+      console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
       
       // Run tests
       const testRes = await fetch('/api/tests/run', {
@@ -129,7 +177,11 @@
         })
       });
       
+      console.log('TEST: Response status:', testRes.status);
+      
       const testData = await testRes.json();
+      console.log('TEST: Test data received:', testData);
+      
       testResults = {
         passed: testData.passed,
         failedTasks: testData.failedTasks || [],
@@ -140,12 +192,90 @@
       if (!testData.passed) {
         state = 'error';
         const failedCount = testData.failedTasks?.length || 0;
-        submitError = `Tests failed! ${failedCount} task(s) did not pass validation.\n\n`;
-        submitError += testData.failedTasks?.map((t: any) => 
-          `• ${t.taskText}:\n  ${t.errors?.join('\n  ') || 'Validation failed'}`
-        ).join('\n\n') || 'Please review your work and try again.';
+        
+        // Build detailed error message
+        let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
+        
+        if (testData.failedTasks && testData.failedTasks.length > 0) {
+          for (const task of testData.failedTasks) {
+            errorMsg += `❌ ${task.taskText}\n`;
+            if (task.errors && task.errors.length > 0) {
+              for (const err of task.errors) {
+                errorMsg += `   • ${err}\n`;
+              }
+            }
+            errorMsg += '\n';
+          }
+        } else {
+          errorMsg += 'Please review your work and try again.';
+        }
+        
+        submitError = errorMsg;
+        console.log('TEST: Submit error message:', submitError);
         return;
       }
+
+      // AI Scoring - evaluate the user's code including test results
+      aiScoring.loading = true;
+      console.log('AI SCORING: Starting AI scoring...');
+      console.log('AI SCORING: Files available for AI:', Object.keys(contentsToCheck).length);
+      console.log('AI SCORING: Test results to include:', JSON.stringify(testData));
+      try {
+        // Get completed task texts for the scoring
+        const completedTaskTexts = tasks.filter(t => t.completed).map(t => t.text);
+        
+        // Call AI scoring endpoint with test results
+        const scoreRes = await fetch('/api/ai/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            containerId: containerId,
+            level,
+            completedTasks: completedTaskTexts,
+            fileContents: contentsToCheck,
+            testResults: testData  // Pass test results to AI
+          })
+        });
+        
+        const scoreData = await scoreRes.json();
+        console.log('AI SCORING: Response received:', scoreData);
+        if (scoreData.success) {
+          aiScoring = {
+            stars: scoreData.stars || 1,
+            score: scoreData.score || 50,
+            feedback: scoreData.feedback || 'Your code passes the tests but there is room for improvement.',
+            improvements: scoreData.improvements || '',
+            nextTime: scoreData.nextTime || '',
+            loading: false,
+            done: true
+          };
+        } else {
+          aiScoring = {
+            stars: 1,
+            score: 35,
+            feedback: 'Your code passes the tests but there is room for improvement.',
+            improvements: '',
+            nextTime: '',
+            loading: false,
+            done: true
+          };
+        }
+      } catch (e) {
+        console.warn('AI Scoring failed:', e);
+        aiScoring = {
+          stars: 1,
+          score: 35,
+          feedback: 'Your code passes the tests but there is room for improvement.',
+          improvements: '',
+          nextTime: '',
+          loading: false,
+          done: true
+        };
+      }
+      console.log('AI SCORING: Complete - Stars:', aiScoring.stars, 'Score:', aiScoring.score);
+      console.log('AI SCORING: feedback:', aiScoring.feedback);
+      console.log('AI SCORING: improvements:', aiScoring.improvements);
+      console.log('AI SCORING: nextTime:', aiScoring.nextTime);
 
       // Step 1 - Submit completed tasks
       submitStep = 1;
@@ -331,6 +461,71 @@
           ? 'Great job! You can continue working on the next level.' 
           : 'Your workspace has been submitted successfully.'}
       </p>
+
+      <!-- AI Scoring Display -->
+      {#if aiScoring.done && !aiScoring.loading}
+        <div class="mb-5 bg-[#0d1321] border border-[rgba(99,102,241,0.25)] rounded-[6px] overflow-hidden">
+          <!-- Always-visible summary row -->
+          <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-2">
+              {#each [1, 2, 3] as star}
+                <span class="text-xl {star <= aiScoring.stars ? 'text-[#fbbf24]' : 'text-[#2d3446]'}">
+                  {star <= aiScoring.stars ? '★' : '☆'}
+                </span>
+              {/each}
+              <span class="font-mono text-sm font-bold ml-1 {aiScoring.score >= 75 ? 'text-[#4ade80]' : aiScoring.score >= 50 ? 'text-[#fbbf24]' : 'text-[#f97316]'}">
+                {aiScoring.score}<span class="text-[#6b7280] font-normal">/100</span>
+              </span>
+            </div>
+            <button
+              on:click={() => aiReviewOpen = !aiReviewOpen}
+              class="font-mono text-[0.7rem] text-[#6366f1] hover:text-[#818cf8] transition-colors flex items-center gap-1"
+            >
+              {aiReviewOpen ? 'Hide' : 'View'} feedback
+              <span class="transition-transform duration-200 {aiReviewOpen ? 'rotate-180' : ''}">▾</span>
+            </button>
+          </div>
+
+          <!-- Collapsible detail -->
+          {#if aiReviewOpen}
+            <div class="border-t border-[rgba(99,102,241,0.15)] px-4 py-3 text-left space-y-3 max-h-[200px] overflow-y-auto scrollbar-thin">
+              <!-- Overall Feedback -->
+              <p class="font-mono text-[0.78rem] text-[#9ca3af] leading-relaxed">
+                {aiScoring.feedback}
+              </p>
+
+              <!-- Improvements -->
+              {#if aiScoring.improvements}
+                <div>
+                  <p class="font-mono text-[0.65rem] tracking-[0.12em] uppercase text-[#fbbf24] mb-1 flex items-center gap-1">
+                    <span>🔧</span> What to Improve
+                  </p>
+                  <div class="font-mono text-[0.75rem] text-[#d0d7dd] leading-relaxed whitespace-pre-line bg-[#0a0e1a] rounded px-3 py-2 border border-[rgba(251,191,36,0.12)]">
+                    {aiScoring.improvements}
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Next Time Tips -->
+              {#if aiScoring.nextTime}
+                <div>
+                  <p class="font-mono text-[0.65rem] tracking-[0.12em] uppercase text-[#4ade80] mb-1 flex items-center gap-1">
+                    <span>💡</span> Next Time
+                  </p>
+                  <div class="font-mono text-[0.75rem] text-[#d0d7dd] leading-relaxed whitespace-pre-line bg-[#0a0e1a] rounded px-3 py-2 border border-[rgba(74,222,128,0.12)]">
+                    {aiScoring.nextTime}
+                  </div>
+                </div>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      {:else if aiScoring.loading}
+        <div class="mb-5 px-4 py-3 bg-[#0d1321] border border-[rgba(99,102,241,0.25)] rounded-[6px] flex items-center gap-3">
+          <div class="w-4 h-4 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+          <p class="font-mono text-[0.72rem] text-[#6366f1]">Analyzing your code…</p>
+        </div>
+      {/if}
 
       <div class="flex justify-center gap-4 mb-7">
         <!-- XP badge -->

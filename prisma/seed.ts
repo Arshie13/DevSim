@@ -127,6 +127,30 @@ async function main() {
         'Create disaster recovery plan'
       ],
       completedTask: []
+    },
+    {
+      id: 'level-5',
+      title: 'Master Architect',
+      order: 5,
+      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
+      levelDescription: 'Achieve mastery in system architecture. Design scalable systems, implement microservices patterns, and lead technical decisions.',
+      hints: [
+        'Design for scalability from the start',
+        'Implement event-driven architecture',
+        'Use message queues for decoupling',
+        'Design for failure',
+        'Document your architecture decisions'
+      ],
+      xpReward: 2000,
+      coinReward: 1000,
+      task: [
+        'Design system architecture',
+        'Implement event-driven patterns',
+        'Set up distributed tracing',
+        'Create API documentation',
+        'Lead a technical review'
+      ],
+      completedTask: []
     }
   ];
 

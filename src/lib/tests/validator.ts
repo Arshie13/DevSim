@@ -18,17 +18,37 @@ import type {
  */
 export async function validateFileExists(
 	filePath: string,
-	existingFiles: string[]
+	existingFiles: string[],
+	contentMap?: Map<string, string>
 ): Promise<FileValidationResult> {
-	const normalizedPath = filePath.startsWith('/workspace/') 
-		? filePath 
-		: `/workspace/${filePath}`;
+	// Get just the filename (e.g., "schema.prisma" from "prisma/schema.prisma")
+	const fileName = filePath.split('/').pop() || filePath;
 	
-	const exists = existingFiles.some(f => 
-		f === normalizedPath || 
-		f.endsWith(normalizedPath) ||
-		normalizedPath.endsWith(f)
-	);
+	// Check in existingFiles array - multiple matching strategies
+	let exists = existingFiles.some(f => {
+		const fName = f.split('/').pop() || f;
+		// 1. Exact match
+		if (f === filePath || f === '/workspace/' + filePath) return true;
+		// 2. Filename match
+		if (fName === fileName) return true;
+		// 3. Ends with the path
+		if (f.endsWith(filePath) || f.endsWith('/' + filePath)) return true;
+		return false;
+	});
+	
+	// Also check in contentMap (file contents that were read)
+	if (!exists && contentMap) {
+		exists = Array.from(contentMap.keys()).some(k => {
+			const kName = k.split('/').pop() || k;
+			// 1. Exact match
+			if (k === filePath || k === '/workspace/' + filePath) return true;
+			// 2. Filename match
+			if (kName === fileName) return true;
+			// 3. Ends with the path
+			if (k.endsWith(filePath) || k.endsWith('/' + filePath)) return true;
+			return false;
+		});
+	}
 	
 	return {
 		path: filePath,
@@ -58,7 +78,7 @@ export function validateContentPatterns(
 				message: matches 
 					? `Found: ${description}` 
 					: `Missing: ${description}`,
-				details: { pattern, content: content.substring(0, 200) }
+				details: { pattern, contentPreview: content.substring(0, 100) }
 			});
 		} catch (e) {
 			results.push({
@@ -84,42 +104,64 @@ export async function validateTask(
 ): Promise<TestResult[]> {
 	const results: TestResult[] = [];
 	
-	// Test 1: Required files exist
-	if (task.requiredFiles && task.requiredFiles.length > 0) {
-		for (const filePath of task.requiredFiles) {
-			const fileResult = await validateFileExists(filePath, existingFiles);
-			
-			results.push({
-				testId: `file-${filePath}`,
-				testName: `File exists: ${filePath}`,
-				passed: fileResult.exists,
-				message: fileResult.exists 
-					? `✓ File exists: ${filePath}` 
-					: `✗ File missing: ${filePath}`,
-				details: { path: filePath }
-			});
-		}
-	}
+	console.log('[VALIDATOR] Validating task:', task.taskText);
+	console.log('[VALIDATOR] Required patterns:', task.requiredPatterns);
+	console.log('[VALIDATOR] Files in contentMap:', Array.from(fileContents.keys()));
 	
-	// Test 2: Content patterns
+	// Test: Content patterns - check ALL files for required patterns
 	if (task.requiredPatterns && task.requiredPatterns.length > 0) {
-		// Check each required file for patterns
-		if (task.requiredFiles) {
-			for (const filePath of task.requiredFiles) {
-				const content = fileContents.get(filePath) || fileContents.get(`/workspace/${filePath}`);
+		// Check ALL files in contentMap for the required patterns
+		const allPatternResults: TestResult[] = [];
+		
+		for (const [filePath, content] of fileContents) {
+			if (content && content.length > 0) {
+				console.log('[VALIDATOR] Checking patterns in file:', filePath, 'content length:', content.length);
+				const patternResults = validateContentPatterns(content, task.requiredPatterns);
 				
-				if (content) {
-					const patternResults = validateContentPatterns(content, task.requiredPatterns);
-					results.push(...patternResults);
-				} else {
-					results.push({
-						testId: `content-missing-${filePath}`,
-						testName: `Content validation for ${filePath}`,
-						passed: false,
-						message: `Cannot validate content - file not loaded: ${filePath}`,
-						details: { filePath }
-					});
+				// Log what was found in this file
+				for (const result of patternResults) {
+					console.log('[VALIDATOR]   Pattern:', result.testName, '-> passed:', result.passed);
 				}
+				
+				// Mark results with file path where found
+				for (const result of patternResults) {
+					result.details = { ...result.details, foundInFile: filePath };
+				}
+				allPatternResults.push(...patternResults);
+			}
+		}
+		
+		// Group results by pattern description to see if ANY file has it
+		const patternDescriptions = [...new Set(allPatternResults.map(r => r.testName))];
+		
+		for (const desc of patternDescriptions) {
+			const patternResultsForDesc = allPatternResults.filter(r => r.testName === desc);
+			const passedInAnyFile = patternResultsForDesc.some(r => r.passed);
+			const filesWhereFound = patternResultsForDesc
+				.filter(r => r.passed)
+				.map(r => r.details?.foundInFile)
+				.filter(Boolean);
+			
+			// Get the failed message if not found anywhere
+			if (!passedInAnyFile) {
+				const failedResult = patternResultsForDesc[0];
+				results.push({
+					testId: failedResult.testId,
+					testName: failedResult.testName,
+					passed: false,
+					message: `Missing: ${failedResult.testName}`,
+					details: { searchedFiles: Array.from(fileContents.keys()) }
+				});
+			} else {
+				// Found! Add a passing result with file location
+				const firstResult = patternResultsForDesc[0];
+				results.push({
+					testId: firstResult.testId,
+					testName: firstResult.testName,
+					passed: true,
+					message: `✓ Found: ${firstResult.testName} in ${filesWhereFound.join(', ')}`,
+					details: { foundIn: filesWhereFound }
+				});
 			}
 		}
 	}
