@@ -473,6 +473,32 @@
       });
   }
 
+  function refreshTerminal() {
+    terminal?.reconnect();
+  }
+
+  async function refreshFiles() {
+    if (!containerId) return;
+    try {
+      const listRes = await fetch(
+        `/api/docker/container/${containerId}/files/list`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      const listData = (await listRes.json()) as FileListResponse;
+      if (listData.success) {
+        fileTree = listData.files;
+        directories = listData.directories || [];
+        toast.success("Files refreshed");
+      }
+    } catch (error) {
+      console.error("Error refreshing files:", error);
+      toast.error("Failed to refresh files");
+    }
+  }
+
   function handleTabChange(tab: "editor" | "terminal" | "preview") {
     activeTab = tab;
     // Auto-refresh preview when switching to preview tab
@@ -650,6 +676,7 @@
       onCreateFile={handleCreateFile}
       onDeleteFile={handleDeleteFile}
       onRenameFile={handleRenameFile}
+      onRefreshFiles={refreshFiles}
     />
 
     <!-- Main Content -->
@@ -666,7 +693,7 @@
           bind:editorRef
         />
 
-        <TerminalPanel visible={activeTab === "terminal"} bind:terminalRef />
+        <TerminalPanel visible={activeTab === "terminal"} bind:terminalRef onRefresh={refreshTerminal} />
 
         <PreviewPanel
           visible={activeTab === "preview"}

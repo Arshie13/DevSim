@@ -4,10 +4,25 @@
 
   /** Bind this to the terminal container div from the parent. */
   export let terminalRef: HTMLDivElement;
+
+  /** Callback to refresh the terminal */
+  export let onRefresh: (() => void) | null = null;
 </script>
 
-<div class:hidden={!visible} class="h-full">
-  <div class="h-full bg-[#1e1e1e] p-2">
+<div class:hidden={!visible} class="h-full flex flex-col">
+  <div class="flex justify-end p-2 bg-[#1e1e1e] border-b border-[#2d2d2d]">
+    <button
+      on:click={onRefresh}
+      class="px-3 py-1 text-sm text-gray-400 hover:text-white hover:bg-[#2d2d2d] rounded transition-colors flex items-center gap-1"
+      title="Refresh terminal"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Refresh
+    </button>
+  </div>
+  <div class="flex-1 bg-[#1e1e1e] p-2">
     <div bind:this={terminalRef} class="h-full"></div>
   </div>
 </div>

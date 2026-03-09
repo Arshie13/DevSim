@@ -1,9 +1,8 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import Docker from 'dockerode';
+import Dockerode from 'dockerode';
+import { docker } from '$lib/server/docker/client';
 import http from 'http';
-
-// Docker client configuration
-const docker = new Docker();
+import type { Duplex } from 'stream';
 
 // Server configuration
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -11,7 +10,7 @@ const PORT = parseInt(process.env.PORT || '8080', 10);
 interface TerminalConnection {
   ws: WebSocket;
   containerId: string;
-  execStream: any;
+  execStream: Duplex;
 }
 
 const activeConnections: Map<string, TerminalConnection> = new Map();
@@ -103,7 +102,16 @@ function createWSServer(server: http.Server): WebSocketServer {
       const cleanup = () => {
         activeConnections.delete(connectionKey);
         try {
-          execStream?.destroy();
+          // Try graceful exit first
+          if (execStream?.writable) {
+            execStream.write('exit\r\n');
+          }
+          // Give it a moment then force destroy
+          setTimeout(() => {
+            try {
+              execStream?.destroy();
+            } catch { }
+          }, 500);
         } catch { }
         if (ws.readyState === WebSocket.OPEN) {
           ws.close();

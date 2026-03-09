@@ -55,6 +55,7 @@
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
   export let onDeleteFile: (filePath: string) => void = () => {};
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
+  export let onRefreshFiles: () => void = () => {};
 
   // VS Code-style: clicking the active panel icon closes the sidebar;
   // clicking any panel when closed opens it and switches to that panel.
@@ -139,13 +140,24 @@
     >
       <!-- Panel Header -->
       <div
-        class="px-4 py-2.5 border-b border-[rgba(7,165,201,0.1)] flex-shrink-0"
+        class="px-4 py-2.5 border-b border-[rgba(7,165,201,0.1)] flex-shrink-0 flex items-center justify-between"
       >
         <span
           class="text-[0.85rem] font-semibold uppercase tracking-widest text-[#8892a0]"
           style="font-family:'Share Tech Mono',monospace;"
           >{panelLabels[activeSidebarPanel]}</span
         >
+        {#if activeSidebarPanel === 'files'}
+          <button
+            on:click={onRefreshFiles}
+            class="p-1 text-[#8892a0] hover:text-white hover:bg-[rgba(7,165,201,0.1)] rounded transition-colors"
+            title="Refresh files"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        {/if}
       </div>
 
     <div class="flex-1 overflow-y-auto">

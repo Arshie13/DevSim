@@ -3,7 +3,7 @@
   import type { Container as ContainerType } from '$prismaclient';
 
   export let containers: ContainerType[];
-  export let finishedStacks: any[] = [];
+  export let finishedStacks: string[] = [];
   export let maxVisible: number = 2;
 
   $: visibleContainers = containers.slice(0, maxVisible);
