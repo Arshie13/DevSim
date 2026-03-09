@@ -93,6 +93,10 @@ export class TerminalInitializer {
     this.terminal?.write(data);
   }
 
+  fit() {
+    this.fitAddon?.fit();
+  }
+
   dispose() {
     this.terminal?.dispose();
     this.terminal = null;

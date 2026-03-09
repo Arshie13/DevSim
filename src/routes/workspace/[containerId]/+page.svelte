@@ -14,18 +14,17 @@
   import PreviewPanel from "$lib/components/workspace/PreviewPanel.svelte";
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
+  import TerminalManagerPanel from "$lib/components/workspace/TerminalManagerPanel.svelte";
   import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
-  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
 
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import type { FileListResponse } from "$lib/interface/Files";
   import type { FileTab } from "$lib/components/workspace/FileTabBar.svelte";
-
-  import type { Session } from "@auth/core/types";
   import { toast } from "$lib/stores/toast";
 
-  // Server-loaded data:
+  import type { Session } from "@auth/core/types";
   //   dockerContainerId — the real Docker container ID (for Docker API calls)
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
   //   userId — the user's ID for AI hints
@@ -60,12 +59,19 @@
   let tasks: Task[] = LEVEL_CONFIG.tasks;
   let timeRemaining: number = LEVEL_CONFIG.deadline;
   let isRunning: boolean = false;
-  let terminal: TerminalInitializer | null = null;
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
+
+  // ── Multi-terminal state ─────────────────────────────────────────────────
+  interface TermSession { id: string; label: string; instance: TerminalInitializer | null; }
+  let terminalSessions: TermSession[] = [];
+  let activeTerminalId: string = "";
+  let terminalCounter = 0;
+  const pendingTerminalInits = new Map<string, (el: HTMLDivElement) => void>();
+  $: activeTerminalSession = terminalSessions.find((s) => s.id === activeTerminalId) ?? null;
 
   // ── Panel toggle state ───────────────────────────────────────────────────
   let aiPanelOpen: boolean = false;
@@ -116,7 +122,6 @@
 
   // Component refs
   let submitSprintModal: SubmitSprintModal;
-  let terminalRef: HTMLDivElement;
   let editorRef: HTMLDivElement;
   let iframeRef: HTMLIFrameElement;
 
@@ -157,7 +162,7 @@
 
     return () => {
       clearInterval(timer);
-      terminal?.dispose();
+      terminalSessions.forEach((s) => s.instance?.dispose());
       monacoEditor?.dispose();
     };
   });
@@ -244,10 +249,9 @@
       // Open the initial file as the first tab
       openFileAsTab(selectedFile, editorValue);
 
-      // Step 4 — initialize Terminal
+      // Step 4 — initialize first terminal session
       bootStep = 4;
-      terminal = new TerminalInitializer();
-      await terminal.initializeDockerTerminal(terminalRef, containerId);
+      await addTerminalSession("Terminal");
 
       // Done — hide the boot screen
       isBooting = false;
@@ -258,12 +262,6 @@
   }
 
   // ── Reactive statements ──────────────────────────────────────────────────
-
-  // Lazy-init terminal when tab is first shown
-  $: if (activeTab === "terminal" && !terminal && containerId && terminalRef) {
-    terminal = new TerminalInitializer();
-    terminal.initializeDockerTerminal(terminalRef, containerId);
-  }
 
   // ── Actions ──────────────────────────────────────────────────────────────
 
@@ -294,7 +292,7 @@
     }
   }
 
-  // ── Tab helpers ──────────────────────────────────────────────────────────
+  // ── Tab helpers ──────────────────────────────────────────────────────────────────
 
   function markTabDirty(fileId: string, dirty: boolean) {
     openTabs = openTabs.map((t) =>
@@ -343,15 +341,69 @@
     selectedFile = file;
   }
 
+  // ── Terminal session helpers ──────────────────────────────────────────────
+
+  function handleTerminalElementReady(id: string, el: HTMLDivElement) {
+    const cb = pendingTerminalInits.get(id);
+    if (cb) cb(el);
+  }
+
+  async function addTerminalSession(label?: string): Promise<void> {
+    if (terminalSessions.length >= 3) return;
+    terminalCounter += 1;
+    const id = `term-${terminalCounter}`;
+    const sessionLabel = label ?? "Terminal";
+    terminalSessions = [...terminalSessions, { id, label: sessionLabel, instance: null }];
+    activeTerminalId = id;
+    activeTab = "terminal";
+
+    return new Promise<void>((resolve) => {
+      pendingTerminalInits.set(id, async (el: HTMLDivElement) => {
+        try {
+          const inst = new TerminalInitializer();
+          await inst.initializeDockerTerminal(el, containerId);
+          terminalSessions = terminalSessions.map((s) =>
+            s.id === id ? { ...s, instance: inst } : s
+          );
+        } catch (err) {
+          console.error("Terminal init error:", err);
+        }
+        pendingTerminalInits.delete(id);
+        resolve();
+      });
+    });
+  }
+
+  function switchTerminalSession(id: string) {
+    activeTerminalId = id;
+    activeTab = "terminal";
+    // Re-fit after the div becomes visible
+    requestAnimationFrame(() => {
+      terminalSessions.find((s) => s.id === id)?.instance?.fit();
+    });
+  }
+
+  function closeTerminalSession(id: string) {
+    const idx = terminalSessions.findIndex((s) => s.id === id);
+    terminalSessions[idx]?.instance?.dispose();
+    terminalSessions = terminalSessions.filter((s) => s.id !== id);
+    if (activeTerminalId === id) {
+      const next = terminalSessions[idx - 1] ?? terminalSessions[0] ?? null;
+      if (next) switchTerminalSession(next.id);
+      else activeTerminalId = "";
+    }
+  }
+
+
   function runDevServer() {
     if (!containerId || isRunning) return;
     isRunning = true;
     activeTab = "terminal";
-    terminal?.write("npm install && npm run dev\r");
+    activeTerminalSession?.instance?.write("npm install && npm run dev\r");
   }
 
   function stopDevServer() {
-    terminal?.write("\x03");
+    activeTerminalSession?.instance?.write("\x03");
     isRunning = false;
   }
 
@@ -655,7 +707,12 @@
           bind:editorRef
         />
 
-        <TerminalPanel visible={activeTab === "terminal"} bind:terminalRef />
+        <TerminalPanel
+          visible={activeTab === "terminal"}
+          sessions={terminalSessions}
+          {activeTerminalId}
+          onElementReady={handleTerminalElementReady}
+        />
 
         <PreviewPanel
           visible={activeTab === "preview"}
@@ -665,6 +722,17 @@
         />
       </div>
     </div>
+
+    <!-- Right: Terminal Manager (shown when on terminal tab) -->
+    {#if activeTab === "terminal"}
+      <TerminalManagerPanel
+        sessions={terminalSessions}
+        activeId={activeTerminalId}
+        onSwitch={switchTerminalSession}
+        onAdd={() => addTerminalSession()}
+        onClose={closeTerminalSession}
+      />
+    {/if}
 
     <!-- Right AI Hints Panel (toggleable) -->
     {#if aiPanelOpen}
