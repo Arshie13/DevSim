@@ -24,7 +24,7 @@ export const load: PageServerLoad = async (event) => {
 
   const record = await prisma.container.findFirst({
     where: { id: dbId, userId },
-    select: { containerId: true, status: true }
+    select: { containerId: true, status: true, scenarioTitle: true, stacks: true, level: true }
   });
 
   console.log('[page.server] DB record:', record);
@@ -34,6 +34,10 @@ export const load: PageServerLoad = async (event) => {
     userId: user?.id || "",
     userCoins: user?.coins || 0,
     // The actual Docker container ID — used by the client for all Docker API calls
-    dockerContainerId: record?.containerId ?? null
+    dockerContainerId: record?.containerId ?? null,
+    // Scenario metadata stored at container creation time
+    scenarioTitle: record?.scenarioTitle ?? null,
+    stacks: record?.stacks ?? [],
+    level: record?.level ?? 1,
   };
 };

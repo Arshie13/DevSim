@@ -30,15 +30,24 @@
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
   //   userId — the user's ID for AI hints
   //   userCoins — the user's coin balance for AI hints
-  export let data: { user: Session["user"]; dockerContainerId: string | null; userId: string; userCoins: number };
-
-  // Get route params
-  $: stackId = page.params.techstackid;
-  $: levelId = parseInt(page.params.levelId!);
+  export let data: {
+    user: Session["user"];
+    dockerContainerId: string | null;
+    userId: string;
+    userCoins: number;
+    scenarioTitle: string | null;
+    stacks: string[];
+    level: number;
+  };
 
   // Get user data from page data
   $: userId = data.userId || "";
   $: userCoins = data.userCoins || 0;
+
+  // Dynamic header values from DB (fall back to LEVEL_CONFIG for dev/mock)
+  $: title = data.scenarioTitle || LEVEL_CONFIG.title;
+  $: stack = data.stacks?.join(" · ") || LEVEL_CONFIG.stack;
+  $: level = data.level ?? LEVEL_CONFIG.level;
 
   // State
   let activeTab: "editor" | "terminal" | "preview" = "editor";
@@ -595,9 +604,9 @@
 >
   <!-- Header -->
   <WorkspaceHeader
-    level={LEVEL_CONFIG.level}
-    title={LEVEL_CONFIG.title}
-    stack={LEVEL_CONFIG.stack}
+    level={level}
+    title={title}
+    stack={stack}
     difficulty={LEVEL_CONFIG.difficulty}
     {timeRemaining}
     {isRunning}
