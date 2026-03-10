@@ -51,7 +51,28 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			existingFiles: existingFiles || []
 		});
 
-		console.log('[TEST RUNNER] Test results:', JSON.stringify(result.overallResult).slice(0, 200));
+		// Detailed test results logging
+		console.log('[TEST RUNNER] === Test Results Summary ===');
+		console.log('[TEST RUNNER] Success:', result.success);
+		console.log('[TEST RUNNER] Overall Passed:', result.overallResult.passed);
+		console.log('[TEST RUNNER] Total Tests:', result.overallResult.summary.total);
+		console.log('[TEST RUNNER] Passed Tests:', result.overallResult.summary.passed);
+		console.log('[TEST RUNNER] Failed Tests:', result.overallResult.summary.failed);
+		
+		if (result.failedTasks.length > 0) {
+			console.log('[TEST RUNNER] === Failed Tasks ===');
+			result.failedTasks.forEach((task, index) => {
+				console.log(`[TEST RUNNER] ${index + 1}. ${task.taskText}`);
+				task.errors.forEach(error => {
+					console.log(`[TEST RUNNER]   • ${error}`);
+				});
+			});
+		}
+		
+		console.log('[TEST RUNNER] === Detailed Test Results ===');
+		result.overallResult.results.forEach(result => {
+			console.log(`[TEST RUNNER] ${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
+		});
 
 		return json({
 			success: result.success,

@@ -180,7 +180,26 @@
       console.log('TEST: Response status:', testRes.status);
       
       const testData = await testRes.json();
-      console.log('TEST: Test data received:', testData);
+      console.log('=== TEST RUN: Results Received ===');
+      console.log('TEST: Passed:', testData.passed);
+      console.log('TEST: Total Tests:', testData.results?.summary.total);
+      console.log('TEST: Passed Tests:', testData.results?.summary.passed);
+      console.log('TEST: Failed Tests:', testData.results?.summary.failed);
+      
+      if (testData.failedTasks.length > 0) {
+        console.log('=== TEST RUN: Failed Tasks ===');
+        testData.failedTasks.forEach((task: any, index: number) => {
+          console.log(`${index + 1}. ${task.taskText}`);
+          task.errors.forEach((error: string) => {
+            console.log(`   • ${error}`);
+          });
+        });
+      }
+      
+      console.log('=== TEST RUN: Detailed Results ===');
+      testData.results?.results.forEach((result: any) => {
+        console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
+      });
       
       testResults = {
         passed: testData.passed,

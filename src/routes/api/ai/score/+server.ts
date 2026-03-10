@@ -1,7 +1,7 @@
 /**
  * AI Scoring Service
  * 
- * Uses Mistral AI to evaluate user code and provide:
+ * Uses OpenRouter AI to evaluate user code and provide:
  * - Star rating (1-3 stars)
  * - Detailed feedback on improvements
  * - Code quality assessment
@@ -65,7 +65,7 @@ async function fetchFileContents(containerId: string, filePaths: string[]): Prom
   return contents;
 }
 
-// Filter source files from file list
+// Filter source files from file list - be restrictive to avoid token limits
 function filterSourceFiles(files: string[]): string[] {
   return files.filter(f => {
     // Skip binary / generated / dependency directories
@@ -74,26 +74,18 @@ function filterSourceFiles(files: string[]): string[] {
     if (f.endsWith('.mp4') || f.endsWith('.zip') || f.endsWith('.tar') || f.endsWith('.gz')) return false;
     if (f.endsWith('.lock') || f.endsWith('.log')) return false;
 
+    // Only include the most relevant files for scoring
+    const relevantExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue'];
+    const relevantConfigFiles = ['package.json', 'prisma/schema.prisma', 'tsconfig.json', 'vite.config.ts'];
+
     return (
-      SOURCE_EXTENSIONS.some(ext => f.endsWith(ext)) ||
-      f.endsWith('package.json') ||
-      f.endsWith('schema.prisma') ||
-      f.endsWith('.env') ||
-      f.endsWith('.env.example') ||
-      f.endsWith('.gitignore') ||
-      f.endsWith('README.md') ||
-      f.endsWith('next.config.js') ||
-      f.endsWith('next.config.ts') ||
-      f.endsWith('svelte.config.js') ||
-      f.endsWith('tsconfig.json') ||
-      f.endsWith('vite.config.ts') ||
-      f.endsWith('tailwind.config.ts') ||
-      f.endsWith('tailwind.config.js')
+      relevantExtensions.some(ext => f.endsWith(ext)) ||
+      relevantConfigFiles.some(configFile => f.endsWith(configFile))
     );
   });
 }
 
-// Build the scoring prompt for Mistral
+// Build the scoring prompt for OpenRouter
 function buildScoringPrompt(
   levelTitle: string,
   level: number,
@@ -106,14 +98,33 @@ function buildScoringPrompt(
   console.log('[AI Score] buildScoringPrompt — files included in prompt:', fileNames.length);
   fileNames.forEach(f => console.log(`  → ${f}`));
 
-  const fileSection = fileNames.length > 0
-    ? Object.entries(fileContents).map(([file, content]) => {
-        const truncated = content.length > 3000
-          ? content.substring(0, 3000) + '\n... (truncated)'
+  // Prioritize important files and reduce content length to avoid token limits
+  const importantFiles = ['package.json', 'prisma/schema.prisma', 'tsconfig.json'];
+  const maxCharsPerFile = 1000; // Reduced from 3000 to 1000
+  const maxFiles = 10; // Limit to 10 files to prevent excessive token usage
+
+  const sortedFileEntries = Object.entries(fileContents).sort(([a], [b]) => {
+    // Put important files first
+    if (importantFiles.includes(a) && !importantFiles.includes(b)) return -1;
+    if (!importantFiles.includes(a) && importantFiles.includes(b)) return 1;
+    return a.localeCompare(b);
+  });
+
+  const limitedFileEntries = sortedFileEntries.slice(0, maxFiles);
+
+  const fileSection = limitedFileEntries.length > 0
+    ? limitedFileEntries.map(([file, content]) => {
+        const truncated = content.length > maxCharsPerFile
+          ? content.substring(0, maxCharsPerFile) + '\n... (truncated)'
           : content;
         return `--- File: ${file} ---\n${truncated}`;
       }).join('\n\n')
     : 'No file contents available.';
+
+  // Log if files were omitted or truncated
+  if (sortedFileEntries.length > maxFiles) {
+    console.log(`[AI Score] Omitted ${sortedFileEntries.length - maxFiles} files due to token limit constraints`);
+  }
 
   const taskList = tasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n');
   const completedList = completedTasks.length > 0
@@ -154,16 +165,17 @@ Your job:
 1. Read every submitted file carefully.
 2. Compare the test results with the code — which tasks passed/failed and WHY based on the code.
 3. For EACH required task, check whether the student's code actually fulfills it correctly and with good quality.
-4. Identify specific flaws in the code that relate to the failed tasks (e.g., "Your API route test failed because the route doesn't return the expected format").
-5. Suggest concrete improvements tied to the specific failed tasks.
-6. Give next-time tips based on what the test results revealed about the code.
+4. Focus specifically on the tasks the student completed and those they failed.
+5. For completed tasks, mention what was done well and if there are any quality improvements needed.
+6. For failed tasks, identify specific flaws in the code that relate to the failure and suggest concrete fixes.
+7. Give next-time tips based on what the test results revealed about the code.
 
 STAR RATING GUIDE (base this on how well the TASKS were implemented):
 - 3 stars: All tasks implemented correctly with clean code and best practices
 - 2 stars: Tasks implemented but with quality issues or missing best practices
 - 1 star: Tasks barely implemented or with significant flaws
 
-IMPORTANT: Keep your response SHORT and concise. Focus on what the user needs to improve.
+IMPORTANT: Keep your response SHORT and concise. Focus directly on the tasks the user completed and failed. Your feedback should be specific to their work.
 
 Respond ONLY using this exact format (no extra text outside the tags):
 
@@ -172,15 +184,15 @@ Respond ONLY using this exact format (no extra text outside the tags):
 [/STAR_RATING]
 
 [FEEDBACK]
-<1-2 short sentences — overall assessment based on test results and code>
+<1-2 short sentences — overall assessment based on completed tasks and test results>
 [/FEEDBACK]
 
 [IMPROVEMENTS]
-<max 3 bullet points of what to improve next time, based on test failures and code issues>
+<max 3 bullet points of what to improve next time, tied directly to specific tasks>
 [/IMPROVEMENTS]
 
 [NEXT_TIME]
-<max 2 bullet points of specific actions to take>
+<max 2 bullet points of specific actions to take for uncompleted tasks>
 [/NEXT_TIME]
 `;
 }
@@ -225,19 +237,21 @@ function parseScoringResponse(response: string): {
   return { stars, score, feedback, improvements, nextTime };
 }
 
-// Call Mistral API for scoring
-async function callMistralAPI(apiKey: string, prompt: string): Promise<string> {
-  const models = ['codestral-latest', 'mistral-small'];
+// Call OpenRouter API for scoring
+async function callOpenRouterAPI(apiKey: string, prompt: string): Promise<string> {
+  const models = ['openai/gpt-4o', 'anthropic/claude-3-sonnet-20250219', 'google/gemini-2.5-pro'];
   let lastError = null;
   let isRateLimited = false;
   
   for (const model of models) {
     try {
-      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://devsim.com',
+          'X-Title': 'DevSim AI Scoring'
         },
         body: JSON.stringify({
           model,
@@ -270,7 +284,7 @@ async function callMistralAPI(apiKey: string, prompt: string): Promise<string> {
       }
     } catch (e) {
       lastError = e;
-      console.error(`Error calling Mistral ${model}:`, e);
+      console.error(`Error calling OpenRouter ${model}:`, e);
       // Check if it's a rate limit error
       const errorStr = String(e);
       if (errorStr.toLowerCase().includes('rate limit')) {
@@ -288,12 +302,12 @@ async function callMistralAPI(apiKey: string, prompt: string): Promise<string> {
 }
 
 export const POST: RequestHandler = async ({ request }) => {
-  const apiKey = process.env.MISTRAL_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   
-  if (!apiKey || apiKey === 'your_mistral_api_key_here') {
+  if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
     return json({
       success: false,
-      error: 'MISTRAL_API_KEY is not configured'
+      error: 'OPENROUTER_API_KEY is not configured'
     }, { status: 503 });
   }
 
@@ -335,15 +349,11 @@ export const POST: RequestHandler = async ({ request }) => {
       for (const [name, content] of Object.entries(userFileContents)) {
         console.log(`  ✓ ${name} (${content.length} chars)`);
       }
-    } else if (filePaths && Array.isArray(filePaths) && filePaths.length > 0) {
-      console.log('[AI Score] Fetching files from container by path list:', filePaths);
-      userFileContents = await fetchFileContents(containerId, filePaths);
-      console.log('[AI Score] Fetched', Object.keys(userFileContents).length, '/', filePaths.length, 'files from container');
-      for (const [name, content] of Object.entries(userFileContents)) {
-        console.log(`  ✓ ${name} (${content.length} chars)`);
-      }
-    } else {
-      console.log('[AI Score] No files provided — fetching all source files from container');
+    } 
+    
+    // Always fetch ALL relevant files from container to ensure we have complete context
+    if (containerId) {
+      console.log('[AI Score] Fetching all source files from container for complete analysis');
       try {
         const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
           method: 'POST',
@@ -356,16 +366,34 @@ export const POST: RequestHandler = async ({ request }) => {
           const filesToAnalyze = filterSourceFiles(listData.files);
           console.log('[AI Score] Source files found:', listData.files.length, '— analyzing', filesToAnalyze.length, 'source files');
           console.log('[AI Score] Files to analyze:', filesToAnalyze);
-          userFileContents = await fetchFileContents(containerId, filesToAnalyze);
-          console.log('[AI Score] Successfully read', Object.keys(userFileContents).length, 'files from container');
-          for (const [name, content] of Object.entries(userFileContents)) {
-            console.log(`  ✓ ${name} (${content.length} chars)`);
+          
+          // Fetch files not already in userFileContents
+          const filesToFetch = filesToAnalyze.filter(file => !userFileContents[file]);
+          if (filesToFetch.length > 0) {
+            const fetchedContents = await fetchFileContents(containerId, filesToFetch);
+            console.log('[AI Score] Fetched', Object.keys(fetchedContents).length, '/', filesToFetch.length, 'additional files from container');
+            for (const [name, content] of Object.entries(fetchedContents)) {
+              userFileContents[name] = content;
+              console.log(`  ✓ ${name} (${content.length} chars)`);
+            }
+          } else {
+            console.log('[AI Score] All source files already provided in fileContents');
           }
         } else {
           console.warn('[AI Score] File list fetch failed or returned no files:', listData);
         }
       } catch (e) {
         console.warn('[AI Score] Could not fetch file list:', e);
+      }
+    }
+    
+    // Fallback to fetching specific paths if container fetch failed or no files provided
+    if (Object.keys(userFileContents).length === 0 && filePaths && Array.isArray(filePaths) && filePaths.length > 0) {
+      console.log('[AI Score] Fetching files from container by path list:', filePaths);
+      userFileContents = await fetchFileContents(containerId, filePaths);
+      console.log('[AI Score] Fetched', Object.keys(userFileContents).length, '/', filePaths.length, 'files from container');
+      for (const [name, content] of Object.entries(userFileContents)) {
+        console.log(`  ✓ ${name} (${content.length} chars)`);
       }
     }
     
@@ -385,10 +413,10 @@ export const POST: RequestHandler = async ({ request }) => {
     );
     
     console.log('[AI Score] Prompt length:', prompt.length, 'chars');
-    console.log('[AI Score] Calling Mistral API…');
+    console.log('[AI Score] Calling OpenRouter API…');
     
     // Call AI for scoring
-    const aiResponse = await callMistralAPI(apiKey, prompt);
+    const aiResponse = await callOpenRouterAPI(apiKey, prompt);
     
     console.log('[AI Score] Raw AI response:\n', aiResponse);
     

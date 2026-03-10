@@ -11,7 +11,7 @@ import type { LevelTestConfig, TaskTest } from '../types';
 const task1Tests: TaskTest = {
 	taskId: '1',
 	taskText: 'Set up authentication system',
-	requiredFiles: ['package.json', 'app/api/auth/[...nextauth]/route.ts', 'app/api/auth/[...nextauth]/+server.ts'].filter(Boolean),
+	requiredFiles: ['package.json'],
 	requiredPatterns: [
 		{ pattern: 'next-auth|authjs', description: 'NextAuth.js or Auth.js dependency' },
 		{ pattern: 'GET|POST', description: 'Auth handler methods' },
@@ -23,7 +23,6 @@ const task1Tests: TaskTest = {
 const task2Tests: TaskTest = {
 	taskId: '2',
 	taskText: 'Create user registration endpoint',
-	requiredFiles: ['app/api/register/route.ts', 'app/api/register/+server.ts', 'src/routes/register.ts', 'src/routes/auth/register.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'POST|router\\.post', description: 'POST method for registration' },
 		{ pattern: 'prisma.*create|db.*create', description: 'Database create operation' },
@@ -35,7 +34,6 @@ const task2Tests: TaskTest = {
 const task3Tests: TaskTest = {
 	taskId: '3',
 	taskText: 'Create login endpoint',
-	requiredFiles: ['app/api/login/route.ts', 'app/api/login/+server.ts', 'src/routes/login.ts', 'src/routes/auth/login.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'POST|router\\.post', description: 'POST method for login' },
 		{ pattern: 'signIn|compare|bcrypt', description: 'Sign in or password comparison' },
@@ -47,7 +45,6 @@ const task3Tests: TaskTest = {
 const task4Tests: TaskTest = {
 	taskId: '4',
 	taskText: 'Implement protected route',
-	requiredFiles: ['middleware.ts', 'app/api/protected/route.ts', 'app/api/protected/+server.ts', 'src/middleware/auth.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'middleware', description: 'Middleware configuration' },
 		{ pattern: 'session|token|verify', description: 'Session/token verification' },

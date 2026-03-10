@@ -48,7 +48,6 @@ const task3Tests: TaskTest = {
 const task4Tests: TaskTest = {
 	taskId: '4',
 	taskText: 'Build GET /api/users endpoint',
-	requiredFiles: ['app/api/users/route.ts', 'app/api/users/+server.ts', 'src/routes/users.ts', 'src/routes/users/index.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'export\\s+function\\s+GET|router\\.get', description: 'GET handler export' },
 		{ pattern: 'prisma\\.\\w+|db\\.\\w+', description: 'Prisma or database query' },

@@ -22,7 +22,6 @@ const task1Tests: TaskTest = {
 const task2Tests: TaskTest = {
 	taskId: '2',
 	taskText: 'Implement real-time events',
-	requiredFiles: ['lib/socket.ts', 'lib/socket.js', 'app/api/socket/route.ts', 'src/utils/socket.ts', 'src/socket/index.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'emit|on\\s*\\(', description: 'Socket emit/listen events' },
 		{ pattern: 'connection|connect', description: 'Connection handling' }

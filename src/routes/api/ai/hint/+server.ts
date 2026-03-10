@@ -180,11 +180,11 @@ Provide a helpful, context-aware response:`;
 }
 
 export const POST: RequestHandler = async ({ request }) => {
-  const apiKey = process.env.MISTRAL_API_KEY;
-  if (!apiKey || apiKey === "your_mistral_api_key_here") {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey || apiKey === "your_openrouter_api_key_here") {
     return json({
       success: false,
-      error: "MISTRAL_API_KEY is not configured. Please add it to your .env file. Get one free at https://console.mistral.ai",
+      error: "OPENROUTER_API_KEY is not configured. Please add it to your .env file. Get one from https://openrouter.ai",
     });
   }
 
@@ -308,25 +308,28 @@ export const POST: RequestHandler = async ({ request }) => {
     // Build the prompt
     const prompt = buildPrompt(message, context || "No additional context");
 
-    // Try Mistral models
+    // Try OpenRouter models
     const models = [
-      "codestral-latest",
-      "mistral-small",
+      "openai/gpt-4o",
+      "anthropic/claude-3-sonnet-20250219",
+      "google/gemini-2.5-pro"
     ];
 
     let response = null;
     let lastError = null;
 
     for (const model of models) {
-      console.log(`Trying Mistral model: ${model}`);
+      console.log(`Trying OpenRouter model: ${model}`);
       
-      const mistralUrl = "https://api.mistral.ai/v1/chat/completions";
+      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
       
-      const modelResponse = await fetch(mistralUrl, {
+      const modelResponse = await fetch(openRouterUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://devsim.com",
+          "X-Title": "DevSim AI Hints"
         },
         body: JSON.stringify({
           model: model,
@@ -343,7 +346,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
       if (modelResponse.ok) {
         response = modelResponse;
-        console.log(`Mistral model ${model} succeeded`);
+        console.log(`OpenRouter model ${model} succeeded`);
         break;
       } else {
         const errorData = await modelResponse.json();

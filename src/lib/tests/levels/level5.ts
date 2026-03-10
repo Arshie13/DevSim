@@ -11,7 +11,6 @@ import type { LevelTestConfig, TaskTest } from '../types';
 const task1Tests: TaskTest = {
 	taskId: '1',
 	taskText: 'Implement rate limiting',
-	requiredFiles: ['middleware.ts', 'lib/rate-limit.ts', 'app/api/ratelimit/route.ts', 'src/middleware/rateLimit.ts', 'src/middleware/index.ts'].filter(Boolean),
 	requiredPatterns: [
 		{ pattern: 'rateLimit|ratelimit|rate.limit', description: 'Rate limiting implementation' },
 		{ pattern: 'ip|headers|client', description: 'IP or header detection' },

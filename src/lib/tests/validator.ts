@@ -106,62 +106,92 @@ export async function validateTask(
 	
 	console.log('[VALIDATOR] Validating task:', task.taskText);
 	console.log('[VALIDATOR] Required patterns:', task.requiredPatterns);
+	console.log('[VALIDATOR] Required files:', task.requiredFiles);
 	console.log('[VALIDATOR] Files in contentMap:', Array.from(fileContents.keys()));
+	
+	// Test: Required files exist
+	if (task.requiredFiles && task.requiredFiles.length > 0) {
+		for (const filePath of task.requiredFiles) {
+			const fileResult = await validateFileExists(filePath, existingFiles, fileContents);
+			results.push({
+				testId: `file-${filePath.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')}`,
+				testName: `File exists: ${filePath}`,
+				passed: fileResult.exists,
+				message: fileResult.exists 
+					? `✓ File exists: ${filePath}` 
+					: `✗ File not found: ${filePath}`,
+				details: { path: filePath }
+			});
+		}
+	}
 	
 	// Test: Content patterns - check ALL files for required patterns
 	if (task.requiredPatterns && task.requiredPatterns.length > 0) {
-		// Check ALL files in contentMap for the required patterns
-		const allPatternResults: TestResult[] = [];
-		
-		for (const [filePath, content] of fileContents) {
-			if (content && content.length > 0) {
-				console.log('[VALIDATOR] Checking patterns in file:', filePath, 'content length:', content.length);
-				const patternResults = validateContentPatterns(content, task.requiredPatterns);
-				
-				// Log what was found in this file
-				for (const result of patternResults) {
-					console.log('[VALIDATOR]   Pattern:', result.testName, '-> passed:', result.passed);
-				}
-				
-				// Mark results with file path where found
-				for (const result of patternResults) {
-					result.details = { ...result.details, foundInFile: filePath };
-				}
-				allPatternResults.push(...patternResults);
-			}
-		}
-		
-		// Group results by pattern description to see if ANY file has it
-		const patternDescriptions = [...new Set(allPatternResults.map(r => r.testName))];
-		
-		for (const desc of patternDescriptions) {
-			const patternResultsForDesc = allPatternResults.filter(r => r.testName === desc);
-			const passedInAnyFile = patternResultsForDesc.some(r => r.passed);
-			const filesWhereFound = patternResultsForDesc
-				.filter(r => r.passed)
-				.map(r => r.details?.foundInFile)
-				.filter(Boolean);
-			
-			// Get the failed message if not found anywhere
-			if (!passedInAnyFile) {
-				const failedResult = patternResultsForDesc[0];
+		// If no file contents to check, fail all pattern tests
+		if (fileContents.size === 0) {
+			for (const { pattern, description } of task.requiredPatterns) {
 				results.push({
-					testId: failedResult.testId,
-					testName: failedResult.testName,
+					testId: `pattern-${description.toLowerCase().replace(/\s+/g, '-')}`,
+					testName: description,
 					passed: false,
-					message: `Missing: ${failedResult.testName}`,
-					details: { searchedFiles: Array.from(fileContents.keys()) }
+					message: `Missing: ${description} - No files to check`,
+					details: { pattern, searchedFiles: [] }
 				});
-			} else {
-				// Found! Add a passing result with file location
-				const firstResult = patternResultsForDesc[0];
-				results.push({
-					testId: firstResult.testId,
-					testName: firstResult.testName,
-					passed: true,
-					message: `✓ Found: ${firstResult.testName} in ${filesWhereFound.join(', ')}`,
-					details: { foundIn: filesWhereFound }
-				});
+			}
+		} else {
+			// Check ALL files in contentMap for the required patterns
+			const allPatternResults: TestResult[] = [];
+			
+			for (const [filePath, content] of fileContents) {
+				if (content && content.length > 0) {
+					console.log('[VALIDATOR] Checking patterns in file:', filePath, 'content length:', content.length);
+					const patternResults = validateContentPatterns(content, task.requiredPatterns);
+					
+					// Log what was found in this file
+					for (const result of patternResults) {
+						console.log('[VALIDATOR]   Pattern:', result.testName, '-> passed:', result.passed);
+					}
+					
+					// Mark results with file path where found
+					for (const result of patternResults) {
+						result.details = { ...result.details, foundInFile: filePath };
+					}
+					allPatternResults.push(...patternResults);
+				}
+			}
+			
+			// Group results by pattern description to see if ANY file has it
+			const patternDescriptions = [...new Set(allPatternResults.map(r => r.testName))];
+			
+			for (const desc of patternDescriptions) {
+				const patternResultsForDesc = allPatternResults.filter(r => r.testName === desc);
+				const passedInAnyFile = patternResultsForDesc.some(r => r.passed);
+				const filesWhereFound = patternResultsForDesc
+					.filter(r => r.passed)
+					.map(r => r.details?.foundInFile)
+					.filter(Boolean);
+				
+				// Get the failed message if not found anywhere
+				if (!passedInAnyFile) {
+					const failedResult = patternResultsForDesc[0];
+					results.push({
+						testId: failedResult.testId,
+						testName: failedResult.testName,
+						passed: false,
+						message: `Missing: ${failedResult.testName}`,
+						details: { searchedFiles: Array.from(fileContents.keys()) }
+					});
+				} else {
+					// Found! Add a passing result with file location
+					const firstResult = patternResultsForDesc[0];
+					results.push({
+						testId: firstResult.testId,
+						testName: firstResult.testName,
+						passed: true,
+						message: `✓ Found: ${firstResult.testName} in ${filesWhereFound.join(', ')}`,
+						details: { foundIn: filesWhereFound }
+					});
+				}
 			}
 		}
 	}
