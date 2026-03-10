@@ -42,17 +42,17 @@ export async function runLevelTests(params: RunTestsParams): Promise<RunTestsRes
 	const levelConfig = getLevelConfig(level);
 	
 	if (!levelConfig) {
-		// No tests defined for this level - allow submission
+		// No tests defined for this level - do NOT allow submission without tests
 		return {
 			success: true,
 			level,
 			taskResults: [],
 			overallResult: {
-				passed: true,
+				passed: false, // Require tests to pass - cannot advance with 0 tests
 				results: [],
 				summary: { total: 0, passed: 0, failed: 0 }
 			},
-			failedTasks: []
+			failedTasks: [{ taskText: 'No validation tests available for this level', errors: ['Level has no tests configured - cannot verify completion'] }]
 		};
 	}
 	

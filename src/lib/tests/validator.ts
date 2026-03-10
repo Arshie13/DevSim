@@ -15,37 +15,46 @@ import type {
 
 /**
  * Validates that a file exists in the workspace
+ * STRICT: Requires exact path match, not just filename match
  */
 export async function validateFileExists(
 	filePath: string,
 	existingFiles: string[],
 	contentMap?: Map<string, string>
 ): Promise<FileValidationResult> {
-	// Get just the filename (e.g., "schema.prisma" from "prisma/schema.prisma")
-	const fileName = filePath.split('/').pop() || filePath;
+	// Normalize the file path (remove leading/trailing slashes)
+	const normalizedPath = filePath.replace(/^\/|^workspace\//, '');
 	
-	// Check in existingFiles array - multiple matching strategies
+	// STRICT: Check for exact path match first (most strict)
 	let exists = existingFiles.some(f => {
-		const fName = f.split('/').pop() || f;
-		// 1. Exact match
-		if (f === filePath || f === '/workspace/' + filePath) return true;
-		// 2. Filename match
-		if (fName === fileName) return true;
-		// 3. Ends with the path
-		if (f.endsWith(filePath) || f.endsWith('/' + filePath)) return true;
+		const normalizedF = f.replace(/^\/workspace\//, '');
+		// Exact match
+		if (normalizedF === normalizedPath) return true;
+		// Path with trailing slash
+		if (normalizedF === normalizedPath + '/') return true;
 		return false;
 	});
 	
-	// Also check in contentMap (file contents that were read)
+	// If not found exactly, try partial match (but log a warning)
+	if (!exists) {
+		existingFiles.some(f => {
+			const normalizedF = f.replace(/^\/workspace\//, '');
+			// Check if it ends with the required path (for nested files)
+			if (normalizedF.endsWith('/' + normalizedPath) || normalizedF.endsWith(normalizedPath)) {
+				console.log('[VALIDATOR] WARNING: Partial match found for', filePath, '->', f);
+				exists = true;
+				return true;
+			}
+			return false;
+		});
+	}
+	
+	// Also check in contentMap
 	if (!exists && contentMap) {
 		exists = Array.from(contentMap.keys()).some(k => {
-			const kName = k.split('/').pop() || k;
-			// 1. Exact match
-			if (k === filePath || k === '/workspace/' + filePath) return true;
-			// 2. Filename match
-			if (kName === fileName) return true;
-			// 3. Ends with the path
-			if (k.endsWith(filePath) || k.endsWith('/' + filePath)) return true;
+			const normalizedK = k.replace(/^\/workspace\//, '');
+			if (normalizedK === normalizedPath) return true;
+			if (normalizedK === normalizedPath + '/') return true;
 			return false;
 		});
 	}
@@ -53,32 +62,47 @@ export async function validateFileExists(
 	return {
 		path: filePath,
 		exists,
-		errors: exists ? undefined : [`File not found: ${filePath}`]
+		errors: exists ? undefined : [`File not found: ${filePath} (exact path required)`]
 	};
 }
 
 /**
  * Validates that file content matches expected patterns
+ * STRICT: Uses case-sensitive matching by default
  */
 export function validateContentPatterns(
 	content: string,
-	patterns: Array<{ pattern: string; description: string }>
+	patterns: Array<{ pattern: string; description: string }>,
+	options: { caseSensitive?: boolean } = {}
 ): TestResult[] {
 	const results: TestResult[] = [];
+	const isCaseSensitive = options.caseSensitive ?? true; // Default to strict case-sensitive
 	
 	for (const { pattern, description } of patterns) {
 		try {
-			const regex = new RegExp(pattern, 'i');
+			const flags = isCaseSensitive ? '' : 'i';
+			const regex = new RegExp(pattern, flags);
 			const matches = regex.test(content);
+			
+			// For stricter validation, also check for the pattern in context
+			let foundInContext = '';
+			if (matches) {
+				const match = content.match(regex);
+				if (match && match.index !== undefined) {
+					const start = Math.max(0, match.index - 20);
+					const end = Math.min(content.length, match.index + match[0].length + 20);
+					foundInContext = content.substring(start, end).replace(/\n/g, ' ');
+				}
+			}
 			
 			results.push({
 				testId: `pattern-${description.toLowerCase().replace(/\s+/g, '-')}`,
 				testName: description,
 				passed: matches,
 				message: matches 
-					? `Found: ${description}` 
-					: `Missing: ${description}`,
-				details: { pattern, contentPreview: content.substring(0, 100) }
+					? `✓ Found: ${description}${foundInContext ? ` (${foundInContext})` : ''}` 
+					: `✗ Missing: ${description}`,
+				details: { pattern, contentPreview: content.substring(0, 100), caseSensitive: isCaseSensitive }
 			});
 		} catch (e) {
 			results.push({

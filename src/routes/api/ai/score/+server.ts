@@ -66,6 +66,7 @@ async function fetchFileContents(containerId: string, filePaths: string[]): Prom
 }
 
 // Filter source files from file list - be restrictive to avoid token limits
+// Excludes config files (package.json, etc.) to prevent AI from commenting on versions/dependencies
 function filterSourceFiles(files: string[]): string[] {
   return files.filter(f => {
     // Skip binary / generated / dependency directories
@@ -74,14 +75,10 @@ function filterSourceFiles(files: string[]): string[] {
     if (f.endsWith('.mp4') || f.endsWith('.zip') || f.endsWith('.tar') || f.endsWith('.gz')) return false;
     if (f.endsWith('.lock') || f.endsWith('.log')) return false;
 
-    // Only include the most relevant files for scoring
-    const relevantExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue'];
-    const relevantConfigFiles = ['package.json', 'prisma/schema.prisma', 'tsconfig.json', 'vite.config.ts'];
-
-    return (
-      relevantExtensions.some(ext => f.endsWith(ext)) ||
-      relevantConfigFiles.some(configFile => f.endsWith(configFile))
-    );
+    // Only include implementation source files - exclude config files that contain version info
+    const implementationExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.c', '.cpp', '.cs', '.rb', '.php'];
+    
+    return implementationExtensions.some(ext => f.endsWith(ext));
   });
 }
 
@@ -99,6 +96,7 @@ function buildScoringPrompt(
   fileNames.forEach(f => console.log(`  → ${f}`));
 
   // Prioritize important files and reduce content length to avoid token limits
+  // NOTE: Exclude config files (package.json, tsconfig.json, etc.) to avoid AI commenting on versions/dependencies
   const importantFiles = ['package.json', 'prisma/schema.prisma', 'tsconfig.json'];
   const maxCharsPerFile = 1000; // Reduced from 3000 to 1000
   const maxFiles = 10; // Limit to 10 files to prevent excessive token usage
@@ -110,7 +108,13 @@ function buildScoringPrompt(
     return a.localeCompare(b);
   });
 
-  const limitedFileEntries = sortedFileEntries.slice(0, maxFiles);
+  // Filter out config files that contain version/dependency info - focus on actual implementation files
+  const implementationExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs'];
+  const filteredEntries = sortedFileEntries.filter(([file]) => 
+    implementationExtensions.some(ext => file.endsWith(ext))
+  );
+  
+  const limitedFileEntries = filteredEntries.slice(0, maxFiles);
 
   const fileSection = limitedFileEntries.length > 0
     ? limitedFileEntries.map(([file, content]) => {
@@ -143,7 +147,7 @@ Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed
 ${failedTasks.length > 0 ? '\nFailed tasks:\n' + failedTasks.map((t: any) => `  - ${t.taskText}: ${t.errors?.join(', ') || 'validation failed'}`).join('\n') : ''}`;
   }
 
-  return `You are an experienced code reviewer evaluating a student's submission for a coding exercise.
+  return `You are a friendly and encouraging senior developer mentor who loves helping beginners learn. You're like a supportive tech lead who gives constructive feedback with humor and warmth. You've seen lots of code and know that everyone starts somewhere — your goal is to help students improve while celebrating their wins.
 
 LEVEL ${level}: ${levelTitle}
 
@@ -165,17 +169,20 @@ Your job:
 1. Read every submitted file carefully.
 2. Compare the test results with the code — which tasks passed/failed and WHY based on the code.
 3. For EACH required task, check whether the student's code actually fulfills it correctly and with good quality.
-4. Focus specifically on the tasks the student completed and those they failed.
-5. For completed tasks, mention what was done well and if there are any quality improvements needed.
-6. For failed tasks, identify specific flaws in the code that relate to the failure and suggest concrete fixes.
-7. Give next-time tips based on what the test results revealed about the code.
+4. Focus specifically on the actual TASK IMPLEMENTATION (logic, functions, features) - NOT on software versions, package.json dependencies, or configuration files.
+5. Be encouraging! Acknowledge what they did well, then gently guide them on improvements.
+6. For completed tasks, mention what was done well and if there are any quality improvements needed.
+7. For failed tasks, identify specific flaws in the code that relate to the failure and suggest concrete fixes with a supportive tone.
+8. Give next-time tips based on what the test results revealed about the code.
+
+DO NOT COMMENT ON: package.json versions, dependency versions, tsconfig settings, or any configuration file contents. Focus only on the actual code logic and task implementation.
 
 STAR RATING GUIDE (base this on how well the TASKS were implemented):
-- 3 stars: All tasks implemented correctly with clean code and best practices
-- 2 stars: Tasks implemented but with quality issues or missing best practices
-- 1 star: Tasks barely implemented or with significant flaws
+- 3 stars: All tasks implemented correctly with clean code and best practices — they're crushing it!
+- 2 stars: Tasks implemented but with some issues — solid effort with room to grow
+- 1 star: Tasks barely done or with significant problems — everyone starts somewhere, let's help them improve!
 
-IMPORTANT: Keep your response SHORT and concise. Focus directly on the tasks the user completed and failed. Your feedback should be specific to their work.
+IMPORTANT: Keep your response SHORT and concise, but make it friendly and encouraging! Use emojis sparingly to add warmth. Focus directly on the tasks the user completed and failed. Your feedback should be specific to their work.
 
 Respond ONLY using this exact format (no extra text outside the tags):
 
@@ -206,8 +213,8 @@ function parseScoringResponse(response: string): {
   nextTime: string;
 } {
   let stars = 1;
-  let score = 50;
-  let feedback = 'Your code passes the tests but there is room for improvement.';
+  let score = 33;
+  let feedback = "You've started your coding journey! Keep practicing and you'll get the hang of it.";
   let improvements = '';
   let nextTime = '';
 
@@ -218,9 +225,10 @@ function parseScoringResponse(response: string): {
       if (parsedStars >= 1 && parsedStars <= 3) stars = parsedStars;
     }
 
-    if (stars === 3) score = Math.floor(Math.random() * 26) + 75;
-    else if (stars === 2) score = Math.floor(Math.random() * 25) + 50;
-    else score = Math.floor(Math.random() * 20) + 30;
+    // Score is proportional to stars: 1 star = ~33, 2 stars = ~67, 3 stars = 100
+    if (stars === 3) score = Math.floor(Math.random() * 16) + 85; // 85-100
+    else if (stars === 2) score = Math.floor(Math.random() * 18) + 50; // 50-67
+    else score = Math.floor(Math.random() * 9) + 25; // 25-33
 
     const extract = (tag: string) => {
       const m = response.match(new RegExp(`\\[${tag}\\]([\\s\\S]*?)\\[\\/${tag}\\]`, 'i'));
@@ -448,8 +456,8 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({
         success: false,
         stars: 2, // Default to 2 stars for rate limit - give benefit of doubt
-        score: 60, // Default mid-range score on rate limit
-        feedback: 'Your code looks good! AI scoring is temporarily unavailable due to rate limits. Please try again in a few moments.',
+        score: 67, // Default proportional mid-range score on rate limit
+        feedback: 'Hey there! 👋 Looks like our AI buddy is taking a quick nap. Drop by again in a moment and we\'ll get your feedback!',
         error: 'AI rate limit exceeded. Please try again later.',
         isRateLimited: true
       });
@@ -458,8 +466,8 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({
       success: false,
       stars: 1, // Default to 1 star on error - be conservative
-      score: 35, // Default low score on error
-      feedback: 'Your code works but there is room for improvement. Focus on error handling, code organization, and best practices.',
+      score: 33, // Default proportional low score on error
+      feedback: 'No worries — every expert was once a beginner. Keep practicing and you\'ll get there! Focus on error handling, code organization, and best practices.',
       error: errorMessage
     });
   }
