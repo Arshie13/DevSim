@@ -44,7 +44,7 @@
   </div>
 
   <!-- Editor mount -->
-  <div class="flex-1 overflow-hidden">
+  <div data-tour="editor-area" class="flex-1 overflow-hidden">
     <div bind:this={editorRef} class="w-full h-full"></div>
   </div>
 </div>

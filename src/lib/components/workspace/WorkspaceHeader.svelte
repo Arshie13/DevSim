@@ -132,6 +132,7 @@
     <!-- AI Hints toggle -->
     <button
       on:click={onToggleAi}
+      data-tour="ai-toggle"
       class="w-8 h-8 flex items-center justify-center border transition-all {aiPanelOpen
         ? 'text-[#07a5c9] border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.08)]'
         : 'text-[#8892a0] border-transparent hover:text-[#07a5c9] hover:border-[rgba(7,165,201,0.2)]'}"

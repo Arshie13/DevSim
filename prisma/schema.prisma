@@ -19,6 +19,9 @@ model User {
   coins Int @default(0)
   level Int @default(1)
 
+  // Onboarding
+  hasCompletedOnboarding Boolean @default(false)
+
   // Relations
   dailyLogin    DailyLogin?       @relation
   currentStacks UserStackOptions[]

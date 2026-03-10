@@ -18,6 +18,7 @@
   import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
 
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
+  import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import type { FileListResponse } from "$lib/interface/Files";
@@ -672,28 +673,32 @@
 
   <div class="flex flex-1 overflow-hidden">
     <!-- Left Sidebar (VS Code-style toggle) -->
-    <PrimarySidebar
-      {fileTree}
-      {directories}
-      {selectedFile}
-      {projectName}
-      {containerId}
-      scenario={LEVEL_CONFIG.scenario}
-      {tasks}
-      {userId}
-      {userCoins}
-      {fileContents}
-      onSelectFile={selectFile}
-      onToggleTask={toggleTask}
-      onCreateFile={handleCreateFile}
-      onDeleteFile={handleDeleteFile}
-      onRenameFile={handleRenameFile}
-    />
+    <div data-tour="sidebar">
+      <PrimarySidebar
+        {fileTree}
+        {directories}
+        {selectedFile}
+        {projectName}
+        {containerId}
+        scenario={LEVEL_CONFIG.scenario}
+        {tasks}
+        {userId}
+        {userCoins}
+        {fileContents}
+        onSelectFile={selectFile}
+        onToggleTask={toggleTask}
+        onCreateFile={handleCreateFile}
+        onDeleteFile={handleDeleteFile}
+        onRenameFile={handleRenameFile}
+      />
+    </div>
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Tab Bar -->
-      <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
+      <div data-tour="workspace-tabs">
+        <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
+      </div>
 
       <!-- Content Area -->
       <div class="flex-1 relative overflow-hidden">
@@ -764,6 +769,17 @@
     on:cancel={() => { backModalOpen = false; }}
   />
 </div>
+
+<!-- ── Onboarding (shown once the boot screen has cleared) ─────────────────── -->
+{#if !isBooting}
+  <OnboardingController
+    {stack}
+    {title}
+    scenario={LEVEL_CONFIG.scenario}
+    level={level}
+    onSwitchTab={(tab) => handleTabChange(tab as 'editor' | 'terminal' | 'preview')}
+  />
+{/if}
 
 <style>
   :global(body) {
