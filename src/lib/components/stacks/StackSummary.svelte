@@ -154,10 +154,10 @@
       >
         {#if isLoading}
           <Loader class="w-4 h-4 animate-spin" />
-          <span>Starting...</span>
+          <span>Loading...</span>
         {:else}
           <Rocket class="w-4 h-4" />
-          <span>{hasValidStack ? 'Start Sprint' : `Select ${2 - selectedCount} more`}</span>
+          <span>{hasValidStack ? 'View Scenarios' : `Select ${2 - selectedCount} more`}</span>
         {/if}
       </button>
     </div>
