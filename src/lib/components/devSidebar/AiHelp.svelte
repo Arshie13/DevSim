@@ -378,6 +378,7 @@
           isWarning: true,
         },
       ]);
+      clearAttachedFiles();
       return;
     }
 
@@ -395,6 +396,7 @@
           isWarning: true,
         },
       ]);
+      clearAttachedFiles();
       return;
     }
 
@@ -402,6 +404,10 @@
     const filesToInclude = [...attachedFiles];
     const filesCount = filesToInclude.length;
     aiChatHistory.update(msgs => [...msgs, { role: "user", content: message, attachedFiles: filesCount > 0 ? filesToInclude : undefined }]);
+    
+    // Clear attached files immediately after sending message
+    clearAttachedFiles();
+    
     isLoading = true;
 
     try {
@@ -461,7 +467,7 @@
       ]);
     } finally {
       isLoading = false;
-      clearAttachedFiles()
+      clearAttachedFiles();
     }
   }
 
