@@ -247,7 +247,12 @@ function parseScoringResponse(response: string): {
 
 // Call OpenRouter API for scoring
 async function callOpenRouterAPI(apiKey: string, prompt: string): Promise<string> {
-  const models = ['openai/gpt-4o', 'anthropic/claude-3-sonnet-20250219', 'google/gemini-2.5-pro'];
+  // Free coding-focused models available on OpenRouter
+  const models = [
+    'meta-llama/llama-3.1-8b-instruct',
+    'google/gemma-2-9b-it',
+    'mistralai/mistral-7b-instruct-v0.2'
+  ];
   let lastError = null;
   let isRateLimited = false;
   
