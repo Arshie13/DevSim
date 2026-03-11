@@ -25,6 +25,7 @@ model User {
   containers    Container[]
   sessions     Session[]
   achievements UserAchievement[]
+  fileChanges  FileChange[]
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -80,6 +81,7 @@ model Container {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   userStackOptions UserStackOptions[]
+  fileChanges      FileChange[]
 
   @@index([userId])
 }
@@ -164,4 +166,23 @@ model UserAchievement {
 
   @@unique([userId, achievementId])
   @@index([userId])
+}
+
+// File change tracking model
+model FileChange {
+  id           String   @id @default(cuid())
+  containerId  String
+  userId       String
+  filePath     String
+  action       String   // "CREATE", "WRITE", "DELETE", "RENAME"
+  oldPath      String?  // For rename operations - stores the original path
+  contentHash  String?  // Optional: hash of file content for change detection
+  timestamp    DateTime @default(now())
+
+  // Relations
+  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([containerId, timestamp])
+  @@index([userId, timestamp])
 }

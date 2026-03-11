@@ -21,6 +21,16 @@
   let submitError = '';
   let submitRewards = { xp: 0, coins: 0 };
 
+  // File changes tracking
+  type FileChangeSummary = {
+    created: string[];
+    modified: string[];
+    renamed: { from: string; to: string }[];
+    totalChanges: number;
+  };
+  let fileChanges: FileChangeSummary | null = null;
+  let loadingFileChanges = false;
+
   // Test results state
   let testResults: {
     passed: boolean;
@@ -61,6 +71,24 @@
   // Track if we're advancing to next level (for success UI)
   let advancingToNextLevel = false;
 
+  // -- File Changes Functions ----------------------------------------------------
+  async function fetchFileChanges() {
+    if (!dbContainerId) return;
+    
+    loadingFileChanges = true;
+    try {
+      const response = await fetch(`/api/docker/container/${dbContainerId}/file-changes?containerId=${dbContainerId}&summary=true`);
+      const data = await response.json();
+      if (data.success && data.data) {
+        fileChanges = data.data;
+      }
+    } catch (error) {
+      console.error('Error fetching file changes:', error);
+    } finally {
+      loadingFileChanges = false;
+    }
+  }
+
   // -- Public API ---------------------------------------------------------------
   export function open() {
     submitError = '';
@@ -70,6 +98,9 @@
     testResults = null;
     aiReviewOpen = false;
     aiScoring = { stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false };
+    
+    // Fetch file changes when modal opens
+    fetchFileChanges();
   }
 
   function close() {
@@ -429,6 +460,48 @@
       </ul>
       <p class="mt-2.5 font-mono text-[0.75rem] text-[#8892a0] text-right">{completedCount} / {tasks.length} completed</p>
     </div>
+
+    <!-- File changes summary -->
+    {#if loadingFileChanges}
+      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
+        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2">Loading file changes...</p>
+      </div>
+    {:else if fileChanges && fileChanges.totalChanges > 0}
+      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
+        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2.5">Files modified</p>
+        <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
+          {#if fileChanges.created.length > 0}
+            {#each fileChanges.created as file}
+              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
+                <span class="font-bold w-4 text-center text-[#00e5a0]">+</span>
+                <span class="text-[#d0d7dd]">{file}</span>
+              </li>
+            {/each}
+          {/if}
+          {#if fileChanges.modified.length > 0}
+            {#each fileChanges.modified as file}
+              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
+                <span class="font-bold w-4 text-center text-[#fbbf24]">•</span>
+                <span class="text-[#d0d7dd]">{file}</span>
+              </li>
+            {/each}
+          {/if}
+          {#if fileChanges.renamed.length > 0}
+            {#each fileChanges.renamed as rename}
+              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
+                <span class="font-bold w-4 text-center text-[#60a5fa]">→</span>
+                <span class="text-[#d0d7dd]">{rename.from} → {rename.to}</span>
+              </li>
+            {/each}
+          {/if}
+        </ul>
+        <p class="mt-2.5 font-mono text-[0.75rem] text-[#8892a0] text-right">{fileChanges.totalChanges} file(s) changed</p>
+      </div>
+    {:else}
+      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
+        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2">No files modified</p>
+      </div>
+    {/if}
 
     <!-- Reward preview chips -->
     <div class="flex gap-2.5 mb-1">

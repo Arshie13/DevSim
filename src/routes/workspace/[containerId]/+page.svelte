@@ -521,6 +521,7 @@
     if (!containerId || !fullPath) return;
 
     try {
+      console.log("body: ", JSON.stringify({ path: `/workspace/${fullPath}`, isDirectory }));
       const response = await fetch(
         `/api/docker/container/${containerId}/files/create`,
         {

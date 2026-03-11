@@ -2,11 +2,21 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
+import { logFileChange } from '$lib/server/fileChangeLogger';
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async ({ params, request, locals }) => {
   try {
+    // --- Auth check ---
+    const session = await locals.auth();
+    if (!session?.user?.id) {
+      return json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
     const { path, content } = await request.json();
-    const container = docker.getContainer(params.id);
+    const containerId = params.id;
+
+    const container = docker.getContainer(containerId);
 
     const exec = await container.exec({
       Cmd: ['sh', '-c', `mkdir -p $(dirname ${path}) && cat > ${path}`],
@@ -18,6 +28,14 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const stream = await exec.start({ hijack: true, stdin: true });
     stream.write(content);
     stream.end();
+
+    // Log the file change
+    await logFileChange({
+      containerId,
+      userId,
+      filePath: path,
+      action: 'WRITE',
+    });
 
     return json({ success: true });
   } catch (error) {

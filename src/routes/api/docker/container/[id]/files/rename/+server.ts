@@ -1,9 +1,17 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { docker } from "$lib/server/docker/client";
+import { logFileChange } from "$lib/server/fileChangeLogger";
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async ({ params, request, locals }) => {
   try {
+    // --- Auth check ---
+    const session = await locals.auth();
+    if (!session?.user?.id) {
+      return json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
     const { oldPath, newPath } = await request.json();
     const containerId = params.id;
 
@@ -22,6 +30,15 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const stream = await exec.start({ hijack: true });
     await new Promise<void>((resolve) => {
       stream.on("end", resolve);
+    });
+
+    // Log the file change
+    await logFileChange({
+      containerId,
+      userId,
+      filePath: newPath,
+      action: 'RENAME',
+      oldPath: oldPath,
     });
 
     return json({ success: true });
