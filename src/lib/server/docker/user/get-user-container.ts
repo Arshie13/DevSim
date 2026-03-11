@@ -1,5 +1,4 @@
 import prisma from '$lib/server/client';
-import type { FinishedStack } from '$lib/types/techstack';
 
 export interface GetUserContainerRequest {
   id: string;
@@ -76,8 +75,8 @@ export async function getUserContainer(data: GetUserContainerRequest) {
   return userContainers
 }
 
-export async function getArchivedContainers(userId: string): Promise<FinishedStack[]> {
-  const containers = await prisma.container.findMany({
+export async function getArchivedContainers(userId: string) {
+  return prisma.container.findMany({
     where: {
       userId,
       isArchived: true,
@@ -85,33 +84,5 @@ export async function getArchivedContainers(userId: string): Promise<FinishedSta
     orderBy: {
       updatedAt: 'desc',
     },
-  });
-
-  return containers.map((container) => {
-    const [frontend, backend, database, services] = container.stacks;
-    const icon = TECH_ICON_MAP[frontend] ?? TECH_ICON_MAP[backend] ?? '📦';
-    const name = container.stacks
-      .map((s) => TECH_NAME_MAP[s] ?? s)
-      .join(' + ');
-
-    const completedAt = (container.stoppedAt ?? container.updatedAt).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-
-    return {
-      id: container.id,
-      name,
-      frontend: TECH_NAME_MAP[frontend] ?? frontend ?? '',
-      backend: TECH_NAME_MAP[backend] ?? backend ?? '',
-      database: TECH_NAME_MAP[database] ?? database ?? '',
-      services: services ? (TECH_NAME_MAP[services] ?? services) : undefined,
-      completedAt,
-      xpEarned: 0,
-      coinsEarned: 0,
-      rating: 0,
-      icon,
-    } satisfies FinishedStack;
   });
 }

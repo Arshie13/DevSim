@@ -99,7 +99,7 @@
     <!-- Stacks Section - Side by Side -->
     <div class="grid grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
       <CurrentStacks containers={data.userContainerList} finishedStacks={data.archivedStacks} maxVisible={2} />
-      <FinishedStacks stacks={data.archivedStacks} userCoins={data.userCoins} maxVisible={3} />
+      <FinishedStacks containers={data.archivedStacks} userCoins={data.userCoins} maxVisible={3} />
     </div>
     </div><!-- end max-width wrapper -->
   </main>

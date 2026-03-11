@@ -73,6 +73,8 @@ export interface FinishedStack {
   icon: string;
 }
 
+export type StackStatus = FinishedStack
+
 export interface ScenarioMeta {
   /** e.g., "scenario-1" */
   id: string;
