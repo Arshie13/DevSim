@@ -6,6 +6,7 @@
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
   // Components
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import PrimarySidebar from "$lib/components/devSidebar/PrimarySidebar.svelte";
   import WorkspaceHeader from "$lib/components/workspace/WorkspaceHeader.svelte";
   import WorkspaceTabs from "$lib/components/workspace/WorkspaceTabs.svelte";
@@ -14,21 +15,30 @@
   import PreviewPanel from "$lib/components/workspace/PreviewPanel.svelte";
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
-  import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
-  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
+  import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
+  import { getLevelConfig, hasTestsForLevel } from "$lib/tests/levels";
   import type { FileListResponse } from "$lib/interface/Files";
 
   import { toast } from "$lib/stores/toast";
+
+  interface Props {
+    dockerContainerId: string | null;
+    userId: string;
+    userCoins: number;
+    completedTasks: string[]; // List of completed task texts for this level
+    levelTasks: string[]; // List of all task texts for this level
+    level: number; // Current level number (for task panel display)
+  }
 
   // Server-loaded data:
   //   dockerContainerId — the real Docker container ID (for Docker API calls)
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
   //   userId — the user's ID for AI hints
   //   userCoins — the user's coin balance for AI hints
-  export let data: { dockerContainerId: string | null; userId: string; userCoins: number };
+  export let data: Props;
 
   // Get route params
   $: stackId = page.params.techstackid;
@@ -42,8 +52,8 @@
   let activeTab: "editor" | "terminal" | "preview" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
-  let tasks: Task[] = LEVEL_CONFIG.tasks;
-  let timeRemaining: number = LEVEL_CONFIG.deadline;
+  let tasks: Task[] = []; // Will be populated from server data
+  let timeRemaining: number = 4 * 60 * 60; // Default to 4 hours
   let isRunning: boolean = false;
   let terminal: TerminalInitializer | null = null;
   let monacoEditor: MonacoInitializer | null = null;
@@ -51,6 +61,43 @@
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
+
+  // Initialize tasks from server data
+  $: {
+    const completedTasks = data.completedTasks || [];
+    const levelTasks = data.levelTasks || [];
+    tasks = levelTasks.map((text: string, index: number) => ({
+      id: index + 1,
+      text,
+      completed: completedTasks.includes(text)
+    }));
+  }
+
+  // Get level-specific config from server data
+  $: currentLevel = data.level || 1;
+  $: levelTestConfig = getLevelConfig(currentLevel);
+  $: hasTests = hasTestsForLevel(currentLevel);
+  
+  // Merge test config with mockdata for UI fields (test config has tasks, mockdata has UI fields)
+  $: actualLevelConfig = levelTestConfig ? {
+    ...LEVEL_CONFIG,
+    ...levelTestConfig,
+    level: currentLevel,
+    // Keep UI fields from LEVEL_CONFIG
+    stack: LEVEL_CONFIG.stack,
+    difficulty: LEVEL_CONFIG.difficulty,
+    deadline: LEVEL_CONFIG.deadline,
+    scenario: LEVEL_CONFIG.scenario,
+    hints: LEVEL_CONFIG.hints,
+    starterFiles: LEVEL_CONFIG.starterFiles,
+    // Use tasks from server data
+    tasks: tasks
+  } : LEVEL_CONFIG;
+
+  // Update timeRemaining when level config changes
+  $: if (actualLevelConfig) {
+    timeRemaining = actualLevelConfig.deadline || (4 * 60 * 60);
+  }
 
   // ── Panel toggle state ───────────────────────────────────────────────────
   let aiPanelOpen: boolean = false;
@@ -290,9 +337,53 @@
   }
 
   function toggleTask(taskId: number) {
-    tasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task,
-    );
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !containerId) return;
+
+    const taskText = task.text;
+    const isCompleting = !task.completed; // Check if we're completing or un-completing
+    
+    // If un-completing a task, just update local state without calling API
+    if (!isCompleting) {
+      tasks = tasks.map((t) =>
+        t.id === taskId ? { ...t, completed: false } : t
+      );
+      return;
+    }
+    
+    // Call submit API to mark task as complete
+    fetch(`/api/docker/container/${containerId}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId: taskText })
+    })
+    .then(res => res.json())
+    .then(data => {
+      // Only show success toast if task wasn't already completed
+      // (i.e., this is a fresh completion, not a re-submission)
+      if (data.success && data.nextLevel !== null) {
+        // Update local task state
+        tasks = tasks.map((t) =>
+          t.id === taskId ? { ...t, completed: true } : t,
+        );
+        
+        // Show feedback only when level advances or first-time completion
+        if (data.levelComplete && data.nextLevel) {
+          toast.success(`Level ${data.nextLevel} unlocked! 🎉`);
+        } else if (data.rewards?.xp > 0) {
+          toast.success(`+${data.rewards.xp} XP earned!`);
+        }
+      } else if (data.success) {
+        // Task was already completed - just update UI without toast
+        tasks = tasks.map((t) =>
+          t.id === taskId ? { ...t, completed: true } : t,
+        );
+      }
+    })
+    .catch(err => {
+      console.error('Failed to submit task:', err);
+      toast.error('Failed to submit task');
+    });
   }
 
   async function selectFile(
@@ -344,6 +435,15 @@
     submitSprintModal.open();
   }
 
+  async function handleSubmitted(event: CustomEvent) {
+    const { advanceToNextLevel } = event.detail;
+    
+    if (advanceToNextLevel) {
+      // Reload the page data to get new level tasks by navigating to same URL with invalidate
+      goto(`?reload=${Date.now()}`, { invalidateAll: true, replaceState: true, noScroll: true });
+    }
+  }
+
   function refreshPreview() {
     // Fetch live ports from Docker
     fetch(`/api/docker/container/${containerId}/ports`)
@@ -381,6 +481,32 @@
           }
         }
       });
+  }
+
+  function refreshTerminal() {
+    terminal?.reconnect();
+  }
+
+  async function refreshFiles() {
+    if (!containerId) return;
+    try {
+      const listRes = await fetch(
+        `/api/docker/container/${containerId}/files/list`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      const listData = (await listRes.json()) as FileListResponse;
+      if (listData.success) {
+        fileTree = listData.files;
+        directories = listData.directories || [];
+        toast.success("Files refreshed");
+      }
+    } catch (error) {
+      console.error("Error refreshing files:", error);
+      toast.error("Failed to refresh files");
+    }
   }
 
   function handleTabChange(tab: "editor" | "terminal" | "preview") {
@@ -527,10 +653,10 @@
 >
   <!-- Header -->
   <WorkspaceHeader
-    level={LEVEL_CONFIG.level}
-    title={LEVEL_CONFIG.title}
-    stack={LEVEL_CONFIG.stack}
-    difficulty={LEVEL_CONFIG.difficulty}
+    level={actualLevelConfig.level}
+    title={actualLevelConfig.title}
+    stack={actualLevelConfig.stack}
+    difficulty={actualLevelConfig.difficulty}
     {timeRemaining}
     {isRunning}
     {aiPanelOpen}
@@ -554,11 +680,13 @@
       {userId}
       {userCoins}
       {fileContents}
+      currentLevel={data.level}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}
       onCreateFile={handleCreateFile}
       onDeleteFile={handleDeleteFile}
       onRenameFile={handleRenameFile}
+      onRefreshFiles={refreshFiles}
     />
 
     <!-- Main Content -->
@@ -575,7 +703,7 @@
           bind:editorRef
         />
 
-        <TerminalPanel visible={activeTab === "terminal"} bind:terminalRef />
+        <TerminalPanel visible={activeTab === "terminal"} bind:terminalRef onRefresh={refreshTerminal} />
 
         <PreviewPanel
           visible={activeTab === "preview"}
@@ -588,15 +716,20 @@
 
     <!-- Right AI Hints Panel (toggleable) -->
     {#if aiPanelOpen}
-      <AiHintsPanel hints={LEVEL_CONFIG.hints} onClose={toggleAiPanel} />
+      <AiHelp containerId={page.params.containerId} userId={data.userId} />
     {/if}
   </div>
 
   <!-- Submit Sprint modal -->
   <SubmitSprintModal
     bind:this={submitSprintModal}
-    dbContainerId={page.params.containerId}
+    dbContainerId={containerId}
+    {containerId}
     {tasks}
+    level={currentLevel}
+    fileContents={fileContents}
+    existingFiles={fileTree}
+    on:submitted={handleSubmitted}
   />
 
   <!-- Back confirmation modal -->

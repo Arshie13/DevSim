@@ -34,8 +34,6 @@
     return `${fnArr[0]} ${fnArr[1]}`;
   }
 
-  console.log("Dashboard data:", data);
-
   function openStatsDrawer() {
     isStatsDrawerOpen = true;
   }

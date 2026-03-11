@@ -1,15 +1,39 @@
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
-import type { WebLinksAddon } from "@xterm/addon-web-links";
+import { PUBLIC_WS_URL } from "$env/static/public";
+
+// Get WebSocket URL for terminal connection
+// In production, set PUBLIC_WS_URL environment variable to the WebSocket server URL
+// e.g., PUBLIC_WS_URL=ws://localhost:3001
+function getTerminalWsUrl(containerId: string): string {
+  // Check for custom WebSocket URL (set in production)
+  // const wsUrl = (typeof window !== 'undefined' 
+  //   ? (window as string).ENV?.PUBLIC_WS_URL 
+  //   : null) || process.env.PUBLIC_WS_URL;
+
+  const wsUrl = PUBLIC_WS_URL;
+  
+  if (wsUrl) {
+    return `${wsUrl}/terminal?containerId=${containerId}`;
+  }
+  
+  // Development: use same host
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}/terminal?containerId=${containerId}`;
+}
 
 export class TerminalInitializer {
   private terminal: Terminal | null = null;
   private fitAddon: FitAddon | null = null;
+  private socket: WebSocket | null = null;
+  private containerId: string = "";
 
   constructor() { }
 
   async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string) {
     if (typeof window === "undefined") return;
+
+    this.containerId = containerId;
 
     try {
       const xtermPkg = await import("@xterm/xterm");
@@ -17,9 +41,9 @@ export class TerminalInitializer {
       const linksPkg = await import("@xterm/addon-web-links");
       await import("@xterm/xterm/css/xterm.css");
 
-      const TerminalConstructor = (xtermPkg as any).Terminal || (xtermPkg as any).default?.Terminal || (xtermPkg as any).default;
-      const FitAddonConstructor = (fitPkg as any).FitAddon || (fitPkg as any).default?.FitAddon || (fitPkg as any).default;
-      const WebLinksAddonConstructor = (linksPkg as any).WebLinksAddon || (linksPkg as any).default?.WebLinksAddon || (linksPkg as any).default;
+      const TerminalConstructor = xtermPkg.Terminal || xtermPkg.default?.Terminal || xtermPkg.default;
+      const FitAddonConstructor = fitPkg.FitAddon || fitPkg.default?.FitAddon || fitPkg.default;
+      const WebLinksAddonConstructor = linksPkg.WebLinksAddon || linksPkg.default?.WebLinksAddon || linksPkg.default;
 
       this.terminal = new TerminalConstructor({
         convertEol: true,
@@ -49,34 +73,7 @@ export class TerminalInitializer {
       this.fitAddon!.fit();
 
       // Connect to Socket
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/terminal?containerId=${containerId}`;
-      const socket = new WebSocket(wsUrl);
-
-      socket.onopen = () => {
-        console.log("🚀 Terminal WebSocket Connected");
-        this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
-      };
-
-      socket.onmessage = (event) => {
-        if (typeof event.data === "string") {
-          this.terminal?.write(event.data);
-        } else {
-          event.data.arrayBuffer().then((buffer: ArrayBuffer) => {
-            this.terminal?.write(new Uint8Array(buffer));
-          });
-        }
-      };
-
-      socket.onclose = () => {
-        this.terminal?.writeln("\r\n\x1b[31m🔌 Terminal disconnected\x1b[0m");
-      };
-
-      this.terminal!.onData((data) => {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.send(data);
-        }
-      });
+      this.connectSocket();
 
       window.addEventListener("resize", () => {
         this.fitAddon?.fit();
@@ -89,11 +86,62 @@ export class TerminalInitializer {
     }
   }
 
+  private connectSocket() {
+    const wsUrl = getTerminalWsUrl(this.containerId);
+    this.socket = new WebSocket(wsUrl);
+
+    this.socket.onopen = () => {
+      console.log("🚀 Terminal WebSocket Connected");
+      this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
+    };
+
+    this.socket.onmessage = (event) => {
+      if (typeof event.data === "string") {
+        this.terminal?.write(event.data);
+      } else {
+        event.data.arrayBuffer().then((buffer: ArrayBuffer) => {
+          this.terminal?.write(new Uint8Array(buffer));
+        });
+      }
+    };
+
+    this.socket.onclose = () => {
+      this.terminal?.writeln("\r\n\x1b[31m🔌 Terminal disconnected\x1b[0m");
+    };
+
+    this.terminal!.onData((data) => {
+      if (this.socket?.readyState === WebSocket.OPEN) {
+        this.socket.send(data);
+      }
+    });
+  }
+
+  reconnect() {
+    if (!this.containerId || !this.terminal) return;
+    
+    // Close existing socket
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
+    
+    // Clear terminal and show reconnecting message
+    this.terminal.clear();
+    this.terminal.writeln("\x1b[1;33mReconnecting terminal...\x1b[0m");
+    
+    // Reconnect
+    this.connectSocket();
+  }
+
   write(data: string) {
     this.terminal?.write(data);
   }
 
   dispose() {
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
     this.terminal?.dispose();
     this.terminal = null;
     this.fitAddon = null;
