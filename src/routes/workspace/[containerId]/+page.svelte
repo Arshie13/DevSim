@@ -681,13 +681,8 @@
         {selectedFile}
         {projectName}
         {containerId}
-        scenario={LEVEL_CONFIG.scenario}
         {tasks}
-        {userId}
-        {userCoins}
-        {fileContents}
         onSelectFile={selectFile}
-        onToggleTask={toggleTask}
         onCreateFile={handleCreateFile}
         onDeleteFile={handleDeleteFile}
         onRenameFile={handleRenameFile}
