@@ -231,7 +231,6 @@ IMPORTANT:
 - Use bullet points if needed for clarity
 
 If the user asks something unrelated to the files, give a brief relevant hint.`;
-Provide a helpful, context-aware response:`;
 }
 
 export const POST: RequestHandler = async ({ request }) => {
