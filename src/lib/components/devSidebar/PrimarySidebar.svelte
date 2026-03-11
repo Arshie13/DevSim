@@ -192,6 +192,7 @@
           initialSelectedFile={selectedFile}
           initialFileTree={fileTree}
           initialFileContents={fileContents}
+          level={currentLevel}
         />
       {/if}
     </div>

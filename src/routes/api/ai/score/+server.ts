@@ -165,41 +165,45 @@ ${testResultsSection}
 ${fileSection}
 === END OF FILES ===
 
-Your job:
-1. Read every submitted file carefully.
-2. Compare the test results with the code — which tasks passed/failed and WHY based on the code.
-3. For EACH required task, check whether the student's code actually fulfills it correctly and with good quality.
-4. Focus specifically on the actual TASK IMPLEMENTATION (logic, functions, features) - NOT on software versions, package.json dependencies, or configuration files.
-5. Be encouraging! Acknowledge what they did well, then gently guide them on improvements.
-6. For completed tasks, mention what was done well and if there are any quality improvements needed.
-7. For failed tasks, identify specific flaws in the code that relate to the failure and suggest concrete fixes with a supportive tone.
-8. Give next-time tips based on what the test results revealed about the code.
+Your job - BE SPECIFIC TO THIS LEVEL'S TASKS:
+1. FIRST, read the REQUIRED TASKS FOR THIS LEVEL above carefully - these are the specific requirements for level ${level}.
+2. Compare each required task to the submitted code - check if the code actually implements what's required.
+3. Look at TEST RESULTS to see which tasks passed or failed.
+4. For EACH task, check if it's done correctly according to the task requirements - not generic improvements.
+5. Check for CLEAN CODE (only if it affects task functionality):
+   - Critical naming issues that make code hard to understand
+   - Obvious code duplication within the same file
+6. Give feedback SPECIFICALLY about the tasks - don't give generic programming advice.
 
-DO NOT COMMENT ON: package.json versions, dependency versions, tsconfig settings, or any configuration file contents. Focus only on the actual code logic and task implementation.
+IMPORTANT:
+- Your feedback MUST be tied to the actual REQUIRED TASKS listed above
+- If a task asks for feature X, mention if feature X is implemented or missing
+- Don't suggest adding features that aren't part of this level's requirements
+- Keep feedback focused on what was required vs what was submitted
 
-STAR RATING GUIDE (base this on how well the TASKS were implemented):
-- 3 stars: All tasks implemented correctly with clean code and best practices — they're crushing it!
-- 2 stars: Tasks implemented but with some issues — solid effort with room to grow
-- 1 star: Tasks barely done or with significant problems — everyone starts somewhere, let's help them improve!
+STAR RATING GUIDE:
+- 3 stars: ALL required tasks completed correctly according to the task requirements
+- 2 stars: Most tasks completed but some missing or incorrect
+- 1 star: Few tasks completed or tasks done incorrectly
 
-IMPORTANT: Keep your response SHORT and concise, but make it friendly and encouraging! Use emojis sparingly to add warmth. Focus directly on the tasks the user completed and failed. Your feedback should be specific to their work.
+IMPORTANT: Keep your response SHORT and concise. Focus on the actual required tasks for this level.
 
-Respond ONLY using this exact format (no extra text outside the tags):
+Respond ONLY using this exact format:
 
 [STAR_RATING]
 <number 1-3>
 [/STAR_RATING]
 
 [FEEDBACK]
-<1-2 short sentences — overall assessment based on completed tasks and test results>
+<1-2 short sentences about which tasks were completed vs missing for THIS LEVEL>
 [/FEEDBACK]
 
 [IMPROVEMENTS]
-<max 3 bullet points of what to improve next time, tied directly to specific tasks>
+<max 3 bullet points tied to the SPECIFIC REQUIRED TASKS - what they need to fix for THIS level's tasks>
 [/IMPROVEMENTS]
 
 [NEXT_TIME]
-<max 2 bullet points of specific actions to take for uncompleted tasks>
+<max 2 bullet points of what to do for the specific tasks they missed in THIS level>
 [/NEXT_TIME]
 `;
 }

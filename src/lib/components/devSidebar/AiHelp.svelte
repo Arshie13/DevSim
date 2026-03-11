@@ -20,6 +20,7 @@
   export let tasks: { id: number; text: string; completed: boolean }[] = [];
   export let containerId: string = "";
   export let userId: string = "";
+  export let level: number = 1; // User's current level (1-5)
   
   // Mode: 'chat' for full chat interface, 'quick' for just button-triggered hints
   // Default to 'quick' to show the button in the AI Helper tab
@@ -144,7 +145,7 @@
     
     // Add up to 4 more important files we don't have content for
     for (const file of importantFiles) {
-      if (filesToRead.length >= 5) break;
+      if (filesToRead.length >= 21) break;
       if (!fileContents[file] && file !== selectedFile) {
         filesToRead.push(file);
       }
@@ -275,6 +276,7 @@
           containerId,
           userId,
           hintType: mode,
+          level,
         }),
       });
 
@@ -344,6 +346,7 @@
           containerId,
           userId,
           hintType: mode,
+          level,
         }),
       });
 

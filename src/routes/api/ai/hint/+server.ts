@@ -13,6 +13,7 @@ interface HintRequest {
   containerId: string;
   userId: string;
   hintType?: 'quick' | 'chat';
+  level?: number;  // User's current level (1-5)
 }
 
 // Check if the user is asking for code
@@ -86,7 +87,7 @@ function buildGreetingResponse(context: string): string {
   response += "• 💡 Get guidance on your current task\n";
   response += "• 🔍 Help you understand code or concepts\n";
   response += "• 🎯 Point you in the right direction\n\n";
-  response += "What would you like help with? Just ask!";
+  response += "Feel free to ask me anything!";
   
   return response;
 }
@@ -150,32 +151,53 @@ function buildProgressHintResponse(context: string): string {
   return response;
 }
 
-// Build the prompt for Mistral
-function buildPrompt(message: string, context: string): string {
+// Build the prompt for AI models
+function buildPrompt(message: string, context: string, level: number = 1): string {
   const progress = extractProgressFromContext(context);
-  console.log(progress);
+  
+  // Determine hand-holding level based on user progression
+  // Levels 1-2: Give step-by-step guidance (hand-holdy)
+  // Levels 3-5: Encourage thinking (less hand-holdy)
+  const isHandHoldy = level <= 2;
+  
+  const handHoldingInstructions = isHandHoldy ? `
+YOUR TEACHING STYLE - BE HAND-HOLDY (Level ${level}):
+- Give step-by-step instructions on exactly what to do
+- Break down tasks into small, actionable steps
+- Explain each step clearly like teaching a beginner
+- Provide specific file names, function names, or code patterns to look for
+- If they're stuck, guide them through the exact process
+` : `
+YOUR TEACHING STYLE - LESS HAND-HOLDY (Level ${level}):
+- Provide hints and guidance without giving away the answer
+- Offer guidance and direction without asking questions
+- Point them in the right direction without being too explicit
+- Encourage them to figure things out on their own
+- Only give big-picture guidance, not step-by-step instructions
+`;
   
   return `You are SAZ, a friendly and helpful coding assistant for StudentHub, a learning platform where students complete coding projects.
 
 CURRENT USER PROGRESS:
 - Tasks completed: ${progress.completed} out of ${progress.total}
-- Current scenario: ${context.split('\n')[0].replace('Current Scenario: ', '')}
+- Current Level: ${level}
 
 RECENT TASKS:
 ${progress.tasks.slice(0, 5).join('\n')}
 
 ${context}
 
+${handHoldingInstructions}
+
 IMPORTANT GUIDELINES:
-1. Your name is SAZ - always identify yourself as such when appropriate
+1. Your name is SAZ - always identify yourself as such
 2. ALWAYS reference the user's actual progress and tasks when responding
-3. If they say hello/greeting, be friendly and introduce yourself as SAZ - mention their progress
-4. If they ask about their progress/status/next step, give them specific information about their current task
-5. If they ask for a hint, provide guidance about their NEXT incomplete task (don't give the answer!)
-6. NEVER write actual code - only provide hints and guidance
-7. Be encouraging and supportive - this is a learning platform
-8. Keep responses concise but helpful (2-4 sentences for simple questions)
-9. Use emojis appropriately to make responses more engaging
+3. If they ask for a hint, analyze their code and tell them exactly what to do for their NEXT incomplete task
+4. Look at the code files to understand what they've built - don't give generic advice
+5. NEVER write actual code - only provide hints and guidance
+6. NEVER ask questions in your responses - always provide direct statements and guidance
+7. Be encouraging and supportive
+8. Keep responses concise but specific (2-4 sentences)
 
 User asks: "${message}"
 
@@ -197,8 +219,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const body: HintRequest = await request.json();
-    const { message, context, userId: uid, hintType } = body;
+    const { message, context, userId: uid, hintType, level = 1 } = body;
     userId = uid;
+    const currentLevel = level || 1;
 
     const hintCost = hintType === 'chat' ? CHAT_HINT_COST : QUICK_HINT_COST;
 
@@ -220,8 +243,8 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Check if user is greeting - respond warmly
-    if (isGreeting(message)) {
+    // Check if user is greeting - respond warmly (skip for quick hints to use AI)
+    if (hintType !== 'quick' && isGreeting(message)) {
       let coinBalance = 0;
       if (userId) {
         try {
@@ -243,8 +266,8 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Check if user is asking about progress
-    if (isAskingAboutProgress(message)) {
+    // Check if user is asking about progress (skip for quick hints to use AI)
+    if (hintType !== 'quick' && isAskingAboutProgress(message)) {
       let coinBalance = 0;
       if (userId) {
         try {
@@ -308,8 +331,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const newCoinBalance = user.coins - hintCost;
     originalCoinBalance = user.coins;
 
-    // Build the prompt
-    const prompt = buildPrompt(message, context || "No additional context");
+    // Build the prompt with level-aware instructions
+    const prompt = buildPrompt(message, context || "No additional context", currentLevel);
 
     // Try OpenRouter free coding models
     const models = [
