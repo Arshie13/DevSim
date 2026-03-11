@@ -311,11 +311,11 @@ export const POST: RequestHandler = async ({ request }) => {
     // Build the prompt
     const prompt = buildPrompt(message, context || "No additional context");
 
-    // Try OpenRouter models
+    // Try OpenRouter free coding models
     const models = [
-      "openai/gpt-4o",
-      "anthropic/claude-3-sonnet-20250219",
-      "google/gemini-2.5-pro"
+      "meta-llama/llama-3.1-8b-instruct",
+      "google/gemma-2-9b-it",
+      "mistralai/mistral-7b-instruct-v0.2"
     ];
 
     let response = null;
