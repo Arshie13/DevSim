@@ -776,8 +776,8 @@
   />
 </div>
 
-<!-- ── Onboarding (shown once the boot screen has cleared) ─────────────────── -->
-{#if !isBooting}
+<!-- ── Onboarding (shown once the boot screen has cleared, only when opted in) ── -->
+{#if !isBooting && page.url.searchParams.get('onboarding') === '1'}
   <OnboardingController
     {stack}
     {title}

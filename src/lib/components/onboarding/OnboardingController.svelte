@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import OnboardingModal from './OnboardingModal.svelte';
   import WorkspaceTour   from './WorkspaceTour.svelte';
   import { getStackContent } from './onboardingContent';
@@ -19,27 +18,14 @@
   export let onSwitchTab: ((tab: string) => void) | undefined = undefined;
 
   // ── Phase machine ──────────────────────────────────────────────────────────
-  // 'loading' → check API → 'modal' | 'done' → 'tour' → 'done'
-  let phase: 'loading' | 'modal' | 'tour' | 'done' = 'loading';
+  // The parent decides whether to render this component at all.
+  // When rendered, always start with the modal immediately.
+  // 'modal' → 'tour' → 'done'
+  let phase: 'modal' | 'tour' | 'done' = 'modal';
 
   $: content = getStackContent(stack);
 
-  // ── API helpers ────────────────────────────────────────────────────────────
-  async function checkOnboardingStatus() {
-    try {
-      const res = await fetch('/api/user/onboarding');
-      if (res.ok) {
-        const data = await res.json() as { completed: boolean };
-        phase = data.completed ? 'done' : 'modal';
-      } else {
-        // Can't confirm status — show onboarding to be safe
-        phase = 'modal';
-      }
-    } catch {
-      phase = 'modal';
-    }
-  }
-
+  // ── Mark completion in DB (non-critical) ──────────────────────────────────
   async function markOnboardingComplete() {
     try {
       await fetch('/api/user/onboarding', { method: 'POST' });
@@ -47,8 +33,6 @@
       // Non-critical — ignore
     }
   }
-
-  onMount(() => { checkOnboardingStatus(); });
 
   // ── Phase transitions ──────────────────────────────────────────────────────
   function onModalComplete() { phase = 'tour'; }

@@ -34,6 +34,7 @@
         scenarios={data.scenarios}
         stackName={data.stackName}
         selection={data.selection}
+        hasCompletedOnboarding={data.hasCompletedOnboarding}
       />
     </main>
   </div>
