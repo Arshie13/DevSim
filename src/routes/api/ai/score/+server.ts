@@ -332,6 +332,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json();
     const { containerId, level, completedTasks, fileContents, filePaths, testResults } = body;
     
+    console.log("file contents: ", fileContents);
+
     if (!containerId || !level) {
       return json({
         success: false,

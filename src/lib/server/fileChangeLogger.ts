@@ -52,7 +52,16 @@ export async function logFileChange(params: FileChangeLogParams) {
 /**
  * Retrieves all file changes for a container
  */
-export async function getFileChanges(containerId: string) {
+export async function getFileChanges(containerId: string): Promise<{
+  id: string;
+  userId: string;
+  containerId: string;
+  filePath: string;
+  action: string;
+  oldPath: string | null;
+  contentHash: string | null;
+  timestamp: Date;
+}[] | []> {
   try {
     const changes = await prisma.fileChange.findMany({
       where: { containerId },
@@ -93,4 +102,12 @@ export async function getFileChangeSummary(containerId: string) {
     console.error('Error fetching file change summary:', error);
     return null;
   }
+}
+
+export async function clearFileLogs(containerId: string) {
+  await prisma.fileChange.deleteMany({
+    where: {
+      containerId
+    }
+  });
 }

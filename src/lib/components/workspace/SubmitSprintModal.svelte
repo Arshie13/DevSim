@@ -134,14 +134,16 @@
       if (containerId) {
         try {
           console.log('AI SCORING: Fetching file list from container...');
-          const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
+          const listRes = await fetch(`/api/docker/container/${containerId}/files/logs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
           });
-          const listData = await listRes.json();
+
+          const listData: { success: boolean; data: Array<{ filePath: string }> } = await listRes.json();
           if (listData.success) {
-            filesToCheck = listData.files || [];
+            const unfilteredFilesToCheck = listData.data.map((data) => data.filePath) || [];
+            filesToCheck = unfilteredFilesToCheck.filter((value, index) => unfilteredFilesToCheck.indexOf(value) === index)
             console.log('AI SCORING: Total files in workspace:', filesToCheck.length);
             
             // Read ALL files from the workspace
@@ -383,6 +385,11 @@
           console.warn('Archive failed:', archiveData.message);
         }
       }
+
+      // clear the logs for the next level
+      await fetch(`/api/docker/container/${containerId}/clear-logs`, {
+        method: "DELETE"
+      });
 
       // Determine what to do next based on level completion
       const advanceToNextLevel = allLevelsComplete === false;
