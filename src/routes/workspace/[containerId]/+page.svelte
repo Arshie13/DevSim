@@ -6,6 +6,7 @@
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
   // Components
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import PrimarySidebar from "$lib/components/devSidebar/PrimarySidebar.svelte";
   import WorkspaceHeader from "$lib/components/workspace/WorkspaceHeader.svelte";
   import WorkspaceTabs from "$lib/components/workspace/WorkspaceTabs.svelte";
@@ -21,23 +22,23 @@
   import { getLevelConfig, hasTestsForLevel } from "$lib/tests/levels";
   import type { FileListResponse } from "$lib/interface/Files";
 
-  import type { Session } from "@auth/core/types";
   import { toast } from "$lib/stores/toast";
 
-  // Server-loaded data:
-  //   dockerContainerId — the real Docker container ID (for Docker API calls)
-  //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
-  //   userId — the user's ID for AI hints
-  //   userCoins — the user's coin balance for AI hints
-  export let data: {
-    user: Session["user"];
+  interface Props {
     dockerContainerId: string | null;
     userId: string;
     userCoins: number;
     completedTasks: string[]; // List of completed task texts for this level
     levelTasks: string[]; // List of all task texts for this level
     level: number; // Current level number (for task panel display)
-  };
+  }
+
+  // Server-loaded data:
+  //   dockerContainerId — the real Docker container ID (for Docker API calls)
+  //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
+  //   userId — the user's ID for AI hints
+  //   userCoins — the user's coin balance for AI hints
+  export let data: Props;
 
   // Get route params
   $: stackId = page.params.techstackid;
@@ -100,6 +101,10 @@
 
   // ── Panel toggle state ───────────────────────────────────────────────────
   let aiPanelOpen: boolean = false;
+
+  // ── Back confirmation modal state ────────────────────────────────────────
+  let backModalOpen: boolean = false;
+  let backModalLoading: boolean = false;
 
   function toggleAiPanel() { aiPanelOpen = !aiPanelOpen; }
 
@@ -416,7 +421,12 @@
     }
   }
 
-  async function handleBack() {
+  function handleBack() {
+    backModalOpen = true;
+  }
+
+  async function confirmBack() {
+    backModalLoading = true;
     await fetch(`/api/docker/container/${containerId}/stop`, { method: "POST" });
     goto("/dashboard");
   }
@@ -720,6 +730,23 @@
     fileContents={fileContents}
     existingFiles={fileTree}
     on:submitted={handleSubmitted}
+  />
+
+  <!-- Back confirmation modal -->
+  <ConfirmationModal
+    bind:open={backModalOpen}
+    icon="🚪"
+    iconVariant="warning"
+    title="Leave Workspace?"
+    subtitle="Are you sure you want to leave? Your current progress will be lost."
+    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later."
+    confirmLabel="Leave"
+    cancelLabel="Stay"
+    variant="warning"
+    isLoading={backModalLoading}
+    loadingLabel="Stopping…"
+    on:confirm={confirmBack}
+    on:cancel={() => { backModalOpen = false; }}
   />
 </div>
 

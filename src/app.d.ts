@@ -24,6 +24,8 @@ declare module "@auth/core/types" {
 			name?: string | null;
 			email?: string | null;
 			image?: string | null;
+			fullName?: string | null;
+			givenName?: string | null;
 		};
 	}
 }

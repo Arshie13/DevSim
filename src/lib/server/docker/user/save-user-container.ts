@@ -7,6 +7,8 @@ export interface UserContainerRequest {
   stacks: string[];
   level: number;
   status: string;
+  projectFolder?: string;
+  scenarioTitle?: string;
 }
 
 /**
@@ -33,7 +35,9 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
           containerId: data.containerId,
           stacks: data.stacks,
           level: data.level,
-          status: data.status
+          status: data.status,
+          projectFolder: data.projectFolder,
+          scenarioTitle: data.scenarioTitle,
         },
         where: { id: isExisting.id }
       });
@@ -46,7 +50,9 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
         containerId: data.containerId,
         stacks: data.stacks,
         level: data.level,
-        status: data.status
+        status: data.status,
+        projectFolder: data.projectFolder,
+        scenarioTitle: data.scenarioTitle,
       },
       select: { id: true }
     });

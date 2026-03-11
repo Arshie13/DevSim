@@ -329,6 +329,8 @@
     try {
       // Build context from current state
       const context = await generateContext();
+
+      console.log("context from generateContext:", context);
       
       // Default hint message based on current progress
       const hintMessage = `I'm working on the current task. Can you give me a hint on what to do next based on my progress?`;

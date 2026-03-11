@@ -1,20 +1,29 @@
+import { json, type RequestHandler } from "@sveltejs/kit";
+import prisma from "$lib/server/client";
 import { docker } from "$lib/server/docker/client";
-import type { RequestHandler } from './$types';
+import { error } from "@sveltejs/kit";
 
 export const POST: RequestHandler = async ({ params, locals }) => {
-  const session = await locals.auth();
-  if (!session || !session.user || !session.user.id) {
-    return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401 });
-  }
+    // --- Auth check ---
+    const session = await locals.auth();
+    if (!session?.user?.id) {
+        return error(401, 'Unauthorized');
+    }
+    const { id } = params;
+    const container = await prisma.container.findFirst({ where: { containerId: id } });
 
-  const containerId = params.id;
+    if (!container) {
+        return error(404, 'Container not found.');
+    }
 
-  try {
-    const container = docker.getContainer(containerId);
-    await container.stop();
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (err) {
-    console.error('Error stopping container:', err);
-    return new Response(JSON.stringify({ success: false, error: 'Failed to stop container' }), { status: 500 });
-  }
-};
+    await docker.getContainer(id).stop();
+
+    await prisma.container.update({
+        where: { id: container.id },
+        data: {
+            status: 'stopped',
+            stoppedAt: new Date()
+        }   
+    });
+    return json({success: true, })
+}

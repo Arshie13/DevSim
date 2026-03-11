@@ -22,7 +22,7 @@
     class="px-4 py-3 border-b border-[rgba(7,165,201,0.15)] bg-[#12192a] flex items-center justify-between flex-shrink-0"
   >
     <div class="flex items-center gap-2">
-      <Bot class="w-4 h-4 text-[#07a5c9]" style="filter:drop-shadow(0 0 6px rgba(7,165,201,0.6));" />
+      <Bot class="w-6 h-6 text-[#07a5c9]" style="filter:drop-shadow(0 0 6px rgba(7,165,201,0.6));" />
       <span
         class="text-[0.65rem] uppercase tracking-widest text-[#07a5c9]"
         style="font-family:'Share Tech Mono',monospace;"

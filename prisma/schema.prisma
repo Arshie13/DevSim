@@ -66,6 +66,10 @@ model Container {
 
   stacks String[]
 
+  // Scenario info — set at container creation time
+  projectFolder String?
+  scenarioTitle String?
+
   // Archive fields — used when workspace is saved to a Docker volume before container deletion
   volumeName String?
   isArchived Boolean @default(false)

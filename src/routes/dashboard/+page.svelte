@@ -22,13 +22,16 @@
 
   const headerUserData: UserData = {
     ...userData,
-    name: data.user?.name ?? "No Name",
+    name: data.session?.user.name ?? "No Name",
+    fullName: data.session?.user.fullName ?? "No Name",
+    givenName: data.session?.user.givenName ?? "No Name",
     avatar: data.user?.image ?? '',
     coins: data.userCoins,
   };
 
   function firstName (fullName: string) {
-    return fullName.split(" ")[0];
+    const fnArr = fullName.split(" ");
+    return `${fnArr[0]} ${fnArr[1]}`;
   }
 
   function openStatsDrawer() {
@@ -63,7 +66,7 @@
     <div class="flex items-center justify-between mb-4 lg:mb-6">
       <div>
         <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
-          Welcome back, <span class="bg-gradient-to-r from-white via-obsidian-accent to-cyber-bright bg-clip-text text-transparent">{firstName(headerUserData.name)  }</span>
+          Welcome back, <span class="text-cyber-cyan">{firstName(headerUserData.givenName)}</span>
         </h2>
         <p class="text-sm font-rajdhani text-obsidian-text-primary/50 mt-1">
           Ready to continue your developer journey? Your progress awaits.

@@ -7,10 +7,8 @@
   import StackSummary from "$components/stacks/StackSummary.svelte";
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
-  import ConfirmationModal from "$components/ui/ConfirmationModal.svelte";
   import { Layers, Sparkles } from "lucide-svelte";
   import { goto } from "$app/navigation";
-  import { toast } from "$lib/stores/toast";
   import type { UserData } from "$types";
 
   // Stack selection state
@@ -22,11 +20,6 @@
   };
 
   let showInfoModal = false;
-
-  // Existing-container confirmation dialog
-  let showExistingModal = false;
-  let existingContainerDbId = '';
-  let existingContainerMessage = '';
 
   function handleCategorySelect(categoryId: string, optionId: string) {
     selection = {
@@ -56,10 +49,6 @@
 
   function handleShowInfo() {
     showInfoModal = true;
-  }
-
-  function navigateToRoute(containerId: string) {
-    goto(`/workspace/${containerId}`);
   }
 
   // Mapping of tech IDs to folder names
@@ -97,61 +86,10 @@
     return parts.join("-");
   }
 
-  async function handleStartSprint() {
+  async function handleViewScenarios() {
     const stackName = buildStackName(selection);
-
-    try {
-      // Pre-flight: verify the session is still valid before creating any resources.
-      // This catches stale sessions early without touching Docker or the database.
-      const sessionCheckResponse = await fetch("/auth/session");
-      if (!sessionCheckResponse.ok) {
-        toast.error("Your session is outdated. Please sign out and sign back in.");
-        return;
-      }
-      const sessionData = await sessionCheckResponse.json();
-      if (!sessionData?.user?.id) {
-        toast.error("Your session is outdated. Please sign out and sign back in.");
-        return;
-      }
-
-      // Step 1: Create the container
-      const createResponse = await fetch("/api/docker/container/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          stackName,
-          level: 1, // Default level
-          stacks: selection,
-        }),
-      });
-
-      const createData = await createResponse.json();
-
-      if (!createData.success) {
-        console.error("Failed to create container:", createData.error);
-        // 401 = stale session — userId missing from DB after a reset
-        if (createResponse.status === 401) {
-          toast.error("Your session is outdated. Please sign out and sign back in.");
-        } else {
-          toast.error(`Failed to create container: ${createData.error}`);
-        }
-        return;
-      }
-
-      // Existing container found — ask the user what to do instead of auto-navigating
-      if (createData.alreadyExists) {
-        existingContainerDbId = createData.dbContainerId;
-        existingContainerMessage = createData.message;
-        showExistingModal = true;
-        return;
-      }
-
-      navigateToRoute(createData.dbContainerId);
-    } catch (error) {
-      console.error("Error starting sprint:", error);
-    }
+    const encoded = encodeURIComponent(JSON.stringify(selection));
+    await goto(`/scenario?stack=${stackName}&selection=${encoded}`);
   }
 
    export let data: PageData;
@@ -159,6 +97,7 @@
   const headerUserData: UserData = {
     ...userData,
     name: data.user?.name ?? "No Name",
+    fullName: data.user?.fullName ?? data.user?.name ?? "No Name",
     avatar: data.user?.image ?? '',
     coins: data.userCoins,
   };
@@ -211,7 +150,7 @@
       </div>
 
       <!-- Popular Combos -->
-      <PopularCombos onSelectCombo={handleQuickSelect} />
+      <PopularCombos onSelectCombo={handleQuickSelect} {selection} />
 
       <!-- Divider -->
       <div class="relative my-8">
@@ -239,7 +178,7 @@
     <StackSummary
       {selection}
       onClear={handleClearSelection}
-      onStart={handleStartSprint}
+      onStart={handleViewScenarios}
       onShowInfo={handleShowInfo}
     />
 
@@ -248,20 +187,7 @@
       <StackInfoModal {selection} onClose={() => (showInfoModal = false)} />
     {/if}
 
-    <!-- Existing Container Dialog -->
-    <ConfirmationModal
-      bind:open={showExistingModal}
-      icon="⟨◉⟩"
-      iconVariant="accent"
-      title="Active Session Detected"
-      subtitle="Existing workspace found"
-      description={existingContainerMessage}
-      confirmLabel="Continue to Workspace"
-      cancelLabel="Cancel"
-      variant="primary"
-      on:confirm={() => { showExistingModal = false; navigateToRoute(existingContainerDbId); }}
-      on:cancel={() => { showExistingModal = false; existingContainerDbId = ''; }}
-    />
+
   </div>
 </div>
 
