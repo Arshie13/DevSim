@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { Trophy, Star, ChevronRight, Coins, Zap, RotateCcw, X, AlertCircle } from "lucide-svelte";
+  import { Trophy, Star, ChevronRight, Coins, Zap, RotateCcw } from "lucide-svelte";
   import type { FinishedStack } from "$types";
   import LoadingSteps from "$lib/components/ui/LoadingSteps.svelte";
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
 
   export let stacks: FinishedStack[];
   export let maxVisible: number = 2;
@@ -20,6 +21,7 @@
   ];
 
   let paywallStack: FinishedStack | null = null;
+  let paywallOpen = false;
   let isRestoring = false;
   let restoreStep = 0;
   let restoreError = "";
@@ -27,12 +29,13 @@
 
   function openPaywall(stack: FinishedStack) {
     paywallStack = stack;
+    paywallOpen = true;
     restoreError = "";
   }
 
   function closePaywall() {
     if (isRestoring) return;
-    paywallStack = null;
+    paywallOpen = false;
     restoreError = "";
   }
 
@@ -60,6 +63,9 @@
     restoreError = "";
     startStepTimer();
 
+    // Close the confirm modal — loading overlay takes over
+    paywallOpen = false;
+
     try {
       const res = await fetch(`/api/docker/container/${paywallStack.id}/restore`, {
         method: "POST",
@@ -83,27 +89,26 @@
       stopStepTimer();
       restoreError = err instanceof Error ? err.message : "Restore failed. Please try again.";
       isRestoring = false;
+      // Re-open the modal to show the error
+      paywallOpen = true;
     }
   }
 </script>
 
-
-<div class="relative bg-obsidian-surface/40 border border-amber-500/25 rounded-xl overflow-hidden shadow-[0_0_35px_rgba(251,191,36,0.1)] hover:shadow-[0_0_45px_rgba(251,191,36,0.18)] transition-shadow duration-500">
-  <!-- Top edge glow -->
-  <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-text-primary/40 to-transparent"></div>
+<div class="card-cyber shadow-card-glow hover:shadow-card-glow-hover transition-shadow duration-500 relative overflow-hidden">
   <!-- Header -->
-  <div class="flex items-center justify-between px-5 py-4 border-b border-obsidian-border/60">
+  <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--card-border)]">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-        <Trophy class="w-4 h-4 text-amber-400" />
+      <div class="w-8 h-8 rounded-card bg-cyber-warn/15 flex items-center justify-center border border-cyber-warn/30">
+        <Trophy class="w-4 h-4 text-cyber-warn" />
       </div>
       <div>
-        <h3 class="text-sm font-semibold text-obsidian-text-muted">Completed</h3>
-        <p class="text-xs text-obsidian-text-primary/50">{stacks.length} stack{stacks.length !== 1 ? 's' : ''} mastered</p>
+        <h3 class="text-sm font-orbitron font-bold text-obsidian-text-muted">Completed</h3>
+        <p class="text-xs font-mono text-[var(--text-muted)]">{stacks.length} stack{stacks.length !== 1 ? 's' : ''} mastered</p>
       </div>
     </div>
     <button
-      class="flex items-center gap-1 text-xs text-obsidian-accent hover:text-obsidian-accent/80 transition-colors font-medium"
+      class="tag-cyber tag-warn flex items-center gap-1 hover:bg-cyber-warn/15 transition-colors cursor-pointer"
     >
       See All
       <ChevronRight class="w-3 h-3" />
@@ -115,9 +120,11 @@
     {#if stacks.length > 0}
       <div class="space-y-3">
         {#each visibleStacks as stack}
-          <div class="group relative bg-obsidian-bg-light border border-obsidian-border/60 rounded-lg p-4 hover:border-amber-500/30 transition-all duration-300">
+          <div class="group relative bg-obsidian-bg border border-[var(--card-border)] rounded-card p-4 hover:border-cyber-warn/40 transition-all duration-300 hover:translate-x-1">
+            <!-- Top shimmer -->
+            <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyber-warn to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <!-- Success gradient overlay -->
-            <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="absolute inset-0 rounded-card bg-gradient-to-r from-cyber-warn/5 to-cyber-success/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             
             <div class="relative">
               <div class="flex items-start justify-between mb-3">
@@ -125,15 +132,15 @@
                   <div class="relative">
                     <span class="text-2xl">{stack.icon}</span>
                     <!-- Completion badge -->
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
-                      <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-cyber-success rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(0,229,160,0.4)]">
+                      <svg class="w-2.5 h-2.5 text-obsidian-bg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                   </div>
                   <div>
-                    <h4 class="text-sm font-semibold text-obsidian-text-muted">{stack.name}</h4>
-                    <p class="text-xs text-obsidian-text-primary/50">
+                    <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{stack.name}</h4>
+                    <p class="text-xs font-mono text-[var(--text-muted)]">
                       {stack.frontend} • {stack.backend} • {stack.database}
                     </p>
                   </div>
@@ -143,31 +150,31 @@
                 <div class="flex items-center gap-0.5">
                   {#each Array(5) as _, i}
                     <Star 
-                      class="w-3 h-3 {i < stack.rating ? 'text-amber-400 fill-amber-400' : 'text-obsidian-border'}" 
+                      class="w-3 h-3 {i < stack.rating ? 'text-cyber-warn fill-cyber-warn' : 'text-obsidian-border'}" 
                     />
                   {/each}
                 </div>
               </div>
 
               <!-- Stats Row -->
-              <div class="flex items-center gap-4 text-xs">
-                <div class="flex items-center gap-1.5 text-obsidian-text-primary/60">
-                  <Zap class="w-3 h-3 text-cyan-400" />
+              <div class="flex items-center gap-4 font-mono text-xs">
+                <div class="tag-cyber tag-cyan flex items-center gap-1.5">
+                  <Zap class="w-3 h-3" />
                   <span>+{stack.xpEarned.toLocaleString()} XP</span>
                 </div>
-                <div class="flex items-center gap-1.5 text-obsidian-text-primary/60">
-                  <Coins class="w-3 h-3 text-amber-400" />
+                <div class="tag-cyber tag-warn flex items-center gap-1.5">
+                  <Coins class="w-3 h-3" />
                   <span>+{stack.coinsEarned}</span>
                 </div>
-                <div class="ml-auto text-obsidian-text-primary/40">
+                <div class="ml-auto text-[var(--text-muted)]">
                   {stack.completedAt}
                 </div>
               </div>
 
-              <!-- Restore Button -->
+              <!-- Restore Button (clip-path) -->
               <button
                 on:click={() => openPaywall(stack)}
-                class="mt-3 w-full flex items-center justify-center gap-2 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium hover:bg-amber-500/20 hover:border-amber-500/50 transition-all duration-200"
+                class="btn-cyber mt-3 w-full flex items-center justify-center gap-2 !py-1.5 bg-cyber-warn/10 border border-cyber-warn/30 text-cyber-warn text-xs hover:bg-cyber-warn/20 hover:border-cyber-warn/50 hover:shadow-[0_0_15px_rgba(255,180,0,0.15)] transition-all duration-200"
               >
                 <RotateCcw class="w-3 h-3" />
                 Restore Progress
@@ -178,112 +185,64 @@
       </div>
     {:else}
       <div class="flex-1 flex items-center justify-center">
-        <div class="text-center text-obsidian-text-primary/40">
-          <p class="text-lg">No completed stacks yet</p>
-          <p class="text-md mt-1">Complete your first stack to see it here!</p>
+        <div class="text-center">
+          <p class="text-lg font-orbitron text-obsidian-text-primary/40">No completed stacks yet</p>
+          <p class="text-md font-rajdhani text-[var(--text-muted)] mt-1">Complete your first stack to see it here!</p>
         </div>
       </div>
     {/if}
   </div>
 </div>
 
-<!-- Paywall Modal -->
+<!-- Restore Paywall — ConfirmationModal -->
 {#if paywallStack}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-    on:click|self={closePaywall}
+  <ConfirmationModal
+    bind:open={paywallOpen}
+    icon="🔄"
+    iconVariant="warning"
+    title="Restore Workspace?"
+    confirmLabel="Confirm ({RESTORE_COST} 🪙)"
+    cancelLabel="Cancel"
+    variant="warning"
+    error={restoreError}
+    on:confirm={handleRestore}
+    on:cancel={closePaywall}
   >
-    <div class="relative w-full max-w-sm mx-4 bg-obsidian-surface border border-amber-500/40 rounded-2xl shadow-[0_0_60px_rgba(251,191,36,0.15)] overflow-hidden">
-      <!-- Top glow -->
-      <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"></div>
-
-      <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-obsidian-border/60">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-            <RotateCcw class="w-4 h-4 text-amber-400" />
-          </div>
-          <h3 class="text-sm font-semibold text-obsidian-text-muted">Restore Progress</h3>
+    <!-- Stack preview + cost/balance info -->
+    <div class="space-y-3">
+      <!-- Stack card -->
+      <div class="flex items-center gap-3 bg-[#0a0e1a] border border-[rgba(7,165,201,0.12)] rounded-[4px] px-4 py-3">
+        <span class="text-2xl">{paywallStack.icon}</span>
+        <div>
+          <p class="font-mono text-[0.85rem] font-semibold text-[#d0d7dd]">{paywallStack.name}</p>
+          <p class="font-mono text-xs text-[#8892a0]">{paywallStack.frontend} · {paywallStack.backend} · {paywallStack.database}</p>
         </div>
-        <button
-          on:click={closePaywall}
-          class="text-obsidian-text-primary/40 hover:text-obsidian-text-primary/80 transition-colors"
-        >
-          <X class="w-4 h-4" />
-        </button>
       </div>
 
-      <!-- Body -->
-      <div class="px-6 py-5 space-y-4">
-        <p class="text-sm text-obsidian-text-primary/70">
-          You're about to restore your saved workspace for:
+      <!-- Cost row -->
+      <div class="flex items-center justify-between bg-[rgba(255,180,0,0.06)] border border-[rgba(255,180,0,0.2)] rounded-[4px] px-4 py-2.5">
+        <span class="font-mono text-[0.8rem] text-[#8892a0] uppercase tracking-wider">Restore cost</span>
+        <div class="flex items-center gap-1.5 text-[#ffb400] font-mono font-semibold text-[0.85rem]">
+          <Coins class="w-4 h-4" />
+          <span>{RESTORE_COST} coins</span>
+        </div>
+      </div>
+
+      <!-- Balance row -->
+      <div class="flex items-center justify-between px-1">
+        <span class="font-mono text-xs text-[#8892a0]">Your balance</span>
+        <span class="font-mono text-xs font-semibold {userCoins >= RESTORE_COST ? 'text-[#00e5a0]' : 'text-[#ff3860]'}">
+          🪙 {userCoins} coins
+        </span>
+      </div>
+
+      {#if userCoins < RESTORE_COST}
+        <p class="font-mono text-xs text-[#ff3860]/80 text-center">
+          Not enough coins. Earn more by completing sprints.
         </p>
-        <div class="flex items-center gap-3 bg-obsidian-bg-light border border-obsidian-border/50 rounded-lg px-4 py-3">
-          <span class="text-2xl">{paywallStack.icon}</span>
-          <div>
-            <p class="text-sm font-semibold text-obsidian-text-muted">{paywallStack.name}</p>
-            <p class="text-xs text-obsidian-text-primary/50">{paywallStack.frontend} · {paywallStack.backend} · {paywallStack.database}</p>
-          </div>
-        </div>
-
-        <!-- Cost vs Balance -->
-        <div class="flex items-center justify-between bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-3">
-          <span class="text-sm text-obsidian-text-primary/70">Restore cost</span>
-          <div class="flex items-center gap-1.5 text-amber-400 font-semibold text-sm">
-            <Coins class="w-4 h-4" />
-            <span>{RESTORE_COST} coins</span>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between px-1">
-          <span class="text-xs text-obsidian-text-primary/50">Your balance</span>
-          <span class="text-xs font-medium {userCoins >= RESTORE_COST ? 'text-emerald-400' : 'text-rose-400'}">
-            🪙 {userCoins} coins
-          </span>
-        </div>
-
-        {#if userCoins < RESTORE_COST}
-          <p class="text-xs text-rose-400/80 text-center">
-            Not enough coins. Earn more by completing sprints.
-          </p>
-        {/if}
-
-        {#if restoreError}
-          <div class="flex items-start gap-2 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2">
-            <AlertCircle class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-            <p class="text-xs text-rose-400">{restoreError}</p>
-          </div>
-        {/if}
-      </div>
-
-      <!-- Actions -->
-      <div class="flex gap-3 px-6 pb-5">
-        <button
-          on:click={closePaywall}
-          disabled={isRestoring}
-          class="flex-1 py-2.5 rounded-lg border border-obsidian-border/60 text-sm text-obsidian-text-primary/60 hover:border-obsidian-border hover:text-obsidian-text-primary/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Cancel
-        </button>
-        <button
-          on:click={handleRestore}
-          disabled={isRestoring || userCoins < RESTORE_COST}
-          class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all
-            {userCoins >= RESTORE_COST && !isRestoring
-              ? 'bg-amber-500 hover:bg-amber-400 text-obsidian-bg'
-              : 'bg-amber-500/30 border border-amber-500/20 text-amber-400/50 cursor-not-allowed'}"
-        >
-          {#if isRestoring}
-            Restoring...
-          {:else}
-            Confirm ({RESTORE_COST} 🪙)
-          {/if}
-        </button>
-      </div>
+      {/if}
     </div>
-  </div>
+  </ConfirmationModal>
 {/if}
 
 <!-- ── Restore Loading Overlay ──────────────────────────────────────────── -->

@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="cp_chrome" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="20%" stop-color="#b0b8c0"/>
+      <stop offset="45%" stop-color="#d8dce0"/>
+      <stop offset="70%" stop-color="#787e88"/>
+      <stop offset="100%" stop-color="#404850"/>
+    </linearGradient>
+    <linearGradient id="cp_skin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c89068"/>
+      <stop offset="100%" stop-color="#a06848"/>
+    </linearGradient>
+    <linearGradient id="cp_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a0a"/>
+      <stop offset="100%" stop-color="#0a0a04"/>
+    </linearGradient>
+    <filter id="cp_glow_yellow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cp_glow_s">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cp_sharp">
+      <feGaussianBlur stdDeviation="0.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="cp_diamond">
+      <polygon points="100,8 188,100 100,192 12,100"/>
+    </clipPath>
+    <clipPath id="cp_inner">
+      <polygon points="100,14 182,100 100,186 18,100"/>
+    </clipPath>
+    <mask id="cp_halftone">
+      <rect width="200" height="200" fill="white"/>
+      <rect x="0" y="0" width="100" height="200" fill="black"/>
+    </mask>
+  </defs>
+
+  <!-- ===== DIAMOND FRAME ===== -->
+  <!-- Outer diamond -->
+  <polygon points="100,4 196,100 100,196 4,100" fill="none" stroke="#f0d000" stroke-width="2" stroke-opacity="0.8"/>
+  <!-- Second diamond - inset -->
+  <polygon points="100,10 190,100 100,190 10,100" fill="none" stroke="#f0d000" stroke-width="0.8" stroke-opacity="0.4"/>
+  <!-- Bolt details at corners -->
+  <g fill="#f0d000" filter="url(#cp_sharp)">
+    <!-- Top bolt -->
+    <rect x="97" y="5" width="6" height="6" rx="1" fill="#2a2a10" stroke="#f0d000" stroke-width="1"/>
+    <circle cx="100" cy="8" r="1.5" fill="#f0d000"/>
+    <!-- Right bolt -->
+    <rect x="187" y="97" width="6" height="6" rx="1" fill="#2a2a10" stroke="#f0d000" stroke-width="1"/>
+    <circle cx="190" cy="100" r="1.5" fill="#f0d000"/>
+    <!-- Bottom bolt -->
+    <rect x="97" y="189" width="6" height="6" rx="1" fill="#2a2a10" stroke="#f0d000" stroke-width="1"/>
+    <circle cx="100" cy="192" r="1.5" fill="#f0d000"/>
+    <!-- Left bolt -->
+    <rect x="7" y="97" width="6" height="6" rx="1" fill="#2a2a10" stroke="#f0d000" stroke-width="1"/>
+    <circle cx="10" cy="100" r="1.5" fill="#f0d000"/>
+  </g>
+  <!-- Diagonal edge tick marks -->
+  <g stroke="#f0d000" stroke-width="0.8" stroke-opacity="0.35">
+    <line x1="148" y1="52" x2="152" y2="48"/>
+    <line x1="152" y1="148" x2="148" y2="152"/>
+    <line x1="52" y1="148" x2="48" y2="152"/>
+    <line x1="48" y1="52" x2="52" y2="48"/>
+    <line x1="126" y1="26" x2="130" y2="22"/>
+    <line x1="174" y1="74" x2="178" y2="70"/>
+    <line x1="174" y1="126" x2="178" y2="130"/>
+    <line x1="126" y1="174" x2="130" y2="178"/>
+    <line x1="74" y1="174" x2="70" y2="178"/>
+    <line x1="26" y1="126" x2="22" y2="130"/>
+    <line x1="26" y1="74" x2="22" y2="70"/>
+    <line x1="74" y1="26" x2="70" y2="22"/>
+  </g>
+
+  <!-- ===== BACKGROUND ===== -->
+  <polygon points="100,14 186,100 100,186 14,100" fill="url(#cp_bg)"/>
+  <!-- Halftone dot pattern - left side -->
+  <g clip-path="url(#cp_inner)" opacity="0.08">
+    <g fill="#f0d000">
+      <!-- Row pattern of dots simulating halftone -->
+      <circle cx="25" cy="60" r="2"/><circle cx="35" cy="60" r="2"/><circle cx="45" cy="60" r="2"/><circle cx="55" cy="60" r="2"/>
+      <circle cx="30" cy="70" r="2"/><circle cx="40" cy="70" r="2"/><circle cx="50" cy="70" r="2"/>
+      <circle cx="25" cy="80" r="2"/><circle cx="35" cy="80" r="2"/><circle cx="45" cy="80" r="2"/><circle cx="55" cy="80" r="2"/>
+      <circle cx="30" cy="90" r="2"/><circle cx="40" cy="90" r="2"/><circle cx="50" cy="90" r="2"/>
+      <circle cx="25" cy="100" r="2"/><circle cx="35" cy="100" r="2"/><circle cx="45" cy="100" r="2"/>
+      <circle cx="30" cy="110" r="2"/><circle cx="40" cy="110" r="2"/><circle cx="50" cy="110" r="2"/>
+      <circle cx="25" cy="120" r="2"/><circle cx="35" cy="120" r="2"/><circle cx="45" cy="120" r="2"/>
+      <circle cx="30" cy="130" r="2"/><circle cx="40" cy="130" r="2"/><circle cx="50" cy="130" r="2"/>
+      <circle cx="25" cy="140" r="2"/><circle cx="35" cy="140" r="2"/>
+    </g>
+  </g>
+
+  <!-- ===== BODY ===== -->
+  <!-- Industrial jacket / armor vest -->
+  <path d="M 14 186 L 30 155 L 48 135 Q 60 120 72 114 L 85 108 Q 93 106 100 106 Q 107 106 115 108 L 128 114 Q 140 120 152 135 L 170 155 L 186 186 Z"
+        fill="#1a1a0a" clip-path="url(#cp_inner)"/>
+  <!-- Left side - organic skin/worn jacket -->
+  <path d="M 14 186 L 30 155 L 48 135 Q 58 122 70 115 L 82 109 L 100 107 L 100 186 Z"
+        fill="#2a1a0a" clip-path="url(#cp_inner)"/>
+  <!-- Right side - chrome plated armor -->
+  <path d="M 186 186 L 170 155 L 152 135 Q 142 122 130 115 L 118 109 L 100 107 L 100 186 Z"
+        fill="#28303a" clip-path="url(#cp_inner)"/>
+  <!-- Chrome panel seams on right shoulder -->
+  <path d="M 130 115 L 145 130 L 155 148" fill="none" stroke="#c8d0d8" stroke-width="0.8" stroke-opacity="0.5" clip-path="url(#cp_inner)"/>
+  <path d="M 125 118 L 138 135" fill="none" stroke="#c8d0d8" stroke-width="0.5" stroke-opacity="0.4" clip-path="url(#cp_inner)"/>
+  <!-- Left worn leather stitching -->
+  <path d="M 70 115 L 58 132 L 48 150" fill="none" stroke="#806050" stroke-width="0.6" stroke-dasharray="2 3" stroke-opacity="0.5" clip-path="url(#cp_inner)"/>
+  <!-- Yellow hazard stripe on body -->
+  <path d="M 100 106 L 100 186" stroke="#f0d000" stroke-width="2" stroke-opacity="0.4" stroke-dasharray="6 4" clip-path="url(#cp_inner)"/>
+
+  <!-- Exposed wiring at collar -->
+  <g clip-path="url(#cp_inner)" filter="url(#cp_sharp)">
+    <path d="M 90 108 Q 88 113 86 118 Q 84 123 88 125" fill="none" stroke="#f03030" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M 93 107 Q 91 114 92 120" fill="none" stroke="#3080f0" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M 107 108 Q 109 113 112 118 Q 114 123 110 125" fill="none" stroke="#f0d000" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M 110 107 Q 112 114 110 120" fill="none" stroke="#30f060" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- Wire endpoints -->
+    <circle cx="88" cy="125" r="1.5" fill="#f03030"/>
+    <circle cx="110" cy="125" r="1.5" fill="#f0d000"/>
+  </g>
+
+  <!-- ===== HEAD ===== -->
+  <!-- Neck - half skin half chrome -->
+  <rect x="91" y="104" width="18" height="10" rx="2" fill="#b07050" clip-path="url(#cp_inner)"/>
+  <rect x="100" y="104" width="9" height="10" rx="0" fill="url(#cp_chrome)" clip-path="url(#cp_inner)"/>
+  <!-- Neck seam -->
+  <line x1="100" y1="104" x2="100" y2="114" stroke="#f0d000" stroke-width="1" stroke-opacity="0.7"/>
+
+  <!-- Head left half - organic skin -->
+  <ellipse cx="100" cy="83" rx="26" ry="28" fill="url(#cp_skin)"/>
+  <!-- Head right half - chrome plate -->
+  <path d="M 100 55 Q 126 55 126 83 Q 126 111 100 111 L 100 55 Z" fill="url(#cp_chrome)"/>
+  <!-- Head center seam -->
+  <line x1="100" y1="55" x2="100" y2="111" stroke="#f0d000" stroke-width="1.5" stroke-opacity="0.9" filter="url(#cp_sharp)"/>
+
+  <!-- ===== HAIR — LEFT SIDE ONLY (shaved right side) ===== -->
+  <!-- Wild punk left hair -->
+  <path d="M 74 66 Q 68 50 72 38 Q 76 28 82 32 Q 78 40 80 52 Q 86 42 90 30 Q 96 18 100 22 Q 98 32 94 46 Q 100 34 106 28 Q 98 40 96 56 L 100 56 L 100 62 Q 90 60 84 64 Z" 
+        fill="#1a0a0a" clip-path="url(#cp_inner)"/>
+  <!-- Hair highlight streak (neon yellow) -->
+  <path d="M 78 62 Q 74 48 76 36 Q 78 28 82 32" fill="none" stroke="#f0d000" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round" clip-path="url(#cp_inner)"/>
+
+  <!-- Right chrome skull cap / plate -->
+  <path d="M 100 55 Q 116 55 122 68 Q 126 75 126 83 Q 124 72 118 65 Q 112 58 100 56 Z" fill="#c0c8d0" fill-opacity="0.6" clip-path="url(#cp_inner)"/>
+  <!-- Chrome plate rivets -->
+  <circle cx="112" cy="63" r="2" fill="#e0e8f0" clip-path="url(#cp_inner)"/>
+  <circle cx="119" cy="72" r="1.5" fill="#e0e8f0" clip-path="url(#cp_inner)"/>
+  <circle cx="122" cy="82" r="2" fill="#e0e8f0" clip-path="url(#cp_inner)"/>
+
+  <!-- ===== FACE ===== -->
+  <!-- Left eye — organic, piercing -->
+  <ellipse cx="88" cy="85" rx="9" ry="8" fill="#0a0505"/>
+  <ellipse cx="88" cy="85" rx="7" ry="6" fill="#503020"/>
+  <ellipse cx="88" cy="85" rx="4.5" ry="4.5" fill="#301808"/>
+  <!-- Iris ring -->
+  <ellipse cx="88" cy="85" rx="4.5" ry="4.5" fill="none" stroke="#c07030" stroke-width="0.8"/>
+  <!-- Pupil -->
+  <circle cx="88" cy="85" r="2.5" fill="#080303"/>
+  <!-- Shine -->
+  <circle cx="86" cy="83" r="1.8" fill="white" fill-opacity="0.7"/>
+  <circle cx="90" cy="87" r="0.8" fill="white" fill-opacity="0.3"/>
+  <!-- Brow - angry/fierce on left -->
+  <path d="M 80 77 Q 86 73 96 76" fill="none" stroke="#6a3a20" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Right eye — cybernetic red LED -->
+  <ellipse cx="112" cy="85" rx="9" ry="8" fill="#101418"/>
+  <!-- Chrome eye socket rim -->
+  <ellipse cx="112" cy="85" rx="9" ry="8" fill="none" stroke="#909898" stroke-width="1"/>
+  <!-- Red targeting reticle -->
+  <circle cx="112" cy="85" r="6" fill="none" stroke="#f01020" stroke-width="0.8" filter="url(#cp_glow_yellow)"/>
+  <circle cx="112" cy="85" r="3.5" fill="#f01020" fill-opacity="0.8" filter="url(#cp_glow_yellow)"/>
+  <circle cx="112" cy="85" r="1.5" fill="#ff8090"/>
+  <!-- Targeting crosshairs -->
+  <line x1="112" y1="78" x2="112" y2="80" stroke="#f01020" stroke-width="0.8" stroke-opacity="0.8"/>
+  <line x1="112" y1="90" x2="112" y2="92" stroke="#f01020" stroke-width="0.8" stroke-opacity="0.8"/>
+  <line x1="105" y1="85" x2="107" y2="85" stroke="#f01020" stroke-width="0.8" stroke-opacity="0.8"/>
+  <line x1="117" y1="85" x2="119" y2="85" stroke="#f01020" stroke-width="0.8" stroke-opacity="0.8"/>
+  <!-- Chrome brow plate on right -->
+  <path d="M 104 77 Q 110 72 121 75" fill="none" stroke="#a0a8b0" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Nose -->
+  <path d="M 97 93 L 100 99 L 103 93" fill="none" stroke="#906050" stroke-width="1.2" stroke-linejoin="round" opacity="0.7"/>
+  <!-- Chrome nose plate on right half -->
+  <path d="M 100 93 L 103 99 L 103 93" fill="#a0a8b0" fill-opacity="0.5" clip-path="url(#cp_inner)"/>
+
+  <!-- Mouth - smirk left, chrome grill right -->
+  <!-- Left smirk -->
+  <path d="M 84 104 Q 92 108 100 105" fill="none" stroke="#8a5838" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Right chrome grill -->
+  <rect x="100" y="102" width="18" height="6" rx="1" fill="#283038" clip-path="url(#cp_inner)"/>
+  <line x1="103" y1="102" x2="103" y2="108" stroke="#506070" stroke-width="0.6" stroke-opacity="0.7" clip-path="url(#cp_inner)"/>
+  <line x1="106" y1="102" x2="106" y2="108" stroke="#506070" stroke-width="0.6" stroke-opacity="0.7" clip-path="url(#cp_inner)"/>
+  <line x1="109" y1="102" x2="109" y2="108" stroke="#506070" stroke-width="0.6" stroke-opacity="0.7" clip-path="url(#cp_inner)"/>
+  <line x1="112" y1="102" x2="112" y2="108" stroke="#506070" stroke-width="0.6" stroke-opacity="0.7" clip-path="url(#cp_inner)"/>
+  <line x1="115" y1="102" x2="115" y2="108" stroke="#506070" stroke-width="0.6" stroke-opacity="0.7" clip-path="url(#cp_inner)"/>
+  <!-- Grill yellow indicator LED -->
+  <circle cx="116" cy="105" r="1.5" fill="#f0d000" filter="url(#cp_sharp)"/>
+
+  <!-- Scar on left cheek -->
+  <path d="M 82 95 L 86 102" stroke="#603828" stroke-width="1" stroke-opacity="0.6" stroke-linecap="round"/>
+
+  <!-- Temple data port on right -->
+  <circle cx="122" cy="83" r="3" fill="#1a2228" stroke="#7090a0" stroke-width="0.8" clip-path="url(#cp_inner)"/>
+  <circle cx="122" cy="83" r="1.5" fill="#f0d000" fill-opacity="0.6" filter="url(#cp_sharp)"/>
+</svg>

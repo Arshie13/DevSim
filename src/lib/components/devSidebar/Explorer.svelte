@@ -377,8 +377,8 @@
 <!-- Context Menu -->
 {#if contextMenu}
   <div
-    class="fixed z-50 bg-[#1e1e1e] border border-[#27272a] rounded-lg shadow-xl py-1 min-w-[160px]"
-    style="left: {contextMenu.x}px; top: {contextMenu.y}px;"
+    class="fixed z-50 py-1 min-w-[160px]"
+    style="left: {contextMenu.x}px; top: {contextMenu.y}px;background:#12192a;border:1px solid rgba(7,165,201,0.2);border-radius:4px;box-shadow:0 0 24px rgba(7,165,201,0.1),0 8px 32px rgba(0,0,0,0.5);"
     on:click|stopPropagation
     on:keydown={(e) => e.key === 'Escape' && closeContextMenu()}
     role="menu"
@@ -386,36 +386,40 @@
   >
     <button
       on:click={handleCreateFile}
-      class="w-full px-3 py-1.5 text-left text-sm text-[#d0d7dd] hover:bg-[#2d3446] flex items-center gap-2"
+      class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
+      style="font-family:'Share Tech Mono',monospace;"
       role="menuitem"
     >
-      <FilePlus class="w-4 h-4" />
+      <FilePlus class="w-3.5 h-3.5 flex-shrink-0" />
       New File
     </button>
     <button
       on:click={handleCreateFolder}
-      class="w-full px-3 py-1.5 text-left text-sm text-[#d0d7dd] hover:bg-[#2d3446] flex items-center gap-2"
+      class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
+      style="font-family:'Share Tech Mono',monospace;"
       role="menuitem"
     >
-      <FolderPlus class="w-4 h-4" />
+      <FolderPlus class="w-3.5 h-3.5 flex-shrink-0" />
       New Folder
     </button>
     {#if contextMenu.node}
-      <div class="border-t border-[#27272a] my-1"></div>
+      <div class="my-1" style="border-top:1px solid rgba(7,165,201,0.08);"></div>
       <button
         on:click={handleRenameFile}
-        class="w-full px-3 py-1.5 text-left text-sm text-[#d0d7dd] hover:bg-[#2d3446] flex items-center gap-2"
+        class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
+        style="font-family:'Share Tech Mono',monospace;"
         role="menuitem"
       >
-        <Pencil class="w-4 h-4" />
+        <Pencil class="w-3.5 h-3.5 flex-shrink-0" />
         Rename
       </button>
       <button
         on:click={handleDeleteFile}
-        class="w-full px-3 py-1.5 text-left text-sm text-red-400 hover:bg-[#2d3446] flex items-center gap-2"
+        class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#ff3860] hover:bg-[rgba(255,56,96,0.08)] transition-colors"
+        style="font-family:'Share Tech Mono',monospace;"
         role="menuitem"
       >
-        <Trash2 class="w-4 h-4" />
+        <Trash2 class="w-3.5 h-3.5 flex-shrink-0" />
         Delete
       </button>
     {/if}

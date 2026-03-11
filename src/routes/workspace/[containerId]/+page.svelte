@@ -14,12 +14,15 @@
   import PreviewPanel from "$lib/components/workspace/PreviewPanel.svelte";
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
+  import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import type { FileListResponse } from "$lib/interface/Files";
 
   import type { Session } from "@auth/core/types";
+  import { toast } from "$lib/stores/toast";
 
   // Server-loaded data:
   //   dockerContainerId — the real Docker container ID (for Docker API calls)
@@ -49,6 +52,15 @@
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
+
+  // ── Panel toggle state ───────────────────────────────────────────────────
+  let aiPanelOpen: boolean = false;
+
+  // ── Back confirmation modal state ────────────────────────────────────────
+  let backModalOpen: boolean = false;
+  let backModalLoading: boolean = false;
+
+  function toggleAiPanel() { aiPanelOpen = !aiPanelOpen; }
 
   // ── Boot loading state ───────────────────────────────────────────────────
   let isBooting = true;
@@ -259,9 +271,10 @@
         },
       );
       const result = await response.json();
-      if (result.success) console.log("File saved successfully");
+      if (result.success) toast.success("File saved");
     } catch (error) {
       console.error("Error saving file:", error);
+      toast.error("Failed to save file");
     }
   }
 
@@ -319,6 +332,12 @@
   }
 
   function handleBack() {
+    backModalOpen = true;
+  }
+
+  async function confirmBack() {
+    backModalLoading = true;
+    await fetch(`/api/docker/container/${containerId}/stop`, { method: "POST" });
     goto("/dashboard");
   }
 
@@ -327,19 +346,50 @@
   }
 
   function refreshPreview() {
-    if (!previewUrl) return;
-    try {
-      const currentUrl = new URL(previewUrl);
-      currentUrl.searchParams.set("t", Date.now().toString());
-      previewUrl = currentUrl.toString();
-      if (iframeRef) iframeRef.src = previewUrl;
-    } catch (error) {
-      console.error("Error refreshing preview:", error);
-    }
+    // Fetch live ports from Docker
+    fetch(`/api/docker/container/${containerId}/ports`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.previewUrl) {
+          previewUrl = data.previewUrl;
+          if (iframeRef) {
+            iframeRef.src = previewUrl + '?t=' + Date.now();
+          }
+        } else {
+          // Fallback to existing previewUrl with cache-bust
+          if (previewUrl) {
+            try {
+              const currentUrl = new URL(previewUrl);
+              currentUrl.searchParams.set('t', Date.now().toString());
+              previewUrl = currentUrl.toString();
+              if (iframeRef) iframeRef.src = previewUrl;
+            } catch (error) {
+              console.error('Error refreshing preview:', error);
+            }
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching ports:', err);
+        if (previewUrl) {
+          try {
+            const currentUrl = new URL(previewUrl);
+            currentUrl.searchParams.set('t', Date.now().toString());
+            previewUrl = currentUrl.toString();
+            if (iframeRef) iframeRef.src = previewUrl;
+          } catch (error) {
+            console.error('Error refreshing preview:', error);
+          }
+        }
+      });
   }
 
   function handleTabChange(tab: "editor" | "terminal" | "preview") {
     activeTab = tab;
+    // Auto-refresh preview when switching to preview tab
+    if (tab === "preview") {
+      refreshPreview();
+    }
   }
   // Create file or folder
   async function handleCreateFile(fullPath: string, isDirectory: boolean) {
@@ -356,7 +406,7 @@
       );
       const data = await response.json();
       if (data.success) {
-        console.log(isDirectory ? "Folder" : "File", "created successfully");
+        toast.success(`${isDirectory ? 'Folder' : 'File'} created`);
         // Refresh file list
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
@@ -373,6 +423,7 @@
       }
     } catch (error) {
       console.error("Error creating file:", error);
+      toast.error(`Failed to create ${isDirectory ? 'folder' : 'file'}`);
     }
   }
 
@@ -408,9 +459,11 @@
         }
       } else {
         console.error("Delete failed:", data.error);
+        toast.error(`Delete failed: ${data.error}`);
       }
     } catch (error) {
       console.error("Error deleting file:", error);
+      toast.error("Failed to delete");
     }
   }
 
@@ -432,7 +485,7 @@
       );
       const data = await response.json();
       if (data.success) {
-        console.log("File renamed successfully");
+        toast.success("Renamed successfully");
         // Refresh file list
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
@@ -449,6 +502,7 @@
       }
     } catch (error) {
       console.error("Error renaming file:", error);
+      toast.error("Failed to rename");
     }
   }
 </script>
@@ -480,14 +534,16 @@
     difficulty={LEVEL_CONFIG.difficulty}
     {timeRemaining}
     {isRunning}
+    {aiPanelOpen}
     onBack={handleBack}
     onRun={runDevServer}
     onStop={stopDevServer}
     onSubmit={handleSubmitSprint}
+    onToggleAi={toggleAiPanel}
   />
 
   <div class="flex flex-1 overflow-hidden">
-    <!-- Left Sidebar -->
+    <!-- Left Sidebar (VS Code-style toggle) -->
     <PrimarySidebar
       {fileTree}
       {directories}
@@ -507,12 +563,12 @@
     />
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex flex-col min-w-0">
       <!-- Tab Bar -->
       <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
 
       <!-- Content Area -->
-      <div class="flex-1 relative">
+      <div class="flex-1 relative overflow-hidden">
         <EditorPanel
           visible={activeTab === "editor"}
           {selectedFile}
@@ -530,6 +586,11 @@
         />
       </div>
     </div>
+
+    <!-- Right AI Hints Panel (toggleable) -->
+    {#if aiPanelOpen}
+      <AiHintsPanel hints={LEVEL_CONFIG.hints} onClose={toggleAiPanel} />
+    {/if}
   </div>
 
   <!-- Submit Sprint modal -->
@@ -537,6 +598,23 @@
     bind:this={submitSprintModal}
     dbContainerId={page.params.containerId}
     {tasks}
+  />
+
+  <!-- Back confirmation modal -->
+  <ConfirmationModal
+    bind:open={backModalOpen}
+    icon="🚪"
+    iconVariant="warning"
+    title="Leave Workspace?"
+    subtitle="Are you sure you want to leave? Your current progress will be lost."
+    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later."
+    confirmLabel="Leave"
+    cancelLabel="Stay"
+    variant="warning"
+    isLoading={backModalLoading}
+    loadingLabel="Stopping…"
+    on:confirm={confirmBack}
+    on:cancel={() => { backModalOpen = false; }}
   />
 </div>
 

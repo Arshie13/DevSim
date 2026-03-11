@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="gi_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0a2a"/>
+      <stop offset="40%" stop-color="#0d0818"/>
+      <stop offset="100%" stop-color="#00050f"/>
+    </linearGradient>
+    <linearGradient id="gi_face" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#f0c8e0"/>
+      <stop offset="50%" stop-color="#e0a0c0"/>
+      <stop offset="100%" stop-color="#c880a8"/>
+    </linearGradient>
+    <linearGradient id="gi_hair" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff50a0"/>
+      <stop offset="50%" stop-color="#c020e0"/>
+      <stop offset="100%" stop-color="#5020ff"/>
+    </linearGradient>
+    <filter id="gi_glow_pink">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gi_glow_s">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gi_sharp">
+      <feGaussianBlur stdDeviation="0.4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="gi_inner_star">
+      <polygon points="100,14 116,72 180,72 128,108 148,174 100,136 52,174 72,108 20,72 84,72"/>
+    </clipPath>
+  </defs>
+  <polygon points="100,4 119,70 188,70 131,110 154,182 100,142 46,182 69,110 12,70 81,70" fill="none" stroke="#ff50a0" stroke-width="2" stroke-opacity="0.7"/>
+  <polygon points="100,10 118,72 184,72 130,111 152,180 100,141 48,180 70,111 16,72 82,72" fill="none" stroke="#00f0e0" stroke-width="1" stroke-opacity="0.5"/>
+  <polygon points="100,14 117,74 180,74 128,112 150,178 100,139 50,178 72,112 20,74 83,74" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.3"/>
+  <circle cx="100" cy="4" r="3" fill="#ff50a0" filter="url(#gi_glow_s)"/>
+  <circle cx="100" cy="4" r="1.5" fill="white"/>
+  <circle cx="188" cy="70" r="2.5" fill="#00f0e0" filter="url(#gi_glow_s)"/>
+  <circle cx="154" cy="182" r="2.5" fill="#ff50a0" filter="url(#gi_glow_s)"/>
+  <circle cx="46" cy="182" r="2.5" fill="#ff50a0" filter="url(#gi_glow_s)"/>
+  <circle cx="12" cy="70" r="2.5" fill="#00f0e0" filter="url(#gi_glow_s)"/>
+  <polygon points="100,14 116,72 180,72 128,108 148,174 100,136 52,174 72,108 20,72 84,72" fill="url(#gi_bg)"/>
+  <g clip-path="url(#gi_inner_star)" opacity="0.1">
+    <line x1="0" y1="140" x2="200" y2="140" stroke="#ff50a0" stroke-width="1"/>
+    <line x1="0" y1="152" x2="200" y2="152" stroke="#ff50a0" stroke-width="0.8"/>
+    <line x1="0" y1="162" x2="200" y2="162" stroke="#ff50a0" stroke-width="0.6"/>
+    <line x1="0" y1="170" x2="200" y2="170" stroke="#ff50a0" stroke-width="0.5"/>
+    <line x1="60" y1="130" x2="40" y2="180" stroke="#ff50a0" stroke-width="0.6"/>
+    <line x1="80" y1="130" x2="70" y2="180" stroke="#ff50a0" stroke-width="0.6"/>
+    <line x1="100" y1="130" x2="100" y2="180" stroke="#ff50a0" stroke-width="0.8"/>
+    <line x1="120" y1="130" x2="130" y2="180" stroke="#ff50a0" stroke-width="0.6"/>
+    <line x1="140" y1="130" x2="160" y2="180" stroke="#ff50a0" stroke-width="0.6"/>
+  </g>
+  <g clip-path="url(#gi_inner_star)" opacity="0.025">
+    <rect x="0" y="16" width="200" height="2" fill="black"/>
+    <rect x="0" y="22" width="200" height="2" fill="black"/>
+    <rect x="0" y="28" width="200" height="2" fill="black"/>
+    <rect x="0" y="34" width="200" height="2" fill="black"/>
+    <rect x="0" y="40" width="200" height="2" fill="black"/>
+    <rect x="0" y="46" width="200" height="2" fill="black"/>
+    <rect x="0" y="52" width="200" height="2" fill="black"/>
+    <rect x="0" y="58" width="200" height="2" fill="black"/>
+    <rect x="0" y="64" width="200" height="2" fill="black"/>
+    <rect x="0" y="70" width="200" height="2" fill="black"/>
+    <rect x="0" y="76" width="200" height="2" fill="black"/>
+    <rect x="0" y="82" width="200" height="2" fill="black"/>
+    <rect x="0" y="88" width="200" height="2" fill="black"/>
+    <rect x="0" y="94" width="200" height="2" fill="black"/>
+    <rect x="0" y="100" width="200" height="2" fill="black"/>
+    <rect x="0" y="106" width="200" height="2" fill="black"/>
+    <rect x="0" y="112" width="200" height="2" fill="black"/>
+    <rect x="0" y="118" width="200" height="2" fill="black"/>
+    <rect x="0" y="124" width="200" height="2" fill="black"/>
+    <rect x="0" y="130" width="200" height="2" fill="black"/>
+    <rect x="0" y="136" width="200" height="2" fill="black"/>
+    <rect x="0" y="142" width="200" height="2" fill="black"/>
+    <rect x="0" y="148" width="200" height="2" fill="black"/>
+    <rect x="0" y="154" width="200" height="2" fill="black"/>
+    <rect x="0" y="160" width="200" height="2" fill="black"/>
+    <rect x="0" y="166" width="200" height="2" fill="black"/>
+    <rect x="0" y="172" width="200" height="2" fill="black"/>
+  </g>
+  <ellipse cx="100" cy="90" rx="40" ry="50" fill="#ff50a0" fill-opacity="0.06" clip-path="url(#gi_inner_star)" filter="url(#gi_glow_pink)"/>
+  <path d="M 20,174 L 36,152 Q 50,128 66,118 L 80,111 Q 92,107 100,107 Q 108,107 120,111 L 134,118 Q 150,128 164,152 L 180,174 Z" fill="#0d0818" clip-path="url(#gi_inner_star)"/>
+  <path d="M 84 108 L 100 128 L 116 108" fill="none" stroke="#ff50a0" stroke-width="1" stroke-opacity="0.6" clip-path="url(#gi_inner_star)"/>
+  <path d="M 66 118 Q 70 128 68 140" stroke="#00f0e0" stroke-width="0.8" stroke-opacity="0.5" fill="none" clip-path="url(#gi_inner_star)"/>
+  <path d="M 134 118 Q 130 128 132 140" stroke="#00f0e0" stroke-width="0.8" stroke-opacity="0.5" fill="none" clip-path="url(#gi_inner_star)"/>
+  <rect x="90" y="120" width="20" height="13" rx="2" fill="#1a0a28" stroke="#ff50a0" stroke-width="0.8" clip-path="url(#gi_inner_star)"/>
+  <circle cx="95" cy="126" r="3" fill="none" stroke="#c020e0" stroke-width="0.7" clip-path="url(#gi_inner_star)"/>
+  <circle cx="105" cy="126" r="3" fill="none" stroke="#c020e0" stroke-width="0.7" clip-path="url(#gi_inner_star)"/>
+  <line x1="95" y1="129" x2="105" y2="129" stroke="#c020e0" stroke-width="0.5" clip-path="url(#gi_inner_star)"/>
+  <ellipse cx="100" cy="70" rx="30" ry="22" fill="url(#gi_hair)" clip-path="url(#gi_inner_star)"/>
+  <path d="M 72 74 Q 62 85 60 100 Q 58 115 62 125" fill="url(#gi_hair)" fill-opacity="0.8" clip-path="url(#gi_inner_star)"/>
+  <path d="M 128 74 Q 138 85 140 100 Q 142 115 138 125" fill="url(#gi_hair)" fill-opacity="0.8" clip-path="url(#gi_inner_star)"/>
+  <ellipse cx="95" cy="62" rx="12" ry="5" fill="white" fill-opacity="0.15" clip-path="url(#gi_inner_star)" transform="rotate(-10,95,62)"/>
+  <path d="M 86 58 Q 82 42 86 30" fill="none" stroke="#ff50a0" stroke-width="3" stroke-linecap="round" clip-path="url(#gi_inner_star)"/>
+  <path d="M 94 56 Q 92 38 96 24" fill="none" stroke="#c020e0" stroke-width="2.5" stroke-linecap="round" clip-path="url(#gi_inner_star)"/>
+  <path d="M 102 56 Q 102 36 100 22" fill="none" stroke="#5020ff" stroke-width="3" stroke-linecap="round" clip-path="url(#gi_inner_star)"/>
+  <path d="M 110 58 Q 112 40 108 28" fill="none" stroke="#c020e0" stroke-width="2.5" stroke-linecap="round" clip-path="url(#gi_inner_star)"/>
+  <path d="M 117 62 Q 122 46 118 32" fill="none" stroke="#ff50a0" stroke-width="2" stroke-linecap="round" clip-path="url(#gi_inner_star)"/>
+  <ellipse cx="100" cy="91" rx="24" ry="26" fill="url(#gi_face)"/>
+  <ellipse cx="89" cy="87" rx="7" ry="6" fill="#ff0050" fill-opacity="0.25" clip-path="url(#gi_inner_star)"/>
+  <ellipse cx="113" cy="87" rx="7" ry="6" fill="#0050ff" fill-opacity="0.25" clip-path="url(#gi_inner_star)"/>
+  <ellipse cx="91" cy="87" rx="8" ry="7" fill="#180a20"/>
+  <ellipse cx="91" cy="87" rx="6" ry="5.5" fill="#ff10a0" fill-opacity="0.9" filter="url(#gi_sharp)"/>
+  <circle cx="91" cy="87" r="3.5" fill="#080310"/>
+  <circle cx="91" cy="87" r="2" fill="#ff50a0" fill-opacity="0.5"/>
+  <circle cx="89.5" cy="85.5" r="1.8" fill="white" fill-opacity="0.8"/>
+  <ellipse cx="109" cy="87" rx="8" ry="7" fill="#180a20"/>
+  <ellipse cx="109" cy="87" rx="6" ry="5.5" fill="#ff10a0" fill-opacity="0.9" filter="url(#gi_sharp)"/>
+  <circle cx="109" cy="87" r="3.5" fill="#080310"/>
+  <circle cx="109" cy="87" r="2" fill="#ff50a0" fill-opacity="0.5"/>
+  <circle cx="107.5" cy="85.5" r="1.8" fill="white" fill-opacity="0.8"/>
+  <rect x="78" y="85" width="44" height="1.5" fill="#00f0e0" fill-opacity="0.2" clip-path="url(#gi_inner_star)"/>
+  <rect x="80" y="89" width="42" height="1" fill="#ff0050" fill-opacity="0.18" clip-path="url(#gi_inner_star)"/>
+  <rect x="82" y="103" width="36" height="1" fill="#0050ff" fill-opacity="0.12" clip-path="url(#gi_inner_star)"/>
+  <path d="M 83 80 Q 89 76 98 79" fill="none" stroke="#6a1840" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 117 80 Q 111 76 102 79" fill="none" stroke="#6a1840" stroke-width="2.5" stroke-linecap="round"/>
+  <ellipse cx="100" cy="96" rx="2.5" ry="1.5" fill="#c880a8" fill-opacity="0.6"/>
+  <path d="M 91 105 Q 100 113 109 105" fill="none" stroke="#0050ff" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.4" transform="translate(2,0)"/>
+  <path d="M 91 105 Q 100 113 109 105" fill="none" stroke="#ff0050" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.4" transform="translate(-2,0)"/>
+  <path d="M 91 105 Q 100 113 109 105" fill="none" stroke="#e880c0" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="83" cy="96" rx="8" ry="5" fill="#ff50a0" fill-opacity="0.18"/>
+  <ellipse cx="117" cy="96" rx="8" ry="5" fill="#ff50a0" fill-opacity="0.18"/>
+  <circle cx="80" cy="95" r="0.8" fill="#ff80c0" fill-opacity="0.7"/>
+  <circle cx="83" cy="98" r="0.6" fill="#ff80c0" fill-opacity="0.6"/>
+  <circle cx="120" cy="95" r="0.8" fill="#ff80c0" fill-opacity="0.7"/>
+  <circle cx="117" cy="98" r="0.6" fill="#ff80c0" fill-opacity="0.6"/>
+  <circle cx="158" cy="55" r="2" fill="#ff50a0" fill-opacity="0.6" filter="url(#gi_glow_s)" clip-path="url(#gi_inner_star)"/>
+  <circle cx="42" cy="55" r="2" fill="#00f0e0" fill-opacity="0.6" filter="url(#gi_glow_s)" clip-path="url(#gi_inner_star)"/>
+  <circle cx="155" cy="145" r="1.5" fill="#ff50a0" fill-opacity="0.5" clip-path="url(#gi_inner_star)"/>
+  <circle cx="45" cy="145" r="1.5" fill="#00f0e0" fill-opacity="0.5" clip-path="url(#gi_inner_star)"/>
+</svg>

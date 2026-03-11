@@ -1,6 +1,18 @@
 import { SvelteKitAuth } from "@auth/sveltekit";
 import Google from "@auth/sveltekit/providers/google";
 import prisma from "$lib/server/client";
+import { DEFAULT_AVATARS } from "$lib/utils/avatar";
+
+/** Returns true if the given image string is a local DevSim avatar path. */
+function isLocalAvatar(image: string | null | undefined): boolean {
+  return typeof image === "string" && image.startsWith("/avatars/");
+}
+
+/** Picks a random default avatar path to assign to brand-new users. */
+function randomDefaultAvatarPath(): string {
+  const idx = Math.floor(Math.random() * DEFAULT_AVATARS.length);
+  return DEFAULT_AVATARS[idx].path;
+}
 
 export const { handle } = SvelteKitAuth({
   providers: [
@@ -22,21 +34,32 @@ export const { handle } = SvelteKitAuth({
         });
 
         if (!existingUser) {
-          // Create new user
+          // New user: use OAuth image if provided, otherwise assign a random default avatar
+          const imageToStore = randomDefaultAvatarPath();
           await prisma.user.create({
             data: {
               email: user.email,
               name: user.name || "User",
-              image: user.image || null,
+              image: imageToStore,
             },
           });
         } else {
-          // Update existing user with latest data
+          // Determine whether to update the image:
+          // - If DB image is null/empty → fill with OAuth image or a new default avatar
+          // - If DB image is a local avatar path → the user chose it; don't overwrite
+          // - If DB image is an OAuth URL → update from the latest OAuth data
+          let newImage: string | undefined;
+          if (!existingUser.image) {
+            newImage = user.image ?? randomDefaultAvatarPath();
+          } else if (user.image && !isLocalAvatar(existingUser.image)) {
+            newImage = user.image;
+          }
+
           await prisma.user.update({
             where: { email: user.email },
             data: {
               name: user.name || existingUser.name,
-              image: user.image || existingUser.image,
+              ...(newImage ? { image: newImage } : {}),
             },
           });
         }
@@ -48,31 +71,46 @@ export const { handle } = SvelteKitAuth({
       }
     },
     async jwt({ token, user, account, profile }) {
-      // Initial sign in - get user ID from database using email
+      // On initial sign-in, load the DB user to get their ID and stored image.
       if (user && user.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
+          select: { id: true, image: true },
         });
         if (dbUser) {
           token.id = dbUser.id;
+          token.image = dbUser.image;
+          token.givenName = profile?.given_name
+          token.fullName = profile?.name
         }
       }
 
-      // If token.id is not set, try from profile email
+      // Fallback: resolve via profile email if token.id is still missing.
       if (!token.id && profile?.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: profile.email },
+          select: { id: true, image: true },
         });
         if (dbUser) {
           token.id = dbUser.id;
+          token.image = dbUser.image;
+          token.givenName = profile?.given_name
+          token.fullName = profile?.name
         }
       }
 
       return token;
     },
     async session({ session, token }) {
-      if (token && token.id && session.user) {
-        session.user.id = token.id as string;
+      if (token && session.user) {
+        if (token.id) session.user.id = token.id as string;
+        // Surface the DB image (may be an OAuth URL or a local /avatars/ path)
+        if (token.image !== undefined) {
+          session.user.image = token.image as string | null;
+          session.user.name = token.name as string | null;
+          session.user.fullName = token.fullName as string | null;
+          session.user.givenName = token.givenName as string | null;
+        }
       }
       return session;
     },

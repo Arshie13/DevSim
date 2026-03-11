@@ -9,56 +9,125 @@
 
 <button
   on:click={onSelect}
-  class="group relative w-full text-left transition-all duration-200 {selected
-    ? 'scale-[1.01]'
-    : 'hover:scale-[1.01]'}"
+  class="tech-card group relative w-full text-left {selected ? 'selected' : ''}"
 >
-  <!-- Glow effect on selection -->
-  {#if selected}
-    <div
-      class="absolute inset-0 bg-gradient-to-r {option.color} rounded-lg blur-lg opacity-25"
-    ></div>
-  {/if}
+  <div class="tech-card-inner h-full p-3">
+    <!-- Top shimmer line -->
+    <div class="shimmer-line"></div>
 
-  <div
-    class="relative bg-obsidian-surface/80 border rounded-lg p-3 transition-all duration-200 h-full backdrop-blur-sm {selected
-      ? 'border-obsidian-accent/50 shadow-[0_0_20px_rgba(7,165,201,0.15)] bg-obsidian-surface'
-      : 'border-obsidian-border hover:border-obsidian-accent/30 hover:bg-obsidian-surface'}"
-  >
-    <!-- Futuristic corner accent -->
-    <div class="absolute top-0 right-0 w-6 h-6 overflow-hidden rounded-tr-lg">
-      <div class="absolute top-0 right-0 w-[1px] h-3 bg-gradient-to-b {selected ? 'from-obsidian-accent' : 'from-obsidian-border'} to-transparent"></div>
-      <div class="absolute top-0 right-0 h-[1px] w-3 bg-gradient-to-l {selected ? 'from-obsidian-accent' : 'from-obsidian-border'} to-transparent"></div>
+    <!-- Selection check box (16px square, radius 2px) -->
+    <div class="check-box {selected ? 'check-box--active' : ''}">
+      {#if selected}
+        <Check class="w-2.5 h-2.5" style="color: #0a0e1a;" />
+      {/if}
     </div>
 
-    <!-- Selection indicator -->
-    {#if selected}
-      <div
-        class="absolute top-2 right-2 w-5 h-5 bg-gradient-to-br from-obsidian-accent to-emerald-400 rounded-full flex items-center justify-center shadow-lg"
-      >
-        <Check class="w-3 h-3 text-white" />
-      </div>
-    {/if}
-
-    <div class="flex items-center gap-3">
-      <!-- Icon -->
-      <div
-        class="text-lg flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br {option.color} rounded-lg shadow-lg"
-      >
+    <div class="flex items-center gap-2.5">
+      <!-- Icon container -->
+      <div class="icon-box flex-shrink-0 text-base w-9 h-9 flex items-center justify-center">
         {option.icon}
       </div>
 
       <!-- Content -->
       <div class="flex-1 min-w-0">
-        <h4
-          class="text-sm font-semibold text-obsidian-text-muted group-hover:text-white transition-colors"
-        >
-          {option.name}
-        </h4>
-        <p class="text-xs text-obsidian-text-primary/60 mt-0.5 line-clamp-2">
-          {option.description}
-        </p>
+        <h4 class="card-name truncate">{option.name}</h4>
+        <p class="card-desc mt-0.5 line-clamp-2">{option.description}</p>
       </div>
     </div>
   </div>
 </button>
+
+<style>
+  .tech-card {
+    transition: transform 0.18s ease;
+  }
+  .tech-card:hover {
+    transform: translateX(4px);
+  }
+  .tech-card.selected {
+    transform: none;
+  }
+
+  .tech-card-inner {
+    position: relative;
+    overflow: hidden;
+    background: #12192a;
+    border: 1px solid rgba(7, 165, 201, 0.12);
+    border-radius: 4px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .tech-card:hover .tech-card-inner {
+    border-color: rgba(7, 165, 201, 0.40);
+  }
+  .tech-card.selected .tech-card-inner {
+    border-color: #07a5c9;
+    background: rgba(7, 165, 201, 0.10);
+    box-shadow: inset 0 0 20px rgba(7, 165, 201, 0.08), 0 0 12px rgba(7, 165, 201, 0.20);
+  }
+
+  /* Top shimmer line — ::before replacement */
+  .shimmer-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #07a5c9, transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .tech-card:hover .shimmer-line,
+  .tech-card.selected .shimmer-line {
+    opacity: 1;
+  }
+
+  /* 16×16px square check indicator, radius 2px */
+  .check-box {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1px solid rgba(7, 165, 201, 0.30);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .check-box--active {
+    background: #07a5c9;
+    border-color: #07a5c9;
+  }
+
+  .icon-box {
+    background: rgba(7, 165, 201, 0.06);
+    border: 1px solid rgba(7, 165, 201, 0.15);
+    border-radius: 4px;
+  }
+  .tech-card.selected .icon-box {
+    border-color: rgba(7, 165, 201, 0.35);
+    background: rgba(7, 165, 201, 0.12);
+  }
+
+  .card-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #d0d7dd;
+    letter-spacing: 0.04em;
+    transition: color 0.15s ease;
+  }
+  .tech-card:hover .card-name,
+  .tech-card.selected .card-name {
+    color: #00f5ff;
+  }
+
+  .card-desc {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    color: rgba(208, 215, 221, 0.55);
+    line-height: 1.35;
+  }
+</style>

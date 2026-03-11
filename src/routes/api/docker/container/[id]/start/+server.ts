@@ -31,21 +31,33 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       console.log(`♻️ Container already running: ${id}`);
     }
 
-    // Get assigned ports
-    const port3000 = info.NetworkSettings.Ports['3000/tcp']?.[0]?.HostPort || '3000';
-    const port5173 = info.NetworkSettings.Ports['5173/tcp']?.[0]?.HostPort || '5173';
+    // Get all assigned ports from NetworkSettings
+    const ports = info.NetworkSettings.Ports;
+    const previewPorts: Record<string, number> = {};
+    
+    // Iterate through all exposed ports and get their host bindings
+    for (const [containerPort, hostBindings] of Object.entries(ports || {})) {
+      if (hostBindings && hostBindings.length > 0) {
+        const hostPort = hostBindings[0]?.HostPort;
+        if (hostPort) {
+          // Use the container port number (e.g., "3000/tcp" -> "3000") as key
+          const portKey = containerPort.split('/')[0];
+          previewPorts[portKey] = parseInt(hostPort);
+        }
+      }
+    }
 
     // Get host from request
     const host = '127.0.0.1'; // Default for container access
 
+    // Use the first available port for preview, or default to 3000
+    const firstPort = Object.values(previewPorts)[0] || 3000;
+
     return json({
       success: true,
       id,
-      previewPorts: {
-        nextjs: parseInt(port3000),
-        vite: parseInt(port5173)
-      },
-      previewUrl: `http://${host}:${port3000}`
+      previewPorts,
+      previewUrl: `http://${host}:${firstPort}`
     });
   } catch (error) {
     console.error('Error starting container:', error);

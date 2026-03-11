@@ -14,21 +14,23 @@ interface CreateContainerRequest {
     database?: string;
     services?: string;
   };
+  /** e.g. "scenario-1" — the scenario folder name */
+  scenarioId?: string;
+  /** e.g. "LIBRARY_MANAGEMENT" — the project subfolder to mount as /workspace */
+  projectFolder?: string;
+  /** Human-readable scenario title from project.md, e.g. "BookWise - Library Management System" */
+  scenarioTitle?: string;
 }
 
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     const session = await locals.auth();
+    
     if (!session || !session.user || !session.user.id) {
       return error(401, 'Unauthorized');
     }
 
     const userId = session.user.id;
-
-    // Guard: verify the user actually exists in the DB before touching Docker or writing
-    // any records. A stale session (e.g. after a DB reset) has a valid JWT with a userId
-    // that no longer exists, which would cause a FK violation after the container is
-    // already created. Catching it here prevents any side effects.
     const userExists = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true }
@@ -41,7 +43,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     const req: CreateContainerRequest = await request.json()
-    const { stackName, level, stacks } = req;
+    const { stackName, level, stacks, scenarioId, projectFolder, scenarioTitle } = req;
 
     // Build the canonical stacks array early — needed for both DB lookup and creation.
     const stacksArray: string[] = [
@@ -74,7 +76,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         if (!info.State.Running) {
           await existingContainer.start();
         }
-        console.log('[create] DB-first: reusing existing container:', existingDockerContainerId);
+        console.log('[create] DB-first: existing container found:', existingDockerContainerId);
       } catch {
         // The Docker container no longer exists (e.g. was deleted outside the app).
         // Fall through to create a fresh one and update the DB record.
@@ -84,7 +86,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
       return json({
         success: true,
-        message: 'Container already exists. Reusing...',
+        alreadyExists: true,
+        message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
         containerId: existingDockerContainerId,
         dbContainerId: existingDbContainer.id
       });
@@ -124,10 +127,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         level,
         status: 'created'
       });
-      console.log('[create] Docker-label fallback: reusing container, DB upserted:', existingContainerId);
+      console.log('[create] Existing Container Found:', existingContainerId);
       return json({
         success: true,
-        message: 'Container already exists. Reusing...',
+        alreadyExists: true,
+        message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
         containerId: existingContainerId,
         dbContainerId: existingDbId
       });
@@ -140,23 +144,22 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     return await createFreshContainer();
 
     async function createFreshContainer() {
+      // Build the mount source: use scenarioId + projectFolder when provided
+      // (e.g. scenario-1/LIBRARY_MANAGEMENT), otherwise fall back to scenario-{level}.
+      const mountSource = scenarioId && projectFolder
+        ? `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioId}/${projectFolder}`
+        : `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}`;
+
       const container = await docker.createContainer({
         Image: 'node:20-alpine',
         Cmd: ['/bin/sh'],
         Tty: true,
         OpenStdin: true,
         WorkingDir: '/workspace',
-        ExposedPorts: {
-          '3000/tcp': {},
-          '5173/tcp': {}
-        },
         HostConfig: {
-          PortBindings: {
-            '3000/tcp': [{ HostPort: '0' }],
-            '5173/tcp': [{ HostPort: '0' }]
-          },
+          NetworkMode: 'host',
           Binds: [
-            `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`.replace(/\\/g, '/')
+            `${mountSource}:/workspace`.replace(/\\/g, '/')
           ],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false
@@ -175,7 +178,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         containerId: container.id,
         stacks: stacksArray,
         level,
-        status: 'created'
+        status: 'created',
+        projectFolder,
+        scenarioTitle,
       };
 
       const { dbContainerId } = await saveUserContainer(userContainer);

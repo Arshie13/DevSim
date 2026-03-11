@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Deep space bg gradient -->
+    <radialGradient id="vs_space" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1a0a2e"/>
+      <stop offset="60%" stop-color="#0d0614"/>
+      <stop offset="100%" stop-color="#04020a"/>
+    </radialGradient>
+    <!-- Mask face gradient -->
+    <linearGradient id="vs_mask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8ddd0"/>
+      <stop offset="40%" stop-color="#c8b89a"/>
+      <stop offset="100%" stop-color="#6b5a48"/>
+    </linearGradient>
+    <!-- Crimson slash glow -->
+    <filter id="vs_slash_glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="vs_soft">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="vs_glow_big">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Ink wash texture -->
+    <filter id="vs_ink">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+      <feColorMatrix type="saturate" values="0" result="gray"/>
+      <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
+      <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <clipPath id="vs_circle">
+      <circle cx="100" cy="100" r="88"/>
+    </clipPath>
+    <!-- Star gradient -->
+    <radialGradient id="vs_star" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ===== OUTER FRAME ===== -->
+  <!-- Premium brushstroke ring (outer) -->
+  <circle cx="100" cy="100" r="96" fill="none" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Ink ring - thick imperfect brushstroke feel via dasharray -->
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#c8102e" stroke-width="3.5" stroke-dasharray="8 4 16 3 24 5 12 6 20 3 8 7" stroke-linecap="round" opacity="0.85"/>
+  <!-- Thin gold ring -->
+  <circle cx="100" cy="100" r="89" fill="none" stroke="#c8a96e" stroke-width="0.8" stroke-opacity="0.6"/>
+  <!-- Inner stroke -->
+  <circle cx="100" cy="100" r="87" fill="none" stroke="#c8102e" stroke-width="0.5" stroke-opacity="0.3"/>
+
+  <!-- ===== BACKGROUND ===== -->
+  <circle cx="100" cy="100" r="87" fill="url(#vs_space)"/>
+
+  <!-- Stars scatter -->
+  <g clip-path="url(#vs_circle)" opacity="0.7">
+    <circle cx="30" cy="25" r="0.8" fill="white"/>
+    <circle cx="55" cy="18" r="0.5" fill="white"/>
+    <circle cx="80" cy="30" r="1" fill="white" opacity="0.6"/>
+    <circle cx="135" cy="22" r="0.7" fill="white"/>
+    <circle cx="160" cy="35" r="0.5" fill="white"/>
+    <circle cx="175" cy="50" r="0.9" fill="white" opacity="0.7"/>
+    <circle cx="22" cy="80" r="0.6" fill="white"/>
+    <circle cx="178" cy="100" r="0.7" fill="white"/>
+    <circle cx="170" cy="140" r="0.5" fill="white"/>
+    <circle cx="40" cy="155" r="0.8" fill="white" opacity="0.5"/>
+    <circle cx="25" cy="130" r="0.4" fill="white"/>
+    <circle cx="155" cy="165" r="0.6" fill="white"/>
+    <circle cx="110" cy="20" r="1.2" fill="white" opacity="0.5"/>
+    <circle cx="45" cy="50" r="0.5" fill="white" opacity="0.8"/>
+    <circle cx="162" cy="75" r="0.4" fill="white"/>
+  </g>
+
+  <!-- Subtle nebula glow behind figure -->
+  <ellipse cx="100" cy="90" rx="50" ry="60" fill="#3d1060" fill-opacity="0.25" clip-path="url(#vs_circle)" filter="url(#vs_glow_big)"/>
+  <ellipse cx="85" cy="110" rx="30" ry="35" fill="#c8102e" fill-opacity="0.06" clip-path="url(#vs_circle)" filter="url(#vs_glow_big)"/>
+
+  <!-- ===== BODY / ARMOR ===== -->
+  <!-- Wide kimono / shoulder silhouette -->
+  <path d="M 30 200 L 45 145 Q 55 125 65 120 L 70 115 Q 85 108 100 108 Q 115 108 130 115 L 135 120 Q 145 125 155 145 L 170 200 Z" fill="#120820" clip-path="url(#vs_circle)"/>
+  <!-- Armor shoulder plates -->
+  <path d="M 45 145 Q 42 132 50 124 L 70 115 Q 62 128 62 138 Z" fill="#1e1030" clip-path="url(#vs_circle)"/>
+  <path d="M 155 145 Q 158 132 150 124 L 130 115 Q 138 128 138 138 Z" fill="#1e1030" clip-path="url(#vs_circle)"/>
+  <!-- Shoulder armor edge highlight -->
+  <path d="M 45 145 Q 42 132 50 124 L 52 126 Q 46 133 47 145 Z" fill="#c8a96e" fill-opacity="0.4" clip-path="url(#vs_circle)"/>
+  <path d="M 155 145 Q 158 132 150 124 L 148 126 Q 154 133 153 145 Z" fill="#c8a96e" fill-opacity="0.4" clip-path="url(#vs_circle)"/>
+  <!-- Center robe V -->
+  <path d="M 85 108 L 100 135 L 115 108" fill="#0a0414" fill-opacity="0.7" clip-path="url(#vs_circle)"/>
+  <!-- Robe gold trim -->
+  <path d="M 85 108 L 100 134 L 115 108" fill="none" stroke="#c8a96e" stroke-width="0.8" stroke-opacity="0.5" clip-path="url(#vs_circle)"/>
+
+  <!-- ===== HEAD ===== -->
+  <!-- Neck -->
+  <rect x="93" y="104" width="14" height="10" rx="3" fill="#d4c4a8" clip-path="url(#vs_circle)"/>
+
+  <!-- Head base (face) -->
+  <ellipse cx="100" cy="88" rx="26" ry="29" fill="url(#vs_mask)"/>
+
+  <!-- Hannya / Oni mask elements — stylized flat mask look -->
+  <!-- Forehead wrinkle lines -->
+  <path d="M 86 76 Q 88 72 92 74" fill="none" stroke="#8a7060" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 114 76 Q 112 72 108 74" fill="none" stroke="#8a7060" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <!-- Brow ridges -->
+  <path d="M 82 83 Q 88 78 96 82" fill="none" stroke="#5a4035" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 118 83 Q 112 78 104 82" fill="none" stroke="#5a4035" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Eye sockets (hollow/dark) -->
+  <ellipse cx="91" cy="89" rx="8" ry="7" fill="#1a0a0a"/>
+  <ellipse cx="109" cy="89" rx="8" ry="7" fill="#1a0a0a"/>
+  <!-- Eye iris glow - crimson void -->
+  <ellipse cx="91" cy="89" rx="5" ry="5" fill="#c8102e" filter="url(#vs_soft)" opacity="0.9"/>
+  <ellipse cx="109" cy="89" rx="5" ry="5" fill="#c8102e" filter="url(#vs_soft)" opacity="0.9"/>
+  <!-- Pupil slit -->
+  <ellipse cx="91" cy="89" rx="1.5" ry="4" fill="#050005"/>
+  <ellipse cx="109" cy="89" rx="1.5" ry="4" fill="#050005"/>
+  <!-- Eye shine -->
+  <circle cx="89" cy="87" r="1.5" fill="white" fill-opacity="0.6"/>
+  <circle cx="107" cy="87" r="1.5" fill="white" fill-opacity="0.6"/>
+
+  <!-- Nose (mask style) -->
+  <path d="M 97 96 L 100 102 L 103 96" fill="none" stroke="#8a7060" stroke-width="1.2" stroke-linejoin="round" opacity="0.7"/>
+
+  <!-- Mouth — thin severe line, slight downward curl -->
+  <path d="M 87 107 Q 92 104 100 105 Q 108 104 113 107" fill="none" stroke="#5a3028" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Fangs hint -->
+  <line x1="94" y1="105" x2="93" y2="109" stroke="#c8b89a" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+  <line x1="106" y1="105" x2="107" y2="109" stroke="#c8b89a" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Hair — top knot silhouette -->
+  <ellipse cx="100" cy="64" rx="22" ry="10" fill="#0d0614"/>
+  <ellipse cx="100" cy="60" rx="16" ry="7" fill="#150a24"/>
+  <!-- Top knot -->
+  <ellipse cx="100" cy="52" rx="7" ry="10" fill="#0d0614"/>
+  <!-- Kanzashi pin -->
+  <line x1="88" y1="56" x2="112" y2="64" stroke="#c8a96e" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  <circle cx="88" cy="56" r="2.5" fill="#c8a96e" filter="url(#vs_soft)"/>
+  <circle cx="112" cy="64" r="1.5" fill="#c8a96e" fill-opacity="0.7"/>
+
+  <!-- ===== CRIMSON SLASH ===== -->
+  <!-- The signature diagonal slash across the face -->
+  <line x1="74" y1="72" x2="126" y2="106" stroke="#c8102e" stroke-width="3.5" stroke-linecap="round" filter="url(#vs_slash_glow)" opacity="0.9"/>
+  <line x1="74" y1="72" x2="126" y2="106" stroke="#ff6080" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- ===== KANJI CHARACTER — decorative ===== -->
+  <!-- Simplified "空" (void/sky) on lower robe area -->
+  <text x="100" y="178" text-anchor="middle" font-family="serif" font-size="18" fill="#c8a96e" fill-opacity="0.35" clip-path="url(#vs_circle)">空</text>
+
+  <!-- ===== OUTER DECORATIONS ===== -->
+  <!-- Cardinal dot ornaments on ring -->
+  <circle cx="100" cy="8" r="3.5" fill="#c8102e" filter="url(#vs_soft)"/>
+  <circle cx="100" cy="8" r="1.5" fill="#ff8090"/>
+  <circle cx="192" cy="100" r="3.5" fill="#c8a96e" filter="url(#vs_soft)"/>
+  <circle cx="8" cy="100" r="3.5" fill="#c8a96e" filter="url(#vs_soft)"/>
+  <circle cx="100" cy="192" r="3.5" fill="#c8102e" filter="url(#vs_soft)"/>
+  <!-- Diagonal marks at 45deg -->
+  <circle cx="163" cy="37" r="2" fill="#c8a96e" fill-opacity="0.5"/>
+  <circle cx="37" cy="37" r="2" fill="#c8a96e" fill-opacity="0.5"/>
+  <circle cx="163" cy="163" r="2" fill="#c8a96e" fill-opacity="0.5"/>
+  <circle cx="37" cy="163" r="2" fill="#c8a96e" fill-opacity="0.5"/>
+
+  <!-- Thin tick marks around ring -->
+  <g stroke="#c8a96e" stroke-width="0.8" stroke-opacity="0.4">
+    <line x1="100" y1="5" x2="100" y2="11"/>
+    <line x1="140" y1="13" x2="137" y2="18"/>
+    <line x1="168" y1="38" x2="164" y2="42"/>
+    <line x1="187" y1="70" x2="182" y2="72"/>
+    <line x1="195" y1="100" x2="189" y2="100"/>
+    <line x1="187" y1="130" x2="182" y2="128"/>
+    <line x1="168" y1="162" x2="164" y2="158"/>
+    <line x1="140" y1="187" x2="137" y2="182"/>
+    <line x1="100" y1="195" x2="100" y2="189"/>
+    <line x1="60" y1="187" x2="63" y2="182"/>
+    <line x1="32" y1="162" x2="36" y2="158"/>
+    <line x1="13" y1="130" x2="18" y2="128"/>
+    <line x1="5" y1="100" x2="11" y2="100"/>
+    <line x1="13" y1="70" x2="18" y2="72"/>
+    <line x1="32" y1="38" x2="36" y2="42"/>
+    <line x1="60" y1="13" x2="63" y2="18"/>
+  </g>
+</svg>

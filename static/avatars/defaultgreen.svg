@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <radialGradient id="bg3" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a2020"/>
+      <stop offset="100%" stop-color="#0a0e1a"/>
+    </radialGradient>
+    <radialGradient id="face3" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#0a2020"/>
+      <stop offset="100%" stop-color="#080f0f"/>
+    </radialGradient>
+    <filter id="glow3">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow3">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="hexclip3">
+      <polygon points="60,4 112,32 112,88 60,116 8,88 8,32"/>
+    </clipPath>
+    <linearGradient id="ring3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5a0"/>
+      <stop offset="50%" stop-color="#80ffce"/>
+      <stop offset="100%" stop-color="#00e5a0" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer ring glow -->
+  <polygon points="60,2 114,31 114,89 60,118 6,89 6,31" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-opacity="0.4" filter="url(#glow3)"/>
+  <polygon points="60,2 114,31 114,89 60,118 6,89 6,31" fill="none" stroke="url(#ring3)" stroke-width="2" stroke-dasharray="100 160" stroke-dashoffset="50"/>
+
+  <!-- Background hex -->
+  <polygon points="60,6 110,33 110,87 60,114 10,87 10,33" fill="url(#bg3)" clip-path="url(#hexclip3)"/>
+
+  <!-- Grid lines -->
+  <g clip-path="url(#hexclip3)" opacity="0.06">
+    <line x1="0" y1="20" x2="120" y2="20" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="0" y1="40" x2="120" y2="40" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="0" y1="60" x2="120" y2="60" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="0" y1="80" x2="120" y2="80" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="0" y1="100" x2="120" y2="100" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="20" y1="0" x2="20" y2="120" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="40" y1="0" x2="40" y2="120" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="60" y1="0" x2="60" y2="120" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="80" y1="0" x2="80" y2="120" stroke="#00e5a0" stroke-width="0.5"/>
+    <line x1="100" y1="0" x2="100" y2="120" stroke="#00e5a0" stroke-width="0.5"/>
+  </g>
+
+  <!-- Body -->
+  <polygon points="32,114 88,114 96,108 80,96 40,96 24,108" fill="#080f0f" clip-path="url(#hexclip3)"/>
+  <!-- Collar -->
+  <polygon points="52,96 68,96 72,102 60,105 48,102" fill="#00e5a0" fill-opacity="0.22" clip-path="url(#hexclip3)"/>
+  <line x1="60" y1="96" x2="60" y2="105" stroke="#00e5a0" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- Head -->
+  <ellipse cx="60" cy="62" rx="22" ry="24" fill="url(#face3)"/>
+  <ellipse cx="60" cy="62" rx="22" ry="24" fill="none" stroke="#00e5a0" stroke-width="0.8" stroke-opacity="0.5"/>
+
+  <!-- Cat ears! -->
+  <polygon points="40,46 36,32 48,42" fill="#0a2020" stroke="#00e5a0" stroke-width="1" stroke-opacity="0.6"/>
+  <polygon points="80,46 84,32 72,42" fill="#0a2020" stroke="#00e5a0" stroke-width="1" stroke-opacity="0.6"/>
+  <!-- Inner ear -->
+  <polygon points="40,45 37,35 46,42" fill="#00e5a0" fill-opacity="0.25"/>
+  <polygon points="80,45 83,35 74,42" fill="#00e5a0" fill-opacity="0.25"/>
+
+  <!-- Hair bob style -->
+  <ellipse cx="60" cy="41" rx="21" ry="8" fill="#00e5a0" fill-opacity="0.85"/>
+  <ellipse cx="42" cy="51" rx="6" ry="8" fill="#00e5a0" fill-opacity="0.7"/>
+  <ellipse cx="78" cy="51" rx="6" ry="8" fill="#00e5a0" fill-opacity="0.7"/>
+
+  <!-- Visor band -->
+  <rect x="40" y="56" width="40" height="10" rx="3" fill="#00e5a0" fill-opacity="0.15" stroke="#00e5a0" stroke-width="0.8"/>
+  <!-- Eyes - cat shaped -->
+  <ellipse cx="50" cy="61" rx="5" ry="3.5" fill="#00e5a0" fill-opacity="0.9" filter="url(#softglow3)"/>
+  <ellipse cx="70" cy="61" rx="5" ry="3.5" fill="#00e5a0" fill-opacity="0.9" filter="url(#softglow3)"/>
+  <!-- Slit pupils -->
+  <ellipse cx="50" cy="61" rx="1.5" ry="3" fill="#0a2020"/>
+  <ellipse cx="70" cy="61" rx="1.5" ry="3" fill="#0a2020"/>
+  <!-- Eye shine -->
+  <ellipse cx="48.5" cy="59.5" rx="1.2" ry="0.8" fill="#fff" fill-opacity="0.9"/>
+  <ellipse cx="68.5" cy="59.5" rx="1.2" ry="0.8" fill="#fff" fill-opacity="0.9"/>
+
+  <!-- Cat nose -->
+  <polygon points="60,67 58,69.5 62,69.5" fill="#00e5a0" fill-opacity="0.7"/>
+  <!-- Whiskers -->
+  <line x1="38" y1="68" x2="54" y2="70" stroke="#00e5a0" stroke-width="0.7" stroke-opacity="0.5"/>
+  <line x1="38" y1="71" x2="54" y2="71.5" stroke="#00e5a0" stroke-width="0.7" stroke-opacity="0.5"/>
+  <line x1="82" y1="68" x2="66" y2="70" stroke="#00e5a0" stroke-width="0.7" stroke-opacity="0.5"/>
+  <line x1="82" y1="71" x2="66" y2="71.5" stroke="#00e5a0" stroke-width="0.7" stroke-opacity="0.5"/>
+
+  <!-- Cute mouth -->
+  <path d="M 55 73 Q 60 77 65 73" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Little fangs -->
+  <line x1="58" y1="73" x2="57.5" y2="75.5" stroke="#00e5a0" stroke-width="1" stroke-opacity="0.6"/>
+  <line x1="62" y1="73" x2="62.5" y2="75.5" stroke="#00e5a0" stroke-width="1" stroke-opacity="0.6"/>
+
+  <!-- Blush -->
+  <ellipse cx="44" cy="71" rx="5" ry="3" fill="#00e5a0" fill-opacity="0.15"/>
+  <ellipse cx="76" cy="71" rx="5" ry="3" fill="#00e5a0" fill-opacity="0.15"/>
+
+  <!-- Terminal cursor on forehead -->
+  <rect x="57" y="48" width="6" height="4" rx="1" fill="#00e5a0" fill-opacity="0.5"/>
+
+  <!-- Corner cuts -->
+  <polygon points="10,34 20,28 20,40" fill="#00e5a0" fill-opacity="0.3"/>
+  <polygon points="110,34 100,28 100,40" fill="#00e5a0" fill-opacity="0.3"/>
+
+  <!-- Status dot -->
+  <circle cx="94" cy="88" r="4" fill="#00e5a0" filter="url(#softglow3)"/>
+  <circle cx="94" cy="88" r="2" fill="#80ffce"/>
+</svg>
