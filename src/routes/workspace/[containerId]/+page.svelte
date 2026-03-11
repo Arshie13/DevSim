@@ -16,6 +16,7 @@
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
   import TerminalManagerPanel from "$lib/components/workspace/TerminalManagerPanel.svelte";
   import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
+  import BoardPanel from "$lib/components/workspace/BoardPanel.svelte";
 
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
@@ -50,7 +51,7 @@
   $: level = data.level ?? LEVEL_CONFIG.level;
 
   // State
-  let activeTab: "editor" | "terminal" | "preview" = "editor";
+  let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
 
@@ -513,7 +514,7 @@
       });
   }
 
-  function handleTabChange(tab: "editor" | "terminal" | "preview") {
+  function handleTabChange(tab: "editor" | "terminal" | "preview" | "board") {
     activeTab = tab;
     // Auto-refresh preview when switching to preview tab
     if (tab === "preview") {
@@ -725,6 +726,16 @@
           onRefresh={refreshPreview}
           bind:iframeRef
         />
+
+        {#if activeTab === "board"}
+          <div class="absolute inset-0 overflow-hidden">
+            <BoardPanel
+              scenario={LEVEL_CONFIG.scenario}
+              {tasks}
+              onToggleTask={toggleTask}
+            />
+          </div>
+        {/if}
       </div>
     </div>
 

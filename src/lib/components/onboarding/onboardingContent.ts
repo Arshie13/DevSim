@@ -134,7 +134,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'workspace-tabs',
     title: 'View Switcher',
     description:
-      'Toggle between the Code Editor, Terminal, and Live Preview using these tabs.',
+      'Toggle between the Code Editor, Terminal, Live Preview, and Board views here. Each view gives you different tools to work with your code and project.',
     target: 'workspace-tabs',
   },
   {

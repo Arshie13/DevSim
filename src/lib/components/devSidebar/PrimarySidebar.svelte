@@ -2,7 +2,7 @@
   import { writable, derived } from 'svelte/store';
   import type { Writable } from 'svelte/store';
 
-  export type SidebarPanel = "files" | "search" | "scenario" | "tasks" | "hints";
+  export type SidebarPanel = "files" | "search";
 
   // Chat message type
   export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean };
@@ -33,24 +33,16 @@
   import type { Task } from "$lib/interface/LevelConfig";
 
   import Explorer from "./Explorer.svelte";
-  import Scenario from "./Scenario.svelte";
-  import SprintTask from "./SprintTask.svelte";
   import Search from "./Search.svelte";
-  import AiHelp from './AiHelp.svelte';
 
   // Props
   export let fileTree: string[] = [];
   export let directories: string[] = [];
   export let selectedFile: string = "";
   export let projectName: string = "project";
-  export let scenario: string = "";
   export let tasks: Task[] = [];
   export let containerId: string = "";
-  export let userId: string = "";
-  export let userCoins: number = 0;
-  export let fileContents: Record<string, string> = {};
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
-  export let onToggleTask: (taskId: number) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
   export let onDeleteFile: (filePath: string) => void = () => {};
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
@@ -68,9 +60,6 @@
   const panelLabels: Record<SidebarPanel, string> = {
     files: "Explorer",
     search: "Search",
-    scenario: "Scenario",
-    tasks: "Sprint Tasks",
-    hints: ''
   };
 
   // Activity bar items
@@ -81,12 +70,11 @@
     badge?: number;
   };
 
+  // Activity bar items - with badge for remaining tasks
   $: activityItems = [
-    { panel: "files",    icon: FolderOpen,  title: "Explorer" },
-    { panel: "search",   icon: SearchIcon,  title: "Search" },
-    { panel: "scenario", icon: BookOpen,    title: "Scenario" },
-    { panel: "tasks",    icon: Target,      title: "Sprint Tasks", badge: remainingTasks > 0 ? remainingTasks : undefined },
-  ] satisfies ActivityItem[];
+    { panel: "files" as const, icon: FolderOpen, title: "Explorer" },
+    { panel: "search" as const, icon: SearchIcon, title: "Search" },
+  ] as ActivityItem[];
 
   function setPanel(panel: SidebarPanel) {
     if (panel === activeSidebarPanel && isOpen) {
@@ -160,21 +148,6 @@
           {fileTree}
           {containerId}
           {onSelectFile}
-        />
-      {:else if activeSidebarPanel === "scenario"}
-        <Scenario {scenario} />
-      {:else if activeSidebarPanel === "tasks"}
-        <SprintTask {tasks} {onToggleTask} />
-      {:else if activeSidebarPanel === "hints"}
-        <AiHelp 
-          {scenario} 
-          {tasks} 
-          {containerId} 
-          {userId} 
-          initialCoins={userCoins} 
-          initialSelectedFile={selectedFile}
-          initialFileTree={fileTree}
-          initialFileContents={fileContents}
         />
       {/if}
     </div>
