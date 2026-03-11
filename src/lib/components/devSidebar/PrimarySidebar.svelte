@@ -5,7 +5,7 @@
   export type SidebarPanel = "files" | "search" | "scenario" | "tasks" | "hints";
 
   // Chat message type
-  export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean };
+  export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean; attachedFiles?: { path: string; name: string }[] };
 
   // Store for AI chat history - persists across tab switches
   export const aiChatHistory: Writable<ChatMessage[]> = writable([]);
@@ -29,6 +29,7 @@
     BookOpen,
     Target,
     Search as SearchIcon,
+    Sparkles,
   } from "lucide-svelte";
   import type { Task } from "$lib/interface/LevelConfig";
 
@@ -86,6 +87,7 @@
     { panel: "search",   icon: SearchIcon,  title: "Search" },
     { panel: "scenario", icon: BookOpen,    title: "Scenario" },
     { panel: "tasks",    icon: Target,      title: "Sprint Tasks", badge: remainingTasks > 0 ? remainingTasks : undefined },
+    { panel: "hints",    icon: Sparkles,    title: "AI Helper" },
   ] satisfies ActivityItem[];
 
   function setPanel(panel: SidebarPanel) {
@@ -171,6 +173,7 @@
           {tasks} 
           {containerId} 
           {userId} 
+          {projectName}
           initialCoins={userCoins} 
           initialSelectedFile={selectedFile}
           initialFileTree={fileTree}
