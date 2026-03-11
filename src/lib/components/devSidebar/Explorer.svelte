@@ -384,24 +384,27 @@
     role="menu"
     tabindex="-1"
   >
-    <button
-      on:click={handleCreateFile}
-      class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
-      style="font-family:'Share Tech Mono',monospace;"
-      role="menuitem"
-    >
-      <FilePlus class="w-3.5 h-3.5 flex-shrink-0" />
-      New File
-    </button>
-    <button
-      on:click={handleCreateFolder}
-      class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
-      style="font-family:'Share Tech Mono',monospace;"
-      role="menuitem"
-    >
-      <FolderPlus class="w-3.5 h-3.5 flex-shrink-0" />
-      New Folder
-    </button>
+    <!-- Only show New File/New Folder when right-clicking on empty space or a folder -->
+    {#if !contextMenu.node || contextMenu.node.isDirectory}
+      <button
+        on:click={handleCreateFile}
+        class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
+        style="font-family:'Share Tech Mono',monospace;"
+        role="menuitem"
+      >
+        <FilePlus class="w-3.5 h-3.5 flex-shrink-0" />
+        New File
+      </button>
+      <button
+        on:click={handleCreateFolder}
+        class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
+        style="font-family:'Share Tech Mono',monospace;"
+        role="menuitem"
+      >
+        <FolderPlus class="w-3.5 h-3.5 flex-shrink-0" />
+        New Folder
+      </button>
+    {/if}
     {#if contextMenu.node}
       <div class="my-1" style="border-top:1px solid rgba(7,165,201,0.08);"></div>
       <button

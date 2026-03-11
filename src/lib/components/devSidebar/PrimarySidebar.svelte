@@ -25,12 +25,10 @@
 
 <script lang="ts">
   import {
-    Bot,
     FolderOpen,
     BookOpen,
     Target,
     Search as SearchIcon,
-    Sparkles,
   } from "lucide-svelte";
   import type { Task } from "$lib/interface/LevelConfig";
 
@@ -38,7 +36,6 @@
   import Scenario from "./Scenario.svelte";
   import SprintTask from "./SprintTask.svelte";
   import Search from "./Search.svelte";
-  import AiHelp from './AiHelp.svelte';
 
   // Props
   export let fileTree: string[] = [];
@@ -76,7 +73,6 @@
     search: "Search",
     scenario: "Scenario",
     tasks: "Sprint Tasks",
-    hints: "SAZ",
   };
 
   // Activity bar items
@@ -92,7 +88,6 @@
     { panel: "search", icon: SearchIcon, title: "Search" },
     { panel: "scenario", icon: BookOpen, title: "Scenario" },
     { panel: "tasks", icon: Target, title: "Sprint Tasks", badge: remainingTasks > 0 ? remainingTasks : undefined },
-    { panel: "hints", icon: Bot, title: "SAZ" },
   ] satisfies ActivityItem[];
 
   function setPanel(panel: SidebarPanel) {
@@ -183,19 +178,6 @@
         <Scenario {scenario} />
       {:else if activeSidebarPanel === "tasks"}
         <SprintTask {tasks} {onToggleTask} levelTitle={tasks.length > 0 ? `Level ${currentLevel}` : ""} />
-      {:else if activeSidebarPanel === "hints"}
-        <AiHelp 
-          {scenario} 
-          {tasks} 
-          {containerId} 
-          {userId} 
-          {projectName}
-          initialCoins={userCoins} 
-          initialSelectedFile={selectedFile}
-          initialFileTree={fileTree}
-          initialFileContents={fileContents}
-          level={currentLevel}
-        />
       {/if}
     </div>
   </aside>

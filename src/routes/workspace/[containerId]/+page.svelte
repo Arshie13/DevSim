@@ -101,6 +101,7 @@
 
   // ── Panel toggle state ───────────────────────────────────────────────────
   let aiPanelOpen: boolean = false;
+  let aiPanelMode: "chat" | "quick" = "chat";
 
   // ── Back confirmation modal state ────────────────────────────────────────
   let backModalOpen: boolean = false;
@@ -715,9 +716,21 @@
       </div>
     </div>
 
-    <!-- Right AI Hints Panel (toggleable) -->
+    <!-- Right AI Hints Panel (toggleable and resizable) -->
     {#if aiPanelOpen}
-      <AiHelp containerId={page.params.containerId} userId={data.userId} />
+      <div class="w-80 flex-shrink-0 border-l border-[rgba(7,165,201,0.1)] flex flex-col h-full" style="min-width: 320px; max-width: 600px;">
+        <AiHelp 
+          containerId={page.params.containerId} 
+          userId={data.userId}
+          scenario={LEVEL_CONFIG.scenario}
+          {tasks}
+          initialFileTree={fileTree}
+          initialFileContents={fileContents}
+          projectName={projectName}
+          level={currentLevel}
+          bind:mode={aiPanelMode}
+        />
+      </div>
     {/if}
   </div>
 

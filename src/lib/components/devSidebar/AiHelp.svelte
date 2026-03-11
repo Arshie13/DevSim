@@ -27,6 +27,10 @@
   // Default to 'quick' to show the button in the AI Helper tab
   export let mode: "chat" | "quick" = "quick";
 
+  // Local state to track mode - initialized from prop but can change
+  let currentMode: "chat" | "quick" = mode;
+  $: currentMode = mode;
+
   // Allow initial values to be set from parent, but use stores for persistence
   export let initialSelectedFile: string = "";
   export let initialFileTree: string[] = [];
@@ -271,7 +275,7 @@
       // Fetch contents of attached files
       const attachedFetchPromises = attachedFiles.map(async (file) => {
         try {
-          const filePath = `/workspace/${file.path}`;
+          const filePath = file.path.startsWith('/workspace/') ? file.path : `/workspace/${file.path}`;
           console.log('[AI Helper] Fetching file:', filePath);
           const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
             method: "POST",
@@ -282,11 +286,14 @@
           console.log('[AI Helper] File result:', file.path, 'success:', data.success);
           if (data.success) {
             return { file, content: data.content };
+          } else {
+            console.error('[AI Helper] Failed to read file:', file.path, data.error);
+            return { file, content: `// Error: Could not read file ${file.name}` };
           }
         } catch (e) {
           console.error(`[AI Helper] Error reading attached file ${file.path}:`, e);
+          return { file, content: `// Error: ${e}` };
         }
-        return null;
       });
       
       const attachedResults = await Promise.all(attachedFetchPromises);
@@ -294,9 +301,10 @@
       for (const result of attachedResults) {
         if (result) {
           const { file, content } = result;
-          context += `--- ${file.name} ---\n`;
+          context += `--- File: ${file.name} ---\n`;
+          context += `// Path: ${file.path}\n`;
           const lines = content.split('\n');
-          const maxLines = 150; // More lines for attached files
+          const maxLines = 200; // Increased lines for better context
           const linesToShow = lines.slice(0, maxLines);
           
           linesToShow.forEach((line: string, index: number) => {
@@ -313,15 +321,38 @@
     }
     
     // Add task progress context - this is crucial for context awareness
-    context += `Your Progress (Tasks):\n`;
+    // NOTE: The API expects format: "Tasks (X/Y completed):" and "[√] task" or "[ ] task"
+    const completedCount = tasks ? tasks.filter(t => t.completed).length : 0;
+    context += `Tasks (${completedCount}/${tasks ? tasks.length : 0} completed):\n`;
     
-    console.log('[AI Helper] Full context being sent (first 500 chars):', context.substring(0, 500));
-    const completedCount = tasks.filter(t => t.completed).length;
-    context += `Completed: ${completedCount}/${tasks.length}\n`;
-    tasks.forEach((task) => {
-      const status = task.completed ? "[✓]" : "[ ]";
-      context += `${status} ${task.text}\n`;
-    });
+    console.log('[AI Helper] Tasks context:', tasks);
+    
+    // Check if tasks are available
+    if (!tasks || tasks.length === 0) {
+      // Provide scenario as fallback context
+      if (scenario) {
+        context += `Current scenario: ${scenario}\n`;
+      }
+      context += `No tasks loaded. Please provide general guidance based on the project files.\n`;
+    } else {
+      // List each task with its status - API expects [√] or [ ] format
+      tasks.forEach((task) => {
+        const status = task.completed ? "[√]" : "[ ]";
+        context += `${status} ${task.text}\n`;
+      });
+    }
+    
+    // Add instructions for giving hints based on tasks
+    context += `\n=== HINT INSTRUCTIONS ===\n`;
+    if (tasks && tasks.length > 0) {
+      context += `Based on the user's current task progress above, please provide a helpful hint that:\n`;
+      context += `1. Focus on the next incomplete task (tasks marked with [ ])\n`;
+      context += `2. Consider the current state of the project files\n`;
+      context += `3. Be specific and actionable\n`;
+      context += `4. If all tasks are completed (all show [√]), congratulate the user and offer to help\n`;
+    } else {
+      context += `Provide helpful guidance based on the scenario and project files provided above.\n`;
+    }
 
     return context;
   }
@@ -452,6 +483,11 @@
     // Save attached files count before clearing
     const attachedFilesCount = attachedFiles.length;
 
+    // Find the current incomplete task for a more specific hint
+    const currentTask = tasks && tasks.length > 0 
+      ? tasks.find(t => !t.completed) 
+      : null;
+
     try {
       // Build context from current state
       const context = await generateContext();
@@ -461,9 +497,17 @@
       // Clear attached files after requesting hint
       attachedFiles = [];
       
-      // Default hint message based on current progress
-      const hintMessage = `I'm working on the current task. Can you give me a hint on what to do next based on my progress?`;
+      // Concise hint message - keep it short for a brief AI response
+      let hintMessage: string;
+      if (currentTask) {
+        hintMessage = `Current task: "${currentTask.text}" (${tasks.filter(t => t.completed).length}/${tasks.length} done). Give me a SHORT, specific hint - which file and exactly what to do?`;
+      } else if (tasks && tasks.length > 0 && tasks.every(t => t.completed)) {
+        hintMessage = `All tasks done! Quick congrats and ask if they need help with anything else.`;
+      } else {
+        hintMessage = `Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?`;
+      }
 
+      // Use quick mode to get AI-generated hints based on current task
       const response = await fetch("/api/ai/hint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -472,7 +516,7 @@
           context,
           containerId,
           userId,
-          hintType: mode,
+          hintType: "quick", // Use quick mode for AI-generated hints
           attachedFilesCount: attachedFilesCount,
           attachedFiles,
           level,
@@ -611,7 +655,7 @@
     </p>
   {:else}
     <p class="text-xs text-gray-500 text-center mt-2">
-      💰 Quick hint: {QUICK_HINT_COST} coins | Chat: {CHAT_HINT_COST} coins
+      💰 Quick hint: {QUICK_HINT_COST} coins | Chat: {CHAT_HINT_COST} coins ({ATTACHED_FILE_COST} coins per attached file)
     </p>
   {/if}
 
@@ -751,28 +795,22 @@
   </div>
 {/if}
 
-<!-- Chat Section (only show when mode is 'chat') -->
-{#if mode === 'chat'}
-<div class="flex flex-col h-full">
+<!-- Chat Section (always visible to prevent disappearing) -->
+<div class="flex flex-col" style="flex: 1; min-height: 0;">
   <!-- Chat Section -->
-  <div class="flex-1 flex flex-col min-h-0">
-    <div class="p-4 border-b border-zinc-800">
+  <div class="flex flex-col" style="flex: 1; min-height: 0; overflow: hidden;">
       <div class="flex items-center justify-between">
         <div>
-          <!-- No avatar or title here -->
         </div>
-        <!-- Coin counter removed from here -->
       </div>
-      <p class="text-xs text-gray-400 mt-2">
-        💰 Costs {hintCost} coins per hint
-      </p>
-      <p class="text-xs text-gray-500">
-        📎 +{ATTACHED_FILE_COST} coins per attached file
-      </p>
-    </div>
 
     <!-- Messages -->
-    <div bind:this={chatContainer} class="flex-1 overflow-y-auto p-4 space-y-4" on:scroll={handleScroll}>
+    <div 
+      bind:this={chatContainer} 
+      class="flex-1 p-4 space-y-4" 
+      on:scroll={handleScroll}
+      style="overflow-y: auto; min-height: 0; flex: 1 1 auto; height: 100%;"
+    >
       {#if $aiChatHistory.length === 0}
         <div class="flex flex-col items-center justify-center py-8">
           {#if avatarFailed}
@@ -922,7 +960,6 @@
     </div>
   </div>
 </div>
-{/if}
 
 <style>
   .overflow-y-auto::-webkit-scrollbar {
