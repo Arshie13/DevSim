@@ -169,7 +169,7 @@
       style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));"
       title="Toggle AI Hints"
     >
-      <Bot class="w-4 h-4" />
+      <Bot class="w-6 h-6" />
     </button>
   </div>
 </header>

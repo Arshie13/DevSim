@@ -72,3 +72,22 @@ export interface FinishedStack {
   rating: number;
   icon: string;
 }
+
+export interface ScenarioMeta {
+  /** e.g., "scenario-1" */
+  id: string;
+  /** e.g., 1 */
+  number: number;
+  /** Human-readable title, e.g., "POS System" */
+  title: string;
+  /** First paragraph from project.md */
+  description: string;
+  /** Difficulty label, e.g., "Easy → Master" or "Medium" */
+  difficulty: string;
+  /** Number of levels defined in levels.md */
+  levelCount: number;
+  /** Name of the project subfolder, e.g., "pos-system" */
+  projectFolder: string;
+  /** Whether a non-empty levels.md exists */
+  hasLevels: boolean;
+}

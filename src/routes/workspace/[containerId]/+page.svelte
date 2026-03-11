@@ -15,6 +15,7 @@
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
   import AiHintsPanel from "$lib/components/workspace/AiHintsPanel.svelte";
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
 
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -55,6 +56,10 @@
   // ── Panel toggle state ───────────────────────────────────────────────────
   let aiPanelOpen: boolean = false;
   let isDownloading: boolean = false;
+
+  // ── Back confirmation modal state ────────────────────────────────────────
+  let backModalOpen: boolean = false;
+  let backModalLoading: boolean = false;
 
   function toggleAiPanel() { aiPanelOpen = !aiPanelOpen; }
 
@@ -328,6 +333,12 @@
   }
 
   function handleBack() {
+    backModalOpen = true;
+  }
+
+  async function confirmBack() {
+    backModalLoading = true;
+    await fetch(`/api/docker/container/${containerId}/stop`, { method: "POST" });
     goto("/dashboard");
   }
 
@@ -629,6 +640,23 @@
     bind:this={submitSprintModal}
     dbContainerId={page.params.containerId}
     {tasks}
+  />
+
+  <!-- Back confirmation modal -->
+  <ConfirmationModal
+    bind:open={backModalOpen}
+    icon="🚪"
+    iconVariant="warning"
+    title="Leave Workspace?"
+    subtitle="Are you sure you want to leave? Your current progress will be lost."
+    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later."
+    confirmLabel="Leave"
+    cancelLabel="Stay"
+    variant="warning"
+    isLoading={backModalLoading}
+    loadingLabel="Stopping…"
+    on:confirm={confirmBack}
+    on:cancel={() => { backModalOpen = false; }}
   />
 </div>
 

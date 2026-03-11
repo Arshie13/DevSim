@@ -80,6 +80,8 @@ export const { handle } = SvelteKitAuth({
         if (dbUser) {
           token.id = dbUser.id;
           token.image = dbUser.image;
+          token.givenName = profile?.given_name
+          token.fullName = profile?.name
         }
       }
 
@@ -92,6 +94,8 @@ export const { handle } = SvelteKitAuth({
         if (dbUser) {
           token.id = dbUser.id;
           token.image = dbUser.image;
+          token.givenName = profile?.given_name
+          token.fullName = profile?.name
         }
       }
 
@@ -103,6 +107,9 @@ export const { handle } = SvelteKitAuth({
         // Surface the DB image (may be an OAuth URL or a local /avatars/ path)
         if (token.image !== undefined) {
           session.user.image = token.image as string | null;
+          session.user.name = token.name as string | null;
+          session.user.fullName = token.fullName as string | null;
+          session.user.givenName = token.givenName as string | null;
         }
       }
       return session;

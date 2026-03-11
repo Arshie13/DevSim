@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Play, Clock, ChevronRight, Container } from "lucide-svelte";
   import type { Container as ContainerType } from '$prismaclient';
+  import { parseStackName } from '$lib/utils/stacks';
 
   export let containers: ContainerType[];
   export let finishedStacks: any[] = [];
@@ -8,22 +9,15 @@
 
   $: visibleContainers = containers.slice(0, maxVisible);
 
-  // Helper to format date
   function formatLastActive(date: Date | string): string {
     const d = new Date(date);
     const now = new Date();
     const diff = now.getTime() - d.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
-    
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     return 'Just now';
-  }
-
-  // Get display name from stacks array
-  function getStackName(stacks: string[]): string {
-    return stacks.length > 0 ? stacks.join(' + ') : 'Unknown Stack';
   }
 </script>
 
@@ -65,8 +59,15 @@
                     <Container class="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{getStackName(container.stacks)}</h4>
-                    <p class="text-xs font-mono text-[var(--text-muted)]">
+                    <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">
+                      {container.scenarioTitle ?? parseStackName(container.stacks)}
+                    </h4>
+                    {#if container.scenarioTitle}
+                      <p class="text-xs font-mono text-[var(--accent)] opacity-70 mt-0.5 truncate">
+                        {parseStackName(container.stacks)}
+                      </p>
+                    {/if}
+                    <p class="text-xs font-mono text-[var(--text-muted)] mt-0.5">
                       Level {container.level} • {container.status}
                     </p>
                   </div>
