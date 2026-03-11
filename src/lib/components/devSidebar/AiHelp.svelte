@@ -11,8 +11,8 @@
   
   // Mode: 'chat' for full chat interface, 'quick' for just button-triggered hints
   // Default to 'quick' to show the button in the AI Helper tab
-  export let mode: 'chat' | 'quick' = 'quick';
-  
+  export let mode: "chat" | "quick" = "quick";
+
   // Allow initial values to be set from parent, but use stores for persistence
   export let initialSelectedFile: string = "";
   export let initialFileTree: string[] = [];
@@ -44,15 +44,21 @@
   // This ensures we always have the latest data
   // We prioritize the store value after first interaction to ensure coin updates reflect
   $: currentSelectedFile = initialSelectedFile || $aiSelectedFile;
-  $: currentFileTree = initialFileTree.length > 0 ? initialFileTree : $aiFileTree;
-  $: currentFileContents = Object.keys(initialFileContents).length > 0 ? initialFileContents : $aiFileContents;
+  $: currentFileTree =
+    initialFileTree.length > 0 ? initialFileTree : $aiFileTree;
+  $: currentFileContents =
+    Object.keys(initialFileContents).length > 0
+      ? initialFileContents
+      : $aiFileContents;
   // Use store value after the first update (when store has been set from API response)
-  $: currentCoins = ($aiCoins !== 1000 || initialCoins === 1000) ? $aiCoins : initialCoins;
+  $: currentCoins =
+    $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
 
   // Update stores for persistence (these don't affect the current* vars above)
   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
   $: if (initialFileTree.length > 0) aiFileTree.set(initialFileTree);
-  $: if (Object.keys(initialFileContents).length > 0) aiFileContents.set(initialFileContents);
+  $: if (Object.keys(initialFileContents).length > 0)
+    aiFileContents.set(initialFileContents);
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
 
   // Coin costs per hint type
@@ -83,7 +89,11 @@
   // Only scroll to bottom when new messages are added (not on every change)
   $: {
     const currentCount = $aiChatHistory.length;
-    if (currentCount > previousMessageCount && !userScrolling && chatContainer) {
+    if (
+      currentCount > previousMessageCount &&
+      !userScrolling &&
+      chatContainer
+    ) {
       setTimeout(() => {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }, 50);
@@ -108,7 +118,7 @@
     context += `Scenario: ${scenario}\n\n`;
     
     // Add conversation history for context (for chat mode)
-    if (mode === 'chat') {
+    if (mode === "chat") {
       const chatHistory = $aiChatHistory;
       if (chatHistory.length > 0) {
         context += `=== RECENT CONVERSATION ===\n`;
@@ -124,12 +134,12 @@
         context += "\n";
       }
     }
-    
+
     // Use the reactive current* vars which have latest props data
     const selectedFile = currentSelectedFile;
     const fileContents = currentFileContents;
     const fileTree = currentFileTree;
-    
+
     // Add file tree - show all files for context
     if (fileTree.length > 0) {
       context += `Project Files (${fileTree.length} files):\n`;
@@ -143,20 +153,33 @@
       }
       context += "\n";
     }
-    
+
     // Try to read multiple files for better context
     // Focus on source files that are likely important
-    const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs'];
-    const importantFiles = fileTree.filter(f => sourceExtensions.some(ext => f.endsWith(ext)));
-    
+    const sourceExtensions = [
+      ".ts",
+      ".tsx",
+      ".js",
+      ".jsx",
+      ".svelte",
+      ".vue",
+      ".py",
+      ".java",
+      ".go",
+      ".rs",
+    ];
+    const importantFiles = fileTree.filter((f) =>
+      sourceExtensions.some((ext) => f.endsWith(ext)),
+    );
+
     // Prioritize the selected file first, then read others
     const filesToRead: string[] = [];
-    
+
     // Always include the selected file if we have one
     if (selectedFile) {
       filesToRead.push(selectedFile);
     }
-    
+
     // Add up to 4 more important files we don't have content for
     for (const file of importantFiles) {
       if (filesToRead.length >= 5) break;
@@ -164,17 +187,20 @@
         filesToRead.push(file);
       }
     }
-    
+
     // Fetch missing file contents in parallel
     if (filesToRead.length > 0 && containerId) {
       try {
         const fetchPromises = filesToRead.map(async (file) => {
           try {
-            const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ path: `/workspace/${file}` }),
-            });
+            const res = await fetch(
+              `/api/docker/container/${containerId}/files/read`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ path: `/workspace/${file}` }),
+              },
+            );
             const data = await res.json();
             if (data.success) {
               return { file, content: data.content };
@@ -184,7 +210,7 @@
           }
           return null;
         });
-        
+
         const results = await Promise.all(fetchPromises);
         console.log('[AI Helper] File fetch results:', results.length, 'files');
         for (const result of results) {
@@ -197,10 +223,10 @@
         console.error("[AI Helper] Error fetching file contents:", e);
       }
     }
-    
+
     // Add content of files with line numbers
-    const filesWithContent = filesToRead.filter(f => fileContents[f]);
-    
+    const filesWithContent = filesToRead.filter((f) => fileContents[f]);
+
     for (const file of filesWithContent) {
       if (!file) continue;
       const content = fileContents[file];
@@ -210,12 +236,12 @@
         const lines = content.split('\n');
         const maxLines = 200; // Increased for more context
         const linesToShow = lines.slice(0, maxLines);
-        
+
         linesToShow.forEach((line, index) => {
           const lineNum = index + 1;
           context += `${lineNum}: ${line}\n`;
         });
-        
+
         if (lines.length > maxLines) {
           context += `... (showing first ${maxLines} of ${lines.length} lines)\n`;
         }
@@ -282,7 +308,7 @@
       const status = task.completed ? "[✓]" : "[ ]";
       context += `${status} ${task.text}\n`;
     });
-    
+
     return context;
   }
 
@@ -295,7 +321,7 @@
 
     // Check if asking for code
     if (isAskingForCode(message)) {
-      aiChatHistory.update(msgs => [
+      aiChatHistory.update((msgs) => [
         ...msgs,
         {
           role: "user",
@@ -356,7 +382,10 @@
       const data = await response.json();
 
       if (data.success) {
-        aiChatHistory.update(msgs => [...msgs, { role: "ai", content: data.hint }]);
+        aiChatHistory.update((msgs) => [
+          ...msgs,
+          { role: "ai", content: data.hint },
+        ]);
         // Update coin balance in store and force re-render
         if (data.coinsRemaining !== undefined) {
           aiCoins.set(data.coinsRemaining);
@@ -364,7 +393,7 @@
           initialCoins = data.coinsRemaining;
         }
       } else {
-        aiChatHistory.update(msgs => [
+        aiChatHistory.update((msgs) => [
           ...msgs,
           {
             role: "ai",
@@ -374,7 +403,7 @@
       }
     } catch (error) {
       console.error("Error getting AI hint:", error);
-      aiChatHistory.update(msgs => [
+      aiChatHistory.update((msgs) => [
         ...msgs,
         {
           role: "ai",
@@ -413,7 +442,7 @@
       
       // Default hint message based on current progress
       const hintMessage = `I'm working on the current task. Can you give me a hint on what to do next based on my progress?`;
-      
+
       const response = await fetch("/api/ai/hint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -473,7 +502,10 @@
   }
 
   // Helper for conditional classes
-  function getMessageClasses(msg: { role: "user" | "ai"; isWarning?: boolean }): string {
+  function getMessageClasses(msg: {
+    role: "user" | "ai";
+    isWarning?: boolean;
+  }): string {
     let classes = "max-w-[85%] p-3 rounded-lg text-sm ";
     if (msg.role === "user") {
       classes += "bg-cyan-600/20 text-gray-100";
@@ -485,8 +517,12 @@
     return classes;
   }
 
-  function getIconClasses(msg: { role: "user" | "ai"; isWarning?: boolean }): string {
-    let classes = "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ";
+  function getIconClasses(msg: {
+    role: "user" | "ai";
+    isWarning?: boolean;
+  }): string {
+    let classes =
+      "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ";
     if (msg.role === "user") {
       classes += "bg-cyan-500";
     } else if (msg.isWarning) {
@@ -515,7 +551,7 @@
     <Bot class="w-4 h-4" />
     Get Quick Hint
   </button>
-  
+
   {#if currentCoins < QUICK_HINT_COST}
     <p class="text-xs text-yellow-500 text-center mt-2">
       ⚠️ Not enough coins ({currentCoins}/{QUICK_HINT_COST})
@@ -525,18 +561,22 @@
       💰 Quick hint: {QUICK_HINT_COST} coins | Chat: {CHAT_HINT_COST} coins
     </p>
   {/if}
-  
+
   <!-- Toggle between Quick and Chat mode -->
   <div class="flex gap-2 mt-3">
     <button
-      on:click={() => mode = 'quick'}
-      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'quick' ? 'bg-cyan-500 text-white' : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
+      on:click={() => (mode = "quick")}
+      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'quick'
+        ? 'bg-cyan-500 text-white'
+        : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
     >
       ⚡ Quick
     </button>
     <button
-      on:click={() => mode = 'chat'}
-      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'chat' ? 'bg-cyan-500 text-white' : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
+      on:click={() => (mode = "chat")}
+      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'chat'
+        ? 'bg-cyan-500 text-white'
+        : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
     >
       💬 Chat
     </button>
@@ -545,31 +585,58 @@
 
 <!-- Quick Hint Result Modal -->
 {#if showQuickHint}
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" on:click={closeQuickHint}>
-    <div class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full p-4" on:click|stopPropagation>
+  <div
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    role="button"
+    tabindex="0"
+    on:click={closeQuickHint}
+    on:keydown={(e) => {
+      if (e.key === "Escapec") closeQuickHint();
+    }}
+  >
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full p-4"
+      on:click|stopPropagation
+    >
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <Bot class="w-5 h-5 text-cyan-500" />
           <span class="font-medium text-gray-200">AI Hint</span>
         </div>
-        <button on:click={closeQuickHint} class="text-gray-400 hover:text-gray-200">
+        <button
+          on:click={closeQuickHint}
+          class="text-gray-400 hover:text-gray-200"
+        >
           <X class="w-5 h-5" />
         </button>
       </div>
-      
+
       {#if quickHintLoading}
         <div class="flex items-center justify-center py-8">
           <div class="flex gap-1">
-            <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></span>
-            <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></span>
-            <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></span>
+            <span
+              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+              style="animation-delay: 0ms;"
+            ></span>
+            <span
+              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+              style="animation-delay: 150ms;"
+            ></span>
+            <span
+              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+              style="animation-delay: 300ms;"
+            ></span>
           </div>
         </div>
       {:else}
         <div class="text-sm text-gray-300 whitespace-pre-wrap">
           {@html formatMessage(quickHintMessage)}
         </div>
-        <div class="mt-3 pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-gray-500">
+        <div
+          class="mt-3 pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-gray-500"
+        >
           <span>Coins spent: {QUICK_HINT_COST}</span>
           <span>Coins remaining: {initialCoins}</span>
         </div>
@@ -580,6 +647,8 @@
 
 <!-- File Picker Modal -->
 {#if showFilePicker}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" on:click={() => showFilePicker = false}>
     <div class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full max-h-[70vh] flex flex-col" on:click|stopPropagation>
       <div class="flex items-center justify-between p-4 border-b border-[#27272a]">
@@ -691,22 +760,33 @@
           </div>
         {/each}
 
-        {#if isLoading}
-          <div class="flex gap-3">
-            <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center">
-              <Bot class="w-3 h-3 text-cyan-500" />
-            </div>
-            <div class="bg-slate-900/60 p-3 rounded-lg">
-              <div class="flex gap-1">
-                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></span>
-                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></span>
-                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></span>
+          {#if isLoading}
+            <div class="flex gap-3">
+              <div
+                class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center"
+              >
+                <Bot class="w-3 h-3 text-cyan-500" />
+              </div>
+              <div class="bg-slate-900/60 p-3 rounded-lg">
+                <div class="flex gap-1">
+                  <span
+                    class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+                    style="animation-delay: 0ms;"
+                  ></span>
+                  <span
+                    class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+                    style="animation-delay: 150ms;"
+                  ></span>
+                  <span
+                    class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+                    style="animation-delay: 300ms;"
+                  ></span>
+                </div>
               </div>
             </div>
-          </div>
+          {/if}
         {/if}
-      {/if}
-    </div>
+      </div>
 
     <!-- Input -->
     <div class="p-4 border-t border-zinc-800">
