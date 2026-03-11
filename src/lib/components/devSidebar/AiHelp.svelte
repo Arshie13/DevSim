@@ -378,7 +378,9 @@
       const context = await generateContext();
       
       // Clear attached files after generating context
-      attachedFiles = [];
+      // attachedFiles = [];
+
+      console.log("files count: ", filesCount);
       
       const response = await fetch("/api/ai/hint", {
         method: "POST",
@@ -390,6 +392,7 @@
           userId,
           hintType: mode,
           attachedFilesCount: filesCount,
+          attachedFiles,
           level,
         }),
       });
@@ -427,6 +430,7 @@
       ]);
     } finally {
       isLoading = false;
+      clearAttachedFiles()
     }
   }
 
@@ -470,6 +474,7 @@
           userId,
           hintType: mode,
           attachedFilesCount: attachedFilesCount,
+          attachedFiles,
           level,
         }),
       });
@@ -509,6 +514,10 @@
 
   function removeAttachedFile(filePath: string) {
     attachedFiles = attachedFiles.filter(f => f.path !== filePath);
+  }
+
+  function clearAttachedFiles() {
+    attachedFiles = [];
   }
 
   // Handle enter key

@@ -1,6 +1,7 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
+import { readFile } from "$lib/server/docker/user/read-file";
 
 // AI Hint costs in coins
 const QUICK_HINT_COST = 100;  // Button-triggered hints based on progress
@@ -16,6 +17,7 @@ interface HintRequest {
   hintType?: 'quick' | 'chat';
   level?: number;  // User's current level (1-5)
   attachedFilesCount?: number;  // Number of files attached to the message
+  attachedFiles?: { path: string; name: string }[];  // Array of attached file objects
 }
 
 // Check if the user is asking for code
@@ -154,9 +156,12 @@ function buildProgressHintResponse(context: string): string {
 }
 
 // Build the prompt for AI models
-function buildPrompt(message: string, context: string, level: number = 1): string {
+function buildPrompt(message: string, context: string, level: number = 1, fileContents?: { path: string; content: string; error?: string }[]): string {
   const progress = extractProgressFromContext(context);
   
+  console.log("------------------------test--------------------");
+  console.log("file contents: ", fileContents);
+
   // Determine hand-holding level based on user progression
   // Levels 1-2: Give step-by-step guidance (hand-holdy)
   // Levels 3-5: Encourage thinking (less hand-holdy)
@@ -215,7 +220,10 @@ IMPORTANT GUIDELINES:
 
 USER'S QUESTION: "${message}"
 
-YOUR TASK:
+${fileContents && fileContents.length > 0 ? `
+ATTACHED FILES (explicitly attached by user for additional context):
+${fileContents.map(f => `- ${f.content}`)}
+` : ''}YOUR TASK:
 Analyze the user's question and the project files/code provided above. Then give a helpful, moderately detailed hint that:
 1. Directly addresses what the user is asking about
 2. Explains the key concept or approach
@@ -249,7 +257,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const body: HintRequest = await request.json();
-    const { message, context, userId: uid, hintType, attachedFilesCount = 0, level = 1 } = body;
+    const { message, context, containerId, userId: uid, hintType, attachedFilesCount = 0, attachedFiles, level = 1 } = body;
     userId = uid;
     const currentLevel = level || 1;
 
@@ -366,8 +374,31 @@ export const POST: RequestHandler = async ({ request }) => {
     const newCoinBalance = user.coins - totalCost;
     originalCoinBalance = user.coins;
 
-    // Build the prompt with level-aware instructions
-    const prompt = buildPrompt(message, context || "No additional context", currentLevel);
+    console.log("Attached files length: ", attachedFiles?.length);
+
+    let prompt: string;
+    if (attachedFiles && attachedFiles.length > 0) {
+      const fileContents: { path: string; name: string; content: string }[] = [];
+      for (const file of attachedFiles) {
+        const filePath = `/workspace/${file.path}`;
+        const fileContent = await readFile(filePath, containerId);
+        console.log("File content for ", file.path, ": ", fileContent.content);
+        if (!fileContent.error) {
+          fileContents.push({
+            path: file.path,
+            name: file.name,
+            content: fileContent.content
+          });
+        }
+      }
+      console.log("File contents after reading: ", fileContents);
+
+      // Build the prompt with level-aware instructions
+      prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContents);
+    } else {
+      // Build the prompt with level-aware instructions (no attached files)
+      prompt = buildPrompt(message, context || "No additional context", currentLevel);
+    }
 
     // Try OpenRouter free coding models
     const models = [
