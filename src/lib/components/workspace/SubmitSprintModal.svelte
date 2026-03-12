@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
   import type { Task } from '$lib/interface/LevelConfig';
+  import type { TestResult } from '$lib/tests/types';
   import LoadingSteps from '$lib/components/ui/LoadingSteps.svelte';
   import ConfirmationModal from '$lib/components/ui/ConfirmationModal.svelte';
 
@@ -221,7 +222,7 @@
       
       if (testData.failedTasks.length > 0) {
         console.log('=== TEST RUN: Failed Tasks ===');
-        testData.failedTasks.forEach((task: any, index: number) => {
+        testData.failedTasks.forEach((task: { taskId: number; taskText: string; errors: string[] }, index: number) => {
           console.log(`${index + 1}. ${task.taskText}`);
           task.errors.forEach((error: string) => {
             console.log(`   • ${error}`);
@@ -230,7 +231,7 @@
       }
       
       console.log('=== TEST RUN: Detailed Results ===');
-      testData.results?.results.forEach((result: any) => {
+      testData.results?.results.forEach((result: TestResult) => {
         console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
       });
       
