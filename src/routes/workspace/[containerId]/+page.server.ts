@@ -6,13 +6,13 @@ export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
 
   if (!session?.user) {
-    throw redirect(303, '/');
+    throw redirect(303, "/");
   }
 
   // Get user data including coins
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true, coins: true, name: true }
+    select: { id: true, coins: true, name: true },
   });
 
   // The route param is now always the Prisma Container.id (cuid).
@@ -22,27 +22,31 @@ export const load: PageServerLoad = async (event) => {
 
   const record = await prisma.container.findFirst({
     where: { id: dbId, userId },
-    select: { 
-      containerId: true, 
-      status: true, scenarioTitle: true, stacks: true,
+    select: {
+      containerId: true,
+      status: true,
+      scenarioTitle: true,
+      stacks: true,
       level: true,
-      completedTasks: true
-    }
+      completedTasks: true,
+    },
   });
 
   // Get level info based on container's current level
   let levelTasks: string[] = [];
-  let levelTitle = '';
-  
+  let levelTitle = "";
+  let levelDescription = "";
+
   if (record) {
     const level = await prisma.level.findFirst({
       where: { order: record.level },
-      orderBy: { order: 'asc' },
-      select: { task: true, title: true }
+      orderBy: { order: "asc" },
+      select: { task: true, title: true, levelDescription: true },
     });
     if (level) {
       levelTasks = level.task || [];
-      levelTitle = level.title || '';
+      levelTitle = level.title || "";
+      levelDescription = level.levelDescription || "";
     }
   }
 
@@ -56,6 +60,9 @@ export const load: PageServerLoad = async (event) => {
     level: record?.level || 1,
     completedTasks: record?.completedTasks || [],
     levelTasks,
-    levelTitle
+    levelTitle,
+    levelDescription,
+    scenarioTitle: record?.scenarioTitle ?? null,
+    stacks: record?.stacks ?? [],
   };
 };

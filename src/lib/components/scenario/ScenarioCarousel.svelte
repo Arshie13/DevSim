@@ -87,32 +87,32 @@
 
     <!-- Left arrow -->
     <button
-      class="nav-arrow left-2 w-11 h-11 flex items-center justify-center
-             bg-[rgba(7,165,201,0.06)] border border-[rgba(7,165,201,0.2)]
-             text-[rgba(7,165,201,0.7)] rounded-sm
-             hover:bg-[rgba(7,165,201,0.15)] hover:border-[rgba(7,165,201,0.5)]
-             hover:text-[#07a5c9] hover:shadow-[0_0_18px_rgba(7,165,201,0.2)]
+      class="nav-arrow left-[calc(50%-360px)] w-12 h-12 flex items-center justify-center
+             bg-[rgba(7,165,201,0.14)] border border-[rgba(7,165,201,0.55)]
+             text-[#07a5c9] rounded-sm shadow-[0_0_18px_rgba(7,165,201,0.3)]
+             hover:bg-[rgba(7,165,201,0.26)] hover:border-[rgba(7,165,201,0.8)]
+             hover:shadow-[0_0_28px_rgba(7,165,201,0.5)]
              disabled:opacity-20 disabled:cursor-not-allowed"
       on:click={() => navigate(-1)}
       disabled={isTransitioning}
       aria-label="Previous scenario"
     >
-      <ChevronLeft class="w-6 h-6" />
+      <ChevronLeft class="w-8 h-8" />
     </button>
 
     <!-- Right arrow -->
     <button
-      class="nav-arrow right-2 w-11 h-11 flex items-center justify-center
-             bg-[rgba(7,165,201,0.06)] border border-[rgba(7,165,201,0.2)]
-             text-[rgba(7,165,201,0.7)] rounded-sm
-             hover:bg-[rgba(7,165,201,0.15)] hover:border-[rgba(7,165,201,0.5)]
-             hover:text-[#07a5c9] hover:shadow-[0_0_18px_rgba(7,165,201,0.2)]
+      class="nav-arrow right-[calc(50%-360px)] w-12 h-12 flex items-center justify-center
+             bg-[rgba(7,165,201,0.14)] border border-[rgba(7,165,201,0.55)]
+             text-[#07a5c9] rounded-sm shadow-[0_0_18px_rgba(7,165,201,0.3)]
+             hover:bg-[rgba(7,165,201,0.26)] hover:border-[rgba(7,165,201,0.8)]
+             hover:shadow-[0_0_28px_rgba(7,165,201,0.5)]
              disabled:opacity-20 disabled:cursor-not-allowed"
       on:click={() => navigate(1)}
       disabled={isTransitioning}
       aria-label="Next scenario"
     >
-      <ChevronRight class="w-6 h-6" />
+      <ChevronRight class="w-8 h-8" />
     </button>
 
     {#each scenarios as scenario, i (scenario.id)}

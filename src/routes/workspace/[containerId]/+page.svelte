@@ -3,7 +3,6 @@
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { MonacoInitializer } from "$client/MonacoInitializer";
-  import { TerminalInitializer } from "$client/TerminalInitializer";
 
   // Components
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
@@ -16,10 +15,9 @@
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
   import TerminalManagerPanel from "$lib/components/workspace/TerminalManagerPanel.svelte";
- import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
+  import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
   import BoardPanel from "$lib/components/workspace/BoardPanel.svelte";
 
-  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
   import type { Task } from "$lib/interface/LevelConfig";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -27,8 +25,7 @@
   import type { FileListResponse } from "$lib/interface/Files";
   import type { FileTab } from "$lib/components/workspace/FileTabBar.svelte";
   import { toast } from "$lib/stores/toast";
-
-  import { toast } from "$lib/stores/toast";
+  import { TerminalInitializer } from "$client/TerminalInitializer";
 
   interface Props {
     dockerContainerId: string | null;
@@ -37,6 +34,9 @@
     completedTasks: string[]; // List of completed task texts for this level
     levelTasks: string[]; // List of all task texts for this level
     level: number; // Current level number (for task panel display)
+    levelDescription: string; // Scenario/sprint brief text for the board panel
+    scenarioTitle: string; // For header display
+    stacks: string[]; // For header display
   }
 
   // Server-loaded data:
@@ -45,10 +45,6 @@
   //   userId — the user's ID for AI hints
   //   userCoins — the user's coin balance for AI hints
   export let data: Props;
-
-  // Get route params
-  $: stackId = page.params.techstackid;
-  $: levelId = parseInt(page.params.levelId!);
 
   // Get user data from page data
   $: userId = data.userId || "";
@@ -70,6 +66,7 @@
   let tasks: Task[] = []; // Will be populated from server data
   let timeRemaining: number = 4 * 60 * 60; // Default to 4 hours
   let isRunning: boolean = false;
+  let terminal: TerminalInitializer | null = null;
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
   let editorValue: string = "";
@@ -106,10 +103,10 @@
     ...levelTestConfig,
     level: currentLevel,
     // Keep UI fields from LEVEL_CONFIG
-    stack: LEVEL_CONFIG.stack,
+    stack: stack,
     difficulty: LEVEL_CONFIG.difficulty,
     deadline: LEVEL_CONFIG.deadline,
-    scenario: LEVEL_CONFIG.scenario,
+    scenario: data.levelDescription,
     hints: LEVEL_CONFIG.hints,
     starterFiles: LEVEL_CONFIG.starterFiles,
     // Use tasks from server data
@@ -299,6 +296,7 @@
 
       // Step 4 — initialize first terminal session
       bootStep = 4;
+      terminal = new TerminalInitializer();
       await addTerminalSession("Terminal");
 
       // Done — hide the boot screen
@@ -639,32 +637,6 @@
     }
   }
 
-  function refreshTerminal() {
-    terminal?.reconnect();
-  }
-
-  async function refreshFiles() {
-    if (!containerId) return;
-    try {
-      const listRes = await fetch(
-        `/api/docker/container/${containerId}/files/list`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-      const listData = (await listRes.json()) as FileListResponse;
-      if (listData.success) {
-        fileTree = listData.files;
-        directories = listData.directories || [];
-        toast.success("Files refreshed");
-      }
-    } catch (error) {
-      console.error("Error refreshing files:", error);
-      toast.error("Failed to refresh files");
-    }
-  }
-
   function handleTabChange(tab: "editor" | "terminal" | "preview" | "board") {
     activeTab = tab;
     // Auto-refresh preview when switching to preview tab
@@ -831,14 +803,8 @@
       {selectedFile}
       {projectName}
       {containerId}
-      scenario={LEVEL_CONFIG.scenario}
       {tasks}
-      {userId}
-      {userCoins}
-      {fileContents}
-      currentLevel={data.level}
       onSelectFile={selectFile}
-      onToggleTask={toggleTask}
       onCreateFile={handleCreateFile}
       onDeleteFile={handleDeleteFile}
       onRenameFile={handleRenameFile}
@@ -882,7 +848,7 @@
         {#if activeTab === "board"}
           <div class="absolute inset-0 overflow-hidden">
             <BoardPanel
-              scenario={LEVEL_CONFIG.scenario}
+              scenario={actualLevelConfig.scenario}
               {tasks}
               onToggleTask={toggleTask}
             />
