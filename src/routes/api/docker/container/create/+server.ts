@@ -59,6 +59,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     //    while buildStackName() maps them to folder names (e.g. "postgres"), causing mismatches.
     //  • A container created before DB tracking was introduced may have no DB record anyway.
     // Only non-archived containers are reusable (archived ones have no running Docker container).
+    // One container per stack — any existing container for this userId/level/stacks combination
+    // triggers the "alreadyExists" modal, regardless of which scenario was selected.
     const existingDbContainer = await prisma.container.findFirst({
       where: {
         userId,
@@ -144,8 +146,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     return await createFreshContainer();
 
     async function createFreshContainer() {
-      // Generate volume name: {stack-name}-scenario-{level}
-      const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-scenario-${level}`;
+      // Use the scenario folder name (e.g. "scenario-2") so each scenario gets its own
+      // volume/bind-mount. Falling back to `scenario-${level}` keeps older containers working.
+      const scenarioFolder = scenarioId ?? `scenario-${level}`;
+      // Generate volume name: {stack-name}-{scenario-folder}
+      const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
       
       // Check if volume exists
       let useVolume = false;
@@ -164,8 +169,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       if (useVolume) {
         volumeMountConfig = `${volumeName}:/workspace`;
       } else {
-        // Fallback to submodule bind mount
-        volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`.replace(/\\/g, '/');
+        // Fallback to submodule bind mount — use scenarioFolder so scenario-2/scenario-3
+        // mount their own directory instead of always defaulting to scenario-1.
+        volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioFolder}:/workspace`.replace(/\\/g, '/');
       }
       
       const container = await docker.createContainer({
