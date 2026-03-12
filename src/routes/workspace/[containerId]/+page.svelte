@@ -31,6 +31,7 @@
     completedTasks: string[]; // List of completed task texts for this level
     levelTasks: string[]; // List of all task texts for this level
     level: number; // Current level number (for task panel display)
+    hints: string[]; // List of hints for this level
   }
 
   // Server-loaded data:
@@ -75,6 +76,7 @@
 
   // Get level-specific config from server data
   $: currentLevel = data.level || 1;
+  $: levelHints = data.hints || [];
   $: levelTestConfig = getLevelConfig(currentLevel);
   $: hasTests = hasTestsForLevel(currentLevel);
   
@@ -88,7 +90,7 @@
     difficulty: LEVEL_CONFIG.difficulty,
     deadline: LEVEL_CONFIG.deadline,
     scenario: LEVEL_CONFIG.scenario,
-    hints: LEVEL_CONFIG.hints,
+    hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
     starterFiles: LEVEL_CONFIG.starterFiles,
     // Use tasks from server data
     tasks: tasks

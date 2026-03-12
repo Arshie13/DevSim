@@ -351,10 +351,12 @@
       
       for (let i = 0; i < completedTasks.length; i++) {
         const task = completedTasks[i];
+        // Only pass advanceLevel: true for the last task (when all tasks will be complete)
+        const isLastTask = i === completedTasks.length - 1;
         const submitRes = await fetch(`/api/docker/container/${dbContainerId}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: task.text })
+          body: JSON.stringify({ taskId: task.text, advanceLevel: isLastTask })
         });
         const submitData = await submitRes.json();
         

@@ -24,14 +24,24 @@ async function getLevelInfo(level: number) {
   
   const levelInfo = await prisma.level.findFirst({
     where: { order: level },
-    select: { title: true, task: true }
+    include: {
+      tasks: {
+        orderBy: { order: 'asc' }
+      }
+    }
   });
   
   if (levelInfo) {
-    levelCache.set(level, { title: levelInfo.title, tasks: levelInfo.task || [] });
+    levelCache.set(level, { 
+      title: levelInfo.title, 
+      tasks: levelInfo.tasks.map(t => t.taskName) 
+    });
   }
   
-  return levelInfo ? { title: levelInfo.title, tasks: levelInfo.task || [] } : null;
+  return levelInfo ? { 
+    title: levelInfo.title, 
+    tasks: levelInfo.tasks.map(t => t.taskName) 
+  } : null;
 }
 
 // Fetch file contents from container

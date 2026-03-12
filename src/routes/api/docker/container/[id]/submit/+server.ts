@@ -20,13 +20,19 @@ const DEFAULT_COIN_REWARD = 50;
 
 interface SubmitRequest {
   taskId: string;
+  advanceLevel?: boolean; // If true, will advance level when all tasks complete
 }
 
 // Helper to get level by order
 async function getLevelByOrder(order: number) {
   return prisma.level.findFirst({
     where: { order },
-    orderBy: { order: 'asc' }
+    orderBy: { order: 'asc' },
+    include: {
+      tasks: {
+        orderBy: { order: 'asc' }
+      }
+    }
   });
 }
 
@@ -39,7 +45,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 	try {
 		const body: SubmitRequest = await request.json();
-		const { taskId } = body
+		const { taskId, advanceLevel } = body
 
 		if (!taskId) {
 			return error(400, 'Missing taskId');
@@ -73,25 +79,41 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 		const xpReward = levelInfo.xpReward || DEFAULT_XP_REWARD;
 		const coinReward = levelInfo.coinReward || DEFAULT_COIN_REWARD;
-		const levelTasks = levelInfo.task || [];
+		const levelTasks = levelInfo.tasks.map(t => t.taskName);
 
-		// --- Update completed tasks ---
-		const currentCompletedTasks = record.completedTasks || [];
-		if (!currentCompletedTasks.includes(taskId)) {
-			currentCompletedTasks.push(taskId);
+		// --- Get completed tasks from CompletedTask table ---
+		const currentCompletedTasks = await prisma.completedTask.findMany({
+			where: { containerId: record.id },
+			select: { taskName: true }
+		});
+		const completedTaskNames = currentCompletedTasks.map(t => t.taskName);
+
+		// --- Add new completed task if not already completed ---
+		if (!completedTaskNames.includes(taskId)) {
+			await prisma.completedTask.create({
+				data: {
+					containerId: record.id,
+					taskName: taskId
+				}
+			});
+			completedTaskNames.push(taskId);
 		}
 
 
 		// --- Check if all tasks are completed ---
 		const allTasksCompleted = levelTasks.every(task => 
-			currentCompletedTasks.includes(task)
+			completedTaskNames.includes(task)
 		);
+
+		// Only auto-advance level if explicitly requested (via Submit Sprint modal)
+		// Individual task checkboxes should NOT auto-advance
+		const shouldAdvanceLevel = advanceLevel === true && allTasksCompleted;
 
 		let levelComplete = false;
 		let nextLevel = currentLevel;
 
 		// --- Prisma transaction: update tasks + award rewards atomically ---
-		if (allTasksCompleted) {
+		if (shouldAdvanceLevel) {
 
 			levelComplete = true;
 			nextLevel = currentLevel + 1;
@@ -107,7 +129,6 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 						where: { id: record.id },
 						data: {
 							status: 'completed',
-							completedTasks: currentCompletedTasks,
 							stoppedAt: new Date()
 						}
 					}),
@@ -135,9 +156,12 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 					where: { id: record.id },
 					data: {
 						level: nextLevel,
-						completedTasks: [], // Reset tasks for new level
 						status: 'in-progress'
 					}
+				}),
+				// Delete completed tasks for this container when advancing to next level
+				prisma.completedTask.deleteMany({
+					where: { containerId: record.id }
 				}),
 				prisma.user.update({
 					where: { id: session.user.id },
@@ -149,14 +173,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 				})
 			]);
 		} else {
-			// Just mark the task as completed
-			await prisma.container.update({
-				where: { id: record.id },
-				data: {
-					completedTasks: currentCompletedTasks
-				}
-			});
-
+			// Just mark the task as completed (already done above when creating CompletedTask)
 			// Award partial rewards for completing a task
 			await prisma.user.update({
 				where: { id: session.user.id },
@@ -177,7 +194,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			allLevelsComplete: false,
 			nextLevel: levelComplete ? nextLevel : null,
 			progress: {
-				completed: currentCompletedTasks.length,
+				completed: completedTaskNames.length,
 				total: levelTasks.length
 			}
 		});

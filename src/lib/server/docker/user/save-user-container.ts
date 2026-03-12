@@ -7,8 +7,6 @@ export interface UserContainerRequest {
   stacks: string[];
   level: number;
   status: string;
-  projectFolder?: string;
-  scenarioTitle?: string;
 }
 
 /**
@@ -29,18 +27,31 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
 
   try {
     if (isExisting) {
+      // Update existing container - delete old stacks and create new ones
+      await prisma.containerStack.deleteMany({
+        where: { containerId: isExisting.id }
+      });
+
       await prisma.container.update({
         data: {
           userId: data.userId,
           containerId: data.containerId,
-          stacks: data.stacks,
           level: data.level,
           status: data.status,
-          projectFolder: data.projectFolder,
-          scenarioTitle: data.scenarioTitle,
         },
         where: { id: isExisting.id }
       });
+
+      // Create new stack records
+      if (data.stacks.length > 0) {
+        await prisma.containerStack.createMany({
+          data: data.stacks.map(stackName => ({
+            containerId: isExisting.id,
+            stackName
+          }))
+        });
+      }
+
       return { dbContainerId: isExisting.id };
     }
 
@@ -48,11 +59,13 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
       data: {
         userId: data.userId,
         containerId: data.containerId,
-        stacks: data.stacks,
         level: data.level,
         status: data.status,
-        projectFolder: data.projectFolder,
-        scenarioTitle: data.scenarioTitle,
+        containerStacks: {
+          create: data.stacks.map(stackName => ({
+            stackName
+          }))
+        }
       },
       select: { id: true }
     });

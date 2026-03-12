@@ -63,34 +63,43 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       where: {
         userId,
         level,
-        isArchived: false,
-        stacks: { equals: stacksArray }
+        isArchived: false
+      },
+      include: {
+        containerStacks: true
       }
     });
 
+    // Check if the stacks match
     if (existingDbContainer) {
-      const existingDockerContainerId = existingDbContainer.containerId;
-      try {
-        const existingContainer = docker.getContainer(existingDockerContainerId);
-        const info = await existingContainer.inspect();
-        if (!info.State.Running) {
-          await existingContainer.start();
-        }
-        console.log('[create] DB-first: existing container found:', existingDockerContainerId);
-      } catch {
-        // The Docker container no longer exists (e.g. was deleted outside the app).
-        // Fall through to create a fresh one and update the DB record.
-        console.warn('[create] DB record found but Docker container is gone — creating fresh container.');
-        return await createFreshContainer();
-      }
+      const existingStackNames = existingDbContainer.containerStacks.map(s => s.stackName);
+      const stacksMatch = stacksArray.length === existingStackNames.length &&
+        stacksArray.every(s => existingStackNames.includes(s));
 
-      return json({
-        success: true,
-        alreadyExists: true,
-        message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
-        containerId: existingDockerContainerId,
-        dbContainerId: existingDbContainer.id
-      });
+      if (stacksMatch) {
+        const existingDockerContainerId = existingDbContainer.containerId;
+        try {
+          const existingContainer = docker.getContainer(existingDockerContainerId);
+          const info = await existingContainer.inspect();
+          if (!info.State.Running) {
+            await existingContainer.start();
+          }
+          console.log('[create] DB-first: existing container found:', existingDockerContainerId);
+        } catch {
+          // The Docker container no longer exists (e.g. was deleted outside the app).
+          // Fall through to create a fresh one and update the DB record.
+          console.warn('[create] DB record found but Docker container is gone — creating fresh container.');
+          return await createFreshContainer();
+        }
+
+        return json({
+          success: true,
+          alreadyExists: true,
+          message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
+          containerId: existingDockerContainerId,
+          dbContainerId: existingDbContainer.id
+        });
+      }
     }
 
     // --- DB found nothing: also check Docker by label as a fallback ---
@@ -194,9 +203,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         containerId: container.id,
         stacks: stacksArray,
         level,
-        status: 'created',
-        projectFolder,
-        scenarioTitle,
+        status: 'created'
       };
 
       const { dbContainerId } = await saveUserContainer(userContainer);

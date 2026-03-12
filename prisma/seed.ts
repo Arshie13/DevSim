@@ -24,8 +24,14 @@ async function main() {
   console.log('🌱 Starting database seed...\n');
 
   // Clear existing data
-  await prisma.userStackOptions.deleteMany();
+  await prisma.completedTask.deleteMany();
+  await prisma.containerStack.deleteMany();
+  await prisma.fileChange.deleteMany();
+  await prisma.container.deleteMany();
+  await prisma.session.deleteMany();
   await prisma.scenario.deleteMany();
+  await prisma.hint.deleteMany();
+  await prisma.levelTask.deleteMany();
   await prisma.level.deleteMany();
   
   console.log('🗑️  Cleared existing levels and scenarios\n');
@@ -38,23 +44,26 @@ async function main() {
       order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       levelDescription: 'Learn the basics of full-stack development. Set up your development environment, understand project structure, and create simple features.',
-      hints: [
-        'Start by exploring the project structure',
-        'Check the package.json for available scripts',
-        'Look at existing components for code patterns',
-        'Use console.log for debugging',
-        'Check the database schema for data models'
-      ],
       xpReward: 100,
       coinReward: 50,
-      task: [
-        'Explore the project structure',
-        'Set up environment variables',
-        'Create a simple API endpoint',
-        'Connect to the database',
-        'Deploy your first feature'
-      ],
-      completedTask: []
+      hints: {
+        create: [
+          { content: 'Start by exploring the project structure', order: 1 },
+          { content: 'Check the package.json for available scripts', order: 2 },
+          { content: 'Look at existing components for code patterns', order: 3 },
+          { content: 'Use console.log for debugging', order: 4 },
+          { content: 'Check the database schema for data models', order: 5 }
+        ]
+      },
+      tasks: {
+        create: [
+          { taskName: 'Explore the project structure', order: 1 },
+          { taskName: 'Set up environment variables', order: 2 },
+          { taskName: 'Create a simple API endpoint', order: 3 },
+          { taskName: 'Connect to the database', order: 4 },
+          { taskName: 'Deploy your first feature', order: 5 }
+        ]
+      }
     },
     {
       id: 'level-2',
@@ -62,23 +71,26 @@ async function main() {
       order: 2,
       deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
       levelDescription: 'Build upon the fundamentals. Implement authentication, handle form submissions, and create RESTful APIs.',
-      hints: [
-        'Review authentication patterns in the project',
-        'Use environment variables for sensitive data',
-        'Implement input validation',
-        'Handle errors gracefully',
-        'Write clean, modular code'
-      ],
       xpReward: 250,
       coinReward: 150,
-      task: [
-        'Implement user authentication',
-        'Create RESTful API endpoints',
-        'Add form validation',
-        'Set up database migrations',
-        'Write unit tests'
-      ],
-      completedTask: []
+      hints: {
+        create: [
+          { content: 'Review authentication patterns in the project', order: 1 },
+          { content: 'Use environment variables for sensitive data', order: 2 },
+          { content: 'Implement input validation', order: 3 },
+          { content: 'Handle errors gracefully', order: 4 },
+          { content: 'Write clean, modular code', order: 5 }
+        ]
+      },
+      tasks: {
+        create: [
+          { taskName: 'Implement user authentication', order: 1 },
+          { taskName: 'Create RESTful API endpoints', order: 2 },
+          { taskName: 'Add form validation', order: 3 },
+          { taskName: 'Set up database migrations', order: 4 },
+          { taskName: 'Write unit tests', order: 5 }
+        ]
+      }
     },
     {
       id: 'level-3',
@@ -86,23 +98,26 @@ async function main() {
       order: 3,
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       levelDescription: 'Master advanced concepts. Optimize performance, implement real-time features, and deploy to production.',
-      hints: [
-        'Profile your application for performance bottlenecks',
-        'Implement caching strategies',
-        'Use WebSockets for real-time features',
-        'Set up CI/CD pipelines',
-        'Monitor application health'
-      ],
       xpReward: 500,
       coinReward: 300,
-      task: [
-        'Optimize database queries',
-        'Implement WebSocket functionality',
-        'Set up CI/CD pipeline',
-        'Configure production environment',
-        'Deploy to cloud platform'
-      ],
-      completedTask: []
+      hints: {
+        create: [
+          { content: 'Profile your application for performance bottlenecks', order: 1 },
+          { content: 'Implement caching strategies', order: 2 },
+          { content: 'Use WebSockets for real-time features', order: 3 },
+          { content: 'Set up CI/CD pipelines', order: 4 },
+          { content: 'Monitor application health', order: 5 }
+        ]
+      },
+      tasks: {
+        create: [
+          { taskName: 'Optimize database queries', order: 1 },
+          { taskName: 'Implement WebSocket functionality', order: 2 },
+          { taskName: 'Set up CI/CD pipeline', order: 3 },
+          { taskName: 'Configure production environment', order: 4 },
+          { taskName: 'Deploy to cloud platform', order: 5 }
+        ]
+      }
     },
     {
       id: 'level-4',
@@ -110,23 +125,26 @@ async function main() {
       order: 4,
       deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
       levelDescription: 'Become a DevOps expert. Master containerization, orchestration, and infrastructure as code.',
-      hints: [
-        'Use Docker for containerization',
-        'Implement Kubernetes orchestration',
-        'Set up monitoring and logging',
-        'Use infrastructure as code tools',
-        'Automate everything'
-      ],
       xpReward: 1000,
       coinReward: 500,
-      task: [
-        'Dockerize the application',
-        'Set up Kubernetes deployment',
-        'Configure monitoring tools',
-        'Implement log aggregation',
-        'Create disaster recovery plan'
-      ],
-      completedTask: []
+      hints: {
+        create: [
+          { content: 'Use Docker for containerization', order: 1 },
+          { content: 'Implement Kubernetes orchestration', order: 2 },
+          { content: 'Set up monitoring and logging', order: 3 },
+          { content: 'Use infrastructure as code tools', order: 4 },
+          { content: 'Automate everything', order: 5 }
+        ]
+      },
+      tasks: {
+        create: [
+          { taskName: 'Dockerize the application', order: 1 },
+          { taskName: 'Set up Kubernetes deployment', order: 2 },
+          { taskName: 'Configure monitoring tools', order: 3 },
+          { taskName: 'Implement log aggregation', order: 4 },
+          { taskName: 'Create disaster recovery plan', order: 5 }
+        ]
+      }
     },
     {
       id: 'level-5',
@@ -134,23 +152,26 @@ async function main() {
       order: 5,
       deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
       levelDescription: 'Achieve mastery in system architecture. Design scalable systems, implement microservices patterns, and lead technical decisions.',
-      hints: [
-        'Design for scalability from the start',
-        'Implement event-driven architecture',
-        'Use message queues for decoupling',
-        'Design for failure',
-        'Document your architecture decisions'
-      ],
       xpReward: 2000,
       coinReward: 1000,
-      task: [
-        'Design system architecture',
-        'Implement event-driven patterns',
-        'Set up distributed tracing',
-        'Create API documentation',
-        'Lead a technical review'
-      ],
-      completedTask: []
+      hints: {
+        create: [
+          { content: 'Design for scalability from the start', order: 1 },
+          { content: 'Implement event-driven architecture', order: 2 },
+          { content: 'Use message queues for decoupling', order: 3 },
+          { content: 'Design for failure', order: 4 },
+          { content: 'Document your architecture decisions', order: 5 }
+        ]
+      },
+      tasks: {
+        create: [
+          { taskName: 'Design system architecture', order: 1 },
+          { taskName: 'Implement event-driven patterns', order: 2 },
+          { taskName: 'Set up distributed tracing', order: 3 },
+          { taskName: 'Create API documentation', order: 4 },
+          { taskName: 'Lead a technical review', order: 5 }
+        ]
+      }
     }
   ];
 

@@ -85,12 +85,16 @@ export async function getArchivedContainers(userId: string): Promise<FinishedSta
     orderBy: {
       updatedAt: 'desc',
     },
+    include: {
+      containerStacks: true
+    }
   });
 
   return containers.map((container) => {
-    const [frontend, backend, database, services] = container.stacks;
+    const stackNames = container.containerStacks.map(s => s.stackName);
+    const [frontend, backend, database, services] = stackNames;
     const icon = TECH_ICON_MAP[frontend] ?? TECH_ICON_MAP[backend] ?? '📦';
-    const name = container.stacks
+    const name = stackNames
       .map((s) => TECH_NAME_MAP[s] ?? s)
       .join(' + ');
 

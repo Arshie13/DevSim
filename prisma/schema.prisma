@@ -21,33 +21,12 @@ model User {
 
   // Relations
   dailyLogin    DailyLogin?       @relation
-  currentStacks UserStackOptions[]
   containers    Container[]
   sessions     Session[]
   achievements UserAchievement[]
-  fileChanges  FileChange[]
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-}
-
-model UserStackOptions {
-  id          String  @id @default(cuid())
-  userId      String
-  containerId String
-  sessionId   String
-  scenarioId  String
-  stack       Json
-  isComplete  Boolean
-
-  // Relations
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
-  session   Session   @relation(fields: [sessionId], references: [id], onUpdate: Cascade)
-  scenario  Scenario  @relation(fields: [scenarioId], references: [id], onUpdate: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Container {
@@ -60,16 +39,9 @@ model Container {
 
   // Current progress tracking
   currentScenarioId String?
-  completedTasks    String[] @default([])
 
   startedAt DateTime  @default(now())
   stoppedAt DateTime?
-
-  stacks String[]
-
-  // Scenario info — set at container creation time
-  projectFolder String?
-  scenarioTitle String?
 
   // Archive fields — used when workspace is saved to a Docker volume before container deletion
   volumeName String?
@@ -77,11 +49,13 @@ model Container {
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario Scenario? @relation(fields: [currentScenarioId], references: [id])
 
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
-  userStackOptions UserStackOptions[]
   fileChanges      FileChange[]
+  completedTasks   CompletedTask[]
+  containerStacks  ContainerStack[]
 
   @@index([userId])
 }
@@ -94,7 +68,6 @@ model Session {
   duration  Int
 
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userStackOptions UserStackOptions[]
 
   @@index([userId])
 }
@@ -106,23 +79,24 @@ model Scenario {
   description String
   difficulty  String
 
-  userStackOptions UserStackOptions[]
+  // Relations
   level            Level              @relation(fields: [levelId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  containers       Container[]
 }
 
 model Level {
   id               String   @id @default(cuid())
   title            String
-  order            Int      @default(0) // For ordering levels (1, 2, 3, 4)
+  order            Int      @default(0)
   deadline         DateTime
   levelDescription String
-  hints            String[]
   xpReward         Int
   coinReward       Int
-  task             String[]
-  completedTask    String[]
 
+  // Relations
   scenarios Scenario[]
+  tasks     LevelTask[]
+  hints     Hint[]
 }
 
 model DailyLogin {
@@ -172,7 +146,6 @@ model UserAchievement {
 model FileChange {
   id           String   @id @default(cuid())
   containerId  String
-  userId       String
   filePath     String
   action       String   // "CREATE", "WRITE", "DELETE", "RENAME"
   oldPath      String?  // For rename operations - stores the original path
@@ -181,8 +154,58 @@ model FileChange {
 
   // Relations
   container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([containerId, timestamp])
-  @@index([userId, timestamp])
+}
+
+// Normalized tables to replace array fields
+
+// Completed tasks for a container
+model CompletedTask {
+  id          String   @id @default(cuid())
+  containerId String
+  taskName    String
+  completedAt DateTime @default(now())
+
+  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+
+  @@unique([containerId, taskName])
+  @@index([containerId])
+}
+
+// Stack choices for a container
+model ContainerStack {
+  id          String @id @default(cuid())
+  containerId String
+  stackName   String
+  stackVersion String?
+
+  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+
+  @@index([containerId])
+}
+
+// Tasks associated with a level
+model LevelTask {
+  id       String @id @default(cuid())
+  levelId  String
+  taskName String
+  order    Int    @default(0)
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([levelId, taskName])
+  @@index([levelId])
+}
+
+// Hints associated with a level
+model Hint {
+  id       String @id @default(cuid())
+  levelId  String
+  content  String
+  order    Int    @default(0)
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@index([levelId])
 }

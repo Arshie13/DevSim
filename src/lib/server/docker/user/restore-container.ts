@@ -51,6 +51,12 @@ export async function restoreContainer(
 	}
 
 	// --- 3. Create the new container WITHOUT a volume mount ---
+	// Get stacks from ContainerStack relation for the label
+	const containerStacks = await prisma.containerStack.findMany({
+		where: { containerId: req.dbContainerId }
+	});
+	const stackNames = containerStacks.map(s => s.stackName);
+
 	// We intentionally do NOT bind the volume here. If we mount the volume directly
 	// into the running container, Docker will refuse to delete it (volume in use).
 	// Instead we copy the data in step 4 via a short-lived helper container.
@@ -74,7 +80,7 @@ export async function restoreContainer(
 		},
 		Labels: {
 			'devsim.userId': req.userId,
-			'devsim.stack': record.stacks.join('-'),
+			'devsim.stack': stackNames.join('-'),
 			'devsim.level': record.level.toString()
 		}
 	});

@@ -52,7 +52,7 @@ export async function runLevelTests(params: RunTestsParams): Promise<RunTestsRes
 				results: [],
 				summary: { total: 0, passed: 0, failed: 0 }
 			},
-			failedTasks: [{ taskText: 'No validation tests available for this level', errors: ['Level has no tests configured - cannot verify completion'] }]
+			failedTasks: [{ taskId: -1, taskText: 'No validation tests available for this level', errors: ['Level has no tests configured - cannot verify completion'] }]
 		};
 	}
 	

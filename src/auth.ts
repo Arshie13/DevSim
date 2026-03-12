@@ -15,6 +15,7 @@ function randomDefaultAvatarPath(): string {
 }
 
 export const { handle } = SvelteKitAuth({
+  trustHost: true, // or dynamically based on environment
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,

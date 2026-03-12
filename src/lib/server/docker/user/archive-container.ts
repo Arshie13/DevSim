@@ -41,7 +41,12 @@ export async function archiveContainer(
 	}
 
 	// --- 2. Build a deterministic volume name ---
-	const stackSlug = record.stacks.join('-').toLowerCase().replace(/\s+/g, '-');
+	// Get stacks from ContainerStack relation
+	const containerStacks = await prisma.containerStack.findMany({
+		where: { containerId: req.dbContainerId }
+	});
+	const stackNames = containerStacks.map(s => s.stackName);
+	const stackSlug = stackNames.join('-').toLowerCase().replace(/\s+/g, '-');
 	const randomSuffix = crypto.randomBytes(4).toString('hex'); // 8 chars for uniqueness
 	const volumeName = `devsim-${record.userId}-${stackSlug}-${randomSuffix}`;
 

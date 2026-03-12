@@ -23,28 +23,44 @@ export const load: PageServerLoad = async (event) => {
   const record = await prisma.container.findFirst({
     where: { id: dbId, userId },
     select: { 
+      id: true,
       containerId: true, 
       status: true,
-      level: true,
-      completedTasks: true
+      level: true
     }
   });
 
   // Get level info based on container's current level
   let levelTasks: string[] = [];
   let levelTitle = '';
+  let hints: string[] = [];
   
   if (record) {
     const level = await prisma.level.findFirst({
       where: { order: record.level },
       orderBy: { order: 'asc' },
-      select: { task: true, title: true }
+      include: {
+        tasks: {
+          orderBy: { order: 'asc' }
+        },
+        hints: {
+          orderBy: { order: 'asc' }
+        }
+      }
     });
     if (level) {
-      levelTasks = level.task || [];
+      levelTasks = level.tasks.map(t => t.taskName);
       levelTitle = level.title || '';
+      hints = level.hints.map(h => h.content);
     }
   }
+
+  // Get completed tasks from the CompletedTask table
+  const completedTaskRecords = await prisma.completedTask.findMany({
+    where: { containerId: record?.id },
+    select: { taskName: true }
+  });
+  const completedTaskNames = completedTaskRecords.map(r => r.taskName);
 
   return {
     user: session.user,
@@ -54,8 +70,9 @@ export const load: PageServerLoad = async (event) => {
     dockerContainerId: record?.containerId ?? null,
     // Level info for tasks
     level: record?.level || 1,
-    completedTasks: record?.completedTasks || [],
+    completedTasks: completedTaskNames,
     levelTasks,
-    levelTitle
+    levelTitle,
+    hints
   };
 };
