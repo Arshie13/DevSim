@@ -24,16 +24,8 @@
 </script>
 
 <div class:hidden={!visible} class="h-full flex flex-col">
-  <div class="flex-1 bg-[#1e1e1e] relative min-h-0">
-    {#each sessions as session (session.id)}
-      <!-- Each terminal occupies the full area; only the active one is shown -->
-      <div
-        class="absolute inset-0 p-2"
-        class:hidden={session.id !== activeTerminalId}
-      >
-        <div use:mount={session.id} class="w-full h-full"></div>
-      </div>
-    {/each}
+  <!-- Toolbar — must live outside the relative/absolute terminal container -->
+  <div class="flex items-center justify-end bg-[#1e1e1e] border-b border-[#2d2d2d] px-1 flex-shrink-0">
     <button
       on:click={onRefresh}
       class="px-3 py-1 text-sm text-gray-400 hover:text-white hover:bg-[#2d2d2d] rounded transition-colors flex items-center gap-1"
@@ -55,6 +47,19 @@
       </svg>
       Refresh
     </button>
+  </div>
+
+  <!-- Terminal area -->
+  <div class="flex-1 bg-[#1e1e1e] relative min-h-0">
+    {#each sessions as session (session.id)}
+      <!-- Each terminal occupies the full area; only the active one is shown -->
+      <div
+        class="absolute inset-0 p-2"
+        class:hidden={session.id !== activeTerminalId}
+      >
+        <div use:mount={session.id} class="w-full h-full"></div>
+      </div>
+    {/each}
     {#if sessions.length === 0}
       <div
         class="h-full flex items-center justify-center text-[#8892a0] text-xs font-mono opacity-50"

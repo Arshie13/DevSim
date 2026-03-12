@@ -66,7 +66,6 @@
   let tasks: Task[] = []; // Will be populated from server data
   let timeRemaining: number = 4 * 60 * 60; // Default to 4 hours
   let isRunning: boolean = false;
-  let terminal: TerminalInitializer | null = null;
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
   let editorValue: string = "";
@@ -296,7 +295,6 @@
 
       // Step 4 — initialize first terminal session
       bootStep = 4;
-      terminal = new TerminalInitializer();
       await addTerminalSession("Terminal");
 
       // Done — hide the boot screen
@@ -399,10 +397,10 @@
     terminalCounter += 1;
     const id = `term-${terminalCounter}`;
     const sessionLabel = label ?? "Terminal";
-    terminalSessions = [...terminalSessions, { id, label: sessionLabel, instance: null }];
-    activeTerminalId = id;
-    activeTab = "terminal";
 
+    // Register the callback BEFORE updating state so that the `use:mount`
+    // action in TerminalPanel always finds the entry in the map, even if
+    // Svelte 5 flushes effects synchronously on the state assignment below.
     return new Promise<void>((resolve) => {
       pendingTerminalInits.set(id, async (el: HTMLDivElement) => {
         try {
@@ -417,6 +415,11 @@
         pendingTerminalInits.delete(id);
         resolve();
       });
+
+      // Trigger the DOM update after the callback is registered.
+      terminalSessions = [...terminalSessions, { id, label: sessionLabel, instance: null }];
+      activeTerminalId = id;
+      activeTab = "terminal";
     });
   }
 
@@ -612,7 +615,7 @@
   }
 
   function refreshTerminal() {
-    terminal?.reconnect();
+    activeTerminalSession?.instance?.reconnect();
   }
 
   async function refreshFiles() {
