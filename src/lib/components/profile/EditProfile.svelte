@@ -53,6 +53,18 @@
     dispatch("update", user);
   }
 
+  function handleAvatarPurchase(event: CustomEvent<{ newCoins: number; newOwnedAvatars: string[]; purchasedPath: string }>) {
+    const { newCoins, newOwnedAvatars, purchasedPath } = event.detail;
+    user = {
+      ...user,
+      coins: newCoins,
+      ownedAvatars: newOwnedAvatars,
+      // Automatically equip the avatar that was just purchased
+      avatar: purchasedPath,
+    };
+    dispatch("update", user);
+  }
+
   function onBackdrop(e: MouseEvent) {
     if ((e.target as HTMLElement).dataset.backdrop) handleClose();
   }
@@ -179,6 +191,7 @@
     currentAvatar={user.avatar}
     coins={user.coins}
     on:select={handleAvatarSelect}
+    on:purchase={handleAvatarPurchase}
   />
 {/if}
 

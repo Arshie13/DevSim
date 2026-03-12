@@ -3,6 +3,7 @@
   import type { PageData } from "./$types";
   import type { UserData } from "$types";
   import { userData } from "$mocks";
+  import { DEFAULT_AVATAR_PATHS } from "$lib/utils/avatar";
 
   // ── Modular profile components ────────────────────────────────────────────────
   import ProfileCard      from "$components/profile/ProfileCard.svelte";
@@ -20,9 +21,13 @@
   // an OAuth URL or a local /avatars/ path assigned at first login.
   let user: UserData = {
     ...userData,
-    name:   data.user?.name  ?? userData.name,
-    avatar: data.user?.image ?? userData.avatar,
-    coins:  data.userCoins,
+    name:         data.user?.name  ?? userData.name,
+    avatar:       data.user?.image ?? userData.avatar,
+    coins:        data.userCoins,
+    // Merge DB-owned avatars with the always-free defaults
+    ownedAvatars: data.ownedAvatars.length
+      ? [...new Set([...DEFAULT_AVATAR_PATHS, ...data.ownedAvatars])]
+      : [...DEFAULT_AVATAR_PATHS],
   };
 
   // ── Profile edit modal ────────────────────────────────────────────────────────
