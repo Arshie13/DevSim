@@ -95,8 +95,8 @@ export async function archiveContainer(
 		// before we return. AutoRemove:false + explicit remove() is synchronous from our
 		// perspective, unlike AutoRemove:true which lets Docker remove it asynchronously.
 		if (helper) {
-			try { await (helper as any).stop({ t: 2 }); } catch { /* already stopped */ }
-			try { await (helper as any).remove(); } catch { /* already removed */ }
+			try { await helper.stop({ t: 2 }); } catch { /* already stopped */ }
+			try { await helper.remove(); } catch { /* already removed */ }
 		}
 	}
 

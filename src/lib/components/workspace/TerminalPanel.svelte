@@ -15,6 +15,9 @@
     onElementReady(sessionId, node);
     return { destroy() {} };
   }
+
+  /** Callback to refresh the terminal */
+  export let onRefresh: (() => void) | null = null;
 </script>
 
 <div class:hidden={!visible} class="h-full flex flex-col">
@@ -28,7 +31,7 @@
         <div use:mount={session.id} class="w-full h-full"></div>
       </div>
     {/each}
-
+      
     {#if sessions.length === 0}
       <div class="h-full flex items-center justify-center text-[#8892a0] text-xs font-mono opacity-50">
         No terminal open

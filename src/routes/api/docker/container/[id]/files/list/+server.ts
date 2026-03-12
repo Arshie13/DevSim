@@ -107,10 +107,8 @@ export async function POST(event: RequestEvent) {
       .filter(line => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
       .map(f => f.replace('/workspace/', ''));
 
-    // Combine files and directories, removing duplicates
-    const allPaths = [...new Set([...files, ...directories])];
-
-    return json({ success: true, files: allPaths, directories });
+    // Only return files, not directories (the client will iterate and read each as a file)
+    return json({ success: true, files, directories });
   } catch (error) {
     console.error('Error listing files:', error);
     return json({ 

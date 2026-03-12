@@ -144,12 +144,30 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     return await createFreshContainer();
 
     async function createFreshContainer() {
-      // Build the mount source: use scenarioId + projectFolder when provided
-      // (e.g. scenario-1/LIBRARY_MANAGEMENT), otherwise fall back to scenario-{level}.
-      const mountSource = scenarioId && projectFolder
-        ? `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioId}/${projectFolder}`
-        : `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}`;
+      // Generate volume name: {stack-name}-scenario-{level}
+      const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-scenario-${level}`;
+      
+      // Check if volume exists
+      let useVolume = false;
+      let volumeMountConfig: string | null = null;
+      
+      try {
+        await docker.getVolume(volumeName).inspect();
+        useVolume = true;
+        console.log(`[create] Using volume: ${volumeName}`);
+      } catch {
+        // Volume doesn't exist, fall back to bind mount
+        console.log(`[create] Volume '${volumeName}' not found, falling back to bind mount`);
+      }
 
+      // Build mount configuration
+      if (useVolume) {
+        volumeMountConfig = `${volumeName}:/workspace`;
+      } else {
+        // Fallback to submodule bind mount
+        volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`.replace(/\\/g, '/');
+      }
+      
       const container = await docker.createContainer({
         Image: 'node:20-alpine',
         Cmd: ['/bin/sh'],
@@ -158,9 +176,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         WorkingDir: '/workspace',
         HostConfig: {
           NetworkMode: 'host',
-          Binds: [
-            `${mountSource}:/workspace`.replace(/\\/g, '/')
-          ],
+          Binds: [volumeMountConfig],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false
         },

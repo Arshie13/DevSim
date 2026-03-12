@@ -1,9 +1,9 @@
-import loader from "@monaco-editor/loader";
-import type * as Monaco from "monaco-editor";
+import loader, { type Monaco as MonaocType } from "@monaco-editor/loader";
+import type { editor } from "monaco-editor";
 
 export class MonacoInitializer {
-  private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
-  private monaco: any = null;
+  private editor: editor.IStandaloneCodeEditor | null = null;
+  private monaco: MonaocType = null;
 
   async initialize(
     editorRef: HTMLElement,
