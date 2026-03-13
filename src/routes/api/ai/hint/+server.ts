@@ -116,8 +116,6 @@ function isAskingAboutProgress(message: string): boolean {
 // Build a hint response based on user's progress
 function buildProgressHintResponse(context: string): string {
   const progress = extractProgressFromContext(context);
-
-  console.log("progress: ", progress);
   
   if (progress.total === 0 && progress.tasks.length === 0) {
     return "I don't see any tasks in your context yet. Try opening a project or loading a scenario first!";
