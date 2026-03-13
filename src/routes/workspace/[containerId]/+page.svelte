@@ -95,6 +95,7 @@
 
   // ── Panel toggle state ───────────────────────────────────────────────────
   let aiPanelOpen: boolean = false;
+  let isDownloading: boolean = false;
 
   // ── Back confirmation modal state ────────────────────────────────────────
   let backModalOpen: boolean = false;
@@ -429,6 +430,43 @@
     submitSprintModal.open();
   }
 
+  // ── Download project ─────────────────────────────────────────────────────
+  async function handleDownload() {
+    isDownloading = true;
+    try {
+      const dbContainerId = page.params.containerId;
+      const response = await fetch(`/api/docker/container/${dbContainerId}/download`);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.message || 'Failed to download project');
+        return;
+      }
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Get filename from content-disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
+      a.download = filenameMatch ? filenameMatch[1] : `project-${dbContainerId}.tar`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Project downloaded successfully!');
+    } catch (err) {
+      console.error('Download error:', err);
+      toast.error('Failed to download project');
+    } finally {
+      isDownloading = false;
+    }
+  }
+
   async function handleSubmitted(event: CustomEvent) {
     const { advanceToNextLevel } = event.detail;
     
@@ -647,18 +685,22 @@
 >
   <!-- Header -->
   <WorkspaceHeader
-    level={actualLevelConfig.level}
-    title={actualLevelConfig.title}
-    stack={actualLevelConfig.stack}
-    difficulty={actualLevelConfig.difficulty}
-    {timeRemaining}
-    {isRunning}
-    {aiPanelOpen}
-    onBack={handleBack}
-    onRun={runDevServer}
-    onStop={stopDevServer}
-    onSubmit={handleSubmitSprint}
-    onToggleAi={toggleAiPanel}
+    data={{
+      level: data.level,
+      title: actualLevelConfig.title,
+      stack: actualLevelConfig.stack,
+      difficulty: actualLevelConfig.difficulty,
+      timeRemaining,
+      isRunning,
+      aiPanelOpen,
+      isDownloading,
+      onBack: handleBack,
+      onRun: runDevServer,
+      onStop: stopDevServer,
+      onSubmit: handleSubmitSprint,
+      onToggleAi: toggleAiPanel,
+      onDownload: handleDownload
+    }}
   />
 
   <div class="flex flex-1 overflow-hidden">
