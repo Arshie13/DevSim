@@ -43,7 +43,19 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     const req: CreateContainerRequest = await request.json()
-    const { stackName, level, stacks, scenarioId, projectFolder, scenarioTitle } = req;
+    const { stackName, level, stacks, scenarioId } = req;
+
+    console.log('Received container creation request:', req);
+
+    // Look up the Scenario by name to get its database ID for currentScenarioId
+    let currentScenarioId: string | null = null;
+    if (scenarioId) {
+      const scenario = await prisma.scenario.findFirst({
+        where: { id: scenarioId },
+        select: { id: true }
+      });
+      currentScenarioId = scenario?.id || null;
+    }
 
     // Build the canonical stacks array early — needed for both DB lookup and creation.
     const stacksArray: string[] = [
@@ -132,6 +144,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       const { dbContainerId: existingDbId } = await saveUserContainer({
         userId,
         containerId: existingContainerId,
+        currentScenarioId: currentScenarioId || '',
         stacks: stacksArray,
         level,
         status: 'created'
@@ -176,6 +189,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         // Fallback to submodule bind mount
         volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`.replace(/\\/g, '/');
       }
+
+      console.log(1);
       
       const container = await docker.createContainer({
         Image: 'node:20-alpine',
@@ -196,15 +211,20 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         }
       });
 
+      console.log(2);
+
       await docker.getContainer(container.id).start();
 
       const userContainer: UserContainerRequest = {
         userId,
         containerId: container.id,
+        currentScenarioId: currentScenarioId || '',
         stacks: stacksArray,
         level,
         status: 'created'
       };
+
+      console.log(3);
 
       const { dbContainerId } = await saveUserContainer(userContainer);
       console.log('[create] Created fresh container:', container.id);

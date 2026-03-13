@@ -12,9 +12,9 @@ export const load: PageServerLoad = async (event) => {
   }
 
   const [allContainers, archivedStacks, dbUser] = await Promise.all([
-    getAllUserContainer(session.user.id),
-    getArchivedContainers(session.user.id),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { coins: true, image: true } }),
+    getAllUserContainer(userData.id),
+    getArchivedContainers(userData.id),
+    prisma.user.findUnique({ where: { id: userData.id }, select: { coins: true, image: true } }),
   ]);
 
   const userContainerList = allContainers.filter((c) => !c.isArchived);

@@ -7,6 +7,8 @@
 
   export let data: PageData;
 
+  console.log("scenario page data: ", data);
+
   const headerUserData: UserData = {
     ...userData,
     name: data.user?.name ?? 'No Name',

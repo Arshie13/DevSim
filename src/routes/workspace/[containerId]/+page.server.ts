@@ -20,59 +20,73 @@ export const load: PageServerLoad = async (event) => {
   const dbId = event.params.containerId;
   const userId = session.user.id;
 
-  const record = await prisma.container.findFirst({
+  const container = await prisma.container.findFirst({
     where: { id: dbId, userId },
-    select: { 
-      id: true,
-      containerId: true, 
-      status: true,
-      level: true
+    include: {
+      scenario: {
+        include: {
+          levels: {
+            orderBy: { order: "asc" },
+            include: {
+              tasks: {
+                orderBy: { order: "asc" },
+                include: {
+                  hints: true,
+                  acceptanceCriteria: true
+                }
+              }
+            }
+          }
+        }
+      }
     }
   });
 
-  // Get level info based on container's current level
-  let levelTasks: string[] = [];
-  let levelTitle = '';
-  let hints: string[] = [];
-  
-  if (record) {
-    const level = await prisma.level.findFirst({
-      where: { order: record.level },
-      orderBy: { order: 'asc' },
-      include: {
-        tasks: {
-          orderBy: { order: 'asc' }
-        },
-        hints: {
-          orderBy: { order: 'asc' }
-        }
-      }
-    });
-    if (level) {
-      levelTasks = level.tasks.map(t => t.taskName);
-      levelTitle = level.title || '';
-      hints = level.hints.map(h => h.content);
-    }
-  }
+  console.log("Loaded container data:", container);
 
   // Get completed tasks from the CompletedTask table
+  // id might be wrong
   const completedTaskRecords = await prisma.completedTask.findMany({
-    where: { containerId: record?.id },
+    where: { containerId: container?.id },
     select: { taskName: true }
   });
   const completedTaskNames = completedTaskRecords.map(r => r.taskName);
+
+  // Extract level tasks - try record.scenario first, fallback to direct level query
+  let currentLevel = container?.scenario?.levels?.find(l => l.order === container.level);
+  
+  // If scenario is null (currentScenarioId not set), fallback to querying Level directly
+  if (!currentLevel && container?.level) {
+    const fallbackLevel = await prisma.level.findFirst({
+      where: { order: container.level },
+      include: {
+        tasks: {
+          orderBy: { order: "asc" },
+          include: {
+            hints: true,
+            acceptanceCriteria: true
+          }
+        }
+      }
+    });
+    if (fallbackLevel) {
+      currentLevel = fallbackLevel;
+    }
+  }
+  
+  const levelTasks = currentLevel?.tasks?.map(t => t.taskName) || [];
 
   return {
     user: session.user,
     userId: user?.id || "",
     userCoins: user?.coins || 0,
     // The actual Docker container ID — used by the client for all Docker API calls
-    dockerContainerId: record?.containerId ?? null,
+    dockerContainerId: container?.containerId ?? null,
     // Level info for tasks
-    level: record?.level || 1,
+    level: container?.level || 1,
     completedTasks: completedTaskNames,
-    levelTasks,
-    levelTitle,
-    hints
+    levelTasks: levelTasks,
+    container: container,
+    hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
   };
 };

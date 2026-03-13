@@ -34,7 +34,6 @@ export async function logFileChange(params: FileChangeLogParams) {
     const fileChange = await prisma.fileChange.create({
       data: {
         containerId: prismaContainer?.id,
-        userId: params.userId,
         filePath: params.filePath,
         action: params.action,
         oldPath: params.oldPath || null,
@@ -54,7 +53,6 @@ export async function logFileChange(params: FileChangeLogParams) {
  */
 export async function getFileChanges(containerId: string): Promise<{
   id: string;
-  userId: string;
   containerId: string;
   filePath: string;
   action: string;

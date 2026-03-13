@@ -36,6 +36,15 @@ async function getLevelByOrder(order: number) {
   });
 }
 
+// Helper to get the highest level order in the database
+async function getHighestLevelOrder(): Promise<number> {
+  const highestLevel = await prisma.level.findFirst({
+    orderBy: { order: 'desc' },
+    select: { order: true }
+  });
+  return highestLevel?.order ?? 0;
+}
+
 export const POST: RequestHandler = async ({ params, locals, request }) => {
 	// --- Auth check ---
 	const session = await locals.auth();
@@ -118,17 +127,19 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			levelComplete = true;
 			nextLevel = currentLevel + 1;
 
-			// Check if there's a next level available
-			const nextLevelInfo = await getLevelByOrder(nextLevel);
+			// Get the highest level order to determine if this is the last level
+			const highestLevelOrder = await getHighestLevelOrder();
+			const isLastLevel = currentLevel >= highestLevelOrder;
 
-			if (!nextLevelInfo) {
+			if (isLastLevel) {
 				// No more levels - this is the final completion
-				// Mark container as fully completed
+				// Mark container as fully completed and return flag to archive it
 				await prisma.$transaction([
 					prisma.container.update({
 						where: { id: record.id },
 						data: {
 							status: 'completed',
+								isArchived: true,
 							stoppedAt: new Date()
 						}
 					}),
@@ -148,30 +159,30 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 					allLevelsComplete: true,
 					nextLevel: null
 				});
+			} else {
+				// Advance to next level (keep container running with new tasks)
+				await prisma.$transaction([
+					prisma.container.update({
+						where: { id: record.id },
+						data: {
+							level: nextLevel,
+							status: 'in-progress'
+						}
+					}),
+					// Delete completed tasks for this container when advancing to next level
+					prisma.completedTask.deleteMany({
+						where: { containerId: record.id }
+					}),
+					prisma.user.update({
+						where: { id: session.user.id },
+						data: {
+							xp: { increment: xpReward },
+							coins: { increment: coinReward },
+							level: { increment: 1 }
+						}
+					})
+				]);
 			}
-
-			// Advance to next level (keep container running with new tasks)
-			await prisma.$transaction([
-				prisma.container.update({
-					where: { id: record.id },
-					data: {
-						level: nextLevel,
-						status: 'in-progress'
-					}
-				}),
-				// Delete completed tasks for this container when advancing to next level
-				prisma.completedTask.deleteMany({
-					where: { containerId: record.id }
-				}),
-				prisma.user.update({
-					where: { id: session.user.id },
-					data: {
-						xp: { increment: xpReward },
-						coins: { increment: coinReward },
-						level: { increment: 1 }
-					}
-				})
-			]);
 		} else {
 			// Just mark the task as completed (already done above when creating CompletedTask)
 			// Award partial rewards for completing a task

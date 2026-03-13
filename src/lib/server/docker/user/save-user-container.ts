@@ -4,6 +4,7 @@ import { Prisma } from '$prismaclient';
 export interface UserContainerRequest {
   userId: string;
   containerId: string;
+  currentScenarioId: string;
   stacks: string[];
   level: number;
   status: string;
@@ -59,6 +60,7 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
       data: {
         userId: data.userId,
         containerId: data.containerId,
+        currentScenarioId: data.currentScenarioId,
         level: data.level,
         status: data.status,
         containerStacks: {

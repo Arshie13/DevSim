@@ -1,11 +1,12 @@
 <script lang="ts">
   import { CheckCircle } from "lucide-svelte";
+  import { type ITask } from "$lib/types";
 
-  export let tasks: { id: number; text: string; completed: boolean }[] = [];
-  export let onToggleTask: (taskId: number) => void = () => {};
+  export let tasks: ITask[] = [];
+  export let onToggleTask: (taskId: string) => void = () => {};
   export let levelTitle: string = "";
 
-  $: completedCount = tasks.filter((t) => t.completed).length;
+  $: completedCount = tasks.filter((t) => t.isCompleted).length;
   $: progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
 </script>
 
@@ -34,20 +35,20 @@
         class="w-full flex items-start gap-2 p-2 rounded hover:bg-[#2d3446]/50 cursor-pointer transition-all text-left"
       >
         <div
-          class="mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all {task.completed
+          class="mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all {task.isCompleted
             ? 'bg-emerald-500 border-emerald-500'
             : 'border-[#27272a] hover:border-[#d0d7dd]/30'}"
         >
-          {#if task.completed}
+          {#if task.isCompleted}
             <CheckCircle class="w-3 h-3 text-white" />
           {/if}
         </div>
         <span
-          class="text-sm {task.completed
+          class="text-sm {task.isCompleted
             ? 'line-through text-[#d0d7dd]/30'
             : 'text-[#d0d7dd]/80'}"
         >
-          {task.text}
+          {task.taskName}
         </span>
       </button>
     {/each}

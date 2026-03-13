@@ -2,6 +2,7 @@
   import { Send, AlertTriangle, Bot, User, Coins, X, MessageSquare, Paperclip, File, FileText } from "lucide-svelte";
   import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "./PrimarySidebar.svelte";
   import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage, formatMessage as formatMessageContent } from "$lib/ai";
+  import { type ITask } from "$lib/types";
 
   // SAZ - AI Assistant Name
   const AI_NAME = "SAZ";
@@ -17,7 +18,7 @@
   }
 
   export let scenario: string = "";
-  export let tasks: { id: number; text: string; completed: boolean }[] = [];
+  export let tasks: ITask[] = [];
   export let containerId: string = "";
   export let userId: string = "";
   export let projectName: string = "DevSim Project";
@@ -316,11 +317,11 @@
     context += `Your Progress (Tasks):\n`;
     
     console.log('[AI Helper] Full context being sent (first 500 chars):', context.substring(0, 500));
-    const completedCount = tasks.filter(t => t.completed).length;
+    const completedCount = tasks.filter(t => t.isCompleted).length;
     context += `Completed: ${completedCount}/${tasks.length}\n`;
     tasks.forEach((task) => {
-      const status = task.completed ? "[✓]" : "[ ]";
-      context += `${status} ${task.text}\n`;
+      const status = task.isCompleted ? "[✓]" : "[ ]";
+      context += `${status} ${task.taskName}\n`;
     });
 
     return context;

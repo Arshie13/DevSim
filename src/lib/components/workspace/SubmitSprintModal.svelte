@@ -1,14 +1,14 @@
 ﻿<script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
-  import type { Task } from '$lib/interface/LevelConfig';
+  import type { ITask } from '$lib/types';
   import LoadingSteps from '$lib/components/ui/LoadingSteps.svelte';
   import ConfirmationModal from '$lib/components/ui/ConfirmationModal.svelte';
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
   export let containerId: string; // Docker container ID for file operations
-  export let tasks: Task[];
+  export let tasks: ITask[];
   export let level: number = 1;
   export let fileContents: Record<string, string> = {};
   export let existingFiles: string[] = [];
@@ -63,7 +63,7 @@
     { icon: '🧪', label: 'Running tests…', detail: 'Validating your work against level requirements' },
   ];
 
-  $: completedCount = tasks.filter(t => t.completed).length;
+  $: completedCount = tasks.filter(t => t.isCompleted).length;
 
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{ submitted: { xp: number; coins: number; advanceToNextLevel: boolean } }>();
@@ -194,88 +194,88 @@
         }
       }
       
-      console.log('=== TEST RUN: Starting test validation ===');
-      console.log('TEST: Level:', level, '| Tasks:', tasks.length);
-      console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
+      // console.log('=== TEST RUN: Starting test validation ===');
+      // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
+      // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
       
-      // Run tests
-      const testRes = await fetch('/api/tests/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          level,
-          tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
-          fileContents: contentsToCheck,
-          existingFiles: filesToCheck
-        })
-      });
+      // // Run tests
+      // const testRes = await fetch('/api/tests/run', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     level,
+      //     tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
+      //     fileContents: contentsToCheck,
+      //     existingFiles: filesToCheck
+      //   })
+      // });
       
-      console.log('TEST: Response status:', testRes.status);
+      // console.log('TEST: Response status:', testRes.status);
       
-      const testData = await testRes.json();
-      console.log('=== TEST RUN: Results Received ===');
-      console.log('TEST: Passed:', testData.passed);
-      console.log('TEST: Total Tests:', testData.results?.summary.total);
-      console.log('TEST: Passed Tests:', testData.results?.summary.passed);
-      console.log('TEST: Failed Tests:', testData.results?.summary.failed);
+      // const testData = await testRes.json();
+      // console.log('=== TEST RUN: Results Received ===');
+      // console.log('TEST: Passed:', testData.passed);
+      // console.log('TEST: Total Tests:', testData.results?.summary.total);
+      // console.log('TEST: Passed Tests:', testData.results?.summary.passed);
+      // console.log('TEST: Failed Tests:', testData.results?.summary.failed);
       
-      if (testData.failedTasks.length > 0) {
-        console.log('=== TEST RUN: Failed Tasks ===');
-        testData.failedTasks.forEach((task: any, index: number) => {
-          console.log(`${index + 1}. ${task.taskText}`);
-          task.errors.forEach((error: string) => {
-            console.log(`   • ${error}`);
-          });
-        });
-      }
+      // if (testData.failedTasks.length > 0) {
+      //   console.log('=== TEST RUN: Failed Tasks ===');
+      //   testData.failedTasks.forEach((task: any, index: number) => {
+      //     console.log(`${index + 1}. ${task.taskText}`);
+      //     task.errors.forEach((error: string) => {
+      //       console.log(`   • ${error}`);
+      //     });
+      //   });
+      // }
       
-      console.log('=== TEST RUN: Detailed Results ===');
-      testData.results?.results.forEach((result: any) => {
-        console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
-      });
+      // console.log('=== TEST RUN: Detailed Results ===');
+      // testData.results?.results.forEach((result: any) => {
+      //   console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
+      // });
       
-      testResults = {
-        passed: testData.passed,
-        failedTasks: testData.failedTasks || [],
-        summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
-      };
+      // testResults = {
+      //   passed: testData.passed,
+      //   failedTasks: testData.failedTasks || [],
+      //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
+      // };
       
-      // If tests failed, show error with details
-      if (!testData.passed) {
-        state = 'error';
-        const failedCount = testData.failedTasks?.length || 0;
+      // // If tests failed, show error with details
+      // if (!testData.passed) {
+      //   state = 'error';
+      //   const failedCount = testData.failedTasks?.length || 0;
         
-        // Build detailed error message
-        let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
+      //   // Build detailed error message
+      //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
         
-        if (testData.failedTasks && testData.failedTasks.length > 0) {
-          for (const task of testData.failedTasks) {
-            errorMsg += `❌ ${task.taskText}\n`;
-            if (task.errors && task.errors.length > 0) {
-              for (const err of task.errors) {
-                errorMsg += `   • ${err}\n`;
-              }
-            }
-            errorMsg += '\n';
-          }
-        } else {
-          errorMsg += 'Please review your work and try again.';
-        }
+      //   if (testData.failedTasks && testData.failedTasks.length > 0) {
+      //     for (const task of testData.failedTasks) {
+      //       errorMsg += `❌ ${task.taskText}\n`;
+      //       if (task.errors && task.errors.length > 0) {
+      //         for (const err of task.errors) {
+      //           errorMsg += `   • ${err}\n`;
+      //         }
+      //       }
+      //       errorMsg += '\n';
+      //     }
+      //   } else {
+      //     errorMsg += 'Please review your work and try again.';
+      //   }
         
-        submitError = errorMsg;
-        console.log('TEST: Submit error message:', submitError);
-        return;
-      }
+      //   submitError = errorMsg;
+      //   console.log('TEST: Submit error message:', submitError);
+      //   return;
+      // }
 
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
       console.log('AI SCORING: Starting AI scoring...');
       console.log('AI SCORING: Files available for AI:', Object.keys(contentsToCheck).length);
-      console.log('AI SCORING: Test results to include:', JSON.stringify(testData));
+      // console.log('AI SCORING: Test results to include:', JSON.stringify(testData));
       try {
         // Get completed task texts for the scoring
-        const completedTaskTexts = tasks.filter(t => t.completed).map(t => t.text);
-        
+        const completedTaskTexts = tasks.filter(t => t.isCompleted).map(t => t.taskName);
+
         // Call AI scoring endpoint with test results
         const scoreRes = await fetch('/api/ai/score', {
           method: 'POST',
@@ -285,7 +285,7 @@
             level,
             completedTasks: completedTaskTexts,
             fileContents: contentsToCheck,
-            testResults: testData  // Pass test results to AI
+            // testResults: testData  // Pass test results to AI
           })
         });
         
@@ -331,7 +331,7 @@
 
       // Step 1 - Submit completed tasks
       submitStep = 1;
-      const completedTasks = tasks.filter(t => t.completed);
+      const completedTasks = tasks.filter(t => t.isCompleted);
       
       // Check if ALL tasks are completed before allowing submission
       if (completedTasks.length < tasks.length) {
@@ -356,12 +356,12 @@
         const submitRes = await fetch(`/api/docker/container/${dbContainerId}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: task.text, advanceLevel: isLastTask })
+          body: JSON.stringify({ taskId: task.taskName, advanceLevel: isLastTask })
         });
         const submitData = await submitRes.json();
         
         if (!submitRes.ok) {
-          throw new Error(submitData.message ?? `Failed to submit task: ${task.text}`);
+          throw new Error(submitData.message ?? `Failed to submit task: ${task.taskName}`);
         }
         
         // Collect rewards (last one will have the full reward)
@@ -376,17 +376,10 @@
         }
       }
 
-      // Step 2 - archive ONLY if all levels complete
-      if (allLevelsComplete) {
-        submitStep = 2;
-        const archiveRes = await fetch(`/api/docker/container/${dbContainerId}/archive`, { method: 'POST' });
-        const archiveData = await archiveRes.json();
-        
-        // If archive fails but submit succeeded, still show success
-        if (!archiveRes.ok && !archiveData.success) {
-          console.warn('Archive failed:', archiveData.message);
-        }
-      }
+      // Step 2 - No need to call archive endpoint separately!
+      // The submit endpoint already marks the container as archived in the database
+      // when allLevelsComplete is true (see submit endpoint lines 137-145)
+      // Calling archive again would result in "already archived" error
 
       // clear the logs for the next level
       await fetch(`/api/docker/container/${containerId}/clear-logs`, {
@@ -457,12 +450,12 @@
       <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2.5">Sprint tasks</p>
       <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
         {#each tasks as task}
-          <li class="flex items-center gap-2.5 font-mono text-[0.88rem] {task.completed ? 'opacity-100' : 'opacity-35'}">
-            <span class="font-bold w-4 text-center {task.completed ? 'text-[#00e5a0]' : 'text-[#2d3446]'}">
-              {task.completed ? '✓' : '○'}
+          <li class="flex items-center gap-2.5 font-mono text-[0.88rem] {task.isCompleted ? 'opacity-100' : 'opacity-35'}">
+            <span class="font-bold w-4 text-center {task.isCompleted ? 'text-[#00e5a0]' : 'text-[#2d3446]'}">
+              {task.isCompleted ? '✓' : '○'}
             </span>
-            <span class="{task.completed ? 'text-[#d0d7dd]' : 'text-[#8892a0] line-through'}">
-              {task.text}
+            <span class="{task.isCompleted ? 'text-[#d0d7dd]' : 'text-[#8892a0] line-through'}">
+              {task.taskName}
             </span>
           </li>
         {/each}

@@ -18,6 +18,8 @@
 
   export let data: PageData;
 
+  console.log("page data: ", data);
+
   let isStatsDrawerOpen = false;
 
   const headerUserData: UserData = {

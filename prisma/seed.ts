@@ -29,388 +29,221 @@ async function main() {
   await prisma.fileChange.deleteMany();
   await prisma.container.deleteMany();
   await prisma.session.deleteMany();
-  await prisma.scenario.deleteMany();
+  await prisma.acceptanceCriteria.deleteMany();
   await prisma.hint.deleteMany();
   await prisma.levelTask.deleteMany();
   await prisma.level.deleteMany();
+  await prisma.scenario.deleteMany();
   
-  console.log('🗑️  Cleared existing levels and scenarios\n');
+  console.log('🗑️  Cleared existing data\n');
+
+  // Define scenarios for each tech stack
+  const scenarios = [
+    {
+      id: 'scenario-library-management',
+      name: 'BookWise Library Management System',
+      description: 'Build a full-featured web-based Library Management System to manage books, members, and borrowing workflows using React, Express, PostgreSQL, and Prisma.',
+      difficulty: 'expert'
+    }
+  ];
 
   // Define levels with progressive difficulty
   const levels = [
     {
       id: 'level-1',
-      title: 'Beginner Fundamentals',
+      title: 'Setup & Simple UI Fixes',
       order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      levelDescription: 'Learn the basics of full-stack development. Set up your development environment, understand project structure, and create simple features.',
+      levelDescription: 'The library has onboarded a new developer (you!) and needs the system running locally with minor UI tweaks.',
       xpReward: 100,
       coinReward: 50,
-      hints: {
-        create: [
-          { content: 'Start by exploring the project structure', order: 1 },
-          { content: 'Check the package.json for available scripts', order: 2 },
-          { content: 'Look at existing components for code patterns', order: 3 },
-          { content: 'Use console.log for debugging', order: 4 },
-          { content: 'Check the database schema for data models', order: 5 }
-        ]
-      },
+      scenarioId: 'scenario-library-management',
       tasks: {
         create: [
-          { taskName: 'Explore the project structure', order: 1 },
-          { taskName: 'Set up environment variables', order: 2 },
-          { taskName: 'Create a simple API endpoint', order: 3 },
-          { taskName: 'Connect to the database', order: 4 },
-          { taskName: 'Deploy your first feature', order: 5 }
+          {
+            taskName: 'Environment Setup',
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Dependencies installed for both client and server', isRequired: true, order: 1 },
+                { description: '.env file configured with database and JWT secret', isRequired: true, order: 2 },
+                { description: 'Prisma migrations executed successfully', isRequired: true, order: 3 },
+                { description: 'Both client and server running without errors', isRequired: true, order: 4 }
+              ]
+            }
+          },
+          {
+            taskName: 'UI Text Updates',
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                { description: '"Sign Up" changed to "Register" on auth page', isRequired: true, order: 1 },
+                { description: 'Header subtitle updated to "BookWise Public Library"', isRequired: true, order: 2 }
+              ]
+            }
+          }
         ]
       }
     },
     {
       id: 'level-2',
-      title: 'Intermediate Development',
+      title: 'Bug Fixing & Refactoring',
       order: 2,
       deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-      levelDescription: 'Build upon the fundamentals. Implement authentication, handle form submissions, and create RESTful APIs.',
+      levelDescription: 'Members report they cannot borrow books even when copies are available.',
       xpReward: 250,
       coinReward: 150,
-      hints: {
-        create: [
-          { content: 'Review authentication patterns in the project', order: 1 },
-          { content: 'Use environment variables for sensitive data', order: 2 },
-          { content: 'Implement input validation', order: 3 },
-          { content: 'Handle errors gracefully', order: 4 },
-          { content: 'Write clean, modular code', order: 5 }
-        ]
-      },
+      scenarioId: 'scenario-library-management',
       tasks: {
         create: [
-          { taskName: 'Implement user authentication', order: 1 },
-          { taskName: 'Create RESTful API endpoints', order: 2 },
-          { taskName: 'Add form validation', order: 3 },
-          { taskName: 'Set up database migrations', order: 4 },
-          { taskName: 'Write unit tests', order: 5 }
+          {
+            taskName: 'Bug Fix – Borrow Button Disabled Incorrectly',
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Books with availableCopies > 0 show as available', isRequired: true, order: 1 },
+                { description: 'Books with availableCopies = 0 show as unavailable', isRequired: true, order: 2 },
+                { description: 'Borrow button enabled/disabled correctly based on availability', isRequired: true, order: 3 }
+              ]
+            }
+          },
+          {
+            taskName: 'Refactor Availability Logic',
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Availability logic moved to reusable helper function', isRequired: true, order: 1 },
+                { description: 'Helper function used in BookDetails.tsx', isRequired: true, order: 2 },
+                { description: 'No duplication of availability logic', isRequired: true, order: 3 }
+              ]
+            }
+          }
         ]
       }
     },
     {
       id: 'level-3',
-      title: 'Advanced Full-Stack',
+      title: 'Feature Development',
       order: 3,
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      levelDescription: 'Master advanced concepts. Optimize performance, implement real-time features, and deploy to production.',
+      levelDescription: 'The library wants better visibility into borrowing activity.',
       xpReward: 500,
       coinReward: 300,
-      hints: {
-        create: [
-          { content: 'Profile your application for performance bottlenecks', order: 1 },
-          { content: 'Implement caching strategies', order: 2 },
-          { content: 'Use WebSockets for real-time features', order: 3 },
-          { content: 'Set up CI/CD pipelines', order: 4 },
-          { content: 'Monitor application health', order: 5 }
-        ]
-      },
+      scenarioId: 'scenario-library-management',
       tasks: {
         create: [
-          { taskName: 'Optimize database queries', order: 1 },
-          { taskName: 'Implement WebSocket functionality', order: 2 },
-          { taskName: 'Set up CI/CD pipeline', order: 3 },
-          { taskName: 'Configure production environment', order: 4 },
-          { taskName: 'Deploy to cloud platform', order: 5 }
+          {
+            taskName: 'Overdue Books View',
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Page shows list of overdue books', isRequired: true, order: 1 },
+                { description: 'Each overdue book shows member name', isRequired: true, order: 2 },
+                { description: 'Each overdue book shows days overdue', isRequired: true, order: 3 },
+                { description: 'Only truly overdue books are displayed', isRequired: true, order: 4 }
+              ]
+            }
+          },
+          {
+            taskName: 'Member Borrow History',
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Member dashboard shows borrowing history', isRequired: true, order: 1 },
+                { description: 'History includes book titles, borrow/return dates', isRequired: true, order: 2 },
+                { description: 'History shows status (BORROWED, RETURNED, OVERDUE)', isRequired: true, order: 3 }
+              ]
+            }
+          }
         ]
       }
     },
     {
       id: 'level-4',
-      title: 'Expert DevOps',
+      title: 'Integration & Edge Cases',
       order: 4,
       deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
-      levelDescription: 'Become a DevOps expert. Master containerization, orchestration, and infrastructure as code.',
+      levelDescription: 'Returning books occasionally causes negative available copy counts.',
       xpReward: 1000,
       coinReward: 500,
-      hints: {
-        create: [
-          { content: 'Use Docker for containerization', order: 1 },
-          { content: 'Implement Kubernetes orchestration', order: 2 },
-          { content: 'Set up monitoring and logging', order: 3 },
-          { content: 'Use infrastructure as code tools', order: 4 },
-          { content: 'Automate everything', order: 5 }
-        ]
-      },
+      scenarioId: 'scenario-library-management',
       tasks: {
         create: [
-          { taskName: 'Dockerize the application', order: 1 },
-          { taskName: 'Set up Kubernetes deployment', order: 2 },
-          { taskName: 'Configure monitoring tools', order: 3 },
-          { taskName: 'Implement log aggregation', order: 4 },
-          { taskName: 'Create disaster recovery plan', order: 5 }
+          {
+            taskName: 'Debug Return Logic',
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Frontend return request properly sent to backend', isRequired: true, order: 1 },
+                { description: 'Backend correctly processes return requests', isRequired: true, order: 2 },
+                { description: 'Prisma update queries modify availableCopies correctly', isRequired: true, order: 3 }
+              ]
+            }
+          },
+          {
+            taskName: 'Add Transaction Safety',
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Borrow/return operations use database transactions', isRequired: true, order: 1 },
+                { description: 'No negative available copy values after returns', isRequired: true, order: 2 },
+                { description: 'Concurrent requests handled safely', isRequired: true, order: 3 }
+              ]
+            }
+          }
         ]
       }
     },
     {
       id: 'level-5',
-      title: 'Master Architect',
+      title: 'Real Client Issue',
       order: 5,
       deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
-      levelDescription: 'Achieve mastery in system architecture. Design scalable systems, implement microservices patterns, and lead technical decisions.',
+      levelDescription: '"Some members are marked overdue even after returning books. The reports don’t match reality."',
       xpReward: 2000,
       coinReward: 1000,
-      hints: {
-        create: [
-          { content: 'Design for scalability from the start', order: 1 },
-          { content: 'Implement event-driven architecture', order: 2 },
-          { content: 'Use message queues for decoupling', order: 3 },
-          { content: 'Design for failure', order: 4 },
-          { content: 'Document your architecture decisions', order: 5 }
-        ]
-      },
+      scenarioId: 'scenario-library-management',
       tasks: {
         create: [
-          { taskName: 'Design system architecture', order: 1 },
-          { taskName: 'Implement event-driven patterns', order: 2 },
-          { taskName: 'Set up distributed tracing', order: 3 },
-          { taskName: 'Create API documentation', order: 4 },
-          { taskName: 'Lead a technical review', order: 5 }
+          {
+            taskName: 'Investigate Overdue Logic',
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Timezone handling consistent across application', isRequired: true, order: 1 },
+                { description: 'Returned date properly compared for overdue calculation', isRequired: true, order: 2 },
+                { description: 'Status updates correctly when books returned', isRequired: true, order: 3 }
+              ]
+            }
+          },
+          {
+            taskName: 'Fix & Document',
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                { description: 'Overdue status accurately reflects actual borrowing state', isRequired: true, order: 1 },
+                { description: 'Reports match borrowing records exactly', isRequired: true, order: 2 },
+                { description: 'Clear documentation of root cause and fix provided', isRequired: true, order: 3 }
+              ]
+            }
+          }
         ]
       }
     }
   ];
 
+  // Insert scenarios first
+  console.log('\n📦 Creating scenarios...\n');
+  for (const scenario of scenarios) {
+    await prisma.scenario.create({ data: scenario });
+    console.log(`✅ Created scenario: ${scenario.name}`);
+  }
+
   // Insert levels
+  console.log('\n🎯 Creating levels...\n');
   for (const level of levels) {
     await prisma.level.create({ data: level });
     console.log(`✅ Created level: ${level.title}`);
-  }
-
-  console.log('\n📦 Creating scenarios...\n');
-
-  // Define scenarios for each tech stack
-  const scenarios = [
-    // NestJS + PostgreSQL + Prisma scenarios
-    {
-      levelId: 'level-1',
-      name: 'NestJS Money Tracker - Basic Setup',
-      description: 'Set up a basic money tracking application with NestJS, PostgreSQL, and Prisma. Create your first database model and API endpoint.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-1',
-      name: 'NestJS Account API',
-      description: 'Create a simple account management API. Learn about NestJS controllers, services, and Prisma CRUD operations.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-2',
-      name: 'NestJS Authentication',
-      description: 'Implement JWT authentication with Passport. Create protected routes and user registration/login flows.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-2',
-      name: 'NestJS Transaction Management',
-      description: 'Build transaction handling for money transfers. Implement validation and error handling for financial operations.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-3',
-      name: 'NestJS Real-time Notifications',
-      description: 'Add WebSocket support for real-time transaction notifications. Learn about NestJS gateways and event-driven architecture.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-3',
-      name: 'NestJS Report Generation',
-      description: 'Create automated report generation with PDF export. Implement background jobs and scheduled tasks.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-4',
-      name: 'NestJS Microservices',
-      description: 'Refactor the application into microservices. Implement service communication and API gateway.',
-      difficulty: 'expert'
-    },
-
-    // Next.js scenarios
-    {
-      levelId: 'level-1',
-      name: 'Next.js Basic Page',
-      description: 'Create your first Next.js page. Learn about file-based routing and React Server Components.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-1',
-      name: 'Next.js API Routes',
-      description: 'Build API routes in Next.js. Understand GET, POST requests and data fetching patterns.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-2',
-      name: 'Next.js Authentication',
-      description: 'Implement NextAuth.js authentication. Create protected routes and session management.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-2',
-      name: 'Next.js Database Integration',
-      description: 'Connect to PostgreSQL using Prisma. Perform CRUD operations with React Server Actions.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-3',
-      name: 'Next.js Real-time Chat',
-      description: 'Build a real-time chat application using WebSockets and Server-Sent Events.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-3',
-      name: 'Next.js Performance Optimization',
-      description: 'Optimize application performance with caching, image optimization, and code splitting.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-4',
-      name: 'Next.js Full-stack Deployment',
-      description: 'Deploy Next.js with Docker and Kubernetes. Set up CI/CD and monitoring.',
-      difficulty: 'expert'
-    },
-
-    // React + Express + PostgreSQL scenarios
-    {
-      levelId: 'level-1',
-      name: 'React Express Setup',
-      description: 'Set up a React frontend with Express backend. Learn about CORS and proxy configuration.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-1',
-      name: 'Express REST API',
-      description: 'Build a RESTful API with Express. Learn about routing, middleware, and error handling.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-2',
-      name: 'React State Management',
-      description: 'Implement state management with Redux or Context API. Handle complex form states.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-2',
-      name: 'Express Authentication',
-      description: 'Create JWT-based authentication system. Implement refresh tokens and secure routes.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-3',
-      name: 'React Real-time Dashboard',
-      description: 'Build a real-time dashboard with WebSocket updates. Implement live data visualization.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-3',
-      name: 'Express Performance',
-      description: 'Optimize Express API performance. Implement caching, rate limiting, and compression.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-4',
-      name: 'Full-stack Microservices',
-      description: 'Convert monolithic app to microservices. Implement service discovery and load balancing.',
-      difficulty: 'expert'
-    },
-
-    // Next.js + Supabase scenarios
-    {
-      levelId: 'level-1',
-      name: 'Supabase Quickstart',
-      description: 'Connect Next.js to Supabase. Set up authentication and database in minutes.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-1',
-      name: 'Supabase Database Basics',
-      description: 'Create tables and manage data with Supabase JavaScript client. Learn about Row Level Security.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-2',
-      name: 'Supabase Auth Deep Dive',
-      description: 'Implement advanced authentication with Supabase. Handle social login and email confirmation.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-2',
-      name: 'Supabase Realtime',
-      description: 'Use Supabase Realtime for live data. Implement presence and broadcast features.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-3',
-      name: 'Supabase Edge Functions',
-      description: 'Write serverless Edge Functions. Implement custom API logic with Deno.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-3',
-      name: 'Supabase Storage',
-      description: 'Implement file upload and management with Supabase Storage. Add image transformations.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-4',
-      name: 'Supabase Multi-tenant',
-      description: 'Build a multi-tenant application using Supabase. Implement row-level isolation.',
-      difficulty: 'expert'
-    },
-
-    // Next.js + shadcn/ui scenarios
-    {
-      levelId: 'level-1',
-      name: 'shadcn/ui Setup',
-      description: 'Install and configure shadcn/ui components. Build your first responsive layout.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-1',
-      name: 'Building Forms',
-      description: 'Create forms using React Hook Form and Zod validation with shadcn/ui components.',
-      difficulty: 'easy'
-    },
-    {
-      levelId: 'level-2',
-      name: 'Dashboard Layout',
-      description: 'Build a complete dashboard layout with sidebar, header, and data tables.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-2',
-      name: 'Interactive Components',
-      description: 'Implement modals, dropdowns, and complex UI interactions with shadcn/ui.',
-      difficulty: 'medium'
-    },
-    {
-      levelId: 'level-3',
-      name: 'Theme Customization',
-      description: 'Customize the theme with CSS variables. Create dark/light mode and brand colors.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-3',
-      name: 'Advanced Data Display',
-      description: 'Build complex data tables with sorting, filtering, and pagination.',
-      difficulty: 'hard'
-    },
-    {
-      levelId: 'level-4',
-      name: 'Component Library',
-      description: 'Create a reusable component library using shadcn/ui patterns and best practices.',
-      difficulty: 'expert'
-    }
-  ];
-
-  // Insert scenarios
-  for (const scenario of scenarios) {
-    await prisma.scenario.create({ data: scenario });
-    const level = levels.find(l => l.id === scenario.levelId);
-    console.log(`✅ Created scenario: ${scenario.name} (${level?.title})`);
   }
 
   console.log('\n🎉 Database seeded successfully!\n');

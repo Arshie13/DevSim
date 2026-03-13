@@ -32,7 +32,7 @@
     Search as SearchIcon,
     Sparkles,
   } from "lucide-svelte";
-  import type { Task } from "$lib/interface/LevelConfig";
+  import type { ITask } from "$lib/types";
 
   import Explorer from "./Explorer.svelte";
   import Scenario from "./Scenario.svelte";
@@ -46,13 +46,13 @@
   export let selectedFile: string = "";
   export let projectName: string = "project";
   export let scenario: string = "";
-  export let tasks: Task[] = [];
+  export let tasks: ITask[] = [];
   export let containerId: string = "";
   export let userId: string = "";
   export let userCoins: number = 0;
   export let fileContents: Record<string, string> = {};
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
-  export let onToggleTask: (taskId: number) => void = () => {};
+  export let onToggleTask: (taskId: string) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
   export let onDeleteFile: (filePath: string) => void = () => {};
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
@@ -67,7 +67,7 @@
   export let currentLevel: number = 1;
 
   // Compute remaining tasks for badge
-  $: completedTasks = tasks.filter((t) => t.completed).length;
+  $: completedTasks = tasks.filter((t) => t.isCompleted).length;
   $: remainingTasks = tasks.length - completedTasks;
 
   // Panel label map

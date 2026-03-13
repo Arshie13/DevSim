@@ -17,21 +17,23 @@
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
   import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
 
-  import type { Task } from "$lib/interface/LevelConfig";
+  import type { IHints, ITask } from "$lib/types";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
   import { getLevelConfig, hasTestsForLevel } from "$lib/tests/levels";
   import type { FileListResponse } from "$lib/interface/Files";
 
   import { toast } from "$lib/stores/toast";
+  import type { UserData, IContainer } from "$lib/types"
 
-  interface Props {
-    dockerContainerId: string | null;
+  interface WorkspaceProps {
+    user: UserData;
     userId: string;
     userCoins: number;
-    completedTasks: string[]; // List of completed task texts for this level
-    levelTasks: string[]; // List of all task texts for this level
-    level: number; // Current level number (for task panel display)
-    hints: string[]; // List of hints for this level
+    dockerContainerId: string;
+    level: number;
+    completedTasks: string[];
+    container: IContainer;
+    hints: IHints[];
   }
 
   // Server-loaded data:
@@ -39,11 +41,9 @@
   //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
   //   userId — the user's ID for AI hints
   //   userCoins — the user's coin balance for AI hints
-  export let data: Props;
+  export let data: WorkspaceProps;
 
-  // Get route params
-  $: stackId = page.params.techstackid;
-  $: levelId = parseInt(page.params.levelId!);
+  console.log("data from page server: ", data);
 
   // Get user data from page data
   $: userId = data.userId || "";
@@ -53,7 +53,7 @@
   let activeTab: "editor" | "terminal" | "preview" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
-  let tasks: Task[] = []; // Will be populated from server data
+  let tasks: ITask[] = []; // Will be populated from server data
   let timeRemaining: number = 4 * 60 * 60; // Default to 4 hours
   let isRunning: boolean = false;
   let terminal: TerminalInitializer | null = null;
@@ -63,22 +63,18 @@
   let fileTree: string[] = [];
   let directories: string[] = [];
 
+  console.log("container data: ", data);
+
   // Initialize tasks from server data
   $: {
-    const completedTasks = data.completedTasks || [];
-    const levelTasks = data.levelTasks || [];
-    tasks = levelTasks.map((text: string, index: number) => ({
-      id: index + 1,
-      text,
-      completed: completedTasks.includes(text)
-    }));
+    const levelTasks = data.container.scenario.levels[data.level].tasks || [];
+    tasks = levelTasks;
   }
 
   // Get level-specific config from server data
   $: currentLevel = data.level || 1;
   $: levelHints = data.hints || [];
   $: levelTestConfig = getLevelConfig(currentLevel);
-  $: hasTests = hasTestsForLevel(currentLevel);
   
   // Merge test config with mockdata for UI fields (test config has tasks, mockdata has UI fields)
   $: actualLevelConfig = levelTestConfig ? {
@@ -89,7 +85,7 @@
     stack: LEVEL_CONFIG.stack,
     difficulty: LEVEL_CONFIG.difficulty,
     deadline: LEVEL_CONFIG.deadline,
-    scenario: LEVEL_CONFIG.scenario,
+    scenario: data.container.scenario.description,
     hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
     starterFiles: LEVEL_CONFIG.starterFiles,
     // Use tasks from server data
@@ -338,12 +334,12 @@
     isRunning = false;
   }
 
-  function toggleTask(taskId: number) {
+  function toggleTask(taskId: string) {
     const task = tasks.find(t => t.id === taskId);
     if (!task || !containerId) return;
 
-    const taskText = task.text;
-    const isCompleting = !task.completed; // Check if we're completing or un-completing
+    const taskText = task.taskName;
+    const isCompleting = !task.isCompleted; // Check if we're completing or un-completing
     
     // If un-completing a task, just update local state without calling API
     if (!isCompleting) {
@@ -678,7 +674,7 @@
       {selectedFile}
       {projectName}
       {containerId}
-      scenario={LEVEL_CONFIG.scenario}
+      scenario={actualLevelConfig.scenario}
       {tasks}
       {userId}
       {userCoins}
