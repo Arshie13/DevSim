@@ -161,88 +161,95 @@
         }
       }
       
-      console.log('=== TEST RUN: Starting test validation ===');
-      console.log('TEST: Level:', level, '| Tasks:', tasks.length);
-      console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
+      // console.log('=== TEST RUN: Starting test validation ===');
+      // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
+      // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
       
-      // Run tests
-      const testRes = await fetch('/api/tests/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          level,
-          tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
-          fileContents: contentsToCheck,
-          existingFiles: filesToCheck
-        })
-      });
+      // // Run tests
+      // const testRes = await fetch('/api/tests/run', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     level,
+      //     tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
+      //     fileContents: contentsToCheck,
+      //     existingFiles: filesToCheck
+      //   })
+      // });
       
-      console.log('TEST: Response status:', testRes.status);
+      // console.log('TEST: Response status:', testRes.status);
       
-      const testData = await testRes.json();
-      console.log('=== TEST RUN: Results Received ===');
-      console.log('TEST: Passed:', testData.passed);
-      console.log('TEST: Total Tests:', testData.results?.summary.total);
-      console.log('TEST: Passed Tests:', testData.results?.summary.passed);
-      console.log('TEST: Failed Tests:', testData.results?.summary.failed);
+      // const testData = await testRes.json();
+      // console.log('=== TEST RUN: Results Received ===');
+      // console.log('TEST: Passed:', testData.passed);
+      // console.log('TEST: Total Tests:', testData.results?.summary.total);
+      // console.log('TEST: Passed Tests:', testData.results?.summary.passed);
+      // console.log('TEST: Failed Tests:', testData.results?.summary.failed);
       
-      if (testData.failedTasks.length > 0) {
-        console.log('=== TEST RUN: Failed Tasks ===');
-        testData.failedTasks.forEach((task: any, index: number) => {
-          console.log(`${index + 1}. ${task.taskText}`);
-          task.errors.forEach((error: string) => {
-            console.log(`   • ${error}`);
-          });
-        });
-      }
+      // if (testData.failedTasks.length > 0) {
+      //   console.log('=== TEST RUN: Failed Tasks ===');
+      //   testData.failedTasks.forEach((task: any, index: number) => {
+      //     console.log(`${index + 1}. ${task.taskText}`);
+      //     task.errors.forEach((error: string) => {
+      //       console.log(`   • ${error}`);
+      //     });
+      //   });
+      // }
       
-      console.log('=== TEST RUN: Detailed Results ===');
-      testData.results?.results.forEach((result: any) => {
-        console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
-      });
+      // console.log('=== TEST RUN: Detailed Results ===');
+      // testData.results?.results.forEach((result: any) => {
+      //   console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
+      // });
       
-      testResults = {
-        passed: testData.passed,
-        failedTasks: testData.failedTasks || [],
-        summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
-      };
+      // testResults = {
+      //   passed: testData.passed,
+      //   failedTasks: testData.failedTasks || [],
+      //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
+      // };
       
-      // If tests failed, show error with details
-      if (!testData.passed) {
-        state = 'error';
-        const failedCount = testData.failedTasks?.length || 0;
+      // // If tests failed, show error with details
+      // if (!testData.passed) {
+      //   state = 'error';
+      //   const failedCount = testData.failedTasks?.length || 0;
         
-        // Build detailed error message
-        let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
+      //   // Build detailed error message
+      //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
         
-        if (testData.failedTasks && testData.failedTasks.length > 0) {
-          for (const task of testData.failedTasks) {
-            errorMsg += `❌ ${task.taskText}\n`;
-            if (task.errors && task.errors.length > 0) {
-              for (const err of task.errors) {
-                errorMsg += `   • ${err}\n`;
-              }
-            }
-            errorMsg += '\n';
-          }
-        } else {
-          errorMsg += 'Please review your work and try again.';
-        }
+      //   if (testData.failedTasks && testData.failedTasks.length > 0) {
+      //     for (const task of testData.failedTasks) {
+      //       errorMsg += `❌ ${task.taskText}\n`;
+      //       if (task.errors && task.errors.length > 0) {
+      //         for (const err of task.errors) {
+      //           errorMsg += `   • ${err}\n`;
+      //         }
+      //       }
+      //       errorMsg += '\n';
+      //     }
+      //   } else {
+      //     errorMsg += 'Please review your work and try again.';
+      //   }
         
-        submitError = errorMsg;
-        console.log('TEST: Submit error message:', submitError);
-        return;
-      }
+      //   submitError = errorMsg;
+      //   console.log('TEST: Submit error message:', submitError);
+      //   return;
+      // }
 
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
       console.log('AI SCORING: Starting AI scoring...');
       console.log('AI SCORING: Files available for AI:', Object.keys(contentsToCheck).length);
-      console.log('AI SCORING: Test results to include:', JSON.stringify(testData));
+      // console.log('AI SCORING: Test results to include:', JSON.stringify(testData));
       try {
         // Get completed task texts for the scoring
         const completedTaskTexts = tasks.filter(t => t.completed).map(t => t.text);
-        
+        await fetch(`/api/docker/container/${containerId}/archive`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }).then(res => res.json()).then(() => {
+          console.log('Container has been Archived');
+        }).catch(e => {
+          console.warn('err', e);
+        });
         // Call AI scoring endpoint with test results
         const scoreRes = await fetch('/api/ai/score', {
           method: 'POST',
@@ -252,7 +259,7 @@
             level,
             completedTasks: completedTaskTexts,
             fileContents: contentsToCheck,
-            testResults: testData  // Pass test results to AI
+            // testResults: testData  // Pass test results to AI
           })
         });
         

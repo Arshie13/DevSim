@@ -19,16 +19,25 @@
   }
 
   let kanbanTasks: KanbanTask[] = [];
-  let initialized = false;
+  let taskFingerprint = '';
 
-  // Initialize once from the tasks prop
-  $: if (!initialized && tasks.length > 0) {
-    kanbanTasks = tasks.map((t) => ({
+  // Re-initialize whenever the set of tasks changes (e.g. advancing to a new level).
+  // The fingerprint is based on task id+text so that toggling `completed` in the
+  // parent (via onToggleTask) does NOT trigger a spurious board reset.
+  function refreshTasks(incoming: Task[]) {
+    kanbanTasks = incoming.map((t) => ({
       id: t.id,
       text: t.text,
       status: t.completed ? 'done' : 'backlog',
     }));
-    initialized = true;
+  }
+
+  $: {
+    const newFingerprint = tasks.map((t) => `${t.id}:${t.text}`).join('|');
+    if (newFingerprint !== taskFingerprint && tasks.length > 0) {
+      taskFingerprint = newFingerprint;
+      refreshTasks(tasks);
+    }
   }
 
   const COLUMNS: { id: KanbanStatus; label: string; color: string; bg: string }[] = [
@@ -107,10 +116,10 @@
   >
     <!-- Left: section label -->
     <span
-      class="text-[0.6rem] uppercase tracking-[0.18em] text-[#8892a0] select-none"
+      class="text-[1rem] uppercase tracking-[0.18em] text-[#8892a0] select-none"
       style="font-family: 'Space Mono', monospace;"
     >
-      Project&nbsp;Management
+      A B I D E
     </span>
 
     <!-- Centre: pill toggle -->

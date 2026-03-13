@@ -20,8 +20,10 @@ export async function archiveContainer(
 	req: ArchiveContainerRequest
 ): Promise<ArchiveContainerResult> {
 	// --- 1. Look up & validate the container record ---
-	const record = await prisma.container.findUnique({
-		where: { id: req.dbContainerId }
+	// req.dbContainerId here is the Docker container ID (the value stored in the
+	// containerId field), not the Prisma primary key.
+	const record = await prisma.container.findFirst({
+		where: { containerId: req.dbContainerId }
 	});
 
 	if (!record) {
@@ -115,7 +117,7 @@ export async function archiveContainer(
 
 	// --- 6. Update DB: mark as archived, store volume name ---
 	await prisma.container.update({
-		where: { id: req.dbContainerId },
+		where: { id: record.id },
 		data: {
 			volumeName,
 			isArchived: true,
@@ -123,5 +125,5 @@ export async function archiveContainer(
 		}
 	});
 
-	return { volumeName, dbContainerId: req.dbContainerId };
+	return { volumeName, dbContainerId: record.id };
 }
