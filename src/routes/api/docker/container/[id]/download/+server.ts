@@ -89,7 +89,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     const tarBuffer = Buffer.concat(chunks);
 
     // --- Generate filename ---
-    const stackSlug = container.stacks.join('-').toLowerCase().replace(/\s+/g, '-');
+    const stackSlug = container.volumeName;
     const sanitizedTitle = stackSlug || 'project';
     const filename = `${sanitizedTitle}-lvl${container.level}-${container.id.slice(0, 8)}.tar`;
 

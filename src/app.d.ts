@@ -16,8 +16,8 @@ declare global {
 	}
 }
 
-// Extend the Session type from @auth/core/types
-declare module "@auth/core/types" {
+// Extend the Session type from @auth/sveltekit
+declare module "@auth/sveltekit" {
 	interface Session {
 		user: {
 			id: string;

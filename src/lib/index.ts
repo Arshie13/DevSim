@@ -4,4 +4,4 @@ import { MonacoInitializer } from "./client/MonacoInitializer";
 import type { LevelConfig, Task } from "./interface/LevelConfig";
 import { LEVEL_CONFIG } from "./mockdata/mocklevel";
 
-export { TerminalInitializer, type LevelConfig, type Task, LEVEL_CONFIG };
+export { TerminalInitializer, MonacoInitializer, type LevelConfig, type Task, LEVEL_CONFIG };

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { StackSelection } from "$types";
-  import { TECH_CATEGORIES, userData } from "$mocks";
+  import { TECH_CATEGORIES } from "$mocks";
   import type { PageData } from "./$types";
   import Header from "$components/Header.svelte";
   import CategorySection from "$components/stacks/CategorySection.svelte";
@@ -95,10 +95,13 @@
    export let data: PageData;
 
   const headerUserData: UserData = {
-    ...userData,
-    name: data.user?.name ?? "No Name",
-    fullName: data.user?.fullName ?? data.user?.name ?? "No Name",
+    name: data.user?.name ?? 'No Name',
+    email: data.user.email,
+    image: data.user.image,
+    id: data.user.id,
     avatar: data.user?.image ?? '',
+    givenName: data.user.givenName,
+    fullName: data.user?.fullName ?? data.user?.name ?? 'No Name',
     coins: data.userCoins,
   };
 </script>
