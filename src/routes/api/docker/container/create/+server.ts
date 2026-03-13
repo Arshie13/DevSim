@@ -45,8 +45,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     const req: CreateContainerRequest = await request.json()
     const { stackName, level, stacks, scenarioId } = req;
 
-    console.log('Received container creation request:', req);
-
     // Look up the Scenario by name to get its database ID for currentScenarioId
     let currentScenarioId: string | null = null;
     if (scenarioId) {
@@ -189,8 +187,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         // Fallback to submodule bind mount
         volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}:/workspace`.replace(/\\/g, '/');
       }
-
-      console.log(1);
       
       const container = await docker.createContainer({
         Image: 'node:20-alpine',
@@ -211,8 +207,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         }
       });
 
-      console.log(2);
-
       await docker.getContainer(container.id).start();
 
       const userContainer: UserContainerRequest = {
@@ -223,8 +217,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         level,
         status: 'created'
       };
-
-      console.log(3);
 
       const { dbContainerId } = await saveUserContainer(userContainer);
       console.log('[create] Created fresh container:', container.id);

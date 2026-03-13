@@ -36,9 +36,6 @@ export const readFile = async (filePath: string, containerId: string): Promise<{
     const content = Buffer.concat(stdout).toString('utf8');
     const errorOutput = Buffer.concat(stderr).toString('utf8');
 
-    console.log("Read file content: ", content);
-    console.log("Read file error output: ", errorOutput);
-
     if (errorOutput && !content) {
       return { path: filePath, content, error: errorOutput.trim() };
     }

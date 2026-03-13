@@ -42,8 +42,6 @@ export const load: PageServerLoad = async (event) => {
     }
   });
 
-  console.log("Loaded container data:", container);
-
   // Get completed tasks from the CompletedTask table
   // id might be wrong
   const completedTaskRecords = await prisma.completedTask.findMany({

@@ -43,8 +43,6 @@
   //   userCoins — the user's coin balance for AI hints
   export let data: WorkspaceProps;
 
-  console.log("data from page server: ", data);
-
   // Get user data from page data
   $: userId = data.userId || "";
   $: userCoins = data.userCoins || 0;
@@ -62,8 +60,6 @@
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
-
-  console.log("container data: ", data);
 
   // Initialize tasks from server data
   $: {
@@ -519,7 +515,6 @@
     if (!containerId || !fullPath) return;
 
     try {
-      console.log("body: ", JSON.stringify({ path: `/workspace/${fullPath}`, isDirectory }));
       const response = await fetch(
         `/api/docker/container/${containerId}/files/create`,
         {
