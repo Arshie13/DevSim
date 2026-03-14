@@ -81,9 +81,7 @@
       const data = await createRes.json();
 
       if (!data.success) {
-        toast.error(createRes.status === 401
-          ? 'Your session is outdated. Please sign out and sign back in.'
-          : `Failed to create container: ${data.error}`);
+        toast.error(`Failed to create container: ${data.error}`);
         return;
       }
 
