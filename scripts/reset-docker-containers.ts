@@ -11,6 +11,17 @@
  *   --force      Don't prompt for confirmation
  */
 
+// @ts-ignore - Prisma client path
+import { PrismaClient } from '../prisma/src/generated/prisma/client';
+import { PrismaPg } from "@prisma/adapter-pg";
+import 'dotenv/config';
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL ?? "",
+});
+
+const prisma = new PrismaClient({ adapter });
+
 import { docker } from "../src/lib/server/docker/client";
 
 interface Args {
@@ -114,6 +125,8 @@ async function main() {
         errors++;
       }
     }
+
+    await prisma.container.deleteMany();
 
     console.log('\n=== Results ===');
     console.log(`Stopped: ${stopped} | Removed: ${removed} | Errors: ${errors}`);
