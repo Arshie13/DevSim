@@ -27,6 +27,7 @@ export class TerminalInitializer {
   private fitAddon: FitAddon | null = null;
   private socket: WebSocket | null = null;
   private containerId: string = "";
+  private dataListenerRegistered: boolean = false;
 
   constructor() { }
 
@@ -109,11 +110,15 @@ export class TerminalInitializer {
       this.terminal?.writeln("\r\n\x1b[31m🔌 Terminal disconnected\x1b[0m");
     };
 
-    this.terminal!.onData((data) => {
-      if (this.socket?.readyState === WebSocket.OPEN) {
-        this.socket.send(data);
-      }
-    });
+    // Only register the data listener once - don't add duplicate listeners on reconnect
+    if (!this.dataListenerRegistered) {
+      this.terminal!.onData((data) => {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+          this.socket.send(data);
+        }
+      });
+      this.dataListenerRegistered = true;
+    }
   }
 
   reconnect() {
@@ -129,7 +134,7 @@ export class TerminalInitializer {
     this.terminal.clear();
     this.terminal.writeln("\x1b[1;33mReconnecting terminal...\x1b[0m");
     
-    // Reconnect
+    // Reconnect - this will reuse the existing onData listener
     this.connectSocket();
   }
 
