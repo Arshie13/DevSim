@@ -40,7 +40,7 @@ async function main() {
   // Define scenarios for each tech stack
   const scenarios = [
     {
-      id: 'scenario-library-management',
+      id: 'scenario-1',
       name: 'BookWise Library Management System',
       description: 'Build a full-featured web-based Library Management System to manage books, members, and borrowing workflows using React, Express, PostgreSQL, and Prisma.',
       difficulty: 'expert'
