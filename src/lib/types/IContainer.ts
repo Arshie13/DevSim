@@ -4,6 +4,7 @@ export interface IContainer {
   status: string;
   level: number;
   scenario: IScenario;
+  containerStacks: IContainerStack[];
 }
 
 export interface IScenario {
@@ -12,6 +13,12 @@ export interface IScenario {
   description: string;
   difficulty: string;
   levels: ILevel[];
+}
+
+export interface IContainerStack {
+  id: string;
+  stackName: string;
+  stackVersion?: string;
 }
 
 export interface ILevel {

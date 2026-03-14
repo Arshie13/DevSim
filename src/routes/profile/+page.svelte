@@ -2,7 +2,6 @@
   import { ArrowLeft, GitCommitHorizontalIcon, Award, Target, Star } from "lucide-svelte";
   import type { PageData } from "./$types";
   import type { UserData } from "$types";
-  import { userData } from "$mocks";
 
   // ── Modular profile components ────────────────────────────────────────────────
   import ProfileCard      from "$components/profile/ProfileCard.svelte";
@@ -19,9 +18,13 @@
   // Avatar is always loaded from the DB (data.user.image). The DB stores either
   // an OAuth URL or a local /avatars/ path assigned at first login.
   let user: UserData = {
-    ...userData,
-    name:   data.user?.name  ?? userData.name,
-    avatar: data.user?.image ?? userData.avatar,
+    id: data.user.id,
+    name:   data.user?.name,
+    email: data.user.email,
+    image: data.user.image,
+    fullName: data.user.fullName,
+    givenName: data.user.givenName,
+    avatar: data.user?.image,
     coins:  data.userCoins,
   };
 

@@ -4,6 +4,7 @@ export * from "./dashboard";
 export type { UserData } from "./userData";
 export type {
   IContainer,
+  IContainerStack,
   IScenario,
   ILevel,
   ITask,

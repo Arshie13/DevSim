@@ -22,6 +22,11 @@ interface CreateContainerRequest {
   scenarioTitle?: string;
 }
 
+interface StackInfo {
+  stackName: string;
+  stackVersion?: string;
+}
+
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     const session = await locals.auth();
@@ -56,12 +61,13 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     // Build the canonical stacks array early — needed for both DB lookup and creation.
-    const stacksArray: string[] = [
-      stacks.frontend,
-      stacks.backend,
-      stacks.database,
-      stacks.services
-    ].filter((s): s is string => s !== null && s !== undefined);
+    // Each stack now includes version information when available.
+    const stacksArray: StackInfo[] = [
+      stacks.frontend ? { stackName: stacks.frontend } : null,
+      stacks.backend ? { stackName: stacks.backend } : null,
+      stacks.database ? { stackName: stacks.database } : null,
+      stacks.services ? { stackName: stacks.services } : null
+    ].filter((s): s is StackInfo => s !== null && s.stackName !== null && s.stackName !== undefined);
 
     // --- DB-first lookup for an existing active container ---
     // Checking the DB first is more reliable than matching Docker labels because:
@@ -84,7 +90,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     if (existingDbContainer) {
       const existingStackNames = existingDbContainer.containerStacks.map(s => s.stackName);
       const stacksMatch = stacksArray.length === existingStackNames.length &&
-        stacksArray.every(s => existingStackNames.includes(s));
+        stacksArray.every(s => existingStackNames.includes(s.stackName));
 
       if (stacksMatch) {
         const existingDockerContainerId = existingDbContainer.containerId;

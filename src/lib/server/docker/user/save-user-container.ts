@@ -5,7 +5,10 @@ export interface UserContainerRequest {
   userId: string;
   containerId: string;
   currentScenarioId: string;
-  stacks: string[];
+  stacks: Array<{
+    stackName: string;
+    stackVersion?: string;
+  }>;
   level: number;
   status: string;
 }
@@ -46,9 +49,10 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
       // Create new stack records
       if (data.stacks.length > 0) {
         await prisma.containerStack.createMany({
-          data: data.stacks.map(stackName => ({
+          data: data.stacks.map(stack => ({
             containerId: isExisting.id,
-            stackName
+            stackName: stack.stackName,
+            stackVersion: stack.stackVersion || null
           }))
         });
       }
@@ -64,8 +68,9 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
         level: data.level,
         status: data.status,
         containerStacks: {
-          create: data.stacks.map(stackName => ({
-            stackName
+          create: data.stacks.map(stack => ({
+            stackName: stack.stackName,
+            stackVersion: stack.stackVersion || null
           }))
         }
       },

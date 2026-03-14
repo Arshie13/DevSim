@@ -56,6 +56,10 @@ export async function getAllUserContainer(userId: string) {
   const userContainers = await prisma.container.findMany({
     where: {
       userId: userId
+    },
+    include: {
+      scenario: true,
+      containerStacks: true,
     }
   });
 

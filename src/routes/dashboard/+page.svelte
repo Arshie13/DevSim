@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import type { PageData } from "./$types";
-  import type { UserData } from "$types";
+  import type { FinishedStack, IContainer, UserData } from "$types";
   import { Plus, ArrowRight } from "lucide-svelte";
   import Header from "$components/Header.svelte";
   import KPIs from "$components/dashboard/KPIs.svelte";
@@ -13,18 +12,26 @@
     weeklyStats,
     recentActivity,
     leaderboardSnapshot,
-    userData
   } from "$mocks";
 
-  export let data: PageData;
+  interface DashboardProps {
+    user: UserData;
+    userContainerList: IContainer[];
+    archivedStacks: FinishedStack[];
+    userCoins: number;
+  }
+
+  export let data: DashboardProps;
 
   let isStatsDrawerOpen = false;
 
   const headerUserData: UserData = {
-    ...userData,
-    name: data.session?.user.name ?? "No Name",
-    fullName: data.session?.user.fullName ?? "No Name",
-    givenName: data.session?.user.givenName ?? "No Name",
+    id: data.user.id,
+    name: data.user.name ?? "No Name",
+    email: data.user.email,
+    image: data.user.image,
+    fullName: data.user.fullName ?? "No Name",
+    givenName: data.user.givenName ?? "No Name",
     avatar: data.user?.image ?? '',
     coins: data.userCoins,
   };
@@ -96,7 +103,7 @@
 
     <!-- Stacks Section - Side by Side -->
     <div class="grid grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
-      <CurrentStacks containers={data.userContainerList} finishedStacks={data.archivedStacks} maxVisible={2} />
+      <CurrentStacks containers={data.userContainerList} currentStacks={data.archivedStacks} maxVisible={2} />
       <FinishedStacks stacks={data.archivedStacks} userCoins={data.userCoins} maxVisible={3} />
     </div>
     </div><!-- end max-width wrapper -->

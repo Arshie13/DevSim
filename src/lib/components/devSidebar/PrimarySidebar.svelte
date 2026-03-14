@@ -2,7 +2,7 @@
   import { writable, derived } from 'svelte/store';
   import type { Writable } from 'svelte/store';
 
-  export type SidebarPanel = "files" | "search" | "scenario" | "tasks" | "hints";
+  export type SidebarPanel = "files" | "search" | "scenario" | "tasks";
 
   // Chat message type
   export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean; attachedFiles?: { path: string; name: string }[] };
@@ -45,9 +45,6 @@
   export let scenario: string = "";
   export let tasks: ITask[] = [];
   export let containerId: string = "";
-  export let userId: string = "";
-  export let userCoins: number = 0;
-  export let fileContents: Record<string, string> = {};
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
   export let onToggleTask: (taskId: string) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};

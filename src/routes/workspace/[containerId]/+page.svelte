@@ -714,9 +714,6 @@
       {containerId}
       scenario={actualLevelConfig.scenario}
       {tasks}
-      {userId}
-      {userCoins}
-      {fileContents}
       currentLevel={data.level}
       onSelectFile={selectFile}
       onToggleTask={toggleTask}

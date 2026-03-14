@@ -1,10 +1,11 @@
 <script lang="ts">
   import { Play, Clock, ChevronRight, Container } from "lucide-svelte";
-  import type { Container as ContainerType } from '$prismaclient';
   import { parseStackName } from '$lib/utils/stacks';
+  import { type FinishedStack } from "$types";
+  import type { IContainer } from "$types";
 
-  export let containers: ContainerType[];
-  export let finishedStacks: string[] = [];
+  export let containers: IContainer[];
+  export let currentStacks: FinishedStack[];
   export let maxVisible: number = 2;
 
   $: visibleContainers = containers.slice(0, maxVisible);
@@ -60,11 +61,11 @@
                   </div>
                   <div>
                     <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">
-                      {container.scenarioTitle ?? parseStackName(container.stacks)}
+                      {container.scenario.name}
                     </h4>
-                    {#if container.scenarioTitle}
+                    {#if container.scenario.name}
                       <p class="text-xs font-mono text-[var(--accent)] opacity-70 mt-0.5 truncate">
-                        {parseStackName(container.stacks)}
+                        {parseStackName(container.containerStacks)}
                       </p>
                     {/if}
                     <p class="text-xs font-mono text-[var(--text-muted)] mt-0.5">
@@ -74,7 +75,7 @@
                 </div>
                 <div class="flex items-center gap-1 font-mono text-xs text-[var(--text-muted)]">
                   <Clock class="w-3 h-3" />
-                  <span>{formatLastActive(container.startedAt)}</span>
+                  <span>{formatLastActive(container.status)}</span>
                 </div>
               </div>
 
@@ -105,7 +106,7 @@
       <div class="flex-1 flex items-center justify-center">
         <div class="text-center">
           <p class="text-lg font-orbitron text-obsidian-text-primary/40">No stacks in progress</p>
-          {#if finishedStacks.length > 0}
+          {#if currentStacks.length > 0}
             <p class="text-md font-rajdhani text-[var(--text-muted)] mt-1">Browse available stacks to start learning!</p>
           {:else}
             <p class="text-md font-rajdhani text-[var(--text-muted)] mt-1">Start a new stack to begin your journey!</p>
