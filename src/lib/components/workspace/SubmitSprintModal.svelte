@@ -198,7 +198,21 @@
       // console.log('=== TEST RUN: Starting test validation ===');
       // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
       // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
+      // console.log('=== TEST RUN: Starting test validation ===');
+      // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
+      // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
       
+      // // Run tests
+      // const testRes = await fetch('/api/tests/run', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     level,
+      //     tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
+      //     fileContents: contentsToCheck,
+      //     existingFiles: filesToCheck
+      //   })
+      // });
       // // Run tests
       // const testRes = await fetch('/api/tests/run', {
       //   method: 'POST',
@@ -212,7 +226,14 @@
       // });
       
       // console.log('TEST: Response status:', testRes.status);
+      // console.log('TEST: Response status:', testRes.status);
       
+      // const testData = await testRes.json();
+      // console.log('=== TEST RUN: Results Received ===');
+      // console.log('TEST: Passed:', testData.passed);
+      // console.log('TEST: Total Tests:', testData.results?.summary.total);
+      // console.log('TEST: Passed Tests:', testData.results?.summary.passed);
+      // console.log('TEST: Failed Tests:', testData.results?.summary.failed);
       // const testData = await testRes.json();
       // console.log('=== TEST RUN: Results Received ===');
       // console.log('TEST: Passed:', testData.passed);
@@ -240,7 +261,16 @@
       //   failedTasks: testData.failedTasks || [],
       //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
       // };
+      // testResults = {
+      //   passed: testData.passed,
+      //   failedTasks: testData.failedTasks || [],
+      //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
+      // };
       
+      // // If tests failed, show error with details
+      // if (!testData.passed) {
+      //   state = 'error';
+      //   const failedCount = testData.failedTasks?.length || 0;
       // // If tests failed, show error with details
       // if (!testData.passed) {
       //   state = 'error';
@@ -248,7 +278,22 @@
         
       //   // Build detailed error message
       //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
+      //   // Build detailed error message
+      //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
         
+      //   if (testData.failedTasks && testData.failedTasks.length > 0) {
+      //     for (const task of testData.failedTasks) {
+      //       errorMsg += `❌ ${task.taskText}\n`;
+      //       if (task.errors && task.errors.length > 0) {
+      //         for (const err of task.errors) {
+      //           errorMsg += `   • ${err}\n`;
+      //         }
+      //       }
+      //       errorMsg += '\n';
+      //     }
+      //   } else {
+      //     errorMsg += 'Please review your work and try again.';
+      //   }
       //   if (testData.failedTasks && testData.failedTasks.length > 0) {
       //     for (const task of testData.failedTasks) {
       //       errorMsg += `❌ ${task.taskText}\n`;
@@ -267,6 +312,10 @@
       //   console.log('TEST: Submit error message:', submitError);
       //   return;
       // }
+      //   submitError = errorMsg;
+      //   console.log('TEST: Submit error message:', submitError);
+      //   return;
+      // }
 
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
@@ -276,7 +325,14 @@
       try {
         // Get completed task texts for the scoring
         const completedTaskTexts = tasks.filter(t => t.isCompleted).map(t => t.taskName);
-
+        await fetch(`/api/docker/container/${containerId}/archive`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }).then(res => res.json()).then(() => {
+          console.log('Container has been Archived');
+        }).catch(e => {
+          console.warn('err', e);
+        });
         // Call AI scoring endpoint with test results
         const scoreRes = await fetch('/api/ai/score', {
           method: 'POST',

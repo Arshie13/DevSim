@@ -1,11 +1,10 @@
 <script lang="ts">
   import { Play, Clock, ChevronRight, Container } from "lucide-svelte";
   import { parseStackName } from '$lib/utils/stacks';
-  import { type FinishedStack } from "$types";
   import type { IContainer } from "$types";
 
   export let containers: IContainer[];
-  export let currentStacks: FinishedStack[];
+  export let currentStacks: IContainer[];
   export let maxVisible: number = 2;
 
   $: visibleContainers = containers.slice(0, maxVisible);

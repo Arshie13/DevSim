@@ -2,7 +2,7 @@
   import { writable, derived } from 'svelte/store';
   import type { Writable } from 'svelte/store';
 
-  export type SidebarPanel = "files" | "search" | "scenario" | "tasks";
+  export type SidebarPanel = "files" | "search";
 
   // Chat message type
   export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean; attachedFiles?: { path: string; name: string }[] };
@@ -26,15 +26,11 @@
 <script lang="ts">
   import {
     FolderOpen,
-    BookOpen,
-    Target,
     Search as SearchIcon,
   } from "lucide-svelte";
   import type { ITask } from "$lib/types";
 
   import Explorer from "./Explorer.svelte";
-  import Scenario from "./Scenario.svelte";
-  import SprintTask from "./SprintTask.svelte";
   import Search from "./Search.svelte";
 
   // Props
@@ -42,11 +38,9 @@
   export let directories: string[] = [];
   export let selectedFile: string = "";
   export let projectName: string = "project";
-  export let scenario: string = "";
   export let tasks: ITask[] = [];
   export let containerId: string = "";
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
-  export let onToggleTask: (taskId: string) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
   export let onDeleteFile: (filePath: string) => void = () => {};
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
@@ -57,9 +51,6 @@
   let activeSidebarPanel: SidebarPanel = "files";
   let isOpen: boolean = true;
 
-  // Current level for display in tasks panel
-  export let currentLevel: number = 1;
-
   // Compute remaining tasks for badge
   $: completedTasks = tasks.filter((t) => t.isCompleted).length;
   $: remainingTasks = tasks.length - completedTasks;
@@ -68,8 +59,6 @@
   const panelLabels: Record<SidebarPanel, string> = {
     files: "Explorer",
     search: "Search",
-    scenario: "Scenario",
-    tasks: "Sprint Tasks",
   };
 
   // Activity bar items
@@ -80,11 +69,10 @@
     badge?: number;
   };
 
+  // Activity bar items - with badge for remaining tasks
   $: activityItems = [
     { panel: "files", icon: FolderOpen, title: "Explorer" },
     { panel: "search", icon: SearchIcon, title: "Search" },
-    { panel: "scenario", icon: BookOpen, title: "Scenario" },
-    { panel: "tasks", icon: Target, title: "Sprint Tasks", badge: remainingTasks > 0 ? remainingTasks : undefined },
   ] satisfies ActivityItem[];
 
   function setPanel(panel: SidebarPanel) {
@@ -98,7 +86,7 @@
   }
 </script>
 
-<div class="flex h-full flex-shrink-0">
+<div class="flex h-full flex-shrink-0" data-tour="sidebar">
   <!-- Activity Bar -->
   <div
     class="w-12 bg-[#0a0e1a] border-r border-[rgba(7,165,201,0.1)] flex flex-col items-center py-2 gap-1 flex-shrink-0"
@@ -113,14 +101,6 @@
             : 'text-[#8892a0]/60 border-l-2 border-transparent hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.04)]'}"
       >
         <svelte:component this={item.icon} class="w-5 h-5" />
-        {#if item.badge}
-          <span
-            class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#07a5c9] text-[9px] font-bold flex items-center justify-center rounded-full"
-            style="font-family:'Share Tech Mono',monospace;box-shadow:0 0 6px rgba(7,165,201,0.5);"
-          >
-            {item.badge}
-          </span>
-        {/if}
       </button>
     {/each}
   </div>
@@ -171,10 +151,6 @@
           {containerId}
           {onSelectFile}
         />
-      {:else if activeSidebarPanel === "scenario"}
-        <Scenario {scenario} />
-      {:else if activeSidebarPanel === "tasks"}
-        <SprintTask {tasks} {onToggleTask} levelTitle={tasks.length > 0 ? `Level ${currentLevel}` : ""} />
       {/if}
     </div>
   </aside>

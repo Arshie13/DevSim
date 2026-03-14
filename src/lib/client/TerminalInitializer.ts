@@ -137,6 +137,10 @@ export class TerminalInitializer {
     this.terminal?.write(data);
   }
 
+  fit() {
+    this.fitAddon?.fit();
+  }
+
   dispose() {
     if (this.socket) {
       this.socket.close();

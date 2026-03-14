@@ -15,9 +15,13 @@ model User {
   image        String?
 
   // Leveling System
-  xp    Int @default(0)
-  coins Int @default(0)
-  level Int @default(1)
+  xp           Int      @default(0)
+  coins        Int      @default(0)
+  level        Int      @default(1)
+  ownedAvatars String[] @default([])
+
+  // Onboarding
+  hasCompletedOnboarding Boolean @default(false)
 
   // Relations
   dailyLogin   DailyLogin?       @relation

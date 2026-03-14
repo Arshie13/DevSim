@@ -6,13 +6,13 @@ export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
 
   if (!session?.user) {
-    throw redirect(303, '/');
+    throw redirect(303, "/");
   }
 
   // Get user data including coins
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true, coins: true, name: true }
+    select: { id: true, coins: true, name: true },
   });
 
   // The route param is now always the Prisma Container.id (cuid).
