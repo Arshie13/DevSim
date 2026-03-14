@@ -22,6 +22,11 @@ interface CreateContainerRequest {
   scenarioTitle?: string;
 }
 
+interface StackInfo {
+  stackName: string;
+  stackVersion?: string;
+}
+
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     const session = await locals.auth();
@@ -43,15 +48,26 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     const req: CreateContainerRequest = await request.json()
-    const { stackName, level, stacks, scenarioId, projectFolder, scenarioTitle } = req;
+    const { stackName, level, stacks, scenarioId } = req;
+
+    // Look up the Scenario by name to get its database ID for currentScenarioId
+    let currentScenarioId: string | null = null;
+    if (scenarioId) {
+      const scenario = await prisma.scenario.findFirst({
+        where: { id: scenarioId },
+        select: { id: true }
+      });
+      currentScenarioId = scenario?.id || null;
+    }
 
     // Build the canonical stacks array early — needed for both DB lookup and creation.
-    const stacksArray: string[] = [
-      stacks.frontend,
-      stacks.backend,
-      stacks.database,
-      stacks.services
-    ].filter((s): s is string => s !== null && s !== undefined);
+    // Each stack now includes version information when available.
+    const stacksArray: StackInfo[] = [
+      stacks.frontend ? { stackName: stacks.frontend } : null,
+      stacks.backend ? { stackName: stacks.backend } : null,
+      stacks.database ? { stackName: stacks.database } : null,
+      stacks.services ? { stackName: stacks.services } : null
+    ].filter((s): s is StackInfo => s !== null && s.stackName !== null && s.stackName !== undefined);
 
     // --- DB-first lookup for an existing active container ---
     // Checking the DB first is more reliable than matching Docker labels because:
@@ -59,38 +75,49 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     //    while buildStackName() maps them to folder names (e.g. "postgres"), causing mismatches.
     //  • A container created before DB tracking was introduced may have no DB record anyway.
     // Only non-archived containers are reusable (archived ones have no running Docker container).
+    // One container per stack — any existing container for this userId/level/stacks combination
+    // triggers the "alreadyExists" modal, regardless of which scenario was selected.
     const existingDbContainer = await prisma.container.findFirst({
       where: {
         userId,
         level,
-        isArchived: false,
-        stacks: { equals: stacksArray }
+        isArchived: false
+      },
+      include: {
+        containerStacks: true
       }
     });
 
+    // Check if the stacks match
     if (existingDbContainer) {
-      const existingDockerContainerId = existingDbContainer.containerId;
-      try {
-        const existingContainer = docker.getContainer(existingDockerContainerId);
-        const info = await existingContainer.inspect();
-        if (!info.State.Running) {
-          await existingContainer.start();
-        }
-        console.log('[create] DB-first: existing container found:', existingDockerContainerId);
-      } catch {
-        // The Docker container no longer exists (e.g. was deleted outside the app).
-        // Fall through to create a fresh one and update the DB record.
-        console.warn('[create] DB record found but Docker container is gone — creating fresh container.');
-        return await createFreshContainer();
-      }
+      const existingStackNames = existingDbContainer.containerStacks.map(s => s.stackName);
+      const stacksMatch = stacksArray.length === existingStackNames.length &&
+        stacksArray.every(s => existingStackNames.includes(s.stackName));
 
-      return json({
-        success: true,
-        alreadyExists: true,
-        message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
-        containerId: existingDockerContainerId,
-        dbContainerId: existingDbContainer.id
-      });
+      if (stacksMatch) {
+        const existingDockerContainerId = existingDbContainer.containerId;
+        try {
+          const existingContainer = docker.getContainer(existingDockerContainerId);
+          const info = await existingContainer.inspect();
+          if (!info.State.Running) {
+            await existingContainer.start();
+          }
+          console.log('[create] DB-first: existing container found:', existingDockerContainerId);
+        } catch {
+          // The Docker container no longer exists (e.g. was deleted outside the app).
+          // Fall through to create a fresh one and update the DB record.
+          console.warn('[create] DB record found but Docker container is gone — creating fresh container.');
+          return await createFreshContainer();
+        }
+
+        return json({
+          success: true,
+          alreadyExists: true,
+          message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
+          containerId: existingDockerContainerId,
+          dbContainerId: existingDbContainer.id
+        });
+      }
     }
 
     // --- DB found nothing: also check Docker by label as a fallback ---
@@ -123,6 +150,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       const { dbContainerId: existingDbId } = await saveUserContainer({
         userId,
         containerId: existingContainerId,
+        currentScenarioId: currentScenarioId || '',
         stacks: stacksArray,
         level,
         status: 'created'
@@ -144,12 +172,34 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     return await createFreshContainer();
 
     async function createFreshContainer() {
-      // Build the mount source: use scenarioId + projectFolder when provided
-      // (e.g. scenario-1/LIBRARY_MANAGEMENT), otherwise fall back to scenario-{level}.
-      const mountSource = scenarioId && projectFolder
-        ? `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioId}/${projectFolder}`
-        : `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/scenario-${level}`;
+      // Use the scenario folder name (e.g. "scenario-2") so each scenario gets its own
+      // volume/bind-mount. Falling back to `scenario-${level}` keeps older containers working.
+      const scenarioFolder = scenarioId ?? `scenario-${level}`;
+      // Generate volume name: {stack-name}-{scenario-folder}
+      const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
+      
+      // Check if volume exists
+      let useVolume = false;
+      let volumeMountConfig: string | null = null;
+      
+      try {
+        await docker.getVolume(volumeName).inspect();
+        useVolume = true;
+        console.log(`[create] Using volume: ${volumeName}`);
+      } catch {
+        // Volume doesn't exist, fall back to bind mount
+        console.log(`[create] Volume '${volumeName}' not found, falling back to bind mount`);
+      }
 
+      // Build mount configuration
+      if (useVolume) {
+        volumeMountConfig = `${volumeName}:/workspace`;
+      } else {
+        // Fallback to submodule bind mount — use scenarioFolder so scenario-2/scenario-3
+        // mount their own directory instead of always defaulting to scenario-1.
+        volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioFolder}:/workspace`.replace(/\\/g, '/');
+      }
+      
       const container = await docker.createContainer({
         Image: 'node:20-alpine',
         Cmd: ['/bin/sh'],
@@ -158,9 +208,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         WorkingDir: '/workspace',
         HostConfig: {
           NetworkMode: 'host',
-          Binds: [
-            `${mountSource}:/workspace`.replace(/\\/g, '/')
-          ],
+          Binds: [volumeMountConfig],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false
         },
@@ -176,11 +224,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       const userContainer: UserContainerRequest = {
         userId,
         containerId: container.id,
+        currentScenarioId: currentScenarioId || '',
         stacks: stacksArray,
         level,
-        status: 'created',
-        projectFolder,
-        scenarioTitle,
+        status: 'created'
       };
 
       const { dbContainerId } = await saveUserContainer(userContainer);

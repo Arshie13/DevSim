@@ -40,11 +40,11 @@ export const DEFAULT_AVATARS: AvatarDefinition[] = [
 // ─── Premium avatars (must be purchased) ─────────────────────────────────────
 
 export const PREMIUM_AVATARS: PremiumAvatarDefinition[] = [
-  { id: "premium_coral",    name: "Coral Dreamer",    path: "/avatars/premiumcoraldreamer.svg",    color: "#00e5a0", isPremium: true, price: 500  },
-  { id: "premium_chrome", name: "Chrome Punk",       path: "/avatars/premiumchromepunk.svg", color: "#ff6b00", isPremium: true, price: 750  },
-  { id: "premium_void",    name: "Void Samurai",   path: "/avatars/premiumvoidsamurai.svg",    color: "#6366f1", isPremium: true, price: 1000 },
-  { id: "premium_ember",  name: "Ember Sage",        path: "/avatars/premiumembersage.svg",  color: "#ec4899", isPremium: true, price: 1200 },
-  { id: "premium_glitch",  name: "Glitch Idol",        path: "/avatars/premiumglitchidol.svg",  color: "#94a3b8", isPremium: true, price: 1500 },
+  { id: "premium_coral",    name: "Coral Dreamer",    path: "/avatars/premiumcoraldreamer.svg",    color: "#00e5a0", isPremium: true, price: 5000 },
+  { id: "premium_chrome", name: "Chrome Punk",       path: "/avatars/premiumchromepunk.svg", color: "#ff6b00", isPremium: true, price: 3500 },
+  { id: "premium_void",    name: "Void Samurai",   path: "/avatars/premiumvoidsamurai.svg",    color: "#6366f1", isPremium: true, price: 3200 },
+  { id: "premium_ember",  name: "Ember Sage",        path: "/avatars/premiumembersage.svg",  color: "#ec4899", isPremium: true, price: 3000 },
+  { id: "premium_glitch",  name: "Glitch Idol",        path: "/avatars/premiumglitchidol.svg",  color: "#94a3b8", isPremium: true, price: 2000 },
 ];
 
 export const ALL_AVATARS: AnyAvatar[] = [...DEFAULT_AVATARS, ...PREMIUM_AVATARS];

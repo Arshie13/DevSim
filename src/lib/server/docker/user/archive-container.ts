@@ -20,8 +20,10 @@ export async function archiveContainer(
 	req: ArchiveContainerRequest
 ): Promise<ArchiveContainerResult> {
 	// --- 1. Look up & validate the container record ---
-	const record = await prisma.container.findUnique({
-		where: { id: req.dbContainerId }
+	// req.dbContainerId here is the Docker container ID (the value stored in the
+	// containerId field), not the Prisma primary key.
+	const record = await prisma.container.findFirst({
+		where: { containerId: req.dbContainerId }
 	});
 
 	if (!record) {
@@ -41,7 +43,12 @@ export async function archiveContainer(
 	}
 
 	// --- 2. Build a deterministic volume name ---
-	const stackSlug = record.stacks.join('-').toLowerCase().replace(/\s+/g, '-');
+	// Get stacks from ContainerStack relation
+	const containerStacks = await prisma.containerStack.findMany({
+		where: { containerId: req.dbContainerId }
+	});
+	const stackNames = containerStacks.map(s => s.stackName);
+	const stackSlug = stackNames.join('-').toLowerCase().replace(/\s+/g, '-');
 	const randomSuffix = crypto.randomBytes(4).toString('hex'); // 8 chars for uniqueness
 	const volumeName = `devsim-${record.userId}-${stackSlug}-${randomSuffix}`;
 
@@ -95,8 +102,8 @@ export async function archiveContainer(
 		// before we return. AutoRemove:false + explicit remove() is synchronous from our
 		// perspective, unlike AutoRemove:true which lets Docker remove it asynchronously.
 		if (helper) {
-			try { await (helper as any).stop({ t: 2 }); } catch { /* already stopped */ }
-			try { await (helper as any).remove(); } catch { /* already removed */ }
+			try { await helper.stop({ t: 2 }); } catch { /* already stopped */ }
+			try { await helper.remove(); } catch { /* already removed */ }
 		}
 	}
 
@@ -115,7 +122,7 @@ export async function archiveContainer(
 
 	// --- 6. Update DB: mark as archived, store volume name ---
 	await prisma.container.update({
-		where: { id: req.dbContainerId },
+		where: { id: record.id },
 		data: {
 			volumeName,
 			isArchived: true,
@@ -123,5 +130,5 @@ export async function archiveContainer(
 		}
 	});
 
-	return { volumeName, dbContainerId: req.dbContainerId };
+	return { volumeName, dbContainerId: record.id };
 }

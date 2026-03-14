@@ -6,18 +6,15 @@ import prisma from "$lib/server/client";
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
   const userData = session?.user;
-  console.log("User: " + userData?.name);
-  console.log("Email:" + userData?.email);
-  console.log("Avatar: " + userData?.image);
 
   if (!session?.user) {
     throw redirect(303, '/')
   }
 
   const [allContainers, archivedStacks, dbUser] = await Promise.all([
-    getAllUserContainer(session.user.id),
-    getArchivedContainers(session.user.id),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { coins: true, image: true } }),
+    getAllUserContainer(userData.id),
+    getArchivedContainers(userData.id),
+    prisma.user.findUnique({ where: { id: userData.id }, select: { coins: true, image: true } }),
   ]);
 
   const userContainerList = allContainers.filter((c) => !c.isArchived);

@@ -1,31 +1,42 @@
 <script lang="ts">
-  import { Play, Square, Clock, ChevronLeft, Bot, Zap } from 'lucide-svelte';
 
-  /** Level number displayed in the header. */
-  export let level: number;
-  /** Level title displayed in the header. */
-  export let title: string;
-  /** Tech stack label. */
-  export let stack: string;
-  /** Difficulty label. */
-  export let difficulty: string;
-  /** Remaining time in seconds. */
-  export let timeRemaining: number;
-  /** Whether the dev server is currently running. */
-  export let isRunning: boolean;
-  /** Whether the right AI hints panel is open. */
-  export let aiPanelOpen: boolean = false;
+  interface Props {
+    level: number;
+    title: string;
+    stack: string;
+    difficulty: string;
+    timeRemaining: number;
+    isRunning: boolean;
+    aiPanelOpen: boolean;
+    isDownloading: boolean;
+    onBack: () => void;
+    onRun: () => void;
+    onStop: () => void;
+    onSubmit: () => void;
+    onDownload: () => void;
+    onToggleAi: () => void;
+  }
 
-  /** Fired when the user clicks the back button. */
-  export let onBack: () => void;
-  /** Fired when the user clicks Run. */
-  export let onRun: () => void;
-  /** Fired when the user clicks Stop. */
-  export let onStop: () => void;
-  /** Fired when the user clicks Submit Sprint. */
-  export let onSubmit: () => void;
-  /** Fired when the user toggles the AI hints panel. */
-  export let onToggleAi: () => void;
+  import { Play, Square, Clock, ChevronLeft, Bot, Zap, Download } from 'lucide-svelte';
+
+  export let data: Props;
+
+  const {
+    level,
+    title,
+    stack,
+    difficulty,
+    timeRemaining,
+    isRunning,
+    aiPanelOpen,
+    isDownloading,
+    onBack,
+    onRun,
+    onStop,
+    onSubmit,
+    onDownload,
+    onToggleAi,
+  } = data;
 
   function formatTime(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
@@ -118,6 +129,26 @@
       </button>
     {/if}
 
+    <!-- Download Project -->
+    <button
+      on:click={onDownload}
+      disabled={isDownloading}
+      class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed {isDownloading
+        ? 'text-[#07a5c9] border border-[rgba(7,165,201,0.4)] bg-[rgba(7,165,201,0.08)]'
+        : 'text-[#8892a0] border border-[rgba(136,146,160,0.4)] bg-transparent hover:bg-[rgba(136,146,160,0.08)]'}"
+      style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+      title="Download project to upload to GitHub"
+    >
+      {#if isDownloading}
+        <span class="animate-spin w-3.5 h-3.5 border-2 border-[#07a5c9] border-t-transparent rounded-full"></span>
+        Downloading...
+      {:else}
+        <Download class="w-3.5 h-3.5" />Download
+      {/if}
+    </button>
+
+    <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
+
     <!-- Submit Sprint -->
     <button
       on:click={onSubmit}
@@ -132,6 +163,7 @@
     <!-- AI Hints toggle -->
     <button
       on:click={onToggleAi}
+      data-tour="ai-toggle"
       class="w-8 h-8 flex items-center justify-center border transition-all {aiPanelOpen
         ? 'text-[#07a5c9] border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.08)]'
         : 'text-[#8892a0] border-transparent hover:text-[#07a5c9] hover:border-[rgba(7,165,201,0.2)]'}"

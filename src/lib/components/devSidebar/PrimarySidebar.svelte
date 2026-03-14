@@ -2,10 +2,10 @@
   import { writable, derived } from 'svelte/store';
   import type { Writable } from 'svelte/store';
 
-  export type SidebarPanel = "files" | "search" | "scenario" | "tasks" | "hints";
+  export type SidebarPanel = "files" | "search";
 
   // Chat message type
-  export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean };
+  export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean; attachedFiles?: { path: string; name: string }[] };
 
   // Store for AI chat history - persists across tab switches
   export const aiChatHistory: Writable<ChatMessage[]> = writable([]);
@@ -26,34 +26,25 @@
 <script lang="ts">
   import {
     FolderOpen,
-    BookOpen,
-    Target,
     Search as SearchIcon,
   } from "lucide-svelte";
-  import type { Task } from "$lib/interface/LevelConfig";
+  import type { ITask } from "$lib/types";
 
   import Explorer from "./Explorer.svelte";
-  import Scenario from "./Scenario.svelte";
-  import SprintTask from "./SprintTask.svelte";
   import Search from "./Search.svelte";
-  import AiHelp from './AiHelp.svelte';
 
   // Props
   export let fileTree: string[] = [];
   export let directories: string[] = [];
   export let selectedFile: string = "";
   export let projectName: string = "project";
-  export let scenario: string = "";
-  export let tasks: Task[] = [];
+  export let tasks: ITask[] = [];
   export let containerId: string = "";
-  export let userId: string = "";
-  export let userCoins: number = 0;
-  export let fileContents: Record<string, string> = {};
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
-  export let onToggleTask: (taskId: number) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
   export let onDeleteFile: (filePath: string) => void = () => {};
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
+  export let onRefreshFiles: () => void = () => {};
 
   // VS Code-style: clicking the active panel icon closes the sidebar;
   // clicking any panel when closed opens it and switches to that panel.
@@ -61,16 +52,13 @@
   let isOpen: boolean = true;
 
   // Compute remaining tasks for badge
-  $: completedTasks = tasks.filter((t) => t.completed).length;
+  $: completedTasks = tasks.filter((t) => t.isCompleted).length;
   $: remainingTasks = tasks.length - completedTasks;
 
   // Panel label map
   const panelLabels: Record<SidebarPanel, string> = {
     files: "Explorer",
     search: "Search",
-    scenario: "Scenario",
-    tasks: "Sprint Tasks",
-    hints: ''
   };
 
   // Activity bar items
@@ -81,11 +69,10 @@
     badge?: number;
   };
 
+  // Activity bar items - with badge for remaining tasks
   $: activityItems = [
-    { panel: "files",    icon: FolderOpen,  title: "Explorer" },
-    { panel: "search",   icon: SearchIcon,  title: "Search" },
-    { panel: "scenario", icon: BookOpen,    title: "Scenario" },
-    { panel: "tasks",    icon: Target,      title: "Sprint Tasks", badge: remainingTasks > 0 ? remainingTasks : undefined },
+    { panel: "files", icon: FolderOpen, title: "Explorer" },
+    { panel: "search", icon: SearchIcon, title: "Search" },
   ] satisfies ActivityItem[];
 
   function setPanel(panel: SidebarPanel) {
@@ -99,7 +86,7 @@
   }
 </script>
 
-<div class="flex h-full flex-shrink-0">
+<div class="flex h-full flex-shrink-0" data-tour="sidebar">
   <!-- Activity Bar -->
   <div
     class="w-12 bg-[#0a0e1a] border-r border-[rgba(7,165,201,0.1)] flex flex-col items-center py-2 gap-1 flex-shrink-0"
@@ -114,14 +101,6 @@
             : 'text-[#8892a0]/60 border-l-2 border-transparent hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.04)]'}"
       >
         <svelte:component this={item.icon} class="w-5 h-5" />
-        {#if item.badge}
-          <span
-            class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#07a5c9] text-[9px] font-bold flex items-center justify-center rounded-full"
-            style="font-family:'Share Tech Mono',monospace;box-shadow:0 0 6px rgba(7,165,201,0.5);"
-          >
-            {item.badge}
-          </span>
-        {/if}
       </button>
     {/each}
   </div>
@@ -134,13 +113,24 @@
     >
       <!-- Panel Header -->
       <div
-        class="px-4 py-2.5 border-b border-[rgba(7,165,201,0.1)] flex-shrink-0"
+        class="px-4 py-2.5 border-b border-[rgba(7,165,201,0.1)] flex-shrink-0 flex items-center justify-between"
       >
         <span
           class="text-[0.85rem] font-semibold uppercase tracking-widest text-[#8892a0]"
           style="font-family:'Share Tech Mono',monospace;"
           >{panelLabels[activeSidebarPanel]}</span
         >
+        {#if activeSidebarPanel === 'files'}
+          <button
+            on:click={onRefreshFiles}
+            class="p-1 text-[#8892a0] hover:text-white hover:bg-[rgba(7,165,201,0.1)] rounded transition-colors"
+            title="Refresh files"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        {/if}
       </div>
 
     <div class="flex-1 overflow-y-auto">
@@ -160,21 +150,6 @@
           {fileTree}
           {containerId}
           {onSelectFile}
-        />
-      {:else if activeSidebarPanel === "scenario"}
-        <Scenario {scenario} />
-      {:else if activeSidebarPanel === "tasks"}
-        <SprintTask {tasks} {onToggleTask} />
-      {:else if activeSidebarPanel === "hints"}
-        <AiHelp 
-          {scenario} 
-          {tasks} 
-          {containerId} 
-          {userId} 
-          initialCoins={userCoins} 
-          initialSelectedFile={selectedFile}
-          initialFileTree={fileTree}
-          initialFileContents={fileContents}
         />
       {/if}
     </div>

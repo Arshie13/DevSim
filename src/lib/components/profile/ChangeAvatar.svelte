@@ -36,11 +36,63 @@
 
   $: premiumList = PREMIUM_AVATARS.filter((a) => !ownedAvatars.includes(a.path));
 
+  // ── Purchase state ────────────────────────────────────────────────────────────
+  let purchasingPath: string | null = null;
+
+  // ── Confirmation modal ───────────────────────────────────────────────────────
+  let confirmAvatar: PremiumAvatarDefinition | null = null;
+
+  function openConfirm(avatar: PremiumAvatarDefinition) {
+    confirmAvatar = avatar;
+  }
+
+  function closeConfirm() {
+    confirmAvatar = null;
+  }
+
+  async function confirmBuy() {
+    if (!confirmAvatar) return;
+    const avatar = confirmAvatar;
+    closeConfirm();
+    await buyAvatar(avatar);
+  }
+
   // ── Events ───────────────────────────────────────────────────────────────────
   const dispatch = createEventDispatcher<{
     select: string;
     close: void;
+    purchase: { newCoins: number; newOwnedAvatars: string[]; purchasedPath: string };
   }>();
+
+  async function buyAvatar(avatar: import("$lib/utils/avatar").PremiumAvatarDefinition) {
+    if (purchasingPath) return;
+    purchasingPath = avatar.path;
+    try {
+      const res = await fetch("/api/user/avatar/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarPath: avatar.path }),
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "Purchase failed");
+        console.error("Avatar purchase failed:", msg);
+        return;
+      }
+      const data = await res.json();
+      dispatch("purchase", {
+        newCoins: data.newCoins,
+        newOwnedAvatars: data.ownedAvatars,
+        purchasedPath: avatar.path,
+      });
+      // Move to owned tab
+      activeTab = "owned";
+      pendingSelection = avatar.path;
+    } catch (err) {
+      console.error("Avatar purchase error:", err);
+    } finally {
+      purchasingPath = null;
+    }
+  }
 
   function handleClose() {
     open = false;
@@ -184,10 +236,11 @@
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
               {#each premiumList as avatar (avatar.id)}
                 {@const canAfford = coins >= avatar.price}
+                {@const isBuying = purchasingPath === avatar.path}
                 <div
-                  class="group relative flex flex-col items-center gap-2 p-3 rounded-card border border-amber-400/20 bg-obsidian-bg-light opacity-{canAfford ? '100' : '70'} cursor-default"
+                  class="group relative flex flex-col items-center gap-2 p-3 rounded-card border border-amber-400/20 bg-obsidian-bg-light {canAfford ? 'opacity-100' : 'opacity-70'} cursor-default"
                 >
-                  <!-- Lock overlay -->
+                  <!-- Lock icon -->
                   <div class="absolute top-1.5 right-1.5 text-amber-400/60">
                     <Lock class="w-3.5 h-3.5" />
                   </div>
@@ -225,9 +278,20 @@
                     {avatar.price.toLocaleString()}
                   </div>
 
-                  <!-- Can't afford label -->
-                  {#if !canAfford}
-                    <span class="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[0.5rem] font-mono uppercase tracking-widest text-red-400/60 whitespace-nowrap">
+                  <!-- Buy button (if affordable) or "need more" label -->
+                  {#if canAfford}
+                    <button
+                      on:click={() => openConfirm(avatar)}
+                      disabled={isBuying}
+                      class="w-full text-[0.55rem] font-mono uppercase tracking-widest py-1 px-1.5 rounded border transition-all duration-200
+                        {isBuying
+                          ? 'border-amber-400/20 text-amber-400/40 cursor-not-allowed'
+                          : 'border-amber-400/40 text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 hover:border-amber-400/70 cursor-pointer'}"
+                    >
+                      {isBuying ? "Buying…" : "Buy"}
+                    </button>
+                  {:else}
+                    <span class="text-[0.5rem] font-mono uppercase tracking-widest text-red-400/60 whitespace-nowrap">
                       Need {(avatar.price - coins).toLocaleString()} more
                     </span>
                   {/if}
@@ -252,6 +316,120 @@
         </button>
       </div>
 
+    </div>
+  </div>
+{/if}
+
+<!-- ── Purchase confirmation modal ───────────────────────────────────────────── -->
+{#if confirmAvatar}
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div
+    class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+    on:click={(e) => { if ((e.target as HTMLElement).dataset.confirmBackdrop) closeConfirm(); }}
+    on:keydown={(e) => { if (e.key === 'Escape') closeConfirm(); }}
+  >
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/75 backdrop-blur-sm" data-confirm-backdrop="true"></div>
+
+    <!-- Dialog -->
+    <div class="relative z-10 w-full max-w-sm bg-obsidian-surface border border-amber-400/30 rounded-card shadow-[0_0_60px_rgba(251,191,36,0.15)] overflow-hidden">
+
+      <!-- Top amber glow line -->
+      <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"></div>
+
+      <!-- Header -->
+      <div class="flex items-start justify-between px-5 pt-5 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-card flex items-center justify-center bg-amber-400/15 border border-amber-400/30">
+            <Coins class="w-4 h-4 text-amber-400" />
+          </div>
+          <div>
+            <p class="text-xs font-orbitron font-bold text-obsidian-text-muted tracking-wide">Confirm Purchase</p>
+            <p class="text-[0.6rem] font-mono text-obsidian-text-primary/40 uppercase tracking-widest mt-0.5">DevCoins transaction</p>
+          </div>
+        </div>
+        <button
+          on:click={closeConfirm}
+          class="w-7 h-7 rounded-card bg-obsidian-bg-light hover:bg-red-500/15 border border-obsidian-border/40 hover:border-red-500/40 flex items-center justify-center transition-all duration-200 text-obsidian-text-primary/40 hover:text-red-400"
+        >
+          <X class="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <!-- Avatar preview + question -->
+      <div class="px-5 pb-4 flex flex-col items-center gap-3">
+        <!-- Avatar swatch -->
+        <div
+          class="w-16 h-16 rounded-card flex items-center justify-center overflow-hidden border-2 relative"
+          style="border-color: {confirmAvatar.color}55; background: {confirmAvatar.color}18; box-shadow: 0 0 24px {confirmAvatar.color}33;"
+        >
+          <img
+            src={confirmAvatar.path}
+            alt={confirmAvatar.name}
+            class="w-full h-full object-contain"
+            on:error={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+          <div
+            class="absolute inset-0 rounded-card flex items-center justify-center"
+            style="background: linear-gradient(135deg, {confirmAvatar.color}33, {confirmAvatar.color}11);"
+          >
+            <span class="text-2xl font-orbitron font-black opacity-30" style="color:{confirmAvatar.color};">?</span>
+          </div>
+        </div>
+        <p class="text-[0.7rem] font-mono text-obsidian-text-muted text-center leading-relaxed">
+          Are you sure you want to buy
+          <span class="font-bold" style="color:{confirmAvatar.color};">{confirmAvatar.name}</span>
+          using your DevCoins?
+        </p>
+      </div>
+
+      <!-- Balance breakdown -->
+      <div class="mx-5 mb-4 rounded-card border border-obsidian-border/50 bg-obsidian-bg-light overflow-hidden text-xs font-mono">
+        <div class="flex items-center justify-between px-4 py-2.5 border-b border-obsidian-border/30">
+          <span class="text-obsidian-text-primary/50 uppercase tracking-wider text-[0.6rem]">Current balance</span>
+          <span class="flex items-center gap-1 text-amber-400">
+            <Coins class="w-3 h-3" />
+            {coins.toLocaleString()}
+          </span>
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5 border-b border-obsidian-border/30">
+          <span class="text-obsidian-text-primary/50 uppercase tracking-wider text-[0.6rem]">Cost</span>
+          <span class="flex items-center gap-1 text-red-400">
+            &minus;&nbsp;<Coins class="w-3 h-3" />
+            {confirmAvatar.price.toLocaleString()}
+          </span>
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-obsidian-text-primary/50 uppercase tracking-wider text-[0.6rem]">Balance after</span>
+          <span class="flex items-center gap-1 font-bold {(coins - confirmAvatar.price) >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+            <Coins class="w-3 h-3" />
+            {(coins - confirmAvatar.price).toLocaleString()}
+          </span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="px-5 pb-5 flex items-center gap-2">
+        <button
+          on:click={closeConfirm}
+          class="flex-1 btn-cyber btn-cyber-secondary !py-2 !px-4 text-xs"
+        >
+          Cancel
+        </button>
+        <button
+          on:click={confirmBuy}
+          disabled={purchasingPath === confirmAvatar.path}
+          class="flex-1 py-2 px-4 rounded-card border text-xs font-mono uppercase tracking-widest transition-all duration-200
+            border-amber-400/50 text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 hover:border-amber-400
+            disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+        >
+          {#if purchasingPath === confirmAvatar.path}
+            Buying&hellip;
+          {:else}
+            <Coins class="w-3.5 h-3.5" /> Buy now
+          {/if}
+        </button>
+      </div>
     </div>
   </div>
 {/if}

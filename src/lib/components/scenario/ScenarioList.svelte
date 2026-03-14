@@ -16,12 +16,18 @@
   export let scenarios: ScenarioMeta[];
   export let stackName: string;
   export let selection: StackSelection;
+  /** Whether the current user has already completed onboarding before. */
+  export let hasCompletedOnboarding: boolean = true;
 
   let activeIndex = 0;
   let isLoading = false;
   let showExistingModal = false;
   let existingContainerDbId = '';
   let existingContainerMessage = '';
+
+  // Default to showing the tour for first-time users; returning users start unchecked.
+  let withOnboarding = !hasCompletedOnboarding;
+  let showSkipWarning = false;
 
   $: activeScenario = scenarios[activeIndex] ?? null;
 
@@ -42,7 +48,10 @@
   })();
 
   function navigateToWorkspace(containerId: string) {
-    goto(`/workspace/${containerId}`);
+    const url = withOnboarding
+      ? `/workspace/${containerId}?onboarding=1`
+      : `/workspace/${containerId}`;
+    goto(url);
   }
 
   async function handleStartSprint() {
@@ -72,9 +81,7 @@
       const data = await createRes.json();
 
       if (!data.success) {
-        toast.error(createRes.status === 401
-          ? 'Your session is outdated. Please sign out and sign back in.'
-          : `Failed to create container: ${data.error}`);
+        toast.error(`Failed to create container: ${data.error}`);
         return;
       }
 
@@ -105,7 +112,9 @@
       {scenarios}
       {isLoading}
       bind:activeIndex
+      bind:withOnboarding
       on:launchSprint={handleStartSprint}
+      on:requestSkipConfirm={() => (showSkipWarning = true)}
     />
   {/if}
   </div>
@@ -124,4 +133,19 @@
   variant="primary"
   on:confirm={() => { showExistingModal = false; navigateToWorkspace(existingContainerDbId); }}
   on:cancel={() => { showExistingModal = false; existingContainerDbId = ''; }}
+/>
+
+<!-- Skip-onboarding warning -->
+<ConfirmationModal
+  bind:open={showSkipWarning}
+  icon="?"
+  iconVariant="warning"
+  title="Skip Onboarding?"
+  subtitle="You're about to disable the onboarding guide"
+  description="Are you sure you want to skip the onboarding tutorial and workspace tour? You'll jump straight into the project without any guided walkthrough. This is recommended only if you're already familiar with the workspace."
+  confirmLabel="Yes, skip it"
+  cancelLabel="Keep Tour"
+  variant="warning"
+  on:confirm={() => { showSkipWarning = false; withOnboarding = false; }}
+  on:cancel={() => { showSkipWarning = false; }}
 />

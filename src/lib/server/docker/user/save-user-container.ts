@@ -4,11 +4,13 @@ import { Prisma } from '$prismaclient';
 export interface UserContainerRequest {
   userId: string;
   containerId: string;
-  stacks: string[];
+  currentScenarioId: string;
+  stacks: Array<{
+    stackName: string;
+    stackVersion?: string;
+  }>;
   level: number;
   status: string;
-  projectFolder?: string;
-  scenarioTitle?: string;
 }
 
 /**
@@ -17,7 +19,6 @@ export interface UserContainerRequest {
  * (P2003 FK violation — usually caused by a stale session after a DB reset).
  */
 export async function saveUserContainer(data: UserContainerRequest): Promise<{ dbContainerId: string }> {
-  console.log('[saveUserContainer] Received data:', data);
 
   const isExisting = await prisma.container.findFirst({
     where: {
@@ -30,18 +31,32 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
 
   try {
     if (isExisting) {
+      // Update existing container - delete old stacks and create new ones
+      await prisma.containerStack.deleteMany({
+        where: { containerId: isExisting.id }
+      });
+
       await prisma.container.update({
         data: {
           userId: data.userId,
           containerId: data.containerId,
-          stacks: data.stacks,
           level: data.level,
           status: data.status,
-          projectFolder: data.projectFolder,
-          scenarioTitle: data.scenarioTitle,
         },
         where: { id: isExisting.id }
       });
+
+      // Create new stack records
+      if (data.stacks.length > 0) {
+        await prisma.containerStack.createMany({
+          data: data.stacks.map(stack => ({
+            containerId: isExisting.id,
+            stackName: stack.stackName,
+            stackVersion: stack.stackVersion || null
+          }))
+        });
+      }
+
       return { dbContainerId: isExisting.id };
     }
 
@@ -49,11 +64,15 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
       data: {
         userId: data.userId,
         containerId: data.containerId,
-        stacks: data.stacks,
+        currentScenarioId: data.currentScenarioId,
         level: data.level,
         status: data.status,
-        projectFolder: data.projectFolder,
-        scenarioTitle: data.scenarioTitle,
+        containerStacks: {
+          create: data.stacks.map(stack => ({
+            stackName: stack.stackName,
+            stackVersion: stack.stackVersion || null
+          }))
+        }
       },
       select: { id: true }
     });

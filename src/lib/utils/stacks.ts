@@ -50,13 +50,16 @@ export const STACK_ACRONYMS: StackAcronym[] = [
   },
 ];
 
+import type { IContainerStack } from '$lib/types/IContainer';
+
 /** Returns an acronym label (e.g. "PERN — PostgreSQL, Express, React, Node.js")
  *  when the stack matches a known pattern, otherwise a comma-joined display name list. */
-export function parseStackName(stacks: string[]): string {
+export function parseStackName(stacks: IContainerStack[]): string {
   if (!stacks?.length) return 'Unknown Stack';
-  const set = new Set(stacks);
+  const stackNames = stacks.map((s) => s.stackName);
+  const set = new Set(stackNames);
   for (const { test, label, full } of STACK_ACRONYMS) {
     if (test(set)) return `${label} — ${full}`;
   }
-  return stacks.map((s) => TECH_NAME_MAP[s] ?? s).join(', ');
+  return stackNames.map((s) => TECH_NAME_MAP[s] ?? s).join(', ');
 }
