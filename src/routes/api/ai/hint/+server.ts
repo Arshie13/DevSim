@@ -38,6 +38,23 @@ function isAskingForCode(message: string): boolean {
   return codePatterns.some((pattern) => pattern.test(message));
 }
 
+// Check if the user is asking about file contents
+function isAskingAboutFileContents(message: string): boolean {
+  const contentPatterns = [
+    /\b(what('s| is| are)|tell|show|read)\s+(me\s+)?(the\s+)?(content|contents|inside)\b/i,
+    /\bwhat('s| is)?\s+in\s+(file|this|these)\b/i,
+    /\b(show|tell|what)\s+me\s+(file|files)\b/i,
+    /\b(can|could)\s+you\s+(read|show|tell)\s+(me\s+)?/i,
+    /\blist\s+(me\s+)?(the\s+)?(files?|content)/i,
+    /\bwhat\s+does\s+(file|this)\s+(do|contain|have)/i,
+    /\bexplain\s+(file|this)\b/i,
+    /\bdescribe\s+(file|this)\b/i,
+    /\bwhat\s+is\s+(this|file)\b/i,
+  ];
+  
+  return contentPatterns.some((pattern) => pattern.test(message));
+}
+
 // Check if the user is greeting
 function isGreeting(message: string): boolean {
   const greetingPatterns = [
@@ -154,7 +171,7 @@ function buildProgressHintResponse(context: string): string {
 }
 
 // Build the prompt for AI models
-function buildPrompt(message: string, context: string, level: number = 1, fileContents?: { path: string; content: string; error?: string }[]): string {
+function buildPrompt(message: string, context: string, level: number = 1, fileContents?: { path: string; name: string; content: string }[]): string {
   const progress = extractProgressFromContext(context);
   
   console.log("------------------------test--------------------");
@@ -194,49 +211,88 @@ ${context}
 
 ${handHoldingInstructions}
 
-IMPORTANT GUIDELINES:
-1. Your name is SAZ - always identify yourself as such
-2. ALWAYS reference the user's actual progress and tasks when responding
-3. If they ask for a hint, analyze their code and tell them exactly what to do for their NEXT incomplete task
-4. Look at the code files to understand what they've built - don't give generic advice
-5. NEVER write actual code - only provide hints and guidance
-6. NEVER ask questions in your responses - always provide direct statements and guidance
-7. Be encouraging and supportive
-8. Keep responses concise but specific (2-4 sentences)
+══════════════════════════════════════════════════════════════
+ABSOLUTE STRICT RULES - VIOLATION WILL NOT BE TOLERATED:
+══════════════════════════════════════════════════════════════
+
+1. NEVER WRITE CODE - This is the most important rule
+   - Do NOT write any code in your response
+   - Do NOT include code blocks (\`\`\` or <code>)
+   - Do NOT provide code snippets or examples
+   - Do NOT show function definitions, variable declarations, or any syntax
+   - Even if the user asks "what is this file", describe it in WORDS only
+
+2. When asked about files, describe in plain English ONLY:
+   - Instead of: "The file has a function called handleClick() that..."
+   - Say: "This file has a function that handles click events. It takes user input and processes it."
+   - Never show: function handleClick() { ... } or any code syntax
+
+3. Answer EXACTLY what the user asks:
+   - If they ask what a file contains, describe it in words
+   - If they ask what a function does, explain it in plain English
+   - If they ask how something works, explain conceptually
+   - Do NOT assume they want code - they probably just want to understand
+
+4. If they ask for a hint on a task:
+   - Be SPECIFIC about what to do - name specific files, functions, or areas
+   - Give concrete next steps they can take
+   - If you know which file needs changes, tell them exactly which file
+   - Don't just say "look at the files" - tell them WHICH file to look at
+   - Help them understand the task requirements clearly
 
 ${handHoldingInstructions}
 
-IMPORTANT GUIDELINES:
-1. Your name is SAZ - always identify yourself as such
-2. ALWAYS reference the user's actual progress and tasks when responding
-3. If they ask for a hint, analyze their code and tell them exactly what to do for their NEXT incomplete task
-4. Look at the code files to understand what they've built - don't give generic advice
-5. NEVER write actual code - only provide hints and guidance
-6. NEVER ask questions in your responses - always provide direct statements and guidance
-7. Be encouraging and supportive
-8. Keep responses concise but specific (2-4 sentences)
+══════════════════════════════════════════════════════════════
+ABSOLUTE STRICT RULES - VIOLATION WILL NOT BE TOLERATED:
+══════════════════════════════════════════════════════════════
+
+1. NEVER WRITE CODE - This is the most important rule
+   - Do NOT write any code in your response
+   - Do NOT include code blocks (\`\`\` or <code>)
+   - Do NOT provide code snippets or examples
+   - Do NOT show function definitions, variable declarations, or any syntax
+   - Even if the user asks "what is this file", describe it in WORDS only
+
+2. When asked about files, describe in plain English ONLY:
+   - Instead of: "The file has a function called handleClick() that..."
+   - Say: "This file has a function that handles click events. It takes user input and processes it."
+   - Never show: function handleClick() { ... } or any code syntax
+
+3. Answer EXACTLY what the user asks:
+   - If they ask what a file contains, describe it in words
+   - If they ask what a function does, explain it in plain English
+   - If they ask how something works, explain conceptually
+   - Do NOT assume they want code - they probably just want to understand
+
+4. If they ask for a hint on a task:
+   - Be SPECIFIC about what to do - name specific files, functions, or areas
+   - Give concrete next steps they can take
+   - If you know which file needs changes, tell them exactly which file
+   - Don't just say "look at the files" - tell them WHICH file to look at
+   - Help them understand the task requirements clearly
 
 USER'S QUESTION: "${message}"
 
 ${fileContents && fileContents.length > 0 ? `
 ATTACHED FILES (explicitly attached by user for additional context):
-${fileContents.map(f => `- ${f.content}`)}
+${fileContents.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n')}
 ` : ''}YOUR TASK:
-Analyze the user's question and the project files/code provided above. Then give a helpful, moderately detailed hint that:
-1. Directly addresses what the user is asking about
-2. Explains the key concept or approach
-3. References specific code or patterns from the files shown
-4. Gives a clear next step
+When the user asks about files (like "what is in this file", "describe this file", "what does this file do", etc.), you MUST read and analyze the actual content of each file provided and describe:
+- What the file contains (its actual code/functions/structure)
+- What specific functionality it provides
+- How the code works (in plain English, no code snippets)
+- Any important details specific to THIS file's content
 
-IMPORTANT:
-- Do NOT describe the project generally (like "this seems to be a React app")
-- Do NOT give generic advice that could apply to any project
-- Instead, say things like "In file X, function Y does Z, so you should..."
-- Do NOT write any code - just explain what to do
-- Keep your answer concise but informative (2-5 sentences)
-- Use bullet points if needed for clarity
+DO NOT give generic descriptions like "This file is part of a Next.js project" - instead, describe the ACTUAL content. For example:
+- WRONG: "This file is the main entry point of the application"
+- CORRECT: "This file contains the main React component that renders the homepage. It imports a Button component and a Layout component, and displays a welcome message."
 
-If the user asks something unrelated to the files, give a brief relevant hint.`;
+For each file, be specific about what the actual code does. If a file contains a function called handleSubmit, describe what handleSubmit does. If it imports certain modules, mention them.
+
+Example of CORRECT answer (based on actual file content):
+"The file App.tsx is the main React component. It imports Button and Layout components. The component renders a navigation bar with links to Dashboard, Books, Members, and BorrowRecords pages. It also displays a welcome message and uses React Router for navigation."
+
+Keep your answer concise but include specific details from the file contents.`;
 }
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -307,28 +363,9 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Check if user is asking about progress (skip for quick hints to use AI)
-    if (hintType !== 'quick' && isAskingAboutProgress(message)) {
-      let coinBalance = 0;
-      if (userId) {
-        try {
-          const user = await prisma.user.findUnique({
-            where: { id: userId },
-          });
-          coinBalance = user?.coins ?? 0;
-        } catch (e) {
-          // Ignore errors
-        }
-      }
-      const progressResponse = buildProgressHintResponse(context || "No additional context");
-      return json({
-        success: true,
-        hint: progressResponse,
-        isProgressUpdate: true,
-        coinsSpent: 0,
-        coinsRemaining: coinBalance,
-      });
-    }
+    // Always use AI for hints - the AI is smart enough to handle progress questions
+    // and gives better, more contextual answers than the generic function
+    // The generic progress response is disabled to ensure AI generates specific hints
 
     // Validate userId for full AI responses
     if (!userId) {
@@ -374,14 +411,72 @@ export const POST: RequestHandler = async ({ request }) => {
 
     console.log("Attached files length: ", attachedFiles?.length);
 
+    // Check if user is asking about files in workspace - fetch relevant files automatically
+    let fileContentsForPrompt: { path: string; name: string; content: string }[] | undefined;
+    const isFileQuestion = isAskingAboutFileContents(message);
+    
+    console.log("[AI Hint] Is file question:", isFileQuestion, "Message:", message);
+    
+    if (isFileQuestion && containerId) {
+      // User is asking about files - fetch relevant files from workspace
+      try {
+        // First, get the list of files in the workspace
+        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const listData = await listRes.json();
+        
+        console.log("[AI Hint] File list response:", listData);
+        
+        if (listData.success && listData.files && listData.files.length > 0) {
+          // Filter for source files - include more extensions and increase limit
+          const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.json', '.html', '.css', '.md', '.txt'];
+          const sourceFiles = listData.files.filter((f: string) => 
+            sourceExtensions.some(ext => f.endsWith(ext)) &&
+            !f.includes('node_modules/') &&
+            !f.includes('.git/') &&
+            !f.includes('dist/') &&
+            !f.includes('build/')
+          ).slice(0, 20); // Increased to 20 files for better context
+          
+          console.log("[AI Hint] Source files to read:", sourceFiles);
+          
+          // Read the contents of these files
+          fileContentsForPrompt = [];
+          for (const filePath of sourceFiles) {
+            try {
+              const filePathFull = `/workspace/${filePath}`;
+              const fileContent = await readFile(filePathFull, containerId);
+              console.log("[AI Hint] File read result:", filePath, fileContent.error ? "Error" : "Success");
+              if (!fileContent.error && fileContent.content) {
+                fileContentsForPrompt.push({
+                  path: filePath,
+                  name: filePath.split('/').pop() || filePath,
+                  content: fileContent.content
+                });
+              }
+            } catch (e) {
+              console.log("Error reading file", filePath, e);
+            }
+          }
+          console.log("[AI Hint] Auto-fetched files for context:", fileContentsForPrompt.length, "files");
+        }
+      } catch (e) {
+        console.log("Error fetching file list:", e);
+      }
+    }
+
     let prompt: string;
     if (attachedFiles && attachedFiles.length > 0) {
+      console.log("[AI Hint] Reading explicitly attached files:", attachedFiles.length);
       const fileContents: { path: string; name: string; content: string }[] = [];
       for (const file of attachedFiles) {
         const filePath = `/workspace/${file.path}`;
         const fileContent = await readFile(filePath, containerId);
-        console.log("File content for ", file.path, ": ", fileContent.content);
-        if (!fileContent.error) {
+        console.log("[AI Hint] Attached file read result:", file.path, fileContent.error ? "Error" : "Success");
+        if (!fileContent.error && fileContent.content) {
           fileContents.push({
             path: file.path,
             name: file.name,
@@ -389,12 +484,17 @@ export const POST: RequestHandler = async ({ request }) => {
           });
         }
       }
-      console.log("File contents after reading: ", fileContents);
+      console.log("[AI Hint] File contents read:", fileContents.length, "files");
 
       // Build the prompt with level-aware instructions
       prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContents);
+    } else if (fileContentsForPrompt && fileContentsForPrompt.length > 0) {
+      // Use auto-fetched files for file questions
+      console.log("[AI Hint] Using auto-fetched files:", fileContentsForPrompt.length);
+      prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContentsForPrompt);
     } else {
       // Build the prompt with level-aware instructions (no attached files)
+      console.log("[AI Hint] No files attached or auto-fetched - using context only");
       prompt = buildPrompt(message, context || "No additional context", currentLevel);
     }
 
@@ -429,7 +529,7 @@ export const POST: RequestHandler = async ({ request }) => {
               content: prompt,
             },
           ],
-          max_tokens: 768,
+          max_tokens: 300,
           temperature: 0.7,
         }),
       });

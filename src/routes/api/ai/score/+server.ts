@@ -10,6 +10,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
+import type { TestResult, TestValidationResult } from '$lib/tests/types';
 
 // Source code file extensions to analyze
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.c', '.cpp', '.cs', '.rb', '.php', '.prisma'];
@@ -99,7 +100,11 @@ function buildScoringPrompt(
   tasks: string[],
   fileContents: Record<string, string>,
   completedTasks: string[],
-  testResults: any
+  testResults: {
+    passed: boolean;
+    results?: TestValidationResult;
+    failedTasks?: Array<{ taskId: number; taskText: string; errors: string[] }>;
+  }
 ): string {
   const fileNames = Object.keys(fileContents);
   console.log('[AI Score] buildScoringPrompt — files included in prompt:', fileNames.length);
@@ -154,7 +159,7 @@ function buildScoringPrompt(
     
     testResultsSection = `Tests: ${passed ? 'PASSED' : 'FAILED'}
 Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed
-${failedTasks.length > 0 ? '\nFailed tasks:\n' + failedTasks.map((t: any) => `  - ${t.taskText}: ${t.errors?.join(', ') || 'validation failed'}`).join('\n') : ''}`;
+${failedTasks.length > 0 ? '\nFailed tasks:\n' + failedTasks.map((t: { taskId: number; taskText: string; errors?: string[] }) => `  - ${t.taskText}: ${t.errors?.join(', ') || 'validation failed'}`).join('\n') : ''}`;
   }
 
   return `You are a friendly and encouraging senior developer mentor who loves helping beginners learn. You're like a supportive tech lead who gives constructive feedback with humor and warmth. You've seen lots of code and know that everyone starts somewhere — your goal is to help students improve while celebrating their wins.
