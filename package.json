@@ -51,6 +51,7 @@
 	"dependencies": {
 		"@auth/sveltekit": "^1.11.1",
 		"@monaco-editor/loader": "^1.7.0",
+		"@ngrok/ngrok": "^1.7.0",
 		"@prisma/adapter-pg": "^7.4.0",
 		"@prisma/client": "^7.4.0",
 		"@sveltejs/adapter-node": "^5.4.0",

@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
+import { NgrokWrapper } from '$lib/wrapper/ngrok';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
   try {
@@ -47,17 +48,21 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       }
     }
 
+    const ngrok = new NgrokWrapper();
+
     // Get host from request
     const host = '127.0.0.1'; // Default for container access
 
     // Use the first available port for preview, or default to 3000
     const firstPort = Object.values(previewPorts)[0] || 3000;
 
+    const tunnelInfo = await ngrok.connect({ port: firstPort });
+
     return json({
       success: true,
       id,
       previewPorts,
-      previewUrl: `http://${host}:${firstPort}`
+      previewUrl: tunnelInfo.url // Use local host URL for preview
     });
   } catch (error) {
     console.error('Error starting container:', error);
