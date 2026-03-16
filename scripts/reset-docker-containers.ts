@@ -126,7 +126,9 @@ async function main() {
       }
     }
 
-    await prisma.container.deleteMany();
+    const resetContainer = await prisma.container.deleteMany();
+
+    console.log(`\nDeleted ${resetContainer.count} container records from database.`);
 
     console.log('\n=== Results ===');
     console.log(`Stopped: ${stopped} | Removed: ${removed} | Errors: ${errors}`);

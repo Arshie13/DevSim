@@ -56,13 +56,26 @@ export const POST: RequestHandler = async ({ locals, params }) => {
     // Use the first available port for preview, or default to 3000
     const firstPort = Object.values(previewPorts)[0] || 3000;
 
-    const tunnelInfo = await ngrok.connect({ port: firstPort });
+    // Determine if we're in production or development mode
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    let previewUrl: string;
+
+    if (isProduction) {
+      // Production: use ngrok tunnel for external access
+      const tunnelInfo = await ngrok.connect({ port: firstPort });
+      previewUrl = tunnelInfo.url;
+    } else {
+      // Development: use local host and port directly
+      previewUrl = `http://${host}:${firstPort}`;
+    }
 
     return json({
       success: true,
       id,
       previewPorts,
-      previewUrl: tunnelInfo.url // Use local host URL for preview
+      previewUrl,
+      isProduction
     });
   } catch (error) {
     console.error('Error starting container:', error);
