@@ -916,7 +916,7 @@
     {#if aiPanelOpen}
       <div class="w-80 flex-shrink-0 border-l border-[rgba(7,165,201,0.1)] flex flex-col h-full" style="min-width: 320px; max-width: 600px;">
         <AiHelp 
-          containerId={page.params.containerId} 
+          containerId={data.dockerContainerId} 
           userId={data.userId}
           scenario={LEVEL_CONFIG.scenario}
           {tasks}

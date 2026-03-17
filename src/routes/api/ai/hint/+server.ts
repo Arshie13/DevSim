@@ -205,7 +205,7 @@ CURRENT USER PROGRESS:
 - Current Level: ${level}
 
 RECENT TASKS:
-${progress.tasks.slice(0, 5).join('\n')}
+${progress.tasks.slice(0, 3).join('\n')}
 
 ${context}
 
@@ -314,7 +314,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const { message, context, containerId, userId: uid, hintType, attachedFilesCount = 0, attachedFiles, level = 1 } = body;
     userId = uid;
     const currentLevel = level || 1;
-
+    console.log(containerId)
     // Determine base cost based on hint type
     const hintCost = hintType === 'chat' ? CHAT_HINT_COST : QUICK_HINT_COST;
     
@@ -412,12 +412,14 @@ export const POST: RequestHandler = async ({ request }) => {
     console.log("Attached files length: ", attachedFiles?.length);
 
     // Check if user is asking about files in workspace - fetch relevant files automatically
+    // BUT only if user hasn't explicitly attached files
     let fileContentsForPrompt: { path: string; name: string; content: string }[] | undefined;
     const isFileQuestion = isAskingAboutFileContents(message);
     
     console.log("[AI Hint] Is file question:", isFileQuestion, "Message:", message);
     
-    if (isFileQuestion && containerId) {
+    // Only auto-fetch files if user has NOT explicitly attached files
+    if (isFileQuestion && containerId && (!attachedFiles || attachedFiles.length === 0)) {
       // User is asking about files - fetch relevant files from workspace
       try {
         // First, get the list of files in the workspace
@@ -439,7 +441,7 @@ export const POST: RequestHandler = async ({ request }) => {
             !f.includes('.git/') &&
             !f.includes('dist/') &&
             !f.includes('build/')
-          ).slice(0, 20); // Increased to 20 files for better context
+          ).slice(0, 5); // Limit to 5 files for concise context
           
           console.log("[AI Hint] Source files to read:", sourceFiles);
           
@@ -473,9 +475,11 @@ export const POST: RequestHandler = async ({ request }) => {
       console.log("[AI Hint] Reading explicitly attached files:", attachedFiles.length);
       const fileContents: { path: string; name: string; content: string }[] = [];
       for (const file of attachedFiles) {
+        // Try with /workspace/ prefix
         const filePath = `/workspace/${file.path}`;
+        console.log("[AI Hint] Reading file from path:", filePath);
         const fileContent = await readFile(filePath, containerId);
-        console.log("[AI Hint] Attached file read result:", file.path, fileContent.error ? "Error" : "Success");
+        console.log("[AI Hint] Attached file read result:", file.path, fileContent.error ? "Error: " + JSON.stringify(fileContent.error) : "Success");
         if (!fileContent.error && fileContent.content) {
           fileContents.push({
             path: file.path,

@@ -113,8 +113,8 @@ function buildScoringPrompt(
   // Prioritize important files and reduce content length to avoid token limits
   // NOTE: Exclude config files (package.json, tsconfig.json, etc.) to avoid AI commenting on versions/dependencies
   const importantFiles = ['package.json', 'prisma/schema.prisma', 'tsconfig.json'];
-  const maxCharsPerFile = 1000; // Reduced from 3000 to 1000
-  const maxFiles = 10; // Limit to 10 files to prevent excessive token usage
+  const maxCharsPerFile = 500; // Reduced for concise context
+  const maxFiles = 3; // Limit to 3 files to prevent excessive token usage
 
   const sortedFileEntries = Object.entries(fileContents).sort(([a], [b]) => {
     // Put important files first

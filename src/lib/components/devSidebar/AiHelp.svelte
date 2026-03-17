@@ -141,12 +141,12 @@
       const chatHistory = $aiChatHistory;
       if (chatHistory.length > 0) {
         context += `=== RECENT CONVERSATION ===\n`;
-        // Show last 4 messages for context
-        const recentHistory = chatHistory.slice(-4);
+        // Show last 2 messages for context
+        const recentHistory = chatHistory.slice(-2);
         recentHistory.forEach((msg) => {
           const role = msg.role === "user" ? "User" : "AI";
-          const content = msg.content.length > 500 
-            ? msg.content.substring(0, 500) + "..."
+          const content = msg.content.length > 300 
+            ? msg.content.substring(0, 300) + "..."
             : msg.content;
           context += `${role}: ${content}\n`;
         });
@@ -159,16 +159,24 @@
     const fileContents = currentFileContents;
     const fileTree = currentFileTree;
 
-    // Add file tree - show all files for context
-    if (fileTree.length > 0) {
+    // If user has attached specific files, only include those
+    // Do NOT include file tree when files are attached
+    if (attachedFiles.length > 0) {
+      context += `Attached Files (${attachedFiles.length}):\n`;
+      attachedFiles.forEach((file) => {
+        context += `- ${file.path}\n`;
+      });
+      context += "\n";
+    } else if (fileTree.length > 0) {
+      // Add file tree - show all files for context (only when no attached files)
       context += `Project Files (${fileTree.length} files):\n`;
-      // Show first 30 files to avoid context overflow
-      const filesToShow = fileTree.slice(0, 30);
+      // Show first 10 files to avoid context overflow
+      const filesToShow = fileTree.slice(0, 10);
       filesToShow.forEach((file) => {
         context += `- ${file}\n`;
       });
-      if (fileTree.length > 30) {
-        context += `- ... and ${fileTree.length - 30} more files\n`;
+      if (fileTree.length > 10) {
+        context += `- ... and ${fileTree.length - 10} more files\n`;
       }
       context += "\n";
     }
@@ -191,6 +199,9 @@
       sourceExtensions.some((ext) => f.endsWith(ext)),
     );
 
+    // Skip fetching important files when user has attached specific files
+    // The attached files section below will handle those
+    if (attachedFiles.length === 0) {
     // Prioritize the selected file first, then read others
     const filesToRead: string[] = [];
 
@@ -253,7 +264,7 @@
         context += `=== File: ${file} ===\n`;
         // Add line numbers to help with context
         const lines = content.split('\n');
-        const maxLines = 200; // Increased for more context
+        const maxLines = 50; // Keep concise to avoid message cutoff
         const linesToShow = lines.slice(0, maxLines);
 
         linesToShow.forEach((line, index) => {
@@ -266,6 +277,7 @@
         }
         context += "\n";
       }
+    }
     }
     
   // Add attached files to the context
@@ -305,7 +317,7 @@
           context += `--- File: ${file.name} ---\n`;
           context += `// Path: ${file.path}\n`;
           const lines = content.split('\n');
-          const maxLines = 200; // Increased lines for better context
+          const maxLines = 50; // Keep concise to avoid message cutoff
           const linesToShow = lines.slice(0, maxLines);
           
           linesToShow.forEach((line: string, index: number) => {
@@ -430,7 +442,7 @@
           userId,
           hintType: mode,
           attachedFilesCount: filesCount,
-          attachedFiles,
+          attachedFiles: filesToInclude,
           level,
         }),
       });
@@ -489,6 +501,7 @@
 
     // Save attached files count before clearing
     const attachedFilesCount = attachedFiles.length;
+    const filesToInclude = [...attachedFiles];
 
     // Find the current incomplete task for a more specific hint
     const currentTask = tasks && tasks.length > 0 
@@ -525,7 +538,7 @@
           userId,
           hintType: "quick", // Use quick mode for AI-generated hints
           attachedFilesCount: attachedFilesCount,
-          attachedFiles,
+          attachedFiles: filesToInclude,
           level,
         }),
       });

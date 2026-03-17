@@ -36,7 +36,7 @@ export async function buildContext(options: ContextOptions): Promise<string> {
     containerId,
     conversationHistory = [],
     maxFiles = 5,
-    maxLinesPerFile = 100,
+    maxLinesPerFile = 50,
   } = options;
 
   let context = `Current Scenario: ${scenario}\n\n`;
@@ -58,13 +58,13 @@ export async function buildContext(options: ContextOptions): Promise<string> {
   // Add file tree - show all files for context
   if (fileTree.length > 0) {
     context += `Project Files (${fileTree.length} files):\n`;
-    // Show first 30 files to avoid context overflow
-    const filesToShow = fileTree.slice(0, 30);
+    // Show first 10 files to avoid context overflow
+    const filesToShow = fileTree.slice(0, 10);
     filesToShow.forEach((file) => {
       context += `- ${file}\n`;
     });
-    if (fileTree.length > 30) {
-      context += `- ... and ${fileTree.length - 30} more files\n`;
+    if (fileTree.length > 10) {
+      context += `- ... and ${fileTree.length - 10} more files\n`;
     }
     context += "\n";
   }
@@ -195,12 +195,12 @@ export function getSimpleContext(options: ContextOptions): string {
 
   if (fileTree.length > 0) {
     context += `\nProject Files (${fileTree.length} total):\n`;
-    const filesToShow = fileTree.slice(0, 20);
+    const filesToShow = fileTree.slice(0, 10);
     filesToShow.forEach((file) => {
       context += `- ${file}\n`;
     });
-    if (fileTree.length > 20) {
-      context += `- ... and ${fileTree.length - 20} more files\n`;
+    if (fileTree.length > 10) {
+      context += `- ... and ${fileTree.length - 10} more files\n`;
     }
   }
 
