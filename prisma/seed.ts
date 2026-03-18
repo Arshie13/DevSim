@@ -57,7 +57,7 @@ async function main() {
       levelDescription: 'The library has onboarded a new developer (you!) and needs the system running locally with minor UI tweaks.',
       xpReward: 100,
       coinReward: 50,
-      scenarioId: 'scenario-library-management',
+      scenarioId: 'scenario-1',
       tasks: {
         create: [
           {

@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
+import { NgrokWrapper } from '$lib/wrapper/ngrok';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
   try {
@@ -47,17 +48,34 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       }
     }
 
+    const ngrok = new NgrokWrapper();
+
     // Get host from request
     const host = '127.0.0.1'; // Default for container access
 
     // Use the first available port for preview, or default to 3000
     const firstPort = Object.values(previewPorts)[0] || 3000;
 
+    // Determine if we're in production or development mode
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    let previewUrl: string;
+
+    if (isProduction) {
+      // Production: use ngrok tunnel for external access
+      const tunnelInfo = await ngrok.connect({ port: firstPort });
+      previewUrl = tunnelInfo.url;
+    } else {
+      // Development: use local host and port directly
+      previewUrl = `http://${host}:${firstPort}`;
+    }
+
     return json({
       success: true,
       id,
       previewPorts,
-      previewUrl: `http://${host}:${firstPort}`
+      previewUrl,
+      isProduction
     });
   } catch (error) {
     console.error('Error starting container:', error);

@@ -2,6 +2,7 @@ import { json, type RequestHandler } from "@sveltejs/kit";
 import prisma from "$lib/server/client";
 import { docker } from "$lib/server/docker/client";
 import { error } from "@sveltejs/kit";
+import { NgrokWrapper } from "$lib/wrapper/ngrok";
 
 export const POST: RequestHandler = async ({ params, locals }) => {
     // --- Auth check ---
@@ -17,6 +18,8 @@ export const POST: RequestHandler = async ({ params, locals }) => {
     }
 
     await docker.getContainer(id).stop();
+    const ngrok = new NgrokWrapper();
+    await ngrok.disconnect(); // Ensure ngrok tunnel is closed when container stops
 
     await prisma.container.update({
         where: { id: container.id },
