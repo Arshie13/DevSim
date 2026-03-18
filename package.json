@@ -50,6 +50,7 @@
 	},
 	"dependencies": {
 		"@auth/sveltekit": "^1.11.1",
+		"@google/genai": "^1.46.0",
 		"@monaco-editor/loader": "^1.7.0",
 		"@prisma/adapter-pg": "^7.4.0",
 		"@prisma/client": "^7.4.0",

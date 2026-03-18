@@ -2,6 +2,7 @@ import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
 import { readFile } from "$lib/server/docker/user/read-file";
+import { GoogleGenAI } from "@google/genai";
 
 // AI Hint costs in coins
 const QUICK_HINT_COST = 100;  // Button-triggered hints based on progress
@@ -18,6 +19,7 @@ interface HintRequest {
   level?: number;  // User's current level (1-5)
   attachedFilesCount?: number;  // Number of files attached to the message
   attachedFiles?: { path: string; name: string }[];  // Array of attached file objects
+  selectedModel?: string;  // User-selected AI model
 }
 
 // Check if the user is asking for code
@@ -311,7 +313,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const body: HintRequest = await request.json();
-    const { message, context, containerId, userId: uid, hintType, attachedFilesCount = 0, attachedFiles, level = 1 } = body;
+    const { message, context, containerId, userId: uid, hintType, attachedFilesCount = 0, attachedFiles, level = 1, selectedModel } = body;
     userId = uid;
     const currentLevel = level || 1;
     console.log(containerId)
@@ -416,60 +418,8 @@ export const POST: RequestHandler = async ({ request }) => {
     let fileContentsForPrompt: { path: string; name: string; content: string }[] | undefined;
     const isFileQuestion = isAskingAboutFileContents(message);
     
-    console.log("[AI Hint] Is file question:", isFileQuestion, "Message:", message);
-    
-    // Only auto-fetch files if user has NOT explicitly attached files
-    if (isFileQuestion && containerId && (!attachedFiles || attachedFiles.length === 0)) {
-      // User is asking about files - fetch relevant files from workspace
-      try {
-        // First, get the list of files in the workspace
-        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        const listData = await listRes.json();
-        
-        console.log("[AI Hint] File list response:", listData);
-        
-        if (listData.success && listData.files && listData.files.length > 0) {
-          // Filter for source files - include more extensions and increase limit
-          const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.json', '.html', '.css', '.md', '.txt'];
-          const sourceFiles = listData.files.filter((f: string) => 
-            sourceExtensions.some(ext => f.endsWith(ext)) &&
-            !f.includes('node_modules/') &&
-            !f.includes('.git/') &&
-            !f.includes('dist/') &&
-            !f.includes('build/')
-          ).slice(0, 5); // Limit to 5 files for concise context
-          
-          console.log("[AI Hint] Source files to read:", sourceFiles);
-          
-          // Read the contents of these files
-          fileContentsForPrompt = [];
-          for (const filePath of sourceFiles) {
-            try {
-              const filePathFull = `/workspace/${filePath}`;
-              const fileContent = await readFile(filePathFull, containerId);
-              console.log("[AI Hint] File read result:", filePath, fileContent.error ? "Error" : "Success");
-              if (!fileContent.error && fileContent.content) {
-                fileContentsForPrompt.push({
-                  path: filePath,
-                  name: filePath.split('/').pop() || filePath,
-                  content: fileContent.content
-                });
-              }
-            } catch (e) {
-              console.log("Error reading file", filePath, e);
-            }
-          }
-          console.log("[AI Hint] Auto-fetched files for context:", fileContentsForPrompt.length, "files");
-        }
-      } catch (e) {
-        console.log("Error fetching file list:", e);
-      }
-    }
-
+    // Only use explicitly attached files - no auto-fetching
+    // Removed auto-fetch logic to ensure AI only reads user-attached files
     let prompt: string;
     if (attachedFiles && attachedFiles.length > 0) {
       console.log("[AI Hint] Reading explicitly attached files:", attachedFiles.length);
@@ -489,6 +439,11 @@ export const POST: RequestHandler = async ({ request }) => {
         }
       }
       console.log("[AI Hint] File contents read:", fileContents.length, "files");
+      
+      // Debug: Log the first file's content length to verify it's not empty
+      if (fileContents.length > 0) {
+        console.log("[AI Hint] First file:", fileContents[0].name, "content length:", fileContents[0].content?.length);
+      }
 
       // Build the prompt with level-aware instructions
       prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContents);
@@ -503,10 +458,71 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // Try OpenRouter free coding models
-    const models = [
-      "meta-llama/llama-3.1-8b-instruct",
-      "google/gemma-2-9b-it",
-      "mistralai/mistral-7b-instruct-v0.2"
+    console.log("[AI Hint] Prompt length:", prompt.length);
+    console.log("[AI Hint] Prompt sample (first 500 chars):", prompt.substring(0, 500));
+    
+    // Check if user selected Google model (Gemini or Gemma) - use Google API directly
+    const isGoogleModel = selectedModel && (selectedModel.includes('gemini') || selectedModel.includes('gemma-3'));
+    
+    if (isGoogleModel) {
+      // Use Google API with SDK
+      const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
+      console.log("[AI Hint] Google API Key present:", !!geminiApiKey);
+      if (!geminiApiKey) {
+        return json({
+          success: false,
+          error: "GOOGLE_GEMINI_API_KEY is not configured. Please add it to your .env file. Get one free at https://aistudio.google.com/app/apikey",
+        });
+      }
+      
+      console.log("[AI Hint] Using Google AI SDK");
+      
+      try {
+        const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+        
+        // Determine the model to use based on selection
+        let modelToUse = "gemini-2.5-flash"; // default
+        if (selectedModel === "gemma-3-12b-it") {
+          modelToUse = "gemma-3-12b-it";
+        } else if (selectedModel === "gemini-2.5-flash") {
+          modelToUse = "gemini-2.5-flash";
+        }
+        
+        console.log("[AI Hint] Using model:", modelToUse);
+        
+        const response = await ai.models.generateContent({
+          model: modelToUse,
+          contents: prompt,
+        });
+        
+        const hint = response.text || "Sorry, I couldn't generate a hint. Please try again.";
+        
+        return json({
+          success: true,
+          hint: hint.trim(),
+          coinsSpent: totalCost,
+          coinsRemaining: newCoinBalance,
+        });
+      } catch (geminiError: any) {
+        console.error("[AI Hint] Gemini SDK error:", geminiError);
+        
+        if (coinsDeducted) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: { coins: originalCoinBalance },
+          });
+        }
+        
+        return json({
+          success: false,
+          error: `Gemini API error: ${geminiError.message || "Failed to get response from Gemini"}. Your coins have been refunded.`,
+        });
+      }
+    }
+    
+    // Use selected model if provided, otherwise use default models array
+    const models = selectedModel ? [selectedModel] : [
+      "nvidia/nemotron-3-nano-30b-a3b:free"
     ];
 
     let response = null;
@@ -533,7 +549,7 @@ export const POST: RequestHandler = async ({ request }) => {
               content: prompt,
             },
           ],
-          max_tokens: 300,
+          max_tokens: 1500,
           temperature: 0.7,
         }),
       });

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Send, AlertTriangle, Bot, User, Coins, X, MessageSquare, Paperclip, File, FileText } from "lucide-svelte";
+  import { Send, AlertTriangle, Bot, User, Coins, X, MessageSquare, Paperclip, File, FileText, ChevronDown } from "lucide-svelte";
   import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "./PrimarySidebar.svelte";
   import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage, formatMessage as formatMessageContent } from "$lib/ai";
   import { type ITask } from "$lib/types";
@@ -41,6 +41,17 @@
 
   // Maximum number of files that can be attached
   const MAX_ATTACHED_FILES = 3;
+
+  // Available AI models for selection
+  const aiModels = [
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash ✨", provider: "Google (fast)", needsKey: true },
+    { id: "gemma-3-12b-it", name: "Gemma 3 12B", provider: "Google (slower)", needsKey: true },
+    { id: "nvidia/nemotron-3-nano-30b-a3b:free", name: "Nemotron 3 Nano", provider: "OpenRouter (fast)", needsKey: false },
+  ];
+
+  // Selected AI model
+  let selectedModel: string = aiModels[0].id;
+  let showModelDropdown: boolean = false;
 
   // Attached files state
   let attachedFiles: { path: string; name: string }[] = [];
@@ -199,9 +210,9 @@
       sourceExtensions.some((ext) => f.endsWith(ext)),
     );
 
-    // Skip fetching important files when user has attached specific files
-    // The attached files section below will handle those
-    if (attachedFiles.length === 0) {
+    // Auto-fetch disabled - only use explicitly attached files
+    // Changed condition to always skip auto-fetch
+    if (false && attachedFiles.length === 0) {
     // Prioritize the selected file first, then read others
     const filesToRead: string[] = [];
 
@@ -444,6 +455,7 @@
           attachedFilesCount: filesCount,
           attachedFiles: filesToInclude,
           level,
+          selectedModel,
         }),
       });
 
@@ -540,6 +552,7 @@
           attachedFilesCount: attachedFilesCount,
           attachedFiles: filesToInclude,
           level,
+          selectedModel,
         }),
       });
 
@@ -564,6 +577,7 @@
   }
 
   function closeQuickHint() {
+    if (quickHintLoading) return; // Don't close while loading
     showQuickHint = false;
     quickHintMessage = "";
   }
@@ -653,9 +667,35 @@
         <p class="text-sm font-semibold text-gray-200">{AI_NAME}</p>
         <p class="text-xs text-gray-400">AI Coding Assistant</p>
       </div>
-      <div class="flex items-center gap-1 bg-yellow-600/20 px-2 py-1 rounded-lg">
-        <Coins class="w-3 h-3 text-yellow-500" />
-        <span class="text-xs font-medium text-yellow-500">{currentCoins}</span>
+      <div class="flex items-center gap-2">
+        <!-- Model Selector Dropdown -->
+        <div class="relative">
+          <button
+            on:click={() => showModelDropdown = !showModelDropdown}
+            class="flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded-lg text-xs text-gray-300 transition-colors"
+          >
+            <span class="max-w-[100px] truncate">{aiModels.find(m => m.id === selectedModel)?.name || 'Select Model'}</span>
+            <ChevronDown class="w-3 h-3 text-gray-400" />
+          </button>
+          {#if showModelDropdown}
+            <div class="absolute right-0 top-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+              {#each aiModels as model}
+                <button
+                  on:click={() => { selectedModel = model.id; showModelDropdown = false; }}
+                  class="w-full text-left px-3 py-2 text-xs hover:bg-zinc-700 transition-colors {selectedModel === model.id ? 'text-cyan-400' : 'text-gray-300'}"
+                >
+                  <div class="font-medium">{model.name}</div>
+                  <div class="text-gray-500 text-[10px]">{model.provider}</div>
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+        <!-- Coin Counter -->
+        <div class="flex items-center gap-1 bg-yellow-600/20 px-2 py-1 rounded-lg">
+          <Coins class="w-3 h-3 text-yellow-500" />
+          <span class="text-xs font-medium text-yellow-500">{currentCoins}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -678,26 +718,6 @@
       💰 Quick hint: {QUICK_HINT_COST} coins | Chat: {CHAT_HINT_COST} coins ({ATTACHED_FILE_COST} coins per attached file)
     </p>
   {/if}
-
-  <!-- Toggle between Quick and Chat mode -->
-  <div class="flex gap-2 mt-3">
-    <button
-      on:click={() => (mode = "quick")}
-      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'quick'
-        ? 'bg-cyan-500 text-white'
-        : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
-    >
-      ⚡ Quick
-    </button>
-    <button
-      on:click={() => (mode = "chat")}
-      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'chat'
-        ? 'bg-cyan-500 text-white'
-        : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
-    >
-      💬 Chat
-    </button>
-  </div>
 </div>
 
 <!-- Quick Hint Result Modal -->
