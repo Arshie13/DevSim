@@ -90,6 +90,7 @@ model Scenario {
 model Level {
   id               String   @id @default(cuid())
   title            String
+  subtitle         String
   order            Int      @default(0)
   deadline         DateTime
   levelDescription String
@@ -107,8 +108,10 @@ model LevelTask {
   id         String  @id @default(cuid())
   levelId    String
   taskName   String
+  userStory  String
   order      Int     @default(0)
   isComplete Boolean @default(false)
+  type        String   @default("none") 
 
   level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
   acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
@@ -136,7 +139,7 @@ model AcceptanceCriteria {
 model Hint {
   id      String @id @default(cuid())
   taskId  String
-  content String
+  description String
   order   Int    @default(0)
 
   // Relations

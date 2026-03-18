@@ -149,6 +149,11 @@
 
     <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
 
+    <!-- Test Button Slot -->
+    <slot name="test-button" />
+
+    <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
+
     <!-- Submit Sprint -->
     <button
       on:click={onSubmit}

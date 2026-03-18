@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { browser } from "$app/environment";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { MonacoInitializer } from "$client/MonacoInitializer";
@@ -17,15 +18,17 @@
   import TerminalManagerPanel from "$lib/components/workspace/TerminalManagerPanel.svelte";
   import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
   import BoardPanel from "$lib/components/workspace/BoardPanel.svelte";
+  import TestCase from "$lib/components/workspace/TestCase.svelte";
 
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
+  import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
-  import { getLevelConfig, hasTestsForLevel } from "$lib/tests/levels";
+  import { getLevelConfig } from "$lib/tests/levels";
   import type { FileListResponse } from "$lib/interface/Files";
   import type { FileTab } from "$lib/components/workspace/FileTabBar.svelte";
   import { toast } from "$lib/stores/toast";
-  import type { UserData, IContainer } from "$lib/types"
+  import type { UserData, IContainer } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
   interface WorkspaceProps {
@@ -54,8 +57,8 @@
   $: userCoins = data.userCoins || 0;
 
   // Dynamic header values from DB (fall back to LEVEL_CONFIG for dev/mock)
-  $: title = data.scenarioTitle || LEVEL_CONFIG.title;
-  $: stack = data.stacks?.join(" · ") || LEVEL_CONFIG.stack;
+  $: title = data.scenarioTitle;
+  $: stack = data.stacks?.join(" · ");
   $: level = data.level ?? LEVEL_CONFIG.level;
 
   // State
@@ -66,7 +69,9 @@
   // ── Multi-tab state ──────────────────────────────────────────────────────
   let openTabs: FileTab[] = [];
   let activeTabId: string = "";
-  let tasks: ITask[] = []; // Will be populated from server data
+  type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
+  type WorkspaceTask = TestableTask & { boardStatus?: BoardTaskStatus };
+  let tasks: WorkspaceTask[] = []; // Will be populated from server data
   let timeRemaining: number = 4 * 60 * 60; // Default to 4 hours
   let isRunning: boolean = false;
   let monacoEditor: MonacoInitializer | null = null;
@@ -76,43 +81,78 @@
   let directories: string[] = [];
 
   // ── Multi-terminal state ─────────────────────────────────────────────────
-  interface TermSession { id: string; label: string; instance: TerminalInitializer | null; }
+  interface TermSession {
+    id: string;
+    label: string;
+    instance: TerminalInitializer | null;
+  }
   let terminalSessions: TermSession[] = [];
   let activeTerminalId: string = "";
   let terminalCounter = 0;
   const pendingTerminalInits = new Map<string, (el: HTMLDivElement) => void>();
-  $: activeTerminalSession = terminalSessions.find((s) => s.id === activeTerminalId) ?? null;
+  $: activeTerminalSession =
+    terminalSessions.find((s) => s.id === activeTerminalId) ?? null;
 
-  // Initialize tasks from server data
+  // Initialize tasks from server data + persisted board/test state
   $: {
-    const levelTasks = data.container.scenario.levels[data.level].tasks || [];
-    tasks = levelTasks;
+    const levelTasks =
+      data.container.scenario.levels[data.level - 1].tasks || [];
+    const persisted = loadTaskProgress(data.level);
+
+    tasks = levelTasks.map((task, index) => {
+      const taskNumber = getTaskNumber(task, index);
+      const config = getLevelConfig(data.level);
+      const hasMappedTest = Boolean(
+        config?.tasks.find(
+          (testTask) => Number(testTask.taskId) === taskNumber,
+        ),
+      );
+      const persistedState = persisted[task.id];
+
+      const boardStatus =
+        persistedState?.boardStatus ?? (task.isCompleted ? "done" : "backlog");
+      const isCompleted = persistedState?.isCompleted ?? task.isCompleted;
+      const testStatus =
+        persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
+      const taskType = task.type ?? "none";
+
+      return {
+        ...task,
+        isCompleted,
+        boardStatus,
+        testStatus,
+        hasClientTest: taskType === "client" || taskType === "both",
+        hasServerTest: taskType === "server" || taskType === "both",
+      };
+    });
   }
 
   // Get level-specific config from server data
   $: currentLevel = data.level || 1;
   $: levelHints = data.hints || [];
   $: levelTestConfig = getLevelConfig(currentLevel);
-  
+
   // Merge test config with mockdata for UI fields (test config has tasks, mockdata has UI fields)
-  $: actualLevelConfig = levelTestConfig ? {
-    ...LEVEL_CONFIG,
-    ...levelTestConfig,
-    level: currentLevel,
-    // Keep UI fields from LEVEL_CONFIG
-    stack: stack,
-    difficulty: LEVEL_CONFIG.difficulty,
-    deadline: LEVEL_CONFIG.deadline,
-    scenario: data.container.scenario.description,
-    hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
-    starterFiles: LEVEL_CONFIG.starterFiles,
-    // Use tasks from server data
-    tasks: tasks
-  } : LEVEL_CONFIG;
+  $: actualLevelConfig = levelTestConfig
+    ? {
+        ...LEVEL_CONFIG,
+        ...levelTestConfig,
+        level: currentLevel,
+        // Keep UI fields from LEVEL_CONFIG
+        stack: stack,
+        difficulty: LEVEL_CONFIG.difficulty,
+        deadline: LEVEL_CONFIG.deadline,
+        scenario: data.container.scenario.description,
+        hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
+        starterFiles: LEVEL_CONFIG.starterFiles,
+        // Use tasks from server data
+        tasks: tasks,
+      }
+    : LEVEL_CONFIG;
 
   // Update timeRemaining when level config changes
   $: if (actualLevelConfig) {
-    timeRemaining = actualLevelConfig.deadline || (4 * 60 * 60);
+    timeRemaining = actualLevelConfig.deadline || 4 * 60 * 60;
   }
 
   // ── Panel toggle state ───────────────────────────────────────────────────
@@ -124,7 +164,9 @@
   let backModalOpen: boolean = false;
   let backModalLoading: boolean = false;
 
-  function toggleAiPanel() { aiPanelOpen = !aiPanelOpen; }
+  function toggleAiPanel() {
+    aiPanelOpen = !aiPanelOpen;
+  }
 
   // ── Boot loading state ───────────────────────────────────────────────────
   let isBooting = true;
@@ -166,6 +208,7 @@
 
   // Component refs
   let submitSprintModal: SubmitSprintModal;
+  let testCaseComponent: TestCase;
   let editorRef: HTMLDivElement;
   let iframeRef: HTMLIFrameElement;
 
@@ -190,6 +233,62 @@
       }
     }
     return files;
+  }
+
+  type PersistedTaskState = {
+    boardStatus: BoardTaskStatus;
+    testStatus: TestableTask["testStatus"];
+    isCompleted: boolean;
+  };
+
+  function getTaskProgressStorageKey(levelNumber: number): string {
+    return `workspace-task-progress:${containerId}:l${levelNumber}`;
+  }
+
+  function loadTaskProgress(
+    levelNumber: number,
+  ): Record<string, PersistedTaskState> {
+    if (!browser || !containerId) return {};
+
+    try {
+      const raw = localStorage.getItem(getTaskProgressStorageKey(levelNumber));
+      return raw ? (JSON.parse(raw) as Record<string, PersistedTaskState>) : {};
+    } catch (error) {
+      console.warn("Failed to load persisted task progress:", error);
+      return {};
+    }
+  }
+
+  function persistTaskProgress() {
+    if (!browser || !containerId || !tasks.length) return;
+
+    const state = tasks.reduce<Record<string, PersistedTaskState>>(
+      (acc, task) => {
+        acc[task.id] = {
+          boardStatus:
+            task.boardStatus ?? (task.isCompleted ? "done" : "backlog"),
+          testStatus:
+            task.testStatus ?? (task.isCompleted ? "passed" : "pending"),
+          isCompleted: task.isCompleted,
+        };
+        return acc;
+      },
+      {},
+    );
+
+    localStorage.setItem(
+      getTaskProgressStorageKey(currentLevel),
+      JSON.stringify(state),
+    );
+  }
+
+  function getTaskNumber(task: ITask, index: number): number {
+    if (typeof task.order === "number" && task.order > 0) return task.order;
+
+    const idMatch = task.id.match(/\d+/);
+    if (idMatch) return parseInt(idMatch[0], 10);
+
+    return index + 1;
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
@@ -340,7 +439,7 @@
 
   function markTabDirty(fileId: string, dirty: boolean) {
     openTabs = openTabs.map((t) =>
-      t.id === fileId ? { ...t, isDirty: dirty } : t
+      t.id === fileId ? { ...t, isDirty: dirty } : t,
     );
   }
 
@@ -407,7 +506,7 @@
           const inst = new TerminalInitializer();
           await inst.initializeDockerTerminal(el, containerId);
           terminalSessions = terminalSessions.map((s) =>
-            s.id === id ? { ...s, instance: inst } : s
+            s.id === id ? { ...s, instance: inst } : s,
           );
         } catch (err) {
           console.error("Terminal init error:", err);
@@ -417,7 +516,10 @@
       });
 
       // Trigger the DOM update after the callback is registered.
-      terminalSessions = [...terminalSessions, { id, label: sessionLabel, instance: null }];
+      terminalSessions = [
+        ...terminalSessions,
+        { id, label: sessionLabel, instance: null },
+      ];
       activeTerminalId = id;
       activeTab = "terminal";
     });
@@ -443,7 +545,6 @@
     }
   }
 
-
   function runDevServer() {
     if (!containerId || isRunning) return;
     isRunning = true;
@@ -456,54 +557,69 @@
     isRunning = false;
   }
 
-  function toggleTask(taskId: string) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task || !containerId) return;
+  function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
+    tasks = tasks.map((task) => {
+      if (task.id !== taskId) return task;
 
-    const taskText = task.taskName;
-    const isCompleting = !task.isCompleted; // Check if we're completing or un-completing
-    
-    // If un-completing a task, just update local state without calling API
-    if (!isCompleting) {
-      tasks = tasks.map((t) =>
-        t.id === taskId ? { ...t, completed: false } : t
-      );
-      return;
-    }
-    
-    // Call submit API to mark task as complete
-    fetch(`/api/docker/container/${containerId}/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: taskText })
-    })
-    .then(res => res.json())
-    .then(data => {
-      // Only show success toast if task wasn't already completed
-      // (i.e., this is a fresh completion, not a re-submission)
-      if (data.success && data.nextLevel !== null) {
-        // Update local task state
-        tasks = tasks.map((t) =>
-          t.id === taskId ? { ...t, completed: true } : t,
-        );
-        
-        // Show feedback only when level advances or first-time completion
-        if (data.levelComplete && data.nextLevel) {
-          toast.success(`Level ${data.nextLevel} unlocked! 🎉`);
-        } else if (data.rewards?.xp > 0) {
-          toast.success(`+${data.rewards.xp} XP earned!`);
-        }
-      } else if (data.success) {
-        // Task was already completed - just update UI without toast
-        tasks = tasks.map((t) =>
-          t.id === taskId ? { ...t, completed: true } : t,
-        );
-      }
-    })
-    .catch(err => {
-      console.error('Failed to submit task:', err);
-      toast.error('Failed to submit task');
+      const nextIsCompleted = status === "done";
+      const nextTestStatus =
+        status === "done"
+          ? "passed"
+          : status === "in-review"
+            ? task.testStatus === "passed"
+              ? "pending"
+              : (task.testStatus ?? "pending")
+            : "pending";
+
+      return {
+        ...task,
+        boardStatus: status,
+        isCompleted: nextIsCompleted,
+        testStatus: nextTestStatus,
+      };
     });
+
+    persistTaskProgress();
+  }
+
+  function handleTestsComplete(
+    event: CustomEvent<{ success: boolean; result: TestRunResult }>,
+  ) {
+    const { result } = event.detail;
+    if (!result || !result.taskResults) return;
+
+    const byTaskId = new Map(
+      result.taskResults.map((taskResult) => [taskResult.taskId, taskResult]),
+    );
+
+    tasks = tasks.map((task, index) => {
+      const directResult = byTaskId.get(task.id);
+      const fallbackResult = byTaskId.get(String(getTaskNumber(task, index)));
+      const taskResult = directResult ?? fallbackResult;
+
+      if (!taskResult) return task;
+
+      if (taskResult.passed) {
+        return {
+          ...task,
+          boardStatus: "done",
+          isCompleted: true,
+          testStatus: "passed",
+        };
+      }
+
+      return {
+        ...task,
+        boardStatus:
+          task.boardStatus === "done"
+            ? "in-review"
+            : (task.boardStatus ?? "in-review"),
+        isCompleted: false,
+        testStatus: "failed",
+      };
+    });
+
+    persistTaskProgress();
   }
 
   async function selectFile(
@@ -517,7 +633,9 @@
     if (openTabs.find((t) => t.id === file)) {
       switchToTab(file);
       if (lineNumber) {
-        requestAnimationFrame(() => monacoEditor?.revealLine(lineNumber, searchTerm));
+        requestAnimationFrame(() =>
+          monacoEditor?.revealLine(lineNumber, searchTerm),
+        );
       }
       return;
     }
@@ -558,11 +676,23 @@
 
   async function confirmBack() {
     backModalLoading = true;
-    await fetch(`/api/docker/container/${containerId}/stop`, { method: "POST" });
+    await fetch(`/api/docker/container/${containerId}/stop`, {
+      method: "POST",
+    });
     goto("/dashboard");
   }
 
-  function handleSubmitSprint() {
+  async function handleSubmitSprint() {
+    if (testCaseComponent) {
+      const result = await testCaseComponent.runAllLevelTests();
+      if (!result.success) {
+        toast.error("Fix failing tests before submitting your sprint.");
+        return;
+      }
+
+      testCaseComponent.closeResults();
+    }
+
     submitSprintModal.open();
   }
 
@@ -571,33 +701,37 @@
     isDownloading = true;
     try {
       const dbContainerId = page.params.containerId;
-      const response = await fetch(`/api/docker/container/${dbContainerId}/download`);
-      
+      const response = await fetch(
+        `/api/docker/container/${dbContainerId}/download`,
+      );
+
       if (!response.ok) {
         const error = await response.json();
-        toast.error(error.message || 'Failed to download project');
+        toast.error(error.message || "Failed to download project");
         return;
       }
-      
+
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      
+
       // Get filename from content-disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
+      const contentDisposition = response.headers.get("Content-Disposition");
       const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
-      a.download = filenameMatch ? filenameMatch[1] : `project-${dbContainerId}.tar`;
-      
+      a.download = filenameMatch
+        ? filenameMatch[1]
+        : `project-${dbContainerId}.tar`;
+
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
-      toast.success('Project downloaded successfully!');
+
+      toast.success("Project downloaded successfully!");
     } catch (err) {
-      console.error('Download error:', err);
-      toast.error('Failed to download project');
+      console.error("Download error:", err);
+      toast.error("Failed to download project");
     } finally {
       isDownloading = false;
     }
@@ -605,47 +739,51 @@
 
   async function handleSubmitted(event: CustomEvent) {
     const { advanceToNextLevel } = event.detail;
-    
+
     if (advanceToNextLevel) {
       // Reload the page data to get new level tasks by navigating to same URL with invalidate
-      goto(`?reload=${Date.now()}`, { invalidateAll: true, replaceState: true, noScroll: true });
+      goto(`?reload=${Date.now()}`, {
+        invalidateAll: true,
+        replaceState: true,
+        noScroll: true,
+      });
     }
   }
 
   function refreshPreview() {
     // Fetch live ports from Docker
     fetch(`/api/docker/container/${containerId}/ports`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success && data.previewUrl) {
           previewUrl = data.previewUrl;
           if (iframeRef) {
-            iframeRef.src = previewUrl + '?t=' + Date.now();
+            iframeRef.src = previewUrl + "?t=" + Date.now();
           }
         } else {
           // Fallback to existing previewUrl with cache-bust
           if (previewUrl) {
             try {
               const currentUrl = new URL(previewUrl);
-              currentUrl.searchParams.set('t', Date.now().toString());
+              currentUrl.searchParams.set("t", Date.now().toString());
               previewUrl = currentUrl.toString();
               if (iframeRef) iframeRef.src = previewUrl;
             } catch (error) {
-              console.error('Error refreshing preview:', error);
+              console.error("Error refreshing preview:", error);
             }
           }
         }
       })
-      .catch(err => {
-        console.error('Error fetching ports:', err);
+      .catch((err) => {
+        console.error("Error fetching ports:", err);
         if (previewUrl) {
           try {
             const currentUrl = new URL(previewUrl);
-            currentUrl.searchParams.set('t', Date.now().toString());
+            currentUrl.searchParams.set("t", Date.now().toString());
             previewUrl = currentUrl.toString();
             if (iframeRef) iframeRef.src = previewUrl;
           } catch (error) {
-            console.error('Error refreshing preview:', error);
+            console.error("Error refreshing preview:", error);
           }
         }
       });
@@ -699,7 +837,7 @@
       );
       const data = await response.json();
       if (data.success) {
-        toast.success(`${isDirectory ? 'Folder' : 'File'} created`);
+        toast.success(`${isDirectory ? "Folder" : "File"} created`);
         // Refresh file list
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
@@ -716,7 +854,7 @@
       }
     } catch (error) {
       console.error("Error creating file:", error);
-      toast.error(`Failed to create ${isDirectory ? 'folder' : 'file'}`);
+      toast.error(`Failed to create ${isDirectory ? "folder" : "file"}`);
     }
   }
 
@@ -835,9 +973,20 @@
       onStop: stopDevServer,
       onSubmit: handleSubmitSprint,
       onToggleAi: toggleAiPanel,
-      onDownload: handleDownload
+      onDownload: handleDownload,
     }}
-  />
+  >
+    <svelte:fragment slot="test-button">
+      <TestCase
+        bind:this={testCaseComponent}
+        {containerId}
+        {level}
+        tasks={tasks as TestableTask[]}
+        disabled={isBooting}
+        on:testsComplete={handleTestsComplete}
+      />
+    </svelte:fragment>
+  </WorkspaceHeader>
 
   <div class="flex flex-1 overflow-hidden">
     <!-- Left Sidebar (VS Code-style toggle) -->
@@ -866,7 +1015,7 @@
       <div class="flex-1 relative overflow-hidden">
         <EditorPanel
           visible={activeTab === "editor"}
-          openTabs={openTabs}
+          {openTabs}
           {activeTabId}
           onFileTabClick={switchToTab}
           onFileTabClose={closeTab}
@@ -879,7 +1028,7 @@
           sessions={terminalSessions}
           {activeTerminalId}
           onElementReady={handleTerminalElementReady}
-           onRefresh={refreshTerminal}
+          onRefresh={refreshTerminal}
         />
 
         <PreviewPanel
@@ -894,7 +1043,7 @@
             <BoardPanel
               scenario={actualLevelConfig.scenario}
               {tasks}
-              onToggleTask={toggleTask}
+              onTaskStatusChange={handleTaskStatusChange}
             />
           </div>
         {/if}
@@ -914,15 +1063,18 @@
 
     <!-- Right AI Hints Panel (toggleable and resizable) -->
     {#if aiPanelOpen}
-      <div class="w-80 flex-shrink-0 border-l border-[rgba(7,165,201,0.1)] flex flex-col h-full" style="min-width: 320px; max-width: 600px;">
-        <AiHelp 
-          containerId={page.params.containerId} 
+      <div
+        class="w-80 flex-shrink-0 border-l border-[rgba(7,165,201,0.1)] flex flex-col h-full"
+        style="min-width: 320px; max-width: 600px;"
+      >
+        <AiHelp
+          containerId={page.params.containerId}
           userId={data.userId}
           scenario={LEVEL_CONFIG.scenario}
           {tasks}
           initialFileTree={fileTree}
           initialFileContents={fileContents}
-          projectName={projectName}
+          {projectName}
           level={currentLevel}
           bind:mode={aiPanelMode}
         />
@@ -937,7 +1089,7 @@
     {containerId}
     {tasks}
     level={currentLevel}
-    fileContents={fileContents}
+    {fileContents}
     existingFiles={fileTree}
     on:submitted={handleSubmitted}
   />
@@ -956,18 +1108,21 @@
     isLoading={backModalLoading}
     loadingLabel="Stopping…"
     on:confirm={confirmBack}
-    on:cancel={() => { backModalOpen = false; }}
+    on:cancel={() => {
+      backModalOpen = false;
+    }}
   />
 </div>
 
 <!-- ── Onboarding (shown once the boot screen has cleared, only when opted in) ── -->
-{#if !isBooting && page.url.searchParams.get('onboarding') === '1'}
+{#if !isBooting && page.url.searchParams.get("onboarding") === "1"}
   <OnboardingController
     {stack}
     {title}
     scenario={LEVEL_CONFIG.scenario}
-    level={level}
-    onSwitchTab={(tab) => handleTabChange(tab as 'editor' | 'terminal' | 'preview')}
+    {level}
+    onSwitchTab={(tab) =>
+      handleTabChange(tab as "editor" | "terminal" | "preview")}
   />
 {/if}
 

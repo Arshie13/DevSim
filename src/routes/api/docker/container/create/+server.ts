@@ -48,7 +48,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     const req: CreateContainerRequest = await request.json()
-    const { stackName, level, stacks, scenarioId } = req;
+    const { stackName, level, stacks, scenarioId, projectFolder } = req;
 
     // Look up the Scenario by name to get its database ID for currentScenarioId
     let currentScenarioId: string | null = null;
@@ -313,7 +313,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         Labels: {
           'devsim.userId': userId,
           'devsim.stack': stackName,
-          'devsim.level': level.toString()
+          'devsim.level': level.toString(),
+          'devsim.projectFolder': projectFolder ?? ''
         }
       });
 

@@ -35,7 +35,7 @@
   // Test results state
   let testResults: {
     passed: boolean;
-    failedTasks: Array<{ taskId: number; taskText: string; errors: string[] }>;
+    failedTasks: Array<{ taskId: string; taskText: string; errors: string[] }>;
     summary: { total: number; passed: number; failed: number };
   } | null = null;
 
@@ -195,127 +195,64 @@
         }
       }
       
-      // console.log('=== TEST RUN: Starting test validation ===');
-      // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
-      // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
-      // console.log('=== TEST RUN: Starting test validation ===');
-      // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
-      // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
+      // Run grouped level tests (Submit Sprint validation)
+      console.log('[SUBMIT SPRINT] Running grouped level tests for level:', level);
+      state = 'testing';
       
-      // // Run tests
-      // const testRes = await fetch('/api/tests/run', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     level,
-      //     tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
-      //     fileContents: contentsToCheck,
-      //     existingFiles: filesToCheck
-      //   })
-      // });
-      // // Run tests
-      // const testRes = await fetch('/api/tests/run', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     level,
-      //     tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
-      //     fileContents: contentsToCheck,
-      //     existingFiles: filesToCheck
-      //   })
-      // });
+      const testRes = await fetch(`/api/docker/container/${containerId}/tests/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          command: `test:tasks:l${level}`,
+          level,
+          taskIds: tasks.map((task) => task.id),
+          type: 'level'
+        })
+      });
       
-      // console.log('TEST: Response status:', testRes.status);
-      // console.log('TEST: Response status:', testRes.status);
+      const testData = await testRes.json();
+      console.log('[SUBMIT SPRINT] Test results:', testData);
       
-      // const testData = await testRes.json();
-      // console.log('=== TEST RUN: Results Received ===');
-      // console.log('TEST: Passed:', testData.passed);
-      // console.log('TEST: Total Tests:', testData.results?.summary.total);
-      // console.log('TEST: Passed Tests:', testData.results?.summary.passed);
-      // console.log('TEST: Failed Tests:', testData.results?.summary.failed);
-      // const testData = await testRes.json();
-      // console.log('=== TEST RUN: Results Received ===');
-      // console.log('TEST: Passed:', testData.passed);
-      // console.log('TEST: Total Tests:', testData.results?.summary.total);
-      // console.log('TEST: Passed Tests:', testData.results?.summary.passed);
-      // console.log('TEST: Failed Tests:', testData.results?.summary.failed);
+      testResults = {
+        passed: testData.passed,
+        failedTasks: testData.taskResults?.filter((t: { passed: boolean }) => !t.passed).map((t: { taskId: string; taskName: string; errors: string[] }) => ({
+          taskId: t.taskId,
+          taskText: t.taskName,
+          errors: t.errors
+        })) || [],
+        summary: testData.summary || { total: 0, passed: 0, failed: 0 }
+      };
       
-      // if (testData.failedTasks.length > 0) {
-      //   console.log('=== TEST RUN: Failed Tasks ===');
-      //   testData.failedTasks.forEach((task: { taskId: number; taskText: string; errors: string[] }, index: number) => {
-      //     console.log(`${index + 1}. ${task.taskText}`);
-      //     task.errors.forEach((error: string) => {
-      //       console.log(`   • ${error}`);
-      //     });
-      //   });
-      // }
-      
-      // console.log('=== TEST RUN: Detailed Results ===');
-      // testData.results?.results.forEach((result: TestResult) => {
-      //   console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
-      // });
-      
-      // testResults = {
-      //   passed: testData.passed,
-      //   failedTasks: testData.failedTasks || [],
-      //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
-      // };
-      // testResults = {
-      //   passed: testData.passed,
-      //   failedTasks: testData.failedTasks || [],
-      //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
-      // };
-      
-      // // If tests failed, show error with details
-      // if (!testData.passed) {
-      //   state = 'error';
-      //   const failedCount = testData.failedTasks?.length || 0;
-      // // If tests failed, show error with details
-      // if (!testData.passed) {
-      //   state = 'error';
-      //   const failedCount = testData.failedTasks?.length || 0;
+      // If tests failed, show error with details
+      if (!testData.passed) {
+        state = 'error';
+        const failedCount = testResults.failedTasks.length;
         
-      //   // Build detailed error message
-      //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
-      //   // Build detailed error message
-      //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
+        // Build detailed error message
+        let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
         
-      //   if (testData.failedTasks && testData.failedTasks.length > 0) {
-      //     for (const task of testData.failedTasks) {
-      //       errorMsg += `❌ ${task.taskText}\n`;
-      //       if (task.errors && task.errors.length > 0) {
-      //         for (const err of task.errors) {
-      //           errorMsg += `   • ${err}\n`;
-      //         }
-      //       }
-      //       errorMsg += '\n';
-      //     }
-      //   } else {
-      //     errorMsg += 'Please review your work and try again.';
-      //   }
-      //   if (testData.failedTasks && testData.failedTasks.length > 0) {
-      //     for (const task of testData.failedTasks) {
-      //       errorMsg += `❌ ${task.taskText}\n`;
-      //       if (task.errors && task.errors.length > 0) {
-      //         for (const err of task.errors) {
-      //           errorMsg += `   • ${err}\n`;
-      //         }
-      //       }
-      //       errorMsg += '\n';
-      //     }
-      //   } else {
-      //     errorMsg += 'Please review your work and try again.';
-      //   }
+        if (testData.taskResults && testData.taskResults.length > 0) {
+          for (const task of testData.taskResults.filter((t: { passed: boolean }) => !t.passed)) {
+            errorMsg += `❌ ${task.taskName}\n`;
+            if (task.errors && task.errors.length > 0) {
+              for (const err of task.errors) {
+                errorMsg += `   • ${err}\n`;
+              }
+            }
+            errorMsg += '\n';
+          }
+        } else {
+          errorMsg += 'Please review your work and try again.\n';
+        }
         
-      //   submitError = errorMsg;
-      //   console.log('TEST: Submit error message:', submitError);
-      //   return;
-      // }
-      //   submitError = errorMsg;
-      //   console.log('TEST: Submit error message:', submitError);
-      //   return;
-      // }
+        errorMsg += 'Make sure to complete all tasks and make the tests pass before submitting the sprint.';
+        
+        submitError = errorMsg;
+        console.log('[SUBMIT SPRINT] Tests failed:', submitError);
+        return;
+      }
+      
+      console.log('[SUBMIT SPRINT] All tests passed! Proceeding with submission...');
 
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
