@@ -176,41 +176,60 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       // Generate volume name: {stack-name}-{scenario-folder}
       const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
 
-      // Check if volume exists
+      // Generate custom image name based on stack and scenario
+      let customImageName = `devsim-project:${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
+      
+      // If projectFolder is provided (e.g., LIBRARY_MANAGEMENT), add it to the image name
+      if (req.projectFolder) {
+        customImageName += `-${req.projectFolder.toLowerCase().replace(/[_ ]+/g, '-')}`;
+      }
+      
+      // Check if custom image exists
+      let imageToUse = 'devsim-workspace:latest';
       let useVolume = false;
       let volumeMountConfig: string | null = null;
-
+      
       try {
-        await docker.getVolume(volumeName).inspect();
-        useVolume = true;
-        console.log(`[create] Using volume: ${volumeName}`);
+        await docker.getImage(customImageName).inspect();
+        imageToUse = customImageName;
+        useVolume = false; // If custom image exists, don't use volume
+        console.log(`[create] Using custom image: ${imageToUse} (no volume)`);
       } catch {
-        // Volume doesn't exist, fall back to bind mount
-        console.log(`[create] Volume '${volumeName}' not found, falling back to bind mount`);
+        console.log(`[create] Custom image '${customImageName}' not found, falling back to default: ${imageToUse} (with volume)`);
+        // Check if volume exists
+        try {
+          await docker.getVolume(volumeName).inspect();
+          useVolume = true;
+          console.log(`[create] Using volume: ${volumeName}`);
+        } catch {
+          // Volume doesn't exist, fall back to bind mount
+          console.log(`[create] Volume '${volumeName}' not found, falling back to bind mount`);
+        }
+        
+        // Build mount configuration
+        if (useVolume) {
+          volumeMountConfig = `${volumeName}:/workspace`;
+        } else {
+          // Fallback to submodule bind mount — use scenarioFolder so scenario-2/scenario-3
+          // mount their own directory instead of always defaulting to scenario-1.
+          volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioFolder}:/workspace`.replace(/\\/g, '/');
+        }
       }
 
-      // Build mount configuration
-      if (useVolume) {
-        volumeMountConfig = `${volumeName}:/workspace`;
-      } else {
-        // Fallback to submodule bind mount — use scenarioFolder so scenario-2/scenario-3
-        // mount their own directory instead of always defaulting to scenario-1.
-        volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioFolder}:/workspace`.replace(/\\/g, '/');
-      }
       // Create the workspace container.
       // Ports 3000 (Express) and 5173 (Vite) are auto-assigned on the host (HostPort: '')
       // so the project can be previewed from the browser without using host networking,
-       const container = await docker.createContainer({
-        Image: 'devsim-workspace:latest',
+      const containerConfig: any = {
+        Image: imageToUse,
         name: `devsim-${stackName}-${userId}-${level}`,
         Cmd: ['/bin/sh'],
         Tty: true,
         OpenStdin: true,
         WorkingDir: '/workspace',
         ExposedPorts: {
+          '5000/tcp': {},
           '3000/tcp': {},
-          '5173/tcp': {},
-          '5432/tcp': {}
+          '5173/tcp': {}
         },
         Env: [
           "DATABASE_HOST=localhost",
@@ -221,13 +240,12 @@ export const POST: RequestHandler = async ({ locals, request }) => {
           "DATABASE_URL=postgresql://devsim:devsim@localhost:5432/devsim"
         ],
         HostConfig: {
-          Binds: [volumeMountConfig],
           Memory: 512 * 1024 * 1024,
           AutoRemove: false,
           PortBindings: {
+            '5000/tcp': [{ HostPort: '' }],
             '3000/tcp': [{ HostPort: '' }],
-            '5173/tcp': [{ HostPort: '' }],
-            '5432/tcp': [{ HostPort: '' }]
+            '5173/tcp': [{ HostPort: '' }]
           }
         },
         Labels: {
@@ -235,13 +253,20 @@ export const POST: RequestHandler = async ({ locals, request }) => {
           'devsim.stack': stackName,
           'devsim.level': level.toString()
         }
-      });
+      };
+
+      // Only add Binds if useVolume is true
+      if (useVolume && volumeMountConfig) {
+        containerConfig.HostConfig.Binds = [volumeMountConfig];
+      }
+
+      const container = await docker.createContainer(containerConfig);
 
       await docker.getContainer(container.id).start();
 
        // Retrieve the auto-assigned host ports for the preview URLs and database
       const containerInfo = await docker.getContainer(container.id).inspect();
-      const assignedBackendPort = containerInfo.NetworkSettings.Ports['3000/tcp']?.[0]?.HostPort;
+      const assignedBackendPort = containerInfo.NetworkSettings.Ports['5000/tcp']?.[0]?.HostPort;
       const assignedFrontendPort = containerInfo.NetworkSettings.Ports['5173/tcp']?.[0]?.HostPort;
       const assignedDatabasePort = containerInfo.NetworkSettings.Ports['5432/tcp']?.[0]?.HostPort;
       console.log(`[create] Preview ports — backend: ${assignedBackendPort}, frontend: ${assignedFrontendPort}, database: ${assignedDatabasePort}`);
