@@ -14,6 +14,8 @@
   export let level: number = 1;
   export let fileContents: Record<string, string> = {};
   export let existingFiles: string[] = [];
+  export let levelXpReward: number = 0;
+  export let levelCoinReward: number = 0;
 
   // -- State --------------------------------------------------------------------
   type ModalState = 'confirm' | 'testing' | 'loading' | 'success' | 'error';
@@ -23,6 +25,7 @@
   let submitStep = 0;
   let submitError = '';
   let submitRewards = { xp: 0, coins: 0 };
+  let submittedNextLevel: number | null = null;
   let cancelingSubmit = false;
   let submitAbortController: AbortController | null = null;
   let isSubmitFlowCanceled = false;
@@ -61,16 +64,34 @@
     { icon: '📦', label: 'Advancing level…', detail: 'Preparing the next challenge'},
   ];
 
-  $: activeSubmitStepIndex = state === 'testing' ? 0 : Math.min(submitStep, SUBMIT_STEPS.length - 1);
+  const MIN_SUBMIT_STEP_VISIBLE_MS = 800;
+  let submitStepStartedAt = 0;
+
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  function startSubmitStep(step: number) {
+    submitStep = Math.min(Math.max(step, 0), SUBMIT_STEPS.length - 1);
+    submitStepStartedAt = Date.now();
+  }
+
+  async function ensureCurrentSubmitStepIsVisible() {
+    const elapsed = Date.now() - submitStepStartedAt;
+    const remaining = MIN_SUBMIT_STEP_VISIBLE_MS - elapsed;
+    if (remaining > 0) {
+      await sleep(remaining);
+    }
+  }
+
+  async function advanceSubmitStep(step: number) {
+    await ensureCurrentSubmitStepIsVisible();
+    throwIfSubmissionCanceled();
+    startSubmitStep(step);
+  }
+
+  $: activeSubmitStepIndex = Math.min(Math.max(submitStep, 0), SUBMIT_STEPS.length - 1);
   $: activeSubmitStep = SUBMIT_STEPS[activeSubmitStepIndex];
-  $: loadingTitle = state === 'testing'
-    ? 'Running Tests…'
-    : advancingToNextLevel
-      ? 'Advancing Level…'
-      : 'Completing Sprint…';
-  $: loadingSubtitle = state === 'testing'
-    ? 'Validating your work against level requirements'
-    : 'Please keep this window open.';
+  $: loadingTitle = activeSubmitStep?.label ?? 'Submitting…';
+  $: loadingSubtitle = activeSubmitStep?.detail ?? 'Please keep this window open.';
 
   $: completedCount = tasks.filter(t => t.isCompleted).length;
 
@@ -102,6 +123,7 @@
   export function open() {
     submitError = '';
     submitStep = 0;
+    submittedNextLevel = null;
     state = 'confirm';
     showModal = true;
     testResults = null;
@@ -148,6 +170,7 @@
     showModal = false;
     state = 'confirm';
     submitStep = 0;
+    submittedNextLevel = null;
     submitError = '';
   }
 
@@ -171,14 +194,13 @@
     const signal = submitAbortController.signal;
 
     state = 'loading';
-    submitStep = 0;
+    startSubmitStep(0);
     submitError = '';
     testResults = null;
 
     try {
       throwIfSubmissionCanceled();
       // Step 0 - Run tests to validate user work
-      submitStep = 0;
       
       // Always fetch ALL files from the container for complete AI analysis
       // Start with any already-provided file contents (e.g. currently open file)
@@ -309,6 +331,9 @@
       
       console.log('[SUBMIT SPRINT] All tests passed! Proceeding with submission...');
 
+      state = 'loading';
+      await advanceSubmitStep(1);
+
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
       console.log('AI SCORING: Starting AI scoring...');
@@ -382,7 +407,6 @@
       console.log('AI SCORING: nextTime:', aiScoring.nextTime);
 
       // Step 1 - Submit completed tasks
-      submitStep = 1;
       const completedTasks = tasks.filter(t => t.isCompleted);
       
       // Check if ALL tasks are completed before allowing submission
@@ -437,6 +461,8 @@
       // when allLevelsComplete is true (see submit endpoint lines 137-145)
       // Calling archive again would result in "already archived" error
 
+      await advanceSubmitStep(2);
+
       // clear the logs for the next level
       await fetch(`/api/docker/container/${containerId}/clear-logs`, {
         method: "DELETE",
@@ -446,9 +472,11 @@
       // Determine what to do next based on level completion
       const advanceToNextLevel = allLevelsComplete === false;
       advancingToNextLevel = advanceToNextLevel;
+      submittedNextLevel = nextLevelFromSubmit;
+
+      await ensureCurrentSubmitStepIsVisible();
       
       state = 'success';
-      dispatch('submitted', { ...submitRewards, advanceToNextLevel, nextLevel: nextLevelFromSubmit });
     } catch (err) {
       if ((err instanceof DOMException && err.name === 'AbortError') || isSubmitFlowCanceled) {
         state = 'confirm';
@@ -474,8 +502,8 @@
     // Dispatch event to notify parent to reload
     dispatch('submitted', {
       ...submitRewards,
-      advanceToNextLevel: true,
-      nextLevel: level + 1,
+      advanceToNextLevel: advancingToNextLevel,
+      nextLevel: submittedNextLevel,
     });
   }
 
@@ -519,6 +547,8 @@
       {completedCount}
       {loadingFileChanges}
       {fileChanges}
+      rewardXp={levelXpReward}
+      rewardCoins={levelCoinReward}
     />
 
   {:else if state === 'loading' || state === 'testing'}

@@ -36,15 +36,30 @@
 </script>
 
 <div class="success-card text-center py-2">
-  <div class="text-5xl burst-anim" aria-hidden="true">🎉</div>
-  <h2 class="mb-1 mt-2.5 [font-family:var(--font-heading)] text-[1.6rem] font-bold tracking-[0.08em] text-[var(--text-primary)]">
-    {advancingToNextLevel ? 'Level Complete!' : 'Sprint Complete!'}
+  <div class="mb-3 inline-flex items-center gap-2 rounded-[3px] border border-[rgba(0,229,160,0.28)] bg-[rgba(0,229,160,0.08)] px-3 py-1.5">
+    <span class="burst-anim text-xl" aria-hidden="true">🎉</span>
+    <span class="[font-family:var(--font-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-[var(--success)]">Submission Complete</span>
+  </div>
+
+  <h2 class="mt-1 [font-family:var(--font-heading)] text-[1.55rem] font-bold tracking-[0.08em] text-[var(--text-primary)]">
+    {advancingToNextLevel ? 'Level Cleared' : 'Sprint Archived'}
   </h2>
-  <p class="mb-6 [font-family:var(--font-mono)] text-[0.85rem] text-[var(--text-muted)]">
+  <p class="mb-5 mt-1 [font-family:var(--font-mono)] text-[0.82rem] text-[var(--text-muted)]">
     {advancingToNextLevel
-      ? 'Great job! You can continue working on the next level.'
-      : 'Your workspace has been submitted successfully.'}
+      ? 'Great run. Jump into your next challenge or return to dashboard.'
+      : 'All deliverables are recorded for this sprint.'}
   </p>
+
+  <div class="mb-5 grid grid-cols-2 gap-2.5">
+    <div class="fade-up-anim rounded-[4px] border border-[rgba(0,229,160,0.3)] bg-[rgba(15,34,16,0.8)] px-3 py-3 text-center">
+      <p class="[font-family:var(--font-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-[var(--success)]">XP Earned</p>
+      <p class="mt-1 [font-family:var(--font-heading)] text-[1.35rem] font-bold text-[var(--text-primary)]">⚡ +{submitRewards.xp}</p>
+    </div>
+    <div class="fade-up-anim [animation-delay:0.15s] rounded-[4px] border border-[rgba(255,180,0,0.3)] bg-[rgba(31,21,8,0.8)] px-3 py-3 text-center">
+      <p class="[font-family:var(--font-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-[var(--warn)]">Coins Earned</p>
+      <p class="mt-1 [font-family:var(--font-heading)] text-[1.35rem] font-bold text-[var(--text-primary)]">🪙 +{submitRewards.coins}</p>
+    </div>
+  </div>
 
   {#if aiScoring.done && !aiScoring.loading}
     <div class="mb-5">
@@ -63,20 +78,8 @@
     </div>
   {/if}
 
-  <div class="mb-7 flex justify-center gap-4">
-    <div class="fade-up-anim flex items-center gap-1.5 rounded-[4px] border border-[rgba(22,163,74,0.30)] bg-[rgba(15,34,16,0.8)] px-4 py-2.5">
-      <span class="text-[1.1rem]">⚡</span>
-      <span class="[font-family:var(--font-mono)] text-[1.5rem] font-extrabold text-[var(--success)]">+{submitRewards.xp}</span>
-      <span class="self-end pb-0.5 [font-family:var(--font-heading)] text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--text-muted)]">XP</span>
-    </div>
-    <div class="fade-up-anim [animation-delay:0.25s] flex items-center gap-1.5 rounded-[4px] border border-[rgba(180,83,0,0.30)] bg-[rgba(31,21,8,0.8)] px-4 py-2.5">
-      <span class="text-[1.1rem]">🪙</span>
-      <span class="[font-family:var(--font-mono)] text-[1.5rem] font-extrabold text-[var(--warn)]">+{submitRewards.coins}</span>
-      <span class="self-end pb-0.5 [font-family:var(--font-heading)] text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--text-muted)]">Coins</span>
-    </div>
-  </div>
-
-  <div class="flex justify-center gap-3">
+  <div class="rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.7)] px-3 py-3">
+    <div class="flex flex-wrap justify-center gap-3">
     {#if advancingToNextLevel}
       <button
         on:click={handleContinueWorking}
@@ -91,6 +94,7 @@
     >
       Back to Dashboard
     </button>
+    </div>
   </div>
 </div>
 

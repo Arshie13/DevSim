@@ -190,6 +190,33 @@
   let isBooting = true;
   let bootStep = 0;
   let bootError = "";
+  let bootStepStartedAt = 0;
+
+  const DEFAULT_BOOT_STEP_VISIBLE_MS = 1200;
+  const BOOT_STEP_VISIBLE_MS: Record<number, number> = {
+    1: 15000,
+  };
+
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  function setBootStep(step: number) {
+    bootStep = Math.max(0, Math.min(step, BOOT_STEPS.length - 1));
+    bootStepStartedAt = Date.now();
+  }
+
+  async function ensureBootStepIsVisible(stepIndex: number) {
+    const minVisibleMs = BOOT_STEP_VISIBLE_MS[stepIndex] ?? DEFAULT_BOOT_STEP_VISIBLE_MS;
+    const elapsedMs = Date.now() - bootStepStartedAt;
+    const remainingMs = minVisibleMs - elapsedMs;
+    if (remainingMs > 0) {
+      await sleep(remainingMs);
+    }
+  }
+
+  async function advanceBootStep(nextStep: number) {
+    await ensureBootStepIsVisible(bootStep);
+    setBootStep(nextStep);
+  }
 
   const BOOT_STEPS = [
     {
@@ -201,6 +228,13 @@
       icon: "📂",
       label: "Indexing project files…",
       detail: "Scanning workspace directory",
+      detailSequence: [
+        "Scanning workspace directory",
+        "This is the longest step and may take a while depending on project size",
+        "Still indexing files and folders for your workspace tree",
+        "Almost there, finalizing indexed file map",
+      ],
+      detailSequenceIntervalMs: 5000,
     },
     {
       icon: "📄",
@@ -221,6 +255,8 @@
 
   function handleBootRetry() {
     bootError = "";
+    isBooting = true;
+    setBootStep(0);
     initWorkspace();
   }
 
@@ -335,7 +371,7 @@
   async function initWorkspace() {
     try {
       // Step 0 — start the container
-      bootStep = 0;
+      setBootStep(0);
       const response = await fetch(
         `/api/docker/container/${containerId}/start`,
         {
@@ -347,7 +383,7 @@
       previewUrl = startData.previewUrl;
 
       // Step 1 — fetch file list
-      bootStep = 1;
+      await advanceBootStep(1);
       try {
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
@@ -370,7 +406,7 @@
       }
 
       // Step 2 — read initial file content
-      bootStep = 2;
+      await advanceBootStep(2);
       try {
         const res = await fetch(
           `/api/docker/container/${containerId}/files/read`,
@@ -391,7 +427,7 @@
       }
 
       // Step 3 — initialize Monaco Editor
-      bootStep = 3;
+      await advanceBootStep(3);
       if (editorRef) {
         monacoEditor = new MonacoInitializer();
         await monacoEditor.initialize(
@@ -415,8 +451,9 @@
       openFileAsTab(selectedFile, editorValue);
 
       // Step 4 — initialize first terminal session
-      bootStep = 4;
+      await advanceBootStep(4);
       await addTerminalSession("Terminal");
+      await ensureBootStepIsVisible(4);
 
       // Done — hide the boot screen
       isBooting = false;
@@ -1115,6 +1152,8 @@
     {containerId}
     {tasks}
     level={currentLevel}
+    levelXpReward={currentLevelRecord?.xpReward ?? 0}
+    levelCoinReward={currentLevelRecord?.coinReward ?? 0}
     {fileContents}
     existingFiles={fileTree}
     on:submitted={handleSubmitted}
