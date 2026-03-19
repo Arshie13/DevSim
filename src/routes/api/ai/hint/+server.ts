@@ -503,7 +503,7 @@ export const POST: RequestHandler = async ({ request }) => {
           coinsSpent: totalCost,
           coinsRemaining: newCoinBalance,
         });
-      } catch (geminiError: any) {
+      } catch (geminiError: unknown) {
         console.error("[AI Hint] Gemini SDK error:", geminiError);
         
         if (coinsDeducted) {
@@ -515,7 +515,7 @@ export const POST: RequestHandler = async ({ request }) => {
         
         return json({
           success: false,
-          error: `Gemini API error: ${geminiError.message || "Failed to get response from Gemini"}. Your coins have been refunded.`,
+          error: `Gemini API error: ${geminiError || "Failed to get response from Gemini"}. Your coins have been refunded.`,
         });
       }
     }

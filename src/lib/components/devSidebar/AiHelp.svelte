@@ -44,9 +44,9 @@
 
   // Available AI models for selection
   const aiModels = [
-    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash ✨", provider: "Google (fast)", needsKey: true },
-    { id: "gemma-3-12b-it", name: "Gemma 3 12B", provider: "Google (slower)", needsKey: true },
-    { id: "nvidia/nemotron-3-nano-30b-a3b:free", name: "Nemotron 3 Nano", provider: "OpenRouter (fast)", needsKey: false },
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash ✨", provider: "Google", needsKey: true },
+    { id: "gemma-3-12b-it", name: "Gemma 3 12B", provider: "Google", needsKey: true },
+    { id: "nvidia/nemotron-3-nano-30b-a3b:free", name: "Nemotron 3 Nano", provider: "OpenRouter", needsKey: false },
   ];
 
   // Selected AI model
@@ -58,11 +58,10 @@
   let showFilePicker: boolean = false;
   let filteredFileTree: string[] = [];
 
-  // Filter file tree to show only relevant source files
+  // Filter file tree - show all files to ensure user-generated files in root directory are visible
+  // Only exclude files that are already attached
   $: {
-    const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.json', '.html', '.css', '.scss'];
-    filteredFileTree = initialFileTree.filter(f => 
-      sourceExtensions.some(ext => f.endsWith(ext)) &&
+    filteredFileTree = currentFileTree.filter(f => 
       !attachedFiles.some(af => af.path === f)
     ).slice(0, 50); // Limit to 50 files for performance
   }
@@ -70,25 +69,16 @@
   // Check if we can attach more files
   $: canAttachMore = attachedFiles.length < MAX_ATTACHED_FILES;
 
-  // Use a combined object that merges props and stores for context
-  // This ensures we always have the latest data
-  // We prioritize the store value after first interaction to ensure coin updates reflect
-  $: currentSelectedFile = initialSelectedFile || $aiSelectedFile;
-  $: currentFileTree =
-    initialFileTree.length > 0 ? initialFileTree : $aiFileTree;
-  $: currentFileContents =
-    Object.keys(initialFileContents).length > 0
-      ? initialFileContents
-      : $aiFileContents;
-  // Use store value after the first update (when store has been set from API response)
-  $: currentCoins =
-    $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
+  // Use stores for context where persistence matters (coins, chat)
+  // Use props directly for file tree since it's always passed from parent (source of truth)
+  $: currentSelectedFile = $aiSelectedFile;
+  $: currentFileTree = initialFileTree; // Use prop directly - it's always the source of truth
+  $: currentFileContents = initialFileContents; // Use prop directly
+  $: currentCoins = $aiCoins;
 
-  // Update stores for persistence (these don't affect the current* vars above)
+  // Sync selected file to store for persistence
   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
-  $: if (initialFileTree.length > 0) aiFileTree.set(initialFileTree);
-  $: if (Object.keys(initialFileContents).length > 0)
-    aiFileContents.set(initialFileContents);
+  // Sync coins to store for persistence
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
 
   // Coin costs per hint type
@@ -142,28 +132,17 @@
   }
 
   // Generate context from current state - includes file contents and task progress
-  async function generateContext(): Promise<string> {
+  // Accepts optional attachedFiles parameter to use files that were attached before clearing
+  async function generateContext(attachedFilesParam?: { path: string; name: string }[]): Promise<string> {
+    // Use passed parameter if available, otherwise use component state
+    const effectiveAttachedFiles = attachedFilesParam || attachedFiles;
     let context = `=== PROJECT OVERVIEW ===\n`;
     context += `Project: ${projectName || 'DevSim Workspace'}\n`;
     context += `Scenario: ${scenario}\n\n`;
     
-    // Add conversation history for context (for chat mode)
-    if (mode === "chat") {
-      const chatHistory = $aiChatHistory;
-      if (chatHistory.length > 0) {
-        context += `=== RECENT CONVERSATION ===\n`;
-        // Show last 2 messages for context
-        const recentHistory = chatHistory.slice(-2);
-        recentHistory.forEach((msg) => {
-          const role = msg.role === "user" ? "User" : "AI";
-          const content = msg.content.length > 300 
-            ? msg.content.substring(0, 300) + "..."
-            : msg.content;
-          context += `${role}: ${content}\n`;
-        });
-        context += "\n";
-      }
-    }
+    // NOTE: Conversation history is intentionally NOT included in context
+    // This prevents stale data from previous sessions polluting the AI responses
+    // The chat history is persisted in localStorage across different projects
 
     // Use the reactive current* vars which have latest props data
     const selectedFile = currentSelectedFile;
@@ -172,9 +151,9 @@
 
     // If user has attached specific files, only include those
     // Do NOT include file tree when files are attached
-    if (attachedFiles.length > 0) {
-      context += `Attached Files (${attachedFiles.length}):\n`;
-      attachedFiles.forEach((file) => {
+    if (effectiveAttachedFiles.length > 0) {
+      context += `Attached Files (${effectiveAttachedFiles.length}):\n`;
+      effectiveAttachedFiles.forEach((file) => {
         context += `- ${file.path}\n`;
       });
       context += "\n";
@@ -292,15 +271,15 @@
     }
     
   // Add attached files to the context
-    if (attachedFiles.length > 0) {
-      console.log('[AI Helper] Reading attached files:', attachedFiles);
-      context += `=== ATTACHED FILES (${attachedFiles.length}/${MAX_ATTACHED_FILES}) ===\n`;
+    if (effectiveAttachedFiles.length > 0) {
+      console.log('[AI Helper] Reading attached files:', effectiveAttachedFiles);
+      context += `=== ATTACHED FILES (${effectiveAttachedFiles.length}/${MAX_ATTACHED_FILES}) ===\n`;
       
       // Fetch contents of attached files
-      const attachedFetchPromises = attachedFiles.map(async (file) => {
+      const attachedFetchPromises = effectiveAttachedFiles.map(async (file) => {
         try {
           const filePath = file.path.startsWith('/workspace/') ? file.path : `/workspace/${file.path}`;
-          console.log('[AI Helper] Fetching file:', filePath);
+          console.log('[AI Helper] Fetching file:', filePath, 'from container:', containerId);
           const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -429,19 +408,21 @@
     const filesCount = filesToInclude.length;
     aiChatHistory.update(msgs => [...msgs, { role: "user", content: message, attachedFiles: filesCount > 0 ? filesToInclude : undefined }]);
     
-    // Clear attached files immediately after sending message
-    clearAttachedFiles();
-    
     isLoading = true;
 
     try {
-      // Generate context (now async to fetch file contents)
-      const context = await generateContext();
+      // Generate context FIRST (while attachedFiles is still populated)
+      // Pass filesToInclude directly to ensure they're included in context
+      const context = await generateContext(filesToInclude);
       
       // Clear attached files after generating context
-      // attachedFiles = [];
+      clearAttachedFiles();
 
-      console.log("files count: ", filesCount);
+      console.log("[AI Helper] ===== SENDING TO AI =====");
+      console.log("[AI Helper] Attached files:", filesToInclude);
+      console.log("[AI Helper] Full context (first 2000 chars):", context.substring(0, 2000));
+      console.log("[AI Helper] Full context length:", context.length);
+      console.log("[AI Helper] Files count:", filesCount);
       
       const response = await fetch("/api/ai/hint", {
         method: "POST",
@@ -734,10 +715,11 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full p-4"
+      class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full max-h-[60vh] flex flex-col"
       on:click|stopPropagation
     >
-      <div class="flex items-center justify-between mb-3">
+      <!-- Fixed header with X button -->
+      <div class="flex-shrink-0 flex items-center justify-between mb-3 p-4 pb-0">
         <div class="flex items-center gap-2">
           {#if avatarFailed}
             <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
@@ -761,34 +743,37 @@
         </button>
       </div>
 
-      {#if quickHintLoading}
-        <div class="flex items-center justify-center py-8">
-          <div class="flex gap-1">
-            <span
-              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-              style="animation-delay: 0ms;"
-            ></span>
-            <span
-              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-              style="animation-delay: 150ms;"
-            ></span>
-            <span
-              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-              style="animation-delay: 300ms;"
-            ></span>
+      <!-- Scrollable content -->
+      <div class="overflow-y-auto p-4 pt-0">
+        {#if quickHintLoading}
+          <div class="flex items-center justify-center py-8">
+            <div class="flex gap-1">
+              <span
+                class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+                style="animation-delay: 0ms;"
+              ></span>
+              <span
+                class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+                style="animation-delay: 150ms;"
+              ></span>
+              <span
+                class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
+                style="animation-delay: 300ms;"
+              ></span>
+            </div>
           </div>
-        </div>
-      {:else}
-        <div class="text-sm text-gray-300 whitespace-pre-wrap">
-          {@html formatMessage(quickHintMessage)}
-        </div>
-        <div
-          class="mt-3 pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-gray-500"
-        >
-          <span>Coins spent: {QUICK_HINT_COST}</span>
-          <span>Coins remaining: {initialCoins}</span>
-        </div>
-      {/if}
+        {:else}
+          <div class="text-sm text-gray-300 whitespace-pre-wrap">
+            {@html formatMessage(quickHintMessage)}
+          </div>
+          <div
+            class="mt-3 pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-gray-500"
+          >
+            <span>Coins spent: {QUICK_HINT_COST}</span>
+            <span>Coins remaining: {initialCoins}</span>
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 {/if}

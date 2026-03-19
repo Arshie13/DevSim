@@ -7,11 +7,46 @@
   // Chat message type
   export type ChatMessage = { role: "user" | "ai"; content: string; isWarning?: boolean; attachedFiles?: { path: string; name: string }[] };
 
-  // Store for AI chat history - persists across tab switches
-  export const aiChatHistory: Writable<ChatMessage[]> = writable([]);
+  // LocalStorage keys
+  const CHAT_HISTORY_KEY = 'devsim_ai_chat_history';
+  const COINS_KEY = 'devsim_ai_coins';
 
-  // Store for coin count - persists across tab switches
-  export const aiCoins: Writable<number> = writable(1000);
+  // Helper to create a persistent store that syncs with localStorage
+  function createPersistentStore<T>(key: string, initialValue: T): Writable<T> {
+    // Try to get from localStorage
+    let storedValue: T = initialValue;
+    if (typeof window !== 'undefined') {
+      try {
+        const item = localStorage.getItem(key);
+        if (item) {
+          storedValue = JSON.parse(item);
+        }
+      } catch (e) {
+        console.error(`Error reading ${key} from localStorage:`, e);
+      }
+    }
+
+    const store = writable<T>(storedValue);
+
+    // Subscribe to changes and save to localStorage
+    store.subscribe((value) => {
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {
+          console.error(`Error saving ${key} to localStorage:`, e);
+        }
+      }
+    });
+
+    return store;
+  }
+
+  // Store for AI chat history - persists across sessions via localStorage
+  export const aiChatHistory: Writable<ChatMessage[]> = createPersistentStore(CHAT_HISTORY_KEY, []);
+
+  // Store for coin count - persists across sessions via localStorage
+  export const aiCoins: Writable<number> = createPersistentStore(COINS_KEY, 1000);
 
   // Store for selected file - persists across tab switches
   export const aiSelectedFile: Writable<string> = writable("");
@@ -21,6 +56,23 @@
 
   // Store for file contents - persists across tab switches
   export const aiFileContents: Writable<Record<string, string>> = writable({});
+
+  // Helper functions to manage chat history
+  export function addUserMessage(content: string) {
+    aiChatHistory.update(msgs => [...msgs, { role: "user", content }]);
+  }
+
+  export function addAIMessage(content: string, isWarning: boolean = false) {
+    aiChatHistory.update(msgs => [...msgs, { role: "ai", content, isWarning }]);
+  }
+
+  export function clearChatHistory() {
+    aiChatHistory.set([]);
+  }
+
+  export function updateCoinBalance(newBalance: number) {
+    aiCoins.set(newBalance);
+  }
 </script>
 
 <script lang="ts">
