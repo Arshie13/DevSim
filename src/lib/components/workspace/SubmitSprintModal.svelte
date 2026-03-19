@@ -2,9 +2,10 @@
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
   import type { ITask } from '$lib/types';
-  import type { TestResult } from '$lib/tests/types';
-  import LoadingSteps from '$lib/components/ui/LoadingSteps.svelte';
   import ConfirmationModal from '$lib/components/ui/ConfirmationModal.svelte';
+  import SubmitSprintConfirmContent from '$lib/components/workspace/SubmitSprintConfirmContent.svelte';
+  import SubmitSprintProgressContent from '$lib/components/workspace/SubmitSprintProgressContent.svelte';
+  import SubmitSprintSuccessContent from '$lib/components/workspace/SubmitSprintSuccessContent.svelte';
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -18,9 +19,13 @@
   type ModalState = 'confirm' | 'testing' | 'loading' | 'success' | 'error';
   let state: ModalState = 'confirm';
   let showModal = false;
+  let showCancelConfirmModal = false;
   let submitStep = 0;
   let submitError = '';
   let submitRewards = { xp: 0, coins: 0 };
+  let cancelingSubmit = false;
+  let submitAbortController: AbortController | null = null;
+  let isSubmitFlowCanceled = false;
 
   // File changes tracking
   type FileChangeSummary = {
@@ -39,9 +44,6 @@
     summary: { total: number; passed: number; failed: number };
   } | null = null;
 
-  // AI review accordion state
-  let aiReviewOpen = false;
-
   // AI Scoring state
   let aiScoring: {
     stars: number;
@@ -58,6 +60,17 @@
     { icon: '🏁', label: 'Recording completion…', detail: 'Recording your progress & awarding rewards' },
     { icon: '📦', label: 'Advancing level…', detail: 'Preparing the next challenge'},
   ];
+
+  $: activeSubmitStepIndex = state === 'testing' ? 0 : Math.min(submitStep, SUBMIT_STEPS.length - 1);
+  $: activeSubmitStep = SUBMIT_STEPS[activeSubmitStepIndex];
+  $: loadingTitle = state === 'testing'
+    ? 'Running Tests…'
+    : advancingToNextLevel
+      ? 'Advancing Level…'
+      : 'Completing Sprint…';
+  $: loadingSubtitle = state === 'testing'
+    ? 'Validating your work against level requirements'
+    : 'Please keep this window open.';
 
   $: completedCount = tasks.filter(t => t.isCompleted).length;
 
@@ -92,7 +105,6 @@
     state = 'confirm';
     showModal = true;
     testResults = null;
-    aiReviewOpen = false;
     aiScoring = { stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false };
     
     // Fetch file changes when modal opens
@@ -105,6 +117,46 @@
     state = 'confirm';
   }
 
+  function openCancelConfirmation() {
+    showCancelConfirmModal = true;
+  }
+
+  function dismissCancelConfirmation() {
+    showCancelConfirmModal = false;
+  }
+
+  async function confirmCancelSubmission() {
+    showCancelConfirmModal = false;
+    cancelingSubmit = true;
+    isSubmitFlowCanceled = true;
+    submitAbortController?.abort();
+    submitAbortController = null;
+
+    // Best effort: stop test process in container when canceling during test step.
+    if (state === 'testing') {
+      try {
+        await fetch(`/api/docker/container/${containerId}/tests/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.warn('[SUBMIT SPRINT] Failed to cancel running tests:', error);
+      }
+    }
+
+    cancelingSubmit = false;
+    showModal = false;
+    state = 'confirm';
+    submitStep = 0;
+    submitError = '';
+  }
+
+  function throwIfSubmissionCanceled() {
+    if (isSubmitFlowCanceled) {
+      throw new DOMException('Submission canceled by user', 'AbortError');
+    }
+  }
+
   // -- Submit flow --------------------------------------------------------------
   async function handleConfirm() {
     if (!dbContainerId) {
@@ -113,12 +165,18 @@
       return;
     }
 
+    isSubmitFlowCanceled = false;
+    cancelingSubmit = false;
+    submitAbortController = new AbortController();
+    const signal = submitAbortController.signal;
+
     state = 'loading';
     submitStep = 0;
     submitError = '';
     testResults = null;
 
     try {
+      throwIfSubmissionCanceled();
       // Step 0 - Run tests to validate user work
       submitStep = 0;
       
@@ -133,6 +191,7 @@
           const listRes = await fetch(`/api/docker/container/${containerId}/files/logs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal,
             body: JSON.stringify({})
           });
 
@@ -146,6 +205,7 @@
             let filesRead = 0;
             let filesFailed = 0;
             for (const file of filesToCheck) {
+              throwIfSubmissionCanceled();
               // Skip if already read
               if (contentsToCheck[file]) {
                 console.log('AI SCORING: ↩ Already have:', file);
@@ -162,6 +222,7 @@
                 const readRes = await fetch(`/api/docker/container/${containerId}/files/read`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
+                  signal,
                   body: JSON.stringify({ path: `/workspace/${file}` })
                 });
                 const readData = await readRes.json();
@@ -193,10 +254,12 @@
       // Run grouped level tests (Submit Sprint validation)
       console.log('[SUBMIT SPRINT] Running grouped level tests for level:', level);
       state = 'testing';
+      throwIfSubmissionCanceled();
       
       const testRes = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal,
         body: JSON.stringify({
           command: `test:tasks:l${level}`,
           level,
@@ -252,11 +315,13 @@
       console.log('AI SCORING: Files available for AI:', Object.keys(contentsToCheck).length);
       // console.log('AI SCORING: Test results to include:', JSON.stringify(testData));
       try {
+        throwIfSubmissionCanceled();
         // Get completed task texts for the scoring
         const completedTaskTexts = tasks.filter(t => t.isCompleted).map(t => t.taskName);
         await fetch(`/api/docker/container/${containerId}/archive`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal,
         }).then(res => res.json()).then(() => {
           console.log('Container has been Archived');
         }).catch(e => {
@@ -266,6 +331,7 @@
         const scoreRes = await fetch('/api/ai/score', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal,
           body: JSON.stringify({
             containerId: containerId,
             level,
@@ -337,12 +403,14 @@
       let nextLevelFromSubmit: number | null = null;
       
       for (let i = 0; i < completedTasks.length; i++) {
+        throwIfSubmissionCanceled();
         const task = completedTasks[i];
         // Only pass advanceLevel: true for the last task (when all tasks will be complete)
         const isLastTask = i === completedTasks.length - 1;
         const submitRes = await fetch(`/api/docker/container/${dbContainerId}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal,
           body: JSON.stringify({ taskId: task.taskName, advanceLevel: isLastTask })
         });
         const submitData = await submitRes.json();
@@ -371,7 +439,8 @@
 
       // clear the logs for the next level
       await fetch(`/api/docker/container/${containerId}/clear-logs`, {
-        method: "DELETE"
+        method: "DELETE",
+        signal
       });
 
       // Determine what to do next based on level completion
@@ -381,8 +450,16 @@
       state = 'success';
       dispatch('submitted', { ...submitRewards, advanceToNextLevel, nextLevel: nextLevelFromSubmit });
     } catch (err) {
+      if ((err instanceof DOMException && err.name === 'AbortError') || isSubmitFlowCanceled) {
+        state = 'confirm';
+        submitError = '';
+        return;
+      }
       submitError = err instanceof Error ? err.message : String(err);
       state = 'error';
+    } finally {
+      submitAbortController = null;
+      cancelingSubmit = false;
     }
   }
 
@@ -437,223 +514,50 @@
 >
   <!-- Default slot: body changes per state -->
   {#if state === 'confirm'}
-    <!-- Task summary -->
-    <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3.5">
-      <p class="mb-2.5 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">Sprint tasks</p>
-      <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
-        {#each tasks as task}
-          <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.88rem] transition-opacity duration-150 {task.isCompleted ? 'opacity-100' : 'opacity-35'}">
-            <span class="w-4 text-center font-bold {task.isCompleted ? 'text-[var(--success)]' : 'text-[var(--surface)]'}">
-              {task.isCompleted ? '✓' : '○'}
-            </span>
-            <span class="{task.isCompleted ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] line-through'}">
-              {task.taskName}
-            </span>
-          </li>
-        {/each}
-      </ul>
-      <p class="mt-2.5 text-right [font-family:var(--font-mono)] text-[0.75rem] text-[var(--text-muted)]">{completedCount} / {tasks.length} completed</p>
-    </div>
-
-    <!-- File changes summary -->
-    {#if loadingFileChanges}
-      <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3">
-        <p class="mb-2 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">Loading file changes...</p>
-      </div>
-    {:else if fileChanges && fileChanges.totalChanges > 0}
-      <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3">
-        <p class="mb-2.5 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">Files modified</p>
-        <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
-          {#if fileChanges.created.length > 0}
-            {#each fileChanges.created as file}
-              <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.82rem]">
-                <span class="w-4 text-center font-bold text-[var(--success)]">+</span>
-                <span class="text-[var(--text-primary)]">{file}</span>
-              </li>
-            {/each}
-          {/if}
-          {#if fileChanges.modified.length > 0}
-            {#each fileChanges.modified as file}
-              <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.82rem]">
-                <span class="w-4 text-center font-bold text-[var(--warn)]">•</span>
-                <span class="text-[var(--text-primary)]">{file}</span>
-              </li>
-            {/each}
-          {/if}
-          {#if fileChanges.renamed.length > 0}
-            {#each fileChanges.renamed as rename}
-              <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.82rem]">
-                <span class="w-4 text-center font-bold text-[var(--accent)]">→</span>
-                <span class="text-[var(--text-primary)]">{rename.from} → {rename.to}</span>
-              </li>
-            {/each}
-          {/if}
-        </ul>
-        <p class="mt-2.5 text-right [font-family:var(--font-mono)] text-[0.75rem] text-[var(--text-muted)]">{fileChanges.totalChanges} file(s) changed</p>
-      </div>
-    {:else}
-      <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3">
-        <p class="mb-2 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">No files modified</p>
-      </div>
-    {/if}
-
-    <!-- Reward preview chips -->
-    <div class="flex gap-2.5 mb-1">
-      <div class="flex-1 rounded-[4px] border border-[rgba(22,163,74,0.25)] bg-[rgba(15,34,16,0.8)] py-2 text-center [font-family:var(--font-mono)] text-[0.82rem] tracking-[0.04em] text-[var(--success)]">
-        ⚡ XP incoming
-      </div>
-      <div class="flex-1 rounded-[4px] border border-[rgba(202,138,4,0.25)] bg-[rgba(31,21,8,0.8)] py-2 text-center [font-family:var(--font-mono)] text-[0.82rem] tracking-[0.04em] text-[var(--warn)]">
-        🪙 Coins incoming
-      </div>
-    </div>
+    <SubmitSprintConfirmContent
+      {tasks}
+      {completedCount}
+      {loadingFileChanges}
+      {fileChanges}
+    />
 
   {:else if state === 'loading' || state === 'testing'}
-    <!-- LoadingSteps fills the body; action row is hidden via hideActions -->
-    <!-- Use LoadingSteps for both testing and loading states with SUBMIT_STEPS -->
-    <LoadingSteps
-      card={false}
-      step={state === 'testing' ? 0 : submitStep}
-      steps={SUBMIT_STEPS}
-      title={state === 'testing' ? 'Running Tests…' : advancingToNextLevel ? 'Advancing Level…' : 'Completing Sprint…'}
-      subtitle={state === 'testing' ? 'Validating your work against level requirements' : 'Please keep this window open.'}
+    <SubmitSprintProgressContent
+      state={state as 'loading' | 'testing'}
+      {activeSubmitStepIndex}
+      {activeSubmitStep}
+      submitSteps={SUBMIT_STEPS}
+      {loadingTitle}
+      {loadingSubtitle}
+      {cancelingSubmit}
+      on:cancel={openCancelConfirmation}
     />
   {/if}
 
   <!-- Success slot -->
   <svelte:fragment slot="success">
-    <div class="success-card text-center py-2">
-      <div class="text-5xl burst-anim" aria-hidden="true">🎉</div>
-      <h2 class="mb-1 mt-2.5 [font-family:var(--font-heading)] text-[1.6rem] font-bold tracking-[0.08em] text-[var(--text-primary)]">
-        {advancingToNextLevel ? 'Level Complete!' : 'Sprint Complete!'}
-      </h2>
-      <p class="mb-6 [font-family:var(--font-mono)] text-[0.85rem] text-[var(--text-muted)]">
-        {advancingToNextLevel 
-          ? 'Great job! You can continue working on the next level.' 
-          : 'Your workspace has been submitted successfully.'}
-      </p>
-
-      <!-- AI Scoring Display -->
-      {#if aiScoring.done && !aiScoring.loading}
-        <div class="mb-5 overflow-hidden rounded-[6px] border border-[rgba(7,165,201,0.25)] bg-[rgba(10,14,26,0.9)]">
-          <!-- Always-visible summary row -->
-          <div class="flex items-center justify-between px-4 py-3">
-            <div class="flex items-center gap-2">
-              {#each [1, 2, 3] as star}
-                <span class="text-xl {star <= aiScoring.stars ? 'text-[var(--warn)]' : 'text-[var(--surface)]'}">
-                  {star <= aiScoring.stars ? '★' : '☆'}
-                </span>
-              {/each}
-              <span class="ml-1 [font-family:var(--font-mono)] text-sm font-bold {aiScoring.score >= 75 ? 'text-[var(--success)]' : aiScoring.score >= 50 ? 'text-[var(--warn)]' : 'text-[var(--danger)]'}">
-                {aiScoring.score}<span class="font-normal text-[var(--text-muted)]">/100</span>
-              </span>
-            </div>
-            <button
-              on:click={() => aiReviewOpen = !aiReviewOpen}
-              class="flex items-center gap-1 [font-family:var(--font-mono)] text-[0.7rem] text-[var(--accent)] transition-colors hover:text-[var(--cyan-bright)]"
-            >
-              {aiReviewOpen ? 'Hide' : 'View'} feedback
-              <span class="transition-transform duration-200 {aiReviewOpen ? 'rotate-180' : ''}">▾</span>
-            </button>
-          </div>
-
-          <!-- Collapsible detail -->
-          {#if aiReviewOpen}
-            <div class="border-t border-[rgba(7,165,201,0.15)] px-4 py-3 text-left space-y-3 max-h-[200px] overflow-y-auto scrollbar-thin">
-              <!-- Overall Feedback -->
-              <p class="[font-family:var(--font-mono)] text-[0.78rem] leading-relaxed text-[var(--text-muted)]">
-                {aiScoring.feedback}
-              </p>
-
-              <!-- Improvements -->
-              {#if aiScoring.improvements}
-                <div>
-                  <p class="mb-1 flex items-center gap-1 [font-family:var(--font-mono)] text-[0.65rem] tracking-[0.12em] uppercase text-[var(--warn)]">
-                    <span>🔧</span> What to Improve
-                  </p>
-                  <div class="whitespace-pre-line rounded border border-[rgba(255,180,0,0.18)] bg-[var(--bg)] px-3 py-2 [font-family:var(--font-body)] text-[0.75rem] leading-relaxed text-[var(--text-primary)]">
-                    {aiScoring.improvements}
-                  </div>
-                </div>
-              {/if}
-
-              <!-- Next Time Tips -->
-              {#if aiScoring.nextTime}
-                <div>
-                  <p class="mb-1 flex items-center gap-1 [font-family:var(--font-mono)] text-[0.65rem] tracking-[0.12em] uppercase text-[var(--success)]">
-                    <span>💡</span> Next Time
-                  </p>
-                  <div class="whitespace-pre-line rounded border border-[rgba(0,229,160,0.18)] bg-[var(--bg)] px-3 py-2 [font-family:var(--font-body)] text-[0.75rem] leading-relaxed text-[var(--text-primary)]">
-                    {aiScoring.nextTime}
-                  </div>
-                </div>
-              {/if}
-            </div>
-          {/if}
-        </div>
-      {:else if aiScoring.loading}
-        <div class="mb-5 flex items-center gap-3 rounded-[6px] border border-[rgba(7,165,201,0.25)] bg-[rgba(10,14,26,0.9)] px-4 py-3">
-          <div class="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent"></div>
-          <p class="[font-family:var(--font-mono)] text-[0.72rem] text-[var(--accent)]">Analyzing your code…</p>
-        </div>
-      {/if}
-
-      <div class="flex justify-center gap-4 mb-7">
-        <!-- XP badge -->
-        <div class="fade-up-anim flex items-center gap-1.5 rounded-[4px] border border-[rgba(22,163,74,0.30)] bg-[rgba(15,34,16,0.8)] px-4 py-2.5">
-          <span class="text-[1.1rem]">⚡</span>
-          <span class="[font-family:var(--font-mono)] text-[1.5rem] font-extrabold text-[var(--success)]">+{submitRewards.xp}</span>
-          <span class="self-end pb-0.5 [font-family:var(--font-heading)] text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--text-muted)]">XP</span>
-        </div>
-        <!-- Coin badge -->
-        <div class="fade-up-anim [animation-delay:0.25s] flex items-center gap-1.5 rounded-[4px] border border-[rgba(180,83,0,0.30)] bg-[rgba(31,21,8,0.8)] px-4 py-2.5">
-          <span class="text-[1.1rem]">🪙</span>
-          <span class="[font-family:var(--font-mono)] text-[1.5rem] font-extrabold text-[var(--warn)]">+{submitRewards.coins}</span>
-          <span class="self-end pb-0.5 [font-family:var(--font-heading)] text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--text-muted)]">Coins</span>
-        </div>
-      </div>
-
-      <div class="flex justify-center gap-3">
-        {#if advancingToNextLevel}
-          <button
-            on:click={handleContinueWorking}
-            class="btn-cyber fade-up-anim cursor-pointer border border-[rgba(0,229,160,0.55)] bg-[rgba(0,229,160,0.12)] !px-5 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] text-[var(--success)] shadow-[0_0_16px_rgba(0,229,160,0.25)] transition-all duration-200 hover:-translate-y-[1px] hover:border-[rgba(0,229,160,0.8)] hover:bg-[rgba(0,229,160,0.2)]"
-          >
-            Continue Working →
-          </button>
-        {/if}
-        <button
-          on:click={handleDone}
-          class="btn-cyber btn-cyber-solid fade-up-anim {advancingToNextLevel ? '[animation-delay:0.1s]' : ''} cursor-pointer !px-7 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] shadow-[0_0_16px_var(--accent-glow)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_0_26px_var(--accent-glow)]"
-        >
-          Back to Dashboard
-        </button>
-      </div>
-    </div>
+    <SubmitSprintSuccessContent
+      {advancingToNextLevel}
+      {aiScoring}
+      {submitRewards}
+      on:done={handleDone}
+      on:continue={handleContinueWorking}
+    />
   </svelte:fragment>
 </ConfirmationModal>
 
-<style>
-  .success-card {
-    animation: success-pane-in 0.28s ease-out both;
-  }
-
-  .burst-anim {
-    animation: burst-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-  @keyframes burst-pop {
-    from { transform: scale(0.3); opacity: 0; }
-    to   { transform: scale(1);   opacity: 1; }
-  }
-  .fade-up-anim {
-    animation: fade-up 0.4s 0.15s ease both;
-  }
-  @keyframes fade-up {
-    from { transform: translateY(10px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-
-  @keyframes success-pane-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-</style>
+<ConfirmationModal
+  bind:open={showCancelConfirmModal}
+  icon="⚠"
+  iconVariant="warning"
+  title="Cancel Submission?"
+  subtitle="This will stop test/submit progress for this run"
+  description="Are you sure you want to cancel this submission process?"
+  confirmLabel="Yes, Cancel"
+  cancelLabel="No, Continue"
+  variant="warning"
+  isLoading={cancelingSubmit}
+  loadingLabel="Canceling…"
+  on:confirm={confirmCancelSubmission}
+  on:cancel={dismissCancelConfirmation}
+/>
