@@ -63,42 +63,43 @@
 
 {#if open}
   <div
-    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-4 backdrop-blur-[6px]"
+    class="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-4 backdrop-blur-[6px]"
     role="dialog"
     aria-modal="true"
     tabindex="-1"
     on:click={(e) => e.target === e.currentTarget && close()}
     on:keydown={(e) => e.key === 'Escape' && close()}
   >
-    <div class="relative flex max-h-[85vh] w-[min(520px,95vw)] flex-col overflow-hidden rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[var(--bg-light)] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_rgba(7,165,201,0.15),0_24px_60px_rgba(0,0,0,0.6)]">
-      <div class="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(7,165,201,0.5),transparent)]" aria-hidden="true"></div>
+    <div class="modal-card-in relative flex max-h-[85vh] w-[min(560px,95vw)] flex-col overflow-hidden rounded-[4px] border border-[var(--card-border)] bg-[var(--bg-light)] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_var(--accent-glow),0_24px_60px_rgba(0,0,0,0.6)]">
+      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-35" aria-hidden="true"></div>
+      <div class="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent),transparent)]" aria-hidden="true"></div>
       <div class="flex items-center justify-between border-b border-[rgba(7,165,201,0.1)] px-6 py-5">
         <div class="flex items-center gap-3.5">
-          <div class="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.1)] text-[var(--accent)]">
+          <div class="pulse-icon flex h-10 w-10 items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.1)] text-[var(--accent)]">
             <Beaker class="w-5 h-5" />
           </div>
           <div>
-            <h2 class="font-['Orbitron',monospace] text-base font-bold tracking-[0.02em] text-[var(--text-primary)]">Run Tests</h2>
-            <p class="mt-1 font-['Share_Tech_Mono',monospace] text-xs text-[var(--text-muted)]">Level {level} · {testableTasks.length} testable tasks</p>
+            <h2 class="[font-family:var(--font-heading)] text-base font-bold tracking-[0.08em] uppercase text-[var(--text-primary)]">Run Tests</h2>
+            <p class="mt-1 [font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">Level {level} · {testableTasks.length} testable tasks</p>
           </div>
         </div>
         <button
-          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[4px] border-none bg-transparent text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:bg-[rgba(255,56,96,0.08)] hover:text-[var(--danger)]"
+          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[4px] border border-transparent bg-transparent text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(255,56,96,0.25)] hover:bg-[rgba(255,56,96,0.08)] hover:text-[var(--danger)]"
           on:click={close}
         >
           <X class="w-5 h-5" />
         </button>
       </div>
-      <div class="flex-1 overflow-y-auto px-6 py-4">
+      <div class="relative flex-1 overflow-y-auto px-6 py-4">
         {#if !hasTestableTasks}
           <div class="px-4 py-12 text-center text-[var(--text-muted)]">
             <Beaker class="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <h3 class="mb-2 font-['Orbitron',monospace] text-sm font-semibold text-[var(--text-primary)]">No Tests Available</h3>
-            <p class="text-xs leading-6">This level does not have any automated tests configured yet.</p>
+            <h3 class="mb-2 [font-family:var(--font-heading)] text-sm font-semibold tracking-[0.06em] uppercase text-[var(--text-primary)]">No Tests Available</h3>
+            <p class="[font-family:var(--font-body)] text-xs leading-6">This level does not have any automated tests configured yet.</p>
           </div>
         {:else}
           <button
-            class="mb-3 flex cursor-pointer items-center gap-2 rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[rgba(7,165,201,0.05)] px-3 py-2 font-['Orbitron',monospace] text-[0.6875rem] font-semibold text-[var(--accent)] transition-all duration-150 ease-in-out hover:border-[rgba(7,165,201,0.25)] hover:bg-[rgba(7,165,201,0.1)]"
+            class="btn-cyber btn-cyber-outline mb-3 flex cursor-pointer items-center gap-2 !px-3 !py-2 [font-family:var(--font-mono)] !text-[0.65rem] !font-semibold"
             on:click={selectAll}
           >
             {#if allSelected}
@@ -109,14 +110,14 @@
             <span>{allSelected ? 'Deselect All' : 'Select All'}</span>
           </button>
           <div class="flex flex-col gap-1.5">
-            {#each tasks as task (task.id)}
+            {#each tasks as task, idx (task.id)}
               {@const hasTest = task.hasClientTest || task.hasServerTest}
               {@const isSelected = selectedTasks.has(task.id)}
               {@const isRunning = task.testStatus === 'running'}
               {@const isPassed = task.testStatus === 'passed'}
               {@const isFailed = task.testStatus === 'failed'}
               <div
-                class="flex items-center gap-2.5 rounded-[4px] border border-[rgba(136,146,160,0.1)] bg-[rgba(10,14,26,0.5)] px-3 py-2.5"
+                class="task-row flex items-center gap-2.5 rounded-[4px] border border-[rgba(136,146,160,0.1)] bg-[rgba(10,14,26,0.72)] px-3 py-2.5 transition-all duration-200"
                 class:opacity-60={!hasTest}
                 class:opacity-100={hasTest}
                 class:cursor-pointer={hasTest}
@@ -126,6 +127,7 @@
                 class:border-[rgba(0,229,160,0.25)]={isPassed}
                 class:bg-[rgba(255,56,96,0.08)]={isFailed}
                 class:border-[rgba(255,56,96,0.25)]={isFailed}
+                style="animation-delay: {idx * 45}ms"
               >
                 {#if hasTest}
                   <button
@@ -146,7 +148,7 @@
                 {/if}
                 <div class="flex min-w-0 flex-1 flex-col gap-1">
                   <span
-                    class="truncate text-[0.8125rem] font-medium text-[var(--text-primary)]"
+                    class="truncate [font-family:var(--font-body)] text-[0.86rem] font-medium text-[var(--text-primary)]"
                     class:line-through={task.isCompleted}
                     class:opacity-60={task.isCompleted}
                   >
@@ -154,19 +156,19 @@
                   </span>
                   <div class="flex flex-wrap gap-1.5">
                     {#if task.hasClientTest}
-                      <span class="rounded-[2px] bg-[rgba(0,229,160,0.1)] px-1.5 py-0.5 font-['Orbitron',monospace] text-[0.625rem] font-semibold uppercase tracking-[0.04em] text-[var(--success)]">Client</span>
+                      <span class="tag-cyber tag-green">Client</span>
                     {/if}
                     {#if task.hasServerTest}
-                      <span class="rounded-[2px] bg-[rgba(7,165,201,0.1)] px-1.5 py-0.5 font-['Orbitron',monospace] text-[0.625rem] font-semibold uppercase tracking-[0.04em] text-[var(--accent)]">Server</span>
+                      <span class="tag-cyber tag-cyan">Server</span>
                     {/if}
                     {#if !hasTest}
-                      <span class="rounded-[2px] bg-[rgba(136,146,160,0.1)] px-1.5 py-0.5 font-['Orbitron',monospace] text-[0.625rem] font-semibold uppercase tracking-[0.04em] text-[var(--text-muted)]">No tests</span>
+                      <span class="tag-cyber border border-[rgba(136,146,160,0.35)] bg-[rgba(136,146,160,0.12)] text-[var(--text-muted)]">No tests</span>
                     {/if}
                   </div>
                 </div>
                 {#if hasTest}
                   <button
-                    class="flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(7,165,201,0.08)] p-0 text-[var(--accent)] transition-all duration-150 ease-in-out hover:border-[rgba(7,165,201,0.35)] hover:bg-[rgba(7,165,201,0.15)] disabled:cursor-not-allowed disabled:opacity-50"
+                    class="flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(7,165,201,0.08)] p-0 text-[var(--accent)] transition-all duration-150 ease-in-out hover:-translate-y-[1px] hover:border-[rgba(7,165,201,0.35)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_14px_var(--accent-glow)] disabled:cursor-not-allowed disabled:opacity-50"
                     on:click={() => runSingleTask(task)}
                     disabled={loading || isRunning}
                     title="Run this task's tests"
@@ -190,18 +192,18 @@
       </div>
       {#if hasTestableTasks}
         <div class="flex items-center justify-between border-t border-[rgba(7,165,201,0.1)] bg-[rgba(7,165,201,0.02)] px-6 py-4">
-          <span class="font-['Share_Tech_Mono',monospace] text-xs text-[var(--text-muted)]">
+          <span class="[font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">
             {selectedCount} task{selectedCount !== 1 ? 's' : ''} selected
           </span>
           <div class="flex gap-3">
             <button
-              class="cursor-pointer rounded-[3px] border border-[rgba(136,146,160,0.3)] bg-transparent px-[1.125rem] py-[0.625rem] font-['Orbitron',monospace] text-[0.6875rem] font-semibold text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(136,146,160,0.5)] hover:bg-[rgba(136,146,160,0.08)] hover:text-[var(--text-primary)]"
+              class="btn-cyber cursor-pointer border border-[rgba(136,146,160,0.3)] bg-transparent !px-[1.125rem] !py-[0.625rem] [font-family:var(--font-heading)] !text-[0.6875rem] font-semibold text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(136,146,160,0.5)] hover:bg-[rgba(136,146,160,0.08)] hover:text-[var(--text-primary)]"
               on:click={close}
             >
               Cancel
             </button>
             <button
-              class="flex cursor-pointer items-center gap-1.5 rounded-[3px] border-none bg-[var(--accent)] px-[1.125rem] py-[0.625rem] font-['Orbitron',monospace] text-[0.6875rem] font-semibold text-[var(--bg)] shadow-[0_0_16px_rgba(7,165,201,0.35)] transition-all duration-150 ease-in-out hover:bg-[var(--cyan-bright)] hover:shadow-[0_0_26px_rgba(0,245,255,0.5)] disabled:cursor-not-allowed disabled:opacity-50"
+              class="btn-cyber btn-cyber-solid flex cursor-pointer items-center gap-1.5 !px-[1.125rem] !py-[0.625rem] [font-family:var(--font-heading)] !text-[0.6875rem] font-semibold shadow-[0_0_16px_var(--accent-glow)] hover:shadow-[0_0_26px_var(--accent-glow)] disabled:cursor-not-allowed disabled:opacity-50"
               on:click={runSelected}
               disabled={loading || selectedCount === 0}
             >
@@ -218,7 +220,7 @@
       {:else}
         <div class="flex justify-end border-t border-[rgba(7,165,201,0.1)] bg-[rgba(7,165,201,0.02)] px-6 py-4">
           <button
-            class="cursor-pointer rounded-[3px] border border-[rgba(136,146,160,0.3)] bg-transparent px-[1.125rem] py-[0.625rem] font-['Orbitron',monospace] text-[0.6875rem] font-semibold text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(136,146,160,0.5)] hover:bg-[rgba(136,146,160,0.08)] hover:text-[var(--text-primary)]"
+            class="btn-cyber cursor-pointer border border-[rgba(136,146,160,0.3)] bg-transparent !px-[1.125rem] !py-[0.625rem] [font-family:var(--font-heading)] !text-[0.6875rem] font-semibold text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(136,146,160,0.5)] hover:bg-[rgba(136,146,160,0.08)] hover:text-[var(--text-primary)]"
             on:click={close}
           >
             Close
@@ -228,3 +230,57 @@
     </div>
   </div>
 {/if}
+
+<style>
+  .modal-backdrop {
+    animation: modal-fade-in 0.2s ease-out both;
+  }
+
+  .modal-card-in {
+    animation: modal-slide-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .task-row {
+    animation: task-stagger-in 0.24s ease-out both;
+  }
+
+  .pulse-icon {
+    animation: icon-pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes modal-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes modal-slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes task-stagger-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes icon-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 rgba(7, 165, 201, 0);
+    }
+    50% {
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+  }
+</style>

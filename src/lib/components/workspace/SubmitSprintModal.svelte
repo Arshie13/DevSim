@@ -438,71 +438,71 @@
   <!-- Default slot: body changes per state -->
   {#if state === 'confirm'}
     <!-- Task summary -->
-    <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3.5 mb-4">
-      <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2.5">Sprint tasks</p>
+    <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3.5">
+      <p class="mb-2.5 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">Sprint tasks</p>
       <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
         {#each tasks as task}
-          <li class="flex items-center gap-2.5 font-mono text-[0.88rem] {task.isCompleted ? 'opacity-100' : 'opacity-35'}">
-            <span class="font-bold w-4 text-center {task.isCompleted ? 'text-[#00e5a0]' : 'text-[#2d3446]'}">
+          <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.88rem] transition-opacity duration-150 {task.isCompleted ? 'opacity-100' : 'opacity-35'}">
+            <span class="w-4 text-center font-bold {task.isCompleted ? 'text-[var(--success)]' : 'text-[var(--surface)]'}">
               {task.isCompleted ? '✓' : '○'}
             </span>
-            <span class="{task.isCompleted ? 'text-[#d0d7dd]' : 'text-[#8892a0] line-through'}">
+            <span class="{task.isCompleted ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] line-through'}">
               {task.taskName}
             </span>
           </li>
         {/each}
       </ul>
-      <p class="mt-2.5 font-mono text-[0.75rem] text-[#8892a0] text-right">{completedCount} / {tasks.length} completed</p>
+      <p class="mt-2.5 text-right [font-family:var(--font-mono)] text-[0.75rem] text-[var(--text-muted)]">{completedCount} / {tasks.length} completed</p>
     </div>
 
     <!-- File changes summary -->
     {#if loadingFileChanges}
-      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
-        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2">Loading file changes...</p>
+      <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3">
+        <p class="mb-2 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">Loading file changes...</p>
       </div>
     {:else if fileChanges && fileChanges.totalChanges > 0}
-      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
-        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2.5">Files modified</p>
+      <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3">
+        <p class="mb-2.5 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">Files modified</p>
         <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
           {#if fileChanges.created.length > 0}
             {#each fileChanges.created as file}
-              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
-                <span class="font-bold w-4 text-center text-[#00e5a0]">+</span>
-                <span class="text-[#d0d7dd]">{file}</span>
+              <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.82rem]">
+                <span class="w-4 text-center font-bold text-[var(--success)]">+</span>
+                <span class="text-[var(--text-primary)]">{file}</span>
               </li>
             {/each}
           {/if}
           {#if fileChanges.modified.length > 0}
             {#each fileChanges.modified as file}
-              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
-                <span class="font-bold w-4 text-center text-[#fbbf24]">•</span>
-                <span class="text-[#d0d7dd]">{file}</span>
+              <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.82rem]">
+                <span class="w-4 text-center font-bold text-[var(--warn)]">•</span>
+                <span class="text-[var(--text-primary)]">{file}</span>
               </li>
             {/each}
           {/if}
           {#if fileChanges.renamed.length > 0}
             {#each fileChanges.renamed as rename}
-              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
-                <span class="font-bold w-4 text-center text-[#60a5fa]">→</span>
-                <span class="text-[#d0d7dd]">{rename.from} → {rename.to}</span>
+              <li class="flex items-center gap-2.5 [font-family:var(--font-mono)] text-[0.82rem]">
+                <span class="w-4 text-center font-bold text-[var(--accent)]">→</span>
+                <span class="text-[var(--text-primary)]">{rename.from} → {rename.to}</span>
               </li>
             {/each}
           {/if}
         </ul>
-        <p class="mt-2.5 font-mono text-[0.75rem] text-[#8892a0] text-right">{fileChanges.totalChanges} file(s) changed</p>
+        <p class="mt-2.5 text-right [font-family:var(--font-mono)] text-[0.75rem] text-[var(--text-muted)]">{fileChanges.totalChanges} file(s) changed</p>
       </div>
     {:else}
-      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
-        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2">No files modified</p>
+      <div class="card-cyber mb-4 bg-[var(--bg)] px-4 py-3">
+        <p class="mb-2 [font-family:var(--font-mono)] text-[0.75rem] tracking-[0.1em] uppercase text-[var(--text-muted)]">No files modified</p>
       </div>
     {/if}
 
     <!-- Reward preview chips -->
     <div class="flex gap-2.5 mb-1">
-      <div class="flex-1 text-center py-2 rounded-[4px] font-mono text-[0.82rem] tracking-[0.04em] border bg-[rgba(15,34,16,0.8)] border-[rgba(22,163,74,0.25)] text-[#4ade80]">
+      <div class="flex-1 rounded-[4px] border border-[rgba(22,163,74,0.25)] bg-[rgba(15,34,16,0.8)] py-2 text-center [font-family:var(--font-mono)] text-[0.82rem] tracking-[0.04em] text-[var(--success)]">
         ⚡ XP incoming
       </div>
-      <div class="flex-1 text-center py-2 rounded-[4px] font-mono text-[0.82rem] tracking-[0.04em] border bg-[rgba(31,21,8,0.8)] border-[rgba(202,138,4,0.25)] text-[#fbbf24]">
+      <div class="flex-1 rounded-[4px] border border-[rgba(202,138,4,0.25)] bg-[rgba(31,21,8,0.8)] py-2 text-center [font-family:var(--font-mono)] text-[0.82rem] tracking-[0.04em] text-[var(--warn)]">
         🪙 Coins incoming
       </div>
     </div>
@@ -521,12 +521,12 @@
 
   <!-- Success slot -->
   <svelte:fragment slot="success">
-    <div class="text-center py-2">
+    <div class="success-card text-center py-2">
       <div class="text-5xl burst-anim" aria-hidden="true">🎉</div>
-      <h2 class="mt-2.5 mb-1 font-['Chakra_Petch',sans-serif] text-[1.6rem] font-bold tracking-[0.08em] text-[#d0d7dd]">
+      <h2 class="mb-1 mt-2.5 [font-family:var(--font-heading)] text-[1.6rem] font-bold tracking-[0.08em] text-[var(--text-primary)]">
         {advancingToNextLevel ? 'Level Complete!' : 'Sprint Complete!'}
       </h2>
-      <p class="font-mono text-[0.85rem] text-[#8892a0] mb-6">
+      <p class="mb-6 [font-family:var(--font-mono)] text-[0.85rem] text-[var(--text-muted)]">
         {advancingToNextLevel 
           ? 'Great job! You can continue working on the next level.' 
           : 'Your workspace has been submitted successfully.'}
@@ -534,22 +534,22 @@
 
       <!-- AI Scoring Display -->
       {#if aiScoring.done && !aiScoring.loading}
-        <div class="mb-5 bg-[#0d1321] border border-[rgba(99,102,241,0.25)] rounded-[6px] overflow-hidden">
+        <div class="mb-5 overflow-hidden rounded-[6px] border border-[rgba(7,165,201,0.25)] bg-[rgba(10,14,26,0.9)]">
           <!-- Always-visible summary row -->
           <div class="flex items-center justify-between px-4 py-3">
             <div class="flex items-center gap-2">
               {#each [1, 2, 3] as star}
-                <span class="text-xl {star <= aiScoring.stars ? 'text-[#fbbf24]' : 'text-[#2d3446]'}">
+                <span class="text-xl {star <= aiScoring.stars ? 'text-[var(--warn)]' : 'text-[var(--surface)]'}">
                   {star <= aiScoring.stars ? '★' : '☆'}
                 </span>
               {/each}
-              <span class="font-mono text-sm font-bold ml-1 {aiScoring.score >= 75 ? 'text-[#4ade80]' : aiScoring.score >= 50 ? 'text-[#fbbf24]' : 'text-[#f97316]'}">
-                {aiScoring.score}<span class="text-[#6b7280] font-normal">/100</span>
+              <span class="ml-1 [font-family:var(--font-mono)] text-sm font-bold {aiScoring.score >= 75 ? 'text-[var(--success)]' : aiScoring.score >= 50 ? 'text-[var(--warn)]' : 'text-[var(--danger)]'}">
+                {aiScoring.score}<span class="font-normal text-[var(--text-muted)]">/100</span>
               </span>
             </div>
             <button
               on:click={() => aiReviewOpen = !aiReviewOpen}
-              class="font-mono text-[0.7rem] text-[#6366f1] hover:text-[#818cf8] transition-colors flex items-center gap-1"
+              class="flex items-center gap-1 [font-family:var(--font-mono)] text-[0.7rem] text-[var(--accent)] transition-colors hover:text-[var(--cyan-bright)]"
             >
               {aiReviewOpen ? 'Hide' : 'View'} feedback
               <span class="transition-transform duration-200 {aiReviewOpen ? 'rotate-180' : ''}">▾</span>
@@ -558,19 +558,19 @@
 
           <!-- Collapsible detail -->
           {#if aiReviewOpen}
-            <div class="border-t border-[rgba(99,102,241,0.15)] px-4 py-3 text-left space-y-3 max-h-[200px] overflow-y-auto scrollbar-thin">
+            <div class="border-t border-[rgba(7,165,201,0.15)] px-4 py-3 text-left space-y-3 max-h-[200px] overflow-y-auto scrollbar-thin">
               <!-- Overall Feedback -->
-              <p class="font-mono text-[0.78rem] text-[#9ca3af] leading-relaxed">
+              <p class="[font-family:var(--font-mono)] text-[0.78rem] leading-relaxed text-[var(--text-muted)]">
                 {aiScoring.feedback}
               </p>
 
               <!-- Improvements -->
               {#if aiScoring.improvements}
                 <div>
-                  <p class="font-mono text-[0.65rem] tracking-[0.12em] uppercase text-[#fbbf24] mb-1 flex items-center gap-1">
+                  <p class="mb-1 flex items-center gap-1 [font-family:var(--font-mono)] text-[0.65rem] tracking-[0.12em] uppercase text-[var(--warn)]">
                     <span>🔧</span> What to Improve
                   </p>
-                  <div class="font-mono text-[0.75rem] text-[#d0d7dd] leading-relaxed whitespace-pre-line bg-[#0a0e1a] rounded px-3 py-2 border border-[rgba(251,191,36,0.12)]">
+                  <div class="whitespace-pre-line rounded border border-[rgba(255,180,0,0.18)] bg-[var(--bg)] px-3 py-2 [font-family:var(--font-body)] text-[0.75rem] leading-relaxed text-[var(--text-primary)]">
                     {aiScoring.improvements}
                   </div>
                 </div>
@@ -579,10 +579,10 @@
               <!-- Next Time Tips -->
               {#if aiScoring.nextTime}
                 <div>
-                  <p class="font-mono text-[0.65rem] tracking-[0.12em] uppercase text-[#4ade80] mb-1 flex items-center gap-1">
+                  <p class="mb-1 flex items-center gap-1 [font-family:var(--font-mono)] text-[0.65rem] tracking-[0.12em] uppercase text-[var(--success)]">
                     <span>💡</span> Next Time
                   </p>
-                  <div class="font-mono text-[0.75rem] text-[#d0d7dd] leading-relaxed whitespace-pre-line bg-[#0a0e1a] rounded px-3 py-2 border border-[rgba(74,222,128,0.12)]">
+                  <div class="whitespace-pre-line rounded border border-[rgba(0,229,160,0.18)] bg-[var(--bg)] px-3 py-2 [font-family:var(--font-body)] text-[0.75rem] leading-relaxed text-[var(--text-primary)]">
                     {aiScoring.nextTime}
                   </div>
                 </div>
@@ -591,24 +591,24 @@
           {/if}
         </div>
       {:else if aiScoring.loading}
-        <div class="mb-5 px-4 py-3 bg-[#0d1321] border border-[rgba(99,102,241,0.25)] rounded-[6px] flex items-center gap-3">
-          <div class="w-4 h-4 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-          <p class="font-mono text-[0.72rem] text-[#6366f1]">Analyzing your code…</p>
+        <div class="mb-5 flex items-center gap-3 rounded-[6px] border border-[rgba(7,165,201,0.25)] bg-[rgba(10,14,26,0.9)] px-4 py-3">
+          <div class="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent"></div>
+          <p class="[font-family:var(--font-mono)] text-[0.72rem] text-[var(--accent)]">Analyzing your code…</p>
         </div>
       {/if}
 
       <div class="flex justify-center gap-4 mb-7">
         <!-- XP badge -->
-        <div class="flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] border bg-[rgba(15,34,16,0.8)] border-[rgba(22,163,74,0.30)] fade-up-anim">
+        <div class="fade-up-anim flex items-center gap-1.5 rounded-[4px] border border-[rgba(22,163,74,0.30)] bg-[rgba(15,34,16,0.8)] px-4 py-2.5">
           <span class="text-[1.1rem]">⚡</span>
-          <span class="font-mono text-[1.5rem] font-extrabold text-[#4ade80]">+{submitRewards.xp}</span>
-          <span class="font-['Chakra_Petch',sans-serif] text-[0.72rem] font-semibold tracking-[0.12em] text-[#8892a0] self-end pb-0.5">XP</span>
+          <span class="[font-family:var(--font-mono)] text-[1.5rem] font-extrabold text-[var(--success)]">+{submitRewards.xp}</span>
+          <span class="self-end pb-0.5 [font-family:var(--font-heading)] text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--text-muted)]">XP</span>
         </div>
         <!-- Coin badge -->
-        <div class="flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] border bg-[rgba(31,21,8,0.8)] border-[rgba(180,83,0,0.30)] fade-up-anim [animation-delay:0.25s]">
+        <div class="fade-up-anim [animation-delay:0.25s] flex items-center gap-1.5 rounded-[4px] border border-[rgba(180,83,0,0.30)] bg-[rgba(31,21,8,0.8)] px-4 py-2.5">
           <span class="text-[1.1rem]">🪙</span>
-          <span class="font-mono text-[1.5rem] font-extrabold text-[#fbbf24]">+{submitRewards.coins}</span>
-          <span class="font-['Chakra_Petch',sans-serif] text-[0.72rem] font-semibold tracking-[0.12em] text-[#8892a0] self-end pb-0.5">Coins</span>
+          <span class="[font-family:var(--font-mono)] text-[1.5rem] font-extrabold text-[var(--warn)]">+{submitRewards.coins}</span>
+          <span class="self-end pb-0.5 [font-family:var(--font-heading)] text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--text-muted)]">Coins</span>
         </div>
       </div>
 
@@ -616,16 +616,14 @@
         {#if advancingToNextLevel}
           <button
             on:click={handleContinueWorking}
-            class="px-5 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-white border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 fade-up-anim"
-            style="background:linear-gradient(135deg,#10b981,#059669);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(16,185,129,0.35);"
+            class="btn-cyber fade-up-anim cursor-pointer border border-[rgba(0,229,160,0.55)] bg-[rgba(0,229,160,0.12)] !px-5 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] text-[var(--success)] shadow-[0_0_16px_rgba(0,229,160,0.25)] transition-all duration-200 hover:-translate-y-[1px] hover:border-[rgba(0,229,160,0.8)] hover:bg-[rgba(0,229,160,0.2)]"
           >
             Continue Working →
           </button>
         {/if}
         <button
           on:click={handleDone}
-          class="px-7 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-[#0a0e1a] border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 hover:text-white fade-up-anim {advancingToNextLevel ? '[animation-delay:0.1s]' : ''}"
-          style="background:linear-gradient(135deg,#07a5c9,#6366f1);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(7,165,201,0.35);"
+          class="btn-cyber btn-cyber-solid fade-up-anim {advancingToNextLevel ? '[animation-delay:0.1s]' : ''} cursor-pointer !px-7 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] shadow-[0_0_16px_var(--accent-glow)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_0_26px_var(--accent-glow)]"
         >
           Back to Dashboard
         </button>
@@ -635,6 +633,10 @@
 </ConfirmationModal>
 
 <style>
+  .success-card {
+    animation: success-pane-in 0.28s ease-out both;
+  }
+
   .burst-anim {
     animation: burst-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
@@ -648,5 +650,10 @@
   @keyframes fade-up {
     from { transform: translateY(10px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  @keyframes success-pane-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 </style>

@@ -3,6 +3,7 @@
   import { Beaker, ChevronDown } from 'lucide-svelte';
   import TestSelectionModal from '$components/workspace/TestSelectionModal.svelte';
   import TestResultModal from '$components/workspace/TestResultModal.svelte';
+  import ConfirmationModal from '$lib/components/ui/ConfirmationModal.svelte';
   import type { TestableTask, TestRunResult } from '$lib/types/test';
   import { toast } from '$lib/stores/toast';
 
@@ -13,14 +14,25 @@
 
   let showSelectionModal = false;
   let showResultModal = false;
+  let showCancelConfirmModal = false;
   let testLoading = false;
   let testResult: TestRunResult | null = null;
+  let activeTestAbortController: AbortController | null = null;
+  let runningTaskIds: string[] = [];
+  let runningTaskPrevStatus = new Map<string, TestableTask['testStatus']>();
+  let suppressCompletionDispatch = false;
 
   const dispatch = createEventDispatcher<{
     testsComplete: { success: boolean; result: TestRunResult };
   }>();
 
   function openTestModal() {
+    if (testLoading) {
+      showResultModal = true;
+      showSelectionModal = false;
+      return;
+    }
+
     showSelectionModal = true;
   }
 
@@ -28,8 +40,84 @@
     showSelectionModal = false;
   }
 
-  function closeResultModal() {
+  function closeResultModal(event?: CustomEvent<{ source: 'x' | 'footer' | 'backdrop' | 'escape' }>) {
+    const source = event?.detail?.source;
+
+    if (testLoading && source === 'x') {
+      showResultModal = false;
+      showCancelConfirmModal = true;
+      return;
+    }
+
     showResultModal = false;
+  }
+
+  function handleCancelConfirmDismiss() {
+    showCancelConfirmModal = false;
+    if (testLoading) {
+      showResultModal = true;
+    }
+  }
+
+  async function handleCancelConfirmAccept() {
+    showCancelConfirmModal = false;
+    await cancelRunningTests();
+  }
+
+  function markTasksRunning(taskIds: string[]) {
+    runningTaskIds = taskIds;
+    runningTaskPrevStatus = new Map<string, TestableTask['testStatus']>();
+
+    for (const task of tasks) {
+      if (taskIds.includes(task.id)) {
+        runningTaskPrevStatus.set(task.id, task.testStatus ?? 'pending');
+      }
+    }
+
+    tasks = tasks.map((task) =>
+      taskIds.includes(task.id) ? { ...task, testStatus: 'running' } : task
+    );
+  }
+
+  function restoreRunningTaskStatuses() {
+    if (!runningTaskIds.length) return;
+
+    tasks = tasks.map((task) => {
+      if (!runningTaskIds.includes(task.id)) return task;
+      return {
+        ...task,
+        testStatus: runningTaskPrevStatus.get(task.id) ?? 'pending'
+      };
+    });
+
+    runningTaskIds = [];
+    runningTaskPrevStatus = new Map<string, TestableTask['testStatus']>();
+  }
+
+  function clearRunningTaskTracking() {
+    runningTaskIds = [];
+    runningTaskPrevStatus = new Map<string, TestableTask['testStatus']>();
+  }
+
+  async function cancelRunningTests() {
+    suppressCompletionDispatch = true;
+    activeTestAbortController?.abort();
+    activeTestAbortController = null;
+
+    restoreRunningTaskStatuses();
+    showResultModal = false;
+    testLoading = false;
+
+    try {
+      await fetch(`/api/docker/container/${containerId}/tests/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (cancelError) {
+      console.warn('[TEST RUN] Failed to request test cancellation:', cancelError);
+    }
+
+    toast.info('Test run canceled');
   }
 
   async function runTaskTest(event: CustomEvent<{ taskId: string; taskName: string }>) {
@@ -37,6 +125,10 @@
     showSelectionModal = false;
     testLoading = true;
     showResultModal = true;
+    suppressCompletionDispatch = false;
+    markTasksRunning([taskId]);
+    const abortController = new AbortController();
+    activeTestAbortController = abortController;
 
     try {
       const task = tasks.find(t => t.id === taskId);
@@ -65,6 +157,7 @@
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           command: testCommand,
           level,
@@ -98,6 +191,7 @@
             ? { ...t, testStatus: data.passed ? 'passed' : 'failed' }
             : t
         );
+        clearRunningTaskTracking();
 
         if (data.passed) {
           toast.success(`Tests passed for "${taskName}"`);
@@ -105,9 +199,14 @@
           toast.error(`Tests failed for "${taskName}"`);
         }
       } else {
+        clearRunningTaskTracking();
         throw new Error(data.message || 'Test execution failed');
       }
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return;
+      }
+
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       testResult = {
         success: false,
@@ -122,10 +221,22 @@
         }],
         output: errorMessage
       };
+      clearRunningTaskTracking();
       toast.error(`Test failed: ${errorMessage}`);
     } finally {
+      if (activeTestAbortController === abortController) {
+        activeTestAbortController = null;
+      }
       testLoading = false;
-      dispatch('testsComplete', { success: testResult?.success ?? false, result: testResult! });
+
+      if (suppressCompletionDispatch) {
+        suppressCompletionDispatch = false;
+        return;
+      }
+
+      if (testResult) {
+        dispatch('testsComplete', { success: testResult.success, result: testResult });
+      }
     }
   }
 
@@ -134,12 +245,17 @@
     showSelectionModal = false;
     testLoading = true;
     showResultModal = true;
+    suppressCompletionDispatch = false;
+    markTasksRunning(taskIds);
+    const abortController = new AbortController();
+    activeTestAbortController = abortController;
 
     try {
       // Run grouped level tests
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           command: `test:tasks:l${level}`,
           level,
@@ -167,6 +283,7 @@
             return result ? { ...t, testStatus: result.passed ? 'passed' : 'failed' } : t;
           });
         }
+        clearRunningTaskTracking();
 
         if (data.passed) {
           toast.success('All level tests passed!');
@@ -174,9 +291,14 @@
           toast.error('Some tests failed. Review the results.');
         }
       } else {
+        clearRunningTaskTracking();
         throw new Error(data.message || 'Test execution failed');
       }
     } catch (err2) {
+      if (err2 instanceof DOMException && err2.name === 'AbortError') {
+        return;
+      }
+
       const errorMessage = err2 instanceof Error ? err2.message : 'Unknown error';
       testResult = {
         success: false,
@@ -185,10 +307,22 @@
         taskResults: [],
         output: errorMessage
       };
+      clearRunningTaskTracking();
       toast.error(`Tests failed: ${errorMessage}`);
     } finally {
+      if (activeTestAbortController === abortController) {
+        activeTestAbortController = null;
+      }
       testLoading = false;
-      dispatch('testsComplete', { success: testResult?.success ?? false, result: testResult! });
+
+      if (suppressCompletionDispatch) {
+        suppressCompletionDispatch = false;
+        return;
+      }
+
+      if (testResult) {
+        dispatch('testsComplete', { success: testResult.success, result: testResult });
+      }
     }
   }
 
@@ -214,15 +348,20 @@
   export async function runAllLevelTests(): Promise<TestRunResult> {
     testLoading = true;
     showResultModal = true;
+    suppressCompletionDispatch = false;
 
     const taskIds = tasks
       .filter((task) => task.hasClientTest || task.hasServerTest)
       .map((task) => task.id);
+    markTasksRunning(taskIds);
+    const abortController = new AbortController();
+    activeTestAbortController = abortController;
 
     try {
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           command: `test:tasks:l${level}`,
           level,
@@ -249,9 +388,21 @@
           return result ? { ...t, testStatus: result.passed ? 'passed' : 'failed' } : t;
         });
       }
+      clearRunningTaskTracking();
 
       return testResult;
     } catch (err3) {
+      if (err3 instanceof DOMException && err3.name === 'AbortError') {
+        restoreRunningTaskStatuses();
+        return {
+          success: false,
+          level,
+          summary: { total: 0, passed: 0, failed: 0, duration: 0 },
+          taskResults: [],
+          output: 'Test run canceled'
+        };
+      }
+
       const errorMessage = err3 instanceof Error ? err3.message : 'Unknown error';
       testResult = {
         success: false,
@@ -260,8 +411,12 @@
         taskResults: [],
         output: errorMessage
       };
+      clearRunningTaskTracking();
       return testResult;
     } finally {
+      if (activeTestAbortController === abortController) {
+        activeTestAbortController = null;
+      }
       testLoading = false;
     }
   }
@@ -322,4 +477,18 @@
   title={testResult?.taskResults.length === 1 ? 'Task Test Results' : 'Level Test Results'}
   on:close={closeResultModal}
   on:rerun={rerunTests}
+/>
+
+<ConfirmationModal
+  bind:open={showCancelConfirmModal}
+  icon="⚠"
+  iconVariant="warning"
+  title="Cancel Testing?"
+  subtitle="A test run is currently in progress"
+  description="Are you sure you want to cancel testing?"
+  confirmLabel="Yes, Cancel Test"
+  cancelLabel="No, Continue Test"
+  variant="warning"
+  on:confirm={handleCancelConfirmAccept}
+  on:cancel={handleCancelConfirmDismiss}
 />
