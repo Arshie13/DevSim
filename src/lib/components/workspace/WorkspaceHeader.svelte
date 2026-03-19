@@ -1,5 +1,4 @@
 <script lang="ts">
-
   interface Props {
     level: number;
     title: string;
@@ -17,11 +16,33 @@
     onToggleAi: () => void;
   }
 
-  import { Play, Square, Clock, ChevronLeft, Bot, Zap, Download } from 'lucide-svelte';
+  import {
+    Play,
+    Square,
+    Clock,
+    ChevronLeft,
+    Bot,
+    Zap,
+    Download,
+  } from "lucide-svelte";
 
   export let data: Props;
+  let level: number;
+  let title: string;
+  let stack: string;
+  let difficulty: string;
+  let timeRemaining: number;
+  let isRunning: boolean;
+  let aiPanelOpen: boolean;
+  let isDownloading: boolean;
+  let onBack: () => void;
+  let onRun: () => void;
+  let onStop: () => void;
+  let onSubmit: () => void;
+  let onDownload: () => void;
+  let onToggleAi: () => void;
 
-  const {
+  $: ({
     level,
     title,
     stack,
@@ -36,21 +57,27 @@
     onSubmit,
     onDownload,
     onToggleAi,
-  } = data;
+  } = data);
 
   function formatTime(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
 
-  $: timeColor = timeRemaining < 3600 ? '#ff3860' : timeRemaining < 7200 ? '#ffb400' : '#07a5c9';
-  $: difficultyStyle = difficulty === 'Hard'
-    ? 'color:#ff3860;border-color:rgba(255,56,96,0.3);background:rgba(255,56,96,0.06);'
-    : difficulty === 'Medium'
-      ? 'color:#ffb400;border-color:rgba(255,180,0,0.3);background:rgba(255,180,0,0.06);'
-      : 'color:#00e5a0;border-color:rgba(0,229,160,0.3);background:rgba(0,229,160,0.06);';
+  $: timeColor =
+    timeRemaining < 3600
+      ? "#ff3860"
+      : timeRemaining < 7200
+        ? "#ffb400"
+        : "#07a5c9";
+  $: difficultyStyle =
+    difficulty === "Hard"
+      ? "color:#ff3860;border-color:rgba(255,56,96,0.3);background:rgba(255,56,96,0.06);"
+      : difficulty === "Medium"
+        ? "color:#ffb400;border-color:rgba(255,180,0,0.3);background:rgba(255,180,0,0.06);"
+        : "color:#00e5a0;border-color:rgba(0,229,160,0.3);background:rgba(0,229,160,0.06);";
 </script>
 
 <header
@@ -74,23 +101,25 @@
     <!-- Level info -->
     <div>
       <div class="flex items-center gap-2">
-        <span class="text-[0.8rem] font-mono text-[#07a5c9] tracking-widest uppercase"
-          >LVL {level.toString().padStart(2, '0')}</span
+        <span
+          class="text-[0.8rem] font-mono text-[#07a5c9] tracking-widest uppercase"
+          >LVL {level.toString().padStart(2, "0")}</span
         >
         <span
           class="text-base font-bold text-[#d0d7dd] tracking-wide"
-          style="font-family:'Orbitron',monospace;"
-          >{title}</span
+          style="font-family:'Orbitron',monospace;">{title}</span
+        >
+        <span
+          class="text-[0.65rem] px-1.5 py-0.5 ml-2 border font-mono uppercase tracking-wide"
+          style="border-radius:2px;{difficultyStyle}">{difficulty}</span
         >
       </div>
       <div class="flex items-center gap-2 mt-0.5">
-        <span class="text-[0.78rem] font-mono text-[#8892a0] uppercase tracking-wider">{stack}</span>
-        <span class="text-[#27272a]">&middot;</span>
         <span
-          class="text-[0.72rem] px-1.5 py-0.5 border font-mono uppercase tracking-wide"
-          style="border-radius:2px;{difficultyStyle}"
-          >{difficulty}</span
+          class="text-[0.78rem] font-mono text-[#8892a0] uppercase tracking-wider"
+          >{stack}</span
         >
+        <span class="text-[#27272a]">&middot;</span>
       </div>
     </div>
   </div>
@@ -140,7 +169,9 @@
       title="Download project to upload to GitHub"
     >
       {#if isDownloading}
-        <span class="animate-spin w-3.5 h-3.5 border-2 border-[#07a5c9] border-t-transparent rounded-full"></span>
+        <span
+          class="animate-spin w-3.5 h-3.5 border-2 border-[#07a5c9] border-t-transparent rounded-full"
+        ></span>
         Downloading...
       {:else}
         <Download class="w-3.5 h-3.5" />Download

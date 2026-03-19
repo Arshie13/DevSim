@@ -61,7 +61,7 @@ export async function POST(event: RequestEvent) {
     await new Promise((resolve, reject) => {
       stream.on('end', resolve);
       stream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 50000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
     });
 
     // Also list directories
@@ -87,7 +87,7 @@ export async function POST(event: RequestEvent) {
     await new Promise((resolve, reject) => {
       dirStream.on('end', resolve);
       dirStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 50000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
     });
 
     if (errorOutput) {

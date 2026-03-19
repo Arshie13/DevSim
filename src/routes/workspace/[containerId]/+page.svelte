@@ -28,7 +28,7 @@
   import type { FileListResponse } from "$lib/interface/Files";
   import type { FileTab } from "$lib/components/workspace/FileTabBar.svelte";
   import { toast } from "$lib/stores/toast";
-  import type { UserData, IContainer } from "$lib/types";
+  import type { UserData, IContainer, IScenario, ILevel } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
   interface WorkspaceProps {
@@ -56,10 +56,27 @@
   $: userId = data.userId || "";
   $: userCoins = data.userCoins || 0;
 
-  // Dynamic header values from DB (fall back to LEVEL_CONFIG for dev/mock)
-  $: title = data.scenarioTitle;
-  $: stack = data.stacks?.join(" · ");
-  $: level = data.level ?? LEVEL_CONFIG.level;
+  // Workspace level/title state from DB (with mock fallback)
+  let currentLevel = data.level || 1;
+
+  function getLevelByOrder(
+    scenario: IScenario | null | undefined,
+    order: number,
+  ): ILevel | null {
+    if (!scenario?.levels?.length) return null;
+    return (
+      scenario.levels.find((lvl: ILevel) => lvl.order === order) ??
+      scenario.levels[order - 1] ??
+      null
+    );
+  }
+
+  $: workspaceScenario = data.container?.scenario ?? null;
+  $: currentLevelRecord = getLevelByOrder(workspaceScenario, currentLevel);
+  $: title = currentLevelRecord?.title ?? LEVEL_CONFIG.title;
+  $: stack = workspaceScenario?.name ?? LEVEL_CONFIG.stack;
+  $: difficulty = workspaceScenario?.difficulty ?? LEVEL_CONFIG.difficulty;
+  $: level = currentLevel;
 
   // State
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
@@ -95,13 +112,12 @@
 
   // Initialize tasks from server data + persisted board/test state
   $: {
-    const levelTasks =
-      data.container.scenario.levels[data.level - 1].tasks || [];
-    const persisted = loadTaskProgress(data.level);
+    const levelTasks = currentLevelRecord?.tasks || [];
+    const persisted = loadTaskProgress(currentLevel);
 
-    tasks = levelTasks.map((task, index) => {
+    tasks = levelTasks.map((task: ITask, index: number) => {
       const taskNumber = getTaskNumber(task, index);
-      const config = getLevelConfig(data.level);
+      const config = getLevelConfig(currentLevel);
       const hasMappedTest = Boolean(
         config?.tasks.find(
           (testTask) => Number(testTask.taskId) === taskNumber,
@@ -114,7 +130,7 @@
       const isCompleted = persistedState?.isCompleted ?? task.isCompleted;
       const testStatus =
         persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
-      const taskType = task.type ?? "none";
+      const taskType = task.testType ?? "none";
 
       return {
         ...task,
@@ -128,8 +144,10 @@
   }
 
   // Get level-specific config from server data
-  $: currentLevel = data.level || 1;
-  $: levelHints = data.hints || [];
+  $: levelHints =
+    currentLevelRecord?.tasks?.flatMap(
+      (task: ITask) => task.hints ?? [],
+    ) || [];
   $: levelTestConfig = getLevelConfig(currentLevel);
 
   // Merge test config with mockdata for UI fields (test config has tasks, mockdata has UI fields)
@@ -138,11 +156,11 @@
         ...LEVEL_CONFIG,
         ...levelTestConfig,
         level: currentLevel,
-        // Keep UI fields from LEVEL_CONFIG
+        title,
         stack: stack,
-        difficulty: LEVEL_CONFIG.difficulty,
+        difficulty,
         deadline: LEVEL_CONFIG.deadline,
-        scenario: data.container.scenario.description,
+        scenario: workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
         hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
         starterFiles: LEVEL_CONFIG.starterFiles,
         // Use tasks from server data
@@ -216,7 +234,7 @@
   $: containerId = data.dockerContainerId ?? "";
 
   // Derived
-  $: projectName = LEVEL_CONFIG.title.split(" ")[0] || "project";
+  $: projectName = title.split(" ")[0] || "project";
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -241,14 +259,18 @@
     isCompleted: boolean;
   };
 
+  function getStableProgressContainerId(): string {
+    return page.params.containerId || containerId;
+  }
+
   function getTaskProgressStorageKey(levelNumber: number): string {
-    return `workspace-task-progress:${containerId}:l${levelNumber}`;
+    return `workspace-task-progress:${getStableProgressContainerId()}:l${levelNumber}`;
   }
 
   function loadTaskProgress(
     levelNumber: number,
   ): Record<string, PersistedTaskState> {
-    if (!browser || !containerId) return {};
+    if (!browser || !getStableProgressContainerId()) return {};
 
     try {
       const raw = localStorage.getItem(getTaskProgressStorageKey(levelNumber));
@@ -260,7 +282,7 @@
   }
 
   function persistTaskProgress() {
-    if (!browser || !containerId || !tasks.length) return;
+    if (!browser || !getStableProgressContainerId() || !tasks.length) return;
 
     const state = tasks.reduce<Record<string, PersistedTaskState>>(
       (acc, task) => {
@@ -596,6 +618,7 @@
       const directResult = byTaskId.get(task.id);
       const fallbackResult = byTaskId.get(String(getTaskNumber(task, index)));
       const taskResult = directResult ?? fallbackResult;
+      const canManuallyMoveToDone = (task.testType ?? "none").toLowerCase() === "none";
 
       if (!taskResult) return task;
 
@@ -606,6 +629,11 @@
           isCompleted: true,
           testStatus: "passed",
         };
+      }
+
+      // Once a test-backed task reaches Done, keep it locked there.
+      if (task.boardStatus === "done" && !canManuallyMoveToDone) {
+        return task;
       }
 
       return {
@@ -683,16 +711,7 @@
   }
 
   async function handleSubmitSprint() {
-    if (testCaseComponent) {
-      const result = await testCaseComponent.runAllLevelTests();
-      if (!result.success) {
-        toast.error("Fix failing tests before submitting your sprint.");
-        return;
-      }
-
-      testCaseComponent.closeResults();
-    }
-
+    // Open the submit sprint modal - it will handle testing internally
     submitSprintModal.open();
   }
 
@@ -737,12 +756,19 @@
     }
   }
 
-  async function handleSubmitted(event: CustomEvent) {
-    const { advanceToNextLevel } = event.detail;
+  async function handleSubmitted(
+    event: CustomEvent<{ advanceToNextLevel: boolean; nextLevel?: number | null }>,
+  ) {
+    const { advanceToNextLevel, nextLevel } = event.detail;
 
     if (advanceToNextLevel) {
+      if (typeof nextLevel === "number") {
+        // Optimistically move the workspace UI to the next level immediately.
+        currentLevel = nextLevel;
+      }
+
       // Reload the page data to get new level tasks by navigating to same URL with invalidate
-      goto(`?reload=${Date.now()}`, {
+      await goto(`?reload=${Date.now()}`, {
         invalidateAll: true,
         replaceState: true,
         noScroll: true,
@@ -939,7 +965,7 @@
 </script>
 
 <svelte:head>
-  <title>Level {LEVEL_CONFIG.level}: {LEVEL_CONFIG.title} - DevSim</title>
+  <title>Level {currentLevel}: {title} - DevSim</title>
 </svelte:head>
 
 <!-- ── Boot / Loading screen ──────────────────────────────────────────────── -->
@@ -948,7 +974,7 @@
     step={bootStep}
     steps={BOOT_STEPS}
     error={bootError}
-    levelLabel="Level {LEVEL_CONFIG.level} · {LEVEL_CONFIG.title}"
+    levelLabel="Level {currentLevel} · {title}"
     on:retry={handleBootRetry}
   />
 {/if}
@@ -960,10 +986,10 @@
   <!-- Header -->
   <WorkspaceHeader
     data={{
-      level: data.level,
+      level: currentLevel,
       title: actualLevelConfig.title,
       stack: actualLevelConfig.stack,
-      difficulty: actualLevelConfig.difficulty,
+      difficulty,
       timeRemaining,
       isRunning,
       aiPanelOpen,
@@ -1070,7 +1096,7 @@
         <AiHelp
           containerId={page.params.containerId}
           userId={data.userId}
-          scenario={LEVEL_CONFIG.scenario}
+          scenario={actualLevelConfig.scenario}
           {tasks}
           initialFileTree={fileTree}
           initialFileContents={fileContents}
@@ -1119,7 +1145,7 @@
   <OnboardingController
     {stack}
     {title}
-    scenario={LEVEL_CONFIG.scenario}
+    scenario={actualLevelConfig.scenario}
     {level}
     onSwitchTab={(tab) =>
       handleTabChange(tab as "editor" | "terminal" | "preview")}

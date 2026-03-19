@@ -69,7 +69,7 @@
           command: testCommand,
           level,
           taskId,
-          type: 'task'
+          testType: 'task'
         })
       });
 
@@ -144,7 +144,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          type: 'level'
+          testType: 'level'
         })
       });
 
@@ -227,7 +227,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          type: 'level'
+          testType: 'level'
         })
       });
 

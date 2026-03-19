@@ -2,6 +2,7 @@
   import { FileText, LayoutDashboard, GripVertical } from 'lucide-svelte';
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
   import { type ITask } from '$lib/types';
+  import { toast } from '$lib/stores/toast';
 
   export let scenario: string = '';
   type KanbanStatus = 'backlog' | 'in-progress' | 'in-review' | 'done';
@@ -18,6 +19,7 @@
     id: string;
     text: string;
     status: KanbanStatus;
+    taskType: string;
     userStory: string;
     acceptanceCriteria: string[];
   }
@@ -38,6 +40,7 @@
       id: t.id,
       text: t.taskName,
       status: getInitialStatus(t),
+      taskType: t.testType,
       userStory: ((t as ITask & { userStory?: string }).userStory ?? '').trim(),
       acceptanceCriteria: (t.acceptanceCriteria ?? [])
         .slice()
@@ -107,15 +110,27 @@
   function handleDrop(column: KanbanStatus) {
     if (draggingId === null) return;
 
-    // Tasks can only enter Done via passing tests.
-    if (column === 'done') {
+    const task = kanbanTasks.find((t) => t.id === draggingId);
+    if (!task || task.status === column) {
       draggingId = null;
       dragOverColumn = null;
       return;
     }
 
-    const task = kanbanTasks.find((t) => t.id === draggingId);
-    if (!task || task.status === column) {
+    const canManuallyMoveToDone = task.taskType.toLowerCase() === 'none';
+
+    // Test-backed tasks are locked once completed and cannot be moved out of Done.
+    if (task.status === 'done' && !canManuallyMoveToDone && column !== 'done') {
+      toast.info('This task is locked in Done because its tests have already passed.');
+      draggingId = null;
+      dragOverColumn = null;
+      return;
+    }
+
+    if (column === 'done' && !canManuallyMoveToDone) {
+      toast.warn(
+        'This task includes test cases. Pass its tests first, and it will be moved to Done automatically.',
+      );
       draggingId = null;
       dragOverColumn = null;
       return;
@@ -338,7 +353,7 @@
               {#each kanbanTasks.filter((t) => t.status === col.id) as task (task.id)}
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y-no-static-element-interactions -->
                 <div
-                  draggable="true"
+                  draggable={!(task.status === 'done' && task.taskType.toLowerCase() !== 'none')}
                   on:dragstart={(e) => handleDragStart(e, task.id)}
                   on:dragend={handleDragEnd}
                   on:click={() => openTaskDetails(task.id)}
@@ -349,7 +364,7 @@
                     }
                   }}
                   class="group p-3 rounded border transition-all duration-150 select-none"
-                  style="cursor: grab; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
+                  style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
                   role="button"
                   tabindex="0"
                   aria-label="Drag task: {task.text}"

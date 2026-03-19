@@ -37,6 +37,12 @@
    */
   export let hideActions: boolean = false;
 
+  /**
+   * When true the modal header (icon/title/subtitle) is hidden.
+   * Useful when slot content already renders its own heading.
+   */
+  export let hideHeader: boolean = false;
+
   // ── Events ─────────────────────────────────────────────────────────────────
 
   const dispatch = createEventDispatcher<{
@@ -112,7 +118,7 @@
         <!-- ── CONFIRMATION STATE ─────────────────────────────────────────── -->
 
         <!-- Header -->
-        {#if title}
+        {#if !hideHeader && title}
           <div class="cm-header">
             {#if icon}
               <span class="cm-icon {iconGlowClass[iconVariant]}" aria-hidden="true">{icon}</span>

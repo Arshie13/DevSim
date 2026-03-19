@@ -59,15 +59,10 @@
     { icon: '📦', label: 'Advancing level…', detail: 'Preparing the next challenge'},
   ];
 
-  // Add testing step
-  const TESTING_STEPS = [
-    { icon: '🧪', label: 'Running tests…', detail: 'Validating your work against level requirements' },
-  ];
-
   $: completedCount = tasks.filter(t => t.isCompleted).length;
 
   // -- Events -------------------------------------------------------------------
-  const dispatch = createEventDispatcher<{ submitted: { xp: number; coins: number; advanceToNextLevel: boolean } }>();
+  const dispatch = createEventDispatcher<{ submitted: { xp: number; coins: number; advanceToNextLevel: boolean; nextLevel: number | null } }>();
 
   // Track if we're advancing to next level (for success UI)
   let advancingToNextLevel = false;
@@ -229,7 +224,8 @@
         const failedCount = testResults.failedTasks.length;
         
         // Build detailed error message
-        let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
+        let errorMsg = `Tests are not passed yet, pass the test first before moving to the next level.\n\n`;
+        errorMsg += `❌ ${failedCount} task(s) did not pass validation.\n\n`;
         
         if (testData.taskResults && testData.taskResults.length > 0) {
           for (const task of testData.taskResults.filter((t: { passed: boolean }) => !t.passed)) {
@@ -241,11 +237,7 @@
             }
             errorMsg += '\n';
           }
-        } else {
-          errorMsg += 'Please review your work and try again.\n';
         }
-        
-        errorMsg += 'Make sure to complete all tasks and make the tests pass before submitting the sprint.';
         
         submitError = errorMsg;
         console.log('[SUBMIT SPRINT] Tests failed:', submitError);
@@ -342,6 +334,7 @@
       
       // Submit each completed task one by one
       let allLevelsComplete = false;
+      let nextLevelFromSubmit: number | null = null;
       
       for (let i = 0; i < completedTasks.length; i++) {
         const task = completedTasks[i];
@@ -363,6 +356,7 @@
         
         // Check if all levels are now complete
         allLevelsComplete = submitData.allLevelsComplete ?? false;
+        nextLevelFromSubmit = submitData.nextLevel ?? null;
         
         // If all levels complete, stop submitting more tasks
         if (allLevelsComplete) {
@@ -385,7 +379,7 @@
       advancingToNextLevel = advanceToNextLevel;
       
       state = 'success';
-      dispatch('submitted', { ...submitRewards, advanceToNextLevel });
+      dispatch('submitted', { ...submitRewards, advanceToNextLevel, nextLevel: nextLevelFromSubmit });
     } catch (err) {
       submitError = err instanceof Error ? err.message : String(err);
       state = 'error';
@@ -401,7 +395,11 @@
     showModal = false;
     state = 'confirm';
     // Dispatch event to notify parent to reload
-    dispatch('submitted', { ...submitRewards, advanceToNextLevel: true });
+    dispatch('submitted', {
+      ...submitRewards,
+      advanceToNextLevel: true,
+      nextLevel: level + 1,
+    });
   }
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
@@ -410,14 +408,13 @@
   $: modalTitle    = state === 'error' ? 'Tests Failed' : state === 'loading' ? '' : state === 'testing' ? 'Running Tests…' : 'Submit Sprint?';
   $: modalSubtitle = state === 'confirm'
     ? 'Are you sure you want to submit your completed tasks? This will validate your work and award XP and coins if all tests pass.'
-    : state === 'testing'
-    ? 'Please wait while we validate your work against the level requirements...'
     : '';
   $: confirmLabel  = state === 'error' ? 'Retry' : 'Submit & Continue';
   $: cancelLabel   = state === 'error' ? 'Close'  : state === 'testing' ? 'Cancel' : 'Cancel';
   $: variant       = (state === 'error' ? 'danger' : state === 'testing' ? 'warning' : 'primary') as 'primary' | 'danger' | 'warning' | 'success';
   $: modalError    = state === 'error' ? submitError : '';
   $: hideActions   = state === 'loading' || state === 'testing';
+  $: hideHeader    = state === 'loading' || state === 'testing';
   $: showSuccess   = state === 'success';
 </script>
 
@@ -432,6 +429,7 @@
   {cancelLabel}
   {variant}
   {hideActions}
+  {hideHeader}
   {showSuccess}
   error={modalError}
   on:confirm={handleConfirm}
@@ -511,30 +509,14 @@
 
   {:else if state === 'loading' || state === 'testing'}
     <!-- LoadingSteps fills the body; action row is hidden via hideActions -->
-    {#if state === 'testing'}
-      <!-- Testing state - show progress with test info -->
-      <div class="flex flex-col items-center justify-center py-6">
-        <div class="text-4xl mb-4 animate-pulse">🧪</div>
-        <h3 class="font-['Chakra_Petch',sans-serif] text-lg font-bold text-[#d0d7dd] mb-2">
-          Running Tests...
-        </h3>
-        <p class="font-mono text-sm text-[#8892a0] text-center max-w-xs">
-          Validating your work against level {level} requirements
-        </p>
-        <!-- Progress indicator -->
-        <div class="mt-6 w-64 h-2 bg-[#1a2234] rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-[#10b981] to-[#059669] animate-pulse" style="width: 60%"></div>
-        </div>
-      </div>
-    {:else}
-      <LoadingSteps
-        card={false}
-        step={submitStep}
-        steps={SUBMIT_STEPS}
-        title={advancingToNextLevel ? 'Advancing Level…' : 'Completing Sprint…'}
-        subtitle="Please keep this window open."
-      />
-    {/if}
+    <!-- Use LoadingSteps for both testing and loading states with SUBMIT_STEPS -->
+    <LoadingSteps
+      card={false}
+      step={state === 'testing' ? 0 : submitStep}
+      steps={SUBMIT_STEPS}
+      title={state === 'testing' ? 'Running Tests…' : advancingToNextLevel ? 'Advancing Level…' : 'Completing Sprint…'}
+      subtitle={state === 'testing' ? 'Validating your work against level requirements' : 'Please keep this window open.'}
+    />
   {/if}
 
   <!-- Success slot -->
