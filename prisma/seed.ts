@@ -72,7 +72,7 @@ async function main() {
         create: [
           {
             taskName: "Prepare Development Environment",
-            type: "none", // Setup task — no automated test
+            testType: "none", // Setup task — no automated test
             userStory:
               "As a developer, I want to set up my development environment so that I can start working on the project.",
             hints: {
@@ -124,7 +124,7 @@ async function main() {
           },
           {
             taskName: "Update Brand Subtitle",
-            type: "client", // UI change only — client test
+            testType: "client", // UI change only — client test
             userStory:
               "As a user, I want to see the updated brand subtitle on the website so that the interface reflects the library identity.",
             hints: {
@@ -182,7 +182,7 @@ async function main() {
         create: [
           {
             taskName: "Fix Borrow Availability Bug",
-            type: "client", // helpers.ts is client-side
+            testType: "client", // helpers.ts is client-side
             userStory:
               "As a developer, I want a reusable availability helper, So that borrow decisions stay correct and consistent.",
             hints: {
@@ -248,7 +248,7 @@ async function main() {
           },
           {
             taskName: "Reuse Availability Logic",
-            type: "client", // BorrowRecords.tsx is client-side
+            testType: "client", // BorrowRecords.tsx is client-side
             userStory:
               "As a developer, I want BorrowRecords to use the shared availability helper, So that the logic stays consistent across views.",
             hints: {
@@ -343,7 +343,7 @@ async function main() {
         create: [
           {
             taskName: "Diagnose Return Flow",
-            type: "server", // borrow.controller.ts is server-side
+            testType: "server", // borrow.controller.ts is server-side
             userStory:
               "As a backend developer, I want to trace the return flow in the server, So that I can identify why available copy counts can become invalid.",
             hints: {
@@ -395,7 +395,7 @@ async function main() {
           },
           {
             taskName: "Enforce Transaction Safety",
-            type: "server", // Prisma transactions are server-side
+            testType: "server", // Prisma transactions are server-side
             userStory:
               "As a backend engineer, I want the borrow and return flows in `server/src/controllers/borrow.controller.ts` to run atomically, So that concurrent requests cannot corrupt `availableCopies` and partial writes are never persisted.",
             hints: {
@@ -465,7 +465,7 @@ async function main() {
         create: [
           {
             taskName: "Reserve an Unavailable Book",
-            type: "both", // client/src/services/libraryService.ts + server/src/controllers/reservation.controller.ts
+            testType: "both", // client/src/services/libraryService.ts + server/src/controllers/reservation.controller.ts
             userStory:
               "As a library member, I want to reserve a book when all copies are borrowed, So that I can claim it when it becomes available.",
             hints: {
@@ -595,7 +595,7 @@ async function main() {
           },
           {
             taskName: "Fulfill and Manage Reservation Lifecycle",
-            type: "both", // client reservation list + server return/cancel flow
+            testType: "both", // client reservation list + server return/cancel flow
             userStory:
               "As a librarian, I want reservation fulfillment and cancellation to update queue order automatically, So that members always see accurate reservation status and position.",
             hints: {
@@ -723,7 +723,7 @@ async function main() {
         create: [
           {
             taskName: "Stabilize Overdue Report Classification",
-            type: "server", // overdue report logic is in server borrow controller
+            testType: "server", // overdue report logic is in server borrow controller
             userStory:
               "As a developer, I want the overdue report to classify records by source-of-truth fields, So that client-visible overdue output remains correct even with stale status data.",
             hints: {
@@ -777,7 +777,7 @@ async function main() {
           },
           {
             taskName: "Deliver Permanent Fix and Documentation",
-            type: "server", // overdue fix and utility is server-side
+            testType: "server", // overdue fix and utility is server-side
             userStory:
               "As a developer, I want to fix overdue mismatches and document the root cause, So that the client can trust overdue reports.",
             hints: {
