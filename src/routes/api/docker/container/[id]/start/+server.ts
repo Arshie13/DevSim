@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
     const container = docker.getContainer(id);
 
     // Check if container exists and belongs to user
-    const info = await container.inspect();
+    let info = await container.inspect();
 
     if (info.Config.Labels['devsim.userId'] !== session.user.id) {
       return error(403, 'Container does not belong to user');
@@ -28,6 +28,8 @@ export const POST: RequestHandler = async ({ locals, params }) => {
     // Start the container if not already running
     if (!info.State.Running) {
       await container.start();
+      // Re-inspect after starting to get fresh port information
+      info = await container.inspect();
     } else {
       console.log(`♻️ Container already running!`);
     }
