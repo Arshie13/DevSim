@@ -26,7 +26,6 @@ model User {
   // Relations
   dailyLogin   DailyLogin?       @relation
   containers   Container[]
-  sessions     Session[]
   achievements UserAchievement[]
 
   createdAt DateTime @default(now())
@@ -60,18 +59,6 @@ model Container {
   fileChanges     FileChange[]
   completedTasks  CompletedTask[]
   containerStacks ContainerStack[]
-
-  @@index([userId])
-}
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  startTime DateTime
-  endTime   DateTime
-  duration  Int
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
