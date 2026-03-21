@@ -97,9 +97,10 @@ function filterSourceFiles(files: string[]): string[] {
 function buildScoringPrompt(
   levelTitle: string,
   level: number,
-  tasks: string[],
+  allTasks: string[],
   fileContents: Record<string, string>,
   completedTasks: string[],
+  fileChanges: string,
   testResults: {
     passed: boolean;
     results?: TestValidationResult;
@@ -117,7 +118,10 @@ function buildScoringPrompt(
   const maxFiles = 10; // Limit to 10 files to prevent excessive token usage
 
   const sortedFileEntries = Object.entries(fileContents).sort(([a], [b]) => {
-    // Put important files first
+    // Put test files first
+    if (a.startsWith('TEST_FILE:') && !b.startsWith('TEST_FILE:')) return -1;
+    if (!a.startsWith('TEST_FILE:') && b.startsWith('TEST_FILE:')) return 1;
+    // Then important files
     if (importantFiles.includes(a) && !importantFiles.includes(b)) return -1;
     if (!importantFiles.includes(a) && importantFiles.includes(b)) return 1;
     return a.localeCompare(b);
@@ -126,7 +130,7 @@ function buildScoringPrompt(
   // Filter out config files that contain version/dependency info - focus on actual implementation files
   const implementationExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs'];
   const filteredEntries = sortedFileEntries.filter(([file]) => 
-    implementationExtensions.some(ext => file.endsWith(ext))
+    implementationExtensions.some(ext => file.endsWith(ext)) || file.startsWith('TEST_FILE:')
   );
   
   const limitedFileEntries = filteredEntries.slice(0, maxFiles);
@@ -145,68 +149,129 @@ function buildScoringPrompt(
     console.log(`[AI Score] Omitted ${sortedFileEntries.length - maxFiles} files due to token limit constraints`);
   }
 
-  const taskList = tasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n');
+  const taskList = allTasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n');
   const completedList = completedTasks.length > 0
     ? completedTasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n')
     : '  (none)';
 
-  // Format test results for the prompt
+  // Format test results for the prompt - provide detailed test data for scoring
   let testResultsSection = 'No test results available.';
   if (testResults) {
     const passed = testResults.passed === true;
     const summary = testResults.results?.summary || { total: 0, passed: 0, failed: 0 };
     const failedTasks = testResults.failedTasks || [];
     
-    testResultsSection = `Tests: ${passed ? 'PASSED' : 'FAILED'}
+    testResultsSection = `Tests: ${passed ? 'ALL TESTS PASSED' : 'SOME TESTS FAILED'}
 Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed
-${failedTasks.length > 0 ? '\nFailed tasks:\n' + failedTasks.map((t: { taskId: number; taskText: string; errors?: string[] }) => `  - ${t.taskText}: ${t.errors?.join(', ') || 'validation failed'}`).join('\n') : ''}`;
+${failedTasks.length > 0 ? '\nFailed tasks (need improvement):\n' + failedTasks.map((t: { taskId: number; taskText: string; errors?: string[] }) => `  - ${t.taskText}: ${t.errors?.join(', ') || 'validation failed'}`).join('\n') : '\nAll validation tests passed!'} `
+    
+    // Include individual test results for more granular feedback
+    const testDetails = testResults.results?.results || [];
+    if (testDetails.length > 0) {
+      testResultsSection += '\n\nDetailed test results:\n' + testDetails.slice(0, 20).map((t: { testName: string; passed: boolean; message?: string }) => 
+        `  ${t.passed ? '✓' : '✗'} ${t.testName}${t.message ? ': ' + t.message.substring(0, 100) : ''}`
+      ).join('\n');
+    }
   }
 
-  return `You are a friendly and encouraging senior developer mentor who loves helping beginners learn. You're like a supportive tech lead who gives constructive feedback with humor and warmth. You've seen lots of code and know that everyone starts somewhere — your goal is to help students improve while celebrating their wins.
+  // Build completed vs incomplete tasks list
+  const completedSet = new Set(completedTasks.map(t => t.toLowerCase()));
+  const incompleteTasks = allTasks.filter(t => !completedSet.has(t.toLowerCase()));
+  const completedListFormatted = completedTasks.length > 0 
+    ? completedTasks.map(t => `  ✓ ${t}`).join('\n')
+    : '  (none)';
+  const incompleteListFormatted = incompleteTasks.length > 0
+    ? incompleteTasks.map(t => `  ✗ ${t}`).join('\n')
+    : '  (all complete!)';
+
+  // Check if all tests passed
+  const allTestsPassed = testResults?.passed === true;
+  const allTasksComplete = incompleteTasks.length === 0;
+
+  // If ALL tests passed and ALL tasks complete, still provide code improvement suggestions
+  if (allTestsPassed && allTasksComplete) {
+    // Include file contents in prompt
+    const fileContentSummary = Object.keys(fileContents).length > 0 
+      ? `\n=== SOURCE FILES (read these for code suggestions) ===\n${fileSection}\n=== END OF SOURCE FILES ===`
+      : '\n(No source files available for code suggestions)';
+    
+    return `You are a senior developer mentor reviewing student code. Your job is to review the ACTUAL source files and provide specific suggestions for improving their code quality.
 
 LEVEL ${level}: ${levelTitle}
 
-REQUIRED TASKS FOR THIS LEVEL:
-${taskList}
-
-TASKS THE STUDENT COMPLETED:
-${completedList}
+ALL TASKS COMPLETED AND ALL TESTS PASSED! 🎉
 
 === TEST RESULTS ===
 ${testResultsSection}
 === END OF TEST RESULTS ===
 
-=== SUBMITTED FILES ===
-${fileSection}
-=== END OF FILES ===
+=== USER'S FILE CHANGES ===
+${fileChanges || 'No file changes recorded'}
+=== END OF FILE CHANGES ===
+${fileContentSummary}
 
-Your job - BE SPECIFIC TO THIS LEVEL'S TASKS:
-1. FIRST, read the REQUIRED TASKS FOR THIS LEVEL above carefully - these are the specific requirements for level ${level}.
-2. Compare each required task to the submitted code - check if the code actually implements what's required.
-3. Look at TEST RESULTS to see which tasks passed or failed.
-4. For EACH task, check if it's done correctly according to the task requirements - not generic improvements.
-5. Check for CLEAN CODE (only if it affects task functionality):
-   - Critical naming issues that make code hard to understand
-   - Obvious code duplication within the same file
-6. Give feedback SPECIFICALLY about the tasks - don't give generic programming advice.
+IMPORTANT: Provide code suggestions based ONLY on the actual source files above. Do NOT make up file names or code that aren't in the files provided.
 
-IMPORTANT:
-- Your feedback MUST be tied to the actual REQUIRED TASKS listed above
-- If a task asks for feature X, mention if feature X is implemented or missing
-- Don't suggest adding features that aren't part of this level's requirements
-- Keep feedback focused on what was required vs what was submitted
-
-STAR RATING GUIDE:
-- 3 stars: ALL required tasks completed correctly according to the task requirements
-- 2 stars: Most tasks completed but some missing or incorrect
-- 1 star: Few tasks completed or tasks done incorrectly
-
-IMPORTANT: Keep your response SHORT and concise. Focus on the actual required tasks for this level.
-
-Respond ONLY using this exact format:
+Respond ONLY:
 
 [STAR_RATING]
-<number 1-3>
+3
+[/STAR_RATING]
+
+[FEEDBACK]
+<1-2 sentences congratulating on completing all tasks>
+[/FEEDBACK]
+
+[IMPROVEMENTS]
+<2-3 specific code improvement suggestions based ONLY on the actual source files above>
+[/IMPROVEMENTS]
+
+[CODE_SUGGESTIONS]
+<2-3 specific code suggestions with actual file names from the source files>
+[/CODE_SUGGESTIONS]
+`;
+  }
+
+  // Include source files in prompt
+  const sourceFilesSection = Object.keys(fileContents).length > 0 
+    ? `\n=== SOURCE FILES (actual user code) ===\n${fileSection}\n=== END OF SOURCE FILES ===`
+    : '';
+
+  return `You are a senior developer mentor reviewing student code. Your job is to give specific, actionable feedback based on WHAT THE TESTS CHECK and the actual source files.
+
+LEVEL ${level}: ${levelTitle}
+
+=== ALL TASKS FOR THIS LEVEL ===
+${taskList}
+
+=== COMPLETED TASKS ===
+${completedListFormatted}
+
+=== INCOMPLETE TASKS ===
+${incompleteListFormatted}
+
+${fileChanges ? `=== USER'S FILE CHANGES ===
+${fileChanges}
+=== END OF FILE CHANGES ===
+` : ''}
+=== TEST FILES (What the tests check - read these first!) ===
+${fileSection.includes('TEST_FILE:') ? fileSection : 'No test files available'}
+=== END OF TEST FILES ===
+${sourceFilesSection}
+
+=== TEST RESULTS ===
+${testResultsSection}
+=== END OF TEST RESULTS ===
+
+IMPORTANT: Only provide improvements for INCOMPLETE tasks or FAILED tests.
+If all tests pass but some tasks are not marked complete, focus on what specific tasks need to be completed.
+
+Focus on THIS LEVEL's tasks only - do not give hints for future levels.
+
+Respond ONLY:
+
+[STAR_RATING]
+<1-3 based on completion status>
 [/STAR_RATING]
 
 [FEEDBACK]
@@ -214,22 +279,22 @@ Respond ONLY using this exact format:
 [/FEEDBACK]
 
 [IMPROVEMENTS]
-<max 3 bullet points tied to the SPECIFIC REQUIRED TASKS - what they need to fix for THIS level's tasks>
+<only if tasks incomplete: specific things to fix - be specific: "change X in file Y">
 [/IMPROVEMENTS]
 
-[NEXT_TIME]
-<max 2 bullet points of what to do for the specific tasks they missed in THIS level>
-[/NEXT_TIME]
+[CODE_SUGGESTIONS]
+<only if tasks incomplete: code changes needed for THIS LEVEL>
+[/CODE_SUGGESTIONS]
 `;
 }
 
 // Parse the AI response to extract star rating, score, and feedback sections
-function parseScoringResponse(response: string): {
+function parseScoringResponse(response: string, testResults?: { passed: boolean; results?: { summary?: { total: number; passed: number; failed: number } } }): {
   stars: number;
   score: number;
   feedback: string;
   improvements: string;
-  nextTime: string;
+  nextTime: string;  // Kept for backward compatibility, but now contains code suggestions
 } {
   let stars = 1;
   let score = 33;
@@ -244,10 +309,38 @@ function parseScoringResponse(response: string): {
       if (parsedStars >= 1 && parsedStars <= 3) stars = parsedStars;
     }
 
-    // Score is proportional to stars: 1 star = ~33, 2 stars = ~67, 3 stars = 100
-    if (stars === 3) score = Math.floor(Math.random() * 16) + 85; // 85-100
-    else if (stars === 2) score = Math.floor(Math.random() * 18) + 50; // 50-67
-    else score = Math.floor(Math.random() * 9) + 25; // 25-33
+    // Score is based on test results when available, otherwise use stars
+    if (testResults && testResults.results?.summary) {
+      const { total, passed, failed } = testResults.results.summary;
+      if (total > 0) {
+        // Calculate score based on actual test pass rate
+        const passRate = passed / total;
+        if (passRate === 1) {
+          // All tests passed - give 90-100
+          score = Math.floor(Math.random() * 11) + 90;
+          stars = 3;
+        } else if (passRate >= 0.5) {
+          // Some tests passed - give 60-89
+          score = Math.floor(Math.random() * 30) + 60;
+          stars = 2;
+        } else {
+          // Most tests failed - give 25-59
+          score = Math.floor(Math.random() * 35) + 25;
+          stars = 1;
+        }
+        console.log('[AI Score] Score calculated from test results:', { total, passed, failed, score, stars });
+      } else {
+        // No tests - use star-based scoring
+        if (stars === 3) score = Math.floor(Math.random() * 16) + 85;
+        else if (stars === 2) score = Math.floor(Math.random() * 18) + 50;
+        else score = Math.floor(Math.random() * 9) + 25;
+      }
+    } else {
+      // No test results - use star-based scoring
+      if (stars === 3) score = Math.floor(Math.random() * 16) + 85;
+      else if (stars === 2) score = Math.floor(Math.random() * 18) + 50;
+      else score = Math.floor(Math.random() * 9) + 25;
+    }
 
     const extract = (tag: string) => {
       const m = response.match(new RegExp(`\\[${tag}\\]([\\s\\S]*?)\\[\\/${tag}\\]`, 'i'));
@@ -255,8 +348,9 @@ function parseScoringResponse(response: string): {
     };
 
     feedback = extract('FEEDBACK') || feedback;
-    improvements = extract('IMPROVEMENTS');
-    nextTime = extract('NEXT_TIME');
+    improvements = extract('IMPROVEMENTS') || 'Great job completing all tasks!';
+    // Also try CODE_SUGGESTIONS as fallback for NEXT_TIME
+    nextTime = extract('CODE_SUGGESTIONS') || extract('NEXT_TIME') || 'All tasks completed - keep up the great work!';
   } catch (e) {
     console.error('Error parsing scoring response:', e);
   }
@@ -345,7 +439,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const body = await request.json();
-    const { containerId, level, completedTasks, fileContents, filePaths, testResults } = body;
+    const { containerId, level, tasks, completedTasks, fileContents, filePaths, fileChanges, testResults } = body;
     
     console.log("file contents: ", fileContents);
 
@@ -436,13 +530,18 @@ export const POST: RequestHandler = async ({ request }) => {
       console.warn('[AI Score] ⚠ No file contents available — AI will score without code context');
     }
     
-    // Build the scoring prompt with test results
+    // Use tasks from request body (all tasks), fallback to levelInfo.tasks
+    const allTasks = tasks && tasks.length > 0 ? tasks : (levelInfo.tasks || []);
+    console.log('[AI Score] All tasks for scoring:', allTasks);
+    
+    // Build the scoring prompt with test results and file changes
     const prompt = buildScoringPrompt(
       levelInfo.title,
       level,
-      levelInfo.tasks,
+      allTasks,
       userFileContents,
       completedTasks || [],
+      fileChanges || '',
       testResults
     );
     
@@ -454,8 +553,8 @@ export const POST: RequestHandler = async ({ request }) => {
     
     console.log('[AI Score] Raw AI response:\n', aiResponse);
     
-    // Parse the response
-    const { stars, score, feedback, improvements, nextTime } = parseScoringResponse(aiResponse);
+    // Parse the response - pass test results for score calculation
+    const { stars, score, feedback, improvements, nextTime } = parseScoringResponse(aiResponse, testResults);
     
     console.log('[AI Score] Parsed — stars:', stars, '| score:', score);
     console.log('[AI Score] feedback:', feedback);

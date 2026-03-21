@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
   import type { ITask } from '$lib/types';
+  import { getLevelConfig } from '$lib/tests/levels';
   import ConfirmationModal from '$lib/components/ui/ConfirmationModal.svelte';
   import SubmitSprintConfirmContent from '$lib/components/workspace/SubmitSprintConfirmContent.svelte';
   import SubmitSprintProgressContent from '$lib/components/workspace/SubmitSprintProgressContent.svelte';
@@ -107,7 +108,7 @@
     
     loadingFileChanges = true;
     try {
-      const response = await fetch(`/api/docker/container/${dbContainerId}/file-changes?containerId=${dbContainerId}&summary=true`);
+      const response = await fetch(`/api/docker/container/${dbContainerId}/file-changes?id=${dbContainerId}&summary=true`);
       const data = await response.json();
       if (data.success && data.data) {
         fileChanges = data.data;
@@ -200,80 +201,7 @@
 
     try {
       throwIfSubmissionCanceled();
-      // Step 0 - Run tests to validate user work
-      
-      // Always fetch ALL files from the container for complete AI analysis
-      // Start with any already-provided file contents (e.g. currently open file)
-      let filesToCheck = existingFiles;
-      let contentsToCheck: Record<string, string> = { ...fileContents };
-      
-      if (containerId) {
-        try {
-          console.log('AI SCORING: Fetching file list from container...');
-          const listRes = await fetch(`/api/docker/container/${containerId}/files/logs`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal,
-            body: JSON.stringify({})
-          });
-
-          const listData: { success: boolean; data: Array<{ filePath: string }> } = await listRes.json();
-          if (listData.success) {
-            const unfilteredFilesToCheck = listData.data.map((data) => data.filePath) || [];
-            filesToCheck = unfilteredFilesToCheck.filter((value, index) => unfilteredFilesToCheck.indexOf(value) === index)
-            console.log('AI SCORING: Total files in workspace:', filesToCheck.length);
-            
-            // Read ALL files from the workspace
-            let filesRead = 0;
-            let filesFailed = 0;
-            for (const file of filesToCheck) {
-              throwIfSubmissionCanceled();
-              // Skip if already read
-              if (contentsToCheck[file]) {
-                console.log('AI SCORING: ↩ Already have:', file);
-                continue;
-              }
-              // Skip node_modules, .git, dist, .next
-              if (file.includes('node_modules') || file.includes('/.git/') || file.includes('/.next/') || file.includes('/dist/')) continue;
-              // Skip binary files
-              if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.gif') || file.endsWith('.ico')) continue;
-              if (file.endsWith('.mp4') || file.endsWith('.zip') || file.endsWith('.tar') || file.endsWith('.gz')) continue;
-              if (file.endsWith('.lock') || file.endsWith('.log')) continue;
-              
-              try {
-                const readRes = await fetch(`/api/docker/container/${containerId}/files/read`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  signal,
-                  body: JSON.stringify({ path: `/workspace/${file}` })
-                });
-                const readData = await readRes.json();
-                if (readData.success) {
-                  contentsToCheck[file] = readData.content;
-                  filesRead++;
-                  console.log('AI SCORING: ✓ Read file:', file, '(' + readData.content.length + ' chars)');
-                } else {
-                  filesFailed++;
-                  console.log('AI SCORING: ✗ Failed:', file, '-', readData.message || 'unknown error');
-                }
-              } catch (e) {
-                filesFailed++;
-                console.log('AI SCORING: ✗ Exception:', file, '-', e);
-              }
-            }
-            console.log('AI SCORING: ==============================');
-            console.log('AI SCORING: Files read:', filesRead, '| Failed:', filesFailed);
-            console.log('AI SCORING: All files for AI:', Object.keys(contentsToCheck));
-            console.log('AI SCORING: ==============================');
-          } else {
-            console.warn('AI SCORING: File list fetch failed:', listData);
-          }
-        } catch (e) {
-          console.warn('AI SCORING: Could not fetch file list:', e);
-        }
-      }
-      
-      // Run grouped level tests (Submit Sprint validation)
+      // Step 0 - Run tests to validate user work first
       console.log('[SUBMIT SPRINT] Running grouped level tests for level:', level);
       state = 'testing';
       throwIfSubmissionCanceled();
@@ -331,6 +259,146 @@
       
       console.log('[SUBMIT SPRINT] All tests passed! Proceeding with submission...');
 
+      // Check if ALL tasks are completed BEFORE running AI scoring
+      const allCompletedTasks = tasks.filter(t => t.isCompleted);
+      if (allCompletedTasks.length < tasks.length) {
+        const remainingCount = tasks.length - allCompletedTasks.length;
+        // Find which tasks are NOT completed
+        const incompleteTasks = tasks
+          .filter(t => !t.isCompleted)
+          .map(t => `❌ ${t.taskName}`)
+          .join('\n');
+        submitError = `You must complete all ${tasks.length} tasks before submitting.\n\n` +
+          `Currently completed: ${allCompletedTasks.length}/${tasks.length}\n` +
+          `Remaining: ${remainingCount} task(s)\n\n` +
+          `Incomplete tasks:\n${incompleteTasks}`;
+        state = 'error';
+        return;
+      }
+
+      // Get file contents for AI scoring - only fetch files that were tested
+      let contentsToCheck: Record<string, string> = { ...fileContents };
+      
+      // Get test files for this level - these tell us what to check
+      // Try both with and without project prefix (LIBRARY_MANAGEMENT/)
+      const testFilePaths = [
+        `tests/client/level-${level}/`,
+        `tests/server/level-${level}/`,
+        `LIBRARY_MANAGEMENT/tests/client/level-${level}/`,
+        `LIBRARY_MANAGEMENT/tests/server/level-${level}/`,
+      ];
+      
+      // Track files mentioned in test files
+      const filesReferencedInTests = new Set<string>();
+      
+      // Fetch test files to understand what tests check
+      for (const testPath of testFilePaths) {
+        throwIfSubmissionCanceled();
+        try {
+          const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal,
+            body: JSON.stringify({ path: `/workspace/${testPath}` })
+          });
+          const listData = await listRes.json();
+          if (listData.success && listData.files) {
+            for (const testFile of listData.files) {
+              if (testFile.endsWith('.test.ts') || testFile.endsWith('.test.tsx')) {
+                try {
+                  const readRes = await fetch(`/api/docker/container/${containerId}/files/read`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal,
+                    body: JSON.stringify({ path: `/workspace/${testFile}` })
+                  });
+                  const readData = await readRes.json();
+                  if (readData.success) {
+                    contentsToCheck[`TEST_FILE: ${testFile}`] = readData.content;
+                    console.log('AI SCORING: ✓ Read test file:', testFile);
+                    
+                    // Extract file paths from test imports
+                    const importMatches = readData.content.match(/from\s+['"]([^'"]+)['"]/g);
+                    if (importMatches) {
+                      for (const match of importMatches) {
+                        const pathMatch = match.match(/from\s+['"]([^'"]+)['"]/);
+                        if (pathMatch && !pathMatch[1].startsWith('.') && !pathMatch[1].startsWith('/')) {
+                          // External import - skip
+                        } else if (pathMatch) {
+                          // Convert relative path to absolute
+                          const baseDir = testFile.substring(0, testFile.lastIndexOf('/'));
+                          let filePath = pathMatch[1];
+                          if (filePath.startsWith('./') || filePath.startsWith('../')) {
+                            // Resolve relative path
+                            const parts = baseDir.split('/');
+                            const relParts = filePath.split('/');
+                            for (const part of relParts) {
+                              if (part === '..') parts.pop();
+                              else if (part !== '.') parts.push(part);
+                            }
+                            filePath = parts.join('/');
+                          }
+                          // Add common extensions
+                          if (!filePath.endsWith('.ts') && !filePath.endsWith('.tsx') && !filePath.endsWith('.js') && !filePath.endsWith('.jsx')) {
+                            filePath = filePath + '.ts';
+                          }
+                          filesReferencedInTests.add(filePath);
+                        }
+                      }
+                    }
+                  }
+                } catch (e) { 
+                  console.log('AI SCORING: Error reading test file:', testFile, e);
+                }
+              }
+            }
+          }
+        } catch (e) { 
+          console.log('AI SCORING: Error listing test path:', testPath, e);
+        }
+      }
+      console.log('AI SCORING: Found', Object.keys(contentsToCheck).filter(k => k.startsWith('TEST_FILE:')).length, 'test files');
+      console.log('AI SCORING: Files referenced in tests:', Array.from(filesReferencedInTests));
+      
+      // Fetch ONLY files that are referenced in test files
+      if (filesReferencedInTests.size > 0 && containerId) {
+        console.log('AI SCORING: Fetching only files referenced in tests...');
+        for (const fileRef of filesReferencedInTests) {
+          if (Object.keys(contentsToCheck).length >= 10) break;
+          throwIfSubmissionCanceled();
+          
+          // Try different path variations
+          const pathVariations = [
+            fileRef,
+            `LIBRARY_MANAGEMENT/client/src/${fileRef}`,
+            `LIBRARY_MANAGEMENT/server/src/${fileRef}`,
+            `client/src/${fileRef}`,
+            `server/src/${fileRef}`,
+          ];
+          
+          for (const filePath of pathVariations) {
+            try {
+              const readRes = await fetch(`/api/docker/container/${containerId}/files/read`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal,
+                body: JSON.stringify({ path: `/workspace/${filePath}` })
+              });
+              const readData = await readRes.json();
+              if (readData.success) {
+                contentsToCheck[filePath] = readData.content;
+                console.log('AI SCORING: ✓ Read test-referenced file:', filePath);
+                break;
+              }
+            } catch (e) { /* try next variation */ }
+          }
+        }
+      } else {
+        console.log('AI SCORING: No files referenced in tests - not fetching source files');
+      }
+      
+      console.log('AI SCORING: Total files for AI:', Object.keys(contentsToCheck).length);
+
       state = 'loading';
       await advanceSubmitStep(1);
 
@@ -343,16 +411,36 @@
         throwIfSubmissionCanceled();
         // Get completed task texts for the scoring
         const completedTaskTexts = tasks.filter(t => t.isCompleted).map(t => t.taskName);
-        await fetch(`/api/docker/container/${containerId}/archive`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal,
-        }).then(res => res.json()).then(() => {
-          console.log('Container has been Archived');
-        }).catch(e => {
-          console.warn('err', e);
-        });
-        // Call AI scoring endpoint with test results
+        
+        // Get file changes - what files the user modified
+        let userFileChanges = '';
+        if (fileChanges) {
+          userFileChanges = `
+=== USER'S FILE CHANGES ===
+Created: ${fileChanges.created.join(', ') || 'none'}
+Modified: ${fileChanges.modified.join(', ') || 'none'}
+Renamed: ${fileChanges.renamed.map(r => `${r.from} → ${r.to}`).join(', ') || 'none'}
+Total changes: ${fileChanges.totalChanges}
+`;
+        }
+        // Format test results for AI scoring - transform to expected format
+        const testResultsForAI = testResults ? {
+          passed: testResults.passed,
+          results: {
+            summary: testResults.summary,
+            results: testData.results || []
+          },
+          failedTasks: testResults.failedTasks || []
+        } : null;
+        
+        // Get ALL tasks for this level (not just completed ones)
+        const allTaskTexts = tasks.map(t => t.taskName);
+        
+        // Call AI scoring endpoint with test results and file changes
+        console.log('AI SCORING: All tasks:', allTaskTexts);
+        console.log('AI SCORING: Completed tasks:', completedTaskTexts);
+        console.log('AI SCORING: File changes:', userFileChanges);
+        console.log('AI SCORING: Sending test results to AI:', JSON.stringify(testResultsForAI)?.slice(0, 500));
         const scoreRes = await fetch('/api/ai/score', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -360,9 +448,11 @@
           body: JSON.stringify({
             containerId: containerId,
             level,
-            completedTasks: completedTaskTexts,
+            tasks: allTaskTexts,  // ALL tasks in the level
+            completedTasks: completedTaskTexts,  // Only completed tasks
             fileContents: contentsToCheck,
-            // testResults: testData  // Pass test results to AI
+            fileChanges: userFileChanges,  // User's file changes
+            testResults: testResultsForAI  // Pass test results to AI
           })
         });
         
@@ -407,20 +497,8 @@
       console.log('AI SCORING: nextTime:', aiScoring.nextTime);
 
       // Step 1 - Submit completed tasks
+      // Note: All tasks already verified completed before AI scoring
       const completedTasks = tasks.filter(t => t.isCompleted);
-      
-      // Check if ALL tasks are completed before allowing submission
-      if (completedTasks.length < tasks.length) {
-        const remainingCount = tasks.length - completedTasks.length;
-        submitError = `You must complete all ${tasks.length} tasks before submitting.
-
-` +
-          `Currently completed: ${completedTasks.length}/${tasks.length}
-` +
-          `Remaining: ${remainingCount} task(s)`;
-        state = 'error';
-        return;
-      }
       
       // Submit each completed task one by one
       let allLevelsComplete = false;
