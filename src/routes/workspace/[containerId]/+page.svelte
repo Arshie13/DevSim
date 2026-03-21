@@ -643,9 +643,14 @@
       .then((data) => {
         console.log("data from ports: ", data);
         if (data.success && data.previewUrl) {
-          previewUrl = data.previewUrl;
+          // Ensure URL has proper protocol
+          let finalUrl = data.previewUrl;
+          if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+            finalUrl = 'https://' + finalUrl;
+          }
+          previewUrl = finalUrl;
           if (iframeRef) {
-            iframeRef.src = "https://" + previewUrl + "?t=" + Date.now();
+            iframeRef.src = finalUrl + "?t=" + Date.now();
           }
         } else {
           // Fallback to existing previewUrl with cache-bust

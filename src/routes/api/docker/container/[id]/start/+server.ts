@@ -5,6 +5,11 @@ import { CloudflaredWrapper } from '$lib/wrapper/cloudflared';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
   try {
+
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    console.log('environment: ', process.env.NODE_ENV);
+
     const session = await locals.auth();
     if (!session || !session.user || !session.user.id) {
       return error(401, 'Unauthorized');
@@ -55,20 +60,32 @@ export const POST: RequestHandler = async ({ locals, params }) => {
     const username = session.user.username ? 
     session.user.username.toLowerCase().replace(/[^a-z0-9-]/g, '-') :
     session.user.id // questionable fallback, but should always have username or id
-
-    const hostname = `${username}.devsim.dev`;
-
+    
     // Use the first available port for preview, or default to 3000
     const firstPort = Object.values(previewPorts)[0] || 3000;
 
-    let previewUrl = await cloudflared.createRoute(hostname, firstPort);
+    if (isProduction) {
+      const prodHostname = `${username}.devsim.dev`;
+      
+      let prodPreviewUrl = await cloudflared.createRoute(prodHostname, firstPort);
+      
+      return json({
+        success: true,
+        id,
+        previewPorts,
+        previewUrl: prodPreviewUrl,
+      });
+    }
+    
+    const devHostname = `http://127.0.0.1:${firstPort}`;
 
     return json({
       success: true,
       id,
       previewPorts,
-      previewUrl,
-    });
+      previewUrl: devHostname,
+    })
+
   } catch (error) {
     console.error('Error starting container:', error);
     return json({ success: false, error: String(error) }, { status: 500 });
