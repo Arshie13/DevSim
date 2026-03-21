@@ -49,7 +49,7 @@
 
   function handleAvatarSelect(event: CustomEvent<string>) {
     const newPath = event.detail;
-    user = { ...user, avatar: newPath };
+    user = { ...user, image: newPath };
     dispatch("update", user);
   }
 
@@ -60,7 +60,7 @@
       coins: newCoins,
       ownedAvatars: newOwnedAvatars,
       // Automatically equip the avatar that was just purchased
-      avatar: purchasedPath,
+      image: purchasedPath,
     };
     dispatch("update", user);
   }
@@ -149,7 +149,7 @@
                   class="avatar-ring w-24 h-24 bg-obsidian-bg-light border-[2px] border-obsidian-accent rounded-card flex items-center justify-center overflow-hidden shadow-[0_0_24px_rgba(7,165,201,0.30)]"
                 >
                   <img
-                    src={user.avatar}
+                    src={user.image}
                     alt="Current avatar"
                     class="w-full h-full object-contain"
                     on:error={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
@@ -188,7 +188,7 @@
   <ChangeAvatar
     bind:open={changeAvatarOpen}
     ownedAvatars={user.ownedAvatars}
-    currentAvatar={user.avatar}
+    currentAvatar={user.image}
     coins={user.coins}
     on:select={handleAvatarSelect}
     on:purchase={handleAvatarPurchase}

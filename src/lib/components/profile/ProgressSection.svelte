@@ -9,9 +9,17 @@
   export let streakDays: number = 7;
   export let weeklyGrowth: string = "+12%";
 
-  $: expPercentage = (user.exp / user.nextLevelExp) * 100;
+  // Calculate XP required for next level using exponential formula
+  // Level 1 -> 100 XP, Level 2 -> 150 XP, Level 3 -> 225 XP, etc.
+  function getXpForLevel(level: number): number {
+    return Math.floor(100 * Math.pow(1.5, level - 1));
+  }
+
+  $: currentLevelXp = getXpForLevel(user.level);
+  $: nextLevelXp = getXpForLevel(user.level + 1);
+  $: xpPercentage = Math.min((user.xp / nextLevelXp) * 100, 100);
   $: circumference = 2 * Math.PI * 34;
-  $: dashOffset = circumference * (1 - expPercentage / 100);
+  $: dashOffset = circumference * (1 - xpPercentage / 100);
 </script>
 
 <section
@@ -52,20 +60,20 @@
         <div class="flex items-baseline gap-2 mb-1">
           <h3 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">Level Progress</h3>
           <span class="text-[0.65rem] font-mono text-obsidian-text-primary/40">
-            {expPercentage.toFixed(0)}% to Level {user.level + 1}
+            {xpPercentage.toFixed(0)}% to Level {user.level + 1}
           </span>
         </div>
 
         <!-- XP bar -->
         <div class="xp-track mb-2">
-          <div class="xp-fill" style="width: {expPercentage}%"></div>
+          <div class="xp-fill" style="width: {xpPercentage}%"></div>
         </div>
 
         <!-- Stat pills -->
         <div class="flex flex-wrap items-center gap-4 text-[0.65rem] font-mono text-obsidian-text-primary/50 uppercase tracking-wide">
           <span class="flex items-center gap-1">
             <Zap class="w-3 h-3 text-obsidian-accent" />
-            {user.exp.toLocaleString()} / {user.nextLevelExp.toLocaleString()} XP
+            {user.xp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP
           </span>
           <span class="flex items-center gap-1">
             <Coins class="w-3 h-3 text-amber-400" />

@@ -189,7 +189,7 @@
       <!-- Scenario button -->
       <button
         on:click={() => (activeSubTab = 'scenario')}
-        class="relative z-10 flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
+        class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'scenario' ? '#07a5c9' : '#8892a0'};"
       >
         <FileText class="w-3 h-3 flex-shrink-0" />
@@ -199,7 +199,7 @@
       <!-- Kanban button -->
       <button
         on:click={() => (activeSubTab = 'board')}
-        class="relative z-10 flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
+        class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'board' ? '#07a5c9' : '#8892a0'};"
       >
         <LayoutDashboard class="w-3 h-3 flex-shrink-0" />

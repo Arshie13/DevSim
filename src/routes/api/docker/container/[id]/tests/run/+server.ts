@@ -271,7 +271,7 @@ const steps: string[] = [
 async function resolveWorkspaceDir(containerId: string, projectFolder?: string): Promise<string> {
   const labelFolder = (projectFolder ?? '').trim();
   if (labelFolder) {
-    return `/workspace/${labelFolder}`;
+    return `/workspace`;
   }
 
   try {

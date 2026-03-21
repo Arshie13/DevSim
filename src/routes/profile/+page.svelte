@@ -19,13 +19,16 @@
   // an OAuth URL or a local /avatars/ path assigned at first login.
   let user: UserData = {
     id: data.user.id,
-    name:   data.user?.name,
+    name: data.user?.name ?? '',
     email: data.user.email,
     image: data.user.image,
-    fullName: data.user.fullName,
-    givenName: data.user.givenName,
-    avatar: data.user?.image,
-    coins:  data.userCoins,
+    // Leveling System
+    xp: data.user.xp ?? 0,
+    coins: data.user.coins ?? data.userCoins ?? 0,
+    level: data.user.level ?? 1,
+    ownedAvatars: data.user.ownedAvatars ?? [],
+    // Onboarding
+    hasCompletedOnboarding: data.user.hasCompletedOnboarding ?? false,
   };
 
   // ── Profile edit modal ────────────────────────────────────────────────────────
@@ -36,12 +39,12 @@
     user = updated;
 
     // Persist avatar change to the database whenever it differs from current
-    if (updated.avatar && updated.avatar !== data.user?.image) {
+    if (updated.image && updated.image !== data.user?.image) {
       try {
         await fetch('/api/user/avatar', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avatarPath: updated.avatar }),
+          body: JSON.stringify({ avatarPath: updated.image }),
         });
         toast.success('Avatar updated');
       } catch (err) {
