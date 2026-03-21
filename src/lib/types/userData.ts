@@ -8,4 +8,5 @@ export interface UserData
   fullName: string,
   givenName: string
   coins: number,
+  username?: string;
 }

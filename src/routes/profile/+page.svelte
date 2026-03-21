@@ -26,6 +26,7 @@
     givenName: data.user.givenName,
     avatar: data.user?.image,
     coins:  data.userCoins,
+    username: data.user.username,
   };
 
   // ── Profile edit modal ────────────────────────────────────────────────────────

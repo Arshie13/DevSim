@@ -29,8 +29,6 @@ export class TerminalInitializer {
   private containerId: string = "";
   private dataListenerRegistered: boolean = false;
 
-  constructor() { }
-
   async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string) {
     if (typeof window === "undefined") return;
 

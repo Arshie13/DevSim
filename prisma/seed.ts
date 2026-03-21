@@ -28,7 +28,6 @@ async function main() {
   await prisma.containerStack.deleteMany();
   await prisma.fileChange.deleteMany();
   await prisma.container.deleteMany();
-  await prisma.session.deleteMany();
   await prisma.acceptanceCriteria.deleteMany();
   await prisma.hint.deleteMany();
   await prisma.levelTask.deleteMany();
@@ -93,7 +92,7 @@ async function main() {
       levelDescription: 'Members report they cannot borrow books even when copies are available.',
       xpReward: 250,
       coinReward: 150,
-      scenarioId: 'scenario-library-management',
+      scenarioId: 'scenario-1',
       tasks: {
         create: [
           {
@@ -129,7 +128,7 @@ async function main() {
       levelDescription: 'The library wants better visibility into borrowing activity.',
       xpReward: 500,
       coinReward: 300,
-      scenarioId: 'scenario-library-management',
+      scenarioId: 'scenario-1',
       tasks: {
         create: [
           {
@@ -166,7 +165,7 @@ async function main() {
       levelDescription: 'Returning books occasionally causes negative available copy counts.',
       xpReward: 1000,
       coinReward: 500,
-      scenarioId: 'scenario-library-management',
+      scenarioId: 'scenario-1',
       tasks: {
         create: [
           {
@@ -202,7 +201,7 @@ async function main() {
       levelDescription: '"Some members are marked overdue even after returning books. The reports don’t match reality."',
       xpReward: 2000,
       coinReward: 1000,
-      scenarioId: 'scenario-library-management',
+      scenarioId: 'scenario-1',
       tasks: {
         create: [
           {

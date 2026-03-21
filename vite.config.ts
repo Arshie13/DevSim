@@ -1,6 +1,7 @@
 // vite.config.ts
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import fs from 'fs';
 
 export default defineConfig({
   optimizeDeps: {
@@ -17,6 +18,10 @@ export default defineConfig({
     sveltekit()
   ],
   server: {
+    https: {
+      key: fs.readFileSync('./cert/localhost+1-key.pem'),
+      cert: fs.readFileSync('./cert/localhost+1.pem'),
+    },
     proxy: {
       // Forward /terminal WebSocket connections to the standalone ws:terminal
       // server (pnpm ws:terminal) during development.  This makes the fallback
@@ -27,6 +32,6 @@ export default defineConfig({
         changeOrigin: true,
       }
     },
-    allowedHosts: ['.ngrok-free.app']
+    allowedHosts: true
   }
 });

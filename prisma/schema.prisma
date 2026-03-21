@@ -13,6 +13,7 @@ model User {
   email        String  @unique
   name         String
   image        String?
+  username     String  @unique
 
   // Leveling System
   xp           Int      @default(0)

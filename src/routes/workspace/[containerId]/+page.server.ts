@@ -9,11 +9,16 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, "/");
   }
 
-  // Get user data including coins
+  // Get user data including coins and username
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true, coins: true, name: true },
+    select: { id: true, coins: true, name: true, username: true },
   });
+
+  // Validate that username from subdomain matches the user's actual username
+  if (event.locals.username && event.locals.username !== user?.username) {
+    throw redirect(303, "/");
+  }
 
   // The route param is now always the Prisma Container.id (cuid).
   // The Docker container ID is an internal detail stored in record.containerId.

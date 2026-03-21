@@ -13,7 +13,7 @@ export const load: PageServerLoad = async (event) => {
   // immediately reflected without requiring a re-login.
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { image: true, coins: true, ownedAvatars: true },
+    select: { image: true, coins: true, ownedAvatars: true, username: true },
   });
 
   return {
@@ -21,6 +21,7 @@ export const load: PageServerLoad = async (event) => {
       ...session.user,
       // Override session image with live DB value
       image: dbUser?.image ?? session.user.image,
+      username: dbUser?.username,
     },
     userCoins: dbUser?.coins ?? 0,
     ownedAvatars: dbUser?.ownedAvatars ?? [],

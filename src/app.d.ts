@@ -7,9 +7,10 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		interface Locals {
-			auth(): Promise<import("@auth/core/types").Session | null>;
-		}
+	interface Locals {
+		auth(): Promise<import("@auth/core/types").Session | null>;
+		username?: string;
+	}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}
@@ -26,6 +27,7 @@ declare module "@auth/sveltekit" {
 			image?: string | null;
 			fullName?: string | null;
 			givenName?: string | null;
+			username?: string | null;
 		};
 	}
 }
