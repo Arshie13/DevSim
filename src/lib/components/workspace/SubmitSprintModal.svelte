@@ -47,6 +47,9 @@
     summary: { total: number; passed: number; failed: number };
   } | null = null;
 
+  // Regression tracking for submit sprint - tasks that were done but now fail
+  let regressedTasks: Array<{ taskId: string; taskName: string }> = [];
+
   // AI Scoring state
   let aiScoring: {
     stars: number;
@@ -127,6 +130,7 @@
     state = 'confirm';
     showModal = true;
     testResults = null;
+    regressedTasks = [];
     aiScoring = { stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false };
     
     // Fetch file changes when modal opens
@@ -308,19 +312,44 @@
         state = 'error';
         const failedCount = testResults.failedTasks.length;
         
+        // Check for regressions - tasks that were marked as done but now fail
+        const completedTaskIds = new Set(tasks.filter(t => t.isCompleted).map(t => t.id));
+        regressedTasks = testData.taskResults
+          ?.filter((t: { passed: boolean; taskId: string }) => !t.passed && completedTaskIds.has(t.taskId))
+          .map((t: { taskId: string; taskName: string }) => ({ taskId: t.taskId, taskName: t.taskName })) || [];
+        
+        const hasRegressions = regressedTasks.length > 0;
+        
         // Build detailed error message
-        let errorMsg = `Tests are not passed yet, pass the test first before moving to the next level.\n\n`;
-        errorMsg += `❌ ${failedCount} task(s) did not pass validation.\n\n`;
+        let errorMsg = '';
+        
+        if (hasRegressions) {
+          // Special message for regression case - tasks that were done but now fail
+          errorMsg = `⚠️ Previously Completed Tasks Are Now Failing\n\n`;
+          errorMsg += `${regressedTasks.length} task(s) that were marked as completed have started failing due to recent changes.\n\n`;
+          errorMsg += `Regressed Tasks:\n`;
+          for (const task of regressedTasks) {
+            errorMsg += `   • ${task.taskName}\n`;
+          }
+          errorMsg += `\n💡 Tip: Review your recent changes or click "Fix Issues" to continue working on these tasks.\n\n`;
+        } else {
+          // Standard message for tasks that were never completed
+          errorMsg = `Tests are not passed yet, pass the test first before moving to the next level.\n\n`;
+          errorMsg += `❌ ${failedCount} task(s) did not pass validation.\n\n`;
+        }
         
         if (testData.taskResults && testData.taskResults.length > 0) {
-          for (const task of testData.taskResults.filter((t: { passed: boolean }) => !t.passed)) {
-            errorMsg += `❌ ${task.taskName}\n`;
-            if (task.errors && task.errors.length > 0) {
-              for (const err of task.errors) {
-                errorMsg += `   • ${err}\n`;
+          // Only show failed task details if not already shown in regression section
+          if (!hasRegressions) {
+            for (const task of testData.taskResults.filter((t: { passed: boolean }) => !t.passed)) {
+              errorMsg += `❌ ${task.taskName}\n`;
+              if (task.errors && task.errors.length > 0) {
+                for (const err of task.errors) {
+                  errorMsg += `   • ${err}\n`;
+                }
               }
+              errorMsg += '\n';
             }
-            errorMsg += '\n';
           }
         }
         
@@ -510,11 +539,15 @@
   // -- Derived props fed into ConfirmationModal ----------------------------------
   $: modalIcon     = state === 'error' ? '⚠' : state === 'loading' ? '' : '⟨/⟩';
   $: iconVariant   = (state === 'error' ? 'danger' : state === 'testing' ? 'warning' : 'accent') as 'accent' | 'danger' | 'warning' | 'success';
-  $: modalTitle    = state === 'error' ? 'Tests Failed' : state === 'loading' ? '' : state === 'testing' ? 'Running Tests…' : 'Submit Sprint?';
+  $: modalTitle    = state === 'error'
+    ? (regressedTasks.length > 0 ? 'Tasks Regressed' : 'Tests Failed')
+    : state === 'loading' ? '' : state === 'testing' ? 'Running Tests…' : 'Submit Sprint?';
   $: modalSubtitle = state === 'confirm'
     ? 'Are you sure you want to submit your completed tasks? This will validate your work and award XP and coins if all tests pass.'
     : '';
-  $: confirmLabel  = state === 'error' ? 'Retry' : 'Submit & Continue';
+  $: confirmLabel  = state === 'error'
+    ? (regressedTasks.length > 0 ? 'Fix Issues' : 'Retry')
+    : 'Submit & Continue';
   $: cancelLabel   = state === 'error' ? 'Close'  : state === 'testing' ? 'Cancel' : 'Cancel';
   $: variant       = (state === 'error' ? 'danger' : state === 'testing' ? 'warning' : 'primary') as 'primary' | 'danger' | 'warning' | 'success';
   $: modalError    = state === 'error' ? submitError : '';

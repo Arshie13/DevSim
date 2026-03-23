@@ -29,6 +29,7 @@
     Search as SearchIcon,
   } from "lucide-svelte";
   import type { ITask } from "$lib/types";
+  import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
 
   import Explorer from "./Explorer.svelte";
   import Search from "./Search.svelte";
@@ -133,7 +134,7 @@
         {/if}
       </div>
 
-    <div class="flex-1 overflow-y-auto">
+    <Scrollbar className="flex-1">
       {#if activeSidebarPanel === "files"}
         <Explorer
           {fileTree}
@@ -152,7 +153,7 @@
           {onSelectFile}
         />
       {/if}
-    </div>
+    </Scrollbar>
   </aside>
   {/if}
 </div>

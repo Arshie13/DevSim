@@ -182,6 +182,17 @@
   let backModalOpen: boolean = false;
   let backModalLoading: boolean = false;
 
+  // ── Test regression modal state ──────────────────────────────────────────
+  // Tracks tasks that were "done" but now failed again
+  let testRegressionModalOpen: boolean = false;
+  let regressionTaskName: string = "";
+  let regressionTaskId: string = "";
+  let pendingRegressionUpdates: Array<{
+    taskId: string;
+    taskName: string;
+    previousStatus: BoardTaskStatus;
+  }> = [];
+
   function toggleAiPanel() {
     aiPanelOpen = !aiPanelOpen;
   }
@@ -651,6 +662,13 @@
       result.taskResults.map((taskResult) => [taskResult.taskId, taskResult]),
     );
 
+    // Collect tasks that regressed (were done but now failed)
+    const regressions: Array<{
+      taskId: string;
+      taskName: string;
+      previousStatus: BoardTaskStatus;
+    }> = [];
+
     tasks = tasks.map((task, index) => {
       const directResult = byTaskId.get(task.id);
       const fallbackResult = byTaskId.get(String(getTaskNumber(task, index)));
@@ -668,9 +686,19 @@
         };
       }
 
-      // Once a test-backed task reaches Done, keep it locked there.
+      // Task failed - check if it was previously done
       if (task.boardStatus === "done" && !canManuallyMoveToDone) {
-        return task;
+        // This is a regression - task was done but now fails
+        regressions.push({
+          taskId: task.id,
+          taskName: task.taskName,
+          previousStatus: task.boardStatus,
+        });
+        // Still update the test status to failed, but keep board status for now
+        return {
+          ...task,
+          testStatus: "failed",
+        };
       }
 
       return {
@@ -685,6 +713,56 @@
     });
 
     persistTaskProgress();
+
+    // If there are regressions, show the modal for the first one
+    // (or we could batch them - for now, handle one at a time)
+    if (regressions.length > 0) {
+      pendingRegressionUpdates = regressions;
+      showNextRegressionModal();
+    }
+  }
+
+  function showNextRegressionModal() {
+    if (pendingRegressionUpdates.length === 0) {
+      regressionTaskId = "";
+      regressionTaskName = "";
+      return;
+    }
+    const next = pendingRegressionUpdates[0];
+    regressionTaskId = next.taskId;
+    regressionTaskName = next.taskName;
+    testRegressionModalOpen = true;
+  }
+
+  function handleRegressionConfirm() {
+    // User wants to move the task back to in-review
+    tasks = tasks.map((task) => {
+      if (task.id === regressionTaskId) {
+        return {
+          ...task,
+          boardStatus: "in-review",
+          isCompleted: false,
+          testStatus: "failed",
+        };
+      }
+      return task;
+    });
+    persistTaskProgress();
+    testRegressionModalOpen = false;
+    
+    // Remove the handled regression and show next if any
+    pendingRegressionUpdates = pendingRegressionUpdates.slice(1);
+    setTimeout(() => showNextRegressionModal(), 300);
+  }
+
+  function handleRegressionDismiss() {
+    // User wants to keep the task in done, but test status stays failed
+    // The test status is already updated to failed in handleTestsComplete
+    testRegressionModalOpen = false;
+    
+    // Remove the handled regression and show next if any
+    pendingRegressionUpdates = pendingRegressionUpdates.slice(1);
+    setTimeout(() => showNextRegressionModal(), 300);
   }
 
   async function selectFile(
@@ -1176,6 +1254,21 @@
     on:cancel={() => {
       backModalOpen = false;
     }}
+  />
+
+  <!-- Test Regression modal - shown when a previously passed test fails again -->
+  <ConfirmationModal
+    bind:open={testRegressionModalOpen}
+    icon="⚠️"
+    iconVariant="warning"
+    title="Test Failed After Completion"
+    subtitle={`"${regressionTaskName}" was marked as Done but now fails`}
+    description="Your recent changes have caused this task's tests to fail. Would you like to move this task back to 'In Review' so you can fix the issues?"
+    confirmLabel="Move to In Review"
+    cancelLabel="Keep in Done"
+    variant="warning"
+    on:confirm={handleRegressionConfirm}
+    on:cancel={handleRegressionDismiss}
   />
 </div>
 
