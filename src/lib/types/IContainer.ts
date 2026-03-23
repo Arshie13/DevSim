@@ -39,6 +39,7 @@ export interface ITask {
   hints: IHints[];
   acceptanceCriteria: IAcceptanceCriteria[];
   isCompleted: boolean; // Optional field to track completion status on the client side
+  testType: string;
 }
 
 export interface IHints {

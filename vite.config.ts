@@ -32,6 +32,6 @@ export default defineConfig({
         changeOrigin: true,
       }
     },
-    allowedHosts: true
+    allowedHosts: true,
   }
 });

@@ -9,19 +9,24 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, '/');
   }
 
-  // Always fetch the latest image from the DB so avatar changes are
+  // Always fetch the latest user data from the DB so changes are
   // immediately reflected without requiring a re-login.
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { image: true, coins: true, ownedAvatars: true, username: true },
+    select: { image: true, coins: true, xp: true, level: true, ownedAvatars: true, hasCompletedOnboarding: true },
   });
 
   return {
     user: {
       ...session.user,
-      // Override session image with live DB value
+      // Override session values with live DB values
       image: dbUser?.image ?? session.user.image,
       username: dbUser?.username,
+      coins: dbUser?.coins ?? 0,
+      xp: dbUser?.xp ?? 0,
+      level: dbUser?.level ?? 1,
+      ownedAvatars: dbUser?.ownedAvatars ?? [],
+      hasCompletedOnboarding: dbUser?.hasCompletedOnboarding ?? false,
     },
     userCoins: dbUser?.coins ?? 0,
     ownedAvatars: dbUser?.ownedAvatars ?? [],

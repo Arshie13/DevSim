@@ -9,7 +9,6 @@
 		"preview": "vite preview",
 		"validate": "tsc --noEmit",
 		"docker:container-reset": "npx tsx scripts/reset-docker-containers.ts",
-		"docker:volume-create": "npx tsx scripts/create-volumes.ts",
 		"docker:build-image": "docker build -t devsim-workspace .",
 		"docker:rebuild-image": "docker build --no-cache -t devsim-workspace .",
 		"docker:create-project-images": "npx tsx scripts/create-image.ts",

@@ -1,21 +1,27 @@
 <script lang="ts">
   import { FileText, LayoutDashboard, GripVertical } from 'lucide-svelte';
+  import TaskModal from '$lib/components/workspace/TaskModal.svelte';
   import { type ITask } from '$lib/types';
+  import { toast } from '$lib/stores/toast';
 
   export let scenario: string = '';
-  export let tasks: ITask[] = [];
-  export let onToggleTask: (taskId: string) => void = () => {};
+  type KanbanStatus = 'backlog' | 'in-progress' | 'in-review' | 'done';
+  type BoardTask = ITask & { boardStatus?: KanbanStatus };
+
+  export let tasks: BoardTask[] = [];
+  export let onTaskStatusChange: (taskId: string, status: KanbanStatus) => void = () => {};
 
   // ── Sub-tab state ────────────────────────────────────────────────────────
   let activeSubTab: 'scenario' | 'board' = 'scenario';
 
   // ── Kanban state ─────────────────────────────────────────────────────────
-  type KanbanStatus = 'backlog' | 'in-progress' | 'done';
-
   interface KanbanTask {
     id: string;
     text: string;
     status: KanbanStatus;
+    taskType: string;
+    userStory: string;
+    acceptanceCriteria: string[];
   }
 
   let kanbanTasks: KanbanTask[] = [];
@@ -23,17 +29,31 @@
 
   // Re-initialize whenever the set of tasks changes (e.g. advancing to a new level).
   // The fingerprint is based on task id+text so that toggling `completed` in the
-  // parent (via onToggleTask) does NOT trigger a spurious board reset.
-  function refreshTasks(incoming: ITask[]) {
+  // parent (via onTaskStatusChange) does NOT trigger a spurious board reset.
+  function getInitialStatus(task: BoardTask): KanbanStatus {
+    if (task.boardStatus) return task.boardStatus;
+    return task.isCompleted ? 'done' : 'backlog';
+  }
+
+  function refreshTasks(incoming: BoardTask[]) {
     kanbanTasks = incoming.map((t) => ({
       id: t.id,
       text: t.taskName,
-      status: t.isCompleted ? 'done' : 'backlog',
+      status: getInitialStatus(t),
+      taskType: t.testType,
+      userStory: ((t as ITask & { userStory?: string }).userStory ?? '').trim(),
+      acceptanceCriteria: (t.acceptanceCriteria ?? [])
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((criteria) => criteria.description)
+        .filter(Boolean),
     }));
   }
 
   $: {
-    const newFingerprint = tasks.map((t) => `${t.id}:${t.taskName}`).join('|');
+    const newFingerprint = tasks
+      .map((t) => `${t.id}:${t.taskName}:${getInitialStatus(t)}`)
+      .join('|');
     if (newFingerprint !== taskFingerprint && tasks.length > 0) {
       taskFingerprint = newFingerprint;
       refreshTasks(tasks);
@@ -43,12 +63,26 @@
   const COLUMNS: { id: KanbanStatus; label: string; color: string; bg: string }[] = [
     { id: 'backlog',     label: 'Backlog',     color: '#8892a0', bg: 'rgba(136,146,160,0.06)' },
     { id: 'in-progress', label: 'In Progress', color: '#FFB400', bg: 'rgba(255,180,0,0.06)'   },
+    { id: 'in-review',   label: 'In Review',   color: '#07A5C9', bg: 'rgba(7,165,201,0.08)'    },
     { id: 'done',        label: 'Done',        color: '#00E5A0', bg: 'rgba(0,229,160,0.06)'   },
   ];
 
   // ── Drag-and-drop state ──────────────────────────────────────────────────
   let draggingId: string | null = null;
   let dragOverColumn: KanbanStatus | null = null;
+  let taskModalOpen = false;
+  let selectedTask: KanbanTask | null = null;
+
+  function openTaskDetails(taskId: string) {
+    const task = kanbanTasks.find((t) => t.id === taskId);
+    if (!task) return;
+    selectedTask = task;
+    taskModalOpen = true;
+  }
+
+  function closeTaskDetails() {
+    taskModalOpen = false;
+  }
 
   function handleDragStart(e: DragEvent, taskId: string) {
     draggingId = taskId;
@@ -83,17 +117,30 @@
       return;
     }
 
-    const prevStatus = task.status;
+    const canManuallyMoveToDone = task.taskType.toLowerCase() === 'none';
+
+    // Test-backed tasks are locked once completed and cannot be moved out of Done.
+    if (task.status === 'done' && !canManuallyMoveToDone && column !== 'done') {
+      toast.info('This task is locked in Done because its tests have already passed.');
+      draggingId = null;
+      dragOverColumn = null;
+      return;
+    }
+
+    if (column === 'done' && !canManuallyMoveToDone) {
+      toast.warn(
+        'This task includes test cases. Pass its tests first, and it will be moved to Done automatically.',
+      );
+      draggingId = null;
+      dragOverColumn = null;
+      return;
+    }
+
     kanbanTasks = kanbanTasks.map((t) =>
       t.id === draggingId ? { ...t, status: column } : t,
     );
 
-    // Sync completion state to parent
-    const wasCompleted = prevStatus === 'done';
-    const isNowCompleted = column === 'done';
-    if (wasCompleted !== isNowCompleted) {
-      onToggleTask(draggingId);
-    }
+    onTaskStatusChange(draggingId, column);
 
     draggingId = null;
     dragOverColumn = null;
@@ -142,7 +189,7 @@
       <!-- Scenario button -->
       <button
         on:click={() => (activeSubTab = 'scenario')}
-        class="relative z-10 flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
+        class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'scenario' ? '#07a5c9' : '#8892a0'};"
       >
         <FileText class="w-3 h-3 flex-shrink-0" />
@@ -152,7 +199,7 @@
       <!-- Kanban button -->
       <button
         on:click={() => (activeSubTab = 'board')}
-        class="relative z-10 flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
+        class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'board' ? '#07a5c9' : '#8892a0'};"
       >
         <LayoutDashboard class="w-3 h-3 flex-shrink-0" />
@@ -162,14 +209,14 @@
 
     <!-- Right: progress pill -->
     <div class="flex items-center gap-2.5">
-      <div class="w-16 h-1 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
+      <div class="w-20 h-2 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
         <div
           class="h-full rounded-full transition-all duration-700"
           style="width: {progress}%; background: linear-gradient(90deg, #07a5c9, #00F5FF); box-shadow: 0 0 8px rgba(7,165,201,0.4);"
         ></div>
       </div>
       <span
-        class="text-[0.6rem] text-[#8892a0] tabular-nums"
+        class="text-[0.8rem] text-[#8892a0] tabular-nums"
         style="font-family: 'Space Mono', monospace;"
       >
         {doneCount}/{kanbanTasks.length}
@@ -224,14 +271,25 @@
                   class="flex items-center gap-3 px-4 py-2.5 rounded border transition-colors
                     {t.status === 'done'
                       ? 'border-[rgba(0,229,160,0.2)] bg-[rgba(0,229,160,0.04)]'
+                      : t.status === 'in-review'
+                        ? 'border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.08)]'
                       : t.status === 'in-progress'
                         ? 'border-[rgba(255,180,0,0.2)] bg-[rgba(255,180,0,0.04)]'
                         : 'border-[rgba(7,165,201,0.1)] bg-[#12192a]'}"
+                  role="button"
+                  tabindex="0"
+                  on:click={() => openTaskDetails(t.id)}
+                  on:keydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      openTaskDetails(t.id);
+                    }
+                  }}
                 >
                   <!-- Status dot -->
                   <div
                     class="w-2 h-2 rounded-full flex-shrink-0"
-                    style="background: {t.status === 'done' ? '#00E5A0' : t.status === 'in-progress' ? '#FFB400' : '#2d3446'}; border: 1px solid {t.status === 'done' ? '#00E5A0' : t.status === 'in-progress' ? '#FFB400' : '#8892a0'};"
+                    style="background: {t.status === 'done' ? '#00E5A0' : t.status === 'in-review' ? '#07A5C9' : t.status === 'in-progress' ? '#FFB400' : '#2d3446'}; border: 1px solid {t.status === 'done' ? '#00E5A0' : t.status === 'in-review' ? '#07A5C9' : t.status === 'in-progress' ? '#FFB400' : '#8892a0'};"
                   ></div>
                   <span
                     class="text-[0.82rem] flex-1"
@@ -242,9 +300,9 @@
                   <!-- Status label -->
                   <span
                     class="text-[0.6rem] uppercase tracking-wider px-2 py-0.5 rounded"
-                    style="font-family: 'Space Mono', monospace; color: {t.status === 'done' ? '#00E5A0' : t.status === 'in-progress' ? '#FFB400' : '#8892a0'}; background: {t.status === 'done' ? 'rgba(0,229,160,0.08)' : t.status === 'in-progress' ? 'rgba(255,180,0,0.08)' : 'rgba(136,146,160,0.08)'};"
+                    style="font-family: 'Space Mono', monospace; color: {t.status === 'done' ? '#00E5A0' : t.status === 'in-review' ? '#07A5C9' : t.status === 'in-progress' ? '#FFB400' : '#8892a0'}; background: {t.status === 'done' ? 'rgba(0,229,160,0.08)' : t.status === 'in-review' ? 'rgba(7,165,201,0.12)' : t.status === 'in-progress' ? 'rgba(255,180,0,0.08)' : 'rgba(136,146,160,0.08)'};"
                   >
-                    {t.status === 'in-progress' ? 'In Progress' : t.status === 'done' ? 'Done' : 'Backlog'}
+                    {t.status === 'in-progress' ? 'In Progress' : t.status === 'in-review' ? 'In Review' : t.status === 'done' ? 'Done' : 'Backlog'}
                   </span>
                 </div>
               {/each}
@@ -295,12 +353,18 @@
               {#each kanbanTasks.filter((t) => t.status === col.id) as task (task.id)}
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y-no-static-element-interactions -->
                 <div
-                  draggable="true"
+                  draggable={!(task.status === 'done' && task.taskType.toLowerCase() !== 'none')}
                   on:dragstart={(e) => handleDragStart(e, task.id)}
                   on:dragend={handleDragEnd}
-                  on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
+                  on:click={() => openTaskDetails(task.id)}
+                  on:keydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      openTaskDetails(task.id);
+                    }
+                  }}
                   class="group p-3 rounded border transition-all duration-150 select-none"
-                  style="cursor: grab; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
+                  style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
                   role="button"
                   tabindex="0"
                   aria-label="Drag task: {task.text}"
@@ -333,7 +397,11 @@
                   class="flex items-center justify-center h-16 border border-dashed rounded text-[0.65rem] transition-colors"
                   style="border-color: {dragOverColumn === col.id ? col.color + '66' : 'rgba(7,165,201,0.1)'}; color: {dragOverColumn === col.id ? col.color : '#8892a0'}; font-family: 'Space Mono', monospace;"
                 >
-                  {dragOverColumn === col.id ? '↓ Drop here' : 'Empty'}
+                  {#if col.id === 'done'}
+                    Pass tests to auto-complete
+                  {:else}
+                    {dragOverColumn === col.id ? '↓ Drop here' : 'Empty'}
+                  {/if}
                 </div>
               {/if}
             </div>
@@ -342,4 +410,13 @@
       </div>
     {/if}
   </div>
+
+  <TaskModal
+    open={taskModalOpen}
+    title={selectedTask?.text ?? ''}
+    userStory={selectedTask?.userStory ?? ''}
+    acceptanceCriteria={selectedTask?.acceptanceCriteria ?? []}
+    status={selectedTask?.status ?? 'backlog'}
+    onClose={closeTaskDetails}
+  />
 </div>

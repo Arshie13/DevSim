@@ -2,9 +2,10 @@
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
   import type { ITask } from '$lib/types';
-  import type { TestResult } from '$lib/tests/types';
-  import LoadingSteps from '$lib/components/ui/LoadingSteps.svelte';
   import ConfirmationModal from '$lib/components/ui/ConfirmationModal.svelte';
+  import SubmitSprintConfirmContent from '$lib/components/workspace/SubmitSprintConfirmContent.svelte';
+  import SubmitSprintProgressContent from '$lib/components/workspace/SubmitSprintProgressContent.svelte';
+  import SubmitSprintSuccessContent from '$lib/components/workspace/SubmitSprintSuccessContent.svelte';
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -13,14 +14,21 @@
   export let level: number = 1;
   export let fileContents: Record<string, string> = {};
   export let existingFiles: string[] = [];
+  export let levelXpReward: number = 0;
+  export let levelCoinReward: number = 0;
 
   // -- State --------------------------------------------------------------------
   type ModalState = 'confirm' | 'testing' | 'loading' | 'success' | 'error';
   let state: ModalState = 'confirm';
   let showModal = false;
+  let showCancelConfirmModal = false;
   let submitStep = 0;
   let submitError = '';
   let submitRewards = { xp: 0, coins: 0 };
+  let submittedNextLevel: number | null = null;
+  let cancelingSubmit = false;
+  let submitAbortController: AbortController | null = null;
+  let isSubmitFlowCanceled = false;
 
   // File changes tracking
   type FileChangeSummary = {
@@ -35,12 +43,9 @@
   // Test results state
   let testResults: {
     passed: boolean;
-    failedTasks: Array<{ taskId: number; taskText: string; errors: string[] }>;
+    failedTasks: Array<{ taskId: string; taskText: string; errors: string[] }>;
     summary: { total: number; passed: number; failed: number };
   } | null = null;
-
-  // AI review accordion state
-  let aiReviewOpen = false;
 
   // AI Scoring state
   let aiScoring: {
@@ -59,15 +64,39 @@
     { icon: '📦', label: 'Advancing level…', detail: 'Preparing the next challenge'},
   ];
 
-  // Add testing step
-  const TESTING_STEPS = [
-    { icon: '🧪', label: 'Running tests…', detail: 'Validating your work against level requirements' },
-  ];
+  const MIN_SUBMIT_STEP_VISIBLE_MS = 800;
+  let submitStepStartedAt = 0;
+
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  function startSubmitStep(step: number) {
+    submitStep = Math.min(Math.max(step, 0), SUBMIT_STEPS.length - 1);
+    submitStepStartedAt = Date.now();
+  }
+
+  async function ensureCurrentSubmitStepIsVisible() {
+    const elapsed = Date.now() - submitStepStartedAt;
+    const remaining = MIN_SUBMIT_STEP_VISIBLE_MS - elapsed;
+    if (remaining > 0) {
+      await sleep(remaining);
+    }
+  }
+
+  async function advanceSubmitStep(step: number) {
+    await ensureCurrentSubmitStepIsVisible();
+    throwIfSubmissionCanceled();
+    startSubmitStep(step);
+  }
+
+  $: activeSubmitStepIndex = Math.min(Math.max(submitStep, 0), SUBMIT_STEPS.length - 1);
+  $: activeSubmitStep = SUBMIT_STEPS[activeSubmitStepIndex];
+  $: loadingTitle = activeSubmitStep?.label ?? 'Submitting…';
+  $: loadingSubtitle = activeSubmitStep?.detail ?? 'Please keep this window open.';
 
   $: completedCount = tasks.filter(t => t.isCompleted).length;
 
   // -- Events -------------------------------------------------------------------
-  const dispatch = createEventDispatcher<{ submitted: { xp: number; coins: number; advanceToNextLevel: boolean } }>();
+  const dispatch = createEventDispatcher<{ submitted: { xp: number; coins: number; advanceToNextLevel: boolean; nextLevel: number | null } }>();
 
   // Track if we're advancing to next level (for success UI)
   let advancingToNextLevel = false;
@@ -94,10 +123,10 @@
   export function open() {
     submitError = '';
     submitStep = 0;
+    submittedNextLevel = null;
     state = 'confirm';
     showModal = true;
     testResults = null;
-    aiReviewOpen = false;
     aiScoring = { stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false };
     
     // Fetch file changes when modal opens
@@ -110,6 +139,47 @@
     state = 'confirm';
   }
 
+  function openCancelConfirmation() {
+    showCancelConfirmModal = true;
+  }
+
+  function dismissCancelConfirmation() {
+    showCancelConfirmModal = false;
+  }
+
+  async function confirmCancelSubmission() {
+    showCancelConfirmModal = false;
+    cancelingSubmit = true;
+    isSubmitFlowCanceled = true;
+    submitAbortController?.abort();
+    submitAbortController = null;
+
+    // Best effort: stop test process in container when canceling during test step.
+    if (state === 'testing') {
+      try {
+        await fetch(`/api/docker/container/${containerId}/tests/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.warn('[SUBMIT SPRINT] Failed to cancel running tests:', error);
+      }
+    }
+
+    cancelingSubmit = false;
+    showModal = false;
+    state = 'confirm';
+    submitStep = 0;
+    submittedNextLevel = null;
+    submitError = '';
+  }
+
+  function throwIfSubmissionCanceled() {
+    if (isSubmitFlowCanceled) {
+      throw new DOMException('Submission canceled by user', 'AbortError');
+    }
+  }
+
   // -- Submit flow --------------------------------------------------------------
   async function handleConfirm() {
     if (!dbContainerId) {
@@ -118,14 +188,19 @@
       return;
     }
 
+    isSubmitFlowCanceled = false;
+    cancelingSubmit = false;
+    submitAbortController = new AbortController();
+    const signal = submitAbortController.signal;
+
     state = 'loading';
-    submitStep = 0;
+    startSubmitStep(0);
     submitError = '';
     testResults = null;
 
     try {
+      throwIfSubmissionCanceled();
       // Step 0 - Run tests to validate user work
-      submitStep = 0;
       
       // Always fetch ALL files from the container for complete AI analysis
       // Start with any already-provided file contents (e.g. currently open file)
@@ -138,6 +213,7 @@
           const listRes = await fetch(`/api/docker/container/${containerId}/files/logs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal,
             body: JSON.stringify({})
           });
 
@@ -151,6 +227,7 @@
             let filesRead = 0;
             let filesFailed = 0;
             for (const file of filesToCheck) {
+              throwIfSubmissionCanceled();
               // Skip if already read
               if (contentsToCheck[file]) {
                 console.log('AI SCORING: ↩ Already have:', file);
@@ -167,6 +244,7 @@
                 const readRes = await fetch(`/api/docker/container/${containerId}/files/read`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
+                  signal,
                   body: JSON.stringify({ path: `/workspace/${file}` })
                 });
                 const readData = await readRes.json();
@@ -195,127 +273,66 @@
         }
       }
       
-      // console.log('=== TEST RUN: Starting test validation ===');
-      // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
-      // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
-      // console.log('=== TEST RUN: Starting test validation ===');
-      // console.log('TEST: Level:', level, '| Tasks:', tasks.length);
-      // console.log('TEST: File contents to check:', Object.keys(contentsToCheck).length, 'files');
+      // Run grouped level tests (Submit Sprint validation)
+      console.log('[SUBMIT SPRINT] Running grouped level tests for level:', level);
+      state = 'testing';
+      throwIfSubmissionCanceled();
       
-      // // Run tests
-      // const testRes = await fetch('/api/tests/run', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     level,
-      //     tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
-      //     fileContents: contentsToCheck,
-      //     existingFiles: filesToCheck
-      //   })
-      // });
-      // // Run tests
-      // const testRes = await fetch('/api/tests/run', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     level,
-      //     tasks: tasks.map(t => ({ id: t.id, text: t.text, completed: t.completed })),
-      //     fileContents: contentsToCheck,
-      //     existingFiles: filesToCheck
-      //   })
-      // });
+      const testRes = await fetch(`/api/docker/container/${containerId}/tests/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+        body: JSON.stringify({
+          command: `test:tasks:l${level}`,
+          level,
+          taskIds: tasks.map((task) => task.id),
+          type: 'level'
+        })
+      });
       
-      // console.log('TEST: Response status:', testRes.status);
-      // console.log('TEST: Response status:', testRes.status);
+      const testData = await testRes.json();
+      console.log('[SUBMIT SPRINT] Test results:', testData);
       
-      // const testData = await testRes.json();
-      // console.log('=== TEST RUN: Results Received ===');
-      // console.log('TEST: Passed:', testData.passed);
-      // console.log('TEST: Total Tests:', testData.results?.summary.total);
-      // console.log('TEST: Passed Tests:', testData.results?.summary.passed);
-      // console.log('TEST: Failed Tests:', testData.results?.summary.failed);
-      // const testData = await testRes.json();
-      // console.log('=== TEST RUN: Results Received ===');
-      // console.log('TEST: Passed:', testData.passed);
-      // console.log('TEST: Total Tests:', testData.results?.summary.total);
-      // console.log('TEST: Passed Tests:', testData.results?.summary.passed);
-      // console.log('TEST: Failed Tests:', testData.results?.summary.failed);
+      testResults = {
+        passed: testData.passed,
+        failedTasks: testData.taskResults?.filter((t: { passed: boolean }) => !t.passed).map((t: { taskId: string; taskName: string; errors: string[] }) => ({
+          taskId: t.taskId,
+          taskText: t.taskName,
+          errors: t.errors
+        })) || [],
+        summary: testData.summary || { total: 0, passed: 0, failed: 0 }
+      };
       
-      // if (testData.failedTasks.length > 0) {
-      //   console.log('=== TEST RUN: Failed Tasks ===');
-      //   testData.failedTasks.forEach((task: { taskId: number; taskText: string; errors: string[] }, index: number) => {
-      //     console.log(`${index + 1}. ${task.taskText}`);
-      //     task.errors.forEach((error: string) => {
-      //       console.log(`   • ${error}`);
-      //     });
-      //   });
-      // }
-      
-      // console.log('=== TEST RUN: Detailed Results ===');
-      // testData.results?.results.forEach((result: TestResult) => {
-      //   console.log(`${result.passed ? '✅' : '❌'} ${result.testName}: ${result.message}`);
-      // });
-      
-      // testResults = {
-      //   passed: testData.passed,
-      //   failedTasks: testData.failedTasks || [],
-      //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
-      // };
-      // testResults = {
-      //   passed: testData.passed,
-      //   failedTasks: testData.failedTasks || [],
-      //   summary: testData.results?.summary || { total: 0, passed: 0, failed: 0 }
-      // };
-      
-      // // If tests failed, show error with details
-      // if (!testData.passed) {
-      //   state = 'error';
-      //   const failedCount = testData.failedTasks?.length || 0;
-      // // If tests failed, show error with details
-      // if (!testData.passed) {
-      //   state = 'error';
-      //   const failedCount = testData.failedTasks?.length || 0;
+      // If tests failed, show error with details
+      if (!testData.passed) {
+        state = 'error';
+        const failedCount = testResults.failedTasks.length;
         
-      //   // Build detailed error message
-      //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
-      //   // Build detailed error message
-      //   let errorMsg = `Tests failed! ${failedCount} task(s) did not pass validation:\n\n`;
+        // Build detailed error message
+        let errorMsg = `Tests are not passed yet, pass the test first before moving to the next level.\n\n`;
+        errorMsg += `❌ ${failedCount} task(s) did not pass validation.\n\n`;
         
-      //   if (testData.failedTasks && testData.failedTasks.length > 0) {
-      //     for (const task of testData.failedTasks) {
-      //       errorMsg += `❌ ${task.taskText}\n`;
-      //       if (task.errors && task.errors.length > 0) {
-      //         for (const err of task.errors) {
-      //           errorMsg += `   • ${err}\n`;
-      //         }
-      //       }
-      //       errorMsg += '\n';
-      //     }
-      //   } else {
-      //     errorMsg += 'Please review your work and try again.';
-      //   }
-      //   if (testData.failedTasks && testData.failedTasks.length > 0) {
-      //     for (const task of testData.failedTasks) {
-      //       errorMsg += `❌ ${task.taskText}\n`;
-      //       if (task.errors && task.errors.length > 0) {
-      //         for (const err of task.errors) {
-      //           errorMsg += `   • ${err}\n`;
-      //         }
-      //       }
-      //       errorMsg += '\n';
-      //     }
-      //   } else {
-      //     errorMsg += 'Please review your work and try again.';
-      //   }
+        if (testData.taskResults && testData.taskResults.length > 0) {
+          for (const task of testData.taskResults.filter((t: { passed: boolean }) => !t.passed)) {
+            errorMsg += `❌ ${task.taskName}\n`;
+            if (task.errors && task.errors.length > 0) {
+              for (const err of task.errors) {
+                errorMsg += `   • ${err}\n`;
+              }
+            }
+            errorMsg += '\n';
+          }
+        }
         
-      //   submitError = errorMsg;
-      //   console.log('TEST: Submit error message:', submitError);
-      //   return;
-      // }
-      //   submitError = errorMsg;
-      //   console.log('TEST: Submit error message:', submitError);
-      //   return;
-      // }
+        submitError = errorMsg;
+        console.log('[SUBMIT SPRINT] Tests failed:', submitError);
+        return;
+      }
+      
+      console.log('[SUBMIT SPRINT] All tests passed! Proceeding with submission...');
+
+      state = 'loading';
+      await advanceSubmitStep(1);
 
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
@@ -323,11 +340,13 @@
       console.log('AI SCORING: Files available for AI:', Object.keys(contentsToCheck).length);
       // console.log('AI SCORING: Test results to include:', JSON.stringify(testData));
       try {
+        throwIfSubmissionCanceled();
         // Get completed task texts for the scoring
         const completedTaskTexts = tasks.filter(t => t.isCompleted).map(t => t.taskName);
         await fetch(`/api/docker/container/${containerId}/archive`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal,
         }).then(res => res.json()).then(() => {
           console.log('Container has been Archived');
         }).catch(e => {
@@ -337,6 +356,7 @@
         const scoreRes = await fetch('/api/ai/score', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal,
           body: JSON.stringify({
             containerId: containerId,
             level,
@@ -387,7 +407,6 @@
       console.log('AI SCORING: nextTime:', aiScoring.nextTime);
 
       // Step 1 - Submit completed tasks
-      submitStep = 1;
       const completedTasks = tasks.filter(t => t.isCompleted);
       
       // Check if ALL tasks are completed before allowing submission
@@ -405,14 +424,17 @@
       
       // Submit each completed task one by one
       let allLevelsComplete = false;
+      let nextLevelFromSubmit: number | null = null;
       
       for (let i = 0; i < completedTasks.length; i++) {
+        throwIfSubmissionCanceled();
         const task = completedTasks[i];
         // Only pass advanceLevel: true for the last task (when all tasks will be complete)
         const isLastTask = i === completedTasks.length - 1;
         const submitRes = await fetch(`/api/docker/container/${dbContainerId}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal,
           body: JSON.stringify({ taskId: task.taskName, advanceLevel: isLastTask })
         });
         const submitData = await submitRes.json();
@@ -426,6 +448,7 @@
         
         // Check if all levels are now complete
         allLevelsComplete = submitData.allLevelsComplete ?? false;
+        nextLevelFromSubmit = submitData.nextLevel ?? null;
         
         // If all levels complete, stop submitting more tasks
         if (allLevelsComplete) {
@@ -438,20 +461,33 @@
       // when allLevelsComplete is true (see submit endpoint lines 137-145)
       // Calling archive again would result in "already archived" error
 
+      await advanceSubmitStep(2);
+
       // clear the logs for the next level
       await fetch(`/api/docker/container/${containerId}/clear-logs`, {
-        method: "DELETE"
+        method: "DELETE",
+        signal
       });
 
       // Determine what to do next based on level completion
       const advanceToNextLevel = allLevelsComplete === false;
       advancingToNextLevel = advanceToNextLevel;
+      submittedNextLevel = nextLevelFromSubmit;
+
+      await ensureCurrentSubmitStepIsVisible();
       
       state = 'success';
-      dispatch('submitted', { ...submitRewards, advanceToNextLevel });
     } catch (err) {
+      if ((err instanceof DOMException && err.name === 'AbortError') || isSubmitFlowCanceled) {
+        state = 'confirm';
+        submitError = '';
+        return;
+      }
       submitError = err instanceof Error ? err.message : String(err);
       state = 'error';
+    } finally {
+      submitAbortController = null;
+      cancelingSubmit = false;
     }
   }
 
@@ -464,7 +500,11 @@
     showModal = false;
     state = 'confirm';
     // Dispatch event to notify parent to reload
-    dispatch('submitted', { ...submitRewards, advanceToNextLevel: true });
+    dispatch('submitted', {
+      ...submitRewards,
+      advanceToNextLevel: advancingToNextLevel,
+      nextLevel: submittedNextLevel,
+    });
   }
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
@@ -473,14 +513,13 @@
   $: modalTitle    = state === 'error' ? 'Tests Failed' : state === 'loading' ? '' : state === 'testing' ? 'Running Tests…' : 'Submit Sprint?';
   $: modalSubtitle = state === 'confirm'
     ? 'Are you sure you want to submit your completed tasks? This will validate your work and award XP and coins if all tests pass.'
-    : state === 'testing'
-    ? 'Please wait while we validate your work against the level requirements...'
     : '';
   $: confirmLabel  = state === 'error' ? 'Retry' : 'Submit & Continue';
   $: cancelLabel   = state === 'error' ? 'Close'  : state === 'testing' ? 'Cancel' : 'Cancel';
   $: variant       = (state === 'error' ? 'danger' : state === 'testing' ? 'warning' : 'primary') as 'primary' | 'danger' | 'warning' | 'success';
   $: modalError    = state === 'error' ? submitError : '';
   $: hideActions   = state === 'loading' || state === 'testing';
+  $: hideHeader    = state === 'loading' || state === 'testing';
   $: showSuccess   = state === 'success';
 </script>
 
@@ -495,6 +534,7 @@
   {cancelLabel}
   {variant}
   {hideActions}
+  {hideHeader}
   {showSuccess}
   error={modalError}
   on:confirm={handleConfirm}
@@ -502,232 +542,52 @@
 >
   <!-- Default slot: body changes per state -->
   {#if state === 'confirm'}
-    <!-- Task summary -->
-    <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3.5 mb-4">
-      <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2.5">Sprint tasks</p>
-      <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
-        {#each tasks as task}
-          <li class="flex items-center gap-2.5 font-mono text-[0.88rem] {task.isCompleted ? 'opacity-100' : 'opacity-35'}">
-            <span class="font-bold w-4 text-center {task.isCompleted ? 'text-[#00e5a0]' : 'text-[#2d3446]'}">
-              {task.isCompleted ? '✓' : '○'}
-            </span>
-            <span class="{task.isCompleted ? 'text-[#d0d7dd]' : 'text-[#8892a0] line-through'}">
-              {task.taskName}
-            </span>
-          </li>
-        {/each}
-      </ul>
-      <p class="mt-2.5 font-mono text-[0.75rem] text-[#8892a0] text-right">{completedCount} / {tasks.length} completed</p>
-    </div>
-
-    <!-- File changes summary -->
-    {#if loadingFileChanges}
-      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
-        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2">Loading file changes...</p>
-      </div>
-    {:else if fileChanges && fileChanges.totalChanges > 0}
-      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
-        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2.5">Files modified</p>
-        <ul class="list-none m-0 p-0 flex flex-col gap-1.5">
-          {#if fileChanges.created.length > 0}
-            {#each fileChanges.created as file}
-              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
-                <span class="font-bold w-4 text-center text-[#00e5a0]">+</span>
-                <span class="text-[#d0d7dd]">{file}</span>
-              </li>
-            {/each}
-          {/if}
-          {#if fileChanges.modified.length > 0}
-            {#each fileChanges.modified as file}
-              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
-                <span class="font-bold w-4 text-center text-[#fbbf24]">•</span>
-                <span class="text-[#d0d7dd]">{file}</span>
-              </li>
-            {/each}
-          {/if}
-          {#if fileChanges.renamed.length > 0}
-            {#each fileChanges.renamed as rename}
-              <li class="flex items-center gap-2.5 font-mono text-[0.82rem]">
-                <span class="font-bold w-4 text-center text-[#60a5fa]">→</span>
-                <span class="text-[#d0d7dd]">{rename.from} → {rename.to}</span>
-              </li>
-            {/each}
-          {/if}
-        </ul>
-        <p class="mt-2.5 font-mono text-[0.75rem] text-[#8892a0] text-right">{fileChanges.totalChanges} file(s) changed</p>
-      </div>
-    {:else}
-      <div class="bg-[#0a0e1a] border border-[rgba(30,42,58,0.9)] rounded-[4px] px-4 py-3 mb-4">
-        <p class="font-mono text-[0.75rem] tracking-[0.1em] uppercase text-[#8892a0] mb-2">No files modified</p>
-      </div>
-    {/if}
-
-    <!-- Reward preview chips -->
-    <div class="flex gap-2.5 mb-1">
-      <div class="flex-1 text-center py-2 rounded-[4px] font-mono text-[0.82rem] tracking-[0.04em] border bg-[rgba(15,34,16,0.8)] border-[rgba(22,163,74,0.25)] text-[#4ade80]">
-        ⚡ XP incoming
-      </div>
-      <div class="flex-1 text-center py-2 rounded-[4px] font-mono text-[0.82rem] tracking-[0.04em] border bg-[rgba(31,21,8,0.8)] border-[rgba(202,138,4,0.25)] text-[#fbbf24]">
-        🪙 Coins incoming
-      </div>
-    </div>
+    <SubmitSprintConfirmContent
+      {tasks}
+      {completedCount}
+      {loadingFileChanges}
+      {fileChanges}
+      rewardXp={levelXpReward}
+      rewardCoins={levelCoinReward}
+    />
 
   {:else if state === 'loading' || state === 'testing'}
-    <!-- LoadingSteps fills the body; action row is hidden via hideActions -->
-    {#if state === 'testing'}
-      <!-- Testing state - show progress with test info -->
-      <div class="flex flex-col items-center justify-center py-6">
-        <div class="text-4xl mb-4 animate-pulse">🧪</div>
-        <h3 class="font-['Chakra_Petch',sans-serif] text-lg font-bold text-[#d0d7dd] mb-2">
-          Running Tests...
-        </h3>
-        <p class="font-mono text-sm text-[#8892a0] text-center max-w-xs">
-          Validating your work against level {level} requirements
-        </p>
-        <!-- Progress indicator -->
-        <div class="mt-6 w-64 h-2 bg-[#1a2234] rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-[#10b981] to-[#059669] animate-pulse" style="width: 60%"></div>
-        </div>
-      </div>
-    {:else}
-      <LoadingSteps
-        card={false}
-        step={submitStep}
-        steps={SUBMIT_STEPS}
-        title={advancingToNextLevel ? 'Advancing Level…' : 'Completing Sprint…'}
-        subtitle="Please keep this window open."
-      />
-    {/if}
+    <SubmitSprintProgressContent
+      state={state as 'loading' | 'testing'}
+      {activeSubmitStepIndex}
+      {activeSubmitStep}
+      submitSteps={SUBMIT_STEPS}
+      {loadingTitle}
+      {loadingSubtitle}
+      {cancelingSubmit}
+      on:cancel={openCancelConfirmation}
+    />
   {/if}
 
   <!-- Success slot -->
   <svelte:fragment slot="success">
-    <div class="text-center py-2">
-      <div class="text-5xl burst-anim" aria-hidden="true">🎉</div>
-      <h2 class="mt-2.5 mb-1 font-['Chakra_Petch',sans-serif] text-[1.6rem] font-bold tracking-[0.08em] text-[#d0d7dd]">
-        {advancingToNextLevel ? 'Level Complete!' : 'Sprint Complete!'}
-      </h2>
-      <p class="font-mono text-[0.85rem] text-[#8892a0] mb-6">
-        {advancingToNextLevel 
-          ? 'Great job! You can continue working on the next level.' 
-          : 'Your workspace has been submitted successfully.'}
-      </p>
-
-      <!-- AI Scoring Display -->
-      {#if aiScoring.done && !aiScoring.loading}
-        <div class="mb-5 bg-[#0d1321] border border-[rgba(99,102,241,0.25)] rounded-[6px] overflow-hidden">
-          <!-- Always-visible summary row -->
-          <div class="flex items-center justify-between px-4 py-3">
-            <div class="flex items-center gap-2">
-              {#each [1, 2, 3] as star}
-                <span class="text-xl {star <= aiScoring.stars ? 'text-[#fbbf24]' : 'text-[#2d3446]'}">
-                  {star <= aiScoring.stars ? '★' : '☆'}
-                </span>
-              {/each}
-              <span class="font-mono text-sm font-bold ml-1 {aiScoring.score >= 75 ? 'text-[#4ade80]' : aiScoring.score >= 50 ? 'text-[#fbbf24]' : 'text-[#f97316]'}">
-                {aiScoring.score}<span class="text-[#6b7280] font-normal">/100</span>
-              </span>
-            </div>
-            <button
-              on:click={() => aiReviewOpen = !aiReviewOpen}
-              class="font-mono text-[0.7rem] text-[#6366f1] hover:text-[#818cf8] transition-colors flex items-center gap-1"
-            >
-              {aiReviewOpen ? 'Hide' : 'View'} feedback
-              <span class="transition-transform duration-200 {aiReviewOpen ? 'rotate-180' : ''}">▾</span>
-            </button>
-          </div>
-
-          <!-- Collapsible detail -->
-          {#if aiReviewOpen}
-            <div class="border-t border-[rgba(99,102,241,0.15)] px-4 py-3 text-left space-y-3 max-h-[200px] overflow-y-auto scrollbar-thin">
-              <!-- Overall Feedback -->
-              <p class="font-mono text-[0.78rem] text-[#9ca3af] leading-relaxed">
-                {aiScoring.feedback}
-              </p>
-
-              <!-- Improvements -->
-              {#if aiScoring.improvements}
-                <div>
-                  <p class="font-mono text-[0.65rem] tracking-[0.12em] uppercase text-[#fbbf24] mb-1 flex items-center gap-1">
-                    <span>🔧</span> What to Improve
-                  </p>
-                  <div class="font-mono text-[0.75rem] text-[#d0d7dd] leading-relaxed whitespace-pre-line bg-[#0a0e1a] rounded px-3 py-2 border border-[rgba(251,191,36,0.12)]">
-                    {aiScoring.improvements}
-                  </div>
-                </div>
-              {/if}
-
-              <!-- Next Time Tips -->
-              {#if aiScoring.nextTime}
-                <div>
-                  <p class="font-mono text-[0.65rem] tracking-[0.12em] uppercase text-[#4ade80] mb-1 flex items-center gap-1">
-                    <span>💡</span> Next Time
-                  </p>
-                  <div class="font-mono text-[0.75rem] text-[#d0d7dd] leading-relaxed whitespace-pre-line bg-[#0a0e1a] rounded px-3 py-2 border border-[rgba(74,222,128,0.12)]">
-                    {aiScoring.nextTime}
-                  </div>
-                </div>
-              {/if}
-            </div>
-          {/if}
-        </div>
-      {:else if aiScoring.loading}
-        <div class="mb-5 px-4 py-3 bg-[#0d1321] border border-[rgba(99,102,241,0.25)] rounded-[6px] flex items-center gap-3">
-          <div class="w-4 h-4 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-          <p class="font-mono text-[0.72rem] text-[#6366f1]">Analyzing your code…</p>
-        </div>
-      {/if}
-
-      <div class="flex justify-center gap-4 mb-7">
-        <!-- XP badge -->
-        <div class="flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] border bg-[rgba(15,34,16,0.8)] border-[rgba(22,163,74,0.30)] fade-up-anim">
-          <span class="text-[1.1rem]">⚡</span>
-          <span class="font-mono text-[1.5rem] font-extrabold text-[#4ade80]">+{submitRewards.xp}</span>
-          <span class="font-['Chakra_Petch',sans-serif] text-[0.72rem] font-semibold tracking-[0.12em] text-[#8892a0] self-end pb-0.5">XP</span>
-        </div>
-        <!-- Coin badge -->
-        <div class="flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] border bg-[rgba(31,21,8,0.8)] border-[rgba(180,83,0,0.30)] fade-up-anim [animation-delay:0.25s]">
-          <span class="text-[1.1rem]">🪙</span>
-          <span class="font-mono text-[1.5rem] font-extrabold text-[#fbbf24]">+{submitRewards.coins}</span>
-          <span class="font-['Chakra_Petch',sans-serif] text-[0.72rem] font-semibold tracking-[0.12em] text-[#8892a0] self-end pb-0.5">Coins</span>
-        </div>
-      </div>
-
-      <div class="flex justify-center gap-3">
-        {#if advancingToNextLevel}
-          <button
-            on:click={handleContinueWorking}
-            class="px-5 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-white border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 fade-up-anim"
-            style="background:linear-gradient(135deg,#10b981,#059669);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(16,185,129,0.35);"
-          >
-            Continue Working →
-          </button>
-        {/if}
-        <button
-          on:click={handleDone}
-          class="px-7 py-2.5 font-['Chakra_Petch',sans-serif] text-[0.78rem] font-bold tracking-[0.08em] uppercase text-[#0a0e1a] border-none cursor-pointer transition-[opacity,box-shadow] duration-200 hover:opacity-90 hover:text-white fade-up-anim {advancingToNextLevel ? '[animation-delay:0.1s]' : ''}"
-          style="background:linear-gradient(135deg,#07a5c9,#6366f1);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 16px rgba(7,165,201,0.35);"
-        >
-          Back to Dashboard
-        </button>
-      </div>
-    </div>
+    <SubmitSprintSuccessContent
+      {advancingToNextLevel}
+      {aiScoring}
+      {submitRewards}
+      on:done={handleDone}
+      on:continue={handleContinueWorking}
+    />
   </svelte:fragment>
 </ConfirmationModal>
 
-<style>
-  .burst-anim {
-    animation: burst-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-  @keyframes burst-pop {
-    from { transform: scale(0.3); opacity: 0; }
-    to   { transform: scale(1);   opacity: 1; }
-  }
-  .fade-up-anim {
-    animation: fade-up 0.4s 0.15s ease both;
-  }
-  @keyframes fade-up {
-    from { transform: translateY(10px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-</style>
+<ConfirmationModal
+  bind:open={showCancelConfirmModal}
+  icon="⚠"
+  iconVariant="warning"
+  title="Cancel Submission?"
+  subtitle="This will stop test/submit progress for this run"
+  description="Are you sure you want to cancel this submission process?"
+  confirmLabel="Yes, Cancel"
+  cancelLabel="No, Continue"
+  variant="warning"
+  isLoading={cancelingSubmit}
+  loadingLabel="Canceling…"
+  on:confirm={confirmCancelSubmission}
+  on:cancel={dismissCancelConfirmation}
+/>

@@ -3,6 +3,7 @@ import prisma from "$lib/server/client";
 interface User {
   email: string;
   name: string;
+  username: string;
 }
 
 interface PrismaCreateUserResponse {

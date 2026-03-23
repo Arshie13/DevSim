@@ -61,7 +61,7 @@ export async function POST(event: RequestEvent) {
     await new Promise((resolve, reject) => {
       stream.on('end', resolve);
       stream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 20000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
     });
 
     // Also list directories
@@ -87,7 +87,7 @@ export async function POST(event: RequestEvent) {
     await new Promise((resolve, reject) => {
       dirStream.on('end', resolve);
       dirStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 20000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
     });
 
     if (errorOutput) {
@@ -98,7 +98,7 @@ export async function POST(event: RequestEvent) {
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map(f => f.replace('/workspace/', ''));
+      .map(f => f.replace('/workspace/', ''));``
 
     // Process directories
     const directories = dirOutput

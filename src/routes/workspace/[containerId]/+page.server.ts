@@ -79,6 +79,8 @@ export const load: PageServerLoad = async (event) => {
   
   const levelTasks = currentLevel?.tasks?.map(t => t.taskName) || [];
 
+  console.log("container:", container);
+
   return {
     user: session.user,
     userId: user?.id || "",
