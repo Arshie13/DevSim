@@ -314,8 +314,8 @@
                   });
                   const readData = await readRes.json();
                   if (readData.success) {
-                    contentsToCheck[`TEST_FILE: ${testFile}`] = readData.content;
-                    console.log('AI SCORING: ✓ Read test file:', testFile);
+                    // DON'T send test file content to AI - only extract import paths for source files
+                    console.log('AI SCORING: ✓ Found test file (content NOT sent to AI):', testFile);
                     
                     // Extract file paths from test imports
                     const importMatches = readData.content.match(/from\s+['"]([^'"]+)['"]/g);
@@ -458,6 +458,7 @@ Total changes: ${fileChanges.totalChanges}
         
         const scoreData = await scoreRes.json();
         console.log('AI SCORING: Response received:', scoreData);
+        console.log('AI SCORING: Files analyzed by AI:', scoreData.filesAnalyzed);
         if (scoreData.success) {
           aiScoring = {
             stars: scoreData.stars || 1,

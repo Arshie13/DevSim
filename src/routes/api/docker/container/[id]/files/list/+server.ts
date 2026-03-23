@@ -6,8 +6,7 @@ import { Writable } from 'stream';
 
 export async function POST(event: RequestEvent) {
   try {
-    const containerId = event.params.id as string;
-    
+    const containerId = event.params.id;
     // Safely parse JSON with fallback
     let requestData = { path: '/workspace' };
     try {
@@ -58,11 +57,11 @@ export async function POST(event: RequestEvent) {
 
     container.modem.demuxStream(stream, stdout, stderr);
 
-    await new Promise((resolve, reject) => {
-      stream.on('end', resolve);
-      stream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 100000); // 100s timeout
-    });
+     await new Promise((resolve, reject) => {
+       stream.on('end', resolve);
+       stream.on('error', reject);
+       setTimeout(() => reject(new Error('Timeout')), 1000000); // 1000s timeout
+     });
 
     // Also list directories
     const dirExec = await container.exec({
@@ -84,11 +83,11 @@ export async function POST(event: RequestEvent) {
 
     container.modem.demuxStream(dirStream, dirStdout, new Writable({ write: () => {} }));
 
-    await new Promise((resolve, reject) => {
-      dirStream.on('end', resolve);
-      dirStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 100000); // 100s timeout
-    });
+     await new Promise((resolve, reject) => {
+       dirStream.on('end', resolve);
+       dirStream.on('error', reject);
+       setTimeout(() => reject(new Error('Timeout')), 1000000); // 1000s timeout
+     });
 
     if (errorOutput) {
       console.log('Stderr output:', errorOutput);

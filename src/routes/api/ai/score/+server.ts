@@ -1,6 +1,6 @@
 /**
  * AI Scoring Service
- * 
+ *
  * Uses OpenRouter AI to evaluate user code and provide:
  * - Star rating (1-3 stars)
  * - Detailed feedback on improvements
@@ -11,6 +11,9 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 import type { TestResult, TestValidationResult } from '$lib/tests/types';
+import { getLevelConfig } from '$lib/tests/levels';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 // Source code file extensions to analyze
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.c', '.cpp', '.cs', '.rb', '.php', '.prisma'];
@@ -45,34 +48,41 @@ async function getLevelInfo(level: number) {
   } : null;
 }
 
-// Fetch file contents from container
-async function fetchFileContents(containerId: string, filePaths: string[]): Promise<Record<string, string>> {
+// Fetch file contents from container using read-multiple endpoint
+async function fetchFileContents(containerId: string, filePaths: string[], fetchFn?: typeof fetch): Promise<Record<string, string>> {
   const contents: Record<string, string> = {};
+  const fetcher = fetchFn || fetch;
   
-  console.log('[AI Score] fetchFileContents — attempting to read', filePaths.length, 'files:', filePaths);
+  console.log('[AI Score] fetchFileContents — reading', filePaths.length, 'files using read-multiple');
   
-  for (const filePath of filePaths) {
-    try {
-      console.log('[AI Score] fetchFileContents — reading:', filePath);
-      const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: `/workspace/${filePath}` })
-      });
-      const data = await res.json();
-      if (data.success) {
-        contents[filePath] = data.content;
-        console.log('[AI Score] fetchFileContents — ✓ read:', filePath, '(', data.content.length, 'chars)');
-      } else {
-        console.log('[AI Score] fetchFileContents — ✗ failed:', filePath, '—', data.message || 'unknown error');
+  try {
+    // Use read-multiple endpoint to fetch all files at once
+    const res = await fetcher(`/api/docker/container/${containerId}/files/read-multiple`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paths: filePaths.map(p => `/workspace/${p}`) })
+    });
+    const data = await res.json();
+    
+    if (data.success && data.files) {
+      for (const file of data.files) {
+        // Extract just the filename from the path
+        const fileName = file.path.replace(/^\/workspace\//, '');
+        if (file.content) {
+          contents[fileName] = file.content;
+          console.log('[AI Score] fetchFileContents — ✓ read:', fileName);
+        } else if (file.error) {
+          console.log('[AI Score] fetchFileContents — ✗ failed:', fileName, '—', file.error);
+        }
       }
-    } catch (e) {
-      console.log('[AI Score] fetchFileContents — ✗ exception:', filePath, '—', e instanceof Error ? e.message : e);
+    } else {
+      console.log('[AI Score] fetchFileContents — ✗ API error:', data.error || 'unknown');
     }
+  } catch (e) {
+    console.log('[AI Score] fetchFileContents — ✗ exception:', e instanceof Error ? e.message : e);
   }
   
-  console.log('[AI Score] fetchFileContents — finished. Successfully read:', Object.keys(contents).length, '/', filePaths.length, 'files');
-  
+  console.log('[AI Score] fetchFileContents — done. Read:', Object.keys(contents).length, '/', filePaths.length, 'files');
   return contents;
 }
 
@@ -188,14 +198,14 @@ ${failedTasks.length > 0 ? '\nFailed tasks (need improvement):\n' + failedTasks.
   const allTestsPassed = testResults?.passed === true;
   const allTasksComplete = incompleteTasks.length === 0;
 
-  // If ALL tests passed and ALL tasks complete, still provide code improvement suggestions
+  // If ALL tests passed and ALL tasks complete, still provide improvement suggestions
   if (allTestsPassed && allTasksComplete) {
     // Include file contents in prompt
-    const fileContentSummary = Object.keys(fileContents).length > 0 
-      ? `\n=== SOURCE FILES (read these for code suggestions) ===\n${fileSection}\n=== END OF SOURCE FILES ===`
-      : '\n(No source files available for code suggestions)';
+    const fileContentSummary = Object.keys(fileContents).length > 0
+      ? `\n=== SOURCE FILES (read these for advice) ===\n${fileSection}\n=== END OF SOURCE FILES ===`
+      : '\n(No source files available)';
     
-    return `You are a senior developer mentor reviewing student code. Your job is to review the ACTUAL source files and provide specific suggestions for improving their code quality.
+    return `You are a senior developer mentor reviewing student code. Your job is to review the ACTUAL source files and provide specific advice for improving their code quality.
 
 LEVEL ${level}: ${levelTitle}
 
@@ -210,7 +220,7 @@ ${fileChanges || 'No file changes recorded'}
 === END OF FILE CHANGES ===
 ${fileContentSummary}
 
-IMPORTANT: Provide code suggestions based ONLY on the actual source files above. Do NOT make up file names or code that aren't in the files provided.
+IMPORTANT: Provide advice based ONLY on the actual source files above. Do NOT make up file names or code that aren't in the files provided. Do NOT provide code suggestions - only give advice.
 
 Respond ONLY:
 
@@ -223,12 +233,9 @@ Respond ONLY:
 [/FEEDBACK]
 
 [IMPROVEMENTS]
-<2-3 specific code improvement suggestions based ONLY on the actual source files above>
+<2-3 specific improvement suggestions based ONLY on the actual source files above - advice only, no code>
 [/IMPROVEMENTS]
 
-[CODE_SUGGESTIONS]
-<2-3 specific code suggestions with actual file names from the source files>
-[/CODE_SUGGESTIONS]
 `;
   }
 
@@ -279,12 +286,8 @@ Respond ONLY:
 [/FEEDBACK]
 
 [IMPROVEMENTS]
-<only if tasks incomplete: specific things to fix - be specific: "change X in file Y">
+<only if tasks incomplete: specific advice on what to fix - describe the changes needed but do not include code>
 [/IMPROVEMENTS]
-
-[CODE_SUGGESTIONS]
-<only if tasks incomplete: code changes needed for THIS LEVEL>
-[/CODE_SUGGESTIONS]
 `;
 }
 
@@ -349,8 +352,7 @@ function parseScoringResponse(response: string, testResults?: { passed: boolean;
 
     feedback = extract('FEEDBACK') || feedback;
     improvements = extract('IMPROVEMENTS') || 'Great job completing all tasks!';
-    // Also try CODE_SUGGESTIONS as fallback for NEXT_TIME
-    nextTime = extract('CODE_SUGGESTIONS') || extract('NEXT_TIME') || 'All tasks completed - keep up the great work!';
+    nextTime = extract('NEXT_TIME') || 'All tasks completed - keep up the great work!';
   } catch (e) {
     console.error('Error parsing scoring response:', e);
   }
@@ -427,7 +429,7 @@ async function callOpenRouterAPI(apiKey: string, prompt: string): Promise<string
   throw new Error(lastError?.message || 'Failed to get response from AI');
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, fetch }) => {
   const apiKey = process.env.OPENROUTER_API_KEY;
   
   if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
@@ -464,61 +466,93 @@ export const POST: RequestHandler = async ({ request }) => {
       }, { status: 404 });
     }
     
-    // Use provided file contents or fetch from container
+    // Read files that the tests check (from test files)
     let userFileContents: Record<string, string> = {};
     
     console.log('[AI Score] ── File ingestion ──────────────────────────');
     console.log('[AI Score] fileContents provided:', fileContents ? Object.keys(fileContents).length : 0, 'files');
     console.log('[AI Score] filePaths provided:', filePaths ? filePaths.length : 0, 'paths');
     
-    if (fileContents && typeof fileContents === 'object' && Object.keys(fileContents).length > 0) {
-      userFileContents = fileContents;
-      console.log('[AI Score] Using provided fileContents. Files:');
-      for (const [name, content] of Object.entries(userFileContents)) {
-        console.log(`  ✓ ${name} (${content.length} chars)`);
-      }
-    } 
-    
-    // Always fetch ALL relevant files from container to ensure we have complete context
-    if (containerId) {
-      console.log('[AI Score] Fetching all source files from container for complete analysis');
-      try {
-        const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        const listData = await listRes.json();
-        
-        if (listData.success && listData.files) {
-          const filesToAnalyze = filterSourceFiles(listData.files);
-          console.log('[AI Score] Source files found:', listData.files.length, '— analyzing', filesToAnalyze.length, 'source files');
-          console.log('[AI Score] Files to analyze:', filesToAnalyze);
+    // Always read files that the tests check (from test files)
+    if (containerId && level) {
+      console.log('[AI Score] Reading test files to find what files tests check');
+      
+      // Try to find test files for this level in local filesystem
+      const testFilePaths = [
+        `submodules/projects/tech-stacks/react-express-postgres-prisma/scenario-1/LIBRARY_MANAGEMENT/tests/client/level-${level}/task-1/setup-check.test.ts`,
+        `submodules/projects/tech-stacks/react-express-postgres-prisma/scenario-1/LIBRARY_MANAGEMENT/tests/client/level-${level}/task-2/sidebar-branding.test.tsx`,
+      ];
+      
+      const filesReferencedInTests = new Set<string>();
+      
+      // Read test files from local filesystem
+      for (const testFilePath of testFilePaths) {
+        try {
+          const testContent = await readFile(testFilePath, 'utf-8');
+          console.log('[AI Score] ✓ Found test file:', testFilePath);
           
-          // Fetch files not already in userFileContents
-          const filesToFetch = filesToAnalyze.filter(file => !userFileContents[file]);
-          if (filesToFetch.length > 0) {
-            const fetchedContents = await fetchFileContents(containerId, filesToFetch);
-            console.log('[AI Score] Fetched', Object.keys(fetchedContents).length, '/', filesToFetch.length, 'additional files from container');
-            for (const [name, content] of Object.entries(fetchedContents)) {
-              userFileContents[name] = content;
-              console.log(`  ✓ ${name} (${content.length} chars)`);
+          // Extract file paths from test imports
+          const importMatches = testContent.match(/from\s+['"]([^'"]+)['"]/g);
+          if (importMatches) {
+            for (const match of importMatches) {
+              const pathMatch = match.match(/from\s+['"]([^'"]+)['"]/);
+              if (pathMatch && !pathMatch[1].startsWith('.') && !pathMatch[1].startsWith('/')) {
+                // External import - skip
+              } else if (pathMatch) {
+                // Convert relative path to local filesystem path
+                const baseDir = testFilePath.substring(0, testFilePath.lastIndexOf('/'));
+                let filePath = pathMatch[1];
+                if (filePath.startsWith('./') || filePath.startsWith('../')) {
+                  // Resolve relative path
+                  const parts = baseDir.split('/');
+                  const relParts = filePath.split('/');
+                  for (const part of relParts) {
+                    if (part === '..') parts.pop();
+                    else if (part !== '.') parts.push(part);
+                  }
+                  filePath = parts.join('/');
+                }
+                // Add common extensions
+                if (!filePath.endsWith('.ts') && !filePath.endsWith('.tsx') && !filePath.endsWith('.js') && !filePath.endsWith('.jsx')) {
+                  filePath = filePath + '.tsx';
+                }
+                filesReferencedInTests.add(filePath);
+              }
             }
-          } else {
-            console.log('[AI Score] All source files already provided in fileContents');
           }
-        } else {
-          console.warn('[AI Score] File list fetch failed or returned no files:', listData);
+        } catch (e) {
+          console.log('[AI Score] Error reading test file:', testFilePath, e);
         }
-      } catch (e) {
-        console.warn('[AI Score] Could not fetch file list:', e);
+      }
+      
+      console.log('[AI Score] Files referenced in tests:', Array.from(filesReferencedInTests));
+      
+      // Filter to only include files that are directly relevant to the tasks
+      // For level 1, task 1 is a node module check (no source files needed)
+      // Task 2 checks the sidebar, so only include Sidebar.tsx
+      const filesToRead = Array.from(filesReferencedInTests).filter(file => {
+        // Only include Sidebar.tsx for task 2, exclude AuthContext.tsx
+        return file.includes('Sidebar.tsx') || file.includes('Sidebar.ts');
+      });
+      
+      console.log('[AI Score] Files to read (filtered):', filesToRead);
+      
+      // Read files referenced in tests from local filesystem
+      for (const filePath of filesToRead) {
+        try {
+          const content = await readFile(filePath, 'utf-8');
+          userFileContents[filePath] = content;
+          console.log(`  ✓ ${filePath} (${content.length} chars) - source file`);
+        } catch (e) {
+          console.log('[AI Score] Error reading source file:', filePath, e);
+        }
       }
     }
     
-    // Fallback to fetching specific paths if container fetch failed or no files provided
-    if (Object.keys(userFileContents).length === 0 && filePaths && Array.isArray(filePaths) && filePaths.length > 0) {
-      console.log('[AI Score] Fetching files from container by path list:', filePaths);
-      userFileContents = await fetchFileContents(containerId, filePaths);
+    // Fallback: if no files read yet, fetch specific paths
+    if (Object.keys(userFileContents).length === 0 && filePaths && Array.isArray(filePaths) && filePaths.length > 0 && containerId) {
+      console.log('[AI Score] No files read yet, fetching specific paths:', filePaths);
+      userFileContents = await fetchFileContents(containerId, filePaths, fetch);
       console.log('[AI Score] Fetched', Object.keys(userFileContents).length, '/', filePaths.length, 'files from container');
       for (const [name, content] of Object.entries(userFileContents)) {
         console.log(`  ✓ ${name} (${content.length} chars)`);
@@ -526,6 +560,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
     
     console.log('[AI Score] ── Total files passed to AI:', Object.keys(userFileContents).length, '──');
+    console.log('[AI Score] Files being analyzed by AI:', Object.keys(userFileContents));
     if (Object.keys(userFileContents).length === 0) {
       console.warn('[AI Score] ⚠ No file contents available — AI will score without code context');
     }
@@ -569,7 +604,8 @@ export const POST: RequestHandler = async ({ request }) => {
       improvements,
       nextTime,
       level: level,
-      levelTitle: levelInfo.title
+      levelTitle: levelInfo.title,
+      filesAnalyzed: Object.keys(userFileContents)
     });
     
   } catch (error) {
