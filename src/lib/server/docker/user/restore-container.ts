@@ -61,17 +61,32 @@ export async function restoreContainer(
 	// into the running container, Docker will refuse to delete it (volume in use).
 	// Instead we copy the data in step 4 via a short-lived helper container.
 	const newContainer = await docker.createContainer({
-		Image: 'node:20-alpine',
+		Image: 'devsim-workspace:latest',
 		Cmd: ['/bin/sh'],
 		Tty: true,
 		OpenStdin: true,
 		WorkingDir: '/workspace',
 		ExposedPorts: {
+			'5000/tcp': {},
 			'3000/tcp': {},
 			'5173/tcp': {}
 		},
+		Env: [
+			// PostgreSQL initialization variables (required by postgres-entrypoint.sh)
+			'POSTGRES_USER=devsim',
+			'POSTGRES_PASSWORD=devsim',
+			'POSTGRES_DB=devsim',
+			// Application database connection variables
+			'DATABASE_HOST=localhost',
+			'DATABASE_PORT=5432',
+			'DATABASE_USER=devsim',
+			'DATABASE_PASSWORD=devsim',
+			'DATABASE_NAME=devsim',
+			'DATABASE_URL=postgresql://devsim:devsim@localhost:5432/devsim'
+		],
 		HostConfig: {
 			PortBindings: {
+				'5000/tcp': [{ HostPort: '0' }],
 				'3000/tcp': [{ HostPort: '0' }],
 				'5173/tcp': [{ HostPort: '0' }]
 			},

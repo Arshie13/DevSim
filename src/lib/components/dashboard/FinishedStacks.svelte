@@ -121,6 +121,7 @@
     {#if containers.length > 0}
       <div class="space-y-3">
         {#each visibleContainers as container}
+          {@const canRestore = container.isArchived && container.volumeName}
           <div class="group relative bg-obsidian-bg border border-[var(--card-border)] rounded-card p-4 hover:border-cyber-warn/40 transition-all duration-300 hover:translate-x-1">
             <!-- Top shimmer -->
             <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyber-warn to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -138,9 +139,9 @@
                   </div>
                   <div>
                     <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">
-                      {container.scenario.name ?? parseStackName(container.containerStacks)}
+                      {container.scenario?.name ?? parseStackName(container.containerStacks)}
                     </h4>
-                    {#if container.scenario.name}
+                    {#if container.scenario?.name}
                       <p class="text-xs font-mono text-cyber-warn opacity-70 mt-0.5 truncate">
                         {parseStackName(container.containerStacks)}
                       </p>
@@ -153,13 +154,19 @@
               </div>
 
               <!-- Restore Button (clip-path) -->
-              <button
-                on:click={() => openPaywall(container)}
-                class="btn-cyber mt-3 w-full flex items-center justify-center gap-2 !py-1.5 bg-cyber-warn/10 border border-cyber-warn/30 text-cyber-warn text-xs hover:bg-cyber-warn/20 hover:border-cyber-warn/50 hover:shadow-[0_0_15px_rgba(255,180,0,0.15)] transition-all duration-200"
-              >
-                <RotateCcw class="w-3 h-3" />
-                Restore Progress
-              </button>
+              {#if canRestore}
+                <button
+                  on:click={() => openPaywall(container)}
+                  class="btn-cyber mt-3 w-full flex items-center justify-center gap-2 !py-1.5 bg-cyber-warn/10 border border-cyber-warn/30 text-cyber-warn text-xs hover:bg-cyber-warn/20 hover:border-cyber-warn/50 hover:shadow-[0_0_15px_rgba(255,180,0,0.15)] transition-all duration-200"
+                >
+                  <RotateCcw class="w-3 h-3" />
+                  Restore Progress
+                </button>
+              {:else}
+                <div class="mt-3 w-full px-3 py-1.5 bg-obsidian-bg border border-[var(--card-border)] rounded text-xs font-mono text-[var(--text-muted)] text-center">
+                  Not restorable
+                </div>
+              {/if}
             </div>
           </div>
         {/each}
@@ -194,8 +201,8 @@
       <!-- Stack card -->
       <div class="flex items-center gap-3 bg-[#0a0e1a] border border-[rgba(7,165,201,0.12)] rounded-[4px] px-4 py-3">
         <div>
-          <p class="font-mono text-[0.85rem] font-semibold text-[#d0d7dd]">{paywallStack.scenario.name ?? parseStackName(paywallStack.containerStacks)}</p>
-          {#if paywallStack.scenario.name}
+          <p class="font-mono text-[0.85rem] font-semibold text-[#d0d7dd]">{paywallStack.scenario?.name ?? parseStackName(paywallStack.containerStacks)}</p>
+          {#if paywallStack.scenario?.name}
             <p class="font-mono text-xs text-[#8892a0]">{parseStackName(paywallStack.containerStacks)}</p>
           {/if}
           <p class="font-mono text-xs text-[#8892a0] mt-0.5">Level {paywallStack.level}</p>

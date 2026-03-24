@@ -133,13 +133,12 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 			if (isLastLevel) {
 				// No more levels - this is the final completion
-				// Mark container as fully completed and return flag to archive it
+				// Mark container as completed - archiving will be handled separately by the archive API
 				await prisma.$transaction([
 					prisma.container.update({
 						where: { id: record.id },
 						data: {
 							status: 'completed',
-								isArchived: true,
 							stoppedAt: new Date()
 						}
 					}),
