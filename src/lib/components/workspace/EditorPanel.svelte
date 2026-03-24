@@ -19,9 +19,9 @@
 
 <div class:hidden={!visible} class="h-full flex flex-col">
   <!-- Multi-file tab bar + Save button -->
-  <div class="flex items-stretch bg-[#0d1321] border-b border-[rgba(7,165,201,0.1)] flex-shrink-0">
+  <div class="flex items-stretch bg-[#0d1321] border-b border-[rgba(7,165,201,0.1)] flex-shrink-0 overflow-hidden">
     <!-- Scrollable file tabs -->
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 overflow-hidden">
       <FileTabBar
         tabs={openTabs}
         {activeTabId}

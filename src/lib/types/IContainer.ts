@@ -5,6 +5,8 @@ export interface IContainer {
   level: number;
   scenario: IScenario;
   containerStacks: IContainerStack[];
+  isArchived?: boolean;
+  volumeName?: string;
 }
 
 export interface IScenario {

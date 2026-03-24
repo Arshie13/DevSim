@@ -8,6 +8,7 @@
 
 <script lang="ts">
   import { X } from 'lucide-svelte';
+  import Scrollbar from '$lib/components/ui/Scrollbar.svelte';
 
   export let tabs: FileTab[] = [];
   export let activeTabId: string = '';
@@ -26,11 +27,8 @@
   }
 </script>
 
-<!-- Horizontally scrollable tab strip — hides scrollbar visually -->
-<div
-  class="flex overflow-x-auto flex-shrink-0"
-  style="scrollbar-width:none;-ms-overflow-style:none;"
->
+<!-- Horizontally scrollable tab strip — using Scrollbar component -->
+<Scrollbar horizontal className="flex-shrink-0 flex">
   {#each tabs as tab (tab.id)}
     {@const isActive = tab.id === activeTabId}
     {@const color = extColor(tab.filename)}
@@ -80,4 +78,4 @@
       </span>
     </div>
   {/each}
-</div>
+</Scrollbar>

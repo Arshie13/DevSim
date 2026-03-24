@@ -231,6 +231,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
           '5173/tcp': {}
         },
         Env: [
+          // PostgreSQL initialization variables (required by postgres-entrypoint.sh)
+          "POSTGRES_USER=devsim",
+          "POSTGRES_PASSWORD=devsim",
+          "POSTGRES_DB=devsim",
+          // Application database connection variables
           "DATABASE_HOST=localhost",
           "DATABASE_PORT=5432",
           "DATABASE_USER=devsim",

@@ -29,7 +29,6 @@ import { fileURLToPath } from "url";
 
 const execAsync = promisify(exec);
 
-// Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -46,7 +45,6 @@ interface TechStack {
   projects: string[];
 }
 
-// Base path to the tech-stacks directory
 const TECH_STACKS_BASE_PATH = path.join(__dirname, "..", "submodules", "projects", "tech-stacks");
 
 function parseArgs(): Args {
@@ -95,27 +93,26 @@ function getTechStacks(): TechStack[] {
         const scenarioPath = path.join(stackPath, scenarioDir);
         const projectDirs = fs.readdirSync(scenarioPath).filter(projectName => {
           const projectPath = path.join(scenarioPath, projectName);
-          // Skip project.md, readme.md, and other non-directory files
           if (!fs.statSync(projectPath).isDirectory()) {
             return false;
           }
           
-          // Check if directory contains at least some project files (e.g., package.json, src folder)
           const projectFiles = fs.readdirSync(projectPath);
           return projectFiles.some(file => {
-            // Check for common project files
             if (file === 'package.json' || file === 'package-lock.json' || file === 'tsconfig.json' || file === 'src') {
               return true;
             }
-            
-            // Also check if there are any subdirectories (like client/server)
             const filePath = path.join(projectPath, file);
             return fs.statSync(filePath).isDirectory();
           });
         });
         
         projectDirs.forEach(projectDir => {
-          projects.push(path.join(scenarioDir, projectDir));
+          // CHANGE 1: Store projects as posix-style paths (forward slashes) regardless of OS.
+          // Previously used path.join() which produces backslashes on Windows, causing
+          // inconsistent splitting later in buildProjectImage(). Using '/' directly here
+          // ensures a consistent separator we can reliably split on.
+          projects.push(`${scenarioDir}/${projectDir}`);
         });
       });
       
@@ -159,7 +156,19 @@ async function buildProjectImage(
   imageName: string,
   dryRun: boolean
 ): Promise<boolean> {
+  // CHANGE 2: Split on '/' only (forward slash), since we now store project paths
+  // with forward slashes consistently in getTechStacks(). Previously split on /[\\/]/
+  // which was a workaround for the mixed separator issue — now it's avoided at the source.
   const [scenarioDir, projectDir] = projectPath.split("/");
+
+  // CHANGE 3: Added a guard to catch undefined scenarioDir or projectDir early.
+  // If the split fails for any reason, we log a clear error instead of passing
+  // undefined into path.join() which throws a cryptic ERR_INVALID_ARG_TYPE.
+  if (!scenarioDir || !projectDir) {
+    console.error(`  ✗ Could not parse project path: "${projectPath}" (expected format: "scenario-X/PROJECT_NAME")`);
+    return false;
+  }
+
   const fullProjectPath = path.join(TECH_STACKS_BASE_PATH, stackName, scenarioDir, projectDir);
 
   console.log(`\n--- ${stackName}/${projectPath} ---`);
@@ -171,32 +180,34 @@ async function buildProjectImage(
     return true;
   }
 
-  // Check if project directory actually exists
   if (!fs.existsSync(fullProjectPath)) {
     console.error(`  ✗ Project directory not found: ${fullProjectPath}`);
     return false;
   }
 
-  // Create a temporary Dockerfile for this project
   const tempDockerfile = path.join(__dirname, "temp-Dockerfile");
-  
+
+  // CHANGE 4: Generate a .dockerignore file inside the project directory before building.
+  // This prevents node_modules (and other bloat) from being sent to the Docker build context.
+  // Without this, projects with node_modules cause the build to fail with:
+  //   "archive/tar: unknown file mode ?rwxr-xr-x"
+  // because Windows can't properly handle Linux symlinks inside node_modules/.bin/.
+  // We track the path so we can clean it up in the finally block.
+  const dockerignorePath = path.join(fullProjectPath, ".dockerignore");
+  const dockerignoreAlreadyExisted = fs.existsSync(dockerignorePath);
+
   try {
-    // Base image configuration
     const dockerfileContent = `
 FROM devsim-workspace:latest
 
-# Label the image with project information
 LABEL devsim.stack="${stackName}"
 LABEL devsim.project="${projectPath}"
 LABEL devsim.image.version="1.0.0"
 
-# Copy project files into image
 COPY --chown=postgres:postgres . /workspace/
 
-# Set working directory
 WORKDIR /workspace
 
-# Set permissions
 RUN chown -R postgres:postgres /workspace
 RUN chmod -R 755 /workspace
 
@@ -205,7 +216,18 @@ CMD ["/entrypoint.sh"]
 
     fs.writeFileSync(tempDockerfile, dockerfileContent);
 
-    // Build the image - use the project directory as the build context
+    // CHANGE 4 (continued): Write .dockerignore only if one doesn't already exist,
+    // so we don't overwrite a custom .dockerignore the project author may have set up.
+    if (!dockerignoreAlreadyExisted) {
+      fs.writeFileSync(dockerignorePath, [
+        "node_modules",
+        "**/node_modules",
+        ".git",
+        "*.log",
+        ".env",
+      ].join("\n"));
+    }
+
     console.log("  Building image...");
     const buildCmd = `cd "${fullProjectPath}" && docker build -f "${tempDockerfile}" -t "${imageName}" --build-arg PROJECT_PATH="${fullProjectPath}" .`;
     await execAsync(buildCmd);
@@ -216,9 +238,15 @@ CMD ["/entrypoint.sh"]
     console.error(`  ✗ Failed to build image: ${err}`);
     return false;
   } finally {
-    // Clean up temporary Dockerfile
+    // Clean up temp Dockerfile
     if (fs.existsSync(tempDockerfile)) {
       fs.unlinkSync(tempDockerfile);
+    }
+
+    // CHANGE 4 (continued): Only delete the .dockerignore if we created it.
+    // If the project already had one, leave it untouched.
+    if (!dockerignoreAlreadyExisted && fs.existsSync(dockerignorePath)) {
+      fs.unlinkSync(dockerignorePath);
     }
   }
 }
@@ -236,7 +264,6 @@ async function main() {
     return;
   }
 
-  // Filter by stack if specified
   const filteredStacks = args.stack
     ? techStacks.filter(s => s.name === args.stack)
     : techStacks;
@@ -249,7 +276,6 @@ async function main() {
     return;
   }
 
-  // Show summary
   console.log(`Found ${filteredStacks.length} tech stack(s):\n`);
   
   let totalProjects = 0;
@@ -269,7 +295,6 @@ async function main() {
     return;
   }
 
-  // Build images
   console.log("\n=== Building Images ===\n");
 
   let success = 0;
@@ -280,7 +305,6 @@ async function main() {
     for (const project of stack.projects) {
       const imageName = getImageName(stack.name, project, tagPrefix);
       
-      // Check if already exists (unless force)
       if (!args.force) {
         const exists = await imageExists(imageName);
         if (exists) {
