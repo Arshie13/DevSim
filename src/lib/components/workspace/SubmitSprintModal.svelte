@@ -70,6 +70,41 @@
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // Helper function to get files the AI checker reads for each level
+  function getFilesForLevel(level: number): string[] {
+    switch (level) {
+      case 1:
+        return ['client/src/components/layout/Sidebar.tsx'];
+      case 2:
+        // Level 2 - from test file imports (task-1: helpers.ts, task-2: BorrowRecords.tsx)
+        return [
+          'client/src/utils/helpers.ts',
+          'client/src/pages/BorrowRecords.tsx'
+        ];
+      case 3:
+        return ['server/src/controllers/borrow.controller.ts'];
+      case 4:
+        return [
+          'server/src/controllers/borrow.controller.ts',
+          'server/src/controllers/reservation.controller.ts',
+          'server/src/routes/reservation.routes.ts',
+          'client/src/services/libraryService.ts',
+          'client/src/pages/Reservations.tsx'
+        ];
+      case 5:
+        return ['server/src/controllers/borrow.controller.ts'];
+      default:
+        return [];
+    }
+  }
+
+  // Helper to get display message for files
+  function getFilesMessageForLevel(level: number): string {
+    const files = getFilesForLevel(level);
+    if (files.length === 0) return '(no specific files)';
+    return files.join(', ');
+  }
+
   function startSubmitStep(step: number) {
     submitStep = Math.min(Math.max(step, 0), SUBMIT_STEPS.length - 1);
     submitStepStartedAt = Date.now();
@@ -198,7 +233,13 @@
     startSubmitStep(0);
     submitError = '';
     testResults = null;
-
+    
+    // Log what files the AI checker will read (BEFORE tests run)
+    const levelFiles = getFilesForLevel(level);
+    console.log('═══ AI CHECKER FILES (before tests) ═══');
+    console.log('Level', level, '- AI will read:', levelFiles);
+    console.log('═'.repeat(40));
+    
     try {
       throwIfSubmissionCanceled();
       // Step 0 - Run tests to validate user work first

@@ -12,7 +12,7 @@ import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 import type { TestResult, TestValidationResult } from '$lib/tests/types';
 import { getLevelConfig } from '$lib/tests/levels';
-import { readFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 
 // Source code file extensions to analyze
@@ -101,6 +101,102 @@ function filterSourceFiles(files: string[]): string[] {
     
     return implementationExtensions.some(ext => f.endsWith(ext));
   });
+}
+
+// Function to find all test files for a level
+async function findTestFilesForLevel(level: number): Promise<string[]> {
+  const testFiles: string[] = [];
+  const testBasePath = 'submodules/projects/tech-stacks/react-express-postgres-prisma/scenario-1/LIBRARY_MANAGEMENT/tests';
+  
+  try {
+    // Check both client and server test directories
+    const testTypes = ['client', 'server'];
+    
+    for (const testType of testTypes) {
+      const levelPath = join(testBasePath, testType, `level-${level}`);
+      
+      try {
+        // Read all task directories
+        const entries = await readdir(levelPath, { withFileTypes: true });
+        const taskDirs = entries
+          .filter(dirent => dirent.isDirectory() && dirent.name.startsWith('task-'))
+          .map(dirent => dirent.name);
+        
+        // For each task directory, find test files
+        for (const taskDir of taskDirs) {
+          const taskPath = join(levelPath, taskDir);
+          const files = await readdir(taskPath, { withFileTypes: true });
+          const testFilesInTask = files
+            .filter(dirent => dirent.isFile() && (dirent.name.endsWith('.test.ts') || dirent.name.endsWith('.test.tsx')))
+            .map(dirent => join(taskPath, dirent.name));
+          
+          testFiles.push(...testFilesInTask);
+        }
+      } catch (error) {
+        // Level directory might not exist for this test type, continue
+        console.log(`[AI Score] No ${testType} tests found for level ${level}`);
+      }
+    }
+  } catch (error) {
+    console.log(`[AI Score] Error scanning test directory: ${error}`);
+  }
+  
+  return testFiles;
+}
+
+// Function to extract imports from a test file
+async function extractImportsFromFile(filePath: string): Promise<string[]> {
+  try {
+    const content = await readFile(filePath, 'utf-8');
+    const imports: string[] = [];
+    
+    // Match import statements
+    const importRegex = /import\s+.*\s+from\s+['"]([^'"]+)['"]/g;
+    let match;
+    
+    while ((match = importRegex.exec(content)) !== null) {
+      const importPath = match[1];
+      
+      // Skip node_modules imports (they don't start with . or /)
+      if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
+        continue;
+      }
+      
+      // Resolve relative imports
+      const fileDir = filePath.substring(0, filePath.lastIndexOf('/'));
+      let resolvedPath = importPath;
+      
+      if (importPath.startsWith('./') || importPath.startsWith('../')) {
+        // Simple path resolution
+        const parts = fileDir.split('/');
+        const importParts = importPath.split('/');
+        
+        for (const part of importParts) {
+          if (part === '..') {
+            parts.pop();
+          } else if (part !== '.') {
+            parts.push(part);
+          }
+        }
+        
+        resolvedPath = parts.join('/');
+      }
+      
+      // Add .tsx or .ts extension if not present
+      if (!resolvedPath.endsWith('.ts') && !resolvedPath.endsWith('.tsx')) {
+        // Try .tsx first, then .ts
+        imports.push(resolvedPath + '.tsx');
+        imports.push(resolvedPath + '.ts');
+      } else {
+        imports.push(resolvedPath);
+      }
+    }
+    
+    return imports;
+  } catch (error) {
+    console.log(`[AI Score] Error extracting imports from ${filePath}: ${error}`);
+    return [];
+  }
 }
 
 // Build the scoring prompt for OpenRouter
@@ -477,11 +573,9 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
     if (containerId && level) {
       console.log('[AI Score] Reading test files to find what files tests check');
       
-      // Try to find test files for this level in local filesystem
-      const testFilePaths = [
-        `submodules/projects/tech-stacks/react-express-postgres-prisma/scenario-1/LIBRARY_MANAGEMENT/tests/client/level-${level}/task-1/setup-check.test.ts`,
-        `submodules/projects/tech-stacks/react-express-postgres-prisma/scenario-1/LIBRARY_MANAGEMENT/tests/client/level-${level}/task-2/sidebar-branding.test.tsx`,
-      ];
+      // Dynamically find all test files for this level
+      const testFilePaths = await findTestFilesForLevel(level);
+      console.log('[AI Score] Found', testFilePaths.length, 'test files for level', level);
       
       const filesReferencedInTests = new Set<string>();
       
@@ -492,33 +586,9 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
           console.log('[AI Score] ✓ Found test file:', testFilePath);
           
           // Extract file paths from test imports
-          const importMatches = testContent.match(/from\s+['"]([^'"]+)['"]/g);
-          if (importMatches) {
-            for (const match of importMatches) {
-              const pathMatch = match.match(/from\s+['"]([^'"]+)['"]/);
-              if (pathMatch && !pathMatch[1].startsWith('.') && !pathMatch[1].startsWith('/')) {
-                // External import - skip
-              } else if (pathMatch) {
-                // Convert relative path to local filesystem path
-                const baseDir = testFilePath.substring(0, testFilePath.lastIndexOf('/'));
-                let filePath = pathMatch[1];
-                if (filePath.startsWith('./') || filePath.startsWith('../')) {
-                  // Resolve relative path
-                  const parts = baseDir.split('/');
-                  const relParts = filePath.split('/');
-                  for (const part of relParts) {
-                    if (part === '..') parts.pop();
-                    else if (part !== '.') parts.push(part);
-                  }
-                  filePath = parts.join('/');
-                }
-                // Add common extensions
-                if (!filePath.endsWith('.ts') && !filePath.endsWith('.tsx') && !filePath.endsWith('.js') && !filePath.endsWith('.jsx')) {
-                  filePath = filePath + '.tsx';
-                }
-                filesReferencedInTests.add(filePath);
-              }
-            }
+          const imports = await extractImportsFromFile(testFilePath);
+          for (const importPath of imports) {
+            filesReferencedInTests.add(importPath);
           }
         } catch (e) {
           console.log('[AI Score] Error reading test file:', testFilePath, e);
@@ -528,23 +598,97 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
       console.log('[AI Score] Files referenced in tests:', Array.from(filesReferencedInTests));
       
       // Filter to only include files that are directly relevant to the tasks
-      // For level 1, task 1 is a node module check (no source files needed)
-      // Task 2 checks the sidebar, so only include Sidebar.tsx
-      const filesToRead = Array.from(filesReferencedInTests).filter(file => {
-        // Only include Sidebar.tsx for task 2, exclude AuthContext.tsx
-        return file.includes('Sidebar.tsx') || file.includes('Sidebar.ts');
-      });
+      // Use level-specific file detection logic (same as debug-files endpoint)
+      let filesToRead: string[];
+      
+      if (level === 1) {
+        // For Level 1, only show the Sidebar file (task 2 checks sidebar, not AuthContext)
+        filesToRead = ['client/src/components/layout/Sidebar.tsx'];
+      } else if (level === 2) {
+        // Level 2 - from test file imports (task-1: helpers.ts, task-2: BorrowRecords.tsx)
+        filesToRead = [
+          'client/src/utils/helpers.ts',
+          'client/src/pages/BorrowRecords.tsx'
+        ];
+      } else if (level === 3) {
+        // For Level 3, only show the borrow controller
+        filesToRead = ['server/src/controllers/borrow.controller.ts'];
+      } else if (level === 4) {
+        // For Level 4, show specific files for the reservation tasks
+        filesToRead = [
+          'server/src/controllers/borrow.controller.ts',
+          'server/src/controllers/reservation.controller.ts',
+          'server/src/routes/reservation.routes.ts',
+          'client/src/services/libraryService.ts',
+          'client/src/pages/Reservations.tsx'
+        ];
+      } else if (level === 5) {
+        // For Level 5, show the borrow controller with overdue functions
+        filesToRead = ['server/src/controllers/borrow.controller.ts'];
+      } else {
+        // For other levels, use test imports (client/src files)
+        filesToRead = Array.from(filesReferencedInTests).filter(file => {
+          return file.includes('client/src/');
+        });
+      }
       
       console.log('[AI Score] Files to read (filtered):', filesToRead);
       
-      // Read files referenced in tests from local filesystem
-      for (const filePath of filesToRead) {
+      // Read files from container (not local filesystem) - files are in /workspace/LIBRARY_MANAGEMENT/
+      if (containerId && filesToRead.length > 0) {
+        console.log('[AI Score] Reading files from container:', containerId);
+        
+        // Build list of paths to try - for files with .tsx, also try .ts
+        const pathsToTry: string[] = [];
+        for (const file of filesToRead) {
+          pathsToTry.push(`/workspace/LIBRARY_MANAGEMENT/${file}`);
+          // Also try .ts version for .tsx files
+          if (file.endsWith('.tsx')) {
+            pathsToTry.push(`/workspace/LIBRARY_MANAGEMENT/${file.replace(/\.tsx$/, '.ts')}`);
+          }
+        }
+        
+        console.log('[AI Score] Trying paths:', pathsToTry);
+        
+        // Read files from container (use fetch from request context)
         try {
-          const content = await readFile(filePath, 'utf-8');
-          userFileContents[filePath] = content;
-          console.log(`  ✓ ${filePath} (${content.length} chars) - source file`);
+          const readRes = await fetch(`/api/docker/container/${containerId}/files/read-multiple`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paths: pathsToTry })
+          });
+          
+          const readData = await readRes.json();
+          
+          if (readData.success && readData.files) {
+            for (const file of readData.files) {
+              if (file.content && file.content.trim().length > 0) {
+                // Remove /workspace/LIBRARY_MANAGEMENT/ prefix to get the relative path
+                let fileName = file.path.replace(/^\/workspace\/LIBRARY_MANAGEMENT\//, '');
+                // Also remove .ts/.tsx extension for the key
+                fileName = fileName.replace(/\.tsx?$/, '');
+                userFileContents[fileName] = file.content;
+                console.log(`  ✓ ${fileName} (${file.content.length} chars) - from container`);
+              } else if (file.error) {
+                console.log(`  ✗ ${file.path}: ${file.error}`);
+              }
+            }
+          }
+          
+          console.log('[AI Score] Read', Object.keys(userFileContents).length, 'files from container');
         } catch (e) {
-          console.log('[AI Score] Error reading source file:', filePath, e);
+          console.log('[AI Score] Error reading files from container:', e);
+        }
+      } else if (filesToRead.length > 0) {
+        // Fallback: read from local filesystem (for levels 1-2)
+        for (const filePath of filesToRead) {
+          try {
+            const content = await readFile(filePath, 'utf-8');
+            userFileContents[filePath] = content;
+            console.log(`  ✓ ${filePath} (${content.length} chars) - source file`);
+          } catch (e) {
+            console.log('[AI Score] Error reading source file:', filePath, e);
+          }
         }
       }
     }
