@@ -18,6 +18,9 @@
  *   --tag TAG    Custom tag prefix for images (default: devsim-project)
  */
 
+//TODO: use volume for shared node_modules for each project.
+//TODO: create only on postgres instance and have each project connect to that, each with unique database name.
+
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs";

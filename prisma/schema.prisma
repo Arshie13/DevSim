@@ -57,7 +57,7 @@ model Container {
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  fileChanges     FileChange[]
+  fileChanges     UserFileChanges[]
   completedTasks  CompletedTask[]
   containerStacks ContainerStack[]
 
@@ -180,7 +180,7 @@ model UserAchievement {
 }
 
 // File change tracking model
-model FileChange {
+model UserFileChanges {
   id          String   @id @default(cuid())
   containerId String
   filePath    String
