@@ -48,7 +48,7 @@ export interface IHints {
   id: string;
   order: number;
   taskId: string;
-  content: string;
+  description: string;
 }
 
 export interface IAcceptanceCriteria {

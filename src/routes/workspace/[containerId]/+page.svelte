@@ -52,6 +52,8 @@
   //   userCoins — the user's coin balance for AI hints
   export let data: WorkspaceProps;
 
+  console.log("scenario data: ", data);
+
   // Get user data from page data
   $: userId = data.userId || "";
   $: userCoins = data.userCoins || 0;

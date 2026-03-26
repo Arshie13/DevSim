@@ -3,26 +3,18 @@
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
   import { type ITask } from '$lib/types';
   import { toast } from '$lib/stores/toast';
+  import type { KanbanTask, KanbanStatus } from '$lib/types/KanbanBoard';
 
   export let scenario: string = '';
-  type KanbanStatus = 'backlog' | 'in-progress' | 'in-review' | 'done';
   type BoardTask = ITask & { boardStatus?: KanbanStatus };
 
   export let tasks: BoardTask[] = [];
   export let onTaskStatusChange: (taskId: string, status: KanbanStatus) => void = () => {};
 
+  console.log("tasks: ", tasks);
+
   // ── Sub-tab state ────────────────────────────────────────────────────────
   let activeSubTab: 'scenario' | 'board' = 'scenario';
-
-  // ── Kanban state ─────────────────────────────────────────────────────────
-  interface KanbanTask {
-    id: string;
-    text: string;
-    status: KanbanStatus;
-    taskType: string;
-    userStory: string;
-    acceptanceCriteria: string[];
-  }
 
   let kanbanTasks: KanbanTask[] = [];
   let taskFingerprint = '';
@@ -46,6 +38,11 @@
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((criteria) => criteria.description)
+        .filter(Boolean),
+      hints: (t.hints ?? [])
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((hint) => hint.description)
         .filter(Boolean),
     }));
   }
@@ -75,6 +72,7 @@
 
   function openTaskDetails(taskId: string) {
     const task = kanbanTasks.find((t) => t.id === taskId);
+    console.log("task: ", task);
     if (!task) return;
     selectedTask = task;
     taskModalOpen = true;
@@ -413,10 +411,11 @@
 
   <TaskModal
     open={taskModalOpen}
-    title={selectedTask?.text ?? ''}
-    userStory={selectedTask?.userStory ?? ''}
-    acceptanceCriteria={selectedTask?.acceptanceCriteria ?? []}
-    status={selectedTask?.status ?? 'backlog'}
+    // title={selectedTask?.text ?? ''}
+    // userStory={selectedTask?.userStory ?? ''}
+    // acceptanceCriteria={selectedTask?.acceptanceCriteria ?? []}
+    // status={selectedTask?.status ?? 'backlog'}
+    selectedTask={selectedTask}
     onClose={closeTaskDetails}
   />
 </div>
