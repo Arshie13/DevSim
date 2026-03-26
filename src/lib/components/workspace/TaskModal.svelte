@@ -41,12 +41,13 @@
 {#if open}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div
-		class="fixed inset-0 z-[220] flex items-center justify-center bg-[rgba(0,0,0,0.72)] p-4 backdrop-blur-sm"
+		class="fixed inset-0 z-[10020] flex items-center justify-center bg-[rgba(0,0,0,0.72)] p-4 backdrop-blur-sm"
 		on:click={handleBackdropClick}
 	>
 		<dialog
 			open
 			tabindex="-1"
+			data-tour="board-task-modal"
 			class="modal-enter relative w-full max-w-2xl overflow-hidden rounded-[4px] border border-[rgba(7,165,201,0.3)] bg-[var(--bg-light)] shadow-[0_0_28px_var(--accent-glow)]"
 			on:click|stopPropagation
 			aria-label="Task details"
@@ -55,18 +56,15 @@
 
 			<header class="flex items-start justify-between gap-4 border-b border-[rgba(7,165,201,0.15)] px-5 py-4">
 				<div class="min-w-0">
-					<p class="mb-2 text-[0.62rem] uppercase tracking-[0.16em] text-[var(--text-muted)] [font-family:var(--font-mono)]">
-						// Task Brief
-					</p>
-					<h2 class="truncate text-[1.05rem] text-[var(--text-primary)] [font-family:var(--font-heading)]">
+					<span class={`rounded-[2px] border px-2 py-1 text-[0.62rem] uppercase tracking-[0.12em] [font-family:var(--font-mono)] ${statusClasses}`}>
+						{statusLabel}
+					</span>
+					<h2 class="truncate text-[1.05rem] text-[var(--text-primary)] [font-family:var(--font-heading)] mt-4">
 						{title || 'Untitled task'}
 					</h2>
 				</div>
 
 				<div class="flex items-center gap-3">
-					<span class={`rounded-[2px] border px-2 py-1 text-[0.62rem] uppercase tracking-[0.12em] [font-family:var(--font-mono)] ${statusClasses}`}>
-						{statusLabel}
-					</span>
 					<button
 						type="button"
 						on:click={closeModal}
@@ -88,7 +86,7 @@
 					</p>
 				</section>
 
-				<section class="rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[var(--bg)] p-4">
+				<section data-tour="board-task-ac" class="rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[var(--bg)] p-4">
 					<p class="mb-3 text-[0.64rem] uppercase tracking-[0.14em] text-[var(--text-muted)] [font-family:var(--font-mono)]">
 						Acceptance Criteria
 					</p>

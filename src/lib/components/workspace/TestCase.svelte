@@ -434,6 +434,7 @@
 
 <div class="relative inline-flex">
   <button
+    data-tour="run-tests-button"
     class="flex items-center gap-1.5 rounded-[3px] border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.08)] px-3.5 py-2 font-['Orbitron',monospace] text-[0.6875rem] font-semibold text-[var(--accent)] transition-all duration-150 ease-in-out hover:border-[rgba(7,165,201,0.4)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_12px_rgba(7,165,201,0.2)] disabled:cursor-not-allowed disabled:opacity-50"
     on:click={openTestModal}
     disabled={disabled || !hasTestableTasks}

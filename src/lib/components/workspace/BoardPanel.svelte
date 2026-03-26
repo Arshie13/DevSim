@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
   import { FileText, LayoutDashboard, GripVertical } from 'lucide-svelte';
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
   import { type ITask } from '$lib/types';
@@ -84,6 +85,35 @@
     taskModalOpen = false;
   }
 
+  function handleTourBoardSubTab(event: Event) {
+    const customEvent = event as CustomEvent<{ subTab?: 'scenario' | 'board' }>;
+    const subTab = customEvent.detail?.subTab;
+    if (subTab === 'scenario' || subTab === 'board') {
+      activeSubTab = subTab;
+    }
+  }
+
+  function handleTourOpenTaskModal() {
+    if (kanbanTasks.length === 0) return;
+    openTaskDetails(kanbanTasks[0].id);
+  }
+
+  function handleTourCloseTaskModal() {
+    closeTaskDetails();
+  }
+
+  onMount(() => {
+    window.addEventListener('devsim-tour-board-subtab', handleTourBoardSubTab as EventListener);
+    window.addEventListener('devsim-tour-open-task-modal', handleTourOpenTaskModal);
+    window.addEventListener('devsim-tour-close-task-modal', handleTourCloseTaskModal);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('devsim-tour-board-subtab', handleTourBoardSubTab as EventListener);
+    window.removeEventListener('devsim-tour-open-task-modal', handleTourOpenTaskModal);
+    window.removeEventListener('devsim-tour-close-task-modal', handleTourCloseTaskModal);
+  });
+
   function handleDragStart(e: DragEvent, taskId: string) {
     draggingId = taskId;
     if (e.dataTransfer) {
@@ -156,7 +186,7 @@
   $: progress = kanbanTasks.length > 0 ? (doneCount / kanbanTasks.length) * 100 : 0;
 </script>
 
-<div class="flex flex-col h-full bg-[#0a0e1a] overflow-hidden">
+<div class="flex flex-col h-full bg-[#0a0e1a] overflow-hidden" data-tour="board-panel">
   <!-- ── View-mode toolbar ─────────────────────────────────────────────── -->
   <div
     class="flex items-center justify-between px-4 py-2.5 border-b border-[rgba(7,165,201,0.1)] bg-[#0a0e1a] flex-shrink-0"
@@ -171,6 +201,7 @@
 
     <!-- Centre: pill toggle -->
     <div
+      data-tour="board-subtab-toggle"
       class="relative flex items-center rounded-sm overflow-hidden"
       style="background: #12192a; border: 1px solid rgba(7,165,201,0.18); padding: 3px;"
     >
@@ -188,6 +219,7 @@
 
       <!-- Scenario button -->
       <button
+        data-tour="board-subtab-scenario"
         on:click={() => (activeSubTab = 'scenario')}
         class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'scenario' ? '#07a5c9' : '#8892a0'};"
@@ -198,6 +230,7 @@
 
       <!-- Kanban button -->
       <button
+        data-tour="board-subtab-kanban"
         on:click={() => (activeSubTab = 'board')}
         class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'board' ? '#07a5c9' : '#8892a0'};"
@@ -313,7 +346,7 @@
 
     <!-- KANBAN PANEL ----------------------------------------------------- -->
     {:else}
-      <div class="p-4 flex gap-3 h-full min-h-0">
+      <div class="p-4 flex gap-3 h-full min-h-0" data-tour="board-kanban-lanes">
         {#each COLUMNS as col}
           <!-- Kanban column -->
           <div
@@ -350,9 +383,10 @@
 
             <!-- Task cards -->
             <div class="flex-1 p-2 space-y-2 overflow-y-auto">
-              {#each kanbanTasks.filter((t) => t.status === col.id) as task (task.id)}
+              {#each kanbanTasks.filter((t) => t.status === col.id) as task, taskIndex (task.id)}
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y-no-static-element-interactions -->
                 <div
+                  data-tour={taskIndex === 0 ? 'board-task-ticket' : undefined}
                   draggable={!(task.status === 'done' && task.taskType.toLowerCase() !== 'none')}
                   on:dragstart={(e) => handleDragStart(e, task.id)}
                   on:dragend={handleDragEnd}

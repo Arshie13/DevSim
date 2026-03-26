@@ -2,6 +2,8 @@
   import OnboardingModal from './OnboardingModal.svelte';
   import WorkspaceTour   from './WorkspaceTour.svelte';
   import { getStackContent } from './onboardingContent';
+  import { goto } from '$app/navigation';
+  import { browser } from '$app/environment';
 
   /** The tech stack label (e.g. "Next.js + Prisma"). */
   export let stack: string = '';
@@ -34,16 +36,29 @@
     }
   }
 
-  // ── Phase transitions ──────────────────────────────────────────────────────
-  function onModalComplete() { phase = 'tour'; }
+  // Clear the onboarding URL param after completion
+  function clearOnboardingParam() {
+    if (browser) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('onboarding');
+      goto(url.pathname + url.search, { replaceState: true, noScroll: true });
+    }
+  }
+
+  // ── Phase transitions ──────────────────────────────────────────────────────────
+  function onModalComplete() { 
+    phase = 'tour'; 
+  }
 
   function onModalSkip() {
     markOnboardingComplete();
+    clearOnboardingParam();
     phase = 'done';
   }
 
   function onTourComplete() {
     markOnboardingComplete();
+    clearOnboardingParam();
     phase = 'done';
   }
 </script>
@@ -67,4 +82,3 @@
     on:complete={onTourComplete}
   />
 {/if}
-

@@ -111,11 +111,29 @@
   async function positionForStep(idx: number) {
     const step = TOUR_STEPS[idx];
 
+    if (!step.openBoardTaskModal) {
+      window.dispatchEvent(new CustomEvent('devsim-tour-close-task-modal'));
+    }
+
     // If this step needs a tab switch, request it and wait a frame for DOM
     if (step.switchTab && onSwitchTab) {
       onSwitchTab(step.switchTab);
       await tick();
       // Extra wait for layout to settle (Monaco may resize)
+      await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    }
+
+    if (step.boardSubTab) {
+      window.dispatchEvent(
+        new CustomEvent('devsim-tour-board-subtab', { detail: { subTab: step.boardSubTab } }),
+      );
+      await tick();
+      await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    }
+
+    if (step.openBoardTaskModal) {
+      window.dispatchEvent(new CustomEvent('devsim-tour-open-task-modal'));
+      await tick();
       await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
     }
 
@@ -153,6 +171,7 @@
   }
 
   function complete() {
+    window.dispatchEvent(new CustomEvent('devsim-tour-close-task-modal'));
     visible = false;
     setTimeout(() => dispatch('complete'), 300);
   }
@@ -255,7 +274,7 @@
   /* ── Callout bubble ────────────────────────────────────────────────────── */
   .wt-callout {
     position: fixed;
-    z-index: 10011;
+    z-index: 10030;
     width: 300px;
     background: #0d1425;
     border: 1px solid rgba(7, 165, 201, 0.22);

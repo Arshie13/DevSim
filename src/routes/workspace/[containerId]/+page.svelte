@@ -72,9 +72,10 @@
   }
 
   $: workspaceScenario = data.container?.scenario ?? null;
+  $: stackNames = data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean) ?? [];
   $: currentLevelRecord = getLevelByOrder(workspaceScenario, currentLevel);
   $: title = currentLevelRecord?.title ?? LEVEL_CONFIG.title;
-  $: stack = workspaceScenario?.name ?? LEVEL_CONFIG.stack;
+  $: stack = stackNames.length > 0 ? stackNames.join(" + ") : (workspaceScenario?.name ?? LEVEL_CONFIG.stack);
   $: difficulty = workspaceScenario?.difficulty ?? LEVEL_CONFIG.difficulty;
   $: level = currentLevel;
 
@@ -1120,6 +1121,7 @@
       onBack: handleBack,
       onRun: runDevServer,
       onStop: stopDevServer,
+      onDemo: () => handleTabChange("preview"),
       onSubmit: handleSubmitSprint,
       onToggleAi: toggleAiPanel,
       onDownload: handleDownload,
@@ -1154,7 +1156,7 @@
     />
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0">
+    <div class="flex-1 flex flex-col min-w-0" data-tour="editor-workspace">
       <!-- Tab Bar -->
       <div data-tour="workspace-tabs">
         <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
@@ -1288,7 +1290,7 @@
     scenario={actualLevelConfig.scenario}
     {level}
     onSwitchTab={(tab) =>
-      handleTabChange(tab as "editor" | "terminal" | "preview")}
+      handleTabChange(tab as "editor" | "terminal" | "preview" | "board")}
   />
 {/if}
 

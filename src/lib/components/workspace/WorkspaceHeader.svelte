@@ -11,6 +11,7 @@
     onBack: () => void;
     onRun: () => void;
     onStop: () => void;
+    onDemo: () => void;
     onSubmit: () => void;
     onDownload: () => void;
     onToggleAi: () => void;
@@ -24,6 +25,7 @@
     Bot,
     Zap,
     Download,
+    Globe,
   } from "lucide-svelte";
 
   export let data: Props;
@@ -38,6 +40,7 @@
   let onBack: () => void;
   let onRun: () => void;
   let onStop: () => void;
+  let onDemo: () => void;
   let onSubmit: () => void;
   let onDownload: () => void;
   let onToggleAi: () => void;
@@ -54,6 +57,7 @@
     onBack,
     onRun,
     onStop,
+    onDemo,
     onSubmit,
     onDownload,
     onToggleAi,
@@ -139,24 +143,40 @@
 
   <!-- Right section -->
   <div class="flex items-center gap-2">
-    <!-- Run / Stop -->
-    {#if !isRunning}
+    <div class="flex items-center gap-2" data-tour="workspace-action-buttons">
+      <!-- Run / Stop -->
+      {#if !isRunning}
+        <button
+          data-tour="run-button"
+          on:click={onRun}
+          class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#00e5a0] border border-[rgba(0,229,160,0.4)] bg-transparent hover:bg-[rgba(0,229,160,0.08)] flex items-center gap-1.5 transition-all"
+          style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+        >
+          <Play class="w-3.5 h-3.5" />Run
+        </button>
+      {:else}
+        <button
+          data-tour="run-button"
+          on:click={onStop}
+          class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#ff3860] border border-[rgba(255,56,96,0.4)] bg-transparent hover:bg-[rgba(255,56,96,0.08)] flex items-center gap-1.5 transition-all"
+          style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+        >
+          <Square class="w-3.5 h-3.5" />Stop
+        </button>
+      {/if}
+
       <button
-        on:click={onRun}
-        class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#00e5a0] border border-[rgba(0,229,160,0.4)] bg-transparent hover:bg-[rgba(0,229,160,0.08)] flex items-center gap-1.5 transition-all"
+        data-tour="demo-button"
+        on:click={onDemo}
+        class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#07a5c9] border border-[rgba(7,165,201,0.35)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] flex items-center gap-1.5 transition-all"
         style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
       >
-        <Play class="w-3.5 h-3.5" />Run
+        <Globe class="w-3.5 h-3.5" />Demo
       </button>
-    {:else}
-      <button
-        on:click={onStop}
-        class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#ff3860] border border-[rgba(255,56,96,0.4)] bg-transparent hover:bg-[rgba(255,56,96,0.08)] flex items-center gap-1.5 transition-all"
-        style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
-      >
-        <Square class="w-3.5 h-3.5" />Stop
-      </button>
-    {/if}
+
+      <!-- Test Button Slot -->
+      <slot name="test-button" />
+    </div>
 
     <!-- Download Project -->
     <button
@@ -179,9 +199,6 @@
     </button>
 
     <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
-
-    <!-- Test Button Slot -->
-    <slot name="test-button" />
 
     <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
 
