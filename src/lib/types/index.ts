@@ -11,4 +11,5 @@ export type {
   IHints,
   IAcceptanceCriteria,
 } from "./IContainer"
+export type { AiMode, AttachedFile, ChatMessage, AiHelperProps } from "./AIHelper";
 export * from "./test";

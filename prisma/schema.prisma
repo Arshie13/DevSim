@@ -55,8 +55,8 @@ model Container {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   scenario Scenario @relation(fields: [currentScenarioId], references: [id])
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   fileChanges     UserFileChanges[]
   completedTasks  CompletedTask[]
   containerStacks ContainerStack[]
@@ -99,7 +99,7 @@ model LevelTask {
   userStory  String
   order      Int     @default(0)
   isComplete Boolean @default(false)
-  testType   String   @default("none") 
+  testType   String  @default("none")
 
   level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
   acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
@@ -125,10 +125,10 @@ model AcceptanceCriteria {
 
 // Hints associated with a task
 model Hint {
-  id      String @id @default(cuid())
-  taskId  String
+  id          String @id @default(cuid())
+  taskId      String
   description String
-  order   Int    @default(0)
+  order       Int    @default(0)
 
   // Relations
   task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskHints")

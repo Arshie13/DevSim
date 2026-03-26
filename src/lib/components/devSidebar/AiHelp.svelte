@@ -1,118 +1,73 @@
 <script lang="ts">
-  import { Send, AlertTriangle, Bot, User, Coins, X, MessageSquare, Paperclip, File, FileText } from "lucide-svelte";
-  import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "./PrimarySidebar.svelte";
-  import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage, formatMessage as formatMessageContent } from "$lib/ai";
-  import { type ITask } from "$lib/types";
+  import { onMount } from 'svelte';
+  import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from './PrimarySidebar.svelte';
+  import { createAiHelper } from '$lib/components/ai-helper/helper';
+  // import { COSTS } from '$lib/components/ai-helper/constants';
+  import type { AiMode, ITask } from '$lib/types';
+  
+  import AIHeader from '$lib/components/ai-helper/AIHeader.svelte';
+  import ChatContainer from '$lib/components/ai-helper/ChatContainer.svelte';
+  import ChatInput from '$lib/components/ai-helper/ChatInput.svelte';
+  import QuickHintModal from '$lib/components/ai-helper/QuickHintModal.svelte';
+  import FilePickerModal from '$lib/components/ai-helper/FilePickerModal.svelte';
 
-  // SAZ - AI Assistant Name
-  const AI_NAME = "SAZ";
-  
-  // SAZ Profile Image
-  const AI_AVATAR = "/images/saz.png";
-  
-  // Track if avatar image failed to load
-  let avatarFailed = false;
-  
-  function handleAvatarError() {
-    avatarFailed = true;
-  }
-
+  // Props
   export let scenario: string = "";
   export let tasks: ITask[] = [];
   export let containerId: string = "";
   export let userId: string = "";
   export let projectName: string = "DevSim Project";
-  export let level: number = 1; // User's current level (1-5)
+  export let level: number = 1;
+  export let mode: AiMode = "quick";
   
-  // Mode: 'chat' for full chat interface, 'quick' for just button-triggered hints
-  // Default to 'quick' to show the button in the AI Helper tab
-  export let mode: "chat" | "quick" = "quick";
-
-  // Local state to track mode - initialized from prop but can change
-  let currentMode: "chat" | "quick" = mode;
-  $: currentMode = mode;
-
-  // Allow initial values to be set from parent, but use stores for persistence
   export let initialSelectedFile: string = "";
   export let initialFileTree: string[] = [];
   export let initialFileContents: Record<string, string> = {};
-  // Allow initial coin value to be set from parent, but use store for persistence
   export let initialCoins: number = 1000;
 
-  // Maximum number of files that can be attached
-  const MAX_ATTACHED_FILES = 3;
-
-  // Attached files state
-  let attachedFiles: { path: string; name: string }[] = [];
-  let showFilePicker: boolean = false;
-  let filteredFileTree: string[] = [];
-
-  // Filter file tree to show only relevant source files
-  $: {
-    const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.json', '.html', '.css', '.scss'];
-    filteredFileTree = initialFileTree.filter(f => 
-      sourceExtensions.some(ext => f.endsWith(ext)) &&
-      !attachedFiles.some(af => af.path === f)
-    ).slice(0, 50); // Limit to 50 files for performance
-  }
-
-  // Check if we can attach more files
-  $: canAttachMore = attachedFiles.length < MAX_ATTACHED_FILES;
-
-  // Use a combined object that merges props and stores for context
-  // This ensures we always have the latest data
-  // We prioritize the store value after first interaction to ensure coin updates reflect
+  // Reactive current values (merge props with stores)
   $: currentSelectedFile = initialSelectedFile || $aiSelectedFile;
-  $: currentFileTree =
-    initialFileTree.length > 0 ? initialFileTree : $aiFileTree;
-  $: currentFileContents =
-    Object.keys(initialFileContents).length > 0
-      ? initialFileContents
-      : $aiFileContents;
-  // Use store value after the first update (when store has been set from API response)
-  $: currentCoins =
-    $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
+  $: currentFileTree = initialFileTree.length > 0 ? initialFileTree : $aiFileTree;
+  $: currentFileContents = Object.keys(initialFileContents).length > 0 ? initialFileContents : $aiFileContents;
+  $: currentCoins = $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
 
-  // Update stores for persistence (these don't affect the current* vars above)
+  // Update stores from props
   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
   $: if (initialFileTree.length > 0) aiFileTree.set(initialFileTree);
-  $: if (Object.keys(initialFileContents).length > 0)
-    aiFileContents.set(initialFileContents);
+  $: if (Object.keys(initialFileContents).length > 0) aiFileContents.set(initialFileContents);
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
 
-  // Coin costs per hint type
-  const QUICK_HINT_COST = 100;  // Button-triggered hints based on progress
-  const CHAT_HINT_COST = 200;   // Full chat with conversation history
-  const ATTACHED_FILE_COST = 15; // Cost per attached file
+  // Initialize helper logic
+  const helper = createAiHelper({
+    containerId,
+    userId,
+    projectName,
+    scenario,
+    tasks,
+    level,
+    mode,
+    getFileTree: () => currentFileTree,
+    getFileContents: () => currentFileContents,
+    getSelectedFile: () => currentSelectedFile,
+  });
 
-  // Get the base hint cost based on mode
-  $: hintCost = mode === 'quick' ? QUICK_HINT_COST : CHAT_HINT_COST;
-  
-  // Calculate total cost including attached files
-  $: totalCost = hintCost + (attachedFiles.length * ATTACHED_FILE_COST);
+  // Destructure for template
+  const {
+    attachedFiles, isLoading, userMessage, showQuickHint, quickHintMessage,
+    quickHintLoading, showFilePicker, avatarFailed, hintCost, canAttachMore,
+    filteredFileTree, canSend,
+    attachFile, removeAttachedFile, clearAttachedFiles, sendMessage,
+    requestQuickHint, closeQuickHint
+  } = helper;
 
-  // Chat state - use store for persistence across tab switches
-  let userMessage: string = "";
-  let isLoading: boolean = false;
+  // Scroll handling
   let chatContainer: HTMLDivElement;
-  let previousMessageCount: number = 0;
-
-  // Track if user is manually scrolling
   let userScrolling = false;
+  let previousMessageCount = 0;
 
-  // Quick hint mode state
-  let showQuickHint: boolean = false;
-  let quickHintMessage: string = "";
-  let quickHintLoading: boolean = false;
-
-  // Only scroll to bottom when new messages are added (not on every change)
   $: {
     const currentCount = $aiChatHistory.length;
-    if (
-      currentCount > previousMessageCount &&
-      !userScrolling &&
-      chatContainer
-    ) {
+    if (currentCount > previousMessageCount && !userScrolling && chatContainer) {
       setTimeout(() => {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }, 50);
@@ -120,869 +75,79 @@
     previousMessageCount = currentCount;
   }
 
-  // Track user scroll interaction
   function handleScroll() {
     if (!chatContainer) return;
     const { scrollTop, scrollHeight, clientHeight } = chatContainer;
-    // If user scrolls up away from bottom, set userScrolling = true
-    // If user scrolls to bottom, allow auto-scroll again
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
     userScrolling = !isAtBottom;
   }
 
-  // Generate context from current state - includes file contents and task progress
-  async function generateContext(): Promise<string> {
-    let context = `=== PROJECT OVERVIEW ===\n`;
-    context += `Project: ${projectName || 'DevSim Workspace'}\n`;
-    context += `Scenario: ${scenario}\n\n`;
-    
-    // Add conversation history for context (for chat mode)
-    if (mode === "chat") {
-      const chatHistory = $aiChatHistory;
-      if (chatHistory.length > 0) {
-        context += `=== RECENT CONVERSATION ===\n`;
-        // Show last 4 messages for context
-        const recentHistory = chatHistory.slice(-4);
-        recentHistory.forEach((msg) => {
-          const role = msg.role === "user" ? "User" : "AI";
-          const content = msg.content.length > 500 
-            ? msg.content.substring(0, 500) + "..."
-            : msg.content;
-          context += `${role}: ${content}\n`;
-        });
-        context += "\n";
-      }
-    }
-
-    // Use the reactive current* vars which have latest props data
-    const selectedFile = currentSelectedFile;
-    const fileContents = currentFileContents;
-    const fileTree = currentFileTree;
-
-    // Add file tree - show all files for context
-    if (fileTree.length > 0) {
-      context += `Project Files (${fileTree.length} files):\n`;
-      // Show first 30 files to avoid context overflow
-      const filesToShow = fileTree.slice(0, 30);
-      filesToShow.forEach((file) => {
-        context += `- ${file}\n`;
-      });
-      if (fileTree.length > 30) {
-        context += `- ... and ${fileTree.length - 30} more files\n`;
-      }
-      context += "\n";
-    }
-
-    // Try to read multiple files for better context
-    // Focus on source files that are likely important
-    const sourceExtensions = [
-      ".ts",
-      ".tsx",
-      ".js",
-      ".jsx",
-      ".svelte",
-      ".vue",
-      ".py",
-      ".java",
-      ".go",
-      ".rs",
-    ];
-    const importantFiles = fileTree.filter((f) =>
-      sourceExtensions.some((ext) => f.endsWith(ext)),
-    );
-
-    // Prioritize the selected file first, then read others
-    const filesToRead: string[] = [];
-
-    // Always include the selected file if we have one
-    if (selectedFile) {
-      filesToRead.push(selectedFile);
-    }
-
-    // Add up to 4 more important files we don't have content for
-    for (const file of importantFiles) {
-      if (filesToRead.length >= 21) break;
-      if (!fileContents[file] && file !== selectedFile) {
-        filesToRead.push(file);
-      }
-    }
-
-    // Fetch missing file contents in parallel
-    if (filesToRead.length > 0 && containerId) {
-      try {
-        const fetchPromises = filesToRead.map(async (file) => {
-          try {
-            const res = await fetch(
-              `/api/docker/container/${containerId}/files/read`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ path: `/workspace/${file}` }),
-              },
-            );
-            const data = await res.json();
-            if (data.success) {
-              return { file, content: data.content };
-            }
-          } catch (e) {
-            console.error(`Error reading file ${file}:`, e);
-          }
-          return null;
-        });
-
-        const results = await Promise.all(fetchPromises);
-        console.log('[AI Helper] File fetch results:', results.length, 'files');
-        for (const result of results) {
-          if (result) {
-            console.log('[AI Helper] Adding file to context:', result.file);
-            fileContents[result.file] = result.content;
-          }
-        }
-      } catch (e) {
-        console.error("[AI Helper] Error fetching file contents:", e);
-      }
-    }
-
-    // Add content of files with line numbers
-    const filesWithContent = filesToRead.filter((f) => fileContents[f]);
-
-    for (const file of filesWithContent) {
-      if (!file) continue;
-      const content = fileContents[file];
-      if (content) {
-        context += `=== File: ${file} ===\n`;
-        // Add line numbers to help with context
-        const lines = content.split('\n');
-        const maxLines = 200; // Increased for more context
-        const linesToShow = lines.slice(0, maxLines);
-
-        linesToShow.forEach((line, index) => {
-          const lineNum = index + 1;
-          context += `${lineNum}: ${line}\n`;
-        });
-
-        if (lines.length > maxLines) {
-          context += `... (showing first ${maxLines} of ${lines.length} lines)\n`;
-        }
-        context += "\n";
-      }
-    }
-    
-  // Add attached files to the context
-    if (attachedFiles.length > 0) {
-      console.log('[AI Helper] Reading attached files:', attachedFiles);
-      context += `=== ATTACHED FILES (${attachedFiles.length}/${MAX_ATTACHED_FILES}) ===\n`;
-      
-      // Fetch contents of attached files
-      const attachedFetchPromises = attachedFiles.map(async (file) => {
-        try {
-          const filePath = file.path.startsWith('/workspace/') ? file.path : `/workspace/${file.path}`;
-          console.log('[AI Helper] Fetching file:', filePath);
-          const res = await fetch(`/api/docker/container/${containerId}/files/read`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ path: filePath }),
-          });
-          const data = await res.json();
-          console.log('[AI Helper] File result:', file.path, 'success:', data.success);
-          if (data.success) {
-            return { file, content: data.content };
-          } else {
-            console.error('[AI Helper] Failed to read file:', file.path, data.error);
-            return { file, content: `// Error: Could not read file ${file.name}` };
-          }
-        } catch (e) {
-          console.error(`[AI Helper] Error reading attached file ${file.path}:`, e);
-          return { file, content: `// Error: ${e}` };
-        }
-      });
-      
-      const attachedResults = await Promise.all(attachedFetchPromises);
-      
-      for (const result of attachedResults) {
-        if (result) {
-          const { file, content } = result;
-          context += `--- File: ${file.name} ---\n`;
-          context += `// Path: ${file.path}\n`;
-          const lines = content.split('\n');
-          const maxLines = 200; // Increased lines for better context
-          const linesToShow = lines.slice(0, maxLines);
-          
-          linesToShow.forEach((line: string, index: number) => {
-            const lineNum = index + 1;
-            context += `${lineNum}: ${line}\n`;
-          });
-          
-          if (lines.length > maxLines) {
-            context += `... (showing first ${maxLines} of ${lines.length} lines)\n`;
-          }
-          context += "\n";
-        }
-      }
-    }
-    
-    // Add task progress context - this is crucial for context awareness
-    // NOTE: The API expects format: "Tasks (X/Y completed):" and "[√] task" or "[ ] task"
-    const completedCount = tasks ? tasks.filter(t => t.isCompleted).length : 0;
-    context += `Tasks (${completedCount}/${tasks ? tasks.length : 0} completed):\n`;
-    
-    console.log('[AI Helper] Tasks context:', tasks);
-    
-    // Check if tasks are available
-    if (!tasks || tasks.length === 0) {
-      // Provide scenario as fallback context
-      if (scenario) {
-        context += `Current scenario: ${scenario}\n`;
-      }
-      context += `No tasks loaded. Please provide general guidance based on the project files.\n`;
-    } else {
-      // List each task with its status - API expects [√] or [ ] format
-      tasks.forEach((task) => {
-        const status = task.isCompleted ? "[√]" : "[ ]";
-        context += `${status} ${task.taskName}\n`;
-      });
-    }
-    
-    // Add instructions for giving hints based on tasks
-    context += `\n=== HINT INSTRUCTIONS ===\n`;
-    if (tasks && tasks.length > 0) {
-      context += `Based on the user's current task progress above, please provide a helpful hint that:\n`;
-      context += `1. Focus on the next incomplete task (tasks marked with [ ])\n`;
-      context += `2. Consider the current state of the project files\n`;
-      context += `3. Be specific and actionable\n`;
-      context += `4. If all tasks are completed (all show [√]), congratulate the user and offer to help\n`;
-    } else {
-      context += `Provide helpful guidance based on the scenario and project files provided above.\n`;
-    }
-
-    return context;
+  // Mode switching
+  function handleModeChange(newMode: AiMode) {
+    mode = newMode;
   }
-
-  // Send message to AI (for chat mode)
-  async function sendMessage() {
-    if (!userMessage.trim() || isLoading) return;
-
-    const message = userMessage.trim();
-    userMessage = "";
-
-    // Check if asking for code
-    if (isAskingForCode(message)) {
-      aiChatHistory.update((msgs) => [
-        ...msgs,
-        {
-          role: "user",
-          content: message,
-        },
-        {
-          role: "ai",
-          content: getCodeWarningMessage(),
-          isWarning: true,
-        },
-      ]);
-      clearAttachedFiles();
-      return;
-    }
-
-    // Check if user has enough coins (including attached file costs)
-    if (currentCoins < totalCost) {
-      aiChatHistory.update(msgs => [
-        ...msgs,
-        {
-          role: "user",
-          content: message,
-        },
-        {
-          role: "ai",
-          content: getInsufficientCoinsMessage(totalCost, currentCoins),
-          isWarning: true,
-        },
-      ]);
-      clearAttachedFiles();
-      return;
-    }
-
-    // Add message to chat history with attached files if any
-    const filesToInclude = [...attachedFiles];
-    const filesCount = filesToInclude.length;
-    aiChatHistory.update(msgs => [...msgs, { role: "user", content: message, attachedFiles: filesCount > 0 ? filesToInclude : undefined }]);
-    
-    // Clear attached files immediately after sending message
-    clearAttachedFiles();
-    
-    isLoading = true;
-
-    try {
-      // Generate context (now async to fetch file contents)
-      const context = await generateContext();
-      
-      // Clear attached files after generating context
-      // attachedFiles = [];
-
-      console.log("files count: ", filesCount);
-      
-      const response = await fetch("/api/ai/hint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          context,
-          containerId,
-          userId,
-          hintType: mode,
-          attachedFilesCount: filesCount,
-          attachedFiles,
-          level,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        aiChatHistory.update((msgs) => [
-          ...msgs,
-          { role: "ai", content: data.hint },
-        ]);
-        // Update coin balance in store and force re-render
-        if (data.coinsRemaining !== undefined) {
-          aiCoins.set(data.coinsRemaining);
-          // Also update the initialCoins prop to keep them in sync
-          initialCoins = data.coinsRemaining;
-        }
-      } else {
-        aiChatHistory.update((msgs) => [
-          ...msgs,
-          {
-            role: "ai",
-            content: getApiErrorMessage(data.error),
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error("Error getting AI hint:", error);
-      aiChatHistory.update((msgs) => [
-        ...msgs,
-        {
-          role: "ai",
-          content: getErrorMessage(),
-        },
-      ]);
-    } finally {
-      isLoading = false;
-      clearAttachedFiles();
-    }
-  }
-
-  // Quick hint - triggered by button without requiring chat
-  async function requestQuickHint() {
-    if (isLoading || !containerId || !userId) return;
-    
-    // Check coins first (including attached file costs)
-    if (currentCoins < totalCost) {
-      quickHintMessage = getInsufficientCoinsMessage(totalCost, currentCoins);
-      showQuickHint = true;
-      return;
-    }
-
-    quickHintLoading = true;
-    showQuickHint = true;
-    quickHintMessage = "";
-
-    // Save attached files count before clearing
-    const attachedFilesCount = attachedFiles.length;
-
-    // Find the current incomplete task for a more specific hint
-    const currentTask = tasks && tasks.length > 0 
-      ? tasks.find(t => !t.isCompleted) 
-      : null;
-
-    try {
-      // Build context from current state
-      const context = await generateContext();
-
-      console.log("context from generateContext:", context);
-      
-      // Clear attached files after requesting hint
-      attachedFiles = [];
-      
-      // Concise hint message - keep it short for a brief AI response
-      let hintMessage: string;
-      if (currentTask) {
-        hintMessage = `Current task: "${currentTask.taskName}" (${tasks.filter(t => t.isCompleted).length}/${tasks.length} done). Give me a SHORT, specific hint - which file and exactly what to do?`;
-      } else if (tasks && tasks.length > 0 && tasks.every(t => t.isCompleted)) {
-        hintMessage = `All tasks done! Quick congrats and ask if they need help with anything else.`;
-      } else {
-        hintMessage = `Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?`;
-      }
-
-      // Use quick mode to get AI-generated hints based on current task
-      const response = await fetch("/api/ai/hint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: hintMessage,
-          context,
-          containerId,
-          userId,
-          hintType: "quick", // Use quick mode for AI-generated hints
-          attachedFilesCount: attachedFilesCount,
-          attachedFiles,
-          level,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        quickHintMessage = data.hint;
-        // Update coin balance
-        if (data.coinsRemaining !== undefined) {
-          aiCoins.set(data.coinsRemaining);
-          initialCoins = data.coinsRemaining;
-        }
-      } else {
-        quickHintMessage = getApiErrorMessage(data.error);
-      }
-    } catch (error) {
-      console.error("Error getting quick hint:", error);
-      quickHintMessage = getErrorMessage();
-    } finally {
-      quickHintLoading = false;
-    }
-  }
-
-  function closeQuickHint() {
-    showQuickHint = false;
-    quickHintMessage = "";
-  }
-
-  function attachFile(filePath: string) {
-    if (!canAttachMore) return;
-    
-    const fileName = filePath.split('/').pop() || filePath;
-    attachedFiles = [...attachedFiles, { path: filePath, name: fileName }];
-    showFilePicker = false;
-  }
-
-  function removeAttachedFile(filePath: string) {
-    attachedFiles = attachedFiles.filter(f => f.path !== filePath);
-  }
-
-  function clearAttachedFiles() {
-    attachedFiles = [];
-  }
-
-  // Handle enter key
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
-    }
-  }
-
-  // Helper for conditional classes
-  function getMessageClasses(msg: {
-    role: "user" | "ai";
-    isWarning?: boolean;
-  }): string {
-    let classes = "max-w-[85%] p-3 rounded-lg text-sm ";
-    if (msg.role === "user") {
-      classes += "bg-cyan-600/20 text-gray-100";
-    } else if (msg.isWarning) {
-      classes += "bg-yellow-600/20 border border-yellow-600/50 text-yellow-200";
-    } else {
-      classes += "bg-slate-900/60 text-gray-300";
-    }
-    return classes;
-  }
-
-  function getIconClasses(msg: {
-    role: "user" | "ai";
-    isWarning?: boolean;
-  }): string {
-    let classes =
-      "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ";
-    if (msg.role === "user") {
-      classes += "bg-cyan-500";
-    } else if (msg.isWarning) {
-      classes += "bg-yellow-600";
-    } else {
-      classes += "bg-slate-700";
-    }
-    return classes;
-  }
-
-  // Format message content
-  function formatMessage(content: string): string {
-    return formatMessageContent(content);
-  }
-
-  $: canSend = userMessage.trim().length > 0 && !isLoading;
 </script>
 
-<!-- Quick Hint Button - Always visible in AI Helper tab -->
-<div class="p-4 border-b border-zinc-800">
-  <!-- SAZ Profile Header -->
-  <div class="flex items-center gap-3 mb-4">
-    {#if avatarFailed}
-      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-        SAZ
-      </div>
-    {:else}
-      <img 
-        src={AI_AVATAR} 
-        alt="{AI_NAME} avatar" 
-        class="w-10 h-10 rounded-full object-cover shadow-lg"
-        on:error={handleAvatarError}
-      />
-    {/if}
-    <div class="flex-1 flex items-center justify-between">
-      <div>
-        <p class="text-sm font-semibold text-gray-200">{AI_NAME}</p>
-        <p class="text-xs text-gray-400">AI Coding Assistant</p>
-      </div>
-      <div class="flex items-center gap-1 bg-yellow-600/20 px-2 py-1 rounded-lg">
-        <Coins class="w-3 h-3 text-yellow-500" />
-        <span class="text-xs font-medium text-yellow-500">{currentCoins}</span>
-      </div>
-    </div>
-  </div>
-  
-  <button
-    on:click={requestQuickHint}
-    disabled={quickHintLoading || !containerId || !userId}
-    class="w-full flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 rounded-lg transition-all text-sm font-medium text-white"
-  >
-    <Bot class="w-4 h-4" />
-    Get Quick Hint
-  </button>
+<div class="flex flex-col h-full bg-[#0f172a]">
+  <AIHeader
+    {currentCoins}
+    onRequestHint={requestQuickHint}
+    quickHintLoading={$quickHintLoading}
+    disabled={!containerId || !userId}
+    bind:avatarFailed={$avatarFailed}
+  />
 
-  {#if currentCoins < QUICK_HINT_COST}
-    <p class="text-xs text-yellow-500 text-center mt-2">
-      ⚠️ Not enough coins ({currentCoins}/{QUICK_HINT_COST})
-    </p>
-  {:else}
-    <p class="text-xs text-gray-500 text-center mt-2">
-      💰 Quick hint: {QUICK_HINT_COST} coins | Chat: {CHAT_HINT_COST} coins ({ATTACHED_FILE_COST} coins per attached file)
-    </p>
-  {/if}
-
-  <!-- Toggle between Quick and Chat mode -->
-  <div class="flex gap-2 mt-3">
-    <button
-      on:click={() => (mode = "quick")}
-      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'quick'
-        ? 'bg-cyan-500 text-white'
-        : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
-    >
-      ⚡ Quick
-    </button>
-    <button
-      on:click={() => (mode = "chat")}
-      class="flex-1 py-1 px-2 text-xs rounded transition-all {mode === 'chat'
-        ? 'bg-cyan-500 text-white'
-        : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'}"
-    >
-      💬 Chat
-    </button>
+  <div class="flex flex-col flex-1 min-h-0 overflow-hidden">
+    <ChatContainer
+      messages={$aiChatHistory}
+      isLoading={$isLoading}
+      bind:avatarFailed={$avatarFailed}
+      bind:chatContainer
+      onScroll={handleScroll}
+    />
+    
+    <ChatInput
+      bind:value={$userMessage}
+      isLoading={$isLoading}
+      canSend={$canSend}
+      attachedFiles={$attachedFiles}
+      canAttachMore={$canAttachMore}
+      onSend={sendMessage}
+      onAttachClick={() => showFilePicker.set(true)}
+      onRemoveFile={removeAttachedFile}
+    />
   </div>
 </div>
 
-<!-- Quick Hint Result Modal -->
-{#if showQuickHint}
-  <div
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    role="button"
-    tabindex="0"
-    on:click={closeQuickHint}
-    on:keydown={(e) => {
-      if (e.key === "Escapec") closeQuickHint();
-    }}
-  >
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-      class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full p-4"
-      on:click|stopPropagation
-    >
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          {#if avatarFailed}
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-              SAZ
-            </div>
-          {:else}
-            <img 
-              src={AI_AVATAR} 
-              alt="{AI_NAME} avatar" 
-              class="w-8 h-8 rounded-full object-cover"
-              on:error={handleAvatarError}
-            />
-          {/if}
-          <span class="font-medium text-gray-200">{AI_NAME}</span>
-        </div>
-        <button
-          on:click={closeQuickHint}
-          class="text-gray-400 hover:text-gray-200"
-        >
-          <X class="w-5 h-5" />
-        </button>
-      </div>
+<QuickHintModal
+  show={$showQuickHint}
+  message={$quickHintMessage}
+  loading={$quickHintLoading}
+  {initialCoins}
+  onClose={closeQuickHint}
+  bind:avatarFailed={$avatarFailed}
+/>
 
-      {#if quickHintLoading}
-        <div class="flex items-center justify-center py-8">
-          <div class="flex gap-1">
-            <span
-              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-              style="animation-delay: 0ms;"
-            ></span>
-            <span
-              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-              style="animation-delay: 150ms;"
-            ></span>
-            <span
-              class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-              style="animation-delay: 300ms;"
-            ></span>
-          </div>
-        </div>
-      {:else}
-        <div class="text-sm text-gray-300 whitespace-pre-wrap">
-          {@html formatMessage(quickHintMessage)}
-        </div>
-        <div
-          class="mt-3 pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-gray-500"
-        >
-          <span>Coins spent: {QUICK_HINT_COST}</span>
-          <span>Coins remaining: {initialCoins}</span>
-        </div>
-      {/if}
-    </div>
-  </div>
-{/if}
-
-<!-- File Picker Modal -->
-{#if showFilePicker}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" on:click={() => showFilePicker = false}>
-    <div class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full max-h-[70vh] flex flex-col" on:click|stopPropagation>
-      <div class="flex items-center justify-between p-4 border-b border-[#27272a]">
-        <div class="flex items-center gap-2">
-          <Paperclip class="w-5 h-5 text-cyan-500" />
-          <span class="font-medium text-gray-200">Attach Files</span>
-          <span class="text-xs text-gray-500">({attachedFiles.length}/{MAX_ATTACHED_FILES})</span>
-        </div>
-        <button on:click={() => showFilePicker = false} class="text-gray-400 hover:text-gray-200">
-          <X class="w-5 h-5" />
-        </button>
-      </div>
-      
-      <div class="flex-1 overflow-y-auto p-2">
-        {#if filteredFileTree.length === 0}
-          <p class="text-sm text-gray-400 text-center py-4">No files available to attach</p>
-        {:else}
-          <div class="space-y-1">
-            {#each filteredFileTree as filePath}
-              <button
-                on:click={() => attachFile(filePath)}
-                class="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-left transition-colors"
-              >
-                <FileText class="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span class="text-sm text-gray-300 truncate">{filePath}</span>
-              </button>
-            {/each}
-          </div>
-        {/if}
-      </div>
-      
-      <div class="p-3 border-t border-[#27272a] text-xs text-gray-500">
-        💡 Click a file to attach it. The file contents will be included in your AI request for better context.
-      </div>
-    </div>
-  </div>
-{/if}
-
-<!-- Chat Section (always visible to prevent disappearing) -->
-<div class="flex flex-col" style="flex: 1; min-height: 0;">
-  <!-- Chat Section -->
-  <div class="flex flex-col" style="flex: 1; min-height: 0; overflow: hidden;">
-      <div class="flex items-center justify-between">
-        <div>
-        </div>
-      </div>
-
-    <!-- Messages -->
-    <div 
-      bind:this={chatContainer} 
-      class="flex-1 p-4 space-y-4" 
-      on:scroll={handleScroll}
-      style="overflow-y: auto; min-height: 0; flex: 1 1 auto; height: 100%;"
-    >
-      {#if $aiChatHistory.length === 0}
-        <div class="flex flex-col items-center justify-center py-8">
-          {#if avatarFailed}
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-xl mb-3 shadow-lg mx-auto">
-              SAZ
-            </div>
-          {:else}
-            <img 
-              src={AI_AVATAR} 
-              alt="{AI_NAME} avatar" 
-              class="w-16 h-16 rounded-full object-cover mb-3 shadow-lg mx-auto"
-              on:error={handleAvatarError}
-            />
-          {/if}
-          <p class="text-sm text-gray-200">
-            Hi! I'm {AI_NAME}, your coding assistant!
-          </p>
-          <p class="text-xs text-gray-400 mt-1">
-            Ask me for hints or help with your tasks
-          </p>
-        </div>
-      {:else}
-        {#each $aiChatHistory as msg}
-          <div class="flex gap-3" class:flex-row-reverse={msg.role === "user"}>
-            <div class={getIconClasses(msg)}>
-              {#if msg.role === "user"}
-                <User class="w-3 h-3 text-white" />
-              {:else if msg.isWarning}
-                <AlertTriangle class="w-3 h-3 text-white" />
-              {:else}
-                {#if avatarFailed}
-                  <div class="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-xs">
-                    SZ
-                  </div>
-                {:else}
-                  <img 
-                    src={AI_AVATAR} 
-                    alt="{AI_NAME} avatar" 
-                    class="w-6 h-6 rounded-full object-cover"
-                    on:error={handleAvatarError}
-                  />
-                {/if}
-              {/if}
-            </div>
-            <div class={getMessageClasses(msg)}>
-              {@html formatMessage(msg.content)}
-              
-              <!-- Show attached files in chat message -->
-              {#if msg.role === "user" && msg.attachedFiles && msg.attachedFiles.length > 0}
-                <div class="mt-2 pt-2 border-t border-slate-700/50">
-                  <div class="text-xs text-gray-500 mb-1">📎 Attached files:</div>
-                  <div class="flex flex-wrap gap-1">
-                    {#each msg.attachedFiles as file}
-                      <div class="flex items-center gap-1 bg-slate-800/50 border border-zinc-700/50 rounded px-2 py-0.5 text-xs">
-                        <FileText class="w-3 h-3 text-cyan-500" />
-                        <span class="text-gray-400">{file.name}</span>
-                      </div>
-                    {/each}
-                  </div>
-                </div>
-              {/if}
-            </div>
-          </div>
-        {/each}
-
-          {#if isLoading}
-            <div class="flex gap-3">
-              <div
-                class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center"
-              >
-                <Bot class="w-3 h-3 text-cyan-500" />
-              </div>
-              <div class="bg-slate-900/60 p-3 rounded-lg">
-                <div class="flex gap-1">
-                  <span
-                    class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-                    style="animation-delay: 0ms;"
-                  ></span>
-                  <span
-                    class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-                    style="animation-delay: 150ms;"
-                  ></span>
-                  <span
-                    class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-                    style="animation-delay: 300ms;"
-                  ></span>
-                </div>
-              </div>
-            </div>
-          {/if}
-        {/if}
-      </div>
-
-    <!-- Input -->
-    <div class="p-4 border-t border-zinc-800">
-      <!-- Attached Files Display -->
-      {#if attachedFiles.length > 0}
-        <div class="flex flex-wrap gap-2 mb-3">
-          {#each attachedFiles as file}
-            <div class="flex items-center gap-1 bg-slate-800 border border-zinc-700 rounded-md px-2 py-1 text-xs">
-              <FileText class="w-3 h-3 text-cyan-500" />
-              <span class="text-gray-300 max-w-[120px] truncate">{file.name}</span>
-              <button 
-                on:click={() => removeAttachedFile(file.path)}
-                class="text-gray-500 hover:text-red-400 ml-1"
-              >
-                <X class="w-3 h-3" />
-              </button>
-            </div>
-          {/each}
-        </div>
-      {/if}
-      
-      <div class="flex gap-2">
-        <!-- Attach File Button -->
-        <button
-          on:click={() => showFilePicker = true}
-          disabled={!canAttachMore}
-          class="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-lg transition-all"
-          title={canAttachMore ? "Attach up to 3 files" : "Maximum files attached"}
-        >
-          <Paperclip class="w-4 h-4 text-gray-400" />
-        </button>
-        
-        <input
-          type="text"
-          bind:value={userMessage}
-          on:keydown={handleKeydown}
-          placeholder="Ask for a hint..."
-          class="flex-1 bg-slate-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500"
-          disabled={isLoading}
-        />
-        <button
-          on:click={sendMessage}
-          disabled={!canSend}
-          class="bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-lg transition-all"
-        >
-          <Send class="w-4 h-4 text-white" />
-        </button>
-      </div>
-      
-      {#if attachedFiles.length > 0}
-        <p class="text-xs text-gray-500 mt-2">
-          📎 {attachedFiles.length}/{MAX_ATTACHED_FILES} files attached for context
-        </p>
-      {/if}
-    </div>
-  </div>
-</div>
+<FilePickerModal
+  show={$showFilePicker}
+  files={$filteredFileTree}
+  attachedCount={$attachedFiles.length}
+  onClose={() => showFilePicker.set(false)}
+  onSelect={attachFile}
+/>
 
 <style>
-  .overflow-y-auto::-webkit-scrollbar {
+  :global(.overflow-y-auto::-webkit-scrollbar) {
     width: 6px;
   }
-
-  .overflow-y-auto::-webkit-scrollbar-track {
+  :global(.overflow-y-auto::-webkit-scrollbar-track) {
     background: transparent;
   }
-
-  .overflow-y-auto::-webkit-scrollbar-thumb {
+  :global(.overflow-y-auto::-webkit-scrollbar-thumb) {
     background: #27272a;
     border-radius: 3px;
   }
-
-  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  :global(.overflow-y-auto::-webkit-scrollbar-thumb:hover) {
     background: #3f3f46;
   }
 </style>
