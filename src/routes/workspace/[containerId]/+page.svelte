@@ -16,7 +16,7 @@
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
   import TerminalManagerPanel from "$lib/components/workspace/TerminalManagerPanel.svelte";
-  import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
+  import AiHelp from "$lib/components/aiHelp/AiHelp.svelte";
   import BoardPanel from "$lib/components/workspace/BoardPanel.svelte";
   import TestCase from "$lib/components/workspace/TestCase.svelte";
 
@@ -1116,14 +1116,12 @@
       difficulty,
       timeRemaining,
       isRunning,
-      aiPanelOpen,
       isDownloading,
       onBack: handleBack,
       onRun: runDevServer,
       onStop: stopDevServer,
       onDemo: () => handleTabChange("preview"),
       onSubmit: handleSubmitSprint,
-      onToggleAi: toggleAiPanel,
       onDownload: handleDownload,
     }}
   >
@@ -1211,26 +1209,6 @@
         onClose={closeTerminalSession}
       />
     {/if}
-
-    <!-- Right AI Hints Panel (toggleable and resizable) -->
-    {#if aiPanelOpen}
-      <div
-        class="w-80 flex-shrink-0 border-l border-[rgba(7,165,201,0.1)] flex flex-col h-full"
-        style="min-width: 320px; max-width: 600px;"
-      >
-        <AiHelp
-          containerId={page.params.containerId}
-          userId={data.userId}
-          scenario={actualLevelConfig.scenario}
-          {tasks}
-          initialFileTree={fileTree}
-          initialFileContents={fileContents}
-          {projectName}
-          level={currentLevel}
-          bind:mode={aiPanelMode}
-        />
-      </div>
-    {/if}
   </div>
 
   <!-- Submit Sprint modal -->
@@ -1279,6 +1257,20 @@
     variant="warning"
     on:confirm={handleRegressionConfirm}
     on:cancel={handleRegressionDismiss}
+  />
+
+  <!-- Floating AI Help (always visible, bottom-right) -->
+  <AiHelp
+    containerId={page.params.containerId}
+    userId={data.userId}
+    scenario={actualLevelConfig.scenario}
+    {tasks}
+    initialFileTree={fileTree}
+    initialFileContents={fileContents}
+    {projectName}
+    level={currentLevel}
+    initialCoins={userCoins}
+    bind:mode={aiPanelMode}
   />
 </div>
 

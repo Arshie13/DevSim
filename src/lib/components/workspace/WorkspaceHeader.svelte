@@ -6,7 +6,6 @@
     difficulty: string;
     timeRemaining: number;
     isRunning: boolean;
-    aiPanelOpen: boolean;
     isDownloading: boolean;
     onBack: () => void;
     onRun: () => void;
@@ -14,7 +13,6 @@
     onDemo: () => void;
     onSubmit: () => void;
     onDownload: () => void;
-    onToggleAi: () => void;
   }
 
   import {
@@ -22,7 +20,6 @@
     Square,
     Clock,
     ChevronLeft,
-    Bot,
     Zap,
     Download,
     Globe,
@@ -35,7 +32,6 @@
   let difficulty: string;
   let timeRemaining: number;
   let isRunning: boolean;
-  let aiPanelOpen: boolean;
   let isDownloading: boolean;
   let onBack: () => void;
   let onRun: () => void;
@@ -43,7 +39,6 @@
   let onDemo: () => void;
   let onSubmit: () => void;
   let onDownload: () => void;
-  let onToggleAi: () => void;
 
   $: ({
     level,
@@ -52,7 +47,6 @@
     difficulty,
     timeRemaining,
     isRunning,
-    aiPanelOpen,
     isDownloading,
     onBack,
     onRun,
@@ -60,7 +54,6 @@
     onDemo,
     onSubmit,
     onDownload,
-    onToggleAi,
   } = data);
 
   function formatTime(seconds: number): string {
@@ -199,31 +192,13 @@
     </button>
 
     <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
-
-    <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
-
-    <!-- Submit Sprint -->
+        <!-- Submit Sprint -->
     <button
       on:click={onSubmit}
       class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#0a0e1a] bg-[#07a5c9] border border-[#07a5c9] hover:bg-[#00f5ff] hover:border-[#00f5ff] flex items-center gap-1.5 transition-all"
       style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;box-shadow:0 0 14px rgba(7,165,201,0.35);"
     >
       <Zap class="w-3.5 h-3.5" />Submit Sprint
-    </button>
-
-    <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
-
-    <!-- AI Hints toggle -->
-    <button
-      on:click={onToggleAi}
-      data-tour="ai-toggle"
-      class="w-8 h-8 flex items-center justify-center border transition-all {aiPanelOpen
-        ? 'text-[#07a5c9] border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.08)]'
-        : 'text-[#8892a0] border-transparent hover:text-[#07a5c9] hover:border-[rgba(7,165,201,0.2)]'}"
-      style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));"
-      title="Toggle AI Hints"
-    >
-      <Bot class="w-6 h-6" />
     </button>
   </div>
 </header>
