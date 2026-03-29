@@ -36,6 +36,10 @@
   }
 
   function close(source: 'x' | 'footer' | 'backdrop' | 'escape') {
+    // If closing via footer button (Continue Working) when tests failed, show a toast or log confirmation
+    if (source === 'footer' && !allPassed) {
+      console.log('[TestResultModal] User pressed Continue Working - returning to continue working on tasks');
+    }
     dispatch('close', { source });
     open = false;
   }
@@ -168,6 +172,8 @@
         </div>
       {/if}
 
+      <!-- Key Takeaways Summary - moved to bottom of content area -->
+
       <!-- Content -->
       <div class="trm-content relative flex-1 overflow-y-auto px-6 py-4">
         {#if loading}
@@ -208,6 +214,9 @@
                       {/if}
                     </div>
                     <span class="flex-1 [font-family:var(--font-body)] text-[0.88rem] font-medium text-[var(--text-primary)]">{task.taskName}</span>
+                    {#if task.passed && task.keyTakeaway}
+                      <span class="mr-1 rounded-[3px] bg-[rgba(0,229,160,0.1)] px-1.5 py-0.5 text-[0.625rem] text-[var(--success)]">✓</span>
+                    {/if}
                     <span class="rounded-[3px] bg-[rgba(136,146,160,0.1)] px-2 py-1 [font-family:var(--font-mono)] text-[0.6875rem] text-[var(--text-muted)]">
                       {task.results.filter(r => r.passed).length}/{task.results.length}
                     </span>
@@ -260,6 +269,8 @@
                           {/each}
                         </div>
                       {/if}
+
+
                     </div>
                   {/if}
                 </div>
@@ -303,6 +314,8 @@
           {/if}
         {/if}
       </div>
+
+
 
       <!-- Footer -->
       <div class="flex justify-end gap-3 border-t border-[rgba(7,165,201,0.1)] bg-[rgba(7,165,201,0.02)] px-6 py-4">
