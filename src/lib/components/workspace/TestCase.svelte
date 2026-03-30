@@ -162,6 +162,7 @@
           command: testCommand,
           level,
           taskId,
+          taskOrder: taskOrder,
           testType: 'task'
         })
       });
@@ -174,7 +175,7 @@
           success: data.passed,
           level,
           summary: data.summary || { total: 0, passed: 0, failed: 0, duration: 0 },
-          taskResults: [{
+          taskResults: data.taskResults || [{
             taskId,
             taskName,
             passed: data.passed,
