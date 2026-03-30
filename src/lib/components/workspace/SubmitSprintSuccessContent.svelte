@@ -15,21 +15,88 @@
 
   export let advancingToNextLevel = false;
   export let aiScoring: AIScoring = {
-    stars: 1,
-    score: 50,
-    feedback: '',
-    improvements: '',
-    nextTime: '',
-    loading: false,
-    done: false,
+    stars: 1, score: 50, feedback: '', improvements: '', nextTime: '',
+    loading: false, done: false,
   };
   export let submitRewards = { xp: 0, coins: 0 };
   export let keyTakeaways: Array<{ taskId: string; taskName: string; takeaway: string }> = [];
+  
+  let takeawayChunks: Array<{ taskName: string; sectionTitle: string; content: string }> = [];
+  
+  function parseTakeawaySections(content: string, taskName: string): Array<{ taskName: string; sectionTitle: string; content: string }> {
+    const lines = content.split(/\r?\n/);
+    const paragraphs: string[] = [];
+    let currentParagraph = '';
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (currentParagraph.trim()) {
+          paragraphs.push(currentParagraph.trim());
+          currentParagraph = '';
+        }
+      } else {
+        currentParagraph += (currentParagraph ? ' ' : '') + trimmed;
+      }
+    }
+    if (currentParagraph.trim()) {
+      paragraphs.push(currentParagraph.trim());
+    }
 
-  $: takeawayChunks = keyTakeaways
-    .filter(kt => kt.takeaway && kt.takeaway.trim().length > 0)
-    .map(kt => ({ taskName: kt.taskName, content: `${kt.taskName}\n\n${kt.takeaway}` }));
-
+    const validParagraphs = paragraphs.filter(p => p.length > 0);
+    if (validParagraphs.length === 0 && content.trim()) {
+      return [{ taskName, sectionTitle: taskName, content: content.trim() }];
+    }
+    
+    const sections: Array<{ taskName: string; sectionTitle: string; content: string }> = [];
+    let chunk: string[] = [];
+    let chunkLength = 0;
+    const MAX_CHARS = 280;
+    const MAX_PARAS = 2;
+    
+    for (const para of validParagraphs) {
+      chunk.push(para);
+      chunkLength += para.length;
+      
+      if (chunkLength >= MAX_CHARS || chunk.length >= MAX_PARAS) {
+        const contentStr = chunk.join('\n\n');
+        let title = taskName;
+        const firstPara = chunk[0];
+        const headingMatch = firstPara.match(/^\*\*(.+?)\*\*[:\s]*/);
+        if (headingMatch) {
+          title = headingMatch[1].trim();
+        } else if (sections.length > 0) {
+          const words = firstPara.split(' ').slice(0, 3).join(' ');
+          title = words + (firstPara.split(' ').length > 3 ? '...' : '');
+        }
+        sections.push({ taskName, sectionTitle: title, content: contentStr });
+        chunk = [];
+        chunkLength = 0;
+      }
+    }
+    
+    if (chunk.length > 0) {
+      const contentStr = chunk.join('\n\n');
+      let title = taskName;
+      if (sections.length > 0) {
+        const words = chunk[0].split(' ').slice(0, 3).join(' ');
+        title = words + (chunk[0].split(' ').length > 3 ? '...' : '');
+      }
+      sections.push({ taskName, sectionTitle: title, content: contentStr });
+    }
+    
+    return sections;
+  }
+  
+  $: {
+    const parsed = keyTakeaways
+      ?.filter(kt => kt?.takeaway && kt?.takeaway?.trim()?.length > 0)
+      ?.flatMap(kt => parseTakeawaySections(kt.takeaway, kt.taskName || 'Task')) 
+      || [];
+    
+    takeawayChunks = parsed;
+  }
+  
   let currentIndex = 0;
   $: if (takeawayChunks.length > 0) currentIndex = 0;
   $: currentTakeaway = takeawayChunks[currentIndex] ?? null;
@@ -47,11 +114,8 @@
 
   function startTypewriter(text: string) {
     if (typeInterval) { clearInterval(typeInterval); typeInterval = null; }
-    currentText = text;
-    displayedText = '';
-    typeIndex = 0;
-    isTyping = true;
-    typeComplete = false;
+    currentText = text; displayedText = ''; typeIndex = 0;
+    isTyping = true; typeComplete = false;
     if (!text.length) { isTyping = false; return; }
     typeInterval = setInterval(() => {
       if (typeIndex < currentText.length) {
@@ -80,72 +144,9 @@
   }
 </script>
 
-<!--
-  Root: flex row.
-    LEFT  → avatar + speech bubble (only when takeaways exist)
-    RIGHT → the success card (always present)
--->
-<div class="root" class:with-bubble={hasTakeaways}>
+<div class="anchor">
 
-  <!-- ═══ LEFT: avatar + speech bubble ═══════════════════════════════════ -->
-  {#if hasTakeaways}
-    <aside class="aside">
-
-      <!-- Avatar -->
-      <div class="avatar" class:speaking={isTyping}>
-        <img src="/images/saz.png" alt="DevSim AI" />
-        {#if isTyping}<span class="pulse-dot"></span>{/if}
-      </div>
-
-      <!-- Bubble -->
-      <div class="bubble">
-        <!-- right-pointing tail -->
-        <div class="tail"></div>
-
-        <div class="bubble-header">
-          <Lightbulb size={11} class="text-[var(--accent)]" />
-          <span class="bubble-label">KEY TAKEAWAYS</span>
-          {#if takeawayChunks.length > 1}
-            <span class="bubble-badge">{currentIndex + 1}/{takeawayChunks.length}</span>
-          {/if}
-        </div>
-
-        <div class="bubble-body">
-          {#if showFallback}
-            <p class="bubble-text muted">Great job completing this sprint! Keep exploring the codebase to discover more insights.</p>
-          {:else}
-            <p class="bubble-text">
-              {displayedText}{#if isTyping}<span class="cursor">|</span>{/if}
-            </p>
-          {/if}
-        </div>
-
-        {#if !showFallback}
-          <div class="bubble-footer">
-            {#if isTyping}
-              <button class="ctrl-btn" on:click={handleSkipTyping}>Skip →</button>
-            {:else}
-              <span></span>
-            {/if}
-            {#if typeComplete && takeawayChunks.length > 1}
-              <div class="nav">
-                <button class="ctrl-btn" disabled={currentIndex === 0}
-                  on:click={() => currentIndex = Math.max(0, currentIndex - 1)}>← Prev</button>
-                <span class="nav-count">{currentIndex + 1}/{takeawayChunks.length}</span>
-                <button class="ctrl-btn"
-                  on:click={() => currentIndex = Math.min(takeawayChunks.length - 1, currentIndex + 1)}>
-                  {currentIndex === takeawayChunks.length - 1 ? '✓' : 'Next →'}
-                </button>
-              </div>
-            {/if}
-          </div>
-        {/if}
-      </div>
-
-    </aside>
-  {/if}
-
-  <!-- ═══ RIGHT: success card ════════════════════════════════════════════ -->
+  <!-- ═══ THE CARD ════════════════════════════ -->
   <div class="card text-center py-2">
 
     <div class="mb-3 inline-flex items-center gap-2 rounded-[3px] border border-[rgba(0,229,160,0.28)] bg-[rgba(0,229,160,0.08)] px-3 py-1.5">
@@ -161,6 +162,42 @@
         ? 'Great run. Jump into your next challenge or return to dashboard.'
         : 'All deliverables are recorded for this sprint.'}
     </p>
+
+    <!-- Key Takeaways - shown right after the subtitle -->
+    {#if hasTakeaways && !showFallback}
+      <div class="mb-4 rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.7)] px-4 py-3">
+        <div class="mb-2 flex items-center gap-2 border-b border-[rgba(7,165,201,0.15)] pb-2">
+          <Lightbulb size={14} class="text-[var(--accent)]" />
+          <span class="[font-family:var(--font-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-[var(--accent)]">Key Takeaways</span>
+          {#if takeawayChunks.length > 1}
+            <span class="ml-auto text-[0.6rem] text-[var(--text-muted)]">{currentIndex + 1}/{takeawayChunks.length}</span>
+          {/if}
+        </div>
+        <div class="min-h-[80px] max-h-[140px] overflow-y-auto">
+          <p class="[font-family:var(--font-mono)] text-[0.7rem] leading-[1.6] text-[var(--text-primary)]">
+            {displayedText}{#if isTyping}<span class="animate-pulse">|</span>{/if}
+          </p>
+        </div>
+        {#if takeawayChunks.length > 1}
+          <div class="mt-3 flex items-center justify-center gap-4 border-t border-[rgba(7,165,201,0.15)] pt-2">
+            <button class="text-[0.6rem] text-[var(--accent)] hover:underline" disabled={currentIndex === 0}
+              on:click={() => currentIndex = Math.max(0, currentIndex - 1)}>← Prev</button>
+            <button class="text-[0.6rem] text-[var(--accent)] hover:underline"
+              on:click={() => currentIndex = Math.min(takeawayChunks.length - 1, currentIndex + 1)}>
+              {currentIndex === takeawayChunks.length - 1 ? 'Done' : 'Next →'}
+            </button>
+          </div>
+        {/if}
+      </div>
+    {:else if showFallback}
+      <div class="mb-4 rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.7)] px-4 py-3">
+        <div class="flex items-center gap-2">
+          <Lightbulb size={14} class="text-[var(--accent)]" />
+          <span class="[font-family:var(--font-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-[var(--accent)]">Key Takeaways</span>
+        </div>
+        <p class="mt-2 [font-family:var(--font-mono)] text-[0.7rem] text-[var(--text-muted)]">Great job completing this sprint! Keep exploring the codebase to discover more insights.</p>
+      </div>
+    {/if}
 
     <div class="mb-5 grid grid-cols-2 gap-2.5">
       <div class="fade-up rounded-[4px] border border-[rgba(0,229,160,0.3)] bg-[rgba(15,34,16,0.8)] px-3 py-3 text-center">
@@ -205,169 +242,22 @@
       </div>
     </div>
 
-  </div><!-- /card -->
-</div><!-- /root -->
+  </div>
+</div>
 
 <style>
-  /* ─── Root layout ───────────────────────────────────────────────── */
-  .root {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    width: 100%;
+  .anchor {
+    position: relative;
     animation: pane-in 0.28s ease-out both;
   }
 
-  /* Card takes all space when no bubble */
-  .root:not(.with-bubble) .card { margin: 0 auto; }
+  .card { position: relative; z-index: 1; }
 
-  .card { flex: 1; min-width: 0; }
-
-  /* ─── Left aside ────────────────────────────────────────────────── */
-  .aside {
-    flex-shrink: 0;
-    width: 240px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding-top: 6px;
-    /* align to top of card, sticky so it follows scroll */
-    align-self: flex-start;
-    position: sticky;
-    top: 16px;
-  }
-
-  /* ─── Avatar ────────────────────────────────────────────────────── */
-  .avatar {
-    position: relative;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: 2px solid rgba(6,182,212,0.65);
-    box-shadow: 0 0 12px rgba(6,182,212,0.4);
-    overflow: hidden;
-    flex-shrink: 0;
-    transition: box-shadow 0.2s, border-color 0.2s;
-  }
-  .avatar.speaking {
-    border-color: rgba(6,182,212,1);
-    box-shadow: 0 0 22px rgba(6,182,212,0.8);
-  }
-  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-  .pulse-dot {
-    position: absolute;
-    bottom: 2px; right: 2px;
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 1.5px solid #0f1a2e;
-    animation: pulse 1s ease-in-out infinite;
-  }
-
-  /* ─── Speech bubble ─────────────────────────────────────────────── */
-  .bubble {
-    position: relative;
-    width: 100%;
-    background: #0d1b2a;
-    border: 1.5px solid rgba(6,182,212,0.75);
-    border-radius: 8px;
-    box-shadow: 0 0 16px rgba(6,182,212,0.12);
-    padding: 10px 12px 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  /* Right-pointing tail */
-  .tail {
-    position: absolute;
-    right: -11px;
-    top: 16px;
-    width: 0; height: 0;
-    /* outer border colour */
-    border-top: 9px solid transparent;
-    border-bottom: 9px solid transparent;
-    border-left: 11px solid rgba(6,182,212,0.75);
-  }
-  /* inner fill matches bubble bg */
-  .tail::after {
-    content: '';
-    position: absolute;
-    right: 2px; top: -7px;
-    width: 0; height: 0;
-    border-top: 7px solid transparent;
-    border-bottom: 7px solid transparent;
-    border-left: 9px solid #0d1b2a;
-  }
-
-  .bubble-header {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(6,182,212,0.2);
-  }
-  .bubble-label {
-    font-family: var(--font-heading);
-    font-size: 0.48rem;
-    font-weight: 700;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .bubble-badge {
-    font-size: 0.48rem;
-    color: var(--text-muted);
-    margin-left: 2px;
-  }
-
-  .bubble-body { flex: 1; }
-
-  .bubble-text {
-    font-family: var(--font-mono);
-    font-size: 0.67rem;
-    color: var(--text-primary);
-    line-height: 1.55;
-    white-space: pre-line;
-    margin: 0;
-  }
-  .bubble-text.muted { color: var(--text-muted); }
-
-  .bubble-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 5px;
-    border-top: 1px solid rgba(6,182,212,0.15);
-  }
-
-  .ctrl-btn {
-    background: none; border: none; cursor: pointer; padding: 1px 0;
-    font-size: 0.48rem;
-    color: var(--accent);
-    transition: opacity 0.15s;
-  }
-  .ctrl-btn:disabled { opacity: 0.3; cursor: default; }
-  .ctrl-btn:not(:disabled):hover { text-decoration: underline; }
-
-  .nav { display: flex; align-items: center; gap: 6px; }
-  .nav-count { font-size: 0.48rem; color: var(--text-muted); }
-
-  /* ─── Misc animations ───────────────────────────────────────────── */
+  /* ─── Animations ─────────────────────────────────────────────────── */
   .burst { animation: burst-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
   .fade-up { animation: fade-up 0.4s 0.15s ease both; }
-
-  .cursor {
-    color: var(--accent);
-    font-weight: bold;
-    animation: blink 0.8s step-end infinite;
-  }
 
   @keyframes pane-in   { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   @keyframes burst-pop { from { transform: scale(0.3);  opacity: 0; } to { transform: scale(1); opacity: 1; } }
   @keyframes fade-up   { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes pulse     { 0%,100% { transform: scale(1);   opacity: 1; } 50% { transform: scale(1.3); opacity: 0.6; } }
-  @keyframes blink     { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
 </style>

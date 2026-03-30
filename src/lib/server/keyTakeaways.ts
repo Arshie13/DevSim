@@ -78,24 +78,17 @@ export function getAllLevelTakeaways(level: number): Array<{ taskId: string; tas
     if (!stack.basePath) continue;
 
     try {
-      // For react-express-postgres-prisma, basePath already includes 'levels'
-      // For nestjs-postgres-prisma, basePath is the scenario root (no 'levels' subfolder)
       let levelsDir: string;
       if (stack.stackKey === 'nestjs-postgres-prisma') {
         levelsDir = stack.basePath;
       } else {
-        // React stack: basePath = .../LIBRARY_MANAGEMENT/levels
-        // So no need to add 'levels' again
         levelsDir = stack.basePath;
       }
       
       const levelPath = path.join(levelsDir, `level-${level}`);
-      console.log(`[KEYTAKEAWAYS] Checking path: ${levelPath}`);
       if (!fs.existsSync(levelPath)) {
-        console.log(`[KEYTAKEAWAYS] Level path does not exist, trying next stack...`);
-        continue; // Try next stack
+        continue;
       }
-      console.log(`[KEYTAKEAWAYS] Level path exists, scanning for tasks...`);
 
       const tasks = fs.readdirSync(levelPath);
       for (const task of tasks) {
@@ -105,58 +98,110 @@ export function getAllLevelTakeaways(level: number): Array<{ taskId: string; tas
           const taskId = task.replace('task-', '');
           const taskText = getTaskText(level, taskId);
           
-          // Read the entire keytakeaway.md as one takeaway
           const filePath = path.join(taskPath, 'keytakeaway.md');
           if (fs.existsSync(filePath)) {
             const content = fs.readFileSync(filePath, 'utf-8');
-            // Remove the # Key Takeaway header and add task context
             const cleanContent = content
               .replace(/^# Key Takeaway\s*/i, '')
               .trim();
             
-            console.log(`[KEYTAKEAWAYS] Found takeaway for task-${taskId}: ${cleanContent.substring(0, 80)}...`);
+            // Keep the entire content as one takeaway per task
             result.push({
               taskId,
               taskName: taskText,
               takeaway: cleanContent
             });
-          } else {
-            console.log(`[KEYTAKEAWAYS] keytakeaway.md not found at ${filePath}`);
           }
         }
       }
       
-      // If we found takeaways from this stack, return them
       if (result.length > 0) {
-        console.log(`[KEYTAKEAWAYS] Found ${result.length} takeaways from files (${stack.stackKey})`);
         return result;
       }
-      // No takeaways found for this stack, continue to next stack
-      console.log(`[KEYTAKEAWAYS] No takeaways found for ${stack.stackKey}, trying next stack...`);
     } catch (e) {
       console.error(`Error reading keytakeaways for level ${level} from ${stack.stackKey}:`, e);
     }
   }
 
   // Fallback: Generate takeaways from level config
-  console.log(`[KEYTAKEAWAYS] No file-based takeaways found for any stack, generating from level config for level ${level}`);
   if (levelConfig?.tasks) {
-    console.log(`[KEYTAKEAWAYS] Level config has ${levelConfig.tasks.length} tasks`);
     for (const task of levelConfig.tasks) {
       const takeaway = generateTakeawayFromTask(level, task.taskId, task.taskText);
-      console.log(`[KEYTAKEAWAYS] Generated takeaway for task ${task.taskId}: ${takeaway.substring(0, 50)}...`);
       result.push({
         taskId: task.taskId,
         taskName: task.taskText,
         takeaway: takeaway
       });
     }
-  } else {
-    console.log(`[KEYTAKEAWAYS] ERROR: No level config found for level ${level}`);
   }
 
-  console.log(`[KEYTAKEAWAYS] Total takeaways generated: ${result.length}`);
   return result;
+}
+
+/**
+ * Parse takeaway content into sections - groups paragraphs into reasonable sections
+ */
+function parseTakeawayContent(content: string): Array<{ title: string; content: string }> {
+  const sections: Array<{ title: string; content: string }> = [];
+  
+  // First split by double newlines (paragraphs)
+  const paragraphs = content.split(/\n\n/);
+  
+  for (const paragraph of paragraphs) {
+    const trimmed = paragraph.trim();
+    if (!trimmed) continue;
+    
+    // Check if paragraph starts with **Something:** (section heading)
+    const headingMatch = trimmed.match(/^\*\*(.+?)\*\*[:\s]*/);
+    if (headingMatch) {
+      // Has a heading - use it as section title
+      const title = headingMatch[1].trim();
+      const rest = trimmed.replace(/^\*\*.+?\*\*[:\s]*/, '').trim();
+      
+      if (rest) {
+        sections.push({ title, content: rest });
+      }
+    } else {
+      // No heading - check if it's a long paragraph (more than ~500 chars)
+      // and split into 2-3 parts
+      if (trimmed.length > 500) {
+        // Split by sentences but limit to ~3 sections per paragraph
+        const sentences = trimmed.split(/(?<=[.!?])\s+/);
+        const midpoint = Math.ceil(sentences.length / 2);
+        
+        // First half
+        const firstHalf = sentences.slice(0, midpoint).join(' ').trim();
+        if (firstHalf) {
+          const words = firstHalf.split(' ');
+          const shortTitle = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+          sections.push({ title: shortTitle, content: firstHalf });
+        }
+        
+        // Second half
+        const secondHalf = sentences.slice(midpoint).join(' ').trim();
+        if (secondHalf) {
+          const words = secondHalf.split(' ');
+          const shortTitle = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+          sections.push({ title: shortTitle, content: secondHalf });
+        }
+      } else {
+        // Short paragraph - keep as one section
+        const words = trimmed.split(' ');
+        const shortTitle = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+        sections.push({ title: shortTitle, content: trimmed });
+      }
+    }
+  }
+
+  // If no sections were created, fallback to whole content
+  if (sections.length === 0 && content) {
+    sections.push({
+      title: 'Key Takeaway',
+      content: content.trim(),
+    });
+  }
+
+  return sections;
 }
 
 /**
