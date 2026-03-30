@@ -9,7 +9,11 @@
   export let currentHintChunk: number = 0;
   export let initialCoins: number = 1000;
   export let QUICK_HINT_COST: number = 100;
+  export let CHAT_MESSAGE_COST: number = 200;
   export let showChatButton: boolean = false;
+
+  // Determine which cost to display based on chat mode
+  $: displayedCost = showChatButton ? CHAT_MESSAGE_COST : QUICK_HINT_COST;
 
   const dispatch = createEventDispatcher();
 
@@ -26,7 +30,7 @@
   function handleClose() { dispatch('close'); }
   function handlePrev()  { dispatch('prev');  }
   function handleNext()  { dispatch('next');  }
-  function handleOpenChat() { dispatch('openChat'); }
+
 
   // Header state: show "Thinking..." when loading, otherwise show "Hint Ready" or "Chat Ready"
   $: headerText = quickHintLoading ? "Thinking..." : (showChatButton ? "Chat Ready" : "Hint Ready");
@@ -286,25 +290,13 @@
             </div>
           {/if}
 
-          <!-- Ask more questions button (only shown in chat mode) -->
-          {#if showChatButton}
-            <div style="
-              display:flex;justify-content:center;
-              padding-top:6px;border-top:1px solid #3f3f46;margin-top:6px;flex-shrink:0;
-            ">
-              <button
-                on:click|stopPropagation={handleOpenChat}
-                style="font-size:11px;color:#22d3ee;background:none;border:none;cursor:pointer;padding:4px 8px;text-decoration:underline;"
-              >💬 Ask more questions</button>
-            </div>
-          {/if}
 
           <!-- Coins footer -->
           <div style="
             display:flex;justify-content:space-between;
             padding-top:6px;border-top:1px solid #3f3f46;margin-top:6px;flex-shrink:0;
           ">
-            <span style="font-size:11px;color:#6b7280;">💰 -{QUICK_HINT_COST} coins</span>
+            <span style="font-size:11px;color:#6b7280;">💰 -{displayedCost} coins</span>
             <span style="font-size:11px;color:#6b7280;">Remaining: {initialCoins}</span>
           </div>
       </div>

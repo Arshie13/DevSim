@@ -38,8 +38,9 @@
   $: localUserMessage = userMessage;
   
   // Filter messages based on bubble state
+  // When showBubble is true (quick hint mode), don't show any chat messages - only input, history, and quick hint button
   $: filteredMessages = showBubble 
-    ? (messages?.filter(msg => msg.role === 'user') || []) 
+    ? [] 
     : (messages || []);
   
   // Calculate canSend locally
@@ -131,44 +132,38 @@
           </div>
         {/if}
 
-        <!-- Chat Container -->
+        <!-- Chat Container - Only show history, not chat messages -->
         <div style="max-height: 180px;">
           <Scrollbar className="flex-1">
-            {#if filteredMessages.length === 0 && (!history || history.length === 0)}
+            {#if !history || history.length === 0}
               <div class="flex flex-col items-center justify-center h-full text-center py-4">
                 <AlertTriangle class="w-8 h-8 text-yellow-500/50 mb-2" />
                 <p class="text-gray-400 text-xs">SAZ provides hints, not complete code solutions.</p>
                 <p class="text-gray-500 text-xs mt-0.5">Use hints wisely to maximize learning!</p>
               </div>
             {:else}
-              <!-- Show history items first -->
-              {#if history && history.length > 0}
-                <div class="px-3 py-2 bg-slate-800/30 border-b border-cyan-500/20">
-                  <div class="flex items-center gap-1 mb-2">
-                    <Clock class="w-3 h-3 text-cyan-400" />
-                    <span class="text-xs text-gray-400">Previous Hints</span>
-                  </div>
-                  <div class="flex flex-wrap gap-1">
-                    {#each history as item (item.id)}
-                      <button
-                        type="button"
-                        onclick={() => onSelectHistory(item)}
-                        class="flex items-center gap-1 px-2 py-1 bg-slate-700/50 hover:bg-slate-600/50 border border-cyan-500/20 rounded text-xs transition-colors max-w-[140px]"
-                        title={item.fullMessage}
-                      >
-                        <span class="{item.isChatMode ? 'text-green-400' : 'text-yellow-400'}">
-                          {item.isChatMode ? '💬' : '💡'}
-                        </span>
-                        <span class="text-gray-300 truncate">{item.preview}</span>
-                      </button>
-                    {/each}
-                  </div>
+              <!-- Show history items -->
+              <div class="px-3 py-2 bg-slate-800/30 border-b border-cyan-500/20">
+                <div class="flex items-center gap-1 mb-2">
+                  <Clock class="w-3 h-3 text-cyan-400" />
+                  <span class="text-xs text-gray-400">Previous Hints</span>
                 </div>
-              {/if}
-              <!-- Show chat messages -->
-              {#each filteredMessages as msg (msg.content + msg.role)}
-                <ChatMessage {msg} />
-              {/each}
+                <div class="flex flex-wrap gap-1">
+                  {#each history as item (item.id)}
+                    <button
+                      type="button"
+                      onclick={() => onSelectHistory(item)}
+                      class="flex items-center gap-1 px-2 py-1 bg-slate-700/50 hover:bg-slate-600/50 border border-cyan-500/20 rounded text-xs transition-colors max-w-[140px]"
+                      title={item.fullMessage}
+                    >
+                      <span class="{item.isChatMode ? 'text-green-400' : 'text-yellow-400'}">
+                        {item.isChatMode ? '💬' : '💡'}
+                      </span>
+                      <span class="text-gray-300 truncate">{item.preview}</span>
+                    </button>
+                  {/each}
+                </div>
+              </div>
             {/if}
             
             {#if isLoading}
