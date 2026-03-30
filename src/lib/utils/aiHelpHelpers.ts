@@ -1,12 +1,65 @@
 // AI Help Helper Functions
 import type { ITask } from "$lib/types";
+import type { ChatMessage } from "$lib/stores/ai";
 import { 
   MAX_ATTACHED_FILES,
   MAX_CHARS_PER_CHUNK,
   MAX_FILE_TREE_SHOW,
   MAX_MESSAGE_LENGTH,
-  SOURCE_EXTENSIONS
+  SOURCE_EXTENSIONS,
+  HISTORY_PREVIEW_LENGTH,
+  MAX_HISTORY_ITEMS
 } from "./aiHelpConstants";
+
+// Type for bubble/chat history items
+export interface BubbleHistoryItem {
+  id: string;
+  preview: string;
+  fullMessage: string;
+  isChatMode: boolean;
+  timestamp: number;
+}
+
+/**
+ * Generate a unique ID for history items
+ */
+export function generateHistoryId(): string {
+  return `hint_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Create a bubble history item from a message
+ */
+export function createBubbleHistoryItem(
+  message: string,
+  isChatMode: boolean = false
+): BubbleHistoryItem {
+  const preview = message.length > HISTORY_PREVIEW_LENGTH 
+    ? message.substring(0, HISTORY_PREVIEW_LENGTH) + "..."
+    : message;
+  
+  return {
+    id: generateHistoryId(),
+    preview,
+    fullMessage: message,
+    isChatMode,
+    timestamp: Date.now()
+  };
+}
+
+/**
+ * Get the preview text for a bubble history item
+ */
+export function getHistoryPreview(item: BubbleHistoryItem): string {
+  return item.preview;
+}
+
+/**
+ * Check if we can add more history items
+ */
+export function canAddHistoryItem(history: BubbleHistoryItem[]): boolean {
+  return history.length < MAX_HISTORY_ITEMS;
+}
 
 /**
  * Split hint message into chunks that fit in thought bubble - fixed per sentence
@@ -160,4 +213,147 @@ export function formatMessageContent(content: string, maxLength: number = MAX_ME
  */
 export function getFileName(filePath: string): string {
   return filePath.split('/').pop() || filePath;
+}
+
+/**
+ * Attach a file to the message
+ */
+export function attachFileToList(
+  attachedFiles: { path: string; name: string }[],
+  filePath: string,
+  maxFiles: number
+): { path: string; name: string }[] {
+  if (attachedFiles.length >= maxFiles) return attachedFiles;
+  const fileName = filePath.split("/").pop() || filePath;
+  return [...attachedFiles, { path: filePath, name: fileName }];
+}
+
+/**
+ * Remove a file from the attached files list
+ */
+export function removeFileFromList(
+  attachedFiles: { path: string; name: string }[],
+  filePath: string
+): { path: string; name: string }[] {
+  return attachedFiles.filter((f) => f.path !== filePath);
+}
+
+/**
+ * Clear all attached files
+ */
+export function clearAllAttachedFiles(): { path: string; name: string }[] {
+  return [];
+}
+
+/**
+ * Check if user is scrolling in chat container
+ */
+export function isUserScrolling(
+  scrollTop: number,
+  scrollHeight: number,
+  clientHeight: number,
+  threshold: number = 50
+): boolean {
+  return scrollHeight - scrollTop - clientHeight >= threshold;
+}
+
+/**
+ * Navigate to next/previous hint chunk
+ */
+export function navigateHintChunk(
+  direction: 'prev' | 'next',
+  currentChunk: number,
+  hintChunks: string[]
+): number {
+  if (direction === 'prev') {
+    return Math.max(0, currentChunk - 1);
+  } else {
+    return Math.min(hintChunks.length - 1, currentChunk + 1);
+  }
+}
+
+/**
+ * Bubble state interface for managing bubble UI state
+ */
+export interface BubbleState {
+  showQuickHint: boolean;
+  bubbleChatMessage: string;
+  useBubbleMode: boolean;
+  isBubbleHidden: boolean;
+  hintChunks: string[];
+  currentHintChunk: number;
+}
+
+/**
+ * Show bubble from history item
+ */
+export function showBubbleFromHistory(item: BubbleHistoryItem): Partial<BubbleState> {
+  return {
+    bubbleChatMessage: item.fullMessage,
+    useBubbleMode: item.isChatMode,
+    showQuickHint: true,
+    isBubbleHidden: false,
+    hintChunks: chunkHintMessage(item.fullMessage),
+    currentHintChunk: 0
+  };
+}
+
+/**
+ * Reset bubble state
+ */
+export function resetBubbleState(): Partial<BubbleState> {
+  return {
+    bubbleChatMessage: "",
+    useBubbleMode: false,
+    showQuickHint: false,
+    isBubbleHidden: false,
+    hintChunks: [],
+    currentHintChunk: 0
+  };
+}
+
+/**
+ * Check if bubble should auto-close based on conditions
+ */
+export function shouldAutoClose(
+  allTasksCompleted: boolean,
+  hintsShown: string[],
+  maxHints: number = 5
+): boolean {
+  return allTasksCompleted || hintsShown.length >= maxHints;
+}
+
+/**
+ * Add message to hints shown list
+ */
+export function addToHintsShown(
+  hintsShown: string[],
+  message: string,
+  maxLength: number = 50
+): string[] {
+  const prefix = message.substring(0, maxLength);
+  if (message && !hintsShown.includes(prefix)) {
+    return [...hintsShown, prefix];
+  }
+  return hintsShown;
+}
+
+/**
+ * Create AI message for chat history
+ */
+export function createAiMessage(
+  content: string,
+  isWarning: boolean = false
+): { role: 'ai'; content: string; isWarning?: boolean } {
+  return { role: 'ai', content, isWarning };
+}
+
+/**
+ * Create user message for chat history
+ */
+export function createUserMessage(
+  content: string,
+  attachedFiles?: { path: string; name: string }[]
+): { role: 'user'; content: string; attachedFiles?: { path: string; name: string }[] } {
+  return { role: 'user', content, attachedFiles };
 }

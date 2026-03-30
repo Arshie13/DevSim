@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { X, Send, Coins, Paperclip, AlertTriangle } from "lucide-svelte";
+  import { X, Send, Coins, Paperclip, AlertTriangle, Clock } from "lucide-svelte";
   import ChatMessage from "./ChatMessage.svelte";
   import FilePicker from "./FilePicker.svelte";
   import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
-  import { filterSourceFiles } from "$lib/utils/aiHelpHelpers";
+  import { filterSourceFiles, type BubbleHistoryItem } from "$lib/utils/aiHelpHelpers";
   import { MAX_ATTACHED_FILES, QUICK_HINT_COST } from "$lib/utils/aiHelpConstants";
   import type { ChatMessage as ChatMessageType } from "$lib/stores/ai";
 
   export let show: boolean = false;
   export let messages: ChatMessageType[] = [];
+  export let history: BubbleHistoryItem[] = [];
   export let userMessage: string = "";
   export let isLoading: boolean = false;
   export let currentCoins: number = 0;
@@ -27,8 +28,10 @@
   export let onCloseFilePicker: () => void = () => {};
   export let onQuickHint: () => void = () => {};
   export let showBubble: boolean = false;
+  export let onSelectHistory: (item: BubbleHistoryItem) => void = () => {};
+  export let onToggleHistory: () => void = () => {};
 
-  // Local state for input to avoid binding directly to prop
+  // Local state
   let localUserMessage: string = "";
   
   // Sync local state with prop
@@ -36,18 +39,23 @@
   
   // Filter messages based on bubble state
   $: filteredMessages = showBubble 
-    ? messages.filter(msg => msg.role === 'user') 
-    : messages;
+    ? (messages?.filter(msg => msg.role === 'user') || []) 
+    : (messages || []);
   
   // Calculate canSend locally
   $: canSend = localUserMessage.trim().length > 0 && !isLoading;
-  $: filteredFileTree = filterSourceFiles(fileTree, attachedFiles);
+  $: filteredFileTree = filterSourceFiles(fileTree || [], attachedFiles || []);
   
   // Handle input change
   function handleInput(event: Event) {
     const target = event.target as HTMLInputElement;
     localUserMessage = target.value;
     onMessageChange(target.value);
+  }
+
+  // Handle history item selection
+  function handleSelectHistoryItem(item: BubbleHistoryItem) {
+    onSelectHistory(item);
   }
 </script>
 
@@ -109,18 +117,57 @@
           </button>
         </div>
 
+        <!-- History Toggle Button (shown when history exists) -->
+        {#if history && history.length > 0}
+          <div class="px-3 py-1.5 border-b border-cyan-500/20">
+            <button
+              type="button"
+              onclick={() => { onToggleHistory(); }}
+              class="w-full flex items-center justify-center gap-2 px-3 py-1 bg-slate-800/50 hover:bg-slate-700/50 border border-cyan-500/30 text-gray-300 text-xs rounded-lg transition-all"
+            >
+              <Clock class="w-3 h-3 text-cyan-400" />
+              <span>Previous Hints ({(history || []).length})</span>
+            </button>
+          </div>
+        {/if}
+
         <!-- Chat Container -->
         <div style="max-height: 180px;">
           <Scrollbar className="flex-1">
-            {#if filteredMessages.length === 0}
+            {#if filteredMessages.length === 0 && (!history || history.length === 0)}
               <div class="flex flex-col items-center justify-center h-full text-center py-4">
                 <AlertTriangle class="w-8 h-8 text-yellow-500/50 mb-2" />
                 <p class="text-gray-400 text-xs">SAZ provides hints, not complete code solutions.</p>
                 <p class="text-gray-500 text-xs mt-0.5">Use hints wisely to maximize learning!</p>
               </div>
             {:else}
+              <!-- Show history items first -->
+              {#if history && history.length > 0}
+                <div class="px-3 py-2 bg-slate-800/30 border-b border-cyan-500/20">
+                  <div class="flex items-center gap-1 mb-2">
+                    <Clock class="w-3 h-3 text-cyan-400" />
+                    <span class="text-xs text-gray-400">Previous Hints</span>
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    {#each history as item (item.id)}
+                      <button
+                        type="button"
+                        onclick={() => onSelectHistory(item)}
+                        class="flex items-center gap-1 px-2 py-1 bg-slate-700/50 hover:bg-slate-600/50 border border-cyan-500/20 rounded text-xs transition-colors max-w-[140px]"
+                        title={item.fullMessage}
+                      >
+                        <span class="{item.isChatMode ? 'text-green-400' : 'text-yellow-400'}">
+                          {item.isChatMode ? '💬' : '💡'}
+                        </span>
+                        <span class="text-gray-300 truncate">{item.preview}</span>
+                      </button>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+              <!-- Show chat messages -->
               {#each filteredMessages as msg (msg.content + msg.role)}
-                <ChatMessage {msg} onRemoveFile={onRemoveFile} />
+                <ChatMessage {msg} />
               {/each}
             {/if}
             
@@ -149,7 +196,7 @@
         </div>
 
         <!-- Attached Files -->
-        {#if attachedFiles.length > 0}
+        {#if attachedFiles && attachedFiles.length > 0}
           <div class="px-3 py-1.5 border-t border-slate-700/50">
             <div class="flex flex-wrap gap-1">
               {#each attachedFiles as file}

@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { formatMessage as formatMessageContent } from "$lib/ai";
+  import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
 
   export let quickHintMessage: string = "";
   export let quickHintLoading: boolean = false;
@@ -11,6 +12,11 @@
   export let showChatButton: boolean = false;
 
   const dispatch = createEventDispatcher();
+
+  // Track if this is the first render for this specific message
+  let isFirstRender = true;
+  // Track which texts have already been shown (to skip typewriter on revisit)
+  let shownTexts: Set<string> = new Set();
 
   function formatMessage(content: string): string {
     return formatMessageContent(content);
@@ -41,7 +47,7 @@
   }
 
   // Start typewriter effect when text changes
-  function startTypewriter(text: string) {
+  function startTypewriter(text: string, skipAnimation: boolean = false) {
     // Clear any existing interval
     if (typeInterval) {
       clearInterval(typeInterval);
@@ -49,13 +55,24 @@
     }
     
     currentText = text;
-    displayedText = "";
-    typeIndex = 0;
     
     // Use plain text for typewriter
     const plainText = stripHtml(text);
     
-    if (plainText.length === 0) return;
+    if (plainText.length === 0) {
+      displayedText = "";
+      return;
+    }
+    
+    // If this text was already shown, skip animation and show full text
+    if (skipAnimation) {
+      displayedText = plainText;
+      return;
+    }
+    
+    // First time seeing this text - run typewriter
+    displayedText = "";
+    typeIndex = 0;
     
     typeInterval = setInterval(() => {
       if (typeIndex < plainText.length) {
@@ -72,13 +89,32 @@
     }, TYPE_SPEED);
   }
 
-  // Watch for changes in the current chunk and restart typewriter
+  // Detect if this component is being reused (message already shown)
+  // We check if the current text is already in our shownTexts set
   $: {
     const newText = hintChunks[currentHintChunk] || quickHintMessage;
     if (newText && !quickHintLoading) {
-      startTypewriter(newText);
+      // Check if this specific text has been shown before
+      const textKey = stripHtml(newText);
+      const skipAnimation = shownTexts.has(textKey);
+      
+      // Mark as shown
+      if (!skipAnimation) {
+        shownTexts.add(textKey);
+      }
+      
+      startTypewriter(newText, skipAnimation);
     } else {
       displayedText = "";
+    }
+  }
+
+  // Reset tracking when a completely new message arrives
+  $: if (quickHintMessage && hintChunks.length > 0) {
+    // Check if this is a new message (different from previous)
+    const textKey = stripHtml(quickHintMessage);
+    if (!shownTexts.has(textKey)) {
+      isFirstRender = true;
     }
   }
 
@@ -101,10 +137,10 @@
       x=100, y=30, width=360, height=280
   - Thought trail exits bottom-right of cloud → down toward avatar
 -->
-<div class="animate-float" style="position: relative;">
+<div class="animate-float" style="position: relative; z-index: 9999;">
   <svg
     width="560"
-    viewBox="0 0 540 360"
+    viewBox="0 0 520 350"
     xmlns="http://www.w3.org/2000/svg"
     style="overflow: visible; display: block;"
   >
@@ -165,7 +201,7 @@
       Top inset 30px clears top bumps (~y:2-30 zone)
       Bottom 30+280=310 stays above bottom bumps (~y:312+ zone)
     -->
-    <foreignObject x="90" y="65" width="320" height="220">
+    <foreignObject x="85" y="75" width="320" height="200">
       <div
         xmlns="http://www.w3.org/1999/xhtml"
         style="
@@ -173,7 +209,7 @@
           height: 100%;
           display: flex;
           flex-direction: column;
-          padding: 12px 14px 12px 14px;
+          padding: 8px 10px 8px 10px;
           box-sizing: border-box;
           font-family: sans-serif;
           overflow: hidden;
@@ -184,9 +220,9 @@
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-bottom: 8px;
+          padding-bottom: 6px;
           border-bottom: 1px solid rgba(6,182,212,0.22);
-          margin-bottom: 8px;
+          margin-bottom: 6px;
           flex-shrink: 0;
         ">
           <span style="font-size: 12px; color: #22d3ee; font-weight: 500;">{headerEmoji} {headerText}</span>
@@ -212,22 +248,23 @@
             <span style="font-size:12px;color:#9ca3af;margin-left:4px;">Getting hint...</span>
           </div>
 
-        <!-- Single message display -->
+        <!-- Single message display with proper word break -->
         {:else}
-          <p style="
-            font-size: 12px;
-            color: #d1d5db;
-            margin: 0;
-            line-height: 1.55;
-            word-break: break-word;
-            flex: 1;
-            overflow: hidden;
-            min-height: 60px;
-          ">
-            {#if displayedText}
-              {displayedText}<span class="typewriter-cursor">|</span>
-            {/if}
-          </p>
+          <Scrollbar className="flex-1 min-h-[60px] max-h-[140px]">
+            <p style="
+              font-size: 12px;
+              color: #d1d5db;
+              margin: 0;
+              line-height: 1.6;
+              word-break: break-word;
+              overflow-wrap: anywhere;
+              hyphens: auto;
+            ">
+              {#if displayedText}
+                {displayedText}<span class="typewriter-cursor">|</span>
+              {/if}
+            </p>
+          </Scrollbar>
         {/if}
 
           <!-- Pagination -->
@@ -241,7 +278,7 @@
                 disabled={currentHintChunk === 0}
                 style="font-size:11px;color:#9ca3af;background:none;border:none;cursor:pointer;opacity:{currentHintChunk===0?'0.3':'1'};padding:2px 4px;"
               >← Prev</button>
-              <span style="font-size:11px;color:#6b7280;">{currentHintChunk + 1} / {hintChunks.length}</span>
+              <span style="font-size:11px;color:#fbbf24;">💡 {currentHintChunk + 1} of {hintChunks.length}</span>
               <button
                 on:click|stopPropagation={currentHintChunk === hintChunks.length - 1 ? handleClose : handleNext}
                 style="font-size:11px;color:{currentHintChunk === hintChunks.length - 1 ? '#22d3ee' : '#9ca3af'};background:none;border:none;cursor:pointer;padding:2px 4px;"

@@ -1260,18 +1260,22 @@
   />
 
   <!-- Floating AI Help (always visible, bottom-right) -->
-  <AiHelp
-    containerId={page.params.containerId}
-    userId={data.userId}
-    scenario={actualLevelConfig.scenario}
-    {tasks}
-    initialFileTree={fileTree}
-    initialFileContents={fileContents}
-    {projectName}
-    level={currentLevel}
-    initialCoins={userCoins}
-    bind:mode={aiPanelMode}
-  />
+  <div class="fixed inset-0 z-50 pointer-events-none">
+    <div class="pointer-events-auto">
+      <AiHelp
+        containerId={page.params.containerId}
+        userId={data.userId}
+        scenario={actualLevelConfig.scenario}
+        {tasks}
+        initialFileTree={fileTree}
+        initialFileContents={fileContents}
+        {projectName}
+        level={currentLevel}
+        initialCoins={userCoins}
+        bind:mode={aiPanelMode}
+      />
+    </div>
+  </div>
 </div>
 
 <!-- ── Onboarding (shown once the boot screen has cleared, only when opted in) ── -->

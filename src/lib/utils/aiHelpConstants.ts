@@ -11,6 +11,10 @@ export const MAX_FILE_LINES = 200;
 export const MAX_FILES_TO_LIST = 30;
 export const MAX_MESSAGE_LENGTH = 500;
 
+// History tracking for bubble messages
+export const HISTORY_PREVIEW_LENGTH = 40;
+export const MAX_HISTORY_ITEMS = 10;
+
 // Source file extensions for filtering
 export const SOURCE_EXTENSIONS = [
   '.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.json', '.html', '.css', '.scss'

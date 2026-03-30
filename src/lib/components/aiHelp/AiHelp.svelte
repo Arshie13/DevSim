@@ -17,17 +17,42 @@
   import { type ITask } from "$lib/types";
   import ThoughtBubble from "./ThoughtBubble.svelte";
   import FloatingModal from "./FloatingModal.svelte";
+  // Helpers from aiHelpHelpers
   import {
     chunkHintMessage,
     calculateTotalCost,
     areAllTasksCompleted,
     filterSourceFiles,
+    createBubbleHistoryItem,
+    attachFileToList,
+    removeFileFromList,
+    clearAllAttachedFiles,
+    isUserScrolling,
+    getHintMessage,
+    navigateHintChunk,
+    showBubbleFromHistory,
+    resetBubbleState,
+    shouldAutoClose,
+    addToHintsShown,
+    createAiMessage,
+    createUserMessage,
+    type BubbleHistoryItem,
+    type BubbleState,
   } from "$lib/utils/aiHelpHelpers";
+  // Constants from aiHelpConstants
   import {
     MAX_ATTACHED_FILES,
     QUICK_HINT_COST,
   } from "$lib/utils/aiHelpConstants";
-  import { generateContext as generateContextHelper } from "$lib/utils/aiHelpApi";
+  // API functions from aiHelpApi
+  import {
+    generateContext as generateContextHelper,
+    buildHintMessage,
+    validateMessage,
+    sendChatMessage as apiSendChatMessage,
+    requestQuickHintBubble,
+    sendBubbleChatMessage,
+  } from "$lib/utils/aiHelpApi";
   import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
 
   // Props
@@ -69,6 +94,9 @@
 
   // Track hint/chat history for bubble display
   let hintHistory: string[] = [];
+
+  // Track bubble history for session persistence (new)
+  let bubbleHistory: BubbleHistoryItem[] = [];
 
   // Reactive
   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
@@ -112,18 +140,31 @@
     setTimeout(() => {
       showQuickHint = false;
       isBubbleHidden = false;
+      showFloatingModal = false;
     }, 2000);
   }
   $: if (hintsShown.length >= 5 && showQuickHint) {
     setTimeout(() => {
       showQuickHint = false;
       isBubbleHidden = false;
+      showFloatingModal = false;
     }, 3000);
+  }
+  
+  // Ensure FloatingModal is disabled when ThoughtBubble is active
+  $: if (showQuickHint && !isBubbleHidden) {
+    showFloatingModal = false;
   }
 
   // Handlers
   function toggleFloatingModal() {
-    showFloatingModal = !showFloatingModal;
+    if (showQuickHint) {
+      // When thought bubble is active, toggle its visibility
+      isBubbleHidden = !isBubbleHidden;
+    } else {
+      // When thought bubble is not active, toggle floating modal
+      showFloatingModal = !showFloatingModal;
+    }
   }
   function closeFloatingModal() {
     showFloatingModal = false;
@@ -144,7 +185,10 @@
   }
 
   async function sendMessage() {
-    if (!userMessage.trim() || isLoading) return;
+    // Use API function for validation
+    const validation = validateMessage(userMessage, isLoading, currentCoins, totalCost);
+    if (!validation.valid) return;
+    
     const message = userMessage.trim();
     userMessage = "";
 
@@ -152,82 +196,36 @@
     console.log("[AI Help] Current mode:", mode);
     console.log("[AI Help] Current coins:", currentCoins, "Total cost:", totalCost);
 
-    if (isAskingForCode(message)) {
-      aiChatHistory.update((msgs) => [
-        ...msgs,
-        { role: "user", content: message },
-        { role: "ai", content: getCodeWarningMessage(), isWarning: true },
-      ]);
-      clearAttachedFiles();
-      return;
-    }
-    if (currentCoins < totalCost) {
-      aiChatHistory.update((msgs) => [
-        ...msgs,
-        { role: "user", content: message },
-        {
-          role: "ai",
-          content: getInsufficientCoinsMessage(totalCost, currentCoins),
-          isWarning: true,
-        },
-      ]);
-      clearAttachedFiles();
-      return;
-    }
-
     const filesToInclude = [...attachedFiles];
     aiChatHistory.update((msgs) => [
       ...msgs,
-      {
-        role: "user",
-        content: message,
-        attachedFiles: filesToInclude.length > 0 ? filesToInclude : undefined,
-      },
+      createUserMessage(message, filesToInclude.length > 0 ? filesToInclude : undefined),
     ]);
     clearAttachedFiles();
     isLoading = true;
 
     try {
-      const context = await generateContext();
-      console.log("[AI Help] Sending request to API...");
+      // Use the modular API function
+      const result = await apiSendChatMessage(
+        message,
+        containerId,
+        userId,
+        level,
+        mode,
+        filesToInclude,
+        currentCoins,
+        totalCost,
+        generateContext
+      );
       
-      const response = await fetch("/api/ai/hint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          context,
-          containerId,
-          userId,
-          hintType: mode,
-          attachedFilesCount: filesToInclude.length,
-          attachedFiles: filesToInclude,
-          level,
-        }),
-      });
-      const data = await response.json();
-      console.log("[AI Help] API response:", data);
-      
-      if (data.success) {
-        aiChatHistory.update((msgs) => [
-          ...msgs,
-          { role: "ai", content: data.hint },
-        ]);
-        if (data.coinsRemaining !== undefined) {
-          aiCoins.set(data.coinsRemaining);
-          initialCoins = data.coinsRemaining;
-        }
-      } else {
-        aiChatHistory.update((msgs) => [
-          ...msgs,
-          { role: "ai", content: getApiErrorMessage(data.error) },
-        ]);
+      if (result.success && result.coinsRemaining !== undefined) {
+        initialCoins = result.coinsRemaining;
       }
     } catch (error) {
       console.error("[AI Help] Error:", error);
       aiChatHistory.update((msgs) => [
         ...msgs,
-        { role: "ai", content: getErrorMessage() },
+        createAiMessage(getErrorMessage()),
       ]);
     } finally {
       isLoading = false;
@@ -253,54 +251,39 @@
     currentHintChunk = 0;
     attachedFiles = [];
 
-    const currentTask = tasks?.find((t) => !t.isCompleted);
-    let hintMessage = currentTask
-      ? `Current task: "${currentTask.taskName}" (${tasks.filter((t) => t.isCompleted).length}/${tasks.length} done). Give me a SHORT, specific hint - which file and exactly what to do?`
-      : tasks?.every((t) => t.isCompleted)
-        ? `All tasks done! Quick congrats and ask if they need help with anything else.`
-        : `Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?`;
+    // Use helper to build hint message based on tasks
+    const { message: hintMessage } = getHintMessage(tasks);
 
-    try {
-      const context = await generateContext();
-      const response = await fetch("/api/ai/hint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: hintMessage,
-          context,
-          containerId,
-          userId,
-          hintType: "quick",
-          attachedFilesCount: 0,
-          attachedFiles: [],
-          level,
-        }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        quickHintMessage = data.hint;
-        // Add to history
-        hintHistory = [...hintHistory, data.hint];
-        hintChunks = chunkHintMessage(data.hint);
+    // Use the modular API function
+    const result = await requestQuickHintBubble(
+      hintMessage,
+      containerId,
+      userId,
+      level,
+      generateContext,
+      // onSuccess
+      (hint, coinsRemaining) => {
+        quickHintMessage = hint;
+        hintHistory = [...hintHistory, hint];
+        const historyItem = createBubbleHistoryItem(hint, false);
+        bubbleHistory = [...bubbleHistory, historyItem];
+        hintChunks = chunkHintMessage(hint);
         currentHintChunk = 0;
-        if (data.coinsRemaining !== undefined) {
-          aiCoins.set(data.coinsRemaining);
-          initialCoins = data.coinsRemaining;
+        if (coinsRemaining !== undefined) {
+          aiCoins.set(coinsRemaining);
+          initialCoins = coinsRemaining;
         }
-      } else {
-        quickHintMessage = getApiErrorMessage(data.error);
-        // Add error to history
-        hintHistory = [...hintHistory, getApiErrorMessage(data.error)];
-        hintChunks = chunkHintMessage(quickHintMessage);
+      },
+      // onError
+      (error) => {
+        quickHintMessage = error;
+        hintHistory = [...hintHistory, error];
+        hintChunks = chunkHintMessage(error);
         currentHintChunk = 0;
       }
-    } catch (error) {
-      quickHintMessage = getErrorMessage();
-      hintChunks = chunkHintMessage(getErrorMessage());
-      currentHintChunk = 0;
-    } finally {
-      quickHintLoading = false;
-    }
+    );
+
+    quickHintLoading = false;
   }
 
   // Send chat message and show response in ThoughtBubble
@@ -343,63 +326,54 @@
     hintChunks = [];
     currentHintChunk = 0;
 
-    try {
-      const context = await generateContext();
-      const response = await fetch("/api/ai/hint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          context,
-          containerId,
-          userId,
-          hintType: mode,
-          attachedFilesCount: 0,
-          attachedFiles: [],
-          level,
-        }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        bubbleChatMessage = data.hint;
-        // Add to history
-        hintHistory = [...hintHistory, data.hint];
-        hintChunks = chunkHintMessage(data.hint);
+    // Use the modular API function
+    const result = await sendBubbleChatMessage(
+      message,
+      containerId,
+      userId,
+      level,
+      mode,
+      attachedFiles,
+      currentCoins,
+      totalCost,
+      generateContext,
+      // onSuccess
+      (hint, coinsRemaining) => {
+        bubbleChatMessage = hint;
+        hintHistory = [...hintHistory, hint];
+        const historyItem = createBubbleHistoryItem(hint, true);
+        bubbleHistory = [...bubbleHistory, historyItem];
+        hintChunks = chunkHintMessage(hint);
         currentHintChunk = 0;
-        if (data.coinsRemaining !== undefined) {
-          aiCoins.set(data.coinsRemaining);
-          initialCoins = data.coinsRemaining;
+        if (coinsRemaining !== undefined) {
+          aiCoins.set(coinsRemaining);
+          initialCoins = coinsRemaining;
         }
-      } else {
-        bubbleChatMessage = getApiErrorMessage(data.error);
-        // Add error to history
-        hintHistory = [...hintHistory, getApiErrorMessage(data.error)];
-        hintChunks = chunkHintMessage(bubbleChatMessage);
+      },
+      // onError
+      (error) => {
+        bubbleChatMessage = error;
+        hintHistory = [...hintHistory, error];
+        const errorItem = createBubbleHistoryItem(error, true);
+        bubbleHistory = [...bubbleHistory, errorItem];
+        hintChunks = chunkHintMessage(error);
         currentHintChunk = 0;
       }
-    } catch (error) {
-      bubbleChatMessage = getErrorMessage();
-      // Add error to history
-      hintHistory = [...hintHistory, getErrorMessage()];
-      hintChunks = chunkHintMessage(getErrorMessage());
-      currentHintChunk = 0;
-    } finally {
-      bubbleChatLoading = false;
-    }
+    );
+
+    bubbleChatLoading = false;
   }
 
   function attachFile(filePath: string) {
-    if (!canAttachMore) return;
-    const fileName = filePath.split("/").pop() || filePath;
-    attachedFiles = [...attachedFiles, { path: filePath, name: fileName }];
+    attachedFiles = attachFileToList(attachedFiles, filePath, MAX_ATTACHED_FILES);
     showFilePicker = false;
   }
 
   function removeAttachedFile(filePath: string) {
-    attachedFiles = attachedFiles.filter((f) => f.path !== filePath);
+    attachedFiles = removeFileFromList(attachedFiles, filePath);
   }
   function clearAttachedFiles() {
-    attachedFiles = [];
+    attachedFiles = clearAllAttachedFiles();
   }
   function toggleFilePicker() {
     showFilePicker = !showFilePicker;
@@ -421,20 +395,33 @@
     isBubbleHidden = false;
   }
   function prevHintChunk() {
-    if (currentHintChunk > 0) currentHintChunk--;
+    currentHintChunk = navigateHintChunk('prev', currentHintChunk, hintChunks);
   }
   function nextHintChunk() {
-    if (currentHintChunk < hintChunks.length - 1) currentHintChunk++;
+    currentHintChunk = navigateHintChunk('next', currentHintChunk, hintChunks);
   }
 
   function openChatFromBubble() {
     // Close the bubble and open the floating modal for more questions
     showQuickHint = false;
+    isBubbleHidden = false;
     showFloatingModal = true;
     useBubbleMode = false;
     bubbleChatMessage = "";
     bubbleChatLoading = false;
+  }
+
+  // Handle selecting a history item from the floating modal
+  function handleSelectHistoryItem(item: BubbleHistoryItem) {
+    // Use helper to show bubble from history
+    const bubbleState = showBubbleFromHistory(item);
+    bubbleChatMessage = bubbleState.bubbleChatMessage || "";
+    useBubbleMode = bubbleState.useBubbleMode || false;
+    showQuickHint = true;
     isBubbleHidden = false;
+    showFloatingModal = false;
+    hintChunks = bubbleState.hintChunks || [];
+    currentHintChunk = 0;
   }
 
   function requestCloseWithConfirmation() {
@@ -453,24 +440,27 @@
   }
 
   function closeQuickHintWithCheck() {
-    if (
-      quickHintMessage &&
-      !hintsShown.includes(quickHintMessage.substring(0, 50))
-    ) {
-      hintsShown.push(quickHintMessage.substring(0, 50));
-    }
-    if (allTasksCompleted || hintsShown.length >= 5) {
-      showQuickHint = false;
+    // Use helper to add message to hints shown
+    hintsShown = addToHintsShown(hintsShown, quickHintMessage);
+    
+    // Use helper to check if should auto-close
+    if (shouldAutoClose(allTasksCompleted, hintsShown)) {
+      // Use helper to reset bubble state
+      const resetState = resetBubbleState();
+      showQuickHint = resetState.showQuickHint || false;
       quickHintMessage = "";
-      hintChunks = [];
+      hintChunks = resetState.hintChunks || [];
       currentHintChunk = 0;
       hintsShown = [];
       isBubbleHidden = false;
       return;
     }
-    showQuickHint = false;
+    
+    // Use helper to reset bubble state
+    const resetState = resetBubbleState();
+    showQuickHint = resetState.showQuickHint || false;
     quickHintMessage = "";
-    hintChunks = [];
+    hintChunks = resetState.hintChunks || [];
     currentHintChunk = 0;
     isBubbleHidden = false;
   }
@@ -478,7 +468,7 @@
   function handleScroll() {
     if (!chatContainer) return;
     const { scrollTop, scrollHeight, clientHeight } = chatContainer;
-    userScrolling = scrollHeight - scrollTop - clientHeight >= 50;
+    userScrolling = isUserScrolling(scrollTop, scrollHeight, clientHeight, 50);
   }
 </script>
 
@@ -546,6 +536,7 @@
   show={showFloatingModal}
   showBubble={showQuickHint}
   messages={$aiChatHistory}
+  history={bubbleHistory}
   {userMessage}
   {isLoading}
   {currentCoins}
@@ -563,6 +554,7 @@
   onAttachFile={attachFile}
   onCloseFilePicker={() => (showFilePicker = false)}
   onQuickHint={requestQuickHint}
+  onSelectHistory={handleSelectHistoryItem}
 />
 
 <!-- ─── Quick Hint Cloud ───
@@ -586,7 +578,6 @@
         {initialCoins}
         {QUICK_HINT_COST}
         showChatButton={useBubbleMode}
-        {hintHistory}
         on:hide={hideBubble}
         on:close={requestCloseWithConfirmation}
         on:prev={prevHintChunk}

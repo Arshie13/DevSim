@@ -219,7 +219,7 @@ export async function sendChatMessage(
   currentCoins: number,
   totalCost: number,
   generateContextFn: () => Promise<string>
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
   if (isAskingForCode(message)) {
     aiChatHistory.update((msgs) => [
       ...msgs,
@@ -267,7 +267,7 @@ export async function sendChatMessage(
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
       }
-      return { success: true };
+      return { success: true, coinsRemaining: data.coinsRemaining };
     } else {
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: getApiErrorMessage(data.error) }]);
       return { success: false, error: data.error };
@@ -280,14 +280,16 @@ export async function sendChatMessage(
 }
 
 /**
- * Request a quick hint from the AI
+ * Request a quick hint from the AI (for ThoughtBubble display)
  */
-export async function requestQuickHint(
+export async function requestQuickHintBubble(
   message: string,
   containerId: string,
   userId: string,
   level: number,
-  generateContextFn: () => Promise<string>
+  generateContextFn: () => Promise<string>,
+  onSuccess?: (hint: string, coinsRemaining?: number) => void,
+  onError?: (error: string) => void
 ): Promise<{ success: boolean; hint?: string; error?: string; coinsRemaining?: number }> {
   try {
     const response = await fetch("/api/ai/hint", {
@@ -311,12 +313,117 @@ export async function requestQuickHint(
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
       }
+      if (onSuccess) {
+        onSuccess(data.hint, data.coinsRemaining);
+      }
       return { success: true, hint: data.hint, coinsRemaining: data.coinsRemaining };
     } else {
+      const errorMsg = getApiErrorMessage(data.error);
+      if (onError) {
+        onError(errorMsg);
+      }
       return { success: false, error: data.error };
     }
   } catch (error) {
     console.error("Error getting quick hint:", error);
+    const errorMsg = getErrorMessage();
+    if (onError) {
+      onError(errorMsg);
+    }
+    return { success: false, error: String(error) };
+  }
+}
+
+/**
+ * Send chat message and get AI response (for ThoughtBubble display)
+ */
+export async function sendBubbleChatMessage(
+  message: string,
+  containerId: string,
+  userId: string,
+  level: number,
+  mode: "chat" | "quick",
+  attachedFiles: { path: string; name: string }[],
+  currentCoins: number,
+  totalCost: number,
+  generateContextFn: () => Promise<string>,
+  onSuccess?: (hint: string, coinsRemaining?: number) => void,
+  onError?: (error: string) => void
+): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
+  if (isAskingForCode(message)) {
+    const warningMsg = getCodeWarningMessage();
+    aiChatHistory.update((msgs) => [
+      ...msgs,
+      { role: "user", content: message },
+      { role: "ai", content: warningMsg, isWarning: true },
+    ]);
+    if (onError) {
+      onError(warningMsg);
+    }
+    return { success: false };
+  }
+
+  if (currentCoins < totalCost) {
+    const errorMsg = getInsufficientCoinsMessage(totalCost, currentCoins);
+    aiChatHistory.update(msgs => [
+      ...msgs,
+      { role: "user", content: message },
+      { role: "ai", content: errorMsg, isWarning: true },
+    ]);
+    if (onError) {
+      onError(errorMsg);
+    }
+    return { success: false };
+  }
+
+  const filesToInclude = [...attachedFiles];
+  const filesCount = filesToInclude.length;
+  aiChatHistory.update(msgs => [...msgs, { role: "user", content: message, attachedFiles: filesCount > 0 ? filesToInclude : undefined }]);
+
+  try {
+    const context = await generateContextFn();
+    
+    const response = await fetch("/api/ai/hint", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        context,
+        containerId,
+        userId,
+        hintType: mode,
+        attachedFilesCount: filesCount,
+        attachedFiles: filesToInclude,
+        level,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
+      if (data.coinsRemaining !== undefined) {
+        aiCoins.set(data.coinsRemaining);
+      }
+      if (onSuccess) {
+        onSuccess(data.hint, data.coinsRemaining);
+      }
+      return { success: true, coinsRemaining: data.coinsRemaining };
+    } else {
+      const errorMsg = getApiErrorMessage(data.error);
+      aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: errorMsg }]);
+      if (onError) {
+        onError(errorMsg);
+      }
+      return { success: false, error: data.error };
+    }
+  } catch (error) {
+    console.error("Error getting AI hint:", error);
+    const errorMsg = getErrorMessage();
+    aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: errorMsg }]);
+    if (onError) {
+      onError(errorMsg);
+    }
     return { success: false, error: String(error) };
   }
 }
@@ -340,4 +447,64 @@ export async function readFileContent(containerId: string, filePath: string): Pr
     console.error(`Error reading file ${filePath}:`, e);
     return null;
   }
+}
+
+/**
+ * Process AI response and add to chat history
+ */
+export function processAiResponse(
+  data: { success: boolean; hint?: string; error?: string; coinsRemaining?: number },
+  errorMessage: string,
+  updateCoins?: (coins: number) => void
+): { success: boolean; hint: string } {
+  if (data.success && data.hint) {
+    if (data.coinsRemaining !== undefined && updateCoins) {
+      updateCoins(data.coinsRemaining);
+    }
+    return { success: true, hint: data.hint };
+  } else {
+    return { success: false, hint: data.error || errorMessage };
+  }
+}
+
+/**
+ * Build hint message based on tasks state
+ */
+export function buildHintMessage(tasks: ITask[] | undefined, hintCost: number): string {
+  if (!tasks || tasks.length === 0) {
+    return "Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?";
+  }
+  
+  const currentTask = tasks.find(t => !t.isCompleted);
+  if (currentTask) {
+    const completedCount = tasks.filter(t => t.isCompleted).length;
+    return `Current task: "${currentTask.taskName}" (${completedCount}/${tasks.length} done). Give me a SHORT, specific hint - which file and exactly what to do?`;
+  }
+  
+  if (tasks.every(t => t.isCompleted)) {
+    return "All tasks done! Quick congrats and ask if they need help with anything else.";
+  }
+  
+  return "Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?";
+}
+
+/**
+ * Validate message before sending
+ */
+export function validateMessage(
+  message: string,
+  isLoading: boolean,
+  currentCoins: number,
+  totalCost: number
+): { valid: boolean; error?: string } {
+  if (!message.trim()) {
+    return { valid: false, error: "Empty message" };
+  }
+  if (isLoading) {
+    return { valid: false, error: "Already loading" };
+  }
+  if (currentCoins < totalCost) {
+    return { valid: false, error: "Insufficient coins" };
+  }
+  return { valid: true };
 }
