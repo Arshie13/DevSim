@@ -6,6 +6,10 @@
 
   export let msg: ChatMessage;
 
+  // Props to control SAZ avatar states (passed from parent)
+  export let isLoading: boolean = false;
+  export let isFirstMessage: boolean = false;
+
   // Callback for removing attached files (to be passed from parent)
   export const onRemoveFile: ((path: string) => void) | null = null;
 
@@ -40,7 +44,22 @@
       {#if msg.isWarning}
         <AlertTriangle class="w-4 h-4 text-white" />
       {:else}
-        <Bot class="w-4 h-4 text-white" />
+        <!-- Show SAZ avatar image for AI messages -->
+        <div class="w-8 h-8 rounded-full overflow-hidden bg-cyan-500/20 border border-cyan-500/30">
+          {#if isLoading && isFirstMessage}
+            <img 
+              src="/images/saz_thinking.png" 
+              alt="SAZ Thinking" 
+              class="w-full h-full object-cover animate-pulse"
+            />
+          {:else}
+            <img 
+              src="/images/saz-lightbulb.png" 
+              alt="SAZ" 
+              class="w-full h-full object-cover"
+            />
+          {/if}
+        </div>
       {/if}
     </div>
   {/if}

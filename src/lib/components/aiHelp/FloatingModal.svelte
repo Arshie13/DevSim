@@ -30,6 +30,9 @@
   export let showBubble: boolean = false;
   export let onSelectHistory: (item: BubbleHistoryItem) => void = () => {};
   export let onToggleHistory: () => void = () => {};
+  
+  // Props for SAZ avatar states (passed from parent)
+  export let hasHint: boolean = false;
 
   // Local state
   let localUserMessage: string = "";
@@ -84,12 +87,26 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-full overflow-hidden bg-cyan-500/20 border border-cyan-500/30">
-                <img 
-                  src="/images/saz.png" 
-                  alt="SAZ" 
-                  class="w-full h-full object-cover"
-                  onerror={(e) => (e.currentTarget as HTMLImageElement).style.display = 'none'}
-                />
+                {#if isLoading}
+                  <img 
+                    src="/images/saz_thinking.png" 
+                    alt="SAZ Thinking" 
+                    class="w-full h-full object-cover animate-pulse"
+                  />
+                {:else if hasHint}
+                  <img 
+                    src="/images/saz-lightbulb.png" 
+                    alt="SAZ Hint Ready" 
+                    class="w-full h-full object-cover"
+                  />
+                {:else}
+                  <img 
+                    src="/images/saz.png" 
+                    alt="SAZ" 
+                    class="w-full h-full object-cover"
+                    onerror={(e) => (e.currentTarget as HTMLImageElement).style.display = 'none'}
+                  />
+                {/if}
               </div>
               <div>
                 <h2 class="text-sm font-bold text-gray-100">SAZ</h2>

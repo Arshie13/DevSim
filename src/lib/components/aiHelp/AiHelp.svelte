@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Send, X, Paperclip } from "lucide-svelte";
   import {
     aiChatHistory,
     aiCoins,
@@ -12,7 +11,6 @@
     getCodeWarningMessage,
     getInsufficientCoinsMessage,
     getErrorMessage,
-    getApiErrorMessage,
   } from "$lib/ai";
   import { type ITask } from "$lib/types";
   import ThoughtBubble from "./ThoughtBubble.svelte";
@@ -47,13 +45,11 @@
   // API functions from aiHelpApi
   import {
     generateContext as generateContextHelper,
-    buildHintMessage,
     validateMessage,
     sendChatMessage as apiSendChatMessage,
     requestQuickHintBubble,
     sendBubbleChatMessage,
   } from "$lib/utils/aiHelpApi";
-  import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
 
   // Props
   export let scenario: string = "";
@@ -112,6 +108,7 @@
     $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
   $: totalCost = calculateTotalCost(mode, attachedFiles.length);
   $: allTasksCompleted = areAllTasksCompleted(tasks);
+  $: hasChatAiMessage = $aiChatHistory && $aiChatHistory.some((msg: any) => msg.role === 'ai');
 
   // Initialize stores
   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
@@ -453,6 +450,9 @@
       currentHintChunk = 0;
       hintsShown = [];
       isBubbleHidden = false;
+      // Also reset chat bubble state from helper
+      useBubbleMode = resetState.useBubbleMode || false;
+      bubbleChatMessage = resetState.bubbleChatMessage || "";
       return;
     }
     
@@ -463,6 +463,9 @@
     hintChunks = resetState.hintChunks || [];
     currentHintChunk = 0;
     isBubbleHidden = false;
+    // Also reset chat bubble state from helper
+    useBubbleMode = resetState.useBubbleMode || false;
+    bubbleChatMessage = resetState.bubbleChatMessage || "";
   }
 
   function handleScroll() {
@@ -480,13 +483,13 @@
   style="background: transparent; padding: 0; border: none; border-radius: 0;"
   aria-label="Open AI Assistant"
 >
-  {#if quickHintLoading}
+  {#if quickHintLoading || bubbleChatLoading}
     <img
       src="/images/saz_thinking.png"
       alt="SAZ Thinking"
       class="w-full h-full object-cover animate-pulse"
     />
-  {:else if showQuickHint && quickHintMessage}
+  {:else if (showQuickHint && quickHintMessage) || (useBubbleMode && bubbleChatMessage)}
     <img
       src="/images/saz-lightbulb.png"
       alt="SAZ Hint Ready"
@@ -539,6 +542,7 @@
   history={bubbleHistory}
   {userMessage}
   {isLoading}
+  hasHint={!!(bubbleChatMessage || quickHintMessage || hasChatAiMessage)}
   {currentCoins}
   {totalCost}
   {canAttachMore}
