@@ -60,6 +60,8 @@
     requestQuickHint, closeQuickHint
   } = helper;
 
+  console.log("filtered file tree: ", filteredFileTree);
+
   // Scroll handling
   let chatContainer: HTMLDivElement;
   let userScrolling = false;
@@ -80,11 +82,6 @@
     const { scrollTop, scrollHeight, clientHeight } = chatContainer;
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
     userScrolling = !isAtBottom;
-  }
-
-  // Mode switching
-  function handleModeChange(newMode: AiMode) {
-    mode = newMode;
   }
 </script>
 

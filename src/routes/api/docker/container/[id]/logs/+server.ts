@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
       return error(400, 'Container ID is required');
     }
 
-    const fileLogs = await prisma.fileChange.findMany({
+    const fileLogs = await prisma.userFileChanges.findMany({
       where: {
         containerId: id
       },

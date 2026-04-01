@@ -3,8 +3,9 @@ import {
   AI_NAME, COSTS, LIMITS, SOURCE_EXTENSIONS 
 } from './constants';
 import type { 
-  ChatMessage, AttachedFile, AiMode, ITask 
+  ChatMessage, AttachedFile, AiMode 
 } from './types';
+import { type ITask } from '$lib/types';
 
 // Global stores (moved from PrimarySidebar.svelte)
 export const aiChatHistory = writable<ChatMessage[]>([]);
@@ -48,6 +49,10 @@ export function createAiHelper(options: {
     tasks, level, mode, getFileTree, getFileContents, getSelectedFile 
   } = options;
 
+  console.log("file tree: ", getFileTree());
+  console.log("file contents: ", getFileContents());
+  console.log("selected file: ", getSelectedFile());
+
   // Local state
   const attachedFiles = writable<AttachedFile[]>([]);
   const isLoading = writable(false);
@@ -70,11 +75,13 @@ export function createAiHelper(options: {
     $files => $files.length < LIMITS.MAX_ATTACHED_FILES
   );
 
+  // TODO: fix this because it only detects files under server and tests directory.
   const filteredFileTree = derived(
-    [aiFileTree, attachedFiles],
-    ([$tree, $attached]) => {
+    [attachedFiles],
+    ([$attached]) => {
+      const tree = getFileTree();
       const attachedPaths = new Set($attached.map(f => f.path));
-      return $tree
+      return tree
         .filter(f => SOURCE_EXTENSIONS.some(ext => f.endsWith(ext)))
         .filter(f => !attachedPaths.has(f))
         .slice(0, 50);
@@ -234,6 +241,26 @@ export function createAiHelper(options: {
     } else {
       tasks.forEach(task => {
         context += `${task.isCompleted ? '[√]' : '[ ]'} ${task.taskName}\n`;
+        
+        // Add acceptance criteria
+        if (task.acceptanceCriteria && task.acceptanceCriteria.length > 0) {
+          context += `  Acceptance Criteria:\n`;
+          task.acceptanceCriteria
+            .sort((a, b) => a.order - b.order)
+            .forEach(ac => {
+              context += `    - ${ac.description}${ac.isRequired ? ' (Required)' : ''}\n`;
+            });
+        }
+        
+        // Add hints
+        if (task.hints && task.hints.length > 0) {
+          context += `  Hints:\n`;
+          task.hints
+            .sort((a, b) => a.order - b.order)
+            .forEach(hint => {
+              context += `    - ${hint.description}\n`;
+            });
+        }
       });
     }
 
