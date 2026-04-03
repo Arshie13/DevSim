@@ -702,6 +702,25 @@
         "length:",
         keyTakeaways.length
       );
+
+      // Fetch key takeaways from database for the current level
+      try {
+        const takeawayRes = await fetch(`/api/level/${level}/key-takeaways`);
+        if (takeawayRes.ok) {
+          const takeawayData = await takeawayRes.json();
+          if (takeawayData.success && takeawayData.keyTakeaways) {
+            keyTakeaways = [{
+              taskId: 'level',
+              taskName: takeawayData.levelTitle || `Level ${level}`,
+              takeaway: takeawayData.keyTakeaways
+            }];
+            console.log("[SUBMIT SPRINT] Fetched key takeaways from database:", keyTakeaways);
+          }
+        }
+      } catch (takeawayErr) {
+        console.warn("[SUBMIT SPRINT] Failed to fetch key takeaways from database:", takeawayErr);
+      }
+
       state = "success";
 
       // Automatically show key takeaways modal if there are takeaways
