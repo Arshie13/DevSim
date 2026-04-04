@@ -53,25 +53,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     console.log(`[TEST RUN] Container: ${containerId}, Command: ${command}, Level: ${level}, Type: ${type}`);
 
-    // Skip test:task:client:l1:t1 as it's not a valid test
-    if (command === 'test:task:client:l1:t1') {
-      console.log('[TEST RUN] Skipping test:task:client:l1:t1 - this test is not available');
-      return json({
-        success: true,
-        passed: true,
-        summary: { total: 0, passed: 0, failed: 0, duration: 0 },
-        results: [],
-        output: 'Test skipped: test:task:client:l1:t1 is not available',
-        taskResults: type === 'task' && taskId ? [{
-          taskId,
-          taskName: `Task ${taskId}`,
-          passed: true,
-          results: [],
-          errors: []
-        }] : undefined
-      } as TestRunResponse);
-    }
-
     // Get container info to find the workspace path
     const containerInfo = await getContainerInfo(containerId);
     if (!containerInfo) {

@@ -31,7 +31,7 @@ export async function POST(event: RequestEvent) {
       });
     }
     const exec = await container.exec({
-      Cmd: ['sh', '-c', `find ${path} -type f ! -path "*/node_modules/*" ! -path "*/.next/*" ! -path "*/.git/*" 2>/dev/null || echo ""`],
+      Cmd: ['sh', '-c', `find "${path}" -type f ! -path "*/node_modules" ! -path "*/node_modules/*" ! -path "*/.next" ! -path "*/.next/*" ! -path "*/.git" ! -path "*/.git/*" 2>/dev/null || echo ""`],
       AttachStdout: true,
       AttachStderr: true
     });
@@ -66,7 +66,7 @@ export async function POST(event: RequestEvent) {
 
     // Also list directories
     const dirExec = await container.exec({
-      Cmd: ['sh', '-c', `find ${path} -type d ! -path "*/node_modules/*" ! -path "*/.next/*" ! -path "*/.git/*" ! -path "${path}$" 2>/dev/null || echo ""`],
+      Cmd: ['sh', '-c', `find "${path}" -type d ! -path "${path}" ! -path "*/node_modules" ! -path "*/node_modules/*" ! -path "*/.next" ! -path "*/.next/*" ! -path "*/.git" ! -path "*/.git/*" 2>/dev/null || echo ""`],
       AttachStdout: true,
       AttachStderr: true
     });
@@ -98,7 +98,7 @@ export async function POST(event: RequestEvent) {
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map(f => f.replace('/workspace/', ''));``
+      .map(f => f.replace('/workspace/', ''));
 
     // Process directories
     const directories = dirOutput

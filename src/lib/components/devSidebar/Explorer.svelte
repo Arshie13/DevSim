@@ -44,6 +44,34 @@
       children: [],
     };
 
+    // Build explicit directory nodes first so empty folders are visible.
+    for (const dirPath of dirs) {
+      if (!dirPath) continue;
+
+      const parts = dirPath.split("/").filter(Boolean);
+      let current = root;
+
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        const currentPath = parts.slice(0, i + 1).join("/");
+
+        let existing = current.children.find((c) => c.name === part);
+        if (!existing) {
+          existing = {
+            name: part,
+            path: currentPath,
+            isDirectory: true,
+            children: [],
+          };
+          current.children.push(existing);
+        } else if (!existing.isDirectory) {
+          existing.isDirectory = true;
+        }
+
+        current = existing;
+      }
+    }
+
     for (const filePath of paths) {
       const parts = filePath.split("/");
       let current = root;

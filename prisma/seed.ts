@@ -70,14 +70,14 @@ async function main() {
         create: [
           {
             taskName: "Prepare Development Environment",
-            testType: "none", // Setup task — no automated test
+            testType: "client", 
             userStory:
               "As a developer, I want to set up my development environment so that I can start working on the project.",
             hints: {
               create: [
                 {
                   description:
-                    "Run package installation in both `client` and `server` folders.",
+                    "Run package installation in the `root`, `client`, and `server` folders.",
                   order: 1,
                 },
                 {
@@ -97,7 +97,7 @@ async function main() {
               create: [
                 {
                   description:
-                    "Dependencies installed for both client and server",
+                    "Dependencies installed for the root, client, and server without errors",
                   isRequired: true,
                   order: 1,
                 },

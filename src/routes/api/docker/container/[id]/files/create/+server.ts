@@ -32,6 +32,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       await new Promise<void>((resolve) => {
         stream.on("end", resolve);
       });
+
+      const execResult = await exec.inspect();
+      if (execResult.ExitCode !== 0) {
+        return json({ success: false, error: `mkdir failed with code ${execResult.ExitCode}` }, { status: 500 });
+      }
     } else {
       // Create empty file using exec
       const exec = await container.exec({
@@ -45,6 +50,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       await new Promise<void>((resolve) => {
         stream.on("end", resolve);
       });
+
+      const execResult = await exec.inspect();
+      if (execResult.ExitCode !== 0) {
+        return json({ success: false, error: `touch failed with code ${execResult.ExitCode}` }, { status: 500 });
+      }
     }
 
     // Log the file change

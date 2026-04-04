@@ -15,9 +15,22 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
       return error(400, 'Container ID is required');
     }
 
-    const res = await prisma.fileChange.deleteMany({
+    const prismaContainer = await prisma.container.findFirst({
       where: {
         containerId: id
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!prismaContainer) {
+      return json({ success: true, data: { count: 0 } });
+    }
+
+    const res = await prisma.userFileChanges.deleteMany({
+      where: {
+        containerId: prismaContainer.id
       }
     });
 
