@@ -62,7 +62,7 @@ async function main() {
       order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       levelDescription:
-        "The library has onboarded a new developer and needs the system running locally with minor UI tweaks.",
+        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the Next.js + Prisma + PostgreSQL stack, configure the database, and make minor UI tweaks to get the application running properly in your local machine.",
       xpReward: 100,
       coinReward: 50,
       keyTakeaways: "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (npm/pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
@@ -173,7 +173,7 @@ async function main() {
       order: 2,
       deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       levelDescription:
-        "Members report they cannot borrow books even when copies are available.",
+        "Mission Briefing: Members report they cannot borrow books even when copies are available. Your task is to investigate the client-side availability logic and create a reusable helper function to ensure consistent borrow decisions across the React UI.",
       xpReward: 25,
       coinReward: 125,
       keyTakeaways: "Pure functions in React applications that process Prisma query results from PostgreSQL are easier to test and debug. Centralizing business logic ensures consistent data handling across React components that consume Express API responses. This functional programming approach is essential for reliable React + Express + Prisma applications.\n\nClient-side utility functions in React ensure consistent logic when processing data from Express APIs powered by Prisma and PostgreSQL. When the same availability logic exists in multiple React components, shared utilities prevent inconsistencies and simplify maintenance. This approach ensures reliable data handling in React applications consuming Express + Prisma + PostgreSQL backends.",
@@ -335,7 +335,7 @@ async function main() {
       order: 3,
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       levelDescription:
-        "Returning books occasionally causes negative available copy counts.",
+        "Mission Briefing: Returning books occasionally causes negative available copy counts. Your mission is to debug the return flow, identify why the copy counts are going negative, and implement a fix to ensure the library's inventory stays accurate.",
       xpReward: 40,
       coinReward: 200,
       keyTakeaways: "Prisma migrations synchronize your PostgreSQL database schema with your Express + React application code changes. They prevent schema drift between development, staging, and production environments, ensuring database consistency across the entire React + Express + Prisma stack. Migrations are essential for maintaining data integrity in production PostgreSQL databases.\n\nDatabase transactions in Prisma ensure atomic operations when updating related PostgreSQL records through Express APIs. They prevent partial updates that could leave your database inconsistent, which is critical for React applications handling financial and inventory data. Always wrap related database operations in transactions to maintain data integrity in Express + Prisma + PostgreSQL applications.",
@@ -458,7 +458,7 @@ async function main() {
       order: 4,
       deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       levelDescription:
-        "The Library is implementing a reservation system for popular books. Users can reserve a book if all copies are currently borrowed, and they will be notified when the book becomes available.",
+        "Mission Briefing: The Library is implementing a reservation system for popular books. Your task is to build a reservation feature that allows users to reserve a book when all copies are borrowed and receive notifications when the book becomes available.",
       xpReward: 60,
       coinReward: 300,
       keyTakeaways: "Input validation and sanitization are critical for Express API security and PostgreSQL data integrity in React applications. They prevent malicious input from corrupting your database and protect against attacks. Always validate and sanitize user inputs in Express routes before they reach Prisma and PostgreSQL. This creates secure, reliable APIs that safely handle React frontend data submissions.\n\nProper error handling in Express APIs and React components creates better user experiences in full-stack applications. Clear error messages help users understand issues, while graceful error handling prevents React app crashes. Implement comprehensive error boundaries in React and meaningful error responses in Express routes. This ensures reliable, user-friendly React + Express + PostgreSQL + Prisma applications.",
@@ -717,7 +717,7 @@ async function main() {
       order: 5,
       deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       levelDescription:
-        "Congratulations! The project has already reached production, but a critical issue was been reported by the client, investigate the problem and deliver a fix as soon as possible.",
+        "Mission Briefing: Congratulations! The project is in production, but a critical issue has been reported by the client. Your mission is to investigate the problem, identify the root cause, and deliver a fix as soon as possible to maintain system reliability.",
       xpReward: 75,
       coinReward: 375,
       keyTakeaways: "Pagination is essential for handling large datasets in React applications consuming Express APIs with PostgreSQL. It improves frontend performance and user experience by loading data incrementally instead of overwhelming the React UI with massive datasets. Implement proper pagination with clear navigation controls and loading states for scalable React + Express + PostgreSQL applications.\n\nAutomated testing is crucial for maintaining code quality in React + Express + Prisma + PostgreSQL applications. Tests ensure that React component changes, Express API modifications, and Prisma database operations work correctly together and prevent regressions. Always write tests for critical business logic and user interactions to maintain reliable full-stack applications.",

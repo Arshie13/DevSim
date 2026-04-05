@@ -10,20 +10,21 @@
   export let onPrev: () => void = () => {};
   export let onNext: () => void = () => {};
   export let onClose: () => void = () => {};
+  export let isTyping: boolean = false;
 </script>
 
 {#if takeawayChunks.length > 1}
   <div class="card-footer">
-    <button class="nav-button" disabled={currentIndex === 0}
+    <button class="nav-button" disabled={currentIndex === 0 || isTyping}
       on:click={onPrev}>← Prev</button>
-    <button class="nav-button"
+    <button class="nav-button" disabled={isTyping}
       on:click={onNext}>
       {currentIndex === takeawayChunks.length - 1 ? 'Done' : 'Next →'}
     </button>
   </div>
 {:else}
   <div class="card-footer">
-    <button class="nav-button"
+    <button class="nav-button" disabled={isTyping}
       on:click={onClose}>Next</button>
   </div>
 {/if}
@@ -40,9 +41,9 @@
   .nav-button {
     background: none;
     border: none;
-    color: var(--accent);
+    color: #07a5c9;
     font-size: 0.75rem;
-    font-family: var(--font-mono);
+    font-family: monospace;
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 4px;

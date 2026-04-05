@@ -156,6 +156,7 @@
   confirmLabel="Next"
   variant="primary"
   hideActions={true}
+  closeOnBackdropClick={false}
 >
   {#if hasTakeaways && !showFallback}
     <TakeawayCard

@@ -18,6 +18,11 @@
    * (e.g. 'editor'). The parent page handles the actual tab switch.
    */
   export let onSwitchTab: ((tab: string) => void) | undefined = undefined;
+  /**
+   * Called when onboarding is fully complete (modal + tour).
+   * Parent can use this to trigger UI transitions.
+   */
+  export let onComplete: (() => void) | undefined = undefined;
 
   // ── Phase machine ──────────────────────────────────────────────────────────
   // The parent decides whether to render this component at all.
@@ -60,6 +65,10 @@
     markOnboardingComplete();
     clearOnboardingParam();
     phase = 'done';
+    // Notify parent that onboarding is fully complete
+    if (onComplete) {
+      onComplete();
+    }
   }
 </script>
 

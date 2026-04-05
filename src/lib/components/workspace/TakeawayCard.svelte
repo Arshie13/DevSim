@@ -12,7 +12,7 @@
   export let takeawayChunks: TakeawayChunk[] = [];
   export let currentIndex: number = 0;
   export let displayedText: string = '';
-  export let isTyping: boolean = false;
+  export let isTyping = false;
   export let onPrev: () => void = () => {};
   export let onNext: () => void = () => {};
   export let onClose: () => void = () => {};
@@ -29,6 +29,7 @@
     {onPrev}
     {onNext}
     {onClose}
+    {isTyping}
   />
 </div>
 

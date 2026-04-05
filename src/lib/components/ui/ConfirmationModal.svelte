@@ -43,6 +43,12 @@
    */
   export let hideHeader: boolean = false;
 
+  /**
+   * When true, clicking the backdrop will close the modal.
+   * Set to false to prevent closing when clicking outside.
+   */
+  export let closeOnBackdropClick: boolean = true;
+
   // ── Events ─────────────────────────────────────────────────────────────────
 
   const dispatch = createEventDispatcher<{
@@ -81,7 +87,7 @@
   }
 
   function handleBackdropClick(e: MouseEvent) {
-    if (e.target === e.currentTarget) handleCancel();
+    if (closeOnBackdropClick && e.target === e.currentTarget) handleCancel();
   }
 
   function handleKeydown(e: KeyboardEvent) {
