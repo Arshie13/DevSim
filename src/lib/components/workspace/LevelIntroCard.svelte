@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { X, CheckCircle, Circle, Play, Target } from "lucide-svelte";
 
   export let levelTitle: string = "";
@@ -41,119 +40,129 @@
     }
   }
 
+  function handleBackdropKeydown(event: KeyboardEvent) {
+    if ((event.key === "Enter" || event.key === " ") && event.target === event.currentTarget) {
+      event.preventDefault();
+      closeCard();
+    }
+  }
+
   // Calculate progress percentage
   $: completedCount = tasks?.filter(t => t.completed).length || 0;
   $: totalCount = tasks?.length || 0;
   $: progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  $: activeObjectiveIndex = tasks?.findIndex(t => !t.completed) ?? -1;
 </script>
 
 {#if mounted}
   <!-- Backdrop -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-[6px]"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg)] p-4"
+    role="button"
+    tabindex="0"
+    aria-label="Close level intro"
     on:click={handleBackdropClick}
+    on:keydown={handleBackdropKeydown}
   >
+
     <!-- Card -->
     <div
-      class="modal-card relative flex max-h-[85vh] w-[min(480px,95vw)] flex-col overflow-hidden rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[#12192a] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_rgba(7,165,201,0.3),0_24px_60px_rgba(0,0,0,0.6)]"
+      class="modal-card relative flex max-h-[88vh] w-[min(560px,95vw)] flex-col overflow-hidden border border-[var(--card-border)] bg-[var(--bg-light)]"
       class:visible={isVisible}
       class:animating-out={isAnimatingOut}
     >
-      <!-- Grid overlay -->
-      <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(7,165,201,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(7,165,201,0.06)_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      
-      <!-- Top gradient line -->
-      <div class="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#07a5c9,transparent)]"></div>
-      
+      <div class="modal-card-glow" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent),transparent)]"></div>
+
       <!-- Header -->
-      <div class="flex items-center justify-between border-b border-[rgba(7,165,201,0.1)] px-6 py-5">
-        <div class="flex items-center gap-3.5">
-          <div class="flex h-10 w-10 items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.1)]">
-            <Target class="w-5 h-5 text-[#07a5c9]" />
+      <div class="relative flex items-start justify-between border-b border-[rgba(7,165,201,0.2)] px-6 py-5">
+        <div class="flex items-start gap-3.5">
+          <div class="ring-pulse relative mt-0.5 flex h-11 w-11 items-center justify-center border border-[rgba(7,165,201,0.4)] bg-[rgba(7,165,201,0.12)]">
+            <Target class="h-5 w-5 text-[var(--accent)]" />
           </div>
-          <div>
-            <h2 class="text-base font-bold tracking-[0.08em] uppercase text-[#d0d7dd]">Level {levelNumber}</h2>
-            <p class="mt-1 text-xs text-[#8892a0]">{levelTitle}</p>
+
+          <div class="space-y-1">
+            <span class="tag-cyber tag-cyan inline-flex items-center">Workspace Mission</span>
+            <h2 class="font-heading text-[1.15rem] font-bold uppercase tracking-[0.13em] text-[var(--text-primary)]">
+              DevSim // Level {levelNumber}
+            </h2>
+            <p class="font-label text-[0.72rem] uppercase tracking-[0.08em] text-[var(--text-muted)]">
+              {levelTitle || "Objective Sync Active"}
+            </p>
           </div>
         </div>
+
         <button
-          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[4px] border border-transparent bg-transparent text-[#8892a0] transition-all duration-150 ease-in-out hover:border-[rgba(255,56,96,0.25)] hover:bg-[rgba(255,56,96,0.08)] hover:text-[#ff3860]"
+          class="flex h-9 w-9 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-muted)] transition-all duration-200 hover:border-[rgba(255,56,96,0.28)] hover:bg-[rgba(255,56,96,0.12)] hover:text-[var(--danger)]"
           on:click={closeCard}
+          aria-label="Close mission briefing"
         >
-          <X class="w-5 h-5" />
+          <X class="h-5 w-5" />
         </button>
       </div>
 
       <!-- Content -->
-      <div class="relative flex-1 overflow-y-auto px-6 py-4">
-        <!-- Progress bar -->
+      <div class="relative flex-1 overflow-y-auto px-6 py-5">
         {#if totalCount > 0}
-          <div class="mb-5">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-semibold uppercase tracking-[0.06em] text-[#07a5c9]">Progress</span>
-              <span class="text-xs text-[#8892a0]">{completedCount}/{totalCount} tasks</span>
+          <div class="mb-5 border border-[rgba(7,165,201,0.3)] bg-[var(--surface)] p-3">
+            <div class="mb-2 flex items-center justify-between">
+              <span class="font-label text-[0.68rem] uppercase tracking-[0.1em] text-[var(--accent)]">Mission Progress</span>
+              <span class="font-label text-[0.72rem] text-[var(--text-muted)]">{progressPercent.toFixed(0)}% synced</span>
             </div>
-            <div class="h-1.5 w-full rounded-[2px] bg-[rgba(7,165,201,0.15)] overflow-hidden">
-              <div 
-                class="h-full rounded-[2px] bg-gradient-to-r from-[#07a5c9] to-[#00f5ff] transition-all duration-500 ease-out"
-                style="width: {progressPercent}%"
-              ></div>
+            <div class="xp-track">
+              <div class="xp-fill" style="width: {progressPercent}%"></div>
             </div>
+            <p class="mt-2 font-label text-[0.68rem] text-[var(--text-muted)]">{completedCount}/{totalCount} objectives completed</p>
           </div>
         {/if}
 
-        <!-- Description -->
         {#if levelDescription}
           <div class="mb-5">
-            <h3 class="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-[#07a5c9]">About This Level</h3>
-            <div class="rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[rgba(7,165,201,0.05)] p-4">
-              <p class="text-sm leading-relaxed text-[#a0a8b0]">
+            <h3 class="font-label text-[0.7rem] uppercase tracking-[0.1em] text-[var(--accent)]">Intel</h3>
+            <div class="mt-2 border border-[var(--card-border)] bg-[var(--surface)] p-4">
+              <p class="font-body text-[0.95rem] leading-relaxed text-[var(--text-primary)]">
                 {levelDescription}
               </p>
             </div>
           </div>
         {/if}
 
-        <!-- Tasks -->
         {#if tasks && tasks.length > 0}
-          <div class="mb-4">
-            <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.06em] text-[#07a5c9]">Objectives</h3>
-            <ul class="space-y-2">
+          <div>
+            <div class="mb-3 flex items-center justify-between">
+              <h3 class="font-label text-[0.7rem] uppercase tracking-[0.1em] text-[var(--accent)]">Objectives</h3>
+              <span class="tag-cyber tag-purple">XP +{totalCount * 40}</span>
+            </div>
+
+            <ul class="space-y-2.5">
               {#each tasks as task, index}
-                <li 
-                  class="flex items-center gap-3 rounded-[4px] border border-[rgba(7,165,201,0.1)] p-3 transition-all duration-150"
-                  class:bg-[rgba(7,165,201,0.08)]={task.completed}
-                  class:border-[rgba(34,197,94,0.2)]={task.completed}
+                <li
+                  class="objective-row flex items-center gap-3 border border-[var(--card-border)] bg-[var(--surface)] p-3 transition-all duration-200"
+                  class:is-completed={task.completed}
+                  class:is-active={!task.completed && index === activeObjectiveIndex}
                 >
                   <div class="flex-shrink-0">
                     {#if task.completed}
-                      <CheckCircle class="w-4 h-4 text-[#22c55e]" />
+                      <CheckCircle class="h-4 w-4 text-[var(--success)]" />
                     {:else}
-                      <Circle class="w-4 h-4 text-[#8892a0]" />
+                      <Circle class="h-4 w-4 text-[var(--text-muted)]" />
                     {/if}
                   </div>
-                  <span 
-                    class="text-sm"
-                    class:text-[#d0d7dd]={!task.completed}
-                    class:text-[#6e7681]={task.completed}
-                  >
-                    <span class="text-[#8892a0] mr-1">{index + 1}.</span>
-                    {task.text}
-                  </span>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-body text-[0.92rem] leading-snug text-[var(--text-primary)]" class:task-done={task.completed}>
+                      <span class="mr-2 font-label text-[0.72rem] text-[var(--text-muted)]">[{index + 1}]</span>{task.text}
+                    </p>
+                  </div>
                 </li>
               {/each}
             </ul>
           </div>
         {/if}
 
-        <!-- Action button -->
-        <div class="mt-4 text-center">
-          <button
-            on:click={closeCard}
-            class="group inline-flex cursor-pointer items-center gap-2 rounded-[4px] border border-[#07a5c9] bg-[transparent] px-6 py-2.5 text-sm font-semibold uppercase tracking-[0.06em] text-[#07a5c9] transition-all duration-150 ease-in-out hover:border-[#07a5c9] hover:bg-[#07a5c9] hover:text-[#0a0e1a] hover:shadow-[0_0_20px_rgba(7,165,201,0.3)]"
-          >
-            <span>Start Mission</span>
-            <Play class="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+        <div class="mt-6 flex justify-center">
+          <button on:click={closeCard} class="btn-cyber btn-cyber-solid mission-btn group inline-flex cursor-pointer items-center gap-2">
+            <span>Deploy Into Workspace</span>
+            <Play class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>
@@ -164,8 +173,23 @@
 <style>
   .modal-card {
     opacity: 0;
-    transform: translateY(20px) scale(0.98);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(12px) scale(0.985);
+    transition: all 0.35s ease;
+    border-radius: 4px;
+    box-shadow:
+      0 0 0 1px rgba(7, 165, 201, 0.07),
+      0 0 40px rgba(7, 165, 201, 0.12),
+      0 24px 48px rgba(0, 0, 0, 0.55);
+  }
+
+  .modal-card-glow {
+    position: absolute;
+    inset: -1px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, rgba(7, 165, 201, 0.3), transparent 60%, rgba(7, 165, 201, 0.18));
+    z-index: -1;
+    pointer-events: none;
+    animation: border-pulse 3s ease-in-out infinite alternate;
   }
 
   .modal-card.visible {
@@ -175,7 +199,148 @@
 
   .modal-card.animating-out {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(-10px) scale(0.975);
     transition: all 0.2s ease-out;
+  }
+
+  .ring-pulse::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 1px solid rgba(7, 165, 201, 0.4);
+    opacity: 0;
+    animation: ping-ring 2.2s ease-out infinite;
+  }
+
+  .mission-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--cyan-bright), transparent);
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: transform 0.35s ease, opacity 0.35s ease;
+  }
+
+  .mission-btn:hover::before {
+    opacity: 0.3;
+    transform: translateX(0);
+  }
+
+  .mission-btn > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .objective-row {
+    position: relative;
+  }
+
+  .objective-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: transparent;
+    transition: background 0.2s ease;
+  }
+
+  .objective-row:hover {
+    transform: translateX(4px);
+    border-color: var(--card-hover);
+    background: rgba(7, 165, 201, 0.08);
+  }
+
+  .objective-row:hover::before {
+    background: var(--accent);
+  }
+
+  .objective-row.is-active {
+    border-color: rgba(7, 165, 201, 0.72);
+    background: rgba(7, 165, 201, 0.14);
+    box-shadow:
+      0 0 0 1px rgba(7, 165, 201, 0.2),
+      0 0 16px rgba(7, 165, 201, 0.24);
+    animation: active-step-pulse 1.6s ease-in-out infinite;
+  }
+
+  .objective-row.is-active::before {
+    background: var(--accent);
+  }
+
+  .objective-row.is-completed {
+    border-color: rgba(0, 229, 160, 0.35);
+    background: rgba(0, 229, 160, 0.08);
+  }
+
+  .objective-row.is-completed::before {
+    background: var(--success);
+  }
+
+  .task-done {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(0, 229, 160, 0.45);
+  }
+
+  @keyframes ping-ring {
+    0% {
+      transform: scale(0.92);
+      opacity: 0.7;
+    }
+
+    100% {
+      transform: scale(1.25);
+      opacity: 0;
+    }
+  }
+
+  @keyframes active-step-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 1px rgba(7, 165, 201, 0.2),
+        0 0 14px rgba(7, 165, 201, 0.22);
+    }
+
+    50% {
+      box-shadow:
+        0 0 0 1px rgba(7, 165, 201, 0.35),
+        0 0 24px rgba(7, 165, 201, 0.3);
+    }
+  }
+
+  @keyframes border-pulse {
+    from {
+      opacity: 0.35;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hud-drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.45;
+    }
+
+    100% {
+      transform: translate3d(-8px, 6px, 0) scale(1.03);
+      opacity: 0.62;
+    }
+  }
+
+  @keyframes orb-float {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+
+    100% {
+      transform: translate3d(22px, -20px, 0);
+    }
   }
 </style>
