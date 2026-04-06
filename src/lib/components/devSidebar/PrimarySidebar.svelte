@@ -41,6 +41,8 @@
   export let projectName: string = "project";
   export let tasks: ITask[] = [];
   export let containerId: string = "";
+  export let currentLevel: number = 1;
+  export let levelTitle: string = "";
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
   export let onDeleteFile: (filePath: string) => void = () => {};

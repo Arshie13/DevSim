@@ -6,6 +6,7 @@
   import SubmitSprintConfirmContent from "$lib/components/workspace/SubmitSprintConfirmContent.svelte";
   import SubmitSprintProgressContent from "$lib/components/workspace/SubmitSprintProgressContent.svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
+  import KeyTakeawaysModal from "$lib/components/workspace/KeyTakeawaysModal.svelte";
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -22,6 +23,8 @@
   let state: ModalState = "confirm";
   let showModal = false;
   let showCancelConfirmModal = false;
+  let showKeyTakeawaysModal = false;
+  let hasViewedTakeaways = false;
   let submitStep = 0;
   let submitError = "";
   let submitRewards = { xp: 0, coins: 0 };
@@ -186,6 +189,8 @@
   function close() {
     if (state === "loading") return;
     showModal = false;
+    showKeyTakeawaysModal = false;
+    hasViewedTakeaways = false;
     state = "confirm";
   }
 
@@ -697,7 +702,35 @@
         "length:",
         keyTakeaways.length
       );
+
+      // Fetch key takeaways from database for the current level
+      try {
+        const takeawayRes = await fetch(`/api/level/${level}/key-takeaways`);
+        if (takeawayRes.ok) {
+          const takeawayData = await takeawayRes.json();
+          if (takeawayData.success && takeawayData.keyTakeaways) {
+            keyTakeaways = [{
+              taskId: 'level',
+              taskName: takeawayData.levelTitle || `Level ${level}`,
+              takeaway: takeawayData.keyTakeaways
+            }];
+            console.log("[SUBMIT SPRINT] Fetched key takeaways from database:", keyTakeaways);
+          }
+        }
+      } catch (takeawayErr) {
+        console.warn("[SUBMIT SPRINT] Failed to fetch key takeaways from database:", takeawayErr);
+      }
+
       state = "success";
+
+      // Automatically show key takeaways modal if there are takeaways
+      const hasTakeaways = keyTakeaways?.filter(kt => kt?.takeaway && kt?.takeaway?.trim()?.length > 0)?.length > 0;
+      if (hasTakeaways) {
+        hasViewedTakeaways = false;
+        showKeyTakeawaysModal = true;
+      } else {
+        hasViewedTakeaways = true; // No takeaways to view
+      }
     } catch (err) {
       if (
         (err instanceof DOMException && err.name === "AbortError") ||
@@ -730,6 +763,7 @@
       nextLevel: submittedNextLevel,
     });
   }
+
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
   $: modalIcon = state === "error" ? "⚠" : state === "loading" ? "" : "⟨/⟩";
@@ -764,7 +798,7 @@
   $: modalError = state === "error" ? submitError : "";
   $: hideActions = state === "loading" || state === "testing";
   $: hideHeader = state === "loading" || state === "testing";
-  $: showSuccess = state === "success";
+  $: showSuccess = state === "success" && hasViewedTakeaways;
 </script>
 
 <!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
@@ -834,4 +868,11 @@
   loadingLabel="Canceling…"
   on:confirm={confirmCancelSubmission}
   on:cancel={dismissCancelConfirmation}
+/>
+
+<KeyTakeawaysModal
+  bind:open={showKeyTakeawaysModal}
+  {keyTakeaways}
+  aiScoringDone={aiScoring.done}
+  on:closed={() => hasViewedTakeaways = true}
 />

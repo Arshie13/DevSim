@@ -7,6 +7,7 @@
 import fs from 'fs';
 import path from 'path';
 import { getLevelConfig } from '$lib/tests/levels';
+import prisma from '$lib/server/client';
 
 console.log('[KEYTAKEAWAYS] Module loading...');
 
@@ -64,78 +65,30 @@ function getTaskText(level: number, taskId: string): string {
 }
 
 /**
- * Gets all takeaways for all tasks in a level.
- * Returns one takeaway entry per task (the full content of keytakeaway.md).
+ * Gets all takeaways for a level from the database.
+ * Returns the level's key takeaways as a single entry.
  */
-export function getAllLevelTakeaways(level: number): Array<{ taskId: string; taskName: string; takeaway: string }> {
-  const result: Array<{ taskId: string; taskName: string; takeaway: string }> = [];
+export async function getAllLevelTakeaways(level: number): Promise<Array<{ taskId: string; taskName: string; takeaway: string }>> {
+  try {
+    const levelData = await prisma.level.findFirst({
+      where: { order: level },
+      select: { keyTakeaways: true, title: true }
+    });
 
-  // Get level config for task names
-  const levelConfig = getLevelConfig(level);
-
-  // Try to find key takeaways from file system
-  for (const stack of STACK_PATHS) {
-    if (!stack.basePath) continue;
-
-    try {
-      let levelsDir: string;
-      if (stack.stackKey === 'nestjs-postgres-prisma') {
-        levelsDir = stack.basePath;
-      } else {
-        levelsDir = stack.basePath;
-      }
-      
-      const levelPath = path.join(levelsDir, `level-${level}`);
-      if (!fs.existsSync(levelPath)) {
-        continue;
-      }
-
-      const tasks = fs.readdirSync(levelPath);
-      for (const task of tasks) {
-        const taskPath = path.join(levelPath, task);
-        const stat = fs.statSync(taskPath);
-        if (stat.isDirectory() && task.startsWith('task-')) {
-          const taskId = task.replace('task-', '');
-          const taskText = getTaskText(level, taskId);
-          
-          const filePath = path.join(taskPath, 'keytakeaway.md');
-          if (fs.existsSync(filePath)) {
-            const content = fs.readFileSync(filePath, 'utf-8');
-            const cleanContent = content
-              .replace(/^# Key Takeaway\s*/i, '')
-              .trim();
-            
-            // Keep the entire content as one takeaway per task
-            result.push({
-              taskId,
-              taskName: taskText,
-              takeaway: cleanContent
-            });
-          }
-        }
-      }
-      
-      if (result.length > 0) {
-        return result;
-      }
-    } catch (e) {
-      console.error(`Error reading keytakeaways for level ${level} from ${stack.stackKey}:`, e);
+    if (levelData?.keyTakeaways) {
+      // Return the level's key takeaways as a single entry
+      return [{
+        taskId: 'level',
+        taskName: levelData.title,
+        takeaway: levelData.keyTakeaways
+      }];
     }
+  } catch (e) {
+    console.error(`Error fetching key takeaways for level ${level} from database:`, e);
   }
 
-  // Fallback: Generate takeaways from level config
-  if (levelConfig?.tasks) {
-    for (const task of levelConfig.tasks) {
-      const takeaway = generateTakeawayFromTask(level, task.taskId, task.taskText);
-      result.push({
-        taskId: task.taskId,
-        taskName: task.taskText,
-        takeaway: takeaway
-      });
-    }
-  }
-
-  return result;
+  // Fallback: Return empty array
+  return [];
 }
 
 /**
