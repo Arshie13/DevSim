@@ -6,7 +6,7 @@
   import SubmitSprintConfirmContent from "$lib/components/workspace/SubmitSprintConfirmContent.svelte";
   import SubmitSprintProgressContent from "$lib/components/workspace/SubmitSprintProgressContent.svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
-  import KeyTakeawaysModal from "$lib/components/workspace/KeyTakeawaysModal.svelte";
+  import KeyTakeawaysModal from "./KeyTakeawaysModal.svelte";
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -99,6 +99,20 @@
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
+  function normalizeTakeawayText(value: unknown): string {
+    if (typeof value === "string") return value.trim();
+    if (Array.isArray(value)) {
+      return value
+        .map((entry) =>
+          typeof entry === "string" ? entry.trim() : String(entry ?? "").trim(),
+        )
+        .filter(Boolean)
+        .join("\n\n");
+    }
+    if (value == null) return "";
+    return String(value).trim();
+  }
+
   function startSubmitStep(step: number) {
     submitStep = Math.min(Math.max(step, 0), SUBMIT_STEPS.length - 1);
     submitStepStartedAt = Date.now();
@@ -169,6 +183,8 @@
     submittedNextLevel = null;
     state = "confirm";
     showModal = true;
+    showKeyTakeawaysModal = false;
+    hasViewedTakeaways = false;
     testResults = null;
     keyTakeaways = [];
     regressedTasks = [];
@@ -712,7 +728,7 @@
             keyTakeaways = [{
               taskId: 'level',
               taskName: takeawayData.levelTitle || `Level ${level}`,
-              takeaway: takeawayData.keyTakeaways
+              takeaway: normalizeTakeawayText(takeawayData.keyTakeaways)
             }];
             console.log("[SUBMIT SPRINT] Fetched key takeaways from database:", keyTakeaways);
           }
@@ -723,14 +739,9 @@
 
       state = "success";
 
-      // Automatically show key takeaways modal if there are takeaways
-      const hasTakeaways = keyTakeaways?.filter(kt => kt?.takeaway && kt?.takeaway?.trim()?.length > 0)?.length > 0;
-      if (hasTakeaways) {
-        hasViewedTakeaways = false;
-        showKeyTakeawaysModal = true;
-      } else {
-        hasViewedTakeaways = true; // No takeaways to view
-      }
+      // Always show key takeaways first (fallback card handles empty content).
+      hasViewedTakeaways = false;
+      showKeyTakeawaysModal = true;
     } catch (err) {
       if (
         (err instanceof DOMException && err.name === "AbortError") ||
@@ -873,6 +884,5 @@
 <KeyTakeawaysModal
   bind:open={showKeyTakeawaysModal}
   {keyTakeaways}
-  aiScoringDone={aiScoring.done}
   on:closed={() => hasViewedTakeaways = true}
 />

@@ -37,8 +37,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
   console.log(`[TEST RUN] Received test run request for container: ${containerId}`);
   
   try {
-    const body = await request.json() as TestRunRequest;
-    const { command, level, taskId, taskIds, type } = body;
+    const body = (await request.json()) as TestRunRequest & {
+      testType?: 'task' | 'level';
+    };
+    const { command, level, taskId, taskIds } = body;
+    const type = body.type ?? body.testType;
 
     if (!command || !level) {
       return json({

@@ -18,7 +18,7 @@
     loading: false, done: false,
   };
   export let submitRewards = { xp: 0, coins: 0 };
-  export let keyTakeaways: Array<{ taskId: string; taskName: string; takeaway: string }> = [];
+  export const keyTakeaways: Array<{ taskId: string; taskName: string; takeaway: string }> = [];
 
   const dispatch = createEventDispatcher<{ done: void; continue: void }>();
   const handleDone = () => dispatch('done');

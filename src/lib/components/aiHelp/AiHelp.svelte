@@ -63,6 +63,7 @@
   export let initialFileTree: string[] = [];
   export let initialFileContents: Record<string, string> = {};
   export let initialCoins: number = 1000;
+  export let initialAiModel: string = "meta-llama/llama-3.1-8b-instruct";
 
   // State
   let showFloatingModal = false;
@@ -73,6 +74,7 @@
   let chatContainer: HTMLDivElement | undefined;
   let previousMessageCount = 0;
   let userScrolling = false;
+  let selectedAiModel = initialAiModel;
 
   let showQuickHint = false;
   let quickHintMessage = "";
@@ -93,6 +95,12 @@
 
   // Track bubble history for session persistence (new)
   let bubbleHistory: BubbleHistoryItem[] = [];
+
+  const AI_MODELS = [
+    { label: "Llama 3.1 8B", value: "meta-llama/llama-3.1-8b-instruct" },
+    { label: "Gemma 2 9B", value: "google/gemma-2-9b-it" },
+    { label: "Mistral 7B", value: "mistralai/mistral-7b-instruct-v0.2" },
+  ];
 
   // Reactive
   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
@@ -212,7 +220,8 @@
         filesToInclude,
         currentCoins,
         totalCost,
-        generateContext
+        generateContext,
+        selectedAiModel
       );
       
       if (result.success && result.coinsRemaining !== undefined) {
@@ -259,7 +268,7 @@
       level,
       generateContext,
       // onSuccess
-      (hint, coinsRemaining) => {
+      (hint: string, coinsRemaining?: number) => {
         quickHintMessage = hint;
         hintHistory = [...hintHistory, hint];
         const historyItem = createBubbleHistoryItem(hint, false);
@@ -272,12 +281,13 @@
         }
       },
       // onError
-      (error) => {
+      (error: string) => {
         quickHintMessage = error;
         hintHistory = [...hintHistory, error];
         hintChunks = chunkHintMessage(error);
         currentHintChunk = 0;
-      }
+      },
+      selectedAiModel
     );
 
     quickHintLoading = false;
@@ -335,7 +345,7 @@
       totalCost,
       generateContext,
       // onSuccess
-      (hint, coinsRemaining) => {
+      (hint: string, coinsRemaining?: number) => {
         bubbleChatMessage = hint;
         hintHistory = [...hintHistory, hint];
         const historyItem = createBubbleHistoryItem(hint, true);
@@ -348,14 +358,15 @@
         }
       },
       // onError
-      (error) => {
+      (error: string) => {
         bubbleChatMessage = error;
         hintHistory = [...hintHistory, error];
         const errorItem = createBubbleHistoryItem(error, true);
         bubbleHistory = [...bubbleHistory, errorItem];
         hintChunks = chunkHintMessage(error);
         currentHintChunk = 0;
-      }
+      },
+      selectedAiModel
     );
 
     bubbleChatLoading = false;
@@ -473,6 +484,10 @@
     const { scrollTop, scrollHeight, clientHeight } = chatContainer;
     userScrolling = isUserScrolling(scrollTop, scrollHeight, clientHeight, 50);
   }
+
+  function handleAiModelChange(value: string) {
+    selectedAiModel = value;
+  }
 </script>
 
 <!-- ─── SAZ Avatar toggle button ─── -->
@@ -559,6 +574,9 @@
   onCloseFilePicker={() => (showFilePicker = false)}
   onQuickHint={requestQuickHint}
   onSelectHistory={handleSelectHistoryItem}
+  aiModels={AI_MODELS}
+  aiModel={selectedAiModel}
+  onAiModelChange={handleAiModelChange}
 />
 
 <!-- ─── Quick Hint Cloud ───

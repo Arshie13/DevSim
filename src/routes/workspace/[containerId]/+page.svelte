@@ -880,6 +880,16 @@
     const { advanceToNextLevel, nextLevel } = event.detail;
 
     if (advanceToNextLevel) {
+      const targetLevel =
+        typeof nextLevel === "number" && nextLevel > 0
+          ? nextLevel
+          : currentLevel + 1;
+
+      // Immediately switch local UI state to the next level.
+      currentLevel = targetLevel;
+      levelIntroCardOpen = false;
+      levelIntroCardShown = false;
+
       localStorage.setItem('showTaskIntroCard', 'true');
       
       await goto(`?reload=${Date.now()}`, {
@@ -887,6 +897,9 @@
         replaceState: true,
         noScroll: true,
       });
+
+      // Keep local level in sync even if navigation data resolves slightly later.
+      currentLevel = (data.level || targetLevel);
     }
   }
 

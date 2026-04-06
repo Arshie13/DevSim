@@ -15,6 +15,7 @@ interface HintRequest {
   containerId: string;
   userId: string;
   hintType?: 'quick' | 'chat';
+  model?: string;
   level?: number;  // User's current level (1-5)
   attachedFilesCount?: number;  // Number of files attached to the message
   attachedFiles?: { path: string; name: string }[];  // Array of attached file objects
@@ -311,7 +312,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const body: HintRequest = await request.json();
-    const { message, context, containerId, userId: uid, hintType, attachedFilesCount = 0, attachedFiles, level = 1 } = body;
+    const { message, context, containerId, userId: uid, hintType, model, attachedFilesCount = 0, attachedFiles, level = 1 } = body;
     userId = uid;
     const currentLevel = level || 1;
 
@@ -499,11 +500,15 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // Try OpenRouter free coding models
-    const models = [
+    const defaultModels = [
       "meta-llama/llama-3.1-8b-instruct",
       "google/gemma-2-9b-it",
       "mistralai/mistral-7b-instruct-v0.2"
     ];
+
+    const models = model
+      ? [model, ...defaultModels.filter((m) => m !== model)]
+      : defaultModels;
 
     let response = null;
     let lastError = null;

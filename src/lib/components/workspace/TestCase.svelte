@@ -163,7 +163,7 @@
           level,
           taskId,
           taskOrder: taskOrder,
-          testType: 'task'
+          type: 'task'
         })
       });
 
@@ -261,7 +261,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          testType: 'level'
+          type: 'level'
         })
       });
 
@@ -367,7 +367,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          testType: 'level'
+          type: 'level'
         })
       });
 

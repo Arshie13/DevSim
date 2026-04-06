@@ -5,11 +5,22 @@
 
   export let open = false;
   export let keyTakeaways: Array<{ taskId: string; taskName: string; takeaway: string }> = [];
-  export let aiScoringDone = false;
 
   const dispatch = createEventDispatcher<{ closed: void }>();
 
   let takeawayChunks: Array<{ taskName: string; sectionTitle: string; content: string }> = [];
+
+  function normalizeTakeawayText(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (Array.isArray(value)) {
+      return value
+        .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry ?? '').trim()))
+        .filter(Boolean)
+        .join('\n\n');
+    }
+    if (value == null) return '';
+    return String(value).trim();
+  }
 
   function parseTakeawaySections(content: string, taskName: string): Array<{ taskName: string; sectionTitle: string; content: string }> {
     const lines = content.split(/\r?\n/);
@@ -77,18 +88,25 @@
   }
 
   $: {
-    const parsed = keyTakeaways
-      ?.filter(kt => kt?.takeaway && kt?.takeaway?.trim()?.length > 0)
-      ?.flatMap(kt => parseTakeawaySections(kt.takeaway, kt.taskName || 'Task'))
-      || [];
+    const parsed = (keyTakeaways || [])
+      .map((kt) => ({
+        taskName: kt?.taskName || 'Task',
+        takeaway: normalizeTakeawayText((kt as { takeaway?: unknown })?.takeaway),
+      }))
+      .filter((kt) => kt.takeaway.length > 0)
+      .flatMap((kt) => parseTakeawaySections(kt.takeaway, kt.taskName));
 
     takeawayChunks = parsed;
   }
 
   let currentIndex = 0;
-  $: if (takeawayChunks.length > 0) currentIndex = 0;
+  $: if (takeawayChunks.length === 0) {
+    currentIndex = 0;
+  } else if (currentIndex > takeawayChunks.length - 1) {
+    currentIndex = takeawayChunks.length - 1;
+  }
   $: currentTakeaway = takeawayChunks[currentIndex] ?? null;
-  $: showFallback = takeawayChunks.length === 0 && aiScoringDone;
+  $: showFallback = takeawayChunks.length === 0;
   $: hasTakeaways = (takeawayChunks.length > 0 && !!currentTakeaway) || showFallback;
 
   // Typewriter
@@ -117,15 +135,21 @@
 
   $: {
     const txt = currentTakeaway?.content || '';
-    if (txt && aiScoringDone) startTypewriter(txt);
+    if (txt && open) startTypewriter(txt);
     else { displayedText = ''; isTyping = false; typeComplete = false; }
   }
 
   onDestroy(() => { if (typeInterval) clearInterval(typeInterval); });
 
-  // Dispatch event when modal is closed
-  $: if (!open && keyTakeaways.length > 0) {
-    dispatch('closed');
+  // Only emit close when the modal transitions from open -> closed.
+  let wasOpen = false;
+  $: {
+    if (open) {
+      wasOpen = true;
+    } else if (wasOpen) {
+      wasOpen = false;
+      dispatch('closed');
+    }
   }
 
   function handleSkipTyping() {
