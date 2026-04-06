@@ -18,9 +18,8 @@
   let totalMatchCount: number = 0;
   let expandedFiles: Set<string> = new Set();
   let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-  // Cache fetched file contents so repeat searches are instant
-  let fileContentsCache: Record<string, string> = {};
+  let searchRunId = 0;
+  let lastContainerId = "";
 
   interface LineMatch {
     lineNumber: number;
@@ -85,105 +84,126 @@
     );
   }
 
-  // Fetch a single file's content from container
-  async function fetchFileContent(filePath: string): Promise<string | null> {
-    if (fileContentsCache[filePath] !== undefined) {
-      return fileContentsCache[filePath];
-    }
-    if (!containerId) return null;
-
-    try {
-      const res = await fetch(`/api/container/${containerId}/files/read`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: `/workspace/${filePath}` }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        fileContentsCache[filePath] = data.content;
-        return data.content;
-      }
-    } catch {
-      // skip files that can't be read (binary, etc.)
-    }
-    return null;
-  }
-
   // Search all files for the query
   async function performSearch(query: string) {
+    const currentRunId = ++searchRunId;
+
     if (!query.trim() || !containerId) {
       searchResults = [];
       totalMatchCount = 0;
+      isSearching = false;
       return;
     }
 
     isSearching = true;
-    const lowerQuery = query.toLowerCase();
-    const results: FileMatch[] = [];
-    let matchCount = 0;
-
-    // Filter out known binary extensions
-    const searchableFiles = fileTree.filter((f) => {
-      const ext = f.split(".").pop()?.toLowerCase() || "";
-      const binaryExts = new Set([
-        "png", "jpg", "jpeg", "gif", "ico", "svg", "woff", "woff2",
-        "ttf", "eot", "mp3", "mp4", "webm", "zip", "tar", "gz",
-      ]);
-      return !binaryExts.has(ext);
+    console.debug("[SearchPanel] searching", {
+      containerId,
+      query,
+      fileTreeCount: fileTree.length,
     });
 
-    // Fetch files in parallel batches of 8
-    const batchSize = 8;
-    for (let i = 0; i < searchableFiles.length; i += batchSize) {
-      const batch = searchableFiles.slice(i, i + batchSize);
-      const contents = await Promise.all(
-        batch.map((f) =>
-          fetchFileContent(f).then((c) => ({ file: f, content: c })),
-        ),
-      );
+    try {
+      const res = await fetch(`/api/docker/container/${containerId}/files/search`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, files: fileTree }),
+      });
 
-      for (const { file, content } of contents) {
-        if (!content) continue;
-        const lines = content.split("\n");
-        const lineMatches: LineMatch[] = [];
-
-        for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-          if (lines[lineIdx].toLowerCase().includes(lowerQuery)) {
-            lineMatches.push({
-              lineNumber: lineIdx + 1,
-              lineContent: lines[lineIdx],
-            });
-            matchCount++;
-          }
-        }
-
-        if (lineMatches.length > 0) {
-          results.push({ filePath: file, matches: lineMatches });
-        }
+      if (currentRunId !== searchRunId) {
+        return;
       }
+
+      if (!res.ok) {
+        console.error("[SearchPanel] search API failed", { status: res.status, query });
+        searchResults = [];
+        totalMatchCount = 0;
+        expandedFiles = new Set();
+        isSearching = false;
+        return;
+      }
+
+      const payload = await res.json();
+
+      if (currentRunId !== searchRunId) {
+        return;
+      }
+
+      if (!payload?.success) {
+        console.error("[SearchPanel] search API returned unsuccessful payload", payload);
+        searchResults = [];
+        totalMatchCount = 0;
+        expandedFiles = new Set();
+        isSearching = false;
+        return;
+      }
+
+      const results = (payload.files ?? []) as FileMatch[];
+      const matchCount = Number(payload.totalMatchCount ?? 0);
+
+      searchResults = results;
+      totalMatchCount = Number.isFinite(matchCount) ? matchCount : 0;
+
+      // Expand all file groups by default
+      expandedFiles = new Set(results.map((r) => r.filePath));
+      console.debug("[SearchPanel] search complete", {
+        query,
+        fileCount: results.length,
+        totalMatchCount,
+      });
+    } catch (error) {
+      if (currentRunId !== searchRunId) {
+        return;
+      }
+
+      console.error("[SearchPanel] search request threw", error);
+      searchResults = [];
+      totalMatchCount = 0;
+      expandedFiles = new Set();
     }
 
-    searchResults = results;
-    totalMatchCount = matchCount;
-
-    // Expand all file groups by default
-    expandedFiles = new Set(results.map((r) => r.filePath));
+    if (currentRunId !== searchRunId) {
+      return;
+    }
     isSearching = false;
   }
 
-  // Debounced search trigger
-  $: {
+  function triggerDebouncedSearch() {
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     const q = searchQuery;
     if (q.trim().length >= 2) {
-      searchDebounceTimer = setTimeout(() => performSearch(q), 400);
+      searchDebounceTimer = setTimeout(() => {
+        void performSearch(q);
+      }, 400);
     } else {
+      searchRunId += 1;
+      isSearching = false;
       searchResults = [];
       totalMatchCount = 0;
+      expandedFiles = new Set();
+    }
+  }
+
+  function handleSearchInput() {
+    triggerDebouncedSearch();
+  }
+
+  // Reset results only when the container identity changes.
+  $: if (containerId && containerId !== lastContainerId) {
+    lastContainerId = containerId;
+    searchRunId += 1;
+    searchResults = [];
+    totalMatchCount = 0;
+    expandedFiles = new Set();
+    isSearching = false;
+
+    if (searchQuery.trim().length >= 2) {
+      triggerDebouncedSearch();
     }
   }
 
   function clearSearch() {
+    searchRunId += 1;
+    isSearching = false;
     searchQuery = "";
     searchResults = [];
     totalMatchCount = 0;
@@ -207,6 +227,7 @@
       <input
         type="text"
         bind:value={searchQuery}
+        on:input={handleSearchInput}
         placeholder="Search in files..."
         class="w-full bg-[#0a0e1a] border border-[#27272a] rounded-md pl-8 pr-8 py-1.5 text-sm text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]/50 transition-colors"
       />

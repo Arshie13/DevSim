@@ -160,7 +160,7 @@
         {/if}
 
         <div class="mt-4 flex justify-center">
-          <button on:click={closeCard} class="btn-cyber btn-cyber-solid mission-btn group inline-flex cursor-pointer items-center gap-1.5 !px-6 !py-4 !text-[0.8rem]">
+          <button on:click={closeCard} class="btn-cyber btn-cyber-solid mission-btn group inline-flex cursor-pointer items-center gap-1.5 !px-5 !py-3 !text-[0.8rem]">
             <span>Deploy Into Workspace</span>
             <Play class="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
