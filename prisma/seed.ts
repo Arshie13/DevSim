@@ -32,6 +32,7 @@ async function main() {
   // Clear existing data
   await prisma.completedTask.deleteMany();
   await prisma.containerStack.deleteMany();
+  await prisma.userFileChanges.deleteMany();
   await prisma.container.deleteMany();
   await prisma.acceptanceCriteria.deleteMany();
   await prisma.hint.deleteMany();
