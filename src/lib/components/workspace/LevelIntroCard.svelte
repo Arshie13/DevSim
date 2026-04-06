@@ -60,7 +60,7 @@
 
   $: isFirstProjectCreation = levelConfig?.isFirstProjectCreation ?? false;
 
-  $: greetingTitle = isFirstProjectCreation ? "Welcome to DevSim" : "Welcome Back, Developer!";
+  $: greetingTitle = isFirstProjectCreation ? "Welcome to DevSim" : "Continue your Developer Journey!";
 
   $: deploymentLabel = isFirstProjectCreation ? "Initialize First Workspace" : "Deploy Into Workspace";
 </script>
@@ -118,11 +118,6 @@
 
       <!-- Content -->
       <div class="relative px-5 py-3.5">
-        <div class="mb-3 flex flex-wrap items-center gap-2">
-          <span class="tag-cyber tag-cyan text-[0.64rem]">{isFirstProjectCreation ? "First-Time Launch" : "Returning Operator"}</span>
-          <span class="tag-cyber tag-purple text-[0.64rem]">XP +{totalCount * 40}</span>
-        </div>
-
         {#if totalCount > 0}
           <div class="mb-3 border border-[rgba(7,165,201,0.26)] bg-[rgba(18,25,42,0.74)] p-2.5">
             <div class="mb-1.5 flex items-center justify-between">
