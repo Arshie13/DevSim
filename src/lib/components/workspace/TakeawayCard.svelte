@@ -13,15 +13,21 @@
   export let currentIndex: number = 0;
   export let displayedText: string = '';
   export let isTyping = false;
+  export let cardHeight: number = 0;
   export let onPrev: () => void = () => {};
   export let onNext: () => void = () => {};
   export let onClose: () => void = () => {};
+
+  // ✅ expose content wrapper to parent
+  export let contentWrapperRef: HTMLDivElement;
 </script>
 
-<div class="takeaway-card">
+<div class="takeaway-card" class:is-typing={isTyping}>
   <TakeawayHeader {takeawayChunks} {currentIndex} />
 
-  <TakeawayContent {displayedText} {isTyping} />
+  <div class="content-wrapper" bind:this={contentWrapperRef}>
+    <TakeawayContent {displayedText} {isTyping} />
+  </div>
 
   <TakeawayNavigation
     {takeawayChunks}
@@ -41,7 +47,20 @@
     padding: 16px;
     box-shadow: 0 8px 32px rgba(6, 182, 212, 0.1);
     backdrop-filter: blur(8px);
-    max-width: 500px;
+    width: 100%;
+    max-width: 420px;
+    height: 400px; /* Fixed height */
+    display: flex;
+    flex-direction: column;
     margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+
+    /* ✅ removed max-height */
   }
 </style>
