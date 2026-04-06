@@ -155,9 +155,11 @@
         scenario: currentLevelRecord?.levelDescription ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
         hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
         starterFiles: LEVEL_CONFIG.starterFiles,
-        tasks: tasks,
       }
     : LEVEL_CONFIG;
+
+  $: operatorAlias = data.user?.username || data.user?.name || "Operator";
+  $: workspaceProjectName = workspaceScenario?.name || title || "DevSim Workspace";
 
   // Track onboarding state - initialize from URL
   let isInOnboarding = page.url.searchParams.get("onboarding") === "1";
@@ -1123,7 +1125,6 @@
       timeRemaining,
       isRunning,
       isDownloading,
-      tasks,
       onBack: handleBack,
       onRun: runDevServer,
       onStop: stopDevServer,
@@ -1203,9 +1204,6 @@
             <BoardPanel
               scenario={actualLevelConfig.scenario}
               {tasks}
-              completedTasks={tasks.filter(t => t.isCompleted).length}
-              totalTasks={tasks.length}
-              currentLevel={currentLevel}
               onTaskStatusChange={handleTaskStatusChange}
             />
           </div>
@@ -1314,6 +1312,11 @@
   isOpen={levelIntroCardOpen}
   levelDescription={actualLevelConfig?.scenario ?? ''}
   tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
+  levelConfig={{
+    isFirstProjectCreation: hasEverBeenInOnboarding,
+    operatorAlias,
+    projectName: workspaceProjectName
+  }}
   onClose={() => {
     levelIntroCardOpen = false;
     activeTab = 'board';

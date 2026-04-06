@@ -7,6 +7,11 @@
   export let onClose: () => void = () => {};
   export let levelDescription: string = "";
   export let tasks: { id: string | number; text: string; completed?: boolean }[] = [];
+  export let levelConfig: {
+    isFirstProjectCreation?: boolean;
+    operatorAlias?: string;
+    projectName?: string;
+  } = {};
 
   let isAnimatingOut = false;
   let isVisible = false;
@@ -52,6 +57,12 @@
   $: totalCount = tasks?.length || 0;
   $: progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   $: activeObjectiveIndex = tasks?.findIndex(t => !t.completed) ?? -1;
+
+  $: isFirstProjectCreation = levelConfig?.isFirstProjectCreation ?? false;
+
+  $: greetingTitle = isFirstProjectCreation ? "Welcome to DevSim" : "Welcome Back, Developer!";
+
+  $: deploymentLabel = isFirstProjectCreation ? "Initialize First Workspace" : "Deploy Into Workspace";
 </script>
 
 {#if mounted}
@@ -67,7 +78,7 @@
 
     <!-- Card -->
     <div
-      class="modal-card relative flex max-h-[92vh] w-[min(520px,94vw)] flex-col overflow-hidden border border-[var(--card-border)] bg-[var(--bg-light)]"
+      class="modal-card relative flex w-[min(560px,94vw)] flex-col overflow-hidden border border-[rgba(7,165,201,0.17)] bg-[color-mix(in_oklab,var(--bg)_72%,var(--bg-light)_28%)]"
       class:visible={isVisible}
       class:animating-out={isAnimatingOut}
     >
@@ -75,25 +86,29 @@
       <div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent),transparent)]"></div>
 
       <!-- Header -->
-      <div class="relative flex items-start justify-between border-b border-[rgba(7,165,201,0.2)] px-5 py-4">
-        <div class="flex items-start gap-3">
-          <div class="ring-pulse relative mt-0.5 flex h-9 w-9 items-center justify-center border border-[rgba(7,165,201,0.4)] bg-[rgba(7,165,201,0.12)]">
+      <div class="mission-header relative flex items-start justify-between border-b border-[rgba(7,165,201,0.2)] px-5 py-3.5">
+        <div class="relative z-[1] flex items-start gap-3">
+          <div class="ring-pulse mission-icon relative mt-0.5 flex h-9 w-9 items-center justify-center border border-[rgba(7,165,201,0.38)] bg-[rgba(7,165,201,0.12)]">
             <Target class="h-4 w-4 text-[var(--accent)]" />
           </div>
 
-          <div class="space-y-0.5">
-            <span class="tag-cyber tag-cyan inline-flex items-center text-[0.6rem]">Workspace Mission</span>
-            <h2 class="font-heading text-[1rem] font-bold uppercase tracking-[0.11em] text-[var(--text-primary)]">
-              DevSim // Level {levelNumber}
+          <div class="space-y-1">
+            <h2 class="greeting-title font-heading text-[1.08rem] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
+              {greetingTitle}
             </h2>
-            <p class="font-label text-[0.66rem] uppercase tracking-[0.07em] text-[var(--text-muted)]">
-              {levelTitle || "Objective Sync Active"}
-            </p>
+            <span class="level-chip inline-flex items-center border border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.09)] px-2 py-0.5 font-label text-[0.68rem] uppercase tracking-[0.08em] text-[var(--text-muted)]">
+              Level {levelNumber}
+            </span>
+            {#if levelTitle}
+              <p class="font-label text-[0.68rem] uppercase tracking-[0.08em] text-[var(--accent)]">
+                Current mission: {levelTitle}
+              </p>
+            {/if}
           </div>
         </div>
 
         <button
-          class="flex h-8 w-8 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-muted)] transition-all duration-200 hover:border-[rgba(255,56,96,0.28)] hover:bg-[rgba(255,56,96,0.12)] hover:text-[var(--danger)]"
+          class="close-btn relative z-[1] flex h-8 w-8 cursor-pointer items-center justify-center border border-[rgba(7,165,201,0.2)] bg-[rgba(7,165,201,0.05)] text-[var(--text-muted)] transition-all duration-200 hover:border-[rgba(255,56,96,0.28)] hover:bg-[rgba(255,56,96,0.1)] hover:text-[var(--danger)]"
           on:click={closeCard}
           aria-label="Close mission briefing"
         >
@@ -102,25 +117,30 @@
       </div>
 
       <!-- Content -->
-      <div class="relative flex-1 overflow-y-auto px-5 py-4">
+      <div class="relative px-5 py-3.5">
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="tag-cyber tag-cyan text-[0.64rem]">{isFirstProjectCreation ? "First-Time Launch" : "Returning Operator"}</span>
+          <span class="tag-cyber tag-purple text-[0.64rem]">XP +{totalCount * 40}</span>
+        </div>
+
         {#if totalCount > 0}
-          <div class="mb-4 border border-[rgba(7,165,201,0.3)] bg-[var(--surface)] p-2.5">
+          <div class="mb-3 border border-[rgba(7,165,201,0.26)] bg-[rgba(18,25,42,0.74)] p-2.5">
             <div class="mb-1.5 flex items-center justify-between">
-              <span class="font-label text-[0.62rem] uppercase tracking-[0.09em] text-[var(--accent)]">Mission Progress</span>
-              <span class="font-label text-[0.66rem] text-[var(--text-muted)]">{progressPercent.toFixed(0)}% synced</span>
+              <span class="font-label text-[0.68rem] uppercase tracking-[0.09em] text-[var(--accent)]">Mission Progress</span>
+              <span class="font-label text-[0.72rem] text-[var(--text-muted)]">{progressPercent.toFixed(0)}% synced</span>
             </div>
             <div class="xp-track">
               <div class="xp-fill" style="width: {progressPercent}%"></div>
             </div>
-            <p class="mt-1.5 font-label text-[0.62rem] text-[var(--text-muted)]">{completedCount}/{totalCount} objectives completed</p>
+            <p class="mt-1.5 font-label text-[0.68rem] text-[var(--text-muted)]">{completedCount}/{totalCount} objectives completed</p>
           </div>
         {/if}
 
         {#if levelDescription}
-          <div class="mb-4">
-            <h3 class="font-label text-[0.64rem] uppercase tracking-[0.09em] text-[var(--accent)]">Intel</h3>
-            <div class="mt-1.5 border border-[var(--card-border)] bg-[var(--surface)] p-3">
-              <p class="font-body text-[0.85rem] leading-relaxed text-[var(--text-primary)]">
+          <div class="mb-3">
+            <h3 class="font-label text-[0.7rem] uppercase tracking-[0.09em] text-[var(--accent)]">Intel</h3>
+            <div class="mt-1.5 border border-[rgba(7,165,201,0.22)] bg-[rgba(18,25,42,0.74)] p-3">
+              <p class="font-body text-[0.86rem] leading-relaxed text-[var(--text-primary)]">
                 {levelDescription}
               </p>
             </div>
@@ -129,15 +149,15 @@
 
         {#if tasks && tasks.length > 0}
           <div>
-            <div class="mb-2.5 flex items-center justify-between">
-              <h3 class="font-label text-[0.64rem] uppercase tracking-[0.09em] text-[var(--accent)]">Objectives</h3>
-              <span class="tag-cyber tag-purple text-[0.58rem]">XP +{totalCount * 40}</span>
+            <div class="mb-2 flex items-center justify-between">
+              <h3 class="font-label text-[0.7rem] uppercase tracking-[0.09em] text-[var(--accent)]">Mission Objectives</h3>
+              <span class="font-label text-[0.68rem] text-[var(--text-muted)]">{completedCount}/{totalCount} done</span>
             </div>
 
-            <ul class="space-y-2">
+            <ul class="space-y-1.5">
               {#each tasks as task, index}
                 <li
-                  class="objective-row flex items-center gap-2.5 border border-[var(--card-border)] bg-[var(--surface)] p-2.5 transition-all duration-200"
+                  class="objective-row flex items-center gap-2.5 border border-[rgba(7,165,201,0.2)] bg-[rgba(18,25,42,0.74)] p-2 transition-all duration-200"
                   class:is-completed={task.completed}
                   class:is-active={!task.completed && index === activeObjectiveIndex}
                 >
@@ -149,8 +169,8 @@
                     {/if}
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="font-body text-[0.82rem] leading-snug text-[var(--text-primary)]" class:task-done={task.completed}>
-                      <span class="mr-1.5 font-label text-[0.64rem] text-[var(--text-muted)]">[{index + 1}]</span>{task.text}
+                    <p class="font-body text-[0.84rem] leading-snug text-[var(--text-primary)]" class:task-done={task.completed}>
+                      <span class="mr-1.5 font-label text-[0.7rem] text-[var(--text-muted)]">[{index + 1}]</span>{task.text}
                     </p>
                   </div>
                 </li>
@@ -160,8 +180,8 @@
         {/if}
 
         <div class="mt-4 flex justify-center">
-          <button on:click={closeCard} class="btn-cyber btn-cyber-solid mission-btn group inline-flex cursor-pointer items-center gap-1.5 !px-5 !py-3 !text-[0.8rem]">
-            <span>Deploy Into Workspace</span>
+          <button on:click={closeCard} class="btn-cyber btn-cyber-solid mission-btn group inline-flex cursor-pointer items-center gap-1.5 !px-4 !py-2 !text-[0.82rem]">
+            <span>{deploymentLabel}</span>
             <Play class="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </div>
@@ -177,8 +197,8 @@
     transition: all 0.35s ease;
     border-radius: 4px;
     box-shadow:
-      0 0 0 1px rgba(7, 165, 201, 0.07),
-      0 0 40px rgba(7, 165, 201, 0.12),
+      0 0 0 1px rgba(7, 165, 201, 0.06),
+      0 0 36px rgba(7, 165, 201, 0.1),
       0 24px 48px rgba(0, 0, 0, 0.55);
   }
 
@@ -186,7 +206,7 @@
     position: absolute;
     inset: -1px;
     border-radius: 5px;
-    background: linear-gradient(135deg, rgba(7, 165, 201, 0.3), transparent 60%, rgba(7, 165, 201, 0.18));
+    background: linear-gradient(135deg, rgba(7, 165, 201, 0.22), transparent 62%, rgba(7, 165, 201, 0.14));
     z-index: -1;
     pointer-events: none;
     animation: border-pulse 3s ease-in-out infinite alternate;
@@ -203,11 +223,37 @@
     transition: all 0.2s ease-out;
   }
 
+  .mission-header {
+    background:
+      linear-gradient(180deg, rgba(7, 165, 201, 0.07), transparent 71%),
+      linear-gradient(90deg, rgba(7, 165, 201, 0.06), transparent 41%);
+    overflow: hidden;
+  }
+
+  .mission-icon {
+    box-shadow:
+      inset 0 0 0 1px rgba(7, 165, 201, 0.14),
+      0 0 14px rgba(7, 165, 201, 0.2);
+  }
+
+  .greeting-title {
+    text-shadow: 0 0 11px rgba(7, 165, 201, 0.15);
+  }
+
+  .level-chip {
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(7, 165, 201, 0.1);
+  }
+
+  .close-btn {
+    border-radius: 2px;
+  }
+
   .ring-pulse::after {
     content: "";
     position: absolute;
     inset: -4px;
-    border: 1px solid rgba(7, 165, 201, 0.4);
+    border: 1px solid rgba(7, 165, 201, 0.34);
     opacity: 0;
     animation: ping-ring 2.2s ease-out infinite;
   }
@@ -250,7 +296,7 @@
   .objective-row:hover {
     transform: translateX(4px);
     border-color: var(--card-hover);
-    background: rgba(7, 165, 201, 0.08);
+    background: rgba(7, 165, 201, 0.07);
   }
 
   .objective-row:hover::before {
@@ -259,10 +305,10 @@
 
   .objective-row.is-active {
     border-color: rgba(7, 165, 201, 0.72);
-    background: rgba(7, 165, 201, 0.14);
+    background: rgba(7, 165, 201, 0.12);
     box-shadow:
-      0 0 0 1px rgba(7, 165, 201, 0.2),
-      0 0 16px rgba(7, 165, 201, 0.24);
+      0 0 0 1px rgba(7, 165, 201, 0.18),
+      0 0 15px rgba(7, 165, 201, 0.22);
     animation: active-step-pulse 1.6s ease-in-out infinite;
   }
 
@@ -272,7 +318,7 @@
 
   .objective-row.is-completed {
     border-color: rgba(0, 229, 160, 0.35);
-    background: rgba(0, 229, 160, 0.08);
+    background: rgba(0, 229, 160, 0.07);
   }
 
   .objective-row.is-completed::before {
