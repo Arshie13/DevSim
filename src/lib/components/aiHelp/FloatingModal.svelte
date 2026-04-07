@@ -170,7 +170,7 @@
               <div class="flex flex-col items-center justify-center h-full text-center py-4">
                 <AlertTriangle class="w-8 h-8 text-yellow-500/50 mb-2" />
                 <p class="text-gray-400 text-xs">SAZ provides hints, not complete code solutions.</p>
-                <p class="text-gray-500 text-xs mt-0.5">Use hints wisely to maximize learning!</p>
+                <p class="text-gray-500 text-xs mt-0.5">AI responses can be wrong, so always verify important details.</p>
               </div>
             {:else}
               <!-- Show history items -->
@@ -208,6 +208,12 @@
               </div>
             {/if}
           </Scrollbar>
+        </div>
+
+        <!-- AI Reliability Reminder -->
+        <div class="px-3 py-1.5 border-t border-cyan-500/20 bg-slate-900/40">
+          <p class="text-[10px] leading-relaxed text-yellow-300/90">AI can make mistakes. Double-check critical code, commands, and outputs.</p>
+          <p class="text-[10px] leading-relaxed text-gray-400">Use specific prompts with files, errors, and goals. Vague prompts can increase hallucinations.</p>
         </div>
 
         <!-- Cost Display -->

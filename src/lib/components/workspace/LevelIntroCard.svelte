@@ -135,7 +135,7 @@
           <div class="mb-3">
             <h3 class="font-label text-[0.7rem] uppercase tracking-[0.09em] text-[var(--accent)]">Intel</h3>
             <div class="mt-1.5 border border-[rgba(7,165,201,0.22)] bg-[rgba(18,25,42,0.74)] p-3">
-              <p class="font-body text-[0.86rem] leading-relaxed text-[var(--text-primary)]">
+              <p class="font-body text-[0.82rem] leading-relaxed text-[var(--text-primary)]">
                 {levelDescription}
               </p>
             </div>
@@ -175,9 +175,9 @@
         {/if}
 
         <div class="mt-4 flex justify-center">
-          <button on:click={closeCard} class="btn-cyber btn-cyber-solid mission-btn group inline-flex cursor-pointer items-center gap-1.5 !px-4 !py-2 !text-[0.82rem]">
+          <button on:click={closeCard} class="btn-cyber btn-cyber-solid mission-btn group inline-flex cursor-pointer items-center gap-1.5 !px-4 !py-2 !text-[0.78rem]">
             <span>{deploymentLabel}</span>
-            <Play class="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            <Play class="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>

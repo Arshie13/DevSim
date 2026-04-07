@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import { formatMessage as formatMessageContent } from "$lib/ai";
+  import BubbleCloud from "$lib/components/ui/BubbleCloud.svelte";
   import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
 
   export let quickHintMessage: string = "";
@@ -42,6 +43,25 @@
   let typeIndex = 0;
   let typeInterval: ReturnType<typeof setInterval> | null = null;
   const TYPE_SPEED = 20; // ms per character
+
+  const REMINDERS = [
+    "AI can make mistakes. Verify important details.",
+    "Use specific prompts with files, errors, and goals.",
+    "Vague prompts can increase AI hallucinations."
+  ];
+  let activeReminder = REMINDERS[Math.floor(Math.random() * REMINDERS.length)];
+  let wasLoading = quickHintLoading;
+  let shouldPickReminderAfterLoad = false;
+  let lastReminderHintKey = "";
+
+  function pickRandomReminder(): string {
+    const next = REMINDERS[Math.floor(Math.random() * REMINDERS.length)];
+    if (REMINDERS.length > 1 && next === activeReminder) {
+      const fallbackIndex = (REMINDERS.indexOf(next) + 1) % REMINDERS.length;
+      return REMINDERS[fallbackIndex];
+    }
+    return next;
+  }
 
   // Get plain text from HTML content
   function stripHtml(html: string): string {
@@ -113,6 +133,34 @@
     }
   }
 
+  // Pick one reminder per hint session: when loading starts, arm update;
+  // when loading ends and a hint exists, pick once and keep it stable.
+  $: {
+    if (quickHintLoading && !wasLoading) {
+      shouldPickReminderAfterLoad = true;
+    }
+
+    const stableHintKey = stripHtml(quickHintMessage || "").trim();
+    const hasHintText = Boolean(stableHintKey);
+
+    // Hint text can arrive slightly after loading flips to false, so keep the
+    // session armed until text exists, then pick exactly once.
+    if (!quickHintLoading && shouldPickReminderAfterLoad && hasHintText) {
+      activeReminder = pickRandomReminder();
+      shouldPickReminderAfterLoad = false;
+      lastReminderHintKey = stableHintKey;
+    }
+
+    // Fallback path: if no loading transition happens, rotate once when
+    // the session's root hint message changes.
+    if (!quickHintLoading && !shouldPickReminderAfterLoad && hasHintText && stableHintKey !== lastReminderHintKey) {
+      activeReminder = pickRandomReminder();
+      lastReminderHintKey = stableHintKey;
+    }
+
+    wasLoading = quickHintLoading;
+  }
+
   // Reset tracking when a completely new message arrives
   $: if (quickHintMessage && hintChunks.length > 0) {
     // Check if this is a new message (different from previous)
@@ -130,95 +178,8 @@
   });
 </script>
 
-<!--
-  LAYOUT LOGIC:
-  - viewBox="0 0 560 380" — coordinate space (expanded for more content)
-  - svg width="560"       — 1:1 rendering, no scaling
-  - Cloud body occupies roughly x:30..530, y:14..328
-  - The cloud is narrowest at far left (x≈30) and far right (x≈530)
-    and also indented at top-left & top-right bumps.
-  - Safe content rectangle (well inside all bumps):
-      x=100, y=30, width=360, height=280
-  - Thought trail exits bottom-right of cloud → down toward avatar
--->
 <div class="animate-float" style="position: relative; z-index: 9999;">
-  <svg
-    width="560"
-    viewBox="0 0 520 350"
-    xmlns="http://www.w3.org/2000/svg"
-    style="overflow: visible; display: block;"
-  >
-    <!--
-      CLOUD PATH (expanded for larger bubble)
-      Safe interior is x:100-460, y:30-310
-      All bumps protrude OUTSIDE that rectangle.
-      Path goes clockwise from bottom-left.
-    -->
-
-    <!-- Glow halo -->
-    <path d="
-      M130,312 Q74,314 54,278 Q34,242 54,218
-      Q30,198 36,168 Q44,138 78,128
-      Q66,102 86,82 Q110,60 140,70
-      Q146,46 176,38 Q210,28 234,48
-      Q256,30 286,36 Q320,42 332,68
-      Q352,50 380,62 Q410,76 406,106
-      Q430,116 440,146 Q452,180 432,204
-      Q452,222 444,252 Q434,276 402,276
-      Q392,296 364,296 Q350,282 336,292
-      Q310,306 282,296 Q258,308 234,294
-      Q206,308 180,296 Q154,306 134,290
-      Q112,302 130,312Z
-    "
-      fill="none"
-      stroke="rgba(6,182,212,0.18)"
-      stroke-width="10"
-    />
-    <path d="
-      M130,312 Q74,314 54,278 Q34,242 54,218
-      Q30,198 36,168 Q44,138 78,128
-      Q66,102 86,82 Q110,60 140,70
-      Q146,46 176,38 Q210,28 234,48
-      Q256,30 286,36 Q320,42 332,68
-      Q352,50 380,62 Q410,76 406,106
-      Q430,116 440,146 Q452,180 432,204
-      Q452,222 444,252 Q434,276 402,276
-      Q392,296 364,296 Q350,282 336,292
-      Q310,306 282,296 Q258,308 234,294
-      Q206,308 180,296 Q154,306 134,290
-      Q112,302 130,312Z
-    "
-      fill="#0f172a"
-      stroke="rgba(6,182,212,0.65)"
-      stroke-width="2"
-    />
-
-    <!-- Thought trail — exits bottom-right, cascades toward avatar -->
-    <circle cx="444" cy="316" r="12" fill="#0f172a" stroke="rgba(6,182,212,0.55)" stroke-width="2"/>
-    <circle cx="468" cy="340" r="8"  fill="#0f172a" stroke="rgba(6,182,212,0.40)" stroke-width="1.5"/>
-    <circle cx="488" cy="360" r="5"  fill="#0f172a" stroke="rgba(6,182,212,0.28)" stroke-width="1.5"/>
-
-    <!--
-      CONTENT — strictly inside safe zone x:100, y:30, w:360, h:280
-      Left inset 100px accounts for the left-side bumps (~x:30-100 zone)
-      Right edge 100+360=460 stays left of right bumps (~x:465+ zone)
-      Top inset 30px clears top bumps (~y:2-30 zone)
-      Bottom 30+280=310 stays above bottom bumps (~y:312+ zone)
-    -->
-    <foreignObject x="85" y="75" width="320" height="200">
-      <div
-        xmlns="http://www.w3.org/1999/xhtml"
-        style="
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          padding: 8px 10px 8px 10px;
-          box-sizing: border-box;
-          font-family: sans-serif;
-          overflow: hidden;
-        "
-      >
+  <BubbleCloud width={560} viewBox="0 0 520 350" contentX={85} contentY={75} contentWidth={320} contentHeight={200} contentPadding="8px 10px 2px">
         <!-- Header -->
         <div style="
           display: flex;
@@ -290,7 +251,6 @@
             </div>
           {/if}
 
-
           <!-- Coins footer -->
           <div style="
             display:flex;justify-content:space-between;
@@ -299,9 +259,10 @@
             <span style="font-size:11px;color:#6b7280;">💰 -{displayedCost} coins</span>
             <span style="font-size:11px;color:#6b7280;">Remaining: {initialCoins}</span>
           </div>
-      </div>
-    </foreignObject>
-  </svg>
+
+          <!-- AI reminder -->
+          <p style="font-size:10px;color:#9ca3af;margin:4px 0 0;line-height:1.35;text-align:center;flex-shrink:0;">{activeReminder}</p>
+  </BubbleCloud>
 </div>
 
 <style>

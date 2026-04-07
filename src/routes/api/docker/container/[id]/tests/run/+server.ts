@@ -61,7 +61,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
       `[TEST RUN] Container: ${containerId}, Command: ${command}, Level: ${level}, Type: ${type}`
     );
 
-    // Get container info to find the workspace path
     const containerInfo = await getContainerInfo(containerId);
     if (!containerInfo) {
       return json(
@@ -77,18 +76,15 @@ export const POST: RequestHandler = async ({ params, request }) => {
       );
     }
 
-    // Build the full npm command
     const npmCommand = buildNpmCommand(command, level, taskId);
     console.log(`[TEST RUN] Executing: ${npmCommand}`);
 
-    // Execute the test command in the container
     const startTime = Date.now();
     const { output, exitCode, error } = await executeTestInContainer(containerId, npmCommand);
     const duration = Date.now() - startTime;
 
     console.log(`[TEST RUN] Completed in ${duration}ms with exit code: ${exitCode}`);
 
-    // Parse test results from output
     const parsedResults = parseTestOutput(output, exitCode);
 
     const response: TestRunResponse = {
@@ -105,7 +101,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
       errors: error ? [error] : undefined
     };
 
-    // Add task results for level tests
     if (type === 'level') {
       const levelConfigTaskIds =
         getLevelConfig(level)?.tasks.map((task) => task.taskId) ?? [];
@@ -190,7 +185,7 @@ async function executeTestInContainer(
     const shellCmd = `cd ${shellEscape(workspaceDir)} && NODE_ENV=test ${command}`;
     console.log(`[TEST EXEC] dockerode exec in ${workspaceDir}: ${command}`);
 
-    let firstRun = await runShellCommandInContainer(containerId, shellCmd, TEST_TIMEOUT);
+    const firstRun = await runShellCommandInContainer(containerId, shellCmd, TEST_TIMEOUT);
     let output =
       firstRun.stdout + (firstRun.stderr ? `\nSTDERR:\n${firstRun.stderr}` : '');
 
@@ -333,9 +328,7 @@ function shellEscape(value: string): string {
 
 interface TaskBucket {
   results: TestResult[];
-  /** false as soon as any test in this bucket fails */
   passed: boolean;
-  /** exit code reported by "exited with code N" line for this task label */
   exitCode: number | null;
 }
 
@@ -345,10 +338,6 @@ interface ParsedTestResults {
   passedCount: number;
   failedCount: number;
   results: TestResult[];
-  /**
-   * Per-task buckets keyed by task number string e.g. "1", "2".
-   * Populated from the [test:task:...:tN] concurrently prefixes in the output.
-   */
   resultsByTaskNumber: Map<string, TaskBucket>;
 }
 
@@ -356,78 +345,157 @@ interface ParsedTestResults {
 // Output parser
 // ---------------------------------------------------------------------------
 
-/**
- * Strips ANSI escape codes from a string.
- */
 function stripAnsi(str: string): string {
   // eslint-disable-next-line no-control-regex
   return str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
 }
 
 /**
- * Extracts the task number from a concurrently label like:
- *   [test:task:client:l2:t1]  →  "1"
- *   [test:task:server:l1:t2]  →  "2"
- *   [test:task:l3:t1]         →  "1"
+ * parseTestOutput handles THREE output formats produced by npm test scripts:
  *
- * Returns null if the line has no recognisable concurrently prefix.
- */
-function extractConcurrentlyTaskNumber(label: string): string | null {
-  // Label format from concurrently: [test:task:(client|server|):lN:tM]
-  const m = label.match(/\[test:task:[^\]]*:t(\d+)\]/i);
-  return m ? m[1] : null;
-}
-
-/**
- * Parses the interleaved concurrently output into per-task buckets.
+ * 1. CONCURRENT (`concurrently "npm:test:task:client:l2:t1" "npm:test:task:client:l2:t2"`)
+ *    Every line is prefixed: [test:task:client:l2:t1] ✓ ...
+ *    Task number is read directly from the prefix.
  *
- * Every line emitted by `concurrently` is prefixed with the process label,
- * e.g.:
- *   [test:task:client:l2:t1] ✓ ../tests/client/level-2/task-1/borrow-availability.test.ts
- *   [test:task:client:l2:t2] × should keep only helper-available books...
+ * 2. SEQUENTIAL (`npm run test:task:client:l1:t2 && npm run test:task:client:l1:t1`)
+ *    No line prefix. npm prints a script header before each task's Vitest output:
+ *      > library-management@1.0.0 test:task:client:l1:t2
+ *    Task number is read from that header, then all subsequent Vitest lines until
+ *    the next header belong to that task.
  *
- * We use that prefix to attribute each line — and therefore each test result
- * and exit code — to the correct task bucket.
- *
- * For single-task runs there is no concurrently prefix, so we fall back to
- * the original line-scanning logic.
+ * 3. SINGLE TASK (one task run directly)
+ *    No prefix, no multi-task headers. All results belong to the one task.
  */
 function parseTestOutput(output: string, exitCode: number): ParsedTestResults {
   const resultsByTaskNumber = new Map<string, TaskBucket>();
   const allResults: TestResult[] = [];
   let testIdCounter = 0;
 
-  // Strip ANSI from the whole output once up front.
   const cleanOutput = stripAnsi(output);
   const lines = cleanOutput.split('\n');
 
-  // Check whether this is a concurrently run by looking for the label prefix.
+  // ── Detect run mode ────────────────────────────────────────────────────────
+
+  // Concurrent: lines start with [test:task:...:tN]
   const isConcurrentRun = lines.some((l) =>
-    /^\[test:task:[^\]]*:t\d+\]/i.test(l.trim())
+    /^\s*\[test:task:[^\]]*:t\d+\]/i.test(l)
   );
 
+  // Sequential (&&): npm prints "> pkg-name@ver script-name" headers with :tN in the script name.
+  // We detect this by finding such a header that contains a task number.
+  const isSequentialRun =
+    !isConcurrentRun &&
+    lines.some((l) => /^>\s+\S+@\S+\s+[^\s]*:t\d+/.test(l.trim()));
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function ensureBucket(taskNum: string): TaskBucket {
+    if (!resultsByTaskNumber.has(taskNum)) {
+      resultsByTaskNumber.set(taskNum, { results: [], passed: true, exitCode: null });
+    }
+    return resultsByTaskNumber.get(taskNum)!;
+  }
+
+  /**
+   * Process a single content line (after stripping any concurrently prefix).
+   * Mutates `bucket` and `allResults`.
+   */
+  function processVitestLine(content: string, bucket: TaskBucket): void {
+    // ---- File-level summary line ----------------------------------------
+    // All-passing:  "✓ ../tests/.../task-1/foo.test.ts (8 tests) 22ms"
+    // With failures:"❯ ../tests/.../task-2/bar.test.ts (3 tests | 3 failed) 79ms"
+    //
+    // When ALL tests in a file pass, Vitest only emits this one summary line —
+    // it does NOT emit individual ✓ lines per test. We read the "(N tests)"
+    // count and synthesise N passing results so the UI shows "8/8" not "1/1".
+    // Failing individual lines (×) are handled separately below.
+    const fileSummaryMatch = content.match(
+      /^[✓✔❯▶]\s+\S+\.test\.[jt]sx?\s+\((\d+)\s+tests?(?:\s*\|\s*(\d+)\s+failed)?\)/
+    );
+    if (fileSummaryMatch) {
+      const totalTests = parseInt(fileSummaryMatch[1], 10);
+      const failedTests = parseInt(fileSummaryMatch[2] ?? '0', 10);
+      const passedTests = totalTests - failedTests;
+      for (let i = 0; i < passedTests; i++) {
+        const r: TestResult = {
+          testId: `test-${++testIdCounter}`,
+          testName: `Test ${i + 1}`,
+          passed: true,
+          message: 'Test passed'
+        };
+        bucket.results.push(r);
+        allResults.push(r);
+      }
+      if (failedTests > 0) bucket.passed = false;
+      return;
+    }
+
+    // ---- Individual passing test line --------------------------------------
+    // Vitest emits these only when the file has a mix of pass/fail results.
+    // "  ✓ some test name 12ms"
+    const passMatch = content.match(/^[✓✔]\s+(.+?)(?:\s+\d+(?:\.\d+)?\s*(?:ms|s))?$/);
+    if (passMatch) {
+      const testName = passMatch[1].trim();
+      if (!/\.test\.[jt]sx?/.test(testName)) {
+        const r: TestResult = {
+          testId: `test-${++testIdCounter}`,
+          testName,
+          passed: true,
+          message: 'Test passed'
+        };
+        bucket.results.push(r);
+        allResults.push(r);
+      }
+      return;
+    }
+
+    // ---- Individual failing test line --------------------------------------
+    // "  × should keep only helper-available books 43ms"
+    // "  ✕ some test name"
+    const failMatch = content.match(/^[✗✕×]\s+(.+?)(?:\s+\d+(?:\.\d+)?\s*(?:ms|s))?$/);
+    if (failMatch) {
+      const testName = failMatch[1].trim();
+      if (!/\.test\.[jt]sx?/.test(testName)) {
+        const r: TestResult = {
+          testId: `test-${++testIdCounter}`,
+          testName,
+          passed: false,
+          message: 'Test failed'
+        };
+        bucket.results.push(r);
+        bucket.passed = false;
+        allResults.push(r);
+      }
+      return;
+    }
+
+    // ---- Vitest footer summary lines (safety net) -------------------------
+    // "      Tests  7 failed (7)"
+    const summaryFailMatch = content.match(/^\s*Tests\s+\d+\s+failed/i);
+    if (summaryFailMatch) {
+      bucket.passed = false;
+    }
+  }
+
+  // ── Parse ──────────────────────────────────────────────────────────────────
+
   if (isConcurrentRun) {
-    // ------------------------------------------------------------------
-    // CONCURRENT RUN — parse line-by-line using the concurrently prefix.
-    // ------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // CONCURRENT RUN
+    // Each line: "[test:task:client:l2:t1] <content>"
+    // Task number extracted directly from the prefix.
+    // Ground truth per task: "npm run ... exited with code N"
+    // ------------------------------------------------------------------------
     for (const rawLine of lines) {
       const line = rawLine.trim();
-
-      // Extract the concurrently label prefix e.g. "[test:task:client:l2:t1]"
-      const prefixMatch = line.match(/^(\[test:task:[^\]]*:t(\d+)\])\s*(.*)/i);
+      const prefixMatch = line.match(/^\[test:task:[^\]]*:t(\d+)\]\s*(.*)/i);
       if (!prefixMatch) continue;
 
-      const taskNumber = prefixMatch[2];            // "1" or "2"
-      const content = prefixMatch[3];               // rest of the line after the prefix
+      const taskNumber = prefixMatch[1];
+      const content = prefixMatch[2];
+      const bucket = ensureBucket(taskNumber);
 
-      // Ensure the bucket exists for this task number.
-      if (!resultsByTaskNumber.has(taskNumber)) {
-        resultsByTaskNumber.set(taskNumber, { results: [], passed: true, exitCode: null });
-      }
-      const bucket = resultsByTaskNumber.get(taskNumber)!;
-
-      // ---- Detect "exited with code N" lines emitted by concurrently ----
-      // e.g. "npm run test:task:client:l2:t1 exited with code 0"
+      // Ground-truth exit line emitted by concurrently
       const exitMatch = content.match(/exited with code (\d+)/i);
       if (exitMatch) {
         bucket.exitCode = parseInt(exitMatch[1], 10);
@@ -435,85 +503,91 @@ function parseTestOutput(output: string, exitCode: number): ParsedTestResults {
         continue;
       }
 
-      // ---- Detect individual passing test lines ----
-      // Vitest: "  ✓ some test name 12ms"
-      // Also catches the file-level summary line: "✓ ../tests/.../task-1/foo.test.ts (8 tests) 22ms"
-      const passMatch = content.match(/^[✓✔]\s+(.+?)(?:\s+\d+(?:\.\d+)?\s*(?:ms|s))?(?:\s+\(\d+ tests?\).*)?$/);
-      if (passMatch) {
-        const testName = passMatch[1].trim();
-        // Skip file-level summary lines (they contain ".test.ts" or ".test.tsx")
-        // We still record them so the UI has something to show if no granular lines appear.
-        const isFileSummary = /\.test\.[jt]sx?/.test(testName);
-        if (!isFileSummary) {
-          const result: TestResult = {
-            testId: `test-${++testIdCounter}`,
-            testName,
-            passed: true,
-            message: 'Test passed'
-          };
-          bucket.results.push(result);
-          allResults.push(result);
-        }
+      processVitestLine(content, bucket);
+    }
+
+  } else if (isSequentialRun) {
+    // ------------------------------------------------------------------------
+    // SEQUENTIAL RUN (`&&`)
+    // npm prints a script header before each task's block:
+    //   "> library-management@1.0.0 test:task:client:l1:t2"
+    // Everything until the next such header belongs to that task.
+    //
+    // Because && short-circuits on failure, if task N fails then tasks N+1…
+    // never run. We mark those missing tasks as failed in post-processing.
+    //
+    // Exit code of the overall command: 0 only if ALL tasks passed.
+    // We derive per-task exit codes from the Vitest summary lines since
+    // there is no per-task "exited with code" line in && output.
+    // ------------------------------------------------------------------------
+    let currentTaskNumber: string | null = null;
+    let currentBucket: TaskBucket | null = null;
+
+    for (const rawLine of lines) {
+      const line = stripAnsi(rawLine); // already stripped but be safe
+
+      // Detect npm script header: "> pkg@ver test:task:...:tN"
+      // e.g. "> library-management@1.0.0 test:task:client:l1:t2"
+      const headerMatch = line.trim().match(/^>\s+\S+@\S+\s+[^\s]*:t(\d+)/);
+      if (headerMatch) {
+        currentTaskNumber = headerMatch[1];
+        currentBucket = ensureBucket(currentTaskNumber);
         continue;
       }
 
-      // ---- Detect individual failing test lines ----
-      // Vitest: "  × should keep only helper-available books 43ms"
-      //         "  ✕ some test name"
-      const failMatch = content.match(/^[✗✕×]\s+(.+?)(?:\s+\d+(?:\.\d+)?\s*(?:ms|s))?$/);
-      if (failMatch) {
-        const testName = failMatch[1].trim();
-        const isFileSummary = /\.test\.[jt]sx?/.test(testName);
-        if (!isFileSummary) {
-          const result: TestResult = {
-            testId: `test-${++testIdCounter}`,
-            testName,
-            passed: false,
-            message: 'Test failed'
-          };
-          bucket.results.push(result);
-          bucket.passed = false;
-          allResults.push(result);
-        }
-        continue;
-      }
+      if (!currentBucket) continue; // haven't seen a header yet
 
-      // ---- Detect Vitest "Tests N passed (N)" summary line ----
-      // e.g. "      Tests  8 passed (8)"  or  "      Tests  7 failed (7)"
-      // We use these to set bucket.passed definitively when no individual
-      // test lines were captured (e.g. when the output was truncated).
-      const summaryPassMatch = content.match(/^\s*Tests\s+(\d+)\s+passed/i);
-      if (summaryPassMatch && bucket.exitCode === null) {
-        // Don't override exitCode — we'll resolve it from the "exited with code" line.
-        // But if we somehow missed that, treat this as a passing summary.
-        if (bucket.exitCode === null) {
-          // Keep passed as-is; will be corrected by exitCode below.
-        }
-        continue;
-      }
+      processVitestLine(line.trim(), currentBucket);
+    }
 
-      const summaryFailMatch = content.match(/^\s*Tests\s+\d+\s+failed/i);
-      if (summaryFailMatch) {
+    // Derive per-task exit codes from Vitest summary lines in the raw output.
+    // For each bucket, check if we saw any "Tests N failed" summary attributed
+    // to it. If a bucket has only passing results and no failure markers, it passed.
+    // If the overall exitCode is 0, all tasks passed.
+    for (const [, bucket] of resultsByTaskNumber) {
+      // If we found failing test lines, the bucket is already marked failed.
+      // If no results at all were captured (task never ran due to && short-circuit),
+      // mark as failed — it didn't run because a prior task failed.
+      if (bucket.results.length === 0) {
         bucket.passed = false;
-        continue;
+        bucket.exitCode = 1;
+        const synthetic: TestResult = {
+          testId: `test-${++testIdCounter}`,
+          testName: 'Tests did not run',
+          passed: false,
+          message: 'This task was not executed (a prior task in the sequence failed)'
+        };
+        bucket.results.push(synthetic);
+        allResults.push(synthetic);
+      } else {
+        // exitCode for a sequential task: failed if any result failed
+        const anyFailed = bucket.results.some((r) => !r.passed);
+        bucket.exitCode = anyFailed ? 1 : 0;
+        bucket.passed = !anyFailed;
       }
     }
 
-    // ------------------------------------------------------------------
-    // Post-process: reconcile bucket.passed with the captured exit codes.
-    // The exit-code line is the ground truth — if it says non-zero, the
-    // task failed regardless of what we parsed from individual test lines.
-    // ------------------------------------------------------------------
-    for (const [, bucket] of resultsByTaskNumber) {
-      if (bucket.exitCode !== null && bucket.exitCode !== 0) {
-        bucket.passed = false;
-      }
-      if (bucket.exitCode === 0 && bucket.results.every((r) => r.passed)) {
-        bucket.passed = true;
-      }
+  } else {
+    // ------------------------------------------------------------------------
+    // SINGLE-TASK RUN — no prefix, no multi-task headers.
+    // All results belong to the single task.
+    // ------------------------------------------------------------------------
+    const singleBucket = ensureBucket('1');
+    for (const rawLine of lines) {
+      processVitestLine(rawLine.trim(), singleBucket);
+    }
+    singleBucket.exitCode = exitCode;
+    singleBucket.passed = exitCode === 0;
+  }
 
-      // If we captured no individual test lines but have an exit code,
-      // synthesise a single result so the UI isn't empty.
+  // ── Post-process concurrent buckets (exit code is ground truth) ───────────
+
+  if (isConcurrentRun) {
+    for (const [, bucket] of resultsByTaskNumber) {
+      if (bucket.exitCode !== null) {
+        bucket.passed = bucket.exitCode === 0;
+      }
+      // Synthesise a fallback result if we captured no lines (e.g. truncated output)
       if (bucket.results.length === 0 && bucket.exitCode !== null) {
         const synthetic: TestResult = {
           testId: `test-${++testIdCounter}`,
@@ -525,53 +599,14 @@ function parseTestOutput(output: string, exitCode: number): ParsedTestResults {
         allResults.push(synthetic);
       }
     }
-
-  } else {
-    // ------------------------------------------------------------------
-    // SINGLE-TASK RUN — no concurrently prefix.
-    // Parse the output directly.
-    // ------------------------------------------------------------------
-    for (const rawLine of lines) {
-      const line = stripAnsi(rawLine).trim();
-
-      const passMatch = line.match(/^[✓✔]\s+(.+?)(?:\s+\d+(?:\.\d+)?\s*(?:ms|s))?$/);
-      if (passMatch) {
-        const testName = passMatch[1].trim();
-        if (!/\.test\.[jt]sx?/.test(testName)) {
-          allResults.push({
-            testId: `test-${++testIdCounter}`,
-            testName,
-            passed: true,
-            message: 'Test passed'
-          });
-        }
-        continue;
-      }
-
-      const failMatch = line.match(/^[✗✕×]\s+(.+?)(?:\s+\d+(?:\.\d+)?\s*(?:ms|s))?$/);
-      if (failMatch) {
-        const testName = failMatch[1].trim();
-        if (!/\.test\.[jt]sx?/.test(testName)) {
-          allResults.push({
-            testId: `test-${++testIdCounter}`,
-            testName,
-            passed: false,
-            message: 'Test failed'
-          });
-        }
-        continue;
-      }
-    }
   }
 
-  // ------------------------------------------------------------------
-  // Derive overall summary counts.
-  // ------------------------------------------------------------------
+  // ── Derive overall summary ─────────────────────────────────────────────────
+
   const passedCount = allResults.filter((r) => r.passed).length;
   const failedCount = allResults.filter((r) => !r.passed).length;
-  const total = allResults.length || 1; // avoid division-by-zero in callers
+  const total = allResults.length || 1;
 
-  // Synthesise a result if we parsed nothing at all.
   const finalResults =
     allResults.length > 0
       ? allResults
@@ -580,7 +615,8 @@ function parseTestOutput(output: string, exitCode: number): ParsedTestResults {
             testId: 'test-1',
             testName: exitCode === 0 ? 'All tests' : 'Test suite',
             passed: exitCode === 0,
-            message: exitCode === 0 ? 'Tests completed successfully' : 'One or more tests failed'
+            message:
+              exitCode === 0 ? 'Tests completed successfully' : 'One or more tests failed'
           }
         ];
 
@@ -599,13 +635,14 @@ function parseTestOutput(output: string, exitCode: number): ParsedTestResults {
 // ---------------------------------------------------------------------------
 
 /**
- * Builds per-task TestRunResult entries from the parsed output.
+ * Builds per-task result entries from the parsed output.
  *
- * For concurrent runs, each task has its own bucket in resultsByTaskNumber
- * keyed by the task number string ("1", "2", …).  We derive the task number
- * from the index in taskIds (1-based) and from any digits in the taskId itself.
+ * Works for all three run modes (concurrent, sequential &&, single) because
+ * all three now populate `resultsByTaskNumber` with per-task buckets.
  *
- * This completely replaces the broken modulo-distribution approach.
+ * Task number lookup order:
+ *   1. Index-based key ("1", "2", ...) — always correct for ordered taskIds
+ *   2. Digit suffix of the taskId string ("task-2" → "2")
  */
 function buildTaskResults(
   taskIds: string[],
@@ -617,37 +654,30 @@ function buildTaskResults(
   );
 
   return taskIds.map((taskId, index) => {
-    const taskNumber = String(index + 1); // "1", "2", …
+    const taskNumber = String(index + 1);
 
-    // Also try to extract a number directly from the taskId string
-    // e.g. "task-2" → "2", "t2" → "2"
     const idDigitMatch = taskId.match(/(\d+)$/);
     const taskNumberFromId = idDigitMatch ? idDigitMatch[1] : null;
 
-    // Look up the bucket — prefer the index-based number, fall back to id-based
     const bucket =
       parsedResults.resultsByTaskNumber.get(taskNumber) ??
-      (taskNumberFromId ? parsedResults.resultsByTaskNumber.get(taskNumberFromId) : undefined);
+      (taskNumberFromId
+        ? parsedResults.resultsByTaskNumber.get(taskNumberFromId)
+        : undefined);
 
     let taskResults: TestResult[];
     let taskPassed: boolean;
 
     if (bucket) {
-      // ✅ We have per-task data from the concurrently-prefixed output.
       taskResults = bucket.results;
-      taskPassed = bucket.passed;
-
-      // The exit-code line is ground truth: override parsed result if needed.
-      if (bucket.exitCode !== null) {
-        taskPassed = bucket.exitCode === 0;
-      }
+      // Exit code is ground truth when available
+      taskPassed = bucket.exitCode !== null ? bucket.exitCode === 0 : bucket.passed;
     } else if (taskIds.length === 1) {
-      // Single-task run — overall result unambiguously belongs to this task.
+      // Single-task run — overall result belongs unambiguously to this task
       taskResults = parsedResults.results;
       taskPassed = parsedResults.passed;
     } else {
-      // Multiple tasks but no bucket found — report as unknown rather than
-      // inheriting the wrong overall status (which was the original bug).
+      // Multiple tasks but no bucket found — unknown rather than inheriting wrong status
       taskResults = [
         {
           testId: `task-${taskId}-unknown`,

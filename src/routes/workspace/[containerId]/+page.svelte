@@ -21,6 +21,7 @@
   import TestCase from "$lib/components/workspace/TestCase.svelte";
 
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
+  import SazOnboardingCoach from "$lib/components/onboarding/SazOnboardingCoach.svelte";
   import LevelIntroCard from "$lib/components/workspace/LevelIntroCard.svelte";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
@@ -31,6 +32,8 @@
   import { toast } from "$lib/stores/toast";
   import type { UserData, IContainer, IScenario, ILevel } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
+
+  const SazOnboardingCoachComponent: any = SazOnboardingCoach;
 
 
   interface WorkspaceProps {
@@ -178,10 +181,26 @@
 
   // Function to call when onboarding completes (called from OnboardingController)
   function handleOnboardingComplete() {
+    onboardingTourCompleted = true;
     // Show level intro card after onboarding completes (only if not already shown)
     if (tasks.length > 0 && !levelIntroCardShown) {
       levelIntroCardOpen = true;
       levelIntroCardShown = true;
+    }
+  }
+
+  function handleLevelIntroClose() {
+    levelIntroCardOpen = false;
+    activeTab = 'board';
+
+    const shouldShowSazOnboarding =
+      !sazOnboardingShown &&
+      onboardingTourCompleted &&
+      currentLevel === 1;
+
+    if (shouldShowSazOnboarding) {
+      sazOnboardingOpen = true;
+      sazOnboardingShown = true;
     }
   }
 
@@ -213,6 +232,9 @@
   let taskIntroCardOpen: boolean = false;
   let levelIntroCardOpen: boolean = false;
   let levelIntroCardShown: boolean = false;
+  let onboardingTourCompleted: boolean = false;
+  let sazOnboardingOpen: boolean = false;
+  let sazOnboardingShown: boolean = false;
 
 
 
@@ -1319,9 +1341,16 @@
     operatorAlias,
     projectName: workspaceProjectName
   }}
+  onClose={handleLevelIntroClose}
+/>
+
+<svelte:component
+  this={SazOnboardingCoachComponent}
+  open={sazOnboardingOpen}
+  accentColor="#07a5c9"
+  stackName={stack}
   onClose={() => {
-    levelIntroCardOpen = false;
-    activeTab = 'board';
+    sazOnboardingOpen = false;
   }}
 />
 
