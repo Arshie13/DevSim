@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import { FileText, LayoutDashboard, GripVertical } from 'lucide-svelte';
+  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff } from 'lucide-svelte';
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
-  import { type ITask } from '$lib/types';
+  import { type ITask, type IHints } from '$lib/types';
   import { toast } from '$lib/stores/toast';
 
   export let scenario: string = '';
@@ -12,7 +12,8 @@
   export let tasks: BoardTask[] = [];
   export let onTaskStatusChange: (taskId: string, status: KanbanStatus) => void = () => {};
 
-  // ── Sub-tab state ────────────────────────────────────────────────────────
+  // ── Hints toggle state ─────────────────────────────────────────────────────
+  let showHints = false;
   let activeSubTab: 'scenario' | 'board' = 'scenario';
 
   // ── Kanban state ─────────────────────────────────────────────────────────
@@ -23,6 +24,7 @@
     taskType: string;
     userStory: string;
     acceptanceCriteria: string[];
+    hints: { id: string; content: string; order: number }[];
   }
 
   let kanbanTasks: KanbanTask[] = [];
@@ -47,6 +49,11 @@
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((criteria) => criteria.description)
+        .filter(Boolean),
+      hints: (t.hints ?? [])
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((h) => ({ id: h.id, content: (h as any).description ?? h.content, order: h.order }))
         .filter(Boolean),
     }));
   }
@@ -240,7 +247,7 @@
       </button>
     </div>
 
-    <!-- Right: progress pill -->
+    <!-- Right: progress pill + hints toggle -->
     <div class="flex items-center gap-2.5">
       <div class="w-20 h-2 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
         <div
@@ -254,6 +261,20 @@
       >
         {doneCount}/{kanbanTasks.length}
       </span>
+      <!-- Hints toggle button -->
+      <button
+        on:click={() => (showHints = !showHints)}
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors duration-150"
+        style="font-family: 'Space Mono', monospace; color: {showHints ? '#FFB400' : '#8892a0'}; background: {showHints ? 'rgba(255,180,0,0.12)' : 'transparent'}; border: 1px solid {showHints ? 'rgba(255,180,0,0.35)' : 'rgba(7,165,201,0.18)'};"
+        title={showHints ? 'Hide task hints' : 'Show task hints'}
+      >
+        {#if showHints}
+          <Lightbulb class="w-3.5 h-3.5" />
+        {:else}
+          <LightbulbOff class="w-3.5 h-3.5" />
+        {/if}
+        <span class="text-[0.6rem] uppercase tracking-wider">Hints</span>
+      </button>
     </div>
   </div>
 
@@ -337,6 +358,27 @@
                   >
                     {t.status === 'in-progress' ? 'In Progress' : t.status === 'in-review' ? 'In Review' : t.status === 'done' ? 'Done' : 'Backlog'}
                   </span>
+                  <!-- Hints display (when enabled) -->
+                  {#if showHints && t.hints && t.hints.length > 0}
+                    <div class="mt-2 w-full">
+                      <p
+                        class="text-[0.55rem] uppercase tracking-wider text-[#FFB400] mb-1"
+                        style="font-family: 'Space Mono', monospace;"
+                      >
+                        Hints:
+                      </p>
+                      <div class="space-y-1">
+                        {#each t.hints as hint, idx}
+                          <div
+                            class="text-[0.75rem] text-[#d0d7dd]/70 px-2 py-1 rounded bg-[rgba(255,180,0,0.06)] border border-[rgba(255,180,0,0.15)]"
+                            style="font-family: 'Exo 2', sans-serif;"
+                          >
+                            {idx + 1}. {hint.content}
+                          </div>
+                        {/each}
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               {/each}
             </div>
@@ -450,6 +492,7 @@
     title={selectedTask?.text ?? ''}
     userStory={selectedTask?.userStory ?? ''}
     acceptanceCriteria={selectedTask?.acceptanceCriteria ?? []}
+    hints={selectedTask?.hints ?? []}
     status={selectedTask?.status ?? 'backlog'}
     onClose={closeTaskDetails}
   />

@@ -3,8 +3,11 @@
 	export let title = '';
 	export let userStory = '';
 	export let acceptanceCriteria: string[] = [];
+	export let hints: { id: string; content: string; order: number }[] = [];
 	export let status: 'backlog' | 'in-progress' | 'in-review' | 'done' = 'backlog';
 	export let onClose: () => void = () => {};
+
+	let showHints = false;
 
 	function closeModal() {
 		onClose();
@@ -38,7 +41,7 @@
 
 <svelte:window on:keydown={handleWindowKeydown} />
 
-{#if open}
+			{#if open}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 z-[10020] flex items-center justify-center bg-[rgba(0,0,0,0.72)] p-4 backdrop-blur-sm"
@@ -110,6 +113,38 @@
 						</p>
 					{/if}
 				</section>
+
+				{#if hints && hints.length > 0}
+					<section class="rounded-[4px] border border-[rgba(255,180,0,0.15)] bg-[rgba(255,180,0,0.06)] p-4">
+						<button
+							type="button"
+							on:click={() => (showHints = !showHints)}
+							class="flex w-full items-center justify-between"
+						>
+							<p class="text-[0.64rem] uppercase tracking-[0.14em] text-[#FFB400] [font-family:var(--font-mono)]">
+								Hints ({hints.length})
+							</p>
+							<span class="text-[0.64rem] text-[#FFB400] [font-family:var(--font-mono)]">
+								{showHints ? '▲ Hide' : '▼ Show'}
+							</span>
+						</button>
+
+						{#if showHints}
+							<ol class="mt-3 space-y-2">
+								{#each hints as hint, index}
+									<li class="flex items-start gap-3 rounded-[3px] border border-[rgba(255,180,0,0.12)] bg-[rgba(18,25,42,0.7)] px-3 py-2.5">
+										<span class="mt-0.5 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-[2px] border border-[rgba(255,180,0,0.35)] bg-[rgba(255,180,0,0.12)] text-[0.62rem] text-[#FFB400] [font-family:var(--font-mono)]">
+											{index + 1}
+										</span>
+										<span class="text-[0.88rem] leading-relaxed text-[var(--text-primary)] [font-family:var(--font-body)]">
+											{hint.content}
+										</span>
+									</li>
+								{/each}
+							</ol>
+						{/if}
+					</section>
+				{/if}
 			</div>
 		</dialog>
 	</div>
