@@ -139,6 +139,7 @@
 
       // Get task order from the task object (aligns with LevelTask.order in schema)
       const taskOrder = task?.order ?? getTaskNumber(taskId);
+      const formattedTaskName = formatTaskLabel(level, taskOrder);
 
       // Determine which test to run
       let testCommand = '';
@@ -163,7 +164,7 @@
           level,
           taskId,
           taskOrder: taskOrder,
-          testType: 'task'
+          type: 'task'
         })
       });
 
@@ -177,7 +178,7 @@
           summary: data.summary || { total: 0, passed: 0, failed: 0, duration: 0 },
           taskResults: data.taskResults || [{
             taskId,
-            taskName,
+            taskName: formattedTaskName,
             passed: data.passed,
             results: data.results || [],
             errors: data.errors || []
@@ -209,13 +210,14 @@
       }
 
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const fallbackTaskOrder = tasks.find(t => t.id === taskId)?.order ?? getTaskNumber(taskId);
       testResult = {
         success: false,
         level,
         summary: { total: 0, passed: 0, failed: 0, duration: 0 },
         taskResults: [{
           taskId,
-          taskName,
+          taskName: formatTaskLabel(level, fallbackTaskOrder),
           passed: false,
           results: [],
           errors: [errorMessage]
@@ -261,7 +263,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          testType: 'level'
+          type: 'level'
         })
       });
 
@@ -345,6 +347,10 @@
     return match ? parseInt(match[0], 10) : 1;
   }
 
+  function formatTaskLabel(levelNumber: number, taskOrder: number): string {
+    return `Level ${levelNumber} - Task ${taskOrder}`;
+  }
+
   // Public method for running all level tests (used by Submit Sprint)
   export async function runAllLevelTests(): Promise<TestRunResult> {
     testLoading = true;
@@ -367,7 +373,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          testType: 'level'
+          type: 'level'
         })
       });
 

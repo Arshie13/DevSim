@@ -237,7 +237,8 @@ export async function sendChatMessage(
   attachedFiles: { path: string; name: string }[],
   currentCoins: number,
   totalCost: number,
-  generateContextFn: () => Promise<string>
+  generateContextFn: () => Promise<string>,
+  model?: string
 ): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
   if (isAskingForCode(message)) {
     aiChatHistory.update((msgs) => [
@@ -273,6 +274,7 @@ export async function sendChatMessage(
         containerId,
         userId,
         hintType: mode,
+        model,
         attachedFilesCount: filesCount,
         attachedFiles: filesToInclude,
         level,
@@ -308,7 +310,8 @@ export async function requestQuickHintBubble(
   level: number,
   generateContextFn: () => Promise<string>,
   onSuccess?: (hint: string, coinsRemaining?: number) => void,
-  onError?: (error: string) => void
+  onError?: (error: string) => void,
+  model?: string
 ): Promise<{ success: boolean; hint?: string; error?: string; coinsRemaining?: number }> {
   try {
     const response = await fetch("/api/ai/hint", {
@@ -320,6 +323,7 @@ export async function requestQuickHintBubble(
         containerId,
         userId,
         hintType: "quick",
+        model,
         attachedFilesCount: 0,
         attachedFiles: [],
         level,
@@ -367,7 +371,8 @@ export async function sendBubbleChatMessage(
   totalCost: number,
   generateContextFn: () => Promise<string>,
   onSuccess?: (hint: string, coinsRemaining?: number) => void,
-  onError?: (error: string) => void
+  onError?: (error: string) => void,
+  model?: string
 ): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
   if (isAskingForCode(message)) {
     const warningMsg = getCodeWarningMessage();
@@ -411,6 +416,7 @@ export async function sendBubbleChatMessage(
         containerId,
         userId,
         hintType: mode,
+        model,
         attachedFilesCount: filesCount,
         attachedFiles: filesToInclude,
         level,

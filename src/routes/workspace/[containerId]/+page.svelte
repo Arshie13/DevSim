@@ -157,9 +157,11 @@
         scenario: currentLevelRecord?.levelDescription ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
         hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
         starterFiles: LEVEL_CONFIG.starterFiles,
-        tasks: tasks,
       }
     : LEVEL_CONFIG;
+
+  $: operatorAlias = data.user?.username || data.user?.name || "Operator";
+  $: workspaceProjectName = workspaceScenario?.name || title || "DevSim Workspace";
 
   // Track onboarding state - initialize from URL
   let isInOnboarding = page.url.searchParams.get("onboarding") === "1";
@@ -882,6 +884,16 @@
     const { advanceToNextLevel, nextLevel } = event.detail;
 
     if (advanceToNextLevel) {
+      const targetLevel =
+        typeof nextLevel === "number" && nextLevel > 0
+          ? nextLevel
+          : currentLevel + 1;
+
+      // Immediately switch local UI state to the next level.
+      currentLevel = targetLevel;
+      levelIntroCardOpen = false;
+      levelIntroCardShown = false;
+
       localStorage.setItem('showTaskIntroCard', 'true');
       
       await goto(`?reload=${Date.now()}`, {
@@ -889,6 +901,9 @@
         replaceState: true,
         noScroll: true,
       });
+
+      // Keep local level in sync even if navigation data resolves slightly later.
+      currentLevel = (data.level || targetLevel);
     }
   }
 
@@ -1112,7 +1127,6 @@
       timeRemaining,
       isRunning,
       isDownloading,
-      tasks,
       onBack: handleBack,
       onRun: runDevServer,
       onStop: stopDevServer,
@@ -1192,9 +1206,6 @@
             <BoardPanel
               scenario={actualLevelConfig.scenario}
               {tasks}
-              completedTasks={tasks.filter(t => t.isCompleted).length}
-              totalTasks={tasks.length}
-              currentLevel={currentLevel}
               onTaskStatusChange={handleTaskStatusChange}
             />
           </div>
@@ -1303,6 +1314,11 @@
   isOpen={levelIntroCardOpen}
   levelDescription={actualLevelConfig?.scenario ?? ''}
   tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
+  levelConfig={{
+    isFirstProjectCreation: hasEverBeenInOnboarding,
+    operatorAlias,
+    projectName: workspaceProjectName
+  }}
   onClose={() => {
     levelIntroCardOpen = false;
     activeTab = 'board';

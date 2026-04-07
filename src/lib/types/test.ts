@@ -43,6 +43,7 @@
   command: string;
   level: number;
   taskId?: string;
+    taskOrder?: number;
   taskIds?: string[];
   type: 'task' | 'level';
 }

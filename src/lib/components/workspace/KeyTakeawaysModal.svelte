@@ -5,147 +5,217 @@
 
   export let open = false;
   export let keyTakeaways: Array<{ taskId: string; taskName: string; takeaway: string }> = [];
-  export let aiScoringDone = false;
 
   const dispatch = createEventDispatcher<{ closed: void }>();
 
   let takeawayChunks: Array<{ taskName: string; sectionTitle: string; content: string }> = [];
 
-  function parseTakeawaySections(content: string, taskName: string): Array<{ taskName: string; sectionTitle: string; content: string }> {
-    const lines = content.split(/\r?\n/);
-    const paragraphs: string[] = [];
-    let currentParagraph = '';
+  // Track which texts have already been shown to skip typewriter on revisit
+  let shownTexts: Set<string> = new Set();
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) {
-        if (currentParagraph.trim()) {
-          paragraphs.push(currentParagraph.trim());
-          currentParagraph = '';
-        }
-      } else {
-        currentParagraph += (currentParagraph ? ' ' : '') + trimmed;
-      }
+  function normalizeTakeawayText(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (Array.isArray(value)) {
+      return value
+        .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry ?? '').trim()))
+        .filter(Boolean)
+        .join('\n\n');
     }
-    if (currentParagraph.trim()) {
-      paragraphs.push(currentParagraph.trim());
-    }
+    if (value == null) return '';
+    return String(value).trim();
+  }
 
-    const validParagraphs = paragraphs.filter(p => p.length > 0);
-    if (validParagraphs.length === 0 && content.trim()) {
-      return [{ taskName, sectionTitle: taskName, content: content.trim() }];
-    }
+  function parseTakeawaySections(content: string, taskName: string) {
+    const paragraphs = content.split(/\n\s*\n/).filter(Boolean);
 
-    const sections: Array<{ taskName: string; sectionTitle: string; content: string }> = [];
-    let chunk: string[] = [];
-    let chunkLength = 0;
-    const MAX_CHARS = 280;
-    const MAX_PARAS = 2;
-
-    for (const para of validParagraphs) {
-      chunk.push(para);
-      chunkLength += para.length;
-
-      if (chunkLength >= MAX_CHARS || chunk.length >= MAX_PARAS) {
-        const contentStr = chunk.join('\n\n');
-        let title = taskName;
-        const firstPara = chunk[0];
-        const headingMatch = firstPara.match(/^\*\*(.+?)\*\*[:\s]*/);
-        if (headingMatch) {
-          title = headingMatch[1].trim();
-        } else if (sections.length > 0) {
-          const words = firstPara.split(' ').slice(0, 3).join(' ');
-          title = words + (firstPara.split(' ').length > 3 ? '...' : '');
-        }
-        sections.push({ taskName, sectionTitle: title, content: contentStr });
-        chunk = [];
-        chunkLength = 0;
-      }
-    }
-
-    if (chunk.length > 0) {
-      const contentStr = chunk.join('\n\n');
-      let title = taskName;
-      if (sections.length > 0) {
-        const words = chunk[0].split(' ').slice(0, 3).join(' ');
-        title = words + (chunk[0].split(' ').length > 3 ? '...' : '');
-      }
-      sections.push({ taskName, sectionTitle: title, content: contentStr });
-    }
-
-    return sections;
+    return paragraphs.map((p) => ({
+      taskName,
+      sectionTitle: taskName,
+      content: p.trim()
+    }));
   }
 
   $: {
-    const parsed = keyTakeaways
-      ?.filter(kt => kt?.takeaway && kt?.takeaway?.trim()?.length > 0)
-      ?.flatMap(kt => parseTakeawaySections(kt.takeaway, kt.taskName || 'Task'))
-      || [];
+    takeawayChunks = (keyTakeaways || [])
+      .map((kt) => ({
+        taskName: kt?.taskName || 'Task',
+        takeaway: normalizeTakeawayText((kt as { takeaway?: unknown })?.takeaway),
+      }))
+      .filter((kt) => kt.takeaway.length > 0)
+      .flatMap((kt) => parseTakeawaySections(kt.takeaway, kt.taskName));
 
-    takeawayChunks = parsed;
+    // Reset to first takeaway when keyTakeaways change
+    currentIndex = 0;
+    lastMeasuredIndex = -1;
   }
 
   let currentIndex = 0;
-  $: if (takeawayChunks.length > 0) currentIndex = 0;
   $: currentTakeaway = takeawayChunks[currentIndex] ?? null;
-  $: showFallback = takeawayChunks.length === 0 && aiScoringDone;
-  $: hasTakeaways = (takeawayChunks.length > 0 && !!currentTakeaway) || showFallback;
+  $: showFallback = takeawayChunks.length === 0;
 
-  // Typewriter
+  // =========================
+  // ✅ TYPEWRITER + HEIGHT PER ITEM
+  // =========================
+
   let displayedText = '';
   let currentText = '';
   let typeIndex = 0;
   let typeInterval: ReturnType<typeof setInterval> | null = null;
   const TYPE_SPEED = 15;
-  let isTyping = false;
-  let typeComplete = false;
 
-  function startTypewriter(text: string) {
-    if (typeInterval) { clearInterval(typeInterval); typeInterval = null; }
-    currentText = text; displayedText = ''; typeIndex = 0;
-    isTyping = true; typeComplete = false;
-    if (!text.length) { isTyping = false; return; }
+  let isTyping = false;
+  let cardHeight = 0;
+
+  let measureEl: HTMLParagraphElement;
+  let contentWrapper: HTMLDivElement;
+
+  let lastMeasuredIndex = -1;
+
+  // Reset height when modal opens or takeaways change
+  $: if (open && takeawayChunks.length > 0) {
+    cardHeight = 0;
+    lastMeasuredIndex = -1;
+  }
+
+  function measureHeight(text: string) {
+    if (!measureEl) return;
+
+    // Use a fixed width that matches the content area for consistent measurement
+    measureEl.style.width = '388px'; // Match the fixed width used elsewhere
+    measureEl.textContent = text;
+
+    // Force a reflow to ensure accurate measurement
+    measureEl.offsetHeight;
+    cardHeight = measureEl.offsetHeight;
+  }
+
+  function startTypewriter(text: string, skipAnimation: boolean = false) {
+    if (typeInterval) {
+      clearInterval(typeInterval);
+      typeInterval = null;
+    }
+
+    currentText = text;
+
+    if (!text.length) {
+      displayedText = '';
+      isTyping = false;
+      return;
+    }
+
+    // If this text was already shown, skip animation
+    if (skipAnimation) {
+      displayedText = text;
+      isTyping = false;
+      return;
+    }
+
+    // First time - run typewriter
+    displayedText = '';
+    typeIndex = 0;
+    isTyping = true;
+
     typeInterval = setInterval(() => {
       if (typeIndex < currentText.length) {
         displayedText = currentText.substring(0, ++typeIndex);
       } else {
-        clearInterval(typeInterval!); typeInterval = null;
-        isTyping = false; typeComplete = true;
+        clearInterval(typeInterval!);
+        typeInterval = null;
+        isTyping = false;
       }
     }, TYPE_SPEED);
   }
 
+  // ✅ KEY FIX: re-measure per takeaway
   $: {
     const txt = currentTakeaway?.content || '';
-    if (txt && aiScoringDone) startTypewriter(txt);
-    else { displayedText = ''; isTyping = false; typeComplete = false; }
+
+    if (!open || !txt) {
+      displayedText = '';
+      isTyping = false;
+    } else if (currentIndex !== lastMeasuredIndex) {
+      lastMeasuredIndex = currentIndex;
+      currentText = txt;
+
+      // Check if this text was already shown
+      const skipAnimation = shownTexts.has(txt);
+
+      // Mark as shown
+      if (!skipAnimation) {
+        shownTexts.add(txt);
+      }
+
+      // Measure height first, then start typing
+      measureHeight(txt);
+      startTypewriter(txt, skipAnimation);
+    }
   }
 
-  onDestroy(() => { if (typeInterval) clearInterval(typeInterval); });
+  // ✅ Ensure initial measurement when modal opens with takeaways
+  $: if (open && takeawayChunks.length > 0 && currentIndex === 0 && lastMeasuredIndex === -1) {
+    const txt = takeawayChunks[0]?.content || '';
+    if (txt) {
+      lastMeasuredIndex = 0;
+      currentText = txt;
 
-  // Dispatch event when modal is closed
-  $: if (!open && keyTakeaways.length > 0) {
-    dispatch('closed');
+      // Check if this text was already shown
+      const skipAnimation = shownTexts.has(txt);
+
+      // Mark as shown
+      if (!skipAnimation) {
+        shownTexts.add(txt);
+      }
+
+      measureHeight(txt);
+      startTypewriter(txt, skipAnimation);
+    }
   }
 
-  function handleSkipTyping() {
-    if (typeInterval) { clearInterval(typeInterval); typeInterval = null; }
-    displayedText = currentText; isTyping = false; typeComplete = true;
+  onDestroy(() => {
+    if (typeInterval) clearInterval(typeInterval);
+  });
+
+  let wasOpen = false;
+  $: {
+    if (open) {
+      wasOpen = true;
+    } else if (wasOpen) {
+      wasOpen = false;
+      dispatch('closed');
+    }
   }
 
   function handlePrev() {
     currentIndex = Math.max(0, currentIndex - 1);
+    lastMeasuredIndex = -1; // ✅ force recalculation
   }
 
   function handleNext() {
     if (currentIndex === takeawayChunks.length - 1) {
-      // Close modal when reaching the end
       open = false;
     } else {
-      currentIndex = Math.min(takeawayChunks.length - 1, currentIndex + 1);
+      currentIndex++;
+      lastMeasuredIndex = -1; // ✅ force recalculation
     }
   }
 </script>
+
+<!-- ✅ Hidden measurer -->
+<p
+  bind:this={measureEl}
+  style="
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-words;
+    margin: 0;
+    padding: 0;
+  "
+></p>
 
 <ConfirmationModal
   bind:open
@@ -158,22 +228,26 @@
   hideActions={true}
   closeOnBackdropClick={false}
 >
-  {#if hasTakeaways && !showFallback}
+  {#if !showFallback}
     <TakeawayCard
       {takeawayChunks}
       {currentIndex}
       {displayedText}
       {isTyping}
+      {cardHeight}
+      bind:contentWrapperRef={contentWrapper}
       onPrev={handlePrev}
       onNext={handleNext}
       onClose={() => open = false}
     />
-  {:else if showFallback}
+  {:else}
     <TakeawayCard
       takeawayChunks={[]}
       currentIndex={0}
       displayedText="Great job completing this sprint! Keep exploring the codebase to discover more insights."
       isTyping={false}
+      {cardHeight}
+      bind:contentWrapperRef={contentWrapper}
       onPrev={() => {}}
       onNext={() => {}}
       onClose={() => open = false}

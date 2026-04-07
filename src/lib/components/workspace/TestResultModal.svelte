@@ -14,11 +14,6 @@
   // -- State --------------------------------------------------------------------
   let expandedTasks: Set<string> = new Set();
 
-  type ParsedOutputLine = {
-    status: 'passed' | 'failed';
-    text: string;
-  };
-
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{
     close: { source: 'x' | 'footer' | 'backdrop' | 'escape' };
@@ -53,43 +48,21 @@
     return `${(ms / 1000).toFixed(2)}s`;
   }
 
-  function parseCommandOutput(output: string): ParsedOutputLine[] {
-    const ansiEscape = /\x1B\[[0-9;]*m/g;
-    const lines = output
-      .split('\n')
-      .map((line) => line.replace(ansiEscape, '').trim())
-      .filter(Boolean);
+  function getTaskDisplayName(taskName: string, taskId: string): string {
+    const normalizedName = taskName.trim();
 
-    const parsed: ParsedOutputLine[] = [];
-
-    for (const line of lines) {
-      const passMatch = /^(?:PASS\b|✓\s+|✔\s+|√\s+)/i;
-      const failMatch = /^(?:FAIL\b|✕\s+|✖\s+|×\s+)/i;
-
-      const stripTrailingDuration = (value: string) =>
-        value
-          .replace(/\s+\d+(?:\.\d+)?m?s$/i, '')
-          .replace(/\s+\d+(?:\.\d+)?s$/i, '')
-          .trim();
-
-      if (passMatch.test(line)) {
-        parsed.push({
-          status: 'passed',
-          text: stripTrailingDuration(line.replace(passMatch, '').trim() || line),
-        });
-        continue;
-      }
-
-      if (failMatch.test(line)) {
-        parsed.push({
-          status: 'failed',
-          text: stripTrailingDuration(line.replace(failMatch, '').trim() || line),
-        });
-        continue;
-      }
+    if (!normalizedName || normalizedName === taskId) {
+      return 'Task';
     }
 
-    return parsed;
+    const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const withoutId = normalizedName.replace(new RegExp(`\\b${escapedTaskId}\\b`, 'gi'), '').replace(/\s{2,}/g, ' ').trim();
+
+    if (!withoutId || /^task$/i.test(withoutId)) {
+      return 'Task';
+    }
+
+    return withoutId;
   }
 
   // -- Derived ------------------------------------------------------------------
@@ -97,8 +70,6 @@
   $: passRate = result?.summary.total
     ? Math.round((result.summary.passed / result.summary.total) * 100)
     : 0;
-  $: parsedOutputLines = result?.output ? parseCommandOutput(result.output) : [];
-  $: hasParsedChecklist = parsedOutputLines.length > 0;
 </script>
 
 {#if open}
@@ -213,7 +184,7 @@
                         <XCircle class="w-4 h-4" />
                       {/if}
                     </div>
-                    <span class="flex-1 [font-family:var(--font-body)] text-[0.88rem] font-medium text-[var(--text-primary)]">{task.taskName}</span>
+                    <span class="flex-1 [font-family:var(--font-body)] text-[0.88rem] font-medium text-[var(--text-primary)]">{getTaskDisplayName(task.taskName, task.taskId)}</span>
                     {#if task.passed && task.keyTakeaway}
                       <span class="mr-1 rounded-[3px] bg-[rgba(0,229,160,0.1)] px-1.5 py-0.5 text-[0.625rem] text-[var(--success)]">✓</span>
                     {/if}
@@ -282,27 +253,6 @@
           {#if result.output}
             <div class="mt-4 border-t border-[rgba(7,165,201,0.1)] pt-4">
               <h3 class="mb-2 [font-family:var(--font-heading)] text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">Command Output</h3>
-
-              {#if hasParsedChecklist}
-                <div class="mb-3 overflow-hidden rounded-[4px] border border-[rgba(7,165,201,0.12)] bg-[rgba(7,165,201,0.04)]">
-                  <ul class="m-0 list-none p-0">
-                    {#each parsedOutputLines as line}
-                      <li
-                        class="output-line flex items-start gap-2.5 border-b border-[rgba(136,146,160,0.08)] px-3 py-2 [font-family:var(--font-body)] text-[0.76rem] text-[var(--text-muted)] last:border-b-0"
-                        class:is-passed={line.status === 'passed'}
-                        class:is-failed={line.status === 'failed'}
-                      >
-                        {#if line.status === 'passed'}
-                          <span class="output-marker mt-[1px] text-[var(--success)]">✓</span>
-                        {:else}
-                          <span class="output-marker mt-[1px] text-[var(--danger)]">✕</span>
-                        {/if}
-                        <span class="break-words">{line.text}</span>
-                      </li>
-                    {/each}
-                  </ul>
-                </div>
-              {/if}
 
               <details class="rounded-[4px] border border-[rgba(7,165,201,0.12)] bg-[var(--bg)]">
                 <summary class="cursor-pointer px-3 py-2 [font-family:var(--font-mono)] text-[0.6875rem] text-[var(--accent)]">
@@ -379,21 +329,6 @@
 
   .trm-content::-webkit-scrollbar-thumb:hover {
     background: rgba(7, 165, 201, 0.5);
-  }
-
-  .output-marker {
-    width: 0.9rem;
-    flex-shrink: 0;
-    font-weight: 700;
-    text-align: center;
-  }
-
-  .output-line.is-passed {
-    background: rgba(0, 229, 160, 0.06);
-  }
-
-  .output-line.is-failed {
-    background: rgba(255, 56, 96, 0.06);
   }
 
   @keyframes modal-fade-in {

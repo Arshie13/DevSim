@@ -4,20 +4,22 @@
 </script>
 
 <div class="card-content">
-  <p class="[font-family:var(--font-mono)] text-[0.75rem] leading-[1.6] text-[var(--text-primary)]">
+  <p class="[font-family:var(--font-mono)] text-[0.9rem] leading-[1.6] text-[var(--text-primary)] break-words">
     {displayedText}{#if isTyping}<span class="animate-pulse">|</span>{/if}
   </p>
 </div>
 
 <style>
   .card-content {
-    min-height: 80px;
-    max-height: 350px;
     overflow-y: auto;
-    margin-bottom: 12px;
+    overflow-x: hidden;
   }
 
-  /* Animations */
+  .card-content p {
+    margin: 0;
+    padding: 0;
+  }
+
   .animate-pulse {
     animation: pulse 1s ease-in-out infinite;
   }
