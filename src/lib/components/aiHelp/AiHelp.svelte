@@ -63,7 +63,7 @@
   export let initialFileTree: string[] = [];
   export let initialFileContents: Record<string, string> = {};
   export let initialCoins: number = 1000;
-  export let initialAiModel: string = "meta-llama/llama-3.1-8b-instruct";
+  export let initialAiModel: string = "nvidia/nemotron-3-nano-30b-a3b:free";
 
   // State
   let showFloatingModal = false;
@@ -97,9 +97,9 @@
   let bubbleHistory: BubbleHistoryItem[] = [];
 
   const AI_MODELS = [
-    { label: "Llama 3.1 8B", value: "meta-llama/llama-3.1-8b-instruct" },
-    { label: "Gemma 2 9B", value: "google/gemma-2-9b-it" },
-    { label: "Mistral 7B", value: "mistralai/mistral-7b-instruct-v0.2" },
+    { label: "NVIDIA Nemotron 3 Nano 30B", value: "nvidia/nemotron-3-nano-30b-a3b:free" },
+    { label: "Gemma 3N E2B", value: "google/gemma-3n-e2b-it:free" },
+    { label: "Google Gemini 2.5 Flash", value: "google/gemini-2.5-flash:direct" },
   ];
 
   // Reactive
@@ -140,21 +140,21 @@
     previousMessageCount = currentCount;
   }
 
-  // Auto-close when tasks completed
-  $: if (allTasksCompleted && showQuickHint) {
-    setTimeout(() => {
-      showQuickHint = false;
-      isBubbleHidden = false;
-      showFloatingModal = false;
-    }, 2000);
-  }
-  $: if (hintsShown.length >= 5 && showQuickHint) {
-    setTimeout(() => {
-      showQuickHint = false;
-      isBubbleHidden = false;
-      showFloatingModal = false;
-    }, 3000);
-  }
+  // Auto-close when tasks completed - disabled for debugging
+  // $: if (allTasksCompleted && showQuickHint) {
+  //   setTimeout(() => {
+  //     showQuickHint = false;
+  //     isBubbleHidden = false;
+  //     showFloatingModal = false;
+  //   }, 2000);
+  // }
+  // $: if (hintsShown.length >= 5 && showQuickHint) {
+  //   setTimeout(() => {
+  //     showQuickHint = false;
+  //     isBubbleHidden = false;
+  //     showFloatingModal = false;
+  //   }, 3000);
+  // }
   
   // Ensure FloatingModal is disabled when ThoughtBubble is active
   $: if (showQuickHint && !isBubbleHidden) {
@@ -236,13 +236,25 @@
   }
 
   async function requestQuickHint() {
-    if (isLoading || !containerId || !userId) return;
+    if (isLoading || !containerId || !userId) {
+      const errorMsg = !containerId ? "Container not available. Please start a workspace first." :
+                     !userId ? "Please log in to use AI hints." :
+                     "AI hints are currently loading.";
+      quickHintMessage = errorMsg;
+      showFloatingModal = false;
+      showQuickHint = true;
+      hintChunks = chunkHintMessage(errorMsg);
+      currentHintChunk = 0;
+      quickHintLoading = false; // Set loading to false so the message shows
+      return;
+    }
     if (currentCoins < totalCost) {
       quickHintMessage = getInsufficientCoinsMessage(totalCost, currentCoins);
       showFloatingModal = false;
       showQuickHint = true;
       hintChunks = chunkHintMessage(quickHintMessage);
       currentHintChunk = 0;
+      quickHintLoading = false;
       return;
     }
     quickHintLoading = true;
@@ -265,11 +277,12 @@
       generateContext,
       // onSuccess
       (hint: string, coinsRemaining?: number) => {
-        quickHintMessage = hint;
-        hintHistory = [...hintHistory, hint];
-        const historyItem = createBubbleHistoryItem(hint, false);
+        const finalHint = hint || "No hint available. Please try again or ask a specific question.";
+        quickHintMessage = finalHint;
+        hintHistory = [...hintHistory, finalHint];
+        const historyItem = createBubbleHistoryItem(finalHint, false);
         bubbleHistory = [...bubbleHistory, historyItem];
-        hintChunks = chunkHintMessage(hint);
+        hintChunks = chunkHintMessage(finalHint);
         currentHintChunk = 0;
         if (coinsRemaining !== undefined) {
           aiCoins.set(coinsRemaining);
