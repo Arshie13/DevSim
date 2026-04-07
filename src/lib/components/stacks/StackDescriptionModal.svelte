@@ -61,7 +61,7 @@
   >
     <!-- Card -->
     <div
-      class="relative w-full max-w-lg mx-4 flex flex-col"
+      class="relative w-full max-w-xl mx-4 flex flex-col"
       style="background:#12192a;border:1px solid rgba(7,165,201,0.25);border-radius:6px;padding:1.25rem;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(7,165,201,0.1),0 0 60px rgba(7,165,201,0.15),0 32px 80px rgba(0,0,0,0.6);"
     >
       <!-- Ambient glow -->
@@ -92,7 +92,7 @@
 
       <!-- ✅ TAGS -->
       <div class="mb-6 flex-shrink-0">
-        <div class="flex flex-wrap justify-center gap-2">
+        <div class="flex flex-nowrap justify-center gap-1">
 
           {#if frontendOption}
             <div class={`stack-preview-pill ${isCompact ? 'compact' : ''}`}>
