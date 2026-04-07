@@ -409,7 +409,7 @@ export const POST: RequestHandler = async ({ request }) => {
             !f.includes('.git/') &&
             !f.includes('dist/') &&
             !f.includes('build/')
-          ).slice(0, 20);
+          ).slice(0, 2);
 
           console.log("[AI Hint] Source files to read:", sourceFiles);
 
@@ -459,13 +459,13 @@ export const POST: RequestHandler = async ({ request }) => {
       prompt = buildPrompt(message, context || "No additional context", currentLevel);
     }
 
-    // Try OpenRouter free coding models
+    // Try models (OpenRouter and direct Google Gemini)
     const defaultModels = [
-      "meta-llama/llama-3.1-8b-instruct",
-      "google/gemma-2-9b-it",
-      "mistralai/mistral-7b-instruct-v0.2",
+      "nvidia/nemotron-3-nano-30b-a3b:free",
+      "google/gemma-3n-e2b-it:free",
       "qwen/qwen3.6-plus:free",
-      "nvidia/nemotron-3-super-120b-a12b:free"
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "google/gemini-2.5-flash:direct"
     ];
 
     const models = model
@@ -476,40 +476,94 @@ export const POST: RequestHandler = async ({ request }) => {
     let lastError = null;
 
     for (const model of models) {
-      console.log(`Trying OpenRouter model: ${model}`);
+      console.log(`Trying model: ${model}`);
 
-      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
-
-      const modelResponse = await fetch(openRouterUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": "https://devsim.com",
-          "X-Title": "DevSim AI Hints"
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 300,
-          temperature: 0.7,
-          reasoning: { "enabled": false }
-        }),
-      });
-
-      if (modelResponse.ok) {
-        response = modelResponse;
-        console.log(`OpenRouter model ${model} succeeded`);
-        break;
-      } else {
-        const errorData = await modelResponse.json();
-        console.log(`Model ${model} failed:`, errorData);
-        lastError = errorData;
-
-        if (modelResponse.status === 429 || modelResponse.status === 404) {
+      if (model === "google/gemini-2.5-flash:direct") {
+        // Use Google Gemini API directly
+        const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        if (!geminiApiKey) {
+          console.log("Google Gemini API key not configured");
           continue;
-        } else {
+        }
+
+        try {
+          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: prompt }]
+              }],
+              generationConfig: {
+                maxOutputTokens: 1000,
+                temperature: 0.7
+              }
+            }),
+          });
+
+          if (geminiResponse.ok) {
+            const geminiData = await geminiResponse.json();
+            // Convert Gemini response to OpenRouter format
+            response = {
+              ok: true,
+              json: async () => ({
+                choices: [{
+                  message: {
+                    content: geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "No response"
+                  }
+                }]
+              })
+            };
+            console.log(`Google Gemini model succeeded`);
+            break;
+          } else {
+            const errorData = await geminiResponse.json();
+            console.log(`Google Gemini failed:`, errorData);
+            lastError = errorData;
+            continue;
+          }
+        } catch (error) {
+          console.log(`Google Gemini error:`, error);
+          lastError = error;
+          continue;
+        }
+      } else {
+        // Use OpenRouter
+        const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
+
+        const modelResponse = await fetch(openRouterUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+            "HTTP-Referer": "https://devsim.com",
+            "X-Title": "DevSim AI Hints"
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 200,
+            temperature: 0.7,
+            reasoning: { "enabled": false }
+          }),
+        });
+
+        if (modelResponse.ok) {
+          response = modelResponse;
+          console.log(`OpenRouter model ${model} succeeded`);
           break;
+        } else {
+          const errorData = await modelResponse.json();
+          console.log(`Model ${model} failed:`, errorData);
+          lastError = errorData;
+
+          if (modelResponse.status === 429 || modelResponse.status === 404) {
+            continue;
+          } else {
+            break;
+          }
         }
       }
     }

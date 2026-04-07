@@ -270,7 +270,8 @@ async function callOpenRouterAPI(apiKey: string, prompt: string): Promise<string
   const models = [
     'meta-llama/llama-3.1-8b-instruct',
     'google/gemma-2-9b-it',
-    'mistralai/mistral-7b-instruct-v0.2'
+    'mistralai/mistral-7b-instruct-v0.2',
+    'google/gemini-2.5-flash-exp'
   ];
   let lastError = null;
   let isRateLimited = false;
@@ -288,7 +289,7 @@ async function callOpenRouterAPI(apiKey: string, prompt: string): Promise<string
         body: JSON.stringify({
           model,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 500,
+          max_tokens: 200,
         }),
       });
       
