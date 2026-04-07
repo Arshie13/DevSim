@@ -13,6 +13,7 @@
 
   // -- State --------------------------------------------------------------------
   let expandedTasks: Set<string> = new Set();
+  let wasOpen = false;
 
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{
@@ -66,6 +67,11 @@
   }
 
   // -- Derived ------------------------------------------------------------------
+  $: if (open && !wasOpen) {
+    expandedTasks = new Set();
+  }
+  $: wasOpen = open;
+
   $: allPassed = result?.success ?? false;
   $: passRate = result?.summary.total
     ? Math.round((result.summary.passed / result.summary.total) * 100)
