@@ -6,7 +6,8 @@
     DATABASE_OPTIONS,
     SERVICES_OPTIONS,
   } from "$mocks";
-  import { Rocket, X, Info, Zap, Loader } from "lucide-svelte";
+  import { Rocket, X, Info, Zap, Loader, Sparkles } from "lucide-svelte";
+  import StackDescriptionModal from "./StackDescriptionModal.svelte";
 
   export let selection: StackSelection;
   export let onClear: (category: keyof StackSelection) => void;
@@ -14,6 +15,33 @@
   export let onShowInfo: () => void;
 
   let isLoading = false;
+  let showDescriptionModal = false;
+  let stackDescription = "";
+  let isGeneratingDescription = false;
+
+  async function generateStackDescription() {
+    try {
+      const response = await fetch('/api/ai/stack-description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ selection }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        stackDescription = data.description;
+      } else {
+        console.error('Failed to generate description:', data.error);
+        stackDescription = "Unable to generate description at this time. Please proceed to view scenarios.";
+      }
+    } catch (error) {
+      console.error('Error generating stack description:', error);
+      stackDescription = "Unable to generate description at this time. Please proceed to view scenarios.";
+    }
+  }
 
   async function handleStart() {
     if (isLoading || !hasValidStack) return;
@@ -23,6 +51,21 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  async function handleShowInfo() {
+    showDescriptionModal = true;
+    isGeneratingDescription = true;
+
+    try {
+      await generateStackDescription();
+    } finally {
+      isGeneratingDescription = false;
+    }
+  }
+
+  function handleCloseModal() {
+    showDescriptionModal = false;
   }
 
   function getOption(
@@ -137,9 +180,9 @@
     <!-- Actions -->
     <div class="flex items-center gap-3 flex-shrink-0">
       {#if selectedCount > 0}
-        <button class="btn-cyber btn-cyber-outline flex items-center gap-1.5" on:click={onShowInfo}>
-          <Info class="w-4 h-4" />
-          Stack Info
+        <button class="btn-cyber btn-cyber-outline flex items-center gap-1.5" on:click={handleShowInfo}>
+           <Sparkles class="w-4 h-4" />
+           AI Analysis
         </button>
       {/if}
 
@@ -163,6 +206,15 @@
     </div>
   </div>
 </div>
+
+<!-- Stack Description Modal -->
+<StackDescriptionModal
+  show={showDescriptionModal}
+  {selection}
+  description={stackDescription}
+  isLoading={isGeneratingDescription}
+  onClose={handleCloseModal}
+/>
 
 <style>
   .summary-bar {
