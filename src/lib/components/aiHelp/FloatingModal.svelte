@@ -52,6 +52,7 @@
   // Calculate canSend locally
   $: canSend = localUserMessage.trim().length > 0 && !isLoading;
   $: filteredFileTree = filterSourceFiles(fileTree || [], attachedFiles || []);
+  $: recentHistory = (history || []).slice(-4);
   
   // Handle input change
   function handleInput(event: Event) {
@@ -158,7 +159,7 @@
               class="w-full flex items-center justify-center gap-2 px-3 py-1 bg-slate-800/50 hover:bg-slate-700/50 border border-cyan-500/30 text-gray-300 text-xs rounded-lg transition-all"
             >
               <Clock class="w-3 h-3 text-cyan-400" />
-              <span>Previous Hints ({(history || []).length})</span>
+              <span>Previous Hints ({recentHistory.length})</span>
             </button>
           </div>
         {/if}
@@ -180,7 +181,7 @@
                   <span class="text-xs text-gray-400">Previous Hints</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
-                  {#each history as item (item.id)}
+                  {#each recentHistory as item (item.id)}
                     <button
                       type="button"
                       onclick={() => onSelectHistory(item)}

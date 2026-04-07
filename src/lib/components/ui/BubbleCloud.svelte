@@ -3,11 +3,11 @@
 	export let accentRgb: string = '6,182,212';
 	export let className: string = '';
 	export let width: number = 560;
-	export let viewBox: string = '0 0 520 350';
+	export let viewBox: string = '0 0 520 370';
 	export let contentX: number = 85;
 	export let contentY: number = 75;
 	export let contentWidth: number = 320;
-	export let contentHeight: number = 200;
+	export let contentHeight: number = 214;
 	export let contentPadding: string = '8px 10px';
 	export let float: boolean = false;
 	export let showTrail: boolean = true;

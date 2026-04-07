@@ -114,7 +114,7 @@
         accentColor={accentColor}
         accentRgb="7,165,201"
         width={540}
-        viewBox="0 0 520 350"
+        viewBox="0 0 520 370"
         contentX={92}
         contentY={70}
         contentWidth={312}

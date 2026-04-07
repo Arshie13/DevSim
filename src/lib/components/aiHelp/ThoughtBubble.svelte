@@ -18,8 +18,6 @@
 
   const dispatch = createEventDispatcher();
 
-  // Track if this is the first render for this specific message
-  let isFirstRender = true;
   // Track which texts have already been shown (to skip typewriter on revisit)
   let shownTexts: Set<string> = new Set();
 
@@ -39,35 +37,73 @@
 
   // Typewriter effect state
   let displayedText = "";
-  let currentText = "";
+  let formattedText = "";
+  let isTyping = false;
   let typeIndex = 0;
   let typeInterval: ReturnType<typeof setInterval> | null = null;
   const TYPE_SPEED = 20; // ms per character
+
+  function splitNumberedHintSections(message: string): string[] {
+    const normalized = message.replace(/\r\n/g, "\n").trim();
+    if (!normalized) return [];
+
+    // Split list-like hints into stable sections so each item maps to one slide.
+    const matches = [...normalized.matchAll(/(?:^|\n|\s)(\d+[.)])\s+([\s\S]*?)(?=(?:\n|\s)\d+[.)]\s+|$)/g)];
+    if (matches.length < 2) return [];
+
+    return matches
+      .map((match) => `${match[1]} ${match[2].trim()}`.trim())
+      .filter(Boolean);
+  }
+
+  $: numberedHintChunks = splitNumberedHintSections(quickHintMessage || "");
+  $: displayChunks = numberedHintChunks.length > 1
+    ? numberedHintChunks
+    : (hintChunks.length > 0 ? hintChunks : (quickHintMessage ? [quickHintMessage] : []));
+  $: currentDisplayChunk = Math.min(currentHintChunk, Math.max(displayChunks.length - 1, 0));
+  $: activeChunk = displayChunks[currentDisplayChunk] || "";
 
   const REMINDERS = [
     "AI can make mistakes. Verify important details.",
     "Use specific prompts with files, errors, and goals.",
     "Vague prompts can increase AI hallucinations."
   ];
-  let activeReminder = REMINDERS[Math.floor(Math.random() * REMINDERS.length)];
-  let wasLoading = quickHintLoading;
-  let shouldPickReminderAfterLoad = false;
-  let lastReminderHintKey = "";
+  let activeReminder = "";
+  let reminderQueue: string[] = [];
 
-  function pickRandomReminder(): string {
-    const next = REMINDERS[Math.floor(Math.random() * REMINDERS.length)];
-    if (REMINDERS.length > 1 && next === activeReminder) {
-      const fallbackIndex = (REMINDERS.indexOf(next) + 1) % REMINDERS.length;
-      return REMINDERS[fallbackIndex];
+  function refillReminderQueue() {
+    reminderQueue = [...REMINDERS].sort(() => Math.random() - 0.5);
+
+    // Avoid immediate repetition across queue refills.
+    if (activeReminder && reminderQueue.length > 1 && reminderQueue[0] === activeReminder) {
+      const first = reminderQueue.shift();
+      if (first) reminderQueue.push(first);
     }
-    return next;
   }
+
+  function pickNextReminder(): string {
+    if (REMINDERS.length === 0) return "";
+    if (REMINDERS.length === 1) return REMINDERS[0];
+    if (reminderQueue.length === 0) refillReminderQueue();
+    return reminderQueue.shift() || REMINDERS[0];
+  }
+
+  activeReminder = pickNextReminder();
+  let wasLoading = quickHintLoading;
+  let lastReminderHintKey = "";
 
   // Get plain text from HTML content
   function stripHtml(html: string): string {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
+  }
+
+  function normalizeAsteriskFormatting(content: string): string {
+    // Fallback for AI responses that use markdown-like asterisks for emphasis.
+    return content
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.+?)__/g, '<strong>$1</strong>');
   }
 
   // Start typewriter effect when text changes
@@ -78,25 +114,29 @@
       typeInterval = null;
     }
     
-    currentText = text;
-    
-    // Use plain text for typewriter
-    const plainText = stripHtml(text);
+    const htmlText = normalizeAsteriskFormatting(formatMessage(text));
+    formattedText = htmlText;
+
+    // Typewriter animates plain text while final output keeps formatting.
+    const plainText = stripHtml(htmlText);
     
     if (plainText.length === 0) {
       displayedText = "";
+      isTyping = false;
       return;
     }
     
     // If this text was already shown, skip animation and show full text
     if (skipAnimation) {
       displayedText = plainText;
+      isTyping = false;
       return;
     }
     
     // First time seeing this text - run typewriter
     displayedText = "";
     typeIndex = 0;
+    isTyping = true;
     
     typeInterval = setInterval(() => {
       if (typeIndex < plainText.length) {
@@ -105,6 +145,7 @@
         typeIndex++;
       } else {
         // Done typing
+        isTyping = false;
         if (typeInterval) {
           clearInterval(typeInterval);
           typeInterval = null;
@@ -116,7 +157,7 @@
   // Detect if this component is being reused (message already shown)
   // We check if the current text is already in our shownTexts set
   $: {
-    const newText = hintChunks[currentHintChunk] || quickHintMessage;
+    const newText = activeChunk;
     if (newText && !quickHintLoading) {
       // Check if this specific text has been shown before
       const textKey = stripHtml(newText);
@@ -133,41 +174,30 @@
     }
   }
 
-  // Pick one reminder per hint session: when loading starts, arm update;
-  // when loading ends and a hint exists, pick once and keep it stable.
+  // Keep one reminder stable for the full session.
+  // If a session starts with loading, pick once at loading start and keep it
+  // unchanged after the hint appears. For no-loading sessions (e.g. warnings),
+  // rotate once per new root message.
   $: {
     if (quickHintLoading && !wasLoading) {
-      shouldPickReminderAfterLoad = true;
+      activeReminder = pickNextReminder();
     }
 
     const stableHintKey = stripHtml(quickHintMessage || "").trim();
     const hasHintText = Boolean(stableHintKey);
 
-    // Hint text can arrive slightly after loading flips to false, so keep the
-    // session armed until text exists, then pick exactly once.
-    if (!quickHintLoading && shouldPickReminderAfterLoad && hasHintText) {
-      activeReminder = pickRandomReminder();
-      shouldPickReminderAfterLoad = false;
-      lastReminderHintKey = stableHintKey;
-    }
-
-    // Fallback path: if no loading transition happens, rotate once when
-    // the session's root hint message changes.
-    if (!quickHintLoading && !shouldPickReminderAfterLoad && hasHintText && stableHintKey !== lastReminderHintKey) {
-      activeReminder = pickRandomReminder();
-      lastReminderHintKey = stableHintKey;
+    if (!quickHintLoading && hasHintText) {
+      // Keep a marker for the latest resolved message so no-loading sessions
+      // can detect future changes correctly.
+      if (stableHintKey !== lastReminderHintKey) {
+        if (!wasLoading) {
+          activeReminder = pickNextReminder();
+        }
+        lastReminderHintKey = stableHintKey;
+      }
     }
 
     wasLoading = quickHintLoading;
-  }
-
-  // Reset tracking when a completely new message arrives
-  $: if (quickHintMessage && hintChunks.length > 0) {
-    // Check if this is a new message (different from previous)
-    const textKey = stripHtml(quickHintMessage);
-    if (!shownTexts.has(textKey)) {
-      isFirstRender = true;
-    }
   }
 
   // Cleanup on destroy
@@ -177,9 +207,8 @@
     }
   });
 </script>
-
-<div class="animate-float" style="position: relative; z-index: 9999;">
-  <BubbleCloud width={560} viewBox="0 0 520 350" contentX={85} contentY={75} contentWidth={320} contentHeight={200} contentPadding="8px 10px 2px">
+<div class="animate-float" style="position: relative; top: 24px; z-index: 9999;">
+  <BubbleCloud width={600} viewBox="0 0 530 360" contentX={85} contentY={70} contentWidth={320} contentHeight={220} contentPadding="8px 10px 6px">
         <!-- Header -->
         <div style="
           display: flex;
@@ -215,7 +244,7 @@
 
         <!-- Single message display with proper word break -->
         {:else}
-          <Scrollbar className="flex-1 min-h-[60px] max-h-[140px]">
+          <Scrollbar className="flex-1 min-h-[56px] max-h-[128px]">
             <p style="
               font-size: 12px;
               color: #d1d5db;
@@ -225,29 +254,37 @@
               overflow-wrap: anywhere;
               hyphens: auto;
             ">
-              {#if displayedText}
+              {#if isTyping && displayedText}
                 {displayedText}<span class="typewriter-cursor">|</span>
+              {:else if formattedText}
+                {@html formattedText}
               {/if}
             </p>
           </Scrollbar>
         {/if}
 
-          <!-- Pagination -->
-          {#if hintChunks.length > 1}
+          <!-- Navigation / Actions -->
+          {#if displayChunks.length > 1}
             <div style="
-              display:flex;align-items:center;justify-content:space-between;
-              padding-top:6px;border-top:1px solid #3f3f46;margin-top:6px;flex-shrink:0;
+              padding-top:6px;
+              border-top:1px solid #3f3f46;
+              margin-top:8px;
+              flex-shrink:0;
             ">
-              <button
-                on:click|stopPropagation={handlePrev}
-                disabled={currentHintChunk === 0}
-                style="font-size:11px;color:#9ca3af;background:none;border:none;cursor:pointer;opacity:{currentHintChunk===0?'0.3':'1'};padding:2px 4px;"
-              >← Prev</button>
-              <span style="font-size:11px;color:#fbbf24;">💡 {currentHintChunk + 1} of {hintChunks.length}</span>
-              <button
-                on:click|stopPropagation={currentHintChunk === hintChunks.length - 1 ? handleClose : handleNext}
-                style="font-size:11px;color:{currentHintChunk === hintChunks.length - 1 ? '#22d3ee' : '#9ca3af'};background:none;border:none;cursor:pointer;padding:2px 4px;"
-              >{currentHintChunk === hintChunks.length - 1 ? 'Done ✓' : 'Next →'}</button>
+              {#if displayChunks.length > 1}
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <button
+                    on:click|stopPropagation={handlePrev}
+                    disabled={currentDisplayChunk === 0}
+                    style="font-size:11px;color:#9ca3af;background:none;border:none;cursor:pointer;opacity:{currentDisplayChunk===0?'0.3':'1'};padding:2px 4px;"
+                  >← Prev</button>
+                  <span style="font-size:11px;color:#fbbf24;">💡 {currentDisplayChunk + 1} of {displayChunks.length}</span>
+                  <button
+                    on:click|stopPropagation={currentDisplayChunk === displayChunks.length - 1 ? handleClose : handleNext}
+                    style="font-size:11px;color:{currentDisplayChunk === displayChunks.length - 1 ? '#22d3ee' : '#9ca3af'};background:none;border:none;cursor:pointer;padding:2px 4px;"
+                  >{currentDisplayChunk === displayChunks.length - 1 ? 'Done ✓' : 'Next →'}</button>
+                </div>
+              {/if}
             </div>
           {/if}
 
@@ -261,7 +298,7 @@
           </div>
 
           <!-- AI reminder -->
-          <p style="font-size:10px;color:#9ca3af;margin:4px 0 0;line-height:1.35;text-align:center;flex-shrink:0;">{activeReminder}</p>
+          <p style="font-size:10px;color:#9ca3af;margin:3px 0 0;line-height:1.3;text-align:center;flex-shrink:0;">{activeReminder}</p>
   </BubbleCloud>
 </div>
 
@@ -294,4 +331,5 @@
     color: #22d3ee;
     font-weight: bold;
   }
+
 </style>

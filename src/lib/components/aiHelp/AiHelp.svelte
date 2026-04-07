@@ -420,16 +420,6 @@
     currentHintChunk = navigateHintChunk('next', currentHintChunk, hintChunks);
   }
 
-  function openChatFromBubble() {
-    // Close the bubble and open the floating modal for more questions
-    showQuickHint = false;
-    isBubbleHidden = false;
-    showFloatingModal = true;
-    useBubbleMode = false;
-    bubbleChatMessage = "";
-    bubbleChatLoading = false;
-  }
-
   // Handle selecting a history item from the floating modal
   function handleSelectHistoryItem(item: BubbleHistoryItem) {
     // Use helper to show bubble from history
@@ -615,7 +605,6 @@
         on:close={requestCloseWithConfirmation}
         on:prev={prevHintChunk}
         on:next={nextHintChunk}
-        on:openChat={openChatFromBubble}
       />
     </div>
   </div>
