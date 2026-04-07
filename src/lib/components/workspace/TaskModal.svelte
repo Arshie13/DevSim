@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Scrollbar from '../ui/Scrollbar.svelte';
+
 	export let open = false;
 	export let title = '';
 	export let userStory = '';
@@ -79,73 +81,75 @@
 				</div>
 			</header>
 
-			<div class="max-h-[70vh] space-y-5 overflow-y-auto px-5 py-5">
-				<section class="rounded-[4px] border border-[rgba(7,165,201,0.18)] bg-[rgba(7,165,201,0.06)] p-4">
+			<Scrollbar className="max-h-[70vh]">
+				<div class="space-y-5 px-5 py-5">
+					<section class="rounded-[4px] border border-[rgba(7,165,201,0.18)] bg-[rgba(7,165,201,0.06)] p-4">
 					<p class="mb-2 text-[0.64rem] uppercase tracking-[0.14em] text-[var(--accent)] [font-family:var(--font-mono)]">
 						User Story
 					</p>
 					<p class="whitespace-pre-line text-[0.92rem] leading-relaxed text-[var(--text-primary)] [font-family:var(--font-body)]">
 						{userStory || 'No user story was provided for this task yet.'}
 					</p>
-				</section>
+					</section>
 
-				<section data-tour="board-task-ac" class="rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[var(--bg)] p-4">
-					<p class="mb-3 text-[0.64rem] uppercase tracking-[0.14em] text-[var(--text-muted)] [font-family:var(--font-mono)]">
-						Acceptance Criteria
-					</p>
-
-					{#if acceptanceCriteria.length > 0}
-						<ol class="space-y-2">
-							{#each acceptanceCriteria as criterion, index}
-								<li class="flex items-start gap-3 rounded-[3px] border border-[rgba(7,165,201,0.12)] bg-[rgba(18,25,42,0.7)] px-3 py-2.5">
-									<span class="mt-0.5 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-[2px] border border-[rgba(7,165,201,0.35)] bg-[rgba(7,165,201,0.12)] text-[0.62rem] text-[var(--accent)] [font-family:var(--font-mono)]">
-										{index + 1}
-									</span>
-									<span class="text-[0.88rem] leading-relaxed text-[var(--text-primary)] [font-family:var(--font-body)]">
-										{criterion}
-									</span>
-								</li>
-							{/each}
-						</ol>
-					{:else}
-						<p class="rounded-[3px] border border-dashed border-[rgba(7,165,201,0.2)] px-3 py-3 text-[0.82rem] text-[var(--text-muted)] [font-family:var(--font-body)]">
-							No acceptance criteria listed for this task.
+					<section data-tour="board-task-ac" class="rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[var(--bg)] p-4">
+						<p class="mb-3 text-[0.64rem] uppercase tracking-[0.14em] text-[var(--text-muted)] [font-family:var(--font-mono)]">
+							Acceptance Criteria
 						</p>
-					{/if}
-				</section>
 
-				{#if hints && hints.length > 0}
-					<section class="rounded-[4px] border border-[rgba(255,180,0,0.15)] bg-[rgba(255,180,0,0.06)] p-4">
-						<button
-							type="button"
-							on:click={() => (showHints = !showHints)}
-							class="flex w-full items-center justify-between"
-						>
-							<p class="text-[0.64rem] uppercase tracking-[0.14em] text-[#FFB400] [font-family:var(--font-mono)]">
-								Hints ({hints.length})
-							</p>
-							<span class="text-[0.64rem] text-[#FFB400] [font-family:var(--font-mono)]">
-								{showHints ? '▲ Hide' : '▼ Show'}
-							</span>
-						</button>
-
-						{#if showHints}
-							<ol class="mt-3 space-y-2">
-								{#each hints as hint, index}
-									<li class="flex items-start gap-3 rounded-[3px] border border-[rgba(255,180,0,0.12)] bg-[rgba(18,25,42,0.7)] px-3 py-2.5">
-										<span class="mt-0.5 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-[2px] border border-[rgba(255,180,0,0.35)] bg-[rgba(255,180,0,0.12)] text-[0.62rem] text-[#FFB400] [font-family:var(--font-mono)]">
+						{#if acceptanceCriteria.length > 0}
+							<ol class="space-y-2">
+								{#each acceptanceCriteria as criterion, index}
+									<li class="flex items-start gap-3 rounded-[3px] border border-[rgba(7,165,201,0.12)] bg-[rgba(18,25,42,0.7)] px-3 py-2.5">
+										<span class="mt-0.5 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-[2px] border border-[rgba(7,165,201,0.35)] bg-[rgba(7,165,201,0.12)] text-[0.62rem] text-[var(--accent)] [font-family:var(--font-mono)]">
 											{index + 1}
 										</span>
 										<span class="text-[0.88rem] leading-relaxed text-[var(--text-primary)] [font-family:var(--font-body)]">
-											{hint.content}
+											{criterion}
 										</span>
 									</li>
 								{/each}
 							</ol>
+						{:else}
+							<p class="rounded-[3px] border border-dashed border-[rgba(7,165,201,0.2)] px-3 py-3 text-[0.82rem] text-[var(--text-muted)] [font-family:var(--font-body)]">
+								No acceptance criteria listed for this task.
+							</p>
 						{/if}
 					</section>
-				{/if}
-			</div>
+
+					{#if hints && hints.length > 0}
+						<section class="rounded-[4px] border border-[rgba(255,180,0,0.15)] bg-[rgba(255,180,0,0.06)] p-4">
+							<button
+								type="button"
+								on:click={() => (showHints = !showHints)}
+								class="flex w-full items-center justify-between"
+							>
+								<p class="text-[0.64rem] uppercase tracking-[0.14em] text-[#FFB400] [font-family:var(--font-mono)]">
+									Hints ({hints.length})
+								</p>
+								<span class="text-[0.64rem] text-[#FFB400] [font-family:var(--font-mono)]">
+									{showHints ? '▲ Hide' : '▼ Show'}
+								</span>
+							</button>
+
+							{#if showHints}
+								<ol class="mt-3 space-y-2">
+									{#each hints as hint, index}
+										<li class="flex items-start gap-3 rounded-[3px] border border-[rgba(255,180,0,0.12)] bg-[rgba(18,25,42,0.7)] px-3 py-2.5">
+											<span class="mt-0.5 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-[2px] border border-[rgba(255,180,0,0.35)] bg-[rgba(255,180,0,0.12)] text-[0.62rem] text-[#FFB400] [font-family:var(--font-mono)]">
+												{index + 1}
+											</span>
+											<span class="text-[0.88rem] leading-relaxed text-[var(--text-primary)] [font-family:var(--font-body)]">
+												{hint.content}
+											</span>
+										</li>
+									{/each}
+								</ol>
+							{/if}
+						</section>
+					{/if}
+				</div>
+			</Scrollbar>
 		</dialog>
 	</div>
 {/if}
