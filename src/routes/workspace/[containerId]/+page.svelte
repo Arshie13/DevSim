@@ -74,6 +74,8 @@
   $: difficulty = workspaceScenario?.difficulty ?? LEVEL_CONFIG.difficulty;
   $: level = currentLevel;
 
+  console.log("current level record: ", currentLevelRecord);
+
   // State
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let selectedFile: string = "app/page.tsx";
@@ -1278,7 +1280,7 @@
 <div class="fixed inset-0 z-50 pointer-events-none">
   <div class="pointer-events-auto">
     <AiHelp
-      containerId={page.params.containerId}
+      containerId={data.dockerContainerId}
       userId={data.userId}
       scenario={actualLevelConfig.scenario}
       {tasks}

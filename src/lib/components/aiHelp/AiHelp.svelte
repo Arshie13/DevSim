@@ -197,10 +197,6 @@
     const message = userMessage.trim();
     userMessage = "";
 
-    console.log("[AI Help] sendMessage called with:", message);
-    console.log("[AI Help] Current mode:", mode);
-    console.log("[AI Help] Current coins:", currentCoins, "Total cost:", totalCost);
-
     const filesToInclude = [...attachedFiles];
     aiChatHistory.update((msgs) => [
       ...msgs,
@@ -323,6 +319,8 @@
       return;
     }
 
+    // Save attached files before clearing
+    const filesToSend = [...attachedFiles];
     clearAttachedFiles();
     bubbleChatLoading = true;
     bubbleChatMessage = "";
@@ -340,7 +338,7 @@
       userId,
       level,
       mode,
-      attachedFiles,
+      filesToSend,
       currentCoins,
       totalCost,
       generateContext,

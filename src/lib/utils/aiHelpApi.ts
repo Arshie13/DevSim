@@ -4,7 +4,7 @@ import type { ITask } from "$lib/types";
 import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
 import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage } from "$lib/ai";
 import type { ChatMessage } from "$lib/stores/ai";
-import { 
+import {
   MAX_ATTACHED_FILES,
   MAX_CHARS_PER_CHUNK,
   MAX_FILE_LINES,
@@ -31,7 +31,7 @@ export async function generateContext(
   let context = `=== PROJECT OVERVIEW ===\n`;
   context += `Project: ${projectName || 'DevSim Workspace'}\n`;
   context += `Scenario: ${scenario}\n\n`;
-  
+
   if (mode === "chat") {
     const chatHistory = get(aiChatHistory);
     if (chatHistory.length > 0) {
@@ -39,7 +39,7 @@ export async function generateContext(
       const recentHistory = chatHistory.slice(-4);
       recentHistory.forEach((msg: ChatMessage) => {
         const role = msg.role === "user" ? "User" : "AI";
-        const content = msg.content.length > MAX_MESSAGE_LENGTH 
+        const content = msg.content.length > MAX_MESSAGE_LENGTH
           ? msg.content.substring(0, MAX_MESSAGE_LENGTH) + "..."
           : msg.content;
         context += `${role}: ${content}\n`;
@@ -131,10 +131,10 @@ export async function generateContext(
       context += "\n";
     }
   }
-  
+
   if (attachedFiles.length > 0) {
     context += `=== ATTACHED FILES (${attachedFiles.length}/${MAX_ATTACHED_FILES}) ===\n`;
-    
+
     const attachedFetchPromises = attachedFiles.map(async (file) => {
       try {
         const filePath = file.path.startsWith('/workspace/') ? file.path : `/workspace/${file.path}`;
@@ -153,9 +153,9 @@ export async function generateContext(
         return { file, content: `// Error: ${e}` };
       }
     });
-    
+
     const attachedResults = await Promise.all(attachedFetchPromises);
-    
+
     for (const result of attachedResults) {
       if (result) {
         const { file, content } = result;
@@ -163,12 +163,12 @@ export async function generateContext(
         context += `// Path: ${file.path}\n`;
         const lines = content.split('\n');
         const linesToShow = lines.slice(0, MAX_FILE_LINES);
-        
+
         linesToShow.forEach((line: string, index: number) => {
           const lineNum = index + 1;
           context += `${lineNum}: ${line}\n`;
         });
-        
+
         if (lines.length > MAX_FILE_LINES) {
           context += `... (showing first ${MAX_FILE_LINES} of ${lines.length} lines)\n`;
         }
@@ -176,10 +176,10 @@ export async function generateContext(
       }
     }
   }
-  
+
   const completedCount = tasks ? tasks.filter(t => t.isCompleted).length : 0;
   context += `Tasks (${completedCount}/${tasks ? tasks.length : 0} completed):\n`;
-  
+
   if (!tasks || tasks.length === 0) {
     if (scenario) {
       context += `Current scenario: ${scenario}\n`;
@@ -189,16 +189,35 @@ export async function generateContext(
     tasks.forEach((task) => {
       const status = task.isCompleted ? "[√]" : "[ ]";
       context += `${status} ${task.taskName}\n`;
+
+      // Include acceptance criteria for each task
+      if (task.acceptanceCriteria && task.acceptanceCriteria.length > 0) {
+        context += `   Acceptance Criteria:\n`;
+        task.acceptanceCriteria.forEach((ac) => {
+          const req = ac.isRequired ? "[REQUIRED]" : "[OPTIONAL]";
+          context += `   - ${req} ${ac.description}\n`;
+        });
+      }
+
+      // Include hints for incomplete tasks
+      if (!task.isCompleted && task.hints && task.hints.length > 0) {
+        context += `   Hints Available:\n`;
+        task.hints.forEach((hint, idx) => {
+          context += `   ${idx + 1}. ${hint.content}\n`;
+        });
+      }
     });
   }
-  
+
   context += `\n=== HINT INSTRUCTIONS ===\n`;
   if (tasks && tasks.length > 0) {
     context += `Based on the user's current task progress above, please provide a helpful hint that:\n`;
     context += `1. Focus on the next incomplete task (tasks marked with [ ])\n`;
-    context += `2. Consider the current state of the project files\n`;
-    context += `3. Be specific and actionable\n`;
-    context += `4. If all tasks are completed (all show [√]), congratulate the user and offer to help\n`;
+    context += `2. Consider the acceptance criteria for the current task\n`;
+    context += `3. Use the provided hints if the user seems stuck\n`;
+    context += `4. Consider the current state of the project files\n`;
+    context += `5. Be specific and actionable\n`;
+    context += `6. If all tasks are completed (all show [√]), congratulate the user and offer to help\n`;
   } else {
     context += `Provide helpful guidance based on the scenario and project files provided above.\n`;
   }
@@ -245,7 +264,7 @@ export async function sendChatMessage(
 
   try {
     const context = await generateContextFn();
-    
+
     const response = await fetch("/api/ai/hint", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -387,7 +406,7 @@ export async function sendBubbleChatMessage(
 
   try {
     const context = await generateContextFn();
-    
+
     const response = await fetch("/api/ai/hint", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -480,17 +499,37 @@ export function buildHintMessage(tasks: ITask[] | undefined, hintCost: number): 
   if (!tasks || tasks.length === 0) {
     return "Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?";
   }
-  
+
   const currentTask = tasks.find(t => !t.isCompleted);
   if (currentTask) {
     const completedCount = tasks.filter(t => t.isCompleted).length;
-    return `Current task: "${currentTask.taskName}" (${completedCount}/${tasks.length} done). Give me a SHORT, specific hint - which file and exactly what to do?`;
+    let message = `Current task: "${currentTask.taskName}" (${completedCount}/${tasks.length} done). `;
+    
+    // Include acceptance criteria in the message
+    if (currentTask.acceptanceCriteria && currentTask.acceptanceCriteria.length > 0) {
+      message += "\nAcceptance Criteria:\n";
+      currentTask.acceptanceCriteria.forEach((ac) => {
+        const req = ac.isRequired ? "[REQUIRED]" : "[OPTIONAL]";
+        message += `- ${req}: ${ac.description}\n`;
+      });
+    }
+    
+    // Include hints in the message
+    if (currentTask.hints && currentTask.hints.length > 0) {
+      message += "\nHints available:\n";
+      currentTask.hints.forEach((hint, idx) => {
+        message += `${idx + 1}. ${hint.content}\n`;
+      });
+    }
+    
+    message += "\nGive me a SHORT, specific hint - which file and exactly what to do?";
+    return message;
   }
-  
+
   if (tasks.every(t => t.isCompleted)) {
     return "All tasks done! Quick congrats and ask if they need help with anything else.";
   }
-  
+
   return "Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?";
 }
 

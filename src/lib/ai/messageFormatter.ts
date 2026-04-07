@@ -1,5 +1,7 @@
 // Message formatter utility for formatting AI messages
 
+import { extractProgressFromContext, type ProgressInfo } from './contextBuilder';
+
 /**
  * Format message content - convert URLs to links and newlines to <br> tags
  * @param content - The raw message content
@@ -74,4 +76,76 @@ export function getErrorMessage(): string {
  */
 export function getApiErrorMessage(error?: string): string {
   return error || "Sorry, I couldn't process your request. Please try again.";
+}
+
+/**
+ * Build a friendly greeting response
+ */
+export function buildGreetingResponse(context: string): string {
+  const progress = extractProgressFromContext(context);
+
+  let response = "👋 Hello! I'm SAZ, your AI coding assistant for StudentHub! ";
+
+  if (progress.total > 0) {
+    response += `I can see you're working on a project with ${progress.total} tasks, and you've completed ${progress.completed} of them. `;
+
+    if (progress.completed === 0) {
+      response += "That's great - you're just getting started! ";
+    } else if (progress.completed < progress.total) {
+      response += "Keep up the good progress! ";
+    } else {
+      response += "Amazing! You've completed all tasks! ";
+    }
+  }
+
+  response += "\n\nHere's how I can help:\n";
+  response += "• 📝 Ask me for hints when you're stuck\n";
+  response += "• 💡 Get guidance on your current task\n";
+  response += "• 🔍 Help you understand code or concepts\n";
+  response += "• 🎯 Point you in the right direction\n\n";
+  response += "Feel free to ask me anything!";
+
+  return response;
+}
+
+/**
+ * Build a hint response based on user's progress
+ */
+export function buildProgressHintResponse(context: string): string {
+  const progress: ProgressInfo = extractProgressFromContext(context);
+
+  if (progress.total === 0 && progress.tasks.length === 0) {
+    return "I don't see any tasks in your context yet. Try opening a project or loading a scenario first!";
+  }
+
+  const nextTask = progress.tasks.find(task => task.startsWith('[ ]'));
+
+  let response = "📋 Here's your current progress: ";
+  response += `${progress.completed}/${progress.total} tasks completed.\n\n`;
+
+  if (nextTask) {
+    response += "🎯 **Next Task:**\n";
+    response += nextTask.replace('[ ]', '').trim() + "\n\n";
+    response += "💡 **Hint:** Look at the task description and check the files in your project. ";
+
+    const taskText = nextTask.toLowerCase();
+    if (taskText.includes('install') || taskText.includes('npm') || taskText.includes('package')) {
+      response += "You may need to run some installation commands in the terminal.";
+    } else if (taskText.includes('create') || taskText.includes('add') || taskText.includes('file')) {
+      response += "Try creating or modifying files in the explorer.";
+    } else if (taskText.includes('run') || taskText.includes('start') || taskText.includes('test')) {
+      response += "Check if there's a terminal or command to run.";
+    } else if (taskText.includes('error') || taskText.includes('fix') || taskText.includes('debug')) {
+      response += "Look at the error messages for clues on what to fix.";
+    } else {
+      response += "Break down the task into smaller steps and tackle them one at a time.";
+    }
+  } else {
+    response += "🎉 Congratulations! You've completed all tasks! ";
+    if (progress.completed === progress.total && progress.total > 0) {
+      response += "Great job! You can submit your work or move on to the next level.";
+    }
+  }
+
+  return response;
 }
