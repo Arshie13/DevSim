@@ -83,7 +83,19 @@
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
-  const protectedRootFiles = new Set(["package.json", "package-lock.json", "package.lock.json"]);
+  const protectedPackageFiles = new Set([
+    "package.json",
+    "package-lock.json",
+    "package.lock.json",
+  ]);
+  const protectedRootFiles = new Set([
+    "README",
+    "README.md",
+    "README.txt",
+    "readme",
+    "readme.md",
+    "readme.txt",
+  ]);
 
   let openTabs: FileTab[] = [];
   let activeTabId: string = "";
@@ -374,7 +386,10 @@
 
   function isFrontendReadOnlyFile(path: string): boolean {
     const normalized = normalizeWorkspaceRelativePath(path);
-    return normalized.length > 0 && !normalized.includes("/") && protectedRootFiles.has(normalized);
+    if (!normalized) return false;
+    const fileName = normalized.split("/").pop() ?? "";
+    if (protectedPackageFiles.has(fileName)) return true;
+    return !normalized.includes("/") && protectedRootFiles.has(normalized);
   }
 
   $: isSelectedFileReadOnly = isFrontendReadOnlyFile(selectedFile);

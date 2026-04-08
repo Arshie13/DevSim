@@ -63,7 +63,7 @@ async function main() {
       order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       levelDescription:
-        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the Next.js + Prisma + PostgreSQL stack, configure the database, and make minor UI tweaks to get the application running properly in your local machine.",
+        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in your local machine.",
       xpReward: 100,
       coinReward: 50,
       keyTakeaways: "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (npm/pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
@@ -84,7 +84,7 @@ async function main() {
                 },
                 {
                   description:
-                    "Use the server README as reference for required `.env` values.",
+                    "Use the README to gather information about the project setup.",
                   order: 2,
                 },
                 {
@@ -104,20 +104,14 @@ async function main() {
                   order: 1,
                 },
                 {
-                  description:
-                    ".env file configured with database and JWT secret",
+                  description: "Prisma migrations executed successfully",
                   isRequired: true,
                   order: 2,
                 },
                 {
-                  description: "Prisma migrations executed successfully",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
                   description: "Both client and server running without errors",
                   isRequired: true,
-                  order: 4,
+                  order: 3,
                 },
               ],
             },

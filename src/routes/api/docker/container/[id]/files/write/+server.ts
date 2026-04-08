@@ -4,7 +4,19 @@ import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
 import { logFileChange } from '$lib/server/fileChangeLogger';
 
-const PROTECTED_ROOT_FILES = new Set(['package.json', 'package-lock.json', 'package.lock.json']);
+const PROTECTED_PACKAGE_FILES = new Set([
+  'package.json',
+  'package-lock.json',
+  'package.lock.json',
+]);
+const PROTECTED_ROOT_FILES = new Set([
+  'README',
+  'README.md',
+  'README.txt',
+  'readme',
+  'readme.md',
+  'readme.txt',
+]);
 
 function normalizeWorkspaceRelativePath(inputPath: string): string {
   return inputPath
@@ -16,7 +28,14 @@ function normalizeWorkspaceRelativePath(inputPath: string): string {
 
 function isProtectedRootFilePath(inputPath: string): boolean {
   const normalized = normalizeWorkspaceRelativePath(inputPath);
-  return normalized.length > 0 && !normalized.includes('/') && PROTECTED_ROOT_FILES.has(normalized);
+  if (!normalized) return false;
+  const isProtectedPackageFile =
+    PROTECTED_PACKAGE_FILES.has(normalized) ||
+    normalized.includes('/package.json') ||
+    normalized.includes('/package-lock.json') ||
+    normalized.includes('/package.lock.json');
+  if (isProtectedPackageFile) return true;
+  return !normalized.includes('/') && PROTECTED_ROOT_FILES.has(normalized);
 }
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
