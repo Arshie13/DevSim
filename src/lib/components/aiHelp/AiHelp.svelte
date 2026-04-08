@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
   import {
     aiChatHistory,
     aiCoins,
@@ -84,6 +85,11 @@
   let hintsShown: string[] = [];
   let isBubbleHidden = false;
   let showCloseConfirmation = false;
+  let isSazHidden = false;
+  let isSummoningSaz = false;
+  let showSazWave = false;
+  let sazWaveTimer: ReturnType<typeof setTimeout> | null = null;
+  let sazSummonTimer: ReturnType<typeof setTimeout> | null = null;
   
   // Track if we should use bubble mode for chat responses
   let useBubbleMode = false;
@@ -174,6 +180,49 @@
   function closeFloatingModal() {
     showFloatingModal = false;
   }
+
+  function hideSaz() {
+    if (sazWaveTimer) {
+      clearTimeout(sazWaveTimer);
+      sazWaveTimer = null;
+    }
+    if (sazSummonTimer) {
+      clearTimeout(sazSummonTimer);
+      sazSummonTimer = null;
+    }
+
+    isSazHidden = true;
+    isSummoningSaz = false;
+    showSazWave = false;
+    showFloatingModal = false;
+    showQuickHint = false;
+    isBubbleHidden = true;
+    showCloseConfirmation = false;
+  }
+
+  function showSazAssistant() {
+    isSazHidden = false;
+    isSummoningSaz = true;
+    showSazWave = true;
+
+    if (sazWaveTimer) clearTimeout(sazWaveTimer);
+    if (sazSummonTimer) clearTimeout(sazSummonTimer);
+
+    sazWaveTimer = setTimeout(() => {
+      showSazWave = false;
+      sazWaveTimer = null;
+    }, 700);
+
+    sazSummonTimer = setTimeout(() => {
+      isSummoningSaz = false;
+      sazSummonTimer = null;
+    }, 1250);
+  }
+
+  onDestroy(() => {
+    if (sazWaveTimer) clearTimeout(sazWaveTimer);
+    if (sazSummonTimer) clearTimeout(sazSummonTimer);
+  });
 
   async function generateContext() {
     return generateContextHelper(
@@ -492,38 +541,69 @@
 </script>
 
 <!-- ─── SAZ Avatar toggle button ─── -->
-<button
-  data-tour="ai-toggle"
-  onclick={toggleFloatingModal}
-  class="fixed bottom-6 right-6 z-40 w-28 h-28 overflow-hidden shadow-2xl transition-transform hover:scale-110"
-  style="background: transparent; padding: 0; border: none; border-radius: 0;"
-  aria-label="Open AI Assistant"
->
-  {#if quickHintLoading || bubbleChatLoading}
-    <img
-      src="/images/saz_thinking.png"
-      alt="SAZ Thinking"
-      class="w-full h-full object-cover animate-pulse"
-    />
-  {:else if (showQuickHint && quickHintMessage) || (useBubbleMode && bubbleChatMessage)}
-    <img
-      src="/images/saz-lightbulb.png"
-      alt="SAZ Hint Ready"
-      class="w-full h-full object-cover"
-    />
-  {:else}
-    <img
-      src="/images/saz-full.png"
-      alt="SAZ"
-      class="w-full h-full object-cover"
-    />
-  {/if}
-</button>
+{#if !isSazHidden}
+  <div class="group fixed bottom-6 right-6 z-40">
+    <button
+      data-tour="ai-toggle"
+      onclick={toggleFloatingModal}
+      class="w-28 h-28 transition-transform duration-200 {isSummoningSaz ? 'scale-105' : 'hover:scale-110 active:scale-[1.03]'}"
+      style="appearance:none;-webkit-appearance:none;background:transparent;padding:0;border:none;border-radius:0;box-shadow:none;outline:none;"
+      aria-label="Open AI Assistant"
+    >
+      {#if showSazWave}
+        <img
+          src="/images/saz-wave.png"
+          alt="SAZ Waving"
+          class="w-full h-full object-contain"
+        />
+      {:else if quickHintLoading || bubbleChatLoading}
+        <img
+          src="/images/saz_thinking.png"
+          alt="SAZ Thinking"
+          class="w-full h-full object-contain animate-pulse"
+        />
+      {:else if (showQuickHint && quickHintMessage) || (useBubbleMode && bubbleChatMessage)}
+        <img
+          src="/images/saz-lightbulb.png"
+          alt="SAZ Hint Ready"
+          class="w-full h-full object-contain"
+        />
+      {:else}
+        <img
+          src="/images/saz-full.png"
+          alt="SAZ"
+          class="w-full h-full object-contain"
+        />
+      {/if}
+    </button>
+
+    <button
+      type="button"
+      onclick={hideSaz}
+      aria-label="Put SAZ to sleep"
+      title="Put SAZ to sleep"
+      class="absolute -top-1 -right-1 grid h-8 w-8 place-items-center rounded-full border border-slate-300/25 bg-[rgba(12,20,36,0.92)] text-[13px] text-slate-200 shadow-[0_8px_18px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-200/45 hover:bg-[rgba(25,35,56,0.96)] hover:text-white"
+    >
+      💤
+    </button>
+
+  </div>
+{:else}
+  <button
+    type="button"
+    onclick={showSazAssistant}
+    class="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-cyan-300/40 bg-[linear-gradient(135deg,rgba(8,27,40,0.95),rgba(10,57,80,0.95))] px-4 py-2.5 text-cyan-100 shadow-[0_10px_24px_rgba(4,20,30,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-200 hover:text-white hover:shadow-[0_14px_28px_rgba(6,182,212,0.25)] active:translate-y-0"
+    aria-label="Show SAZ"
+  >
+    <span class="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-300"></span>
+    <span class="[font-family:var(--font-heading)] text-xs uppercase tracking-[0.08em]">Summon Saz</span>
+  </button>
+{/if}
 
 <!-- ─── "Need help? Click Me!" bubble ───
      Shown when modal is closed and no quick hint is active.
      Sits at bottom:160px right:24px — same slot as the "Show hint" restore button. -->
-{#if !showFloatingModal && !showQuickHint}
+{#if !isSazHidden && !showFloatingModal && !showQuickHint}
   <div class="fixed z-30 animate-pulse" style="bottom: 160px; right: 36px;">
     <div class="relative">
       <div
@@ -552,7 +632,7 @@
 
 <!-- ─── Main Chat Modal ─── -->
 <FloatingModal
-  show={showFloatingModal}
+  show={showFloatingModal && !isSazHidden}
   showBubble={showQuickHint}
   messages={$aiChatHistory}
   history={bubbleHistory}
@@ -585,7 +665,7 @@
      circles sit above the SAZ avatar (fixed bottom-6 right-6 = 24px).
      right: 220px shifts the cloud left so it doesn't overlap the right panel.
      bottom: 148px clears the 112px avatar + 36px gap. -->
-{#if showQuickHint && !isBubbleHidden}
+{#if !isSazHidden && showQuickHint && !isBubbleHidden}
   <div
     class="fixed inset-0 z-50"
     style="pointer-events: none;"
@@ -612,7 +692,7 @@
 
 <!-- ─── "Show hint" restore button ───
      Replaces "Need Help?" at the exact same position when hint is minimised. -->
-{#if showQuickHint && isBubbleHidden}
+{#if !isSazHidden && showQuickHint && isBubbleHidden}
   <button
     type="button"
     onclick={showBubble}

@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { StackSelection } from "$types";
-  import { X, Sparkles, Loader } from "lucide-svelte";
+  import { X, Loader } from "lucide-svelte";
+  import { formatMessage } from "$lib/ai";
+  import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
   import {
     FRONTEND_OPTIONS,
     BACKEND_OPTIONS,
@@ -126,7 +128,7 @@
       </div>
 
       <!-- Content -->
-      <div class="flex-1 mb-6 overflow-y-auto min-h-0">
+      <Scrollbar className="flex-1 mb-6 min-h-0 pr-1">
         {#if isLoading}
           <div class="flex items-center justify-center py-12">
             <div class="flex items-center gap-3">
@@ -143,7 +145,7 @@
               class="text-[#d0d7dd] leading-relaxed text-justify"
               style="font-family:'Rajdhani',sans-serif;font-size:0.95rem;line-height:1.6;"
             >
-              {@html description.replace(/\n/g, '<br>')}
+              {@html formatMessage(description)}
             </div>
           </div>
 
@@ -154,7 +156,7 @@
             </p>
           </div>
         {/if}
-      </div>
+      </Scrollbar>
 
       <!-- Footer -->
       <div class="flex flex-col items-center justify-center pt-4 border-t border-[rgba(7,165,201,0.15)] flex-shrink-0 gap-2">

@@ -157,9 +157,6 @@
           <div class="loading-pop flex flex-col items-center justify-center px-4 py-12 text-center text-[var(--text-muted)]">
             <div class="mb-4 h-10 w-10 animate-spin rounded-full border-[3px] border-[rgba(7,165,201,0.2)] border-t-[var(--accent)]"></div>
             <p class="[font-family:var(--font-body)]">Running tests...</p>
-            {#if result?.command}
-              <code class="mt-3 inline-block rounded-[4px] border border-[rgba(7,165,201,0.15)] bg-[rgba(7,165,201,0.08)] px-3.5 py-2 [font-family:var(--font-mono)] text-xs text-[var(--accent)]">{result.command}</code>
-            {/if}
           </div>
         {:else if result}
           {#if result.taskResults.length === 0}

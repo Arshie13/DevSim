@@ -20,6 +20,11 @@ export function formatMessage(content: string): string {
     .replace(/^##\s+(.+)$/gm, '<span style="display:block;font-size:1.08em;font-weight:700;color:#f8fafc;margin:0.12em 0 0.34em;">$1</span>')
     .replace(/^#\s+(.+)$/gm, '<span style="display:block;font-size:1.14em;font-weight:700;color:#f8fafc;margin:0.12em 0 0.36em;">$1</span>');
 
+  // Parse markdown-like bold markers from AI responses.
+  formatted = formatted
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>');
+
   // Convert newlines to <br> tags
   formatted = formatted.replace(/\n/g, '<br>');
 

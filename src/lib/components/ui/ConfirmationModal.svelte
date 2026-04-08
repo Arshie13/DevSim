@@ -106,7 +106,7 @@
     on:click={handleBackdropClick}
     on:keydown={handleKeydown}
   >
-    <div class="cm-card">
+    <div class="cm-card ds-scrollbar">
       <!-- Animated gradient border glow -->
       <div class="cm-card-glow" aria-hidden="true"></div>
 
@@ -211,6 +211,42 @@
       0 0 0 1px rgba(7, 165, 201, 0.07),
       0 0 40px rgba(7, 165, 201, 0.12),
       0 24px 60px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Shared custom scrollbar styling on modal shell (single scrollbar source). */
+  .ds-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(136, 146, 160, 0.3) rgba(10, 14, 26, 0.6);
+  }
+
+  .ds-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .ds-scrollbar::-webkit-scrollbar-track {
+    background: rgba(10, 14, 26, 0.6);
+    border-radius: 4px;
+    margin: 4px 0;
+  }
+
+  .ds-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(136, 146, 160, 0.3);
+    border-radius: 4px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .ds-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(7, 165, 201, 0.6);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 10px rgba(7, 165, 201, 0.4);
+  }
+
+  .ds-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: rgba(136, 146, 160, 0.45);
   }
 
   /* Animated gradient border overlay */
@@ -428,7 +464,7 @@
 
   @media (max-height: 760px) {
     .cm-backdrop {
-      align-items: flex-start;
+      align-items: center;
       padding: 0.75rem;
     }
 
