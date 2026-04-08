@@ -257,7 +257,7 @@ function reconcileResults(
   for (const name of groundTruth) {
     const normalized = normalizeTestName(name);
     usedGroundTruth.add(normalized);
-    const failed = overallPassed ? false : failedNames.has(normalized);
+    const failed = overallPassed ? false : isGroundTruthNameFailed(normalized, failedNames);
 
     reconciled.push({
       testId: `test-${++testIdCounter}`,
@@ -279,6 +279,15 @@ function reconcileResults(
         });
       }
     }
+
+    // If the run failed but no failed test names were captured, fail all known tests.
+    if (failedNames.size === 0 && reconciled.length > 0) {
+      return reconciled.map((result) => ({
+        ...result,
+        passed: false,
+        message: 'Test failed'
+      }));
+    }
   }
 
   return reconciled;
@@ -286,6 +295,19 @@ function reconcileResults(
 
 function normalizeTestName(name: string): string {
   return name.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function isGroundTruthNameFailed(normalizedGroundTruthName: string, failedNames: Set<string>): boolean {
+  if (failedNames.has(normalizedGroundTruthName)) return true;
+
+  for (const failedName of failedNames) {
+    // Handles prefixed names like "suite > should ..." from vitest output.
+    if (failedName.endsWith(`> ${normalizedGroundTruthName}`) || failedName.includes(normalizedGroundTruthName)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // ---------------------------------------------------------------------------
