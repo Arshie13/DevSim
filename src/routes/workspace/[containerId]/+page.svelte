@@ -472,6 +472,11 @@
 
   async function initWorkspace() {
     try {
+      if (!containerId?.trim()) {
+        throw new Error(
+          "No Docker workspace is linked to this session. Return to the dashboard and launch a stack again.",
+        );
+      }
       setBootStep(0);
       const response = await fetch(
         `/api/docker/container/${containerId}/start`,
@@ -964,19 +969,25 @@
   }
 
   function refreshPreview() {
+    if (!containerId?.trim()) return;
     fetch(`/api/docker/container/${containerId}/ports`)
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: { success?: boolean; previewUrl?: string; error?: string }) => {
         if (data.success && data.previewUrl) {
           let finalUrl = data.previewUrl;
-          if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
-            finalUrl = 'https://' + finalUrl;
+          if (!finalUrl.startsWith("http://") && !finalUrl.startsWith("https://")) {
+            finalUrl = "https://" + finalUrl;
           }
-          previewUrl = finalUrl;
-          if (iframeRef) {
-            iframeRef.src = finalUrl + "?t=" + Date.now();
+          try {
+            const u = new URL(finalUrl);
+            u.searchParams.set("t", Date.now().toString());
+            previewUrl = u.toString();
+            if (iframeRef) iframeRef.src = previewUrl;
+          } catch (error) {
+            console.error("Error refreshing preview:", error);
           }
         } else {
+          if (data.error) toast.error(data.error);
           if (previewUrl) {
             try {
               const currentUrl = new URL(previewUrl);
@@ -991,6 +1002,7 @@
       })
       .catch((err) => {
         console.error("Error fetching ports:", err);
+        toast.error("Could not refresh preview");
         if (previewUrl) {
           try {
             const currentUrl = new URL(previewUrl);
