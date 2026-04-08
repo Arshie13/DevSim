@@ -36,7 +36,7 @@
   $: headerEmoji = quickHintLoading ? "💭" : (showChatButton ? "💬" : "💡");
 
   // Typewriter effect state
-  let displayedText = "";
+  let displayedHtml = "";
   let formattedText = "";
   let isTyping = false;
   let typeIndex = 0;
@@ -57,9 +57,11 @@
   }
 
   $: numberedHintChunks = splitNumberedHintSections(quickHintMessage || "");
-  $: displayChunks = numberedHintChunks.length > 1
-    ? numberedHintChunks
-    : (hintChunks.length > 0 ? hintChunks : (quickHintMessage ? [quickHintMessage] : []));
+  $: displayChunks = hintChunks.length > 0
+    ? hintChunks
+    : (numberedHintChunks.length > 1
+      ? numberedHintChunks
+      : (quickHintMessage ? [quickHintMessage] : []));
   $: currentDisplayChunk = Math.min(currentHintChunk, Math.max(displayChunks.length - 1, 0));
   $: activeChunk = displayChunks[currentDisplayChunk] || "";
 
@@ -94,9 +96,75 @@
 
   // Get plain text from HTML content
   function stripHtml(html: string): string {
-    const tmp = document.createElement('div');
+    if (typeof document === "undefined") {
+      return html.replace(/<[^>]*>/g, "");
+    }
+    const tmp = document.createElement("div");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
+  }
+
+  function escapeHtmlText(text: string): string {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function truncateHtmlByVisibleChars(html: string, maxVisibleChars: number): string {
+    if (maxVisibleChars <= 0) return "";
+
+    if (typeof document === "undefined") {
+      return escapeHtmlText(stripHtml(html).slice(0, maxVisibleChars));
+    }
+
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    let remaining = maxVisibleChars;
+    const VOID_TAGS = new Set(["br", "img", "hr", "input", "meta", "link"]);
+
+    const serializeNode = (node: Node): string => {
+      if (remaining <= 0) return "";
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || "";
+        const slice = text.slice(0, remaining);
+        remaining -= slice.length;
+        return escapeHtmlText(slice);
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        return "";
+      }
+
+      const el = node as Element;
+      const tag = el.tagName.toLowerCase();
+      const attrs = Array.from(el.attributes)
+        .map((attr) => ` ${attr.name}="${escapeHtmlText(attr.value)}"`)
+        .join("");
+
+      if (VOID_TAGS.has(tag)) {
+        return `<${tag}${attrs}>`;
+      }
+
+      let childrenHtml = "";
+      for (const child of Array.from(el.childNodes)) {
+        if (remaining <= 0) break;
+        childrenHtml += serializeNode(child);
+      }
+
+      return `<${tag}${attrs}>${childrenHtml}</${tag}>`;
+    };
+
+    let output = "";
+    for (const child of Array.from(template.content.childNodes)) {
+      if (remaining <= 0) break;
+      output += serializeNode(child);
+    }
+
+    return output;
   }
 
   function normalizeAsteriskFormatting(content: string): string {
@@ -117,35 +185,35 @@
     const htmlText = normalizeAsteriskFormatting(formatMessage(text));
     formattedText = htmlText;
 
-    // Typewriter animates plain text while final output keeps formatting.
+    // Typewriter animates the already-parsed HTML so formatting stays consistent.
     const plainText = stripHtml(htmlText);
     
     if (plainText.length === 0) {
-      displayedText = "";
+      displayedHtml = "";
       isTyping = false;
       return;
     }
     
     // If this text was already shown, skip animation and show full text
     if (skipAnimation) {
-      displayedText = plainText;
+      displayedHtml = htmlText;
       isTyping = false;
       return;
     }
     
     // First time seeing this text - run typewriter
-    displayedText = "";
+    displayedHtml = "";
     typeIndex = 0;
     isTyping = true;
     
     typeInterval = setInterval(() => {
       if (typeIndex < plainText.length) {
-        // Get the next character
-        displayedText = plainText.substring(0, typeIndex + 1);
+        displayedHtml = truncateHtmlByVisibleChars(htmlText, typeIndex + 1);
         typeIndex++;
       } else {
         // Done typing
         isTyping = false;
+        displayedHtml = htmlText;
         if (typeInterval) {
           clearInterval(typeInterval);
           typeInterval = null;
@@ -170,7 +238,7 @@
       
       startTypewriter(newText, skipAnimation);
     } else {
-      displayedText = "";
+      displayedHtml = "";
     }
   }
 
@@ -254,8 +322,8 @@
               overflow-wrap: anywhere;
               hyphens: auto;
             ">
-              {#if isTyping && displayedText}
-                {displayedText}<span class="typewriter-cursor">|</span>
+              {#if isTyping && displayedHtml}
+                {@html displayedHtml}<span class="typewriter-cursor">|</span>
               {:else if formattedText}
                 {@html formattedText}
               {/if}
