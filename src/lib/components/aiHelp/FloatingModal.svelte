@@ -39,6 +39,9 @@
 
   // Local state
   let localUserMessage: string = "";
+  let attachButtonEl: HTMLButtonElement | null = null;
+  let filePickerAnchorX: number | null = null;
+  let filePickerAnchorY: number | null = null;
   
   // Sync local state with prop
   $: localUserMessage = userMessage;
@@ -52,7 +55,7 @@
   // Calculate canSend locally
   $: canSend = localUserMessage.trim().length > 0 && !isLoading;
   $: filteredFileTree = filterSourceFiles(fileTree || [], attachedFiles || []);
-  $: recentHistory = (history || []).slice(-4);
+  $: recentHistory = (history || []).slice(-6);
   
   // Handle input change
   function handleInput(event: Event) {
@@ -65,7 +68,30 @@
   function handleSelectHistoryItem(item: BubbleHistoryItem) {
     onSelectHistory(item);
   }
+
+  function updateFilePickerAnchor() {
+    if (!attachButtonEl) return;
+    const rect = attachButtonEl.getBoundingClientRect();
+    filePickerAnchorX = rect.left;
+    filePickerAnchorY = rect.top;
+  }
+
+  function handleToggleFilePicker() {
+    updateFilePickerAnchor();
+    onToggleFilePicker();
+  }
+
+  $: if (showFilePicker) {
+    requestAnimationFrame(() => {
+      updateFilePickerAnchor();
+    });
+  }
 </script>
+
+<svelte:window
+  on:resize={() => { if (showFilePicker) updateFilePickerAnchor(); }}
+  on:scroll={() => { if (showFilePicker) updateFilePickerAnchor(); }}
+/>
 
 {#if show}
   <div 
@@ -76,7 +102,7 @@
     tabindex="0"
   >
     <!-- Chat bubble container with pointer -->
-    <div class="relative" style="width: 380px;">
+    <div class="relative" style="width: 460px;">
       <!-- Pointer/connector to avatar -->
       <div class="absolute -bottom-3 right-8 w-6 h-6 bg-[#0f172a] rotate-45 border-r border-b border-cyan-400/50"></div>
       
@@ -252,8 +278,9 @@
         <div class="p-2 border-t border-slate-700/50">
           <div class="flex items-center gap-1.5">
             <button
+              bind:this={attachButtonEl}
               type="button"
-              onclick={onToggleFilePicker}
+              onclick={handleToggleFilePicker}
               disabled={!canAttachMore}
               class="p-1.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={canAttachMore ? "Attach file" : "Max files attached"}
@@ -289,6 +316,8 @@
     show={showFilePicker}
     files={filteredFileTree}
     {attachedFiles}
+    anchorX={filePickerAnchorX}
+    anchorY={filePickerAnchorY}
     onAttach={onAttachFile}
     onClose={onCloseFilePicker}
   />
