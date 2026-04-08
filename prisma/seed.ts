@@ -182,8 +182,8 @@ async function main() {
       tasks: {
         create: [
           {
-            taskName: "Fix Borrow Availability Bug",
-            testType: "client", // helpers.ts is client-side
+            taskName: "Add Borrow Availability Helper",
+            testType: "client",
             userStory:
               "As a developer, I want a reusable availability helper, So that borrow decisions stay correct and consistent.",
             hints: {
@@ -249,7 +249,7 @@ async function main() {
           },
           {
             taskName: "Reuse Availability Logic",
-            testType: "client", // BorrowRecords.tsx is client-side
+            testType: "client", 
             userStory:
               "As a developer, I want BorrowRecords to use the shared availability helper, So that the logic stays consistent across views.",
             hints: {
