@@ -101,7 +101,7 @@ function inferExpectedLayerCountFromTasks(taskTexts: string[]): number {
   const infraSignals = /\b(test|testing|integration|e2e|ci|pipeline|docker|deploy|lint)\b/.test(corpus);
 
   const signalCount = [frontendSignals, backendSignals, databaseSignals, infraSignals].filter(Boolean).length;
-  return signalCount >= 2 ? 2 : 1;
+  return signalCount >= 3 ? 2 : 1;
 }
 
 // Build the scoring prompt for OpenRouter
@@ -506,10 +506,10 @@ export const POST: RequestHandler = async ({ request }) => {
     
     // Parse the response
     const { stars, score, feedback, improvements, nextTime, masteryPassed, masteryGaps } = parseScoringResponse(aiResponse);
-    const reflectionStrongEnough = normalizedReflection.length >= 80;
+    const reflectionStrongEnough = normalizedReflection.length >= 40;
     const expectedLayerCount = inferExpectedLayerCountFromTasks(levelInfo.tasks);
     const layerEvidence = normalizedImpactedLayers.length >= expectedLayerCount;
-    const qualityFloor = stars >= 2 || score >= 50;
+    const qualityFloor = stars >= 1 || score >= 33;
     const aiMasterySignal = masteryPassed || qualityFloor;
     const finalMasteryPassed = aiMasterySignal && reflectionStrongEnough && layerEvidence;
     const fallbackMasteryGaps = !reflectionStrongEnough

@@ -30,10 +30,11 @@
     name: data.user.name ?? "No Name",
     email: data.user.email,
     image: data.user.image,
-    fullName: data.user.fullName ?? "No Name",
-    givenName: data.user.givenName ?? "No Name",
-    avatar: data.user?.image ?? '',
     coins: data.userCoins,
+    xp: data.user.xp,
+    level: data.user.level,
+    ownedAvatars: data.user.ownedAvatars,
+    hasCompletedOnboarding: data.user.hasCompletedOnboarding,
   };
 
   function firstName (fullName: string) {
@@ -73,7 +74,7 @@
     <div class="flex items-center justify-between mb-4 lg:mb-6">
       <div>
         <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
-          Welcome back, <span class="text-cyber-cyan">{firstName(headerUserData.givenName)}</span>
+          Welcome back, <span class="text-cyber-cyan">{headerUserData.name}</span>
         </h2>
         <p class="text-sm font-rajdhani text-obsidian-text-primary/50 mt-1">
           Ready to continue your developer journey? Your progress awaits.
