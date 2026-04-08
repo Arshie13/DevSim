@@ -83,6 +83,7 @@
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
+  const protectedRootFiles = new Set(["package.json", "package-lock.json", "package.lock.json"]);
 
   let openTabs: FileTab[] = [];
   let activeTabId: string = "";
@@ -361,7 +362,23 @@
   let iframeRef: HTMLIFrameElement;
 
   $: containerId = data.dockerContainerId ?? "";
-  $: projectName = title.split(" ")[0] || "project";
+  $: projectName = "workspace";
+
+  function normalizeWorkspaceRelativePath(inputPath: string): string {
+    return inputPath
+      .replace(/\\/g, "/")
+      .replace(/^\/workspace\/?/, "")
+      .replace(/^\.\//, "")
+      .trim();
+  }
+
+  function isFrontendReadOnlyFile(path: string): boolean {
+    const normalized = normalizeWorkspaceRelativePath(path);
+    return normalized.length > 0 && !normalized.includes("/") && protectedRootFiles.has(normalized);
+  }
+
+  $: isSelectedFileReadOnly = isFrontendReadOnlyFile(selectedFile);
+  $: monacoEditor?.setReadOnly(isSelectedFileReadOnly);
 
   function flattenFiles(structure: any, prefix = ""): string[] {
     const files: string[] = [];
@@ -512,6 +529,15 @@
           editorValue,
           () => saveFile(),
           (value) => {
+            if (isFrontendReadOnlyFile(selectedFile)) {
+              const lockedValue = fileContents[selectedFile] ?? editorValue ?? "";
+              if (value !== lockedValue) {
+                monacoEditor?.setValue(lockedValue);
+              }
+              editorValue = lockedValue;
+              return;
+            }
+
             const prev = fileContents[selectedFile];
             fileContents[selectedFile] = value;
             editorValue = value;
@@ -521,6 +547,7 @@
           },
         );
         monacoEditor.setLanguageFromFilename(selectedFile);
+        monacoEditor.setReadOnly(isFrontendReadOnlyFile(selectedFile));
       }
 
       openFileAsTab(selectedFile, editorValue);
@@ -538,6 +565,11 @@
 
   async function saveFile() {
     if (!containerId || !selectedFile) return;
+
+    if (isSelectedFileReadOnly) {
+      toast.error("This file is read-only and cannot be edited.");
+      return;
+    }
 
     const content = fileContents[selectedFile] ?? editorValue;
     try {
@@ -574,6 +606,7 @@
     selectedFile = fileId;
     monacoEditor?.setValue(fileContents[fileId] ?? "");
     monacoEditor?.setLanguageFromFilename(fileId);
+    monacoEditor?.setReadOnly(isFrontendReadOnlyFile(fileId));
   }
 
   function closeTab(fileId: string) {
@@ -833,6 +866,7 @@
           openFileAsTab(file, result.content);
           monacoEditor?.setValue(result.content);
           monacoEditor?.setLanguageFromFilename(file);
+          monacoEditor?.setReadOnly(isFrontendReadOnlyFile(file));
           if (lineNumber) {
             requestAnimationFrame(() =>
               monacoEditor?.revealLine(lineNumber, searchTerm),
@@ -1200,6 +1234,8 @@
           visible={activeTab === "editor"}
           {openTabs}
           {activeTabId}
+          isReadOnly={isSelectedFileReadOnly}
+          readOnlyMessage="Protected file"
           onFileTabClick={switchToTab}
           onFileTabClose={closeTab}
           onSave={saveFile}

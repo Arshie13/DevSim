@@ -3,6 +3,21 @@ import type { RequestHandler } from "./$types";
 import { docker } from "$lib/server/docker/client";
 import { logFileChange } from "$lib/server/fileChangeLogger";
 
+const PROTECTED_ROOT_FILES = new Set(["package.json", "package-lock.json", "package.lock.json"]);
+
+function normalizeWorkspaceRelativePath(inputPath: string): string {
+  return inputPath
+    .replace(/\\/g, "/")
+    .replace(/^\/workspace\/?/, "")
+    .replace(/^\.\//, "")
+    .trim();
+}
+
+function isProtectedRootFilePath(inputPath: string): boolean {
+  const normalized = normalizeWorkspaceRelativePath(inputPath);
+  return normalized.length > 0 && !normalized.includes("/") && PROTECTED_ROOT_FILES.has(normalized);
+}
+
 export const POST: RequestHandler = async ({ params, request, locals }) => {
   try {
     // --- Auth check ---
@@ -17,6 +32,10 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 
     if (!oldPath || !newPath) {
       return json({ success: false, error: "Old path and new path are required" });
+    }
+
+    if (isProtectedRootFilePath(oldPath) || isProtectedRootFilePath(newPath)) {
+      return json({ success: false, error: "This root file is protected and cannot be modified." }, { status: 403 });
     }
 
     const container = docker.getContainer(containerId);

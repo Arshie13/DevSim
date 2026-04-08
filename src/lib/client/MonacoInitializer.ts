@@ -90,6 +90,14 @@ export class MonacoInitializer {
     return this.editor?.getValue() || "";
   }
 
+  setReadOnly(readOnly: boolean) {
+    if (!this.editor) return;
+    this.editor.updateOptions({
+      readOnly,
+      domReadOnly: readOnly,
+    });
+  }
+
   setLanguageFromFilename(filename: string) {
     const language = this.getLanguageFromFilename(filename);
     if (this.editor && this.monaco) {
