@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
+import { pickPreviewHostPortWithProbe } from '$lib/server/docker/preview-port';
 import { CloudflaredWrapper } from '$lib/wrapper/cloudflared';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
@@ -55,19 +56,27 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       }
     }
 
-    const cloudflared = new CloudflaredWrapper();
-
     const username = session.user.username ? 
     session.user.username.toLowerCase().replace(/[^a-z0-9-]/g, '-') :
     session.user.id // questionable fallback, but should always have username or id
     
-    // Use the first available port for preview, or default to 3000
-    const firstPort = Object.values(previewPorts)[0] || 3000;
+    const hostPort = await pickPreviewHostPortWithProbe(previewPorts, { timeoutMs: 1000 });
+    if (hostPort == null) {
+      return json(
+        {
+          success: false,
+          error:
+            'No published preview ports found for this container. Ensure the workspace image exposes 5173, 3000, or 5000.',
+        },
+        { status: 400 },
+      );
+    }
 
     if (isProduction) {
+      const cloudflared = new CloudflaredWrapper();
       const prodHostname = `${username}.devsim.dev`;
       
-      let prodPreviewUrl = await cloudflared.createRoute(prodHostname, firstPort);
+      let prodPreviewUrl = await cloudflared.createRoute(prodHostname, hostPort);
       
       return json({
         success: true,
@@ -77,7 +86,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       });
     }
     
-    const devHostname = `http://127.0.0.1:${firstPort}`;
+    const devHostname = `http://127.0.0.1:${hostPort}`;
 
     return json({
       success: true,

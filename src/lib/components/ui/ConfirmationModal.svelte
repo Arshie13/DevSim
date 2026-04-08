@@ -201,6 +201,8 @@
   .cm-card {
     position: relative;
     width: min(480px, 100%);
+    max-height: min(92vh, 820px);
+    overflow-y: auto;
     background: var(--bg-light, #12192a);
     border: 1px solid var(--card-border, rgba(7, 165, 201, 0.15));
     border-radius: 6px; /* sharp corners per design guide */
@@ -292,6 +294,14 @@
     gap: 0.75rem;
     justify-content: flex-end;
     margin-top: 1.5rem;
+    position: sticky;
+    bottom: -2rem;
+    padding-top: 0.9rem;
+    background: linear-gradient(
+      to top,
+      rgba(18, 25, 42, 0.98) 70%,
+      rgba(18, 25, 42, 0)
+    );
   }
 
   /* Cancel button */
@@ -414,5 +424,26 @@
     font-size: 0.85rem;
     color: var(--text-muted, #8892a0);
     margin: 0;
+  }
+
+  @media (max-height: 760px) {
+    .cm-backdrop {
+      align-items: flex-start;
+      padding: 0.75rem;
+    }
+
+    .cm-card {
+      max-height: 96vh;
+      padding: 1.15rem 1rem;
+    }
+
+    .cm-header {
+      margin-bottom: 1rem;
+    }
+
+    .cm-action-row {
+      bottom: -1.15rem;
+      margin-top: 1rem;
+    }
   }
 </style>

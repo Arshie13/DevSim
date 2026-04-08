@@ -14,11 +14,23 @@
   export let fileChanges: FileChangeSummary | null = null;
   export let rewardXp = 0;
   export let rewardCoins = 0;
+  export let masteryReflection = '';
+  export let impactedLayers: string[] = [];
+  export let expectedLayerCount = 1;
 
   $: totalTasks = tasks.length;
   $: completionPct = totalTasks === 0 ? 0 : Math.round((completedCount / totalTasks) * 100);
   $: changedCount = fileChanges?.totalChanges ?? 0;
   $: remainingCount = Math.max(totalTasks - completedCount, 0);
+  const layerOptions = ['frontend', 'backend', 'database', 'infra/testing'];
+
+  function toggleLayer(layer: string) {
+    if (impactedLayers.includes(layer)) {
+      impactedLayers = impactedLayers.filter((item) => item !== layer);
+      return;
+    }
+    impactedLayers = [...impactedLayers, layer];
+  }
 </script>
 
 <div class="mb-3 overflow-hidden rounded-[4px] border border-[rgba(7,165,201,0.28)] bg-[rgba(10,14,26,0.85)]">
@@ -112,5 +124,43 @@
   </div>
   <div class="rounded-[4px] border border-[rgba(255,180,0,0.25)] bg-[rgba(31,21,8,0.8)] py-2 text-center [font-family:var(--font-mono)] text-[0.8rem] uppercase tracking-[0.06em] text-[var(--warn)]">
     🪙 +{rewardCoins} Coins
+  </div>
+</div>
+
+<div class="mt-3 rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.72)] px-4 py-3">
+  <p class="mb-2.5 [font-family:var(--font-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+    Mastery Checkpoint
+  </p>
+  <p class="mb-2 [font-family:var(--font-mono)] text-[0.72rem] text-[var(--text-muted)]">
+    Explain what you changed and why it works. This is required to unlock the next level.
+  </p>
+  <textarea
+    bind:value={masteryReflection}
+    rows="4"
+    placeholder="Example: I updated the API validation to reject empty titles, then adjusted the frontend form and DB migration so the same constraint is enforced end-to-end..."
+    class="w-full resize-y rounded-[4px] border border-[rgba(136,146,160,0.38)] bg-[rgba(10,14,26,0.95)] px-3 py-2 [font-family:var(--font-body)] text-[0.8rem] text-[var(--text-primary)] outline-none transition-colors focus:border-[rgba(7,165,201,0.6)]"
+  ></textarea>
+  <p class="mt-1 text-right [font-family:var(--font-mono)] text-[0.66rem] text-[var(--text-muted)]">
+    {masteryReflection.trim().length} characters
+  </p>
+
+  <div class="mt-3">
+    <p class="mb-2 [font-family:var(--font-mono)] text-[0.68rem] uppercase tracking-[0.08em] text-[var(--text-muted)]">
+      Which layers did this sprint touch?
+    </p>
+    <p class="mb-2 [font-family:var(--font-mono)] text-[0.66rem] text-[var(--text-muted)]">
+      Select at least {expectedLayerCount} layer{expectedLayerCount > 1 ? 's' : ''} for this sprint.
+    </p>
+    <div class="flex flex-wrap gap-2">
+      {#each layerOptions as layer}
+        <button
+          type="button"
+          on:click={() => toggleLayer(layer)}
+          class="rounded-[3px] border px-2.5 py-1 [font-family:var(--font-mono)] text-[0.68rem] uppercase tracking-[0.06em] transition-colors {impactedLayers.includes(layer) ? 'border-[rgba(0,229,160,0.45)] bg-[rgba(0,229,160,0.14)] text-[var(--success)]' : 'border-[rgba(136,146,160,0.35)] bg-[rgba(10,14,26,0.8)] text-[var(--text-muted)]'}"
+        >
+          {impactedLayers.includes(layer) ? '✓ ' : ''}{layer}
+        </button>
+      {/each}
+    </div>
   </div>
 </div>

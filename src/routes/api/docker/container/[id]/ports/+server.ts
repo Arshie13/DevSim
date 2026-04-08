@@ -2,6 +2,7 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { CloudflaredWrapper } from '$lib/wrapper/cloudflared';
 import { docker } from '$lib/server/docker/client';
+import { pickPreviewHostPortWithProbe } from '$lib/server/docker/preview-port';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
   try {
@@ -52,11 +53,21 @@ export const GET: RequestHandler = async ({ locals, params }) => {
         }
       }
 
-      const firstPort = Object.values(previewPorts)[0];
+      const hostPort = await pickPreviewHostPortWithProbe(previewPorts, { timeoutMs: 1000 });
+      if (hostPort == null) {
+        return json(
+          {
+            success: false,
+            error:
+              'No published preview ports found. Start the dev server in the terminal, then refresh preview.',
+          },
+          { status: 400 },
+        );
+      }
 
       return json({
         success: true,
-        previewUrl: `http://127.0.0.1:${firstPort}`
+        previewUrl: `http://127.0.0.1:${hostPort}`,
       });
     }
 
