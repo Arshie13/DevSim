@@ -3,18 +3,17 @@ import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
 import { readFile } from "$lib/server/docker/user/read-file";
 
-// AI Hint costs in coins
-const QUICK_HINT_COST = 100;  // Button-triggered hints based on progress
-const CHAT_HINT_COST = 200;    // Full chat with conversation history
-const ATTACHED_FILE_COST = 15;  // Cost per attached file
+const QUICK_HINT_COST = 100;
+const CHAT_HINT_COST = 200;
+const ATTACHED_FILE_COST = 15;
 
-// Interface for the request body
 interface HintRequest {
   message: string;
   context: string;
   containerId: string;
   userId: string;
   hintType?: 'quick' | 'chat';
+  model?: string;
   level?: number;  // User's current level (1-5)
   attachedFilesCount?: number;  // Number of files attached to the message
   attachedFiles?: { path: string; name: string }[];  // Array of attached file objects
@@ -296,7 +295,6 @@ Keep your answer concise but include specific details from the file contents.`;
 }
 
 export const POST: RequestHandler = async ({ request }) => {
-  // Check if API key is configured FIRST to avoid unnecessary database queries
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey || apiKey === "your_openrouter_api_key_here") {
     return json({
@@ -311,25 +309,18 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const body: HintRequest = await request.json();
-    const { message, context, containerId, userId: uid, hintType, attachedFilesCount = 0, attachedFiles, level = 1 } = body;
+    const { message, context, containerId, userId: uid, hintType, model, attachedFilesCount = 0, attachedFiles, level = 1 } = body;
     userId = uid;
     const currentLevel = level || 1;
 
-    // Determine base cost based on hint type
     const hintCost = hintType === 'chat' ? CHAT_HINT_COST : QUICK_HINT_COST;
-    
-    // Calculate total cost including attached files
     const fileCost = (attachedFilesCount || 0) * ATTACHED_FILE_COST;
     const totalCost = hintCost + fileCost;
 
     if (!message || message.trim().length === 0) {
-      return json(
-        { success: false, error: "Message is required" },
-        { status: 400 }
-      );
+      return json({ success: false, error: "Message is required" }, { status: 400 });
     }
 
-    // Check if user is asking for code
     if (isAskingForCode(message)) {
       return json({
         success: true,
@@ -340,18 +331,13 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Check if user is greeting - respond warmly (skip for quick hints to use AI)
     if (hintType !== 'quick' && isGreeting(message)) {
       let coinBalance = 0;
       if (userId) {
         try {
-          const user = await prisma.user.findUnique({
-            where: { id: userId },
-          });
+          const user = await prisma.user.findUnique({ where: { id: userId } });
           coinBalance = user?.coins ?? 0;
-        } catch (e) {
-          // Ignore errors
-        }
+        } catch (e) {}
       }
       const greetingResponse = buildGreetingResponse(context || "No additional context");
       return json({
@@ -363,11 +349,6 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Always use AI for hints - the AI is smart enough to handle progress questions
-    // and gives better, more contextual answers than the generic function
-    // The generic progress response is disabled to ensure AI generates specific hints
-
-    // Validate userId for full AI responses
     if (!userId) {
       return json({
         success: false,
@@ -375,19 +356,12 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-      return json({
-        success: false,
-        error: "User not found. Please log in again.",
-      });
+      return json({ success: false, error: "User not found. Please log in again." });
     }
 
-    // Check if user has enough coins (including attached file costs)
     if (user.coins < totalCost) {
       return json({
         success: false,
@@ -397,53 +371,41 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Deduct coins
     await prisma.user.update({
       where: { id: userId },
-      data: {
-        coins: user.coins - totalCost,
-      },
+      data: { coins: user.coins - totalCost },
     });
 
     coinsDeducted = true;
     const newCoinBalance = user.coins - totalCost;
     originalCoinBalance = user.coins;
 
-    console.log("Attached files length: ", attachedFiles?.length);
-
-    // Check if user is asking about files in workspace - fetch relevant files automatically
     let fileContentsForPrompt: { path: string; name: string; content: string }[] | undefined;
     const isFileQuestion = isAskingAboutFileContents(message);
-    
-    console.log("[AI Hint] Is file question:", isFileQuestion, "Message:", message);
-    
+
     if (isFileQuestion && containerId) {
-      // User is asking about files - fetch relevant files from workspace
       try {
-        // First, get the list of files in the workspace
         const listRes = await fetch(`/api/docker/container/${containerId}/files/list`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
         });
         const listData = await listRes.json();
-        
+
         console.log("[AI Hint] File list response:", listData);
-        
+
         if (listData.success && listData.files && listData.files.length > 0) {
-          // Filter for source files - include more extensions and increase limit
           const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.json', '.html', '.css', '.md', '.txt'];
-          const sourceFiles = listData.files.filter((f: string) => 
+          const sourceFiles = listData.files.filter((f: string) =>
             sourceExtensions.some(ext => f.endsWith(ext)) &&
             !f.includes('node_modules/') &&
             !f.includes('.git/') &&
             !f.includes('dist/') &&
             !f.includes('build/')
-          ).slice(0, 20); // Increased to 20 files for better context
-          
+          ).slice(0, 2);
+
           console.log("[AI Hint] Source files to read:", sourceFiles);
-          
-          // Read the contents of these files
+
           fileContentsForPrompt = [];
           for (const filePath of sourceFiles) {
             try {
@@ -477,90 +439,135 @@ export const POST: RequestHandler = async ({ request }) => {
         const fileContent = await readFile(filePath, containerId);
         console.log("[AI Hint] Attached file read result:", file.path, fileContent.error ? "Error" : "Success");
         if (!fileContent.error && fileContent.content) {
-          fileContents.push({
-            path: file.path,
-            name: file.name,
-            content: fileContent.content
-          });
+          fileContents.push({ path: file.path, name: file.name, content: fileContent.content });
         }
       }
       console.log("[AI Hint] File contents read:", fileContents.length, "files");
-
-      // Build the prompt with level-aware instructions
       prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContents);
     } else if (fileContentsForPrompt && fileContentsForPrompt.length > 0) {
-      // Use auto-fetched files for file questions
       console.log("[AI Hint] Using auto-fetched files:", fileContentsForPrompt.length);
       prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContentsForPrompt);
     } else {
-      // Build the prompt with level-aware instructions (no attached files)
       console.log("[AI Hint] No files attached or auto-fetched - using context only");
       prompt = buildPrompt(message, context || "No additional context", currentLevel);
     }
 
-    // Try OpenRouter free coding models
-    const models = [
-      "meta-llama/llama-3.1-8b-instruct",
-      "google/gemma-2-9b-it",
-      "mistralai/mistral-7b-instruct-v0.2"
+    // Try models (OpenRouter and direct Google Gemini)
+    const defaultModels = [
+      "nvidia/nemotron-3-nano-30b-a3b:free",
+      "google/gemma-3n-e2b-it:free",
+      "qwen/qwen3.6-plus:free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "google/gemini-2.5-flash:direct"
     ];
+
+    const models = model
+      ? [model, ...defaultModels.filter((m) => m !== model)]
+      : defaultModels;
 
     let response = null;
     let lastError = null;
 
     for (const model of models) {
-      console.log(`Trying OpenRouter model: ${model}`);
-      
-      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
-      
-      const modelResponse = await fetch(openRouterUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": "https://devsim.com",
-          "X-Title": "DevSim AI Hints"
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          max_tokens: 300,
-          temperature: 0.7,
-        }),
-      });
+      console.log(`Trying model: ${model}`);
 
-      if (modelResponse.ok) {
-        response = modelResponse;
-        console.log(`OpenRouter model ${model} succeeded`);
-        break;
-      } else {
-        const errorData = await modelResponse.json();
-        console.log(`Model ${model} failed:`, errorData);
-        lastError = errorData;
-        
-        if (modelResponse.status === 429 || modelResponse.status === 404) {
+      if (model === "google/gemini-2.5-flash:direct") {
+        // Use Google Gemini API directly
+        const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        if (!geminiApiKey) {
+          console.log("Google Gemini API key not configured");
           continue;
-        } else {
+        }
+
+        try {
+          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: prompt }]
+              }],
+              generationConfig: {
+                maxOutputTokens: 1000,
+                temperature: 0.7
+              }
+            }),
+          });
+
+          if (geminiResponse.ok) {
+            const geminiData = await geminiResponse.json();
+            // Convert Gemini response to OpenRouter format
+            response = {
+              ok: true,
+              json: async () => ({
+                choices: [{
+                  message: {
+                    content: geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "No response"
+                  }
+                }]
+              })
+            };
+            console.log(`Google Gemini model succeeded`);
+            break;
+          } else {
+            const errorData = await geminiResponse.json();
+            console.log(`Google Gemini failed:`, errorData);
+            lastError = errorData;
+            continue;
+          }
+        } catch (error) {
+          console.log(`Google Gemini error:`, error);
+          lastError = error;
+          continue;
+        }
+      } else {
+        // Use OpenRouter
+        const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
+
+        const modelResponse = await fetch(openRouterUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+            "HTTP-Referer": "https://devsim.com",
+            "X-Title": "DevSim AI Hints"
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 200,
+            temperature: 0.7,
+            reasoning: { "enabled": false }
+          }),
+        });
+
+        if (modelResponse.ok) {
+          response = modelResponse;
+          console.log(`OpenRouter model ${model} succeeded`);
           break;
+        } else {
+          const errorData = await modelResponse.json();
+          console.log(`Model ${model} failed:`, errorData);
+          lastError = errorData;
+
+          if (modelResponse.status === 429 || modelResponse.status === 404) {
+            continue;
+          } else {
+            break;
+          }
         }
       }
     }
 
-    // If all models failed
     if (!response || !response.ok) {
       console.error("All models failed. Last error:", lastError);
 
       if (coinsDeducted) {
         await prisma.user.update({
           where: { id: userId },
-          data: {
-            coins: originalCoinBalance,
-          },
+          data: { coins: originalCoinBalance },
         });
       }
 
@@ -572,8 +579,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const data = await response.json();
 
-    const hint = data.choices?.[0]?.message?.content ||
-                  "Sorry, I couldn't generate a hint. Please try again.";
+    const hint = data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a hint. Please try again.";
 
     return json({
       success: true,
@@ -588,18 +594,13 @@ export const POST: RequestHandler = async ({ request }) => {
       try {
         await prisma.user.update({
           where: { id: userId },
-          data: {
-            coins: originalCoinBalance,
-          },
+          data: { coins: originalCoinBalance },
         });
       } catch (refundError) {
         console.error("Error refunding coins:", refundError);
       }
     }
 
-    return json(
-      { success: false, error: "Failed to generate hint" },
-      { status: 500 }
-    );
+    return json({ success: false, error: "Failed to generate hint" }, { status: 500 });
   }
 };

@@ -8,6 +8,7 @@
 </script>
 
 <script lang="ts">
+  import { tick } from "svelte";
   import {
     ChevronRight,
     ChevronDown,
@@ -42,6 +43,34 @@
       isDirectory: true,
       children: [],
     };
+
+    // Build explicit directory nodes first so empty folders are visible.
+    for (const dirPath of dirs) {
+      if (!dirPath) continue;
+
+      const parts = dirPath.split("/").filter(Boolean);
+      let current = root;
+
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        const currentPath = parts.slice(0, i + 1).join("/");
+
+        let existing = current.children.find((c) => c.name === part);
+        if (!existing) {
+          existing = {
+            name: part,
+            path: currentPath,
+            isDirectory: true,
+            children: [],
+          };
+          current.children.push(existing);
+        } else if (!existing.isDirectory) {
+          existing.isDirectory = true;
+        }
+
+        current = existing;
+      }
+    }
 
     for (const filePath of paths) {
       const parts = filePath.split("/");
@@ -126,6 +155,12 @@
 
   // Context menu state
   let contextMenu: { x: number; y: number; node: TreeNode | null } | null = null;
+  let contextMenuEl: HTMLDivElement | null = null;
+  let contextMenuPosition = { x: 0, y: 0 };
+
+  const CONTEXT_MENU_MARGIN = 8;
+  const CONTEXT_MENU_FALLBACK_WIDTH = 180;
+  const CONTEXT_MENU_FALLBACK_HEIGHT = 180;
 
   // Modal state
   let showModal: "createFile" | "createFolder" | "rename" | "delete" | null = null;
@@ -134,7 +169,27 @@
   let modalTargetName: string = "";
   let modalIsDirectory: boolean = false;
 
-  function handleContextMenu(event: MouseEvent, node: TreeNode | null) {
+  function clampContextMenuPosition(x: number, y: number, menuWidth: number, menuHeight: number) {
+    const maxX = Math.max(CONTEXT_MENU_MARGIN, window.innerWidth - menuWidth - CONTEXT_MENU_MARGIN);
+    const maxY = Math.max(CONTEXT_MENU_MARGIN, window.innerHeight - menuHeight - CONTEXT_MENU_MARGIN);
+
+    return {
+      x: Math.min(Math.max(x, CONTEXT_MENU_MARGIN), maxX),
+      y: Math.min(Math.max(y, CONTEXT_MENU_MARGIN), maxY),
+    };
+  }
+
+  function repositionContextMenu() {
+    if (!contextMenu) return;
+
+    const rect = contextMenuEl?.getBoundingClientRect();
+    const width = rect?.width ?? CONTEXT_MENU_FALLBACK_WIDTH;
+    const height = rect?.height ?? CONTEXT_MENU_FALLBACK_HEIGHT;
+
+    contextMenuPosition = clampContextMenuPosition(contextMenu.x, contextMenu.y, width, height);
+  }
+
+  async function handleContextMenu(event: MouseEvent, node: TreeNode | null) {
     event.preventDefault();
     event.stopPropagation();
     contextMenu = {
@@ -142,10 +197,14 @@
       y: event.clientY,
       node,
     };
+
+    await tick();
+    repositionContextMenu();
   }
 
   function closeContextMenu() {
     contextMenu = null;
+    contextMenuEl = null;
   }
 
   function handleCreateFile() {
@@ -260,6 +319,12 @@
     }
   }
 
+  function handleWindowResize() {
+    if (contextMenu) {
+      repositionContextMenu();
+    }
+  }
+
   // Reactive modal props
   $: modalProps = (() => {
     switch (showModal) {
@@ -313,6 +378,8 @@
 
   $: isModalOpen = showModal !== null;
 </script>
+
+<svelte:window on:resize={handleWindowResize} />
 
 <div class="py-1" on:click={handleWindowClick} role="presentation">
   <FileActions
@@ -377,8 +444,9 @@
 <!-- Context Menu -->
 {#if contextMenu}
   <div
+    bind:this={contextMenuEl}
     class="fixed z-50 py-1 min-w-[160px]"
-    style="left: {contextMenu.x}px; top: {contextMenu.y}px;background:#12192a;border:1px solid rgba(7,165,201,0.2);border-radius:4px;box-shadow:0 0 24px rgba(7,165,201,0.1),0 8px 32px rgba(0,0,0,0.5);"
+    style="left: {contextMenuPosition.x}px; top: {contextMenuPosition.y}px;background:#12192a;border:1px solid rgba(7,165,201,0.2);border-radius:4px;box-shadow:0 0 24px rgba(7,165,201,0.1),0 8px 32px rgba(0,0,0,0.5);"
     on:click|stopPropagation
     on:keydown={(e) => e.key === 'Escape' && closeContextMenu()}
     role="menu"

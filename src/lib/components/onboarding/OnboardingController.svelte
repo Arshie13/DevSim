@@ -2,6 +2,8 @@
   import OnboardingModal from './OnboardingModal.svelte';
   import WorkspaceTour   from './WorkspaceTour.svelte';
   import { getStackContent } from './onboardingContent';
+  import { goto } from '$app/navigation';
+  import { browser } from '$app/environment';
 
   /** The tech stack label (e.g. "Next.js + Prisma"). */
   export let stack: string = '';
@@ -16,6 +18,11 @@
    * (e.g. 'editor'). The parent page handles the actual tab switch.
    */
   export let onSwitchTab: ((tab: string) => void) | undefined = undefined;
+  /**
+   * Called when onboarding is fully complete (modal + tour).
+   * Parent can use this to trigger UI transitions.
+   */
+  export let onComplete: (() => void) | undefined = undefined;
 
   // ── Phase machine ──────────────────────────────────────────────────────────
   // The parent decides whether to render this component at all.
@@ -34,17 +41,34 @@
     }
   }
 
-  // ── Phase transitions ──────────────────────────────────────────────────────
-  function onModalComplete() { phase = 'tour'; }
+  // Clear the onboarding URL param after completion
+  function clearOnboardingParam() {
+    if (browser) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('onboarding');
+      goto(url.pathname + url.search, { replaceState: true, noScroll: true });
+    }
+  }
+
+  // ── Phase transitions ──────────────────────────────────────────────────────────
+  function onModalComplete() { 
+    phase = 'tour'; 
+  }
 
   function onModalSkip() {
     markOnboardingComplete();
+    clearOnboardingParam();
     phase = 'done';
   }
 
   function onTourComplete() {
     markOnboardingComplete();
+    clearOnboardingParam();
     phase = 'done';
+    // Notify parent that onboarding is fully complete
+    if (onComplete) {
+      onComplete();
+    }
   }
 </script>
 
@@ -67,4 +91,3 @@
     on:complete={onTourComplete}
   />
 {/if}
-

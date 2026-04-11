@@ -13,6 +13,7 @@ model User {
   email        String  @unique
   name         String
   image        String?
+  username     String  @unique
 
   // Leveling System
   xp           Int      @default(0)
@@ -56,7 +57,7 @@ model Container {
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  fileChanges     FileChange[]
+  fileChanges     UserFileChanges[]
   completedTasks  CompletedTask[]
   containerStacks ContainerStack[]
 
@@ -77,11 +78,13 @@ model Scenario {
 model Level {
   id               String   @id @default(cuid())
   title            String
+  subtitle         String
   order            Int      @default(0)
   deadline         DateTime
   levelDescription String
   xpReward         Int
   coinReward       Int
+  keyTakeaways     String
   scenarioId       String
   scenario         Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
 
@@ -94,8 +97,10 @@ model LevelTask {
   id         String  @id @default(cuid())
   levelId    String
   taskName   String
+  userStory  String
   order      Int     @default(0)
   isComplete Boolean @default(false)
+  testType   String   @default("none") 
 
   level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
   acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
@@ -123,7 +128,7 @@ model AcceptanceCriteria {
 model Hint {
   id      String @id @default(cuid())
   taskId  String
-  content String
+  description String
   order   Int    @default(0)
 
   // Relations
@@ -176,7 +181,7 @@ model UserAchievement {
 }
 
 // File change tracking model
-model FileChange {
+model UserFileChanges {
   id          String   @id @default(cuid())
   containerId String
   filePath    String

@@ -37,11 +37,14 @@ export const { handle } = SvelteKitAuth({
         if (!existingUser) {
           // New user: use OAuth image if provided, otherwise assign a random default avatar
           const imageToStore = randomDefaultAvatarPath();
+          // Generate username from email (remove domain and replace invalid characters)
+          const username = user.email!.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
           await prisma.user.create({
             data: {
               email: user.email,
               name: user.name || "User",
               image: imageToStore,
+              username: username,
             },
           });
         } else {
@@ -71,16 +74,17 @@ export const { handle } = SvelteKitAuth({
         return false;
       }
     },
-    async jwt({ token, user, account, profile }) {
+     async jwt({ token, user, account, profile }) {
       // On initial sign-in, load the DB user to get their ID and stored image.
       if (user && user.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
-          select: { id: true, image: true },
+          select: { id: true, image: true, username: true },
         });
         if (dbUser) {
           token.id = dbUser.id;
           token.image = dbUser.image;
+          token.username = dbUser.username;
           token.givenName = profile?.given_name
           token.fullName = profile?.name
         }
@@ -90,11 +94,12 @@ export const { handle } = SvelteKitAuth({
       if (!token.id && profile?.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: profile.email },
-          select: { id: true, image: true },
+          select: { id: true, image: true, username: true },
         });
         if (dbUser) {
           token.id = dbUser.id;
           token.image = dbUser.image;
+          token.username = dbUser.username;
           token.givenName = profile?.given_name
           token.fullName = profile?.name
         }
@@ -102,9 +107,10 @@ export const { handle } = SvelteKitAuth({
 
       return token;
     },
-    async session({ session, token }) {
+     async session({ session, token }) {
       if (token && session.user) {
         if (token.id) session.user.id = token.id as string;
+        if (token.username) session.user.username = token.username as string | null;
         // Surface the DB image (may be an OAuth URL or a local /avatars/ path)
         if (token.image !== undefined) {
           session.user.image = token.image as string | null;

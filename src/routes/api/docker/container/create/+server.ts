@@ -1,4 +1,3 @@
-// src/routes/api/container/create/+server.ts
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { saveUserContainer, type UserContainerRequest } from '$lib/server/docker/user/save-user-container'
@@ -48,7 +47,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     const req: CreateContainerRequest = await request.json()
-    const { stackName, level, stacks, scenarioId } = req;
+    const { stackName, level, stacks, scenarioId, projectFolder } = req;
 
     // Look up the Scenario by name to get its database ID for currentScenarioId
     let currentScenarioId: string | null = null;
@@ -232,6 +231,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
           '5173/tcp': {}
         },
         Env: [
+          // PostgreSQL initialization variables (required by postgres-entrypoint.sh)
+          "POSTGRES_USER=devsim",
+          "POSTGRES_PASSWORD=devsim",
+          "POSTGRES_DB=devsim",
+          // Application database connection variables
           "DATABASE_HOST=localhost",
           "DATABASE_PORT=5432",
           "DATABASE_USER=devsim",
@@ -251,7 +255,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         Labels: {
           'devsim.userId': userId,
           'devsim.stack': stackName,
-          'devsim.level': level.toString()
+          'devsim.level': level.toString(),
+          'devsim.projectFolder': projectFolder ?? ''
         }
       };
 

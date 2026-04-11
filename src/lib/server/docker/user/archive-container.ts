@@ -20,10 +20,9 @@ export async function archiveContainer(
 	req: ArchiveContainerRequest
 ): Promise<ArchiveContainerResult> {
 	// --- 1. Look up & validate the container record ---
-	// req.dbContainerId here is the Docker container ID (the value stored in the
-	// containerId field), not the Prisma primary key.
-	const record = await prisma.container.findFirst({
-		where: { containerId: req.dbContainerId }
+	// req.dbContainerId here is the Prisma Container.id (primary key).
+	const record = await prisma.container.findUnique({
+		where: { id: req.dbContainerId }
 	});
 
 	if (!record) {
@@ -45,7 +44,7 @@ export async function archiveContainer(
 	// --- 2. Build a deterministic volume name ---
 	// Get stacks from ContainerStack relation
 	const containerStacks = await prisma.containerStack.findMany({
-		where: { containerId: req.dbContainerId }
+		where: { containerId: record.id }
 	});
 	const stackNames = containerStacks.map(s => s.stackName);
 	const stackSlug = stackNames.join('-').toLowerCase().replace(/\s+/g, '-');

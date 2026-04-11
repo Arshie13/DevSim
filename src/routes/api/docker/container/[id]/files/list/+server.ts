@@ -30,8 +30,16 @@ export async function POST(event: RequestEvent) {
         files: [] 
       });
     }
+    const excludedPathExpr =
+      '! -path "*/node_modules" ! -path "*/node_modules/*" ' +
+      '! -path "*/.next" ! -path "*/.next/*" ' +
+      '! -path "*/.git" ! -path "*/.git/*" ' +
+      '! -path "*/tests" ! -path "*/tests/*" ' +
+      '! -path "*/__tests__" ! -path "*/__tests__/*" ' +
+      '! -name ".dockerignore"';
+
     const exec = await container.exec({
-      Cmd: ['sh', '-c', `find ${path} -type f ! -path "*/node_modules/*" ! -path "*/.next/*" ! -path "*/.git/*" 2>/dev/null || echo ""`],
+      Cmd: ['sh', '-c', `find "${path}" -type f ${excludedPathExpr} 2>/dev/null || echo ""`],
       AttachStdout: true,
       AttachStderr: true
     });
@@ -61,12 +69,12 @@ export async function POST(event: RequestEvent) {
     await new Promise((resolve, reject) => {
       stream.on('end', resolve);
       stream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 20000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
     });
 
     // Also list directories
     const dirExec = await container.exec({
-      Cmd: ['sh', '-c', `find ${path} -type d ! -path "*/node_modules/*" ! -path "*/.next/*" ! -path "*/.git/*" ! -path "${path}$" 2>/dev/null || echo ""`],
+      Cmd: ['sh', '-c', `find "${path}" -type d ! -path "${path}" ${excludedPathExpr} 2>/dev/null || echo ""`],
       AttachStdout: true,
       AttachStderr: true
     });
@@ -87,25 +95,33 @@ export async function POST(event: RequestEvent) {
     await new Promise((resolve, reject) => {
       dirStream.on('end', resolve);
       dirStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 20000); // 10s timeout
+      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
     });
 
     if (errorOutput) {
       console.log('Stderr output:', errorOutput);
     }
 
+    const isVisibleWorkspacePath = (relativePath: string) => {
+      const segments = relativePath.split('/').filter(Boolean);
+      if (segments[segments.length - 1] === '.dockerignore') return false;
+      return !segments.includes('tests') && !segments.includes('__tests__');
+    };
+
     const files = output
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map(f => f.replace('/workspace/', ''));
+      .map(f => f.replace('/workspace/', ''))
+      .filter(isVisibleWorkspacePath);
 
     // Process directories
     const directories = dirOutput
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map(f => f.replace('/workspace/', ''));
+      .map(f => f.replace('/workspace/', ''))
+      .filter(isVisibleWorkspacePath);
 
     // Only return files, not directories (the client will iterate and read each as a file)
     return json({ success: true, files, directories });

@@ -50,6 +50,7 @@ export interface FileValidationResult {
 export interface TaskTest {
 	taskId: string;
 	taskText: string;
+	keyTakeaway?: string;
 	requiredFiles?: string[];
 	requiredPatterns?: Array<{
 		pattern: string;

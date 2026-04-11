@@ -206,3 +206,27 @@ export function getSimpleContext(options: ContextOptions): string {
 
   return context;
 }
+
+export interface ProgressInfo {
+  completed: number;
+  total: number;
+  tasks: string[];
+}
+
+/**
+ * Extract progress information from context string
+ */
+export function extractProgressFromContext(context: string): ProgressInfo {
+  const taskMatch = context.match(/Tasks? \((\d+)\/(\d+) completed\):/);
+  const completed = taskMatch ? parseInt(taskMatch[1]) : 0;
+  const total = taskMatch ? parseInt(taskMatch[2]) : 0;
+
+  const taskLines: string[] = [];
+  const taskRegex = /\[([ √])\]\s+(.+)/g;
+  let match;
+  while ((match = taskRegex.exec(context)) !== null) {
+    taskLines.push(`${match[1] === '√' ? '[✓]' : '[ ]'} ${match[2]}`);
+  }
+
+  return { completed, total, tasks: taskLines };
+}

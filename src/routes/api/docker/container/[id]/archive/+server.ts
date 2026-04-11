@@ -5,13 +5,14 @@
  * then stops and removes the original container.
  *
  * Auth: session required — must own the container.
- * Params: [id] = Prisma Container.id (NOT the Docker container ID).
+ * Params: [id] = Docker container ID (containerId field in DB, NOT the Prisma ID).
  * Returns: { volumeName, dbContainerId }
  */
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { archiveContainer } from '$lib/server/docker/user/archive-container';
+import prisma from '$lib/server/client';
 
 export const POST: RequestHandler = async ({ params, locals }) => {
 	// --- Auth check ---
@@ -21,8 +22,18 @@ export const POST: RequestHandler = async ({ params, locals }) => {
 	}
 
 	try {
+		// Look up the container by Docker container ID (consistent with submit endpoint)
+		const container = await prisma.container.findFirst({
+			where: { containerId: params.id, userId: session.user.id }
+		});
+
+		if (!container) {
+			return error(404, 'Container not found.');
+		}
+
+		// Use the Prisma ID for the archive operation
 		const result = await archiveContainer({
-			dbContainerId: params.id,
+			dbContainerId: container.id,
 			userId: session.user.id
 		});
 

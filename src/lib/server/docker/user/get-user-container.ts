@@ -89,6 +89,7 @@ export async function getArchivedContainers(userId: string) {
       updatedAt: 'desc',
     },
     include: {
+      scenario: true,
       containerStacks: true
     }
   });

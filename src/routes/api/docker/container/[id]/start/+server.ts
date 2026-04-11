@@ -1,10 +1,16 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
-import { NgrokWrapper } from '$lib/wrapper/ngrok';
+import { pickPreviewHostPortWithProbe } from '$lib/server/docker/preview-port';
+import { CloudflaredWrapper } from '$lib/wrapper/cloudflared';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
   try {
+
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    console.log('environment: ', process.env.NODE_ENV);
+
     const session = await locals.auth();
     if (!session || !session.user || !session.user.id) {
       return error(401, 'Unauthorized');
@@ -50,35 +56,45 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       }
     }
 
-    const ngrok = new NgrokWrapper();
-
-    // Get host from request
-    const host = '127.0.0.1'; // Default for container access
-
-    // Use the first available port for preview, or default to 3000
-    const firstPort = Object.values(previewPorts)[0] || 3000;
-
-    // Determine if we're in production or development mode
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    let previewUrl: string;
+    const username = session.user.username ? 
+    session.user.username.toLowerCase().replace(/[^a-z0-9-]/g, '-') :
+    session.user.id // questionable fallback, but should always have username or id
+    
+    const hostPort = await pickPreviewHostPortWithProbe(previewPorts, { timeoutMs: 1000 });
+    if (hostPort == null) {
+      return json(
+        {
+          success: false,
+          error:
+            'No published preview ports found for this container. Ensure the workspace image exposes 5173, 3000, or 5000.',
+        },
+        { status: 400 },
+      );
+    }
 
     if (isProduction) {
-      // Production: use ngrok tunnel for external access
-      const tunnelInfo = await ngrok.connect({ port: firstPort });
-      previewUrl = tunnelInfo.url;
-    } else {
-      // Development: use local host and port directly
-      previewUrl = `http://${host}:${firstPort}`;
+      const cloudflared = new CloudflaredWrapper();
+      const prodHostname = `${username}.devsim.dev`;
+      
+      let prodPreviewUrl = await cloudflared.createRoute(prodHostname, hostPort);
+      
+      return json({
+        success: true,
+        id,
+        previewPorts,
+        previewUrl: prodPreviewUrl,
+      });
     }
+    
+    const devHostname = `http://127.0.0.1:${hostPort}`;
 
     return json({
       success: true,
       id,
       previewPorts,
-      previewUrl,
-      isProduction
-    });
+      previewUrl: devHostname,
+    })
+
   } catch (error) {
     console.error('Error starting container:', error);
     return json({ success: false, error: String(error) }, { status: 500 });

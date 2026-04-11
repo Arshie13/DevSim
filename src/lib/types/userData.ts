@@ -1,11 +1,16 @@
-export interface UserData 
-{
-  name: string,
-  email: string,
-  image: string,
-  id: string,
-  avatar: string;
-  fullName: string,
-  givenName: string
-  coins: number,
+export interface UserData {
+  id: string;
+  email: string;
+  name: string;
+  image?: string;
+  username?: string;
+
+  // Leveling System
+  xp: number;
+  coins: number;
+  level: number;
+  ownedAvatars: string[];
+
+  // Onboarding
+  hasCompletedOnboarding: boolean;
 }

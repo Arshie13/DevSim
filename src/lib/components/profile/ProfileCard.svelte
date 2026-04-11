@@ -28,8 +28,8 @@
   export let leaderboardRank: number = 4;
 
   // ── Derived ──────────────────────────────────────────────────────────────────
-  $: isExternalImage = Boolean(user.avatar && /^https?:\/\//i.test(user.avatar));
-  $: isSvgPath = Boolean(user.avatar && user.avatar.startsWith("/"));
+  $: isExternalImage = Boolean(user.image && /^https?:\/\//i.test(user.image));
+  $: isSvgPath = Boolean(user.image && user.image.startsWith("/"));
 
   // ── Events ───────────────────────────────────────────────────────────────────
   const dispatch = createEventDispatcher<{
@@ -57,23 +57,17 @@
       >
         {#if isExternalImage || isSvgPath}
           <img
-            src={user.avatar}
+            src={user.image}
             alt={user.name}
             class="w-full h-full object-contain"
             on:error={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
           />
         {:else}
           <!-- Legacy emoji fallback -->
-          <span class="text-5xl lg:text-6xl">{user.avatar}</span>
+          <span class="text-5xl lg:text-6xl">{user.image}</span>
         {/if}
       </div>
 
-      <!-- Level badge -->
-      <div
-        class="absolute -bottom-2 -right-2 w-9 h-9 rounded-card bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-orbitron text-sm font-bold text-white shadow-[0_0_12px_rgba(251,191,36,0.5)] border-2 border-obsidian-surface/80"
-      >
-        {user.level}
-      </div>
       <!-- Online status -->
       <div class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-[2.5px] border-obsidian-surface shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
     </div>
@@ -104,7 +98,6 @@
       >
         <div class="absolute inset-0 bg-gradient-to-br from-obsidian-accent/[0.06] to-transparent"></div>
         <div class="absolute inset-0 bg-obsidian-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <span class="relative text-lg font-orbitron font-bold text-obsidian-text-muted leading-none">{user.completedStacks.length}</span>
         <span class="relative text-[0.6rem] font-mono text-obsidian-text-primary/40 mt-1.5 uppercase tracking-wider">Mastered</span>
       </div>
 

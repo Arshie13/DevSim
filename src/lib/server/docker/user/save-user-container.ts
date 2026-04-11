@@ -19,7 +19,6 @@ export interface UserContainerRequest {
  * (P2003 FK violation — usually caused by a stale session after a DB reset).
  */
 export async function saveUserContainer(data: UserContainerRequest): Promise<{ dbContainerId: string }> {
-
   const isExisting = await prisma.container.findFirst({
     where: {
       AND: [
@@ -79,6 +78,7 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
 
     return { dbContainerId: created.id };
   } catch (err) {
+    console.log('Error in saveUserContainer:', err);
     // P2003 = foreign key constraint — the userId doesn't exist in the User table.
     // This happens when a session is stale after a DB reset. Tell the caller clearly.
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {

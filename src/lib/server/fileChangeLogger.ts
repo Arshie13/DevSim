@@ -31,7 +31,7 @@ export async function logFileChange(params: FileChangeLogParams) {
       return null
     }
 
-    const fileChange = await prisma.fileChange.create({
+    const fileChange = await prisma.userFileChanges.create({
       data: {
         containerId: prismaContainer?.id,
         filePath: params.filePath,
@@ -61,8 +61,21 @@ export async function getFileChanges(containerId: string): Promise<{
   timestamp: Date;
 }[] | []> {
   try {
-    const changes = await prisma.fileChange.findMany({
-      where: { containerId },
+    const prismaContainer = await prisma.container.findFirst({
+      where: {
+        containerId
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!prismaContainer) {
+      return [];
+    }
+
+    const changes = await prisma.userFileChanges.findMany({
+      where: { containerId: prismaContainer.id },
       orderBy: { timestamp: 'asc' },
     });
     return changes;
@@ -77,8 +90,27 @@ export async function getFileChanges(containerId: string): Promise<{
  */
 export async function getFileChangeSummary(containerId: string) {
   try {
-    const changes = await prisma.fileChange.findMany({
-      where: { containerId },
+    const prismaContainer = await prisma.container.findFirst({
+      where: {
+        containerId
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!prismaContainer) {
+      return {
+        created: [],
+        modified: [],
+        deleted: [],
+        renamed: [],
+        totalChanges: 0,
+      };
+    }
+
+    const changes = await prisma.userFileChanges.findMany({
+      where: { containerId: prismaContainer.id },
       select: {
         action: true,
         filePath: true,
@@ -103,9 +135,22 @@ export async function getFileChangeSummary(containerId: string) {
 }
 
 export async function clearFileLogs(containerId: string) {
-  await prisma.fileChange.deleteMany({
+  const prismaContainer = await prisma.container.findFirst({
     where: {
       containerId
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!prismaContainer) {
+    return;
+  }
+
+  await prisma.userFileChanges.deleteMany({
+    where: {
+      containerId: prismaContainer.id
     }
   });
 }

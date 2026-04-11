@@ -3,11 +3,13 @@
     icon: string;
     label: string;
     detail?: string;
+    detailSequence?: string[];
+    detailSequenceIntervalMs?: number;
   }
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
 
   /** Currently active step index (0-based). */
   export let step: number = 0;
@@ -31,8 +33,48 @@
   export let footer: string = '';
 
   const dispatch = createEventDispatcher<{ retry: void }>();
+  let detailTick = 0;
+  let detailTicker: ReturnType<typeof setInterval> | null = null;
+
+  function clearDetailTicker() {
+    if (detailTicker) {
+      clearInterval(detailTicker);
+      detailTicker = null;
+    }
+  }
+
+  function resolveActiveStepDetail(activeStep?: LoadStep): string {
+    if (!activeStep) return '';
+
+    const sequence = activeStep.detailSequence ?? [];
+    if (sequence.length > 0) {
+      return sequence[detailTick % sequence.length] ?? activeStep.detail ?? '';
+    }
+
+    return activeStep.detail ?? '';
+  }
 
   $: pct = steps.length > 0 ? Math.round(((step + 1) / steps.length) * 100) : 0;
+  $: activeStep = steps[step];
+  $: activeStepDetail = resolveActiveStepDetail(activeStep);
+
+  $: {
+    clearDetailTicker();
+    detailTick = 0;
+
+    const sequence = activeStep?.detailSequence ?? [];
+    const cycleMs = Math.max(1000, activeStep?.detailSequenceIntervalMs ?? 5000);
+
+    if (typeof window !== 'undefined' && sequence.length > 1) {
+      detailTicker = setInterval(() => {
+        detailTick = (detailTick + 1) % sequence.length;
+      }, cycleMs);
+    }
+  }
+
+  onDestroy(() => {
+    clearDetailTicker();
+  });
 </script>
 
 <!-- ─── Inner content (reused across configurations) ──────────────────────── -->
@@ -74,8 +116,8 @@
         </span>
         <span class="ls-step-body">
           <span class="ls-step-label">{s.icon} {s.label}</span>
-          {#if i === step && s.detail}
-            <span class="ls-step-detail">{s.detail}</span>
+          {#if i === step && activeStepDetail}
+            <span class="ls-step-detail">{activeStepDetail}</span>
           {/if}
         </span>
       </li>
@@ -144,7 +186,7 @@
   /* ── Card ─────────────────────────────────────────────────────────────── */
   .ls-card {
     position: relative;
-    width: min(480px, 92vw);
+    width: min(560px, 94vw);
     background: var(--bg-light, #12192a);
     border: 1px solid var(--card-border, rgba(7, 165, 201, 0.15));
     border-radius: 4px; /* sharp corners per design guide */
@@ -190,7 +232,7 @@
 
   /* Overlay mode: larger uppercase title */
   .ls-card--overlay .ls-title {
-    font-size: 1.4rem;
+    font-size: 1.55rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
   }
@@ -198,7 +240,7 @@
   .ls-title {
     margin: 0.3rem 0 0;
     font-family: var(--font-head, 'Orbitron', sans-serif);
-    font-size: 1.15rem;
+    font-size: 1.28rem;
     font-weight: 700;
     letter-spacing: 0.07em;
     color: var(--text-primary, #d0d7dd);
@@ -207,7 +249,7 @@
   .ls-subtitle {
     margin: 0.3rem 0 0;
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     color: rgba(7, 165, 201, 0.7);
     letter-spacing: 0.08em;
     line-height: 1.55;
@@ -215,7 +257,7 @@
 
   /* ── Progress bar (design guide: 4px track, gradient fill + glow) ──────── */
   .ls-progress-track {
-    height: 4px;
+    height: 5px;
     background: rgba(255, 255, 255, 0.06);
     border-radius: 2px;
     overflow: hidden;
@@ -231,7 +273,7 @@
   .ls-progress-pct {
     text-align: right;
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.68rem;
+    font-size: 0.74rem;
     color: var(--accent, #07a5c9);
     margin: 0 0 1.25rem;
   }
@@ -243,26 +285,46 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.62rem;
   }
 
   .ls-step {
     display: flex;
     align-items: flex-start;
-    gap: 0.65rem;
+    gap: 0.7rem;
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.78rem;
-    transition: opacity 0.3s;
+    font-size: 0.85rem;
+    transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    border: 1px solid rgba(136, 146, 160, 0.22);
+    border-radius: 4px;
+    padding: 0.45rem 0.6rem;
+    background: rgba(10, 14, 26, 0.4);
   }
-  .ls-step.pending { opacity: 0.3; }
-  .ls-step.done    { opacity: 0.6; }
-  .ls-step.active  { opacity: 1; }
+  .ls-step.pending {
+    opacity: 0.52;
+    border-color: rgba(136, 146, 160, 0.18);
+  }
+  .ls-step.done {
+    opacity: 0.88;
+    border-color: rgba(0, 229, 160, 0.36);
+    background: rgba(0, 229, 160, 0.08);
+  }
+  .ls-step.active {
+    opacity: 1;
+    border-color: rgba(7, 165, 201, 0.72);
+    background: rgba(7, 165, 201, 0.14);
+    box-shadow:
+      0 0 0 1px rgba(7, 165, 201, 0.2),
+      0 0 16px rgba(7, 165, 201, 0.24);
+    transform: translateY(-1px);
+    animation: ls-active-step-pulse 1.6s ease-in-out infinite;
+  }
 
   .ls-step-indicator {
     flex-shrink: 0;
-    width: 1.1rem;
+    width: 1.2rem;
     text-align: center;
-    padding-top: 1px;
+    padding-top: 2px;
   }
 
   .ls-check { color: var(--success, #00e5a0); font-weight: 700; }
@@ -270,8 +332,8 @@
 
   .ls-spinner {
     display: inline-block;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border: 2px solid rgba(7, 165, 201, 0.25);
     border-top-color: var(--accent, #07a5c9);
     border-radius: 50%;
@@ -285,7 +347,38 @@
     gap: 0.1rem;
   }
   .ls-step-label  { color: var(--text-primary, #d0d7dd); }
-  .ls-step-detail { color: rgba(7, 165, 201, 0.65); font-size: 0.68rem; }
+  .ls-step-detail {
+    color: rgba(7, 165, 201, 0.95);
+    font-size: 0.76rem;
+    line-height: 1.45;
+    min-height: 1.1rem;
+    animation: ls-detail-fade-in 0.3s ease;
+  }
+
+  @keyframes ls-detail-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ls-active-step-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 1px rgba(7, 165, 201, 0.18),
+        0 0 12px rgba(7, 165, 201, 0.2);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px rgba(7, 165, 201, 0.35),
+        0 0 24px rgba(7, 165, 201, 0.34);
+    }
+  }
 
   /* ── Error panel ──────────────────────────────────────────────────────── */
   .ls-error {
@@ -319,15 +412,33 @@
   }
   .ls-retry-btn:hover { background: rgba(255, 56, 96, 0.28); }
 
-  /* ── Footer (overlay mode only) ───────────────────────────────────────── */
+ /* ── Footer (overlay mode only) ───────────────────────────────────────── */
   .ls-footer {
     position: relative;
     z-index: 1;
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.65rem;
-    color: var(--surface, #2d3446);
+    font-size: 0.7rem;
+    color: rgba(7, 165, 201, 0.8);
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    animation: ls-footer-glow 4.8s ease-in-out infinite;
+  }
+ 
+  @keyframes ls-footer-glow {
+    0%, 100% {
+      opacity: 0.2;
+      text-shadow:
+        0 0 2px rgba(7, 165, 201, 0.0),
+        0 0 4px rgba(7, 165, 201, 0.0);
+    }
+    40%, 60% {
+      opacity: 1;
+      text-shadow:
+        0 0 6px rgba(7, 165, 201, 1),
+        0 0 16px rgba(7, 165, 201, 0.75),
+        0 0 32px rgba(7, 165, 201, 0.45),
+        0 0 56px rgba(7, 165, 201, 0.2);
+    }
   }
 </style>
 

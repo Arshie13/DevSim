@@ -15,7 +15,7 @@ interface TerminalConnection {
 
 const activeConnections: Map<string, TerminalConnection> = new Map();
 
-function createWSServer(server: http.Server): WebSocketServer {
+export function createTerminalWSServer(server: http.Server): WebSocketServer {
   const wss = new WebSocketServer({ noServer: true });
 
   // Handle upgrade requests
@@ -137,7 +137,25 @@ function createWSServer(server: http.Server): WebSocketServer {
   return wss;
 }
 
-// Graceful shutdown
+// Graceful shutdown helper
+export function gracefulTerminalShutdown(wss: WebSocketServer, server: http.Server) {
+  console.log('🛑 Shutting down Terminal WebSocket server...');
+  
+  // Close all connections
+  activeConnections.forEach((conn, key) => {
+    try {
+      conn.execStream?.destroy();
+      conn.ws.close();
+    } catch { }
+  });
+  activeConnections.clear();
+
+  wss.close(() => {
+    console.log('✅ Terminal WebSocket server closed');
+  });
+}
+
+// Standalone mode (for development with pnpm ws:terminal)
 function gracefulShutdown(wss: WebSocketServer, server: http.Server) {
   console.log('🛑 Shutting down WebSocket server...');
   
@@ -164,10 +182,10 @@ function gracefulShutdown(wss: WebSocketServer, server: http.Server) {
   }, 10000);
 }
 
-// Main function
+// Main function for standalone terminal server (development)
 async function main() {
   const server = http.createServer();
-  const wss = createWSServer(server);
+  const wss = createTerminalWSServer(server);
 
   server.listen(PORT, () => {
     console.log(`✅ Terminal WebSocket server ready`);

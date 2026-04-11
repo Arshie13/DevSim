@@ -37,6 +37,18 @@
    */
   export let hideActions: boolean = false;
 
+  /**
+   * When true the modal header (icon/title/subtitle) is hidden.
+   * Useful when slot content already renders its own heading.
+   */
+  export let hideHeader: boolean = false;
+
+  /**
+   * When true, clicking the backdrop will close the modal.
+   * Set to false to prevent closing when clicking outside.
+   */
+  export let closeOnBackdropClick: boolean = true;
+
   // ── Events ─────────────────────────────────────────────────────────────────
 
   const dispatch = createEventDispatcher<{
@@ -75,7 +87,7 @@
   }
 
   function handleBackdropClick(e: MouseEvent) {
-    if (e.target === e.currentTarget) handleCancel();
+    if (closeOnBackdropClick && e.target === e.currentTarget) handleCancel();
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -94,7 +106,7 @@
     on:click={handleBackdropClick}
     on:keydown={handleKeydown}
   >
-    <div class="cm-card">
+    <div class="cm-card ds-scrollbar">
       <!-- Animated gradient border glow -->
       <div class="cm-card-glow" aria-hidden="true"></div>
 
@@ -112,7 +124,7 @@
         <!-- ── CONFIRMATION STATE ─────────────────────────────────────────── -->
 
         <!-- Header -->
-        {#if title}
+        {#if !hideHeader && title}
           <div class="cm-header">
             {#if icon}
               <span class="cm-icon {iconGlowClass[iconVariant]}" aria-hidden="true">{icon}</span>
@@ -189,6 +201,8 @@
   .cm-card {
     position: relative;
     width: min(480px, 100%);
+    max-height: min(92vh, 820px);
+    overflow-y: auto;
     background: var(--bg-light, #12192a);
     border: 1px solid var(--card-border, rgba(7, 165, 201, 0.15));
     border-radius: 6px; /* sharp corners per design guide */
@@ -197,6 +211,42 @@
       0 0 0 1px rgba(7, 165, 201, 0.07),
       0 0 40px rgba(7, 165, 201, 0.12),
       0 24px 60px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Shared custom scrollbar styling on modal shell (single scrollbar source). */
+  .ds-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(136, 146, 160, 0.3) rgba(10, 14, 26, 0.6);
+  }
+
+  .ds-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .ds-scrollbar::-webkit-scrollbar-track {
+    background: rgba(10, 14, 26, 0.6);
+    border-radius: 4px;
+    margin: 4px 0;
+  }
+
+  .ds-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(136, 146, 160, 0.3);
+    border-radius: 4px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .ds-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(7, 165, 201, 0.6);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 10px rgba(7, 165, 201, 0.4);
+  }
+
+  .ds-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: rgba(136, 146, 160, 0.45);
   }
 
   /* Animated gradient border overlay */
@@ -280,6 +330,14 @@
     gap: 0.75rem;
     justify-content: flex-end;
     margin-top: 1.5rem;
+    position: sticky;
+    bottom: -2rem;
+    padding-top: 0.9rem;
+    background: linear-gradient(
+      to top,
+      rgba(18, 25, 42, 0.98) 70%,
+      rgba(18, 25, 42, 0)
+    );
   }
 
   /* Cancel button */
@@ -402,5 +460,26 @@
     font-size: 0.85rem;
     color: var(--text-muted, #8892a0);
     margin: 0;
+  }
+
+  @media (max-height: 760px) {
+    .cm-backdrop {
+      align-items: center;
+      padding: 0.75rem;
+    }
+
+    .cm-card {
+      max-height: 96vh;
+      padding: 1.15rem 1rem;
+    }
+
+    .cm-header {
+      margin-bottom: 1rem;
+    }
+
+    .cm-action-row {
+      bottom: -1.15rem;
+      margin-top: 1rem;
+    }
   }
 </style>

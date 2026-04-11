@@ -11,7 +11,7 @@ function getTerminalWsUrl(containerId: string): string {
   //   ? (window as string).ENV?.PUBLIC_WS_URL 
   //   : null) || process.env.PUBLIC_WS_URL;
 
-  const wsUrl = PUBLIC_WS_URL;
+  const wsUrl = process.env.NODE_ENV === 'production' ? PUBLIC_WS_URL : 'ws://localhost:8080'; // Default to localhost with Vite dev server port
   
   if (wsUrl) {
     return `${wsUrl}/terminal?containerId=${containerId}`;
@@ -28,8 +28,6 @@ export class TerminalInitializer {
   private socket: WebSocket | null = null;
   private containerId: string = "";
   private dataListenerRegistered: boolean = false;
-
-  constructor() { }
 
   async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string) {
     if (typeof window === "undefined") return;

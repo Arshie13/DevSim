@@ -11,3 +11,4 @@ export type {
   IHints,
   IAcceptanceCriteria,
 } from "./IContainer"
+export * from "./test";
