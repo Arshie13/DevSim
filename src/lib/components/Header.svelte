@@ -4,7 +4,7 @@
   import { goto } from "$app/navigation";
   import ProfileDropDown from "$components/ProfileDropDown.svelte";
 
-  export let userData: UserData;
+  export let userData: Partial<UserData>;
   export let onOpenStats: (() => void) | undefined = undefined;
 
   function navigateToDashboard() {
@@ -56,7 +56,7 @@
       <!-- Coins -->
       <div class="flex items-center gap-2 bg-obsidian-surface/80 border border-cyber-warn/30 px-4 py-2 rounded-card shadow-[0_0_12px_rgba(255,180,0,0.1)]">
         <Coins class="w-4 h-4 text-cyber-warn" />
-        <span class="font-orbitron font-semibold text-cyber-warn text-sm">{userData.coins.toLocaleString()}</span>
+        <span class="font-orbitron font-semibold text-cyber-warn text-sm">{userData.coins?.toLocaleString()}</span>
       </div>
       
       <!-- User Avatar -->

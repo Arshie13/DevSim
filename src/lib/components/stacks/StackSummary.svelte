@@ -12,7 +12,6 @@
   export let selection: StackSelection;
   export let onClear: (category: keyof StackSelection) => void;
   export let onStart: () => Promise<void>;
-  export let onShowInfo: () => void;
 
   let isLoading = false;
   let showDescriptionModal = false;

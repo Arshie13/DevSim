@@ -4,7 +4,7 @@
   import { User, Settings, LogOut, ChevronDown, Award, LayoutDashboard } from "lucide-svelte";
   import type { UserData } from "$types";
 
-  export let userData: UserData;
+  export let userData: Partial<UserData>;
 
   let open = false;
 

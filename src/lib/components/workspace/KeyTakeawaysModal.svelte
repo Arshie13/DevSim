@@ -234,7 +234,6 @@
       {currentIndex}
       {displayedText}
       {isTyping}
-      {cardHeight}
       bind:contentWrapperRef={contentWrapper}
       onPrev={handlePrev}
       onNext={handleNext}
@@ -246,7 +245,6 @@
       currentIndex={0}
       displayedText="Great job completing this sprint! Keep exploring the codebase to discover more insights."
       isTyping={false}
-      {cardHeight}
       bind:contentWrapperRef={contentWrapper}
       onPrev={() => {}}
       onNext={() => {}}

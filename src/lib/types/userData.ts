@@ -3,7 +3,10 @@ export interface UserData {
   email: string;
   name: string;
   image?: string;
+  fullName?: string;
   username?: string;
+  givenName?: string;
+  avatar: string;
 
   // Leveling System
   xp: number;

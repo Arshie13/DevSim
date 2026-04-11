@@ -94,12 +94,12 @@
 
    export let data: PageData;
 
-  const headerUserData: UserData = {
+  const headerUserData: Partial<UserData> = {
     name: data.user?.name ?? 'No Name',
     email: data.user.email,
     image: data.user.image,
     id: data.user.id,
-    avatar: data.user?.image ?? '',
+    avatar: data.user.image,
     givenName: data.user.givenName,
     fullName: data.user?.fullName ?? data.user?.name ?? 'No Name',
     coins: data.userCoins,
@@ -182,7 +182,6 @@
       {selection}
       onClear={handleClearSelection}
       onStart={handleViewScenarios}
-      onShowInfo={handleShowInfo}
     />
 
     <!-- Stack Info Modal -->
