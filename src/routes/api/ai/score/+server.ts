@@ -93,6 +93,17 @@ function filterSourceFiles(files: string[]): string[] {
   });
 }
 
+function inferExpectedLayerCountFromTasks(taskTexts: string[]): number {
+  const corpus = taskTexts.join(' ').toLowerCase();
+  const frontendSignals = /\b(ui|ux|frontend|component|page|layout|css|style|responsive|button|form)\b/.test(corpus);
+  const backendSignals = /\b(api|endpoint|route|controller|service|backend|server|auth|middleware)\b/.test(corpus);
+  const databaseSignals = /\b(database|db|sql|schema|migration|model|prisma|query|table)\b/.test(corpus);
+  const infraSignals = /\b(test|testing|integration|e2e|ci|pipeline|docker|deploy|lint)\b/.test(corpus);
+
+  const signalCount = [frontendSignals, backendSignals, databaseSignals, infraSignals].filter(Boolean).length;
+  return signalCount >= 3 ? 2 : 1;
+}
+
 // Build the scoring prompt for OpenRouter
 function buildScoringPrompt(
   levelTitle: string,
@@ -100,6 +111,8 @@ function buildScoringPrompt(
   tasks: string[],
   fileContents: Record<string, string>,
   completedTasks: string[],
+  masteryReflection: string,
+  impactedLayers: string[],
   testResults: {
     passed: boolean;
     results?: TestValidationResult;
@@ -149,6 +162,10 @@ function buildScoringPrompt(
   const completedList = completedTasks.length > 0
     ? completedTasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n')
     : '  (none)';
+  const impactedLayerList =
+    impactedLayers.length > 0
+      ? impactedLayers.map((layer) => `  - ${layer}`).join('\n')
+      : '  (none)';
 
   // Format test results for the prompt
   let testResultsSection = 'No test results available.';
@@ -172,6 +189,12 @@ ${taskList}
 TASKS THE STUDENT COMPLETED:
 ${completedList}
 
+STUDENT EXPLANATION OF THEIR OWN WORK:
+${masteryReflection || '(none provided)'}
+
+LAYERS THE STUDENT SAYS THEY TOUCHED:
+${impactedLayerList}
+
 === TEST RESULTS ===
 ${testResultsSection}
 === END OF TEST RESULTS ===
@@ -189,6 +212,10 @@ Your job - BE SPECIFIC TO THIS LEVEL'S TASKS:
    - Critical naming issues that make code hard to understand
    - Obvious code duplication within the same file
 6. Give feedback SPECIFICALLY about the tasks - don't give generic programming advice.
+7. Evaluate mastery based on evidence:
+   - Can the student explain why their change works?
+   - Does their explanation connect multiple layers (frontend/backend/database/infra)?
+   - Are they demonstrating debugging and reasoning, not cargo-cult changes?
 
 IMPORTANT:
 - Your feedback MUST be tied to the actual REQUIRED TASKS listed above
@@ -220,6 +247,14 @@ Respond ONLY using this exact format:
 [NEXT_TIME]
 <max 2 bullet points of what to do for the specific tasks they missed in THIS level>
 [/NEXT_TIME]
+
+[MASTERY_VERDICT]
+<PASS or REVISE>
+[/MASTERY_VERDICT]
+
+[MASTERY_GAPS]
+<1-2 short sentences on what is missing in their understanding if verdict is REVISE. If PASS, write "none".>
+[/MASTERY_GAPS]
 `;
 }
 
@@ -230,12 +265,16 @@ function parseScoringResponse(response: string): {
   feedback: string;
   improvements: string;
   nextTime: string;
+  masteryPassed: boolean;
+  masteryGaps: string;
 } {
   let stars = 1;
   let score = 33;
   let feedback = "You've started your coding journey! Keep practicing and you'll get the hang of it.";
   let improvements = '';
   let nextTime = '';
+  let masteryPassed = false;
+  let masteryGaps = 'Add clearer reasoning about how your changes work across the stack.';
 
   try {
     const starMatch = response.match(/\[STAR_RATING\]\s*(\d+)\s*\[\/STAR_RATING\]/i);
@@ -257,11 +296,15 @@ function parseScoringResponse(response: string): {
     feedback = extract('FEEDBACK') || feedback;
     improvements = extract('IMPROVEMENTS');
     nextTime = extract('NEXT_TIME');
+    const masteryVerdict = extract('MASTERY_VERDICT').toUpperCase();
+    masteryPassed = masteryVerdict.includes('PASS');
+    const extractedGaps = extract('MASTERY_GAPS');
+    if (extractedGaps) masteryGaps = extractedGaps;
   } catch (e) {
     console.error('Error parsing scoring response:', e);
   }
 
-  return { stars, score, feedback, improvements, nextTime };
+  return { stars, score, feedback, improvements, nextTime, masteryPassed, masteryGaps };
 }
 
 // Call OpenRouter API for scoring
@@ -270,7 +313,8 @@ async function callOpenRouterAPI(apiKey: string, prompt: string): Promise<string
   const models = [
     'meta-llama/llama-3.1-8b-instruct',
     'google/gemma-2-9b-it',
-    'mistralai/mistral-7b-instruct-v0.2'
+    'mistralai/mistral-7b-instruct-v0.2',
+    'google/gemini-2.5-flash-exp'
   ];
   let lastError = null;
   let isRateLimited = false;
@@ -288,7 +332,7 @@ async function callOpenRouterAPI(apiKey: string, prompt: string): Promise<string
         body: JSON.stringify({
           model,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 500,
+          max_tokens: 200,
         }),
       });
       
@@ -345,9 +389,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const body = await request.json();
-    const { containerId, level, completedTasks, fileContents, filePaths, testResults } = body;
-    
-    console.log("file contents: ", fileContents);
+    const { containerId, level, completedTasks, fileContents, filePaths, testResults, masteryReflection, impactedLayers } = body;
+    const normalizedReflection =
+      typeof masteryReflection === 'string' ? masteryReflection.trim() : '';
+    const normalizedImpactedLayers = Array.isArray(impactedLayers)
+      ? impactedLayers.filter((layer: unknown): layer is string => typeof layer === 'string')
+      : [];
+
 
     if (!containerId || !level) {
       return json({
@@ -443,6 +491,8 @@ export const POST: RequestHandler = async ({ request }) => {
       levelInfo.tasks,
       userFileContents,
       completedTasks || [],
+      normalizedReflection,
+      normalizedImpactedLayers,
       testResults
     );
     
@@ -455,7 +505,22 @@ export const POST: RequestHandler = async ({ request }) => {
     console.log('[AI Score] Raw AI response:\n', aiResponse);
     
     // Parse the response
-    const { stars, score, feedback, improvements, nextTime } = parseScoringResponse(aiResponse);
+    const { stars, score, feedback, improvements, nextTime, masteryPassed, masteryGaps } = parseScoringResponse(aiResponse);
+    const reflectionStrongEnough = normalizedReflection.length >= 40;
+    const expectedLayerCount = inferExpectedLayerCountFromTasks(levelInfo.tasks);
+    const layerEvidence = normalizedImpactedLayers.length >= expectedLayerCount;
+    const qualityFloor = stars >= 1 || score >= 33;
+    const aiMasterySignal = masteryPassed || qualityFloor;
+    const finalMasteryPassed = aiMasterySignal && reflectionStrongEnough && layerEvidence;
+    const fallbackMasteryGaps = !reflectionStrongEnough
+      ? 'Your reflection is too short. Explain the fix, why it works, and what you validated.'
+      : !layerEvidence
+        ? expectedLayerCount >= 2
+          ? 'This level appears multi-layer. Connect at least two impacted layers in your explanation.'
+          : 'Select at least one impacted layer and explain what changed in it.'
+        : !aiMasterySignal
+          ? 'Your reasoning is still unclear. Tighten your explanation and retry.'
+          : masteryGaps;
     
     console.log('[AI Score] Parsed — stars:', stars, '| score:', score);
     console.log('[AI Score] feedback:', feedback);
@@ -469,6 +534,8 @@ export const POST: RequestHandler = async ({ request }) => {
       feedback,
       improvements,
       nextTime,
+      masteryPassed: finalMasteryPassed,
+      masteryGaps: finalMasteryPassed ? 'none' : fallbackMasteryGaps,
       level: level,
       levelTitle: levelInfo.title
     });
@@ -484,6 +551,8 @@ export const POST: RequestHandler = async ({ request }) => {
         stars: 2, // Default to 2 stars for rate limit - give benefit of doubt
         score: 67, // Default proportional mid-range score on rate limit
         feedback: 'Hey there! 👋 Looks like our AI buddy is taking a quick nap. Drop by again in a moment and we\'ll get your feedback!',
+        masteryPassed: false,
+        masteryGaps: 'Mastery check unavailable right now due to AI rate limits. Please retry shortly.',
         error: 'AI rate limit exceeded. Please try again later.',
         isRateLimited: true
       });
@@ -494,6 +563,8 @@ export const POST: RequestHandler = async ({ request }) => {
       stars: 1, // Default to 1 star on error - be conservative
       score: 33, // Default proportional low score on error
       feedback: 'No worries — every expert was once a beginner. Keep practicing and you\'ll get there! Focus on error handling, code organization, and best practices.',
+      masteryPassed: false,
+      masteryGaps: 'Mastery check failed due to an AI service error. Please retry submit.',
       error: errorMessage
     });
   }

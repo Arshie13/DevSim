@@ -41,6 +41,8 @@
   export let projectName: string = "project";
   export let tasks: ITask[] = [];
   export let containerId: string = "";
+  export const currentLevel: number = 1;
+  export const levelTitle: string = "";
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
   export let onDeleteFile: (filePath: string) => void = () => {};
@@ -51,6 +53,13 @@
   // clicking any panel when closed opens it and switches to that panel.
   let activeSidebarPanel: SidebarPanel = "files";
   let isOpen: boolean = true;
+  let sidebarWidth = 256;
+  let isResizing = false;
+  let resizeStartX = 0;
+  let resizeStartWidth = 256;
+
+  const SIDEBAR_MIN_WIDTH = 220;
+  const SIDEBAR_MAX_WIDTH = 520;
 
   // Compute remaining tasks for badge
   $: completedTasks = tasks.filter((t) => t.isCompleted).length;
@@ -85,7 +94,34 @@
       isOpen = true;
     }
   }
+
+  function startResize(event: MouseEvent) {
+    event.preventDefault();
+    isResizing = true;
+    resizeStartX = event.clientX;
+    resizeStartWidth = sidebarWidth;
+    if (typeof document !== "undefined") {
+      document.body.classList.add("sidebar-resizing");
+    }
+  }
+
+  function handleResizeMove(event: MouseEvent) {
+    if (!isResizing) return;
+    const delta = event.clientX - resizeStartX;
+    const nextWidth = resizeStartWidth + delta;
+    sidebarWidth = Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, nextWidth));
+  }
+
+  function stopResizing() {
+    if (!isResizing) return;
+    isResizing = false;
+    if (typeof document !== "undefined") {
+      document.body.classList.remove("sidebar-resizing");
+    }
+  }
 </script>
+
+<svelte:window on:mousemove={handleResizeMove} on:mouseup={stopResizing} />
 
 <div class="flex h-full flex-shrink-0" data-tour="sidebar">
   <!-- Activity Bar -->
@@ -109,8 +145,8 @@
   <!-- Sidebar Content Panel — hidden when collapsed -->
   {#if isOpen}
     <aside
-      class="w-64 bg-[#12192a] border-r border-[rgba(7,165,201,0.1)] flex flex-col overflow-hidden"
-      style="box-shadow:4px 0 20px rgba(7,165,201,0.03);"
+      class="bg-[#12192a] border-r border-[rgba(7,165,201,0.1)] flex flex-col overflow-hidden relative"
+      style="width: {sidebarWidth}px; box-shadow:4px 0 20px rgba(7,165,201,0.03);"
     >
       <!-- Panel Header -->
       <div
@@ -154,6 +190,23 @@
         />
       {/if}
     </Scrollbar>
+
+    <button
+      type="button"
+      aria-label="Resize sidebar"
+      class="absolute top-0 right-0 h-full w-1.5 translate-x-1/2 cursor-col-resize group"
+      on:mousedown={startResize}
+    >
+      <div class="h-full w-[2px] mx-auto transition-colors duration-150 {isResizing ? 'bg-[#07a5c9]' : 'bg-transparent group-hover:bg-[rgba(7,165,201,0.45)]'}"></div>
+    </button>
   </aside>
   {/if}
 </div>
+
+<style>
+  :global(body.sidebar-resizing),
+  :global(body.sidebar-resizing *) {
+    cursor: col-resize !important;
+    user-select: none !important;
+  }
+</style>

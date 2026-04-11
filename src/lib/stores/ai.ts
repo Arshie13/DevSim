@@ -7,6 +7,7 @@ export type ChatMessage = {
   role: "user" | "ai"; 
   content: string; 
   isWarning?: boolean;
+  attachedFiles?: { path: string; name: string }[];
 };
 
 // Store for AI chat history - persists across tab switches

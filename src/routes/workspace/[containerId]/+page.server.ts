@@ -28,6 +28,7 @@ export const load: PageServerLoad = async (event) => {
   const container = await prisma.container.findFirst({
     where: { id: dbId, userId },
     include: {
+      containerStacks: true,
       scenario: {
         include: {
           levels: {

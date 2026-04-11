@@ -70,11 +70,4 @@
       <p class="px-3 py-3 text-[0.65rem] text-[#8892a0] opacity-50">No terminals open</p>
     {/if}
   </div>
-
-  <!-- Footer: terminal count -->
-  <div class="px-3 py-2 border-t border-[rgba(7,165,201,0.08)] flex-shrink-0">
-    <span class="text-[0.58rem] text-[#8892a0] opacity-60 uppercase tracking-widest">
-      {sessions.length}/{MAX_TERMINALS} terminals
-    </span>
-  </div>
 </aside>

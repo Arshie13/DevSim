@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { FileText, LayoutDashboard, GripVertical } from 'lucide-svelte';
+  import { onDestroy, onMount } from 'svelte';
+  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff } from 'lucide-svelte';
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
-  import { type ITask } from '$lib/types';
+  import { type ITask, type IHints } from '$lib/types';
   import { toast } from '$lib/stores/toast';
 
   export let scenario: string = '';
@@ -11,7 +12,8 @@
   export let tasks: BoardTask[] = [];
   export let onTaskStatusChange: (taskId: string, status: KanbanStatus) => void = () => {};
 
-  // ── Sub-tab state ────────────────────────────────────────────────────────
+  // ── Hints toggle state ─────────────────────────────────────────────────────
+  let showHints = false;
   let activeSubTab: 'scenario' | 'board' = 'scenario';
 
   // ── Kanban state ─────────────────────────────────────────────────────────
@@ -22,6 +24,7 @@
     taskType: string;
     userStory: string;
     acceptanceCriteria: string[];
+    hints: { id: string; content: string; order: number }[];
   }
 
   let kanbanTasks: KanbanTask[] = [];
@@ -46,6 +49,11 @@
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((criteria) => criteria.description)
+        .filter(Boolean),
+      hints: (t.hints ?? [])
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((h) => ({ id: h.id, content: (h as any).description ?? h.content, order: h.order }))
         .filter(Boolean),
     }));
   }
@@ -83,6 +91,35 @@
   function closeTaskDetails() {
     taskModalOpen = false;
   }
+
+  function handleTourBoardSubTab(event: Event) {
+    const customEvent = event as CustomEvent<{ subTab?: 'scenario' | 'board' }>;
+    const subTab = customEvent.detail?.subTab;
+    if (subTab === 'scenario' || subTab === 'board') {
+      activeSubTab = subTab;
+    }
+  }
+
+  function handleTourOpenTaskModal() {
+    if (kanbanTasks.length === 0) return;
+    openTaskDetails(kanbanTasks[0].id);
+  }
+
+  function handleTourCloseTaskModal() {
+    closeTaskDetails();
+  }
+
+  onMount(() => {
+    window.addEventListener('devsim-tour-board-subtab', handleTourBoardSubTab as EventListener);
+    window.addEventListener('devsim-tour-open-task-modal', handleTourOpenTaskModal);
+    window.addEventListener('devsim-tour-close-task-modal', handleTourCloseTaskModal);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('devsim-tour-board-subtab', handleTourBoardSubTab as EventListener);
+    window.removeEventListener('devsim-tour-open-task-modal', handleTourOpenTaskModal);
+    window.removeEventListener('devsim-tour-close-task-modal', handleTourCloseTaskModal);
+  });
 
   function handleDragStart(e: DragEvent, taskId: string) {
     draggingId = taskId;
@@ -156,7 +193,7 @@
   $: progress = kanbanTasks.length > 0 ? (doneCount / kanbanTasks.length) * 100 : 0;
 </script>
 
-<div class="flex flex-col h-full bg-[#0a0e1a] overflow-hidden">
+<div class="flex flex-col h-full bg-[#0a0e1a] overflow-hidden" data-tour="board-panel">
   <!-- ── View-mode toolbar ─────────────────────────────────────────────── -->
   <div
     class="flex items-center justify-between px-4 py-2.5 border-b border-[rgba(7,165,201,0.1)] bg-[#0a0e1a] flex-shrink-0"
@@ -171,6 +208,7 @@
 
     <!-- Centre: pill toggle -->
     <div
+      data-tour="board-subtab-toggle"
       class="relative flex items-center rounded-sm overflow-hidden"
       style="background: #12192a; border: 1px solid rgba(7,165,201,0.18); padding: 3px;"
     >
@@ -188,6 +226,7 @@
 
       <!-- Scenario button -->
       <button
+        data-tour="board-subtab-scenario"
         on:click={() => (activeSubTab = 'scenario')}
         class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'scenario' ? '#07a5c9' : '#8892a0'};"
@@ -198,6 +237,7 @@
 
       <!-- Kanban button -->
       <button
+        data-tour="board-subtab-kanban"
         on:click={() => (activeSubTab = 'board')}
         class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
         style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'board' ? '#07a5c9' : '#8892a0'};"
@@ -207,7 +247,7 @@
       </button>
     </div>
 
-    <!-- Right: progress pill -->
+    <!-- Right: progress pill + hints toggle -->
     <div class="flex items-center gap-2.5">
       <div class="w-20 h-2 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
         <div
@@ -221,6 +261,20 @@
       >
         {doneCount}/{kanbanTasks.length}
       </span>
+      <!-- Hints toggle button -->
+      <button
+        on:click={() => (showHints = !showHints)}
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors duration-150"
+        style="font-family: 'Space Mono', monospace; color: {showHints ? '#FFB400' : '#8892a0'}; background: {showHints ? 'rgba(255,180,0,0.12)' : 'transparent'}; border: 1px solid {showHints ? 'rgba(255,180,0,0.35)' : 'rgba(7,165,201,0.18)'};"
+        title={showHints ? 'Hide task hints' : 'Show task hints'}
+      >
+        {#if showHints}
+          <Lightbulb class="w-3.5 h-3.5" />
+        {:else}
+          <LightbulbOff class="w-3.5 h-3.5" />
+        {/if}
+        <span class="text-[0.6rem] uppercase tracking-wider">Hints</span>
+      </button>
     </div>
   </div>
 
@@ -304,6 +358,27 @@
                   >
                     {t.status === 'in-progress' ? 'In Progress' : t.status === 'in-review' ? 'In Review' : t.status === 'done' ? 'Done' : 'Backlog'}
                   </span>
+                  <!-- Hints display (when enabled) -->
+                  {#if showHints && t.hints && t.hints.length > 0}
+                    <div class="mt-2 w-full">
+                      <p
+                        class="text-[0.55rem] uppercase tracking-wider text-[#FFB400] mb-1"
+                        style="font-family: 'Space Mono', monospace;"
+                      >
+                        Hints:
+                      </p>
+                      <div class="space-y-1">
+                        {#each t.hints as hint, idx}
+                          <div
+                            class="text-[0.75rem] text-[#d0d7dd]/70 px-2 py-1 rounded bg-[rgba(255,180,0,0.06)] border border-[rgba(255,180,0,0.15)]"
+                            style="font-family: 'Exo 2', sans-serif;"
+                          >
+                            {idx + 1}. {hint.content}
+                          </div>
+                        {/each}
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               {/each}
             </div>
@@ -313,7 +388,7 @@
 
     <!-- KANBAN PANEL ----------------------------------------------------- -->
     {:else}
-      <div class="p-4 flex gap-3 h-full min-h-0">
+      <div class="p-4 flex gap-3 h-full min-h-0" data-tour="board-kanban-lanes">
         {#each COLUMNS as col}
           <!-- Kanban column -->
           <div
@@ -350,9 +425,10 @@
 
             <!-- Task cards -->
             <div class="flex-1 p-2 space-y-2 overflow-y-auto">
-              {#each kanbanTasks.filter((t) => t.status === col.id) as task (task.id)}
+              {#each kanbanTasks.filter((t) => t.status === col.id) as task, taskIndex (task.id)}
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y-no-static-element-interactions -->
                 <div
+                  data-tour={taskIndex === 0 ? 'board-task-ticket' : undefined}
                   draggable={!(task.status === 'done' && task.taskType.toLowerCase() !== 'none')}
                   on:dragstart={(e) => handleDragStart(e, task.id)}
                   on:dragend={handleDragEnd}
@@ -416,6 +492,7 @@
     title={selectedTask?.text ?? ''}
     userStory={selectedTask?.userStory ?? ''}
     acceptanceCriteria={selectedTask?.acceptanceCriteria ?? []}
+    hints={selectedTask?.hints ?? []}
     status={selectedTask?.status ?? 'backlog'}
     onClose={closeTaskDetails}
   />

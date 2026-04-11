@@ -67,7 +67,7 @@
     class:om-visible={visible}
     role="dialog"
     aria-modal="true"
-    aria-label="Workspace onboarding"
+    aria-label={`Workspace onboarding: ${content.stackName || title}`}
   >
     <!-- Accent top bar -->
     <div class="om-accent-bar" style="background:{content.accentColor};"></div>
@@ -136,6 +136,11 @@
               <span class="om-tool-icon" aria-hidden="true">🌐</span>
               <strong>Live Preview</strong>
               <p>See your running app live in the browser without ever leaving the workspace.</p>
+            </div>
+            <div class="om-tool">
+              <span class="om-tool-icon" aria-hidden="true">🗂️</span>
+              <strong>Board Panel</strong>
+              <p>Track scenario, task tickets, and progress in Scenario and Kanban sections.</p>
             </div>
           </div>
 
@@ -395,7 +400,7 @@
 
   .om-tools {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
     width: 100%;
   }

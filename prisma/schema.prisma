@@ -84,6 +84,7 @@ model Level {
   levelDescription String
   xpReward         Int
   coinReward       Int
+  keyTakeaways     String
   scenarioId       String
   scenario         Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
 

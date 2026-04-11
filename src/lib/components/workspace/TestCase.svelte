@@ -139,6 +139,7 @@
 
       // Get task order from the task object (aligns with LevelTask.order in schema)
       const taskOrder = task?.order ?? getTaskNumber(taskId);
+      const formattedTaskName = formatTaskLabel(level, taskOrder);
 
       // Determine which test to run
       let testCommand = '';
@@ -162,7 +163,8 @@
           command: testCommand,
           level,
           taskId,
-          testType: 'task'
+          taskOrder: taskOrder,
+          type: 'task'
         })
       });
 
@@ -174,9 +176,9 @@
           success: data.passed,
           level,
           summary: data.summary || { total: 0, passed: 0, failed: 0, duration: 0 },
-          taskResults: [{
+          taskResults: data.taskResults || [{
             taskId,
-            taskName,
+            taskName: formattedTaskName,
             passed: data.passed,
             results: data.results || [],
             errors: data.errors || []
@@ -208,13 +210,14 @@
       }
 
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const fallbackTaskOrder = tasks.find(t => t.id === taskId)?.order ?? getTaskNumber(taskId);
       testResult = {
         success: false,
         level,
         summary: { total: 0, passed: 0, failed: 0, duration: 0 },
         taskResults: [{
           taskId,
-          taskName,
+          taskName: formatTaskLabel(level, fallbackTaskOrder),
           passed: false,
           results: [],
           errors: [errorMessage]
@@ -260,7 +263,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          testType: 'level'
+          type: 'level'
         })
       });
 
@@ -344,6 +347,10 @@
     return match ? parseInt(match[0], 10) : 1;
   }
 
+  function formatTaskLabel(levelNumber: number, taskOrder: number): string {
+    return `Level ${levelNumber} - Task ${taskOrder}`;
+  }
+
   // Public method for running all level tests (used by Submit Sprint)
   export async function runAllLevelTests(): Promise<TestRunResult> {
     testLoading = true;
@@ -366,7 +373,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          testType: 'level'
+          type: 'level'
         })
       });
 
@@ -434,6 +441,7 @@
 
 <div class="relative inline-flex">
   <button
+    data-tour="run-tests-button"
     class="flex items-center gap-1.5 rounded-[3px] border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.08)] px-3.5 py-2 font-['Orbitron',monospace] text-[0.6875rem] font-semibold text-[var(--accent)] transition-all duration-150 ease-in-out hover:border-[rgba(7,165,201,0.4)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_12px_rgba(7,165,201,0.2)] disabled:cursor-not-allowed disabled:opacity-50"
     on:click={openTestModal}
     disabled={disabled || !hasTestableTasks}

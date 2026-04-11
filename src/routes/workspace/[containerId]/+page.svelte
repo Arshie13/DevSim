@@ -16,11 +16,13 @@
   import SubmitSprintModal from "$lib/components/workspace/SubmitSprintModal.svelte";
   import WorkspaceBootScreen from "$lib/components/workspace/WorkspaceBootScreen.svelte";
   import TerminalManagerPanel from "$lib/components/workspace/TerminalManagerPanel.svelte";
-  import AiHelp from "$lib/components/devSidebar/AiHelp.svelte";
+  import AiHelp from "$lib/components/aiHelp/AiHelp.svelte";
   import BoardPanel from "$lib/components/workspace/BoardPanel.svelte";
   import TestCase from "$lib/components/workspace/TestCase.svelte";
 
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
+  import SazOnboardingCoach from "$lib/components/onboarding/SazOnboardingCoach.svelte";
+  import LevelIntroCard from "$lib/components/workspace/LevelIntroCard.svelte";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -31,6 +33,9 @@
   import type { UserData, IContainer, IScenario, ILevel } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
+  const SazOnboardingCoachComponent: any = SazOnboardingCoach;
+
+
   interface WorkspaceProps {
     user: UserData;
     userId: string;
@@ -40,23 +45,16 @@
     completedTasks: string[];
     container: IContainer;
     hints: IHints[];
-    levelDescription: string; // Scenario/sprint brief text for the board panel
-    scenarioTitle: string; // For header display
-    stacks: string[]; // For header display
+    levelDescription: string;
+    scenarioTitle: string;
+    stacks: string[];
   }
 
-  // Server-loaded data:
-  //   dockerContainerId — the real Docker container ID (for Docker API calls)
-  //   page.params.containerId — the Prisma DB id (for submit/archive API calls)
-  //   userId — the user's ID for AI hints
-  //   userCoins — the user's coin balance for AI hints
   export let data: WorkspaceProps;
 
-  // Get user data from page data
   $: userId = data.userId || "";
   $: userCoins = data.userCoins || 0;
 
-  // Workspace level/title state from DB (with mock fallback)
   let currentLevel = data.level || 1;
 
   function getLevelByOrder(
@@ -72,32 +70,47 @@
   }
 
   $: workspaceScenario = data.container?.scenario ?? null;
+  $: stackNames = data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean) ?? [];
   $: currentLevelRecord = getLevelByOrder(workspaceScenario, currentLevel);
   $: title = currentLevelRecord?.title ?? LEVEL_CONFIG.title;
-  $: stack = workspaceScenario?.name ?? LEVEL_CONFIG.stack;
+  $: stack = stackNames.length > 0 ? stackNames.join(" + ") : (workspaceScenario?.name ?? LEVEL_CONFIG.stack);
   $: difficulty = workspaceScenario?.difficulty ?? LEVEL_CONFIG.difficulty;
   $: level = currentLevel;
+
+  console.log("current level record: ", currentLevelRecord);
 
   // State
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let selectedFile: string = "app/page.tsx";
   let fileContents: Record<string, string> = {};
+  const protectedPackageFiles = new Set([
+    "package.json",
+    "package-lock.json",
+    "package.lock.json",
+  ]);
+  const protectedRootFiles = new Set([
+    "README",
+    "README.md",
+    "README.txt",
+    "readme",
+    "readme.md",
+    "readme.txt",
+  ]);
 
-  // ── Multi-tab state ──────────────────────────────────────────────────────
   let openTabs: FileTab[] = [];
   let activeTabId: string = "";
   type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
   type WorkspaceTask = TestableTask & { boardStatus?: BoardTaskStatus };
-  let tasks: WorkspaceTask[] = []; // Will be populated from server data
-  let timeRemaining: number = 4 * 60 * 60; // Default to 4 hours
+  let tasks: WorkspaceTask[] = [];
+  let timeRemaining: number = 4 * 60 * 60;
   let isRunning: boolean = false;
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = "";
   let editorValue: string = "";
   let fileTree: string[] = [];
   let directories: string[] = [];
+  
 
-  // ── Multi-terminal state ─────────────────────────────────────────────────
   interface TermSession {
     id: string;
     label: string;
@@ -110,7 +123,6 @@
   $: activeTerminalSession =
     terminalSessions.find((s) => s.id === activeTerminalId) ?? null;
 
-  // Initialize tasks from server data + persisted board/test state
   $: {
     const levelTasks = currentLevelRecord?.tasks || [];
     const persisted = loadTaskProgress(currentLevel);
@@ -143,14 +155,12 @@
     });
   }
 
-  // Get level-specific config from server data
   $: levelHints =
     currentLevelRecord?.tasks?.flatMap(
       (task: ITask) => task.hints ?? [],
     ) || [];
   $: levelTestConfig = getLevelConfig(currentLevel);
 
-  // Merge test config with mockdata for UI fields (test config has tasks, mockdata has UI fields)
   $: actualLevelConfig = levelTestConfig
     ? {
         ...LEVEL_CONFIG,
@@ -160,30 +170,118 @@
         stack: stack,
         difficulty,
         deadline: LEVEL_CONFIG.deadline,
-        scenario: workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
+        scenario: currentLevelRecord?.levelDescription ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
         hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
         starterFiles: LEVEL_CONFIG.starterFiles,
-        // Use tasks from server data
-        tasks: tasks,
       }
     : LEVEL_CONFIG;
 
-  // Update timeRemaining when level config changes
+  $: operatorAlias = data.user?.username || data.user?.name || "Operator";
+  $: workspaceProjectName = workspaceScenario?.name || title || "DevSim Workspace";
+
+  // Track onboarding state - initialize from URL
+  let isInOnboarding = page.url.searchParams.get("onboarding") === "1";
+
+  // Track if we've ever been in onboarding this session
+  let hasEverBeenInOnboarding = isInOnboarding;
+
+  // Update hasEverBeenInOnboarding when we detect onboarding in URL
+  $: {
+    if (page.url.searchParams.get("onboarding") === "1") {
+      hasEverBeenInOnboarding = true;
+    }
+  }
+
+  // Function to call when onboarding completes (called from OnboardingController)
+  function handleOnboardingComplete() {
+    onboardingTourCompleted = true;
+    // Show level intro card after onboarding completes (only if not already shown)
+    if (tasks.length > 0 && !levelIntroCardShown) {
+      levelIntroCardOpen = true;
+      levelIntroCardShown = true;
+    }
+  }
+
+  function handleLevelIntroClose() {
+    levelIntroCardOpen = false;
+    activeTab = 'board';
+
+    const shouldShowSazOnboarding =
+      !sazOnboardingShown &&
+      onboardingTourCompleted &&
+      currentLevel === 1;
+
+    if (shouldShowSazOnboarding) {
+      sazOnboardingOpen = true;
+      sazOnboardingShown = true;
+    }
+  }
+
+  // Show level intro card after tasks load
+  // Only show when NOT in onboarding (onboarding is done or user skipped it)
+  $: if (tasks.length > 0 && !levelIntroCardShown && !isInOnboarding) {
+    // Show level intro card after tasks load (for all users - both those who did onboarding and those who didn't)
+    setTimeout(() => {
+      if (!levelIntroCardShown) {
+        levelIntroCardOpen = true;
+        levelIntroCardShown = true;
+      }
+    }, 1000);
+  }
+
+
   $: if (actualLevelConfig) {
     timeRemaining = actualLevelConfig.deadline || 4 * 60 * 60;
   }
 
-  // ── Panel toggle state ───────────────────────────────────────────────────
+
   let aiPanelOpen: boolean = false;
   let aiPanelMode: "chat" | "quick" = "chat";
   let isDownloading: boolean = false;
 
-  // ── Back confirmation modal state ────────────────────────────────────────
   let backModalOpen: boolean = false;
   let backModalLoading: boolean = false;
 
-  // ── Test regression modal state ──────────────────────────────────────────
-  // Tracks tasks that were "done" but now failed again
+  let taskIntroCardOpen: boolean = false;
+  let levelIntroCardOpen: boolean = false;
+  let levelIntroCardShown: boolean = false;
+  let onboardingTourCompleted: boolean = false;
+  let sazOnboardingOpen: boolean = false;
+  let sazOnboardingShown: boolean = false;
+
+
+
+  let hints: Array<{
+    id: string;
+    title: string;
+    content: string;
+    category: 'concept' | 'best-practice' | 'tip' | 'warning';
+    priority: 'low' | 'medium' | 'high';
+    relatedTask?: string;
+  }> = [
+    {
+      id: '1',
+      title: 'Clean Code Principles',
+      content: 'Use meaningful variable names and keep functions small. This makes your code more readable and maintainable.',
+      category: 'best-practice',
+      priority: 'medium'
+    },
+    {
+      id: '2',
+      title: 'Error Handling',
+      content: 'Always handle potential errors gracefully. Use try-catch blocks and provide meaningful error messages to users.',
+      category: 'concept',
+      priority: 'high'
+    },
+    {
+      id: '3',
+      title: 'Test Your Code',
+      content: 'Write tests for your functions. This ensures they work correctly and prevents regressions when you make changes.',
+      category: 'tip',
+      priority: 'medium'
+    }
+  ];
+
   let testRegressionModalOpen: boolean = false;
   let regressionTaskName: string = "";
   let regressionTaskId: string = "";
@@ -197,7 +295,6 @@
     aiPanelOpen = !aiPanelOpen;
   }
 
-  // ── Boot loading state ───────────────────────────────────────────────────
   let isBooting = true;
   let bootStep = 0;
   let bootError = "";
@@ -271,19 +368,32 @@
     initWorkspace();
   }
 
-  // Component refs
   let submitSprintModal: SubmitSprintModal;
   let testCaseComponent: TestCase;
   let editorRef: HTMLDivElement;
   let iframeRef: HTMLIFrameElement;
 
-  // The Docker container ID (from server) — used for all /api/docker/container/{id}/... calls
   $: containerId = data.dockerContainerId ?? "";
+  $: projectName = "workspace";
 
-  // Derived
-  $: projectName = title.split(" ")[0] || "project";
+  function normalizeWorkspaceRelativePath(inputPath: string): string {
+    return inputPath
+      .replace(/\\/g, "/")
+      .replace(/^\/workspace\/?/, "")
+      .replace(/^\.\//, "")
+      .trim();
+  }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  function isFrontendReadOnlyFile(path: string): boolean {
+    const normalized = normalizeWorkspaceRelativePath(path);
+    if (!normalized) return false;
+    const fileName = normalized.split("/").pop() ?? "";
+    if (protectedPackageFiles.has(fileName)) return true;
+    return !normalized.includes("/") && protectedRootFiles.has(normalized);
+  }
+
+  $: isSelectedFileReadOnly = isFrontendReadOnlyFile(selectedFile);
+  $: monacoEditor?.setReadOnly(isSelectedFileReadOnly);
 
   function flattenFiles(structure: any, prefix = ""): string[] {
     const files: string[] = [];
@@ -360,16 +470,12 @@
     return index + 1;
   }
 
-  // ── Lifecycle ────────────────────────────────────────────────────────────
-
   onMount(() => {
-    // Countdown timer (sync — sets up cleanup return)
     const timer = setInterval(() => {
       timeRemaining = timeRemaining > 0 ? timeRemaining - 1 : 0;
       if (timeRemaining === 0) clearInterval(timer);
     }, 1000);
 
-    // Kick off async initialisation (no return value needed)
     initWorkspace();
 
     return () => {
@@ -381,28 +487,26 @@
 
   async function initWorkspace() {
     try {
-      // Step 0 — start the container
+      if (!containerId?.trim()) {
+        throw new Error(
+          "No Docker workspace is linked to this session. Return to the dashboard and launch a stack again.",
+        );
+      }
       setBootStep(0);
       const response = await fetch(
         `/api/docker/container/${containerId}/start`,
-        {
-          method: "POST",
-        },
+        { method: "POST" },
       );
       const startData = await response.json();
       console.log("starting container: ", startData.previewUrl);
       if (!startData.success) throw new Error(startData.error);
       previewUrl = startData.previewUrl;
 
-      // Step 1 — fetch file list
       await advanceBootStep(1);
       try {
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          },
+          { method: "POST", headers: { "Content-Type": "application/json" } },
         );
         const listData = (await listRes.json()) as FileListResponse;
         if (listData.success) {
@@ -417,7 +521,6 @@
         fileTree = flattenFiles(LEVEL_CONFIG.starterFiles);
       }
 
-      // Step 2 — read initial file content
       await advanceBootStep(2);
       try {
         const res = await fetch(
@@ -438,7 +541,6 @@
         editorValue = "";
       }
 
-      // Step 3 — initialize Monaco Editor
       await advanceBootStep(3);
       if (editorRef) {
         monacoEditor = new MonacoInitializer();
@@ -447,27 +549,33 @@
           editorValue,
           () => saveFile(),
           (value) => {
+            if (isFrontendReadOnlyFile(selectedFile)) {
+              const lockedValue = fileContents[selectedFile] ?? editorValue ?? "";
+              if (value !== lockedValue) {
+                monacoEditor?.setValue(lockedValue);
+              }
+              editorValue = lockedValue;
+              return;
+            }
+
             const prev = fileContents[selectedFile];
             fileContents[selectedFile] = value;
             editorValue = value;
-            // Mark tab dirty on any content change
             if (prev !== undefined && value !== prev) {
               markTabDirty(selectedFile, true);
             }
           },
         );
         monacoEditor.setLanguageFromFilename(selectedFile);
+        monacoEditor.setReadOnly(isFrontendReadOnlyFile(selectedFile));
       }
 
-      // Open the initial file as the first tab
       openFileAsTab(selectedFile, editorValue);
 
-      // Step 4 — initialize first terminal session
       await advanceBootStep(4);
       await addTerminalSession("Terminal");
       await ensureBootStepIsVisible(4);
 
-      // Done — hide the boot screen
       isBooting = false;
     } catch (error) {
       console.error("Failed to initialize environment:", error);
@@ -475,12 +583,13 @@
     }
   }
 
-  // ── Reactive statements ──────────────────────────────────────────────────
-
-  // ── Actions ──────────────────────────────────────────────────────────────
-
   async function saveFile() {
     if (!containerId || !selectedFile) return;
+
+    if (isSelectedFileReadOnly) {
+      toast.error("This file is read-only and cannot be edited.");
+      return;
+    }
 
     const content = fileContents[selectedFile] ?? editorValue;
     try {
@@ -506,8 +615,6 @@
     }
   }
 
-  // ── Tab helpers ──────────────────────────────────────────────────────────────────
-
   function markTabDirty(fileId: string, dirty: boolean) {
     openTabs = openTabs.map((t) =>
       t.id === fileId ? { ...t, isDirty: dirty } : t,
@@ -519,6 +626,7 @@
     selectedFile = fileId;
     monacoEditor?.setValue(fileContents[fileId] ?? "");
     monacoEditor?.setLanguageFromFilename(fileId);
+    monacoEditor?.setReadOnly(isFrontendReadOnlyFile(fileId));
   }
 
   function closeTab(fileId: string) {
@@ -534,7 +642,6 @@
     openTabs = openTabs.filter((t) => t.id !== fileId);
 
     if (activeTabId === fileId) {
-      // Prefer left neighbor, fallback to first remaining tab
       const next = openTabs[idx - 1] ?? openTabs[0] ?? null;
       if (next) {
         switchToTab(next.id);
@@ -555,8 +662,6 @@
     selectedFile = file;
   }
 
-  // ── Terminal session helpers ──────────────────────────────────────────────
-
   function handleTerminalElementReady(id: string, el: HTMLDivElement) {
     const cb = pendingTerminalInits.get(id);
     if (cb) cb(el);
@@ -568,9 +673,6 @@
     const id = `term-${terminalCounter}`;
     const sessionLabel = label ?? "Terminal";
 
-    // Register the callback BEFORE updating state so that the `use:mount`
-    // action in TerminalPanel always finds the entry in the map, even if
-    // Svelte 5 flushes effects synchronously on the state assignment below.
     return new Promise<void>((resolve) => {
       pendingTerminalInits.set(id, async (el: HTMLDivElement) => {
         try {
@@ -586,7 +688,6 @@
         resolve();
       });
 
-      // Trigger the DOM update after the callback is registered.
       terminalSessions = [
         ...terminalSessions,
         { id, label: sessionLabel, instance: null },
@@ -599,7 +700,6 @@
   function switchTerminalSession(id: string) {
     activeTerminalId = id;
     activeTab = "terminal";
-    // Re-fit after the div becomes visible
     requestAnimationFrame(() => {
       terminalSessions.find((s) => s.id === id)?.instance?.fit();
     });
@@ -663,7 +763,6 @@
       result.taskResults.map((taskResult) => [taskResult.taskId, taskResult]),
     );
 
-    // Collect tasks that regressed (were done but now failed)
     const regressions: Array<{
       taskId: string;
       taskName: string;
@@ -687,19 +786,13 @@
         };
       }
 
-      // Task failed - check if it was previously done
       if (task.boardStatus === "done" && !canManuallyMoveToDone) {
-        // This is a regression - task was done but now fails
         regressions.push({
           taskId: task.id,
           taskName: task.taskName,
           previousStatus: task.boardStatus,
         });
-        // Still update the test status to failed, but keep board status for now
-        return {
-          ...task,
-          testStatus: "failed",
-        };
+        return { ...task, testStatus: "failed" };
       }
 
       return {
@@ -715,8 +808,6 @@
 
     persistTaskProgress();
 
-    // If there are regressions, show the modal for the first one
-    // (or we could batch them - for now, handle one at a time)
     if (regressions.length > 0) {
       pendingRegressionUpdates = regressions;
       showNextRegressionModal();
@@ -736,7 +827,6 @@
   }
 
   function handleRegressionConfirm() {
-    // User wants to move the task back to in-review
     tasks = tasks.map((task) => {
       if (task.id === regressionTaskId) {
         return {
@@ -750,18 +840,14 @@
     });
     persistTaskProgress();
     testRegressionModalOpen = false;
-    
-    // Remove the handled regression and show next if any
+
     pendingRegressionUpdates = pendingRegressionUpdates.slice(1);
     setTimeout(() => showNextRegressionModal(), 300);
   }
 
   function handleRegressionDismiss() {
-    // User wants to keep the task in done, but test status stays failed
-    // The test status is already updated to failed in handleTestsComplete
     testRegressionModalOpen = false;
-    
-    // Remove the handled regression and show next if any
+
     pendingRegressionUpdates = pendingRegressionUpdates.slice(1);
     setTimeout(() => showNextRegressionModal(), 300);
   }
@@ -773,7 +859,6 @@
   ) {
     activeTab = "editor";
 
-    // If already open, just switch to that tab (preserve in-memory content)
     if (openTabs.find((t) => t.id === file)) {
       switchToTab(file);
       if (lineNumber) {
@@ -784,7 +869,6 @@
       return;
     }
 
-    // Fetch content and open as new tab
     if (containerId) {
       try {
         const res = await fetch(
@@ -802,6 +886,7 @@
           openFileAsTab(file, result.content);
           monacoEditor?.setValue(result.content);
           monacoEditor?.setLanguageFromFilename(file);
+          monacoEditor?.setReadOnly(isFrontendReadOnlyFile(file));
           if (lineNumber) {
             requestAnimationFrame(() =>
               monacoEditor?.revealLine(lineNumber, searchTerm),
@@ -827,11 +912,9 @@
   }
 
   async function handleSubmitSprint() {
-    // Open the submit sprint modal - it will handle testing internally
     submitSprintModal.open();
   }
 
-  // ── Download project ─────────────────────────────────────────────────────
   async function handleDownload() {
     isDownloading = true;
     try {
@@ -851,7 +934,6 @@
       const a = document.createElement("a");
       a.href = url;
 
-      // Get filename from content-disposition header
       const contentDisposition = response.headers.get("Content-Disposition");
       const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
       a.download = filenameMatch
@@ -878,46 +960,56 @@
     const { advanceToNextLevel, nextLevel } = event.detail;
 
     if (advanceToNextLevel) {
-      if (typeof nextLevel === "number") {
-        // Optimistically move the workspace UI to the next level immediately.
-        currentLevel = nextLevel;
-      }
+      const targetLevel =
+        typeof nextLevel === "number" && nextLevel > 0
+          ? nextLevel
+          : currentLevel + 1;
 
-      // Reload the page data to get new level tasks by navigating to same URL with invalidate
+      // Immediately switch local UI state to the next level.
+      currentLevel = targetLevel;
+      levelIntroCardOpen = false;
+      levelIntroCardShown = false;
+
+      localStorage.setItem('showTaskIntroCard', 'true');
+      
       await goto(`?reload=${Date.now()}`, {
         invalidateAll: true,
         replaceState: true,
         noScroll: true,
       });
+
+      // Keep local level in sync even if navigation data resolves slightly later.
+      currentLevel = (data.level || targetLevel);
     }
   }
 
   function refreshPreview() {
-    // Fetch live ports from Docker
+    if (!containerId?.trim()) return;
     fetch(`/api/docker/container/${containerId}/ports`)
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: { success?: boolean; previewUrl?: string; error?: string }) => {
         if (data.success && data.previewUrl) {
-          // Ensure URL has proper protocol
           let finalUrl = data.previewUrl;
-          if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
-            finalUrl = 'https://' + finalUrl;
+          if (!finalUrl.startsWith("http://") && !finalUrl.startsWith("https://")) {
+            finalUrl = "https://" + finalUrl;
           }
-          previewUrl = finalUrl;
-          if (iframeRef) {
-            iframeRef.src = finalUrl + "?t=" + Date.now();
+          try {
+            const u = new URL(finalUrl);
+            u.searchParams.set("t", Date.now().toString());
+            previewUrl = u.toString();
+            if (iframeRef) iframeRef.src = previewUrl;
+          } catch (error) {
+            console.error("Error refreshing preview:", error);
           }
         } else {
-          // Fallback to existing previewUrl with cache-bust
+          if (data.error) toast.error(data.error);
           if (previewUrl) {
             try {
               const currentUrl = new URL(previewUrl);
               currentUrl.searchParams.set("t", Date.now().toString());
-              currentUrl.searchParams.set("t", Date.now().toString());
               previewUrl = currentUrl.toString();
               if (iframeRef) iframeRef.src = previewUrl;
             } catch (error) {
-              console.error("Error refreshing preview:", error);
               console.error("Error refreshing preview:", error);
             }
           }
@@ -925,6 +1017,7 @@
       })
       .catch((err) => {
         console.error("Error fetching ports:", err);
+        toast.error("Could not refresh preview");
         if (previewUrl) {
           try {
             const currentUrl = new URL(previewUrl);
@@ -947,10 +1040,7 @@
     try {
       const listRes = await fetch(
         `/api/docker/container/${containerId}/files/list`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        },
+        { method: "POST", headers: { "Content-Type": "application/json" } },
       );
       const listData = (await listRes.json()) as FileListResponse;
       if (listData.success) {
@@ -966,12 +1056,11 @@
 
   function handleTabChange(tab: "editor" | "terminal" | "preview" | "board") {
     activeTab = tab;
-    // Auto-refresh preview when switching to preview tab
     if (tab === "preview") {
       refreshPreview();
     }
   }
-  // Create file or folder
+
   async function handleCreateFile(fullPath: string, isDirectory: boolean) {
     if (!containerId || !fullPath) return;
 
@@ -987,13 +1076,9 @@
       const data = await response.json();
       if (data.success) {
         toast.success(`${isDirectory ? "Folder" : "File"} created`);
-        // Refresh file list
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          },
+          { method: "POST", headers: { "Content-Type": "application/json" } },
         );
         const listData = await listRes.json();
         if (listData.success) {
@@ -1007,11 +1092,8 @@
     }
   }
 
-  // Delete file or folder
   async function handleDeleteFile(filePath: string) {
-    if (!containerId || !filePath) {
-      return;
-    }
+    if (!containerId || !filePath) return;
 
     try {
       const response = await fetch(
@@ -1024,18 +1106,35 @@
       );
       const data = await response.json();
       if (data.success) {
-        // Refresh file list
+        const wasActiveTabDeleted = activeTabId === filePath;
+
+        if (selectedFile === filePath) {
+          activeTabId = "";
+          selectedFile = "";
+          monacoEditor?.setValue("");
+        }
+
+        openTabs = openTabs.filter(t => t.id !== filePath);
+
+        if (wasActiveTabDeleted) {
+          if (openTabs.length > 0) {
+            switchToTab(openTabs[0].id);
+          }
+        }
+
+        delete fileContents[filePath];
+
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          },
+          { method: "POST", headers: { "Content-Type": "application/json" } },
         );
         const listData = await listRes.json();
         if (listData.success) {
           fileTree = listData.files;
           directories = listData.directories || [];
+          if (!fileTree.includes(selectedFile) && fileTree.length > 0) {
+            selectedFile = fileTree[0];
+          }
         }
       } else {
         console.error("Delete failed:", data.error);
@@ -1047,7 +1146,6 @@
     }
   }
 
-  // Rename file or folder
   async function handleRenameFile(oldPath: string, newPath: string) {
     if (!containerId || !oldPath || !newPath) return;
 
@@ -1066,13 +1164,9 @@
       const data = await response.json();
       if (data.success) {
         toast.success("Renamed successfully");
-        // Refresh file list
         const listRes = await fetch(
           `/api/docker/container/${containerId}/files/list`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          },
+          { method: "POST", headers: { "Content-Type": "application/json" } },
         );
         const listData = await listRes.json();
         if (listData.success) {
@@ -1091,7 +1185,7 @@
   <title>Level {currentLevel}: {title} - DevSim</title>
 </svelte:head>
 
-<!-- ── Boot / Loading screen ──────────────────────────────────────────────── -->
+<!-- Boot / Loading screen -->
 {#if isBooting}
   <WorkspaceBootScreen
     step={bootStep}
@@ -1115,13 +1209,12 @@
       difficulty,
       timeRemaining,
       isRunning,
-      aiPanelOpen,
       isDownloading,
       onBack: handleBack,
       onRun: runDevServer,
       onStop: stopDevServer,
+      onDemo: () => handleTabChange("preview"),
       onSubmit: handleSubmitSprint,
-      onToggleAi: toggleAiPanel,
       onDownload: handleDownload,
     }}
   >
@@ -1138,7 +1231,7 @@
   </WorkspaceHeader>
 
   <div class="flex flex-1 overflow-hidden">
-    <!-- Left Sidebar (VS Code-style toggle) -->
+    <!-- Left Sidebar -->
     <PrimarySidebar
       {fileTree}
       {directories}
@@ -1146,6 +1239,8 @@
       {projectName}
       {containerId}
       {tasks}
+      currentLevel={currentLevel}
+      levelTitle={title}
       onSelectFile={selectFile}
       onCreateFile={handleCreateFile}
       onDeleteFile={handleDeleteFile}
@@ -1154,7 +1249,7 @@
     />
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0">
+    <div class="flex-1 flex flex-col min-w-0" data-tour="editor-workspace">
       <!-- Tab Bar -->
       <div data-tour="workspace-tabs">
         <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
@@ -1166,11 +1261,15 @@
           visible={activeTab === "editor"}
           {openTabs}
           {activeTabId}
+          isReadOnly={isSelectedFileReadOnly}
+          readOnlyMessage="Protected file"
           onFileTabClick={switchToTab}
           onFileTabClose={closeTab}
           onSave={saveFile}
           bind:editorRef
         />
+
+
 
         <TerminalPanel
           visible={activeTab === "terminal"}
@@ -1196,10 +1295,11 @@
             />
           </div>
         {/if}
+
       </div>
     </div>
 
-    <!-- Right: Terminal Manager (shown when on terminal tab) -->
+    <!-- Right: Terminal Manager -->
     {#if activeTab === "terminal"}
       <TerminalManagerPanel
         sessions={terminalSessions}
@@ -1208,26 +1308,6 @@
         onAdd={() => addTerminalSession()}
         onClose={closeTerminalSession}
       />
-    {/if}
-
-    <!-- Right AI Hints Panel (toggleable and resizable) -->
-    {#if aiPanelOpen}
-      <div
-        class="w-80 flex-shrink-0 border-l border-[rgba(7,165,201,0.1)] flex flex-col h-full"
-        style="min-width: 320px; max-width: 600px;"
-      >
-        <AiHelp
-          containerId={page.params.containerId}
-          userId={data.userId}
-          scenario={actualLevelConfig.scenario}
-          {tasks}
-          initialFileTree={fileTree}
-          initialFileContents={fileContents}
-          {projectName}
-          level={currentLevel}
-          bind:mode={aiPanelMode}
-        />
-      </div>
     {/if}
   </div>
 
@@ -1259,50 +1339,93 @@
     isLoading={backModalLoading}
     loadingLabel="Stopping…"
     on:confirm={confirmBack}
-    on:cancel={() => {
-      backModalOpen = false;
-    }}
+    on:cancel={() => { backModalOpen = false; }}
   />
 
-  <!-- Test Regression modal - shown when a previously passed test fails again -->
-  <ConfirmationModal
-    bind:open={testRegressionModalOpen}
-    icon="⚠️"
-    iconVariant="warning"
-    title="Test Failed After Completion"
-    subtitle={`"${regressionTaskName}" was marked as Done but now fails`}
-    description="Your recent changes have caused this task's tests to fail. Would you like to move this task back to 'In Review' so you can fix the issues?"
-    confirmLabel="Move to In Review"
-    cancelLabel="Keep in Done"
-    variant="warning"
-    on:confirm={handleRegressionConfirm}
-    on:cancel={handleRegressionDismiss}
-  />
 </div>
 
-<!-- ── Onboarding (shown once the boot screen has cleared, only when opted in) ── -->
-{#if !isBooting && page.url.searchParams.get("onboarding") === "1"}
+
+<!-- Test Regression modal -->
+<ConfirmationModal
+  bind:open={testRegressionModalOpen}
+  icon="⚠️"
+  iconVariant="warning"
+  title="Test Failed After Completion"
+  subtitle={`"${regressionTaskName}" was marked as Done but now fails`}
+  description="Your recent changes have caused this task's tests to fail. Would you like to move this task back to 'In Review' so you can fix the issues?"
+  confirmLabel="Move to In Review"
+  cancelLabel="Keep in Done"
+  variant="warning"
+  on:confirm={handleRegressionConfirm}
+  on:cancel={handleRegressionDismiss}
+/>
+
+
+<!-- Floating AI Help -->
+<div class="fixed inset-0 z-50 pointer-events-none">
+  <div class="pointer-events-auto">
+    <AiHelp
+      containerId={data.dockerContainerId}
+      userId={data.userId}
+      scenario={actualLevelConfig.scenario}
+      {tasks}
+      initialFileTree={fileTree}
+      initialFileContents={fileContents}
+      {projectName}
+      level={currentLevel}
+      initialCoins={userCoins}
+      bind:mode={aiPanelMode}
+    />
+  </div>
+</div>
+
+<!-- Onboarding -->
+{#if !isBooting && isInOnboarding}
   <OnboardingController
     {stack}
     {title}
     scenario={actualLevelConfig.scenario}
     {level}
     onSwitchTab={(tab) =>
-      handleTabChange(tab as "editor" | "terminal" | "preview")}
+      handleTabChange(tab as "editor" | "terminal" | "preview" | "board")}
+    onComplete={handleOnboardingComplete}
   />
 {/if}
+
+<!-- Level Intro Card -->
+<LevelIntroCard
+  levelTitle={title}
+  levelNumber={currentLevel}
+  isOpen={levelIntroCardOpen}
+  levelDescription={actualLevelConfig?.scenario ?? ''}
+  tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
+  levelConfig={{
+    isFirstProjectCreation: hasEverBeenInOnboarding,
+    operatorAlias,
+    projectName: workspaceProjectName
+  }}
+  onClose={handleLevelIntroClose}
+/>
+
+<svelte:component
+  this={SazOnboardingCoachComponent}
+  open={sazOnboardingOpen}
+  accentColor="#07a5c9"
+  stackName={stack}
+  onClose={() => {
+    sazOnboardingOpen = false;
+  }}
+/>
+
+
 
 <style>
   :global(body) {
     margin: 0;
     padding: 0;
-    font-family:
-      system-ui,
-      -apple-system,
-      sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
   }
 
-  /* Search result highlight in Monaco editor */
   :global(.search-highlight-match) {
     background-color: rgba(7, 165, 201, 0.25) !important;
     border: 1px solid rgba(7, 165, 201, 0.6);

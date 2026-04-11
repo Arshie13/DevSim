@@ -4,14 +4,22 @@
 export { isAskingForCode, getCodeWarningMessage } from './codeDetector';
 
 // Context building
-export { buildContext, getSimpleContext, type ContextOptions, type Task } from './contextBuilder';
+export { buildContext, getSimpleContext, extractProgressFromContext, type ContextOptions, type Task, type ProgressInfo } from './contextBuilder';
+
+// Message classification
+export { isAskingAboutFileContents, isGreeting, isAskingAboutProgress } from './classifier';
 
 // Message formatting
-export { 
-  formatMessage, 
-  getMessageClasses, 
+export {
+  formatMessage,
+  getMessageClasses,
   getIconClasses,
   getInsufficientCoinsMessage,
   getErrorMessage,
-  getApiErrorMessage
+  getApiErrorMessage,
+  buildGreetingResponse,
+  buildProgressHintResponse
 } from './messageFormatter';
+
+// Prompt building
+export { buildPrompt } from './promptBuilder';

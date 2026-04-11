@@ -12,6 +12,8 @@
   export interface TaskTestResult {
     taskId: string;
     taskName: string;
+    keyTakeaway?: string;
+    keyTakeaways?: Array<{ taskName: string; takeaway: string }>;
     passed: boolean;
     results: TestResult[];
     errors: string[];
@@ -41,6 +43,7 @@
   command: string;
   level: number;
   taskId?: string;
+    taskOrder?: number;
   taskIds?: string[];
   type: 'task' | 'level';
 }
@@ -56,6 +59,7 @@ export interface TestRunResponse {
   };
   results: TestResult[];
   taskResults?: TaskTestResult[];
+  allKeyTakeaways?: Array<{ taskId: string; taskName: string; takeaway: string }>;
   output: string;
   errors?: string[];
   message?: string;
