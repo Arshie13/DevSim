@@ -2,13 +2,6 @@ import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
 import { readFile } from "$lib/server/docker/user/read-file";
-import {
-  isAskingForCode,
-  isAskingAboutFileContents,
-  isGreeting,
-  buildGreetingResponse,
-  buildPrompt,
-} from "$lib/ai";
 
 const QUICK_HINT_COST = 100;
 const CHAT_HINT_COST = 200;
