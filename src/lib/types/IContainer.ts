@@ -40,8 +40,17 @@ export interface ITask {
   order: number;
   hints: IHints[];
   acceptanceCriteria: IAcceptanceCriteria[];
+  learningSections?: ILearningSection[];
   isCompleted: boolean; // Optional field to track completion status on the client side
   testType: string;
+}
+
+export interface ILearningSection {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+  taskId: string;
 }
 
 export interface IHints {

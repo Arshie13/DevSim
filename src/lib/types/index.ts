@@ -10,5 +10,6 @@ export type {
   ITask,
   IHints,
   IAcceptanceCriteria,
+  ILearningSection,
 } from "./IContainer"
 export * from "./test";

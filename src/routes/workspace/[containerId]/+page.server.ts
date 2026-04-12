@@ -38,7 +38,10 @@ export const load: PageServerLoad = async (event) => {
                 orderBy: { order: "asc" },
                 include: {
                   hints: true,
-                  acceptanceCriteria: true
+                  acceptanceCriteria: true,
+                  learningSections: {
+                    orderBy: { order: "asc" }
+                  }
                 }
               }
             }
@@ -68,7 +71,10 @@ export const load: PageServerLoad = async (event) => {
           orderBy: { order: "asc" },
           include: {
             hints: true,
-            acceptanceCriteria: true
+            acceptanceCriteria: true,
+            learningSections: {
+              orderBy: { order: "asc" }
+            }
           }
         }
       }

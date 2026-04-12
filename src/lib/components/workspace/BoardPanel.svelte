@@ -20,6 +20,7 @@
   interface KanbanTask {
     id: string;
     text: string;
+    order: number;
     status: KanbanStatus;
     taskType: string;
     userStory: string;
@@ -42,6 +43,7 @@
     kanbanTasks = incoming.map((t) => ({
       id: t.id,
       text: t.taskName,
+      order: t.order,
       status: getInitialStatus(t),
       taskType: t.testType,
       userStory: ((t as ITask & { userStory?: string }).userStory ?? '').trim(),
@@ -56,6 +58,20 @@
         .map((h) => ({ id: h.id, content: (h as any).description ?? h.content, order: h.order }))
         .filter(Boolean),
     }));
+  }
+
+  function getBlockingTask(targetTask: KanbanTask): KanbanTask | null {
+    const ordered = [...kanbanTasks].sort((a, b) => a.order - b.order);
+    const targetIndex = ordered.findIndex((task) => task.id === targetTask.id);
+    if (targetIndex <= 0) return null;
+
+    for (let i = 0; i < targetIndex; i += 1) {
+      if (ordered[i].status !== 'done') {
+        return ordered[i];
+      }
+    }
+
+    return null;
   }
 
   $: {
@@ -155,6 +171,19 @@
     }
 
     const canManuallyMoveToDone = task.taskType.toLowerCase() === 'none';
+    const requiresOrderGate = column === 'in-progress' || column === 'in-review' || column === 'done';
+
+    if (requiresOrderGate) {
+      const blockingTask = getBlockingTask(task);
+      if (blockingTask) {
+        toast.warn(
+          `Finish Task ${blockingTask.order} first before moving Task ${task.order} to ${column.replace('-', ' ')}.`,
+        );
+        draggingId = null;
+        dragOverColumn = null;
+        return;
+      }
+    }
 
     // Test-backed tasks are locked once completed and cannot be moved out of Done.
     if (task.status === 'done' && !canManuallyMoveToDone && column !== 'done') {

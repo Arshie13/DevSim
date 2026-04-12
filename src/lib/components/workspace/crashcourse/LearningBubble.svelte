@@ -1,0 +1,71 @@
+<script lang="ts">
+  import BubbleCloud from "$lib/components/ui/BubbleCloud.svelte";
+  import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
+
+  export let eyebrow: string = "Crash Course";
+  export let title: string = "Learning Content";
+  export let body: string = "";
+</script>
+
+<BubbleCloud
+  className="learning-bubble"
+  accentColor="#07a5c9"
+  accentRgb="7,165,201"
+  width={750}
+  viewBox="0 0 600 440"
+  contentX={65}
+  contentY={70}
+  contentWidth={360}
+  contentHeight={206}
+  contentPadding="12px 20px 10px"
+>
+  <p class="eyebrow">{eyebrow}</p>
+  <h3 class="title">{title}</h3>
+  <Scrollbar className="body-scrollbar">
+    <p class="body">{body}</p>
+  </Scrollbar>
+</BubbleCloud>
+
+<style>
+  :global(.learning-bubble) {
+    filter: drop-shadow(0 0 26px rgba(7, 165, 201, 0.2));
+  }
+
+  .eyebrow {
+    margin: 0 0 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.72rem;
+    color: #07a5c9;
+    text-align: center;
+  }
+
+  .title {
+    margin: 0 0 1rem;
+    font-family: "Orbitron", monospace;
+    font-size: 0.94rem;
+    line-height: 1.35;
+    color: #e4f8ff;
+    text-align: center;
+    white-space: pre-line;
+  }
+
+  :global(.body-scrollbar) {
+    max-height: 206px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 0.35rem;
+  }
+  
+  .body {
+    margin: 0;
+    font-family: "Exo 2", sans-serif;
+    font-size: 0.84rem;
+    line-height: 1.42;
+    color: #d0d7dd;
+    text-align: start;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+</style>

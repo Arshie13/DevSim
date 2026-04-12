@@ -100,14 +100,27 @@ model LevelTask {
   userStory  String
   order      Int     @default(0)
   isComplete Boolean @default(false)
-  testType   String   @default("none") 
+  testType   String  @default("none")
 
   level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
   acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
   hints              Hint[]               @relation("TaskHints")
+  learningSections   LearningSection[]
 
   @@unique([levelId, taskName])
   @@index([levelId])
+}
+
+model LearningSection {
+  id      String @id @default(cuid())
+  taskId  String
+  title   String
+  content String
+  order   Int    @default(0)
+
+  task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 // Acceptance criteria for tasks
