@@ -967,11 +967,23 @@
     persistTaskProgress();
   }
 
+  function openBoardKanbanView() {
+    activeTab = "board";
+    if (!browser) return;
+
+    requestAnimationFrame(() => {
+      window.dispatchEvent(
+        new CustomEvent("devsim-tour-board-subtab", { detail: { subTab: "board" } }),
+      );
+    });
+  }
+
   function handleCrashCourseClose() {
     const closedTaskId = activeCrashCourseTaskId;
     markCrashCourseSeen(closedTaskId);
     crashCourseOpen = false;
     activeCrashCourseTaskId = "";
+    openBoardKanbanView();
     if (closedTaskId && crashCourseCompletedByTask[closedTaskId]) {
       showCrashCourseMoveTaskMessage(closedTaskId, "closed-done");
       return;
@@ -986,6 +998,7 @@
     if (completedTaskId && crashCourseCompletedByTask[completedTaskId]) {
       crashCourseOpen = false;
       activeCrashCourseTaskId = "";
+      openBoardKanbanView();
       return;
     }
 
@@ -999,6 +1012,7 @@
     }
     crashCourseOpen = false;
     activeCrashCourseTaskId = "";
+    openBoardKanbanView();
     showCrashCourseMoveTaskMessage(completedTaskId, "completed");
   }
 

@@ -55,17 +55,20 @@
     max-height: 206px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 0.35rem;
+    box-sizing: border-box;
+    padding: 0 0.85rem 0 0.35rem;
+    scrollbar-gutter: stable;
   }
   
   .body {
     margin: 0;
     font-family: "Exo 2", sans-serif;
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     line-height: 1.42;
     color: #d0d7dd;
     text-align: start;
     overflow-wrap: anywhere;
-    white-space: pre-line;
+    white-space: pre-wrap;
+    white-space: break-spaces;
   }
 </style>

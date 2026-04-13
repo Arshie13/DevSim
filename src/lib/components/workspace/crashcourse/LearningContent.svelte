@@ -99,7 +99,10 @@
   $: activeSectionTypingKey = getSectionTypingKey(activeSection.taskId, activeSection.id);
 
   $: if (open) {
-    if (completedTypedSections.has(activeSectionTypingKey)) {
+    if (isCompleted) {
+      clearTyping();
+      typedMessage = activeSection.content;
+    } else if (completedTypedSections.has(activeSectionTypingKey)) {
       clearTyping();
       typedMessage = activeSection.content;
     } else {

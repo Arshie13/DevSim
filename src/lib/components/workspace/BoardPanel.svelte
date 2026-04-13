@@ -472,8 +472,16 @@
                   style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
                   role="button"
                   tabindex="0"
-                  aria-label="Drag task: {task.text}"
+                  aria-label="Drag Task {task.order}: {task.text}"
                 >
+                  <div class="mb-2 flex justify-start">
+                    <span
+                      class="text-[0.58rem] uppercase tracking-wider px-1 py-0.5 rounded"
+                      style="font-family: 'Space Mono', monospace; color: {col.color}; background: {col.bg}; border: 1px solid {col.color}44;"
+                    >
+                      Task {task.order}
+                    </span>
+                  </div>
                   <div class="flex items-start gap-2">
                     <!-- Drag handle -->
                     <GripVertical
