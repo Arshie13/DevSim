@@ -1,25 +1,17 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
+  import { onDestroy, tick } from "svelte";
+  import { browser } from "$app/environment";
   import { CheckCircle2, ChevronLeft, ChevronRight, X } from "lucide-svelte";
   import LearningBubble from "$lib/components/workspace/crashcourse/LearningBubble.svelte";
+  import InteractiveLabModal from "$lib/components/workspace/crashcourse/lab/InteractiveLabModal.svelte";
+  import TerminalLab from "$lib/components/workspace/crashcourse/lab/TerminalLab.svelte";
+  import CodeLab from "$lib/components/workspace/crashcourse/lab/CodeLab.svelte";
+  import type { ILearningSection, ILearningTask } from "$lib/types";
 
-  type LearningTask = {
-    id: string;
-    taskName: string;
-    order: number;
-    learningSections: LearningSection[];
-  };
-
-  type LearningSection = {
-    id: string;
-    title: string;
-    content: string;
-    order: number;
-    taskId: string;
-  };
+  const LAB_PROGRESS_STORAGE_KEY = "devsim-crashcourse-lab-progress-v1";
 
   export let open: boolean = false;
-  export let tasks: LearningTask[] = [];
+  export let tasks: ILearningTask[] = [];
   export let isCompleted: boolean = false;
   export let onClose: () => void = () => {};
   export let onComplete: () => void = () => {};
@@ -32,6 +24,22 @@
   let typingIndex = 0;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
   let completedTypedSections: Set<string> = new Set();
+  let interactiveFingerprint = "";
+
+  let cdCurrentPath = "/";
+  let cdInput = "";
+  let cdHistory: string[] = [];
+  let terminalCommands: string[] = [];
+  let terminalFeedback = "";
+  let terminalPracticePassed = false;
+
+  let interactiveCode = "";
+  let codeFeedback = "";
+  let codePracticePassed = false;
+  let isLabModalOpen = false;
+  let sectionLockFeedback = "";
+  let completedInteractiveSections: Set<string> = new Set();
+  let hasLoadedLabProgress = false;
 
   function getSectionTypingKey(taskId: string, sectionId: string): string {
     return `${taskId}:${sectionId}`;
@@ -94,12 +102,262 @@
       content: "No content available.",
       order: 1,
       taskId: activeTask?.id ?? "",
+      sectionType: "PLAIN_TEXT",
+      interactiveMode: null,
+      interactiveConfig: null,
     };
 
   $: activeSectionTypingKey = getSectionTypingKey(activeSection.taskId, activeSection.id);
+  $: isInteractiveSection = activeSection.sectionType === "INTERACTIVE";
+  $: activeInteractivePassed = completedInteractiveSections.has(activeSectionTypingKey);
+
+  function normalizeCommand(value: string): string {
+    return value.trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  function loadLabProgress(): Set<string> {
+    if (!browser) return new Set();
+
+    try {
+      const raw = localStorage.getItem(LAB_PROGRESS_STORAGE_KEY);
+      if (!raw) return new Set();
+
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return new Set();
+
+      return new Set(parsed.filter((item): item is string => typeof item === "string"));
+    } catch {
+      return new Set();
+    }
+  }
+
+  function persistLabProgress(progress: Set<string>) {
+    if (!browser) return;
+
+    try {
+      localStorage.setItem(LAB_PROGRESS_STORAGE_KEY, JSON.stringify([...progress]));
+    } catch {
+      // Ignore storage write failures so crash course UI remains functional.
+    }
+  }
+
+  function scheduleTerminalAutoScroll() {
+    void tick().then(() => {
+      const terminalLog = document.querySelector(".lab-modal .terminal-log") as HTMLElement | null;
+      if (terminalLog) {
+        terminalLog.scrollTop = terminalLog.scrollHeight;
+      }
+    });
+  }
+
+  function simulateTerminalNavigation(commands: string[], config: NonNullable<ILearningSection["interactiveConfig"]>) {
+    const tree = config.directoryTree ?? { "/workspace": ["client", "server", "README.md"] };
+    const visited = new Set<string>();
+    let pointer = config.initialDirectory ?? "/workspace";
+    visited.add(pointer);
+
+    for (const rawCommand of commands) {
+      const normalized = normalizeCommand(rawCommand);
+      if (!normalized) continue;
+
+      const parts = normalized.split(" ");
+      const command = parts[0];
+      const argument = parts.slice(1).join(" ");
+
+      if (command !== "cd") continue;
+
+      const target = argument || "/";
+      const resolved = resolvePath(pointer, target);
+      if (!tree[resolved]) continue;
+      pointer = resolved;
+      visited.add(pointer);
+    }
+
+    return {
+      visited,
+      finalPath: pointer,
+    };
+  }
+
+  function resolvePath(currentPath: string, targetPath: string): string {
+    const base = targetPath.startsWith("/") ? [] : currentPath.split("/").filter(Boolean);
+    const incoming = targetPath.split("/").filter(Boolean);
+
+    for (const segment of incoming) {
+      if (segment === ".") continue;
+      if (segment === "..") {
+        base.pop();
+      } else {
+        base.push(segment);
+      }
+    }
+
+    return `/${base.join("/")}` || "/";
+  }
+
+  function resetInteractiveState(section: ILearningSection) {
+    const config = section.interactiveConfig ?? {};
+    cdCurrentPath = config.initialDirectory ?? "/workspace";
+    cdInput = "";
+    cdHistory = ["Type help for available commands."];
+    terminalCommands = [];
+    terminalFeedback = "";
+    terminalPracticePassed = false;
+
+    interactiveCode = config.starterCode ?? "";
+    codeFeedback = "";
+    codePracticePassed = false;
+    sectionLockFeedback = "";
+    isLabModalOpen = false;
+  }
+
+  function runCdCommand() {
+    const raw = cdInput.trim();
+    if (!raw) return;
+
+    const config = activeSection.interactiveConfig ?? {};
+    const tree = config.directoryTree ?? { "/workspace": ["client", "server", "README.md"] };
+    const parts = raw.split(/\s+/);
+    const command = parts[0]?.toLowerCase();
+    const argument = parts.slice(1).join(" ");
+
+    cdHistory = [...cdHistory, `$ ${raw}`];
+    terminalCommands = [...terminalCommands, raw];
+
+    if (command === "clear") {
+      cdHistory = [];
+      cdInput = "";
+      scheduleTerminalAutoScroll();
+      return;
+    }
+
+    if (command === "help") {
+      cdHistory = [
+        ...cdHistory,
+        "Allowed commands: cd <dir>, cd .., cd /path, ls, pwd, help, clear",
+      ];
+      cdInput = "";
+      scheduleTerminalAutoScroll();
+      return;
+    }
+
+    if (command === "pwd") {
+      cdHistory = [...cdHistory, cdCurrentPath];
+      cdInput = "";
+      scheduleTerminalAutoScroll();
+      return;
+    }
+
+    if (command === "ls") {
+      const items = tree[cdCurrentPath] ?? [];
+      cdHistory = [...cdHistory, items.length > 0 ? items.join("  ") : "(empty)"];
+      cdInput = "";
+      scheduleTerminalAutoScroll();
+      return;
+    }
+
+    if (command === "cd") {
+      const target = argument || "/";
+      const resolved = resolvePath(cdCurrentPath, target);
+      if (tree[resolved]) {
+        cdCurrentPath = resolved;
+      } else {
+        cdHistory = [...cdHistory, `cd: no such directory: ${target}`];
+      }
+      cdInput = "";
+      scheduleTerminalAutoScroll();
+      return;
+    }
+
+    cdHistory = [...cdHistory, "Only controlled learning commands are enabled here."];
+    cdInput = "";
+    scheduleTerminalAutoScroll();
+  }
+
+  function checkTerminalPractice() {
+    const config = activeSection.interactiveConfig ?? {};
+    const expected = config.expectedCommands ?? [];
+    const actual = terminalCommands;
+
+    if (expected.length === 0) {
+      terminalPracticePassed = true;
+      completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+      terminalFeedback = "No required command checklist for this practice section.";
+      return;
+    }
+
+    const expectedState = simulateTerminalNavigation(expected, config);
+    const actualState = simulateTerminalNavigation(actual, config);
+
+    const missingVisited = [...expectedState.visited].filter((path) => !actualState.visited.has(path));
+    const finalPathMismatch = actualState.finalPath !== expectedState.finalPath;
+
+    if (missingVisited.length > 0 || finalPathMismatch) {
+      terminalPracticePassed = false;
+      const details: string[] = [];
+
+      if (missingVisited.length > 0) {
+        details.push(`You still need to reach: ${missingVisited.join(", ")}.`);
+      }
+
+      if (finalPathMismatch) {
+        details.push(`You ended at ${actualState.finalPath}, but target end path is ${expectedState.finalPath}.`);
+      }
+
+      terminalFeedback = `Output state check failed. ${details.join(" ")} Order is flexible; only the resulting navigation state is required.`;
+      return;
+    }
+
+    terminalPracticePassed = true;
+    completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+    terminalFeedback = "Great work. Lab passed based on navigation output state (visited paths and final location).";
+    sectionLockFeedback = "";
+  }
+
+  function evaluateCodePractice() {
+    const required = activeSection.interactiveConfig?.requiredSnippets ?? [];
+
+    if (required.length === 0) {
+      codePracticePassed = true;
+      completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+      codeFeedback = "Practice saved. Compare your solution with the lesson guidance.";
+      return;
+    }
+
+    const missing = required.filter((snippet: string) => !interactiveCode.includes(snippet));
+    codePracticePassed = missing.length === 0;
+    if (codePracticePassed) {
+      completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+      sectionLockFeedback = "";
+    }
+    codeFeedback =
+      missing.length === 0
+        ? "Great job. Your code includes the required parts for this section."
+        : `Missing expected code snippets: ${missing.join(", ")}`;
+  }
+
+  $: {
+    const nextInteractiveFingerprint = `${activeSection.id}:${activeSection.interactiveMode ?? ""}`;
+    if (isInteractiveSection && open && nextInteractiveFingerprint !== interactiveFingerprint) {
+      interactiveFingerprint = nextInteractiveFingerprint;
+      resetInteractiveState(activeSection);
+    }
+  }
+
+  $: if (browser && !hasLoadedLabProgress) {
+    completedInteractiveSections = loadLabProgress();
+    hasLoadedLabProgress = true;
+  }
+
+  $: if (browser && hasLoadedLabProgress) {
+    persistLabProgress(completedInteractiveSections);
+  }
 
   $: if (open) {
-    if (isCompleted) {
+    if (isInteractiveSection) {
+      clearTyping();
+      typedMessage = activeSection.content;
+    } else if (isCompleted) {
       clearTyping();
       typedMessage = activeSection.content;
     } else if (completedTypedSections.has(activeSectionTypingKey)) {
@@ -118,6 +376,12 @@
   });
 
   function goNextSection() {
+    if (isInteractiveSection && !activeInteractivePassed) {
+      sectionLockFeedback = "Finish and check the lab before moving to the next section.";
+      isLabModalOpen = true;
+      return;
+    }
+
     if (sectionIndex < activeSections.length - 1) {
       sectionIndex += 1;
       return;
@@ -154,6 +418,15 @@
   function closeCourse() {
     onClose();
   }
+
+  function openLabModal() {
+    isLabModalOpen = true;
+    scheduleTerminalAutoScroll();
+  }
+
+  function closeLabModal() {
+    isLabModalOpen = false;
+  }
 </script>
 
 {#if open && learningTasks.length > 0}
@@ -168,6 +441,9 @@
         eyebrow={`Crash Course • Task ${activeTask?.order ?? taskIndex + 1}`}
         title={`${activeSection.title}`}
         body={typedMessage}
+        showAction={isInteractiveSection}
+        actionLabel={activeInteractivePassed ? "Review Lab" : "Start Lab"}
+        onAction={openLabModal}
       />
 
       <div class="saz-avatar-wrap" aria-hidden="true">
@@ -178,6 +454,9 @@
         <p class="meta">
           Task {taskIndex + 1} • Section {sectionIndex + 1}/{activeSections.length}
         </p>
+        {#if sectionLockFeedback}
+          <p class="section-lock-feedback">{sectionLockFeedback}</p>
+        {/if}
 
         <div class="actions">
           <button
@@ -199,12 +478,40 @@
               <span>{isCompleted ? "Close Finished Crash Course" : "Mark Crash Course Done"}</span>
             {:else}
               <ChevronRight size={14} strokeWidth={2.1} aria-hidden="true" />
-              <span>Next</span>
+              <span>{isInteractiveSection && !activeInteractivePassed ? "Complete Lab First" : "Next"}</span>
             {/if}
           </button>
         </div>
       </div>
     </div>
+
+    {#if isInteractiveSection && isLabModalOpen}
+      <InteractiveLabModal
+        title="Interactive Lab"
+        instructions={activeSection.interactiveConfig?.instructions ?? "Interactive practice mode"}
+        isPassed={activeInteractivePassed}
+        on:close={closeLabModal}
+      >
+        {#if activeSection.interactiveMode === "TERMINAL_CD"}
+          <TerminalLab
+            currentPath={cdCurrentPath}
+            history={cdHistory}
+            bind:inputValue={cdInput}
+            feedback={terminalFeedback}
+            isPassed={terminalPracticePassed}
+            on:run={runCdCommand}
+            on:check={checkTerminalPractice}
+          />
+        {:else if activeSection.interactiveMode === "CODE_EDITOR"}
+          <CodeLab
+            bind:code={interactiveCode}
+            feedback={codeFeedback}
+            isPassed={codePracticePassed}
+            on:check={evaluateCodePractice}
+          />
+        {/if}
+      </InteractiveLabModal>
+    {/if}
   </div>
 {/if}
 
@@ -218,11 +525,13 @@
     background: rgba(3, 8, 18, 0.56);
     backdrop-filter: blur(7px);
     -webkit-backdrop-filter: blur(7px);
+    padding: 0.8rem;
+    overflow: auto;
   }
 
   .course-shell {
     position: relative;
-    width: min(980px, 96vw);
+    width: min(980px, calc(100vw - 1.8rem));
     min-height: auto;
     display: grid;
     justify-items: center;
@@ -230,10 +539,19 @@
   }
 
   .course-controls {
-    width: min(860px, 96vw);
+    width: min(860px, calc(100vw - 1.8rem));
     border: 1px solid rgba(7, 165, 201, 0.24);
     background: rgba(10, 14, 26, 0.94);
     padding: 0.62rem 0.88rem 0.72rem;
+    box-sizing: border-box;
+  }
+
+  .section-lock-feedback {
+    margin: 0 0 0.5rem;
+    color: #ffdca8;
+    font-family: "Exo 2", sans-serif;
+    font-size: 0.76rem;
+    text-align: center;
   }
 
   .saz-avatar-wrap {
@@ -316,7 +634,7 @@
     }
 
     .course-controls {
-      width: min(700px, 96vw);
+      width: min(700px, calc(100vw - 1.4rem));
     }
 
     .saz-avatar-wrap {
@@ -333,7 +651,7 @@
 
   @media (max-width: 700px) {
     .course-controls {
-      width: min(540px, 94vw);
+      width: min(540px, calc(100vw - 1.2rem));
     }
 
     .saz-avatar-wrap {

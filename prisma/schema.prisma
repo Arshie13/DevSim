@@ -7,6 +7,16 @@ datasource db {
   provider = "postgresql"
 }
 
+enum LearningSectionType {
+  PLAIN_TEXT
+  INTERACTIVE
+}
+
+enum LearningInteractiveMode {
+  TERMINAL_CD
+  CODE_EDITOR
+}
+
 model User {
   id           String  @id @default(uuid())
   dailyLoginId String? @unique
@@ -117,6 +127,9 @@ model LearningSection {
   title   String
   content String
   order   Int    @default(0)
+  sectionType     LearningSectionType    @default(PLAIN_TEXT)
+  interactiveMode LearningInteractiveMode?
+  interactiveConfig Json?
 
   task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
 

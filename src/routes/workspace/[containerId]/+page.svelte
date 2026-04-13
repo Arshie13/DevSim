@@ -109,6 +109,18 @@
       content: string;
       order: number;
       taskId: string;
+      sectionType: "PLAIN_TEXT" | "INTERACTIVE";
+      interactiveMode?: "TERMINAL_CD" | "CODE_EDITOR" | null;
+      interactiveConfig?: {
+        instructions?: string;
+        starterCode?: string;
+        expectedCommands?: string[];
+        initialDirectory?: string;
+        directoryTree?: Record<string, string[]>;
+        expectedOutput?: string;
+        requiredSnippets?: string[];
+        language?: string;
+      } | null;
     }>;
     userStory?: string;
   };

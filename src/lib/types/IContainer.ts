@@ -51,7 +51,26 @@ export interface ILearningSection {
   content: string;
   order: number;
   taskId: string;
+  sectionType: "PLAIN_TEXT" | "INTERACTIVE";
+  interactiveMode?: "TERMINAL_CD" | "CODE_EDITOR" | null;
+  interactiveConfig?: {
+    instructions?: string;
+    starterCode?: string;
+    expectedCommands?: string[];
+    initialDirectory?: string;
+    directoryTree?: Record<string, string[]>;
+    expectedOutput?: string;
+    requiredSnippets?: string[];
+    language?: string;
+  } | null;
 }
+
+  export interface ILearningTask  {
+    id: string;
+    taskName: string;
+    order: number;
+    learningSections: ILearningSection[];
+  };
 
 export interface IHints {
   id: string;

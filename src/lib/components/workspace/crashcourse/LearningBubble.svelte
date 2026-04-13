@@ -5,6 +5,9 @@
   export let eyebrow: string = "Crash Course";
   export let title: string = "Learning Content";
   export let body: string = "";
+  export let actionLabel: string = "";
+  export let showAction: boolean = false;
+  export let onAction: () => void = () => {};
 </script>
 
 <BubbleCloud
@@ -24,6 +27,12 @@
   <Scrollbar className="body-scrollbar">
     <p class="body">{body}</p>
   </Scrollbar>
+
+  {#if showAction}
+    <div class="action-row">
+      <button type="button" class="action-btn" on:click={onAction}>{actionLabel || "Start Lab"}</button>
+    </div>
+  {/if}
 </BubbleCloud>
 
 <style>
@@ -70,5 +79,29 @@
     overflow-wrap: anywhere;
     white-space: pre-wrap;
     white-space: break-spaces;
+  }
+
+  .action-row {
+    margin-top: 0.7rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .action-btn {
+    border: 1px solid rgba(7, 165, 201, 0.5);
+    background: rgba(7, 165, 201, 0.14);
+    color: #e6fbff;
+    padding: 0.36rem 0.7rem;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .action-btn:hover {
+    background: rgba(7, 165, 201, 0.22);
+    border-color: rgba(7, 165, 201, 0.7);
   }
 </style>

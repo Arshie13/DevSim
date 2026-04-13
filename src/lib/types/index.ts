@@ -11,5 +11,6 @@ export type {
   IHints,
   IAcceptanceCriteria,
   ILearningSection,
+  ILearningTask,
 } from "./IContainer"
 export * from "./test";

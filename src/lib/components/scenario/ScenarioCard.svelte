@@ -174,7 +174,7 @@
               <span>Starting…</span>
             {:else}
               <Zap class="w-3.5 h-3.5" />
-              <span>Launch Sprint</span>
+              <span>Launch Scenario</span>
             {/if}
           </button>
         </div>
