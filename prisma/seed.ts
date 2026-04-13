@@ -31,16 +31,56 @@ async function main() {
 
   // Clear existing data
   await prisma.completedTask.deleteMany();
-  await prisma.containerStack.deleteMany();
+  await prisma.workspaceStack.deleteMany();
   await prisma.userFileChanges.deleteMany();
-  await prisma.container.deleteMany();
+  await prisma.workspace.deleteMany();
   await prisma.acceptanceCriteria.deleteMany();
   await prisma.hint.deleteMany();
   await prisma.levelTask.deleteMany();
   await prisma.level.deleteMany();
+  await prisma.epic.deleteMany();
   await prisma.scenario.deleteMany();
 
   console.log("🗑️  Cleared existing data\n");
+
+  // Define epics (sprints) for the scenario
+  const epics = [
+    {
+      id: "epic-1",
+      name: "Project Setup & Foundation",
+      description: "Get the development environment running and make a minor UI change",
+      order: 1,
+      scenarioId: "scenario-1",
+    },
+    {
+      id: "epic-2",
+      name: "Client-Side Features",
+      description: "Implement client-side borrowing logic and UI helpers",
+      order: 2,
+      scenarioId: "scenario-1",
+    },
+    {
+      id: "epic-3",
+      name: "Backend Development",
+      description: "Debug and stabilize the backend, implement transactional consistency",
+      order: 3,
+      scenarioId: "scenario-1",
+    },
+    {
+      id: "epic-4",
+      name: "Advanced Features",
+      description: "Implement reservation queue and lifecycle management",
+      order: 4,
+      scenarioId: "scenario-1",
+    },
+    {
+      id: "epic-5",
+      name: "Production Ready",
+      description: "Fix critical production issues and prepare for launch",
+      order: 5,
+      scenarioId: "scenario-1",
+    },
+  ];
 
   // Define scenarios for each tech stack
   const scenarios = [
@@ -53,6 +93,13 @@ async function main() {
     },
   ];
 
+  // Insert epics first
+  console.log("\n🏃 Creating epics...\n");
+  for (const epic of epics) {
+    await prisma.epic.create({ data: epic });
+    console.log(`✅ Created epic: ${epic.name}`);
+  }
+
   // Define levels with progressive difficulty
   const levels = [
     {
@@ -61,6 +108,7 @@ async function main() {
       subtitle:
         "Set up the development environment and make a minor UI change.",
       order: 1,
+      sprintNumber: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       levelDescription:
         "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in your local machine.",
@@ -68,6 +116,7 @@ async function main() {
       coinReward: 50,
       keyTakeaways: "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (npm/pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
       scenarioId: "scenario-1",
+      epicId: "epic-1",
       tasks: {
         create: [
           {
@@ -166,6 +215,7 @@ async function main() {
       title: "Client-Side Exploration",
       subtitle: "Investigate Client-Side Borrowing Logic and UI Helpers",
       order: 2,
+      sprintNumber: 2,
       deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       levelDescription:
         "Mission Briefing: Members report they cannot borrow books even when copies are available. Your task is to investigate the client-side availability logic and create a reusable helper function to ensure consistent borrow decisions across the React UI.",
@@ -173,6 +223,7 @@ async function main() {
       coinReward: 125,
       keyTakeaways: "Pure functions in React applications that process Prisma query results from PostgreSQL are easier to test and debug. Centralizing business logic ensures consistent data handling across React components that consume Express API responses. This functional programming approach is essential for reliable React + Express + Prisma applications.\n\nClient-side utility functions in React ensure consistent logic when processing data from Express APIs powered by Prisma and PostgreSQL. When the same availability logic exists in multiple React components, shared utilities prevent inconsistencies and simplify maintenance. This approach ensures reliable data handling in React applications consuming Express + Prisma + PostgreSQL backends.",
       scenarioId: "scenario-1",
+      epicId: "epic-2",
       tasks: {
         create: [
           {
@@ -328,6 +379,7 @@ async function main() {
       subtitle:
         "Trace return-flow issues and enforce transactional consistency.",
       order: 3,
+      sprintNumber: 3,
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       levelDescription:
         "Mission Briefing: Returning books occasionally causes negative available copy counts. Your mission is to debug the return flow, identify why the copy counts are going negative, and implement a fix to ensure the library's inventory stays accurate.",
@@ -335,6 +387,7 @@ async function main() {
       coinReward: 200,
       keyTakeaways: "Prisma migrations synchronize your PostgreSQL database schema with your Express + React application code changes. They prevent schema drift between development, staging, and production environments, ensuring database consistency across the entire React + Express + Prisma stack. Migrations are essential for maintaining data integrity in production PostgreSQL databases.\n\nDatabase transactions in Prisma ensure atomic operations when updating related PostgreSQL records through Express APIs. They prevent partial updates that could leave your database inconsistent, which is critical for React applications handling financial and inventory data. Always wrap related database operations in transactions to maintain data integrity in Express + Prisma + PostgreSQL applications.",
       scenarioId: "scenario-1",
+      epicId: "epic-3",
       tasks: {
         create: [
           {
@@ -451,6 +504,7 @@ async function main() {
       title: "Starting my Full-Stack Journey",
       subtitle: "Implement Reservation Queue and Lifecycle Management",
       order: 4,
+      sprintNumber: 4,
       deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       levelDescription:
         "Mission Briefing: The Library is implementing a reservation system for popular books. Your task is to build a reservation feature that allows users to reserve a book when all copies are borrowed and receive notifications when the book becomes available.",
@@ -458,6 +512,7 @@ async function main() {
       coinReward: 300,
       keyTakeaways: "Input validation and sanitization are critical for Express API security and PostgreSQL data integrity in React applications. They prevent malicious input from corrupting your database and protect against attacks. Always validate and sanitize user inputs in Express routes before they reach Prisma and PostgreSQL. This creates secure, reliable APIs that safely handle React frontend data submissions.\n\nProper error handling in Express APIs and React components creates better user experiences in full-stack applications. Clear error messages help users understand issues, while graceful error handling prevents React app crashes. Implement comprehensive error boundaries in React and meaningful error responses in Express routes. This ensures reliable, user-friendly React + Express + PostgreSQL + Prisma applications.",
       scenarioId: "scenario-1",
+      epicId: "epic-4",
       tasks: {
         create: [
           {
@@ -710,6 +765,7 @@ async function main() {
       title: "The Production Struggle",
       subtitle: "Investigate and fix a critical production issue.",
       order: 5,
+      sprintNumber: 5,
       deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       levelDescription:
         "Mission Briefing: Congratulations! The project is in production, but a critical issue has been reported by the client. Your mission is to investigate the problem, identify the root cause, and deliver a fix as soon as possible to maintain system reliability.",
@@ -717,6 +773,7 @@ async function main() {
       coinReward: 375,
       keyTakeaways: "Pagination is essential for handling large datasets in React applications consuming Express APIs with PostgreSQL. It improves frontend performance and user experience by loading data incrementally instead of overwhelming the React UI with massive datasets. Implement proper pagination with clear navigation controls and loading states for scalable React + Express + PostgreSQL applications.\n\nAutomated testing is crucial for maintaining code quality in React + Express + Prisma + PostgreSQL applications. Tests ensure that React component changes, Express API modifications, and Prisma database operations work correctly together and prevent regressions. Always write tests for critical business logic and user interactions to maintain reliable full-stack applications.",
       scenarioId: "scenario-1",
+      epicId: "epic-5",
       tasks: {
         create: [
           {

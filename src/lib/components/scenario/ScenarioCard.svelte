@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher, tick } from 'svelte';
-  import { Loader, Star, Layers, Zap, ChevronDown, ChevronUp } from 'lucide-svelte';
+  import { Loader, Star, Layers, Zap, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { ScenarioMeta } from '$types';
 
   /** The scenario data to display */
@@ -24,6 +24,25 @@
 
   /** Whether to include the onboarding guide and workspace tour on launch. */
   export let withOnboarding: boolean = false;
+
+  // Preview image carousel state
+  let currentImageIndex = 0;
+  $: previewImages = scenario.previewImages ?? [];
+  $: epics = scenario.epics ?? [];
+
+  function nextImage(e: Event) {
+    e.stopPropagation();
+    if (previewImages.length > 1) {
+      currentImageIndex = (currentImageIndex + 1) % previewImages.length;
+    }
+  }
+
+  function prevImage(e: Event) {
+    e.stopPropagation();
+    if (previewImages.length > 1) {
+      currentImageIndex = (currentImageIndex - 1 + previewImages.length) % previewImages.length;
+    }
+  }
 
   function handleTourToggle(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -104,6 +123,38 @@
         {scenario.title}
       </h2>
 
+      <!-- Preview Images Carousel -->
+      {#if previewImages.length > 0}
+        <div class="preview-carousel flex-shrink-0 mb-3">
+          <div class="preview-image-wrapper">
+            <img 
+              src={previewImages[currentImageIndex]} 
+              alt="Project preview {currentImageIndex + 1}"
+              class="preview-image"
+            />
+            
+            {#if previewImages.length > 1}
+              <button class="nav-btn nav-btn-left" on:click={prevImage} aria-label="Previous image">
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+              <button class="nav-btn nav-btn-right" on:click={nextImage} aria-label="Next image">
+                <ChevronRight class="w-4 h-4" />
+              </button>
+              
+              <div class="image-indicators">
+                {#each previewImages as _, idx}
+                  <span 
+                    class="indicator" 
+                    class:indicator--active={idx === currentImageIndex}
+                  ></span>
+                {/each}
+              </div>
+            {/if}
+          </div>
+          <p class="preview-label">What you'll build</p>
+        </div>
+      {/if}
+
       <!-- Description area: flex-1 so it fills remaining space; scrolls when expanded -->
       <div class="desc-area">
         {#if desc}
@@ -134,6 +185,25 @@
           {/if}
         {/if}
       </div>
+
+      <!-- Sprint/Epic Structure -->
+      {#if epics.length > 0}
+        <div class="epics-section flex-shrink-0">
+          <div class="epics-header">
+            <span class="epics-title">Sprint Structure</span>
+            <span class="epics-count">{epics.length} Sprints</span>
+          </div>
+          <div class="epics-list">
+            {#each epics as epic}
+              <div class="epic-item" style="border-left-color:{diffColor}55;">
+                <span class="epic-sprint">Sprint {epic.sprintNumber}</span>
+                <span class="epic-name">{epic.name}</span>
+                <span class="epic-levels">{epic.levelCount} level{epic.levelCount !== 1 ? 's' : ''}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
 
 
       <!-- Footer (fixed, never shrinks) -->
@@ -439,5 +509,143 @@
   /* ── Responsive ──────────────────────────────────────────────── */
   @media (max-width: 700px) {
     .carousel-card { width: min(86vw, 380px); height: 300px; }
+  }
+
+  /* ── Preview Image Carousel ───────────────────────────────────── */
+  .preview-carousel {
+    width: 100%;
+  }
+  .preview-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(7, 165, 201, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+  }
+  .preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: rgba(7, 165, 201, 0.2);
+    border: 1px solid rgba(7, 165, 201, 0.4);
+    border-radius: 3px;
+    color: #07a5c9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+  }
+  .preview-image-wrapper:hover .nav-btn {
+    opacity: 1;
+  }
+  .nav-btn:hover {
+    background: rgba(7, 165, 201, 0.4);
+  }
+  .nav-btn-left {
+    left: 6px;
+  }
+  .nav-btn-right {
+    right: 6px;
+  }
+  .image-indicators {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+  }
+  .indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(7, 165, 201, 0.3);
+    transition: background 0.2s;
+  }
+  .indicator--active {
+    background: #07a5c9;
+  }
+  .preview-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ffb400;
+    margin-top: 4px;
+  }
+
+  /* ── Sprint/Epic Structure ─────────────────────────────────────── */
+  .epics-section {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(7, 165, 201, 0.05);
+    border: 1px solid rgba(7, 165, 201, 0.12);
+    border-radius: 4px;
+  }
+  .epics-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(7, 165, 201, 0.15);
+  }
+  .epics-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #07a5c9;
+  }
+  .epics-count {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(208, 215, 221, 0.5);
+  }
+  .epics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+  .epic-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 2px solid;
+    border-radius: 2px;
+    font-size: 0.7rem;
+  }
+  .epic-sprint {
+    font-family: 'Share Tech Mono', monospace;
+    color: #07a5c9;
+    font-size: 0.6rem;
+  }
+  .epic-name {
+    font-family: 'Rajdhani', sans-serif;
+    color: rgba(208, 215, 221, 0.85);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .epic-levels {
+    font-family: 'Rajdhani', sans-serif;
+    color: rgba(208, 215, 221, 0.4);
+    font-size: 0.6rem;
   }
 </style>

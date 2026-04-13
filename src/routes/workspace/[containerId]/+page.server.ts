@@ -25,10 +25,10 @@ export const load: PageServerLoad = async (event) => {
   const dbId = event.params.containerId;
   const userId = session.user.id;
 
-  const container = await prisma.container.findFirst({
+  const container = await prisma.workspace.findFirst({
     where: { id: dbId, userId },
     include: {
-      containerStacks: true,
+      workspaceStacks: true,
       scenario: {
         include: {
           levels: {
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async (event) => {
   // Get completed tasks from the CompletedTask table
   // id might be wrong
   const completedTaskRecords = await prisma.completedTask.findMany({
-    where: { containerId: container?.id },
+    where: { workspaceId: container?.id },
     select: { taskName: true }
   });
   const completedTaskNames = completedTaskRecords.map(r => r.taskName);

@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ params, locals }) => {
 
 	try {
 		// Look up the container by Docker container ID (consistent with submit endpoint)
-		const container = await prisma.container.findFirst({
+		const container = await prisma.workspace.findFirst({
 			where: { containerId: params.id, userId: session.user.id }
 		});
 

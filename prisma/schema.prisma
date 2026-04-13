@@ -26,14 +26,14 @@ model User {
 
   // Relations
   dailyLogin   DailyLogin?       @relation
-  containers   Container[]
+  workspaces   Workspace[]
   achievements UserAchievement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Container {
+model Workspace {
   id     String @id @default(cuid())
   userId String
   level  Int
@@ -47,7 +47,7 @@ model Container {
   startedAt DateTime  @default(now())
   stoppedAt DateTime?
 
-  // Archive fields — used when workspace is saved to a Docker volume before container deletion
+  // Archive fields — used when workspace is saved to a Docker volume before workspace deletion
   volumeName String?
   isArchived Boolean @default(false)
 
@@ -59,7 +59,7 @@ model Container {
   updatedAt       DateTime         @updatedAt
   fileChanges     UserFileChanges[]
   completedTasks  CompletedTask[]
-  containerStacks ContainerStack[]
+  workspaceStacks WorkspaceStack[]
 
   @@index([userId])
 }
@@ -70,9 +70,26 @@ model Scenario {
   description String
   difficulty  String
 
+  // Learning structure
+  epics       Epic[]
+
   // Relations
   levels     Level[]
-  containers Container[]
+  workspaces Workspace[]
+}
+
+model Epic {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  order       Int      @default(0)
+  scenarioId  String
+  scenario    Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  // Relations
+  levels Level[]
+
+  @@index([scenarioId])
 }
 
 model Level {
@@ -80,11 +97,18 @@ model Level {
   title            String
   subtitle         String
   order            Int      @default(0)
+  sprintNumber     Int      @default(1) // Which sprint this level belongs to
   deadline         DateTime
   levelDescription String
   xpReward         Int
   coinReward       Int
   keyTakeaways     String
+  prerequisites    Json?    // JSON array of prerequisite level IDs
+
+  // Epic linking
+  epicId String?
+  epic   Epic? @relation(fields: [epicId], references: [id], onDelete: SetNull)
+
   scenarioId       String
   scenario         Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
 
@@ -100,7 +124,10 @@ model LevelTask {
   userStory  String
   order      Int     @default(0)
   isComplete Boolean @default(false)
-  testType   String   @default("none") 
+  testType   String   @default("none")
+
+  // Epic linking - optional, for sprint structure
+  epicId String?
 
   level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
   acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
@@ -183,7 +210,7 @@ model UserAchievement {
 // File change tracking model
 model UserFileChanges {
   id          String   @id @default(cuid())
-  containerId String
+  workspaceId String
   filePath    String
   action      String // "CREATE", "WRITE", "DELETE", "RENAME"
   oldPath     String? // For rename operations - stores the original path
@@ -191,32 +218,32 @@ model UserFileChanges {
   timestamp   DateTime @default(now())
 
   // Relations
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@index([containerId, timestamp])
+  @@index([workspaceId, timestamp])
 }
 
-// Completed tasks for a container
+// Completed tasks for a workspace
 model CompletedTask {
   id          String   @id @default(cuid())
-  containerId String
+  workspaceId String
   taskName    String
   completedAt DateTime @default(now())
 
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@unique([containerId, taskName])
-  @@index([containerId])
+  @@unique([workspaceId, taskName])
+  @@index([workspaceId])
 }
 
-// Stack choices for a container
-model ContainerStack {
+// Stack choices for a workspace
+model WorkspaceStack {
   id           String  @id @default(cuid())
-  containerId  String
+  workspaceId  String
   stackName    String
   stackVersion String?
 
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@index([containerId])
+  @@index([workspaceId])
 }

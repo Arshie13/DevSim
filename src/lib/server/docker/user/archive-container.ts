@@ -21,7 +21,7 @@ export async function archiveContainer(
 ): Promise<ArchiveContainerResult> {
 	// --- 1. Look up & validate the container record ---
 	// req.dbContainerId here is the Prisma Container.id (primary key).
-	const record = await prisma.container.findUnique({
+	const record = await prisma.workspace.findUnique({
 		where: { id: req.dbContainerId }
 	});
 
@@ -43,8 +43,8 @@ export async function archiveContainer(
 
 	// --- 2. Build a deterministic volume name ---
 	// Get stacks from ContainerStack relation
-	const containerStacks = await prisma.containerStack.findMany({
-		where: { containerId: record.id }
+	const containerStacks = await prisma.workspaceStack.findMany({
+		where: { workspaceId: record.id }
 	});
 	const stackNames = containerStacks.map(s => s.stackName);
 	const stackSlug = stackNames.join('-').toLowerCase().replace(/\s+/g, '-');
@@ -120,7 +120,7 @@ export async function archiveContainer(
 	}
 
 	// --- 6. Update DB: mark as archived, store volume name ---
-	await prisma.container.update({
+	await prisma.workspace.update({
 		where: { id: record.id },
 		data: {
 			volumeName,

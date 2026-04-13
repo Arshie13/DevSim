@@ -25,7 +25,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 
   try {
     // --- Look up Container record in DB ---
-    const record = await prisma.container.findUnique({
+    const record = await prisma.workspace.findUnique({
       where: { id: params.id }
     });
 

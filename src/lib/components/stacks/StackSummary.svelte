@@ -93,9 +93,30 @@
     selectedCount === 4 ? 2.0 :
     selectedCount === 3 ? 1.5 :
     selectedCount === 2 ? 1.25 : 1.0;
+
+  $: combinedFinalProjectDescription = (() => {
+    const parts: string[] = [];
+    if (frontendOption?.finalProjectDescription) parts.push(frontendOption.finalProjectDescription);
+    if (backendOption?.finalProjectDescription) parts.push(backendOption.finalProjectDescription);
+    if (databaseOption?.finalProjectDescription) parts.push(databaseOption.finalProjectDescription);
+    if (servicesOption?.finalProjectDescription) parts.push(servicesOption.finalProjectDescription);
+    return parts.join(' • ');
+  })();
 </script>
 
 <div class="summary-bar">
+  {#if hasValidStack && combinedFinalProjectDescription}
+    <div class="w-full max-w-[1200px] px-4 mx-auto mb-3">
+      <div class="build-preview">
+        <div class="preview-header">
+          <span class="preview-icon">🎯</span>
+          <span class="preview-label">What You'll Build</span>
+        </div>
+        <p class="preview-desc">{combinedFinalProjectDescription}</p>
+      </div>
+    </div>
+  {/if}
+
   <div class="w-full max-w-[1200px] px-4 flex items-center justify-between mx-auto gap-4">
 
     <!-- Stack preview -->
@@ -352,5 +373,36 @@
     color: rgba(208, 215, 221, 0.30);
     border: 1px solid rgba(208, 215, 221, 0.10);
     cursor: not-allowed;
+  }
+
+  /* What You'll Build Preview */
+  .build-preview {
+    background: linear-gradient(135deg, rgba(255, 180, 0, 0.08) 0%, rgba(255, 200, 50, 0.04) 100%);
+    border: 1px solid rgba(255, 180, 0, 0.20);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+  }
+  .preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  .preview-icon {
+    font-size: 0.9rem;
+  }
+  .preview-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: #ffb400;
+  }
+  .preview-desc {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.88rem;
+    color: rgba(208, 215, 221, 0.75);
+    line-height: 1.4;
+    margin: 0;
   }
 </style>

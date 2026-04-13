@@ -15,7 +15,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
       return error(400, 'Container ID is required');
     }
 
-    const prismaContainer = await prisma.container.findFirst({
+    const prismaContainer = await prisma.workspace.findFirst({
       where: {
         containerId: id
       },
@@ -30,7 +30,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
     const res = await prisma.userFileChanges.deleteMany({
       where: {
-        containerId: prismaContainer.id
+        workspaceId: prismaContainer.id
       }
     });
 

@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     const dbContainerId = params.id;
 
     // --- Validate container ownership ---
-    const container = await prisma.container.findUnique({
+    const container = await prisma.workspace.findUnique({
       where: { id: dbContainerId }
     });
 

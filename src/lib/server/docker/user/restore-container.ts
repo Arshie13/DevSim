@@ -20,7 +20,7 @@ export async function restoreContainer(
 	req: RestoreContainerRequest
 ): Promise<RestoreContainerResult> {
 	// --- 1. Look up & validate the archived container record ---
-	const record = await prisma.container.findUnique({
+	const record = await prisma.workspace.findUnique({
 		where: { id: req.dbContainerId }
 	});
 
@@ -52,8 +52,8 @@ export async function restoreContainer(
 
 	// --- 3. Create the new container WITHOUT a volume mount ---
 	// Get stacks from ContainerStack relation for the label
-	const containerStacks = await prisma.containerStack.findMany({
-		where: { containerId: req.dbContainerId }
+	const containerStacks = await prisma.workspaceStack.findMany({
+		where: { workspaceId: req.dbContainerId }
 	});
 	const stackNames = containerStacks.map(s => s.stackName);
 
@@ -137,7 +137,7 @@ export async function restoreContainer(
 	// --- 6. Update the SAME DB record + deduct coins atomically ---
 	// The Container.id never changes — only the Docker container ID, archive flag, and volume name.
 	await prisma.$transaction([
-		prisma.container.update({
+		prisma.workspace.update({
 			where: { id: req.dbContainerId },
 			data: {
 				containerId: newContainer.id, // new Docker container ID

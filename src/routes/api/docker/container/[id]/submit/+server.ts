@@ -62,7 +62,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 		// --- Look up the Container record ---
 		// params.id is the Docker container ID (stored in Prisma as containerId)
-		const record = await prisma.container.findFirst({
+		const record = await prisma.workspace.findFirst({
 			where: { containerId: params.id, userId: session.user.id }
 		});
 
@@ -92,7 +92,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 		// --- Get completed tasks from CompletedTask table ---
 		const currentCompletedTasks = await prisma.completedTask.findMany({
-			where: { containerId: record.id },
+			where: { workspaceId: record.id },
 			select: { taskName: true }
 		});
 		const completedTaskNames = currentCompletedTasks.map(t => t.taskName);
@@ -101,7 +101,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		if (!completedTaskNames.includes(taskId)) {
 			await prisma.completedTask.create({
 				data: {
-					containerId: record.id,
+					workspaceId: record.id,
 					taskName: taskId
 				}
 			});
@@ -135,7 +135,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 				// No more levels - this is the final completion
 				// Mark container as completed - archiving will be handled separately by the archive API
 				await prisma.$transaction([
-					prisma.container.update({
+					prisma.workspace.update({
 						where: { id: record.id },
 						data: {
 							status: 'completed',
@@ -161,7 +161,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			} else {
 				// Advance to next level (keep container running with new tasks)
 				await prisma.$transaction([
-					prisma.container.update({
+					prisma.workspace.update({
 						where: { id: record.id },
 						data: {
 							level: nextLevel,
@@ -170,7 +170,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 					}),
 					// Delete completed tasks for this container when advancing to next level
 					prisma.completedTask.deleteMany({
-						where: { containerId: record.id }
+						where: { workspaceId: record.id }
 					}),
 					prisma.user.update({
 						where: { id: session.user.id },

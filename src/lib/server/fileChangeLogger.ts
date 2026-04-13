@@ -18,7 +18,7 @@ export interface FileChangeLogParams {
 export async function logFileChange(params: FileChangeLogParams) {
   try {
 
-    const prismaContainer = await prisma.container.findFirst({
+    const prismaContainer = await prisma.workspace.findFirst({
       where: {
         containerId: params.containerId
       },
@@ -33,7 +33,7 @@ export async function logFileChange(params: FileChangeLogParams) {
 
     const fileChange = await prisma.userFileChanges.create({
       data: {
-        containerId: prismaContainer?.id,
+        workspaceId: prismaContainer?.id,
         filePath: params.filePath,
         action: params.action,
         oldPath: params.oldPath || null,
@@ -53,7 +53,7 @@ export async function logFileChange(params: FileChangeLogParams) {
  */
 export async function getFileChanges(containerId: string): Promise<{
   id: string;
-  containerId: string;
+  workspaceId: string;
   filePath: string;
   action: string;
   oldPath: string | null;
@@ -61,7 +61,7 @@ export async function getFileChanges(containerId: string): Promise<{
   timestamp: Date;
 }[] | []> {
   try {
-    const prismaContainer = await prisma.container.findFirst({
+    const prismaContainer = await prisma.workspace.findFirst({
       where: {
         containerId
       },
@@ -75,7 +75,7 @@ export async function getFileChanges(containerId: string): Promise<{
     }
 
     const changes = await prisma.userFileChanges.findMany({
-      where: { containerId: prismaContainer.id },
+      where: { workspaceId: prismaContainer.id },
       orderBy: { timestamp: 'asc' },
     });
     return changes;
@@ -90,7 +90,7 @@ export async function getFileChanges(containerId: string): Promise<{
  */
 export async function getFileChangeSummary(containerId: string) {
   try {
-    const prismaContainer = await prisma.container.findFirst({
+    const prismaContainer = await prisma.workspace.findFirst({
       where: {
         containerId
       },
@@ -110,7 +110,7 @@ export async function getFileChangeSummary(containerId: string) {
     }
 
     const changes = await prisma.userFileChanges.findMany({
-      where: { containerId: prismaContainer.id },
+      where: { workspaceId: prismaContainer.id },
       select: {
         action: true,
         filePath: true,
@@ -135,7 +135,7 @@ export async function getFileChangeSummary(containerId: string) {
 }
 
 export async function clearFileLogs(containerId: string) {
-  const prismaContainer = await prisma.container.findFirst({
+  const prismaContainer = await prisma.workspace.findFirst({
     where: {
       containerId
     },
@@ -150,7 +150,7 @@ export async function clearFileLogs(containerId: string) {
 
   await prisma.userFileChanges.deleteMany({
     where: {
-      containerId: prismaContainer.id
+      workspaceId: prismaContainer.id
     }
   });
 }

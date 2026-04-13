@@ -10,14 +10,14 @@ export const POST: RequestHandler = async ({ params, locals }) => {
         return error(401, 'Unauthorized');
     }
     const { id } = params;
-    const container = await prisma.container.findFirst({ where: { containerId: id } });
+    const container = await prisma.workspace.findFirst({ where: { containerId: id } });
 
     if (!container) {
         return error(404, 'Container not found.');
     }
 
     await docker.getContainer(id).stop();
-    await prisma.container.update({
+    await prisma.workspace.update({
         where: { id: container.id },
         data: {
             status: 'stopped',

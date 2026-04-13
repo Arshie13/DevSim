@@ -19,7 +19,7 @@ export interface UserContainerRequest {
  * (P2003 FK violation — usually caused by a stale session after a DB reset).
  */
 export async function saveUserContainer(data: UserContainerRequest): Promise<{ dbContainerId: string }> {
-  const isExisting = await prisma.container.findFirst({
+  const isExisting = await prisma.workspace.findFirst({
     where: {
       AND: [
         { userId: data.userId },
@@ -31,11 +31,11 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
   try {
     if (isExisting) {
       // Update existing container - delete old stacks and create new ones
-      await prisma.containerStack.deleteMany({
-        where: { containerId: isExisting.id }
+      await prisma.workspaceStack.deleteMany({
+        where: { workspaceId: isExisting.id }
       });
 
-      await prisma.container.update({
+      await prisma.workspace.update({
         data: {
           userId: data.userId,
           containerId: data.containerId,
@@ -47,9 +47,9 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
 
       // Create new stack records
       if (data.stacks.length > 0) {
-        await prisma.containerStack.createMany({
+        await prisma.workspaceStack.createMany({
           data: data.stacks.map(stack => ({
-            containerId: isExisting.id,
+            workspaceId: isExisting.id,
             stackName: stack.stackName,
             stackVersion: stack.stackVersion || null
           }))
@@ -59,14 +59,14 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
       return { dbContainerId: isExisting.id };
     }
 
-    const created = await prisma.container.create({
+    const created = await prisma.workspace.create({
       data: {
         userId: data.userId,
         containerId: data.containerId,
         currentScenarioId: data.currentScenarioId,
         level: data.level,
         status: data.status,
-        containerStacks: {
+        workspaceStacks: {
           create: data.stacks.map(stack => ({
             stackName: stack.stackName,
             stackVersion: stack.stackVersion || null
