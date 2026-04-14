@@ -79,7 +79,7 @@
 
         <!-- CTAs -->
         <div class="flex flex-wrap gap-4 hero-reveal" style="animation-delay:360ms">
-          <a href={session ? "/dashboard" : "/login"} class="btn-cyber btn-cyber-solid group !text-sm !py-3 !px-8">
+          <a href={session ? "/dashboard" : "/pretest"} class="btn-cyber btn-cyber-solid group !text-sm !py-3 !px-8">
             START SIMULATION
             <span class="inline-block ml-2 group-hover:translate-x-1 transition-transform duration-200">→</span>
           </a>

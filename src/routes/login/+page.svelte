@@ -1,5 +1,26 @@
 <script lang="ts">
     import { signIn } from '@auth/sveltekit/client';
+    import { onMount } from 'svelte';
+    
+    interface PretestResult {
+        score: number;
+        skillLevel: string;
+        completed: boolean;
+        timestamp: string;
+    }
+    
+    let pretestResult = $state<PretestResult | null>(null);
+    
+    onMount(() => {
+        const stored = localStorage.getItem('pretest_result');
+        if (stored) {
+            try {
+                pretestResult = JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse pretest result', e);
+            }
+        }
+    });
 </script>
 
 <section
@@ -40,6 +61,20 @@
 				</h1>
 				<p class="text-zinc-400">Sign up to start your learning journey!</p>
 			</div>
+
+			{#if pretestResult}
+				<div class="mb-6 p-4 rounded-lg bg-slate-800/50 border border-zinc-700/50">
+					<div class="text-center mb-2">
+						<span class="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Skill Assessment</span>
+					</div>
+					<div class="flex items-center justify-center gap-4 mb-2">
+						<span class="text-2xl font-bold text-white">{pretestResult.score}/8</span>
+						<span class="text-sm text-zinc-400">→</span>
+						<span class="text-lg font-semibold text-cyan-400">{pretestResult.skillLevel}</span>
+					</div>
+					<p class="text-xs text-zinc-500 text-center">Completed on {new Date(pretestResult.timestamp).toLocaleDateString()}</p>
+				</div>
+			{/if}
 
 			<div class="mt-6">
 				<button

@@ -26,7 +26,7 @@
           hands-on sprint simulations.
         </p>
         <a
-          href={session ? "/dashboard" : "/login"}
+          href={session ? "/dashboard" : "/pretest"}
           class="btn-cyber btn-cyber-solid !text-sm !py-4 !px-12"
         >
           {session ? "GO TO DASHBOARD →" : "GET STARTED FREE →"}
