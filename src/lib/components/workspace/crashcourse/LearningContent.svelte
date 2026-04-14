@@ -7,6 +7,12 @@
   import TerminalLab from "$lib/components/workspace/crashcourse/lab/TerminalLab.svelte";
   import CodeLab from "$lib/components/workspace/crashcourse/lab/CodeLab.svelte";
   import LabCongratsModal from "$lib/components/workspace/crashcourse/lab/LabCongratsModal.svelte";
+  import {
+    evaluateEditableRegionsLab,
+    evaluateFunctionLab,
+    resolvePath,
+    simulateTerminalNavigation,
+  } from "$lib/components/workspace/crashcourse/lab/labValidation";
   import type { ILearningSection, ILearningTask } from "$lib/types";
 
   const LAB_PROGRESS_STORAGE_KEY = "devsim-crashcourse-lab-progress-v1";
@@ -114,10 +120,6 @@
   $: isInteractiveSection = activeSection.sectionType === "INTERACTIVE";
   $: activeInteractivePassed = completedInteractiveSections.has(activeSectionTypingKey);
 
-  function normalizeCommand(value: string): string {
-    return value.trim().replace(/\s+/g, " ").toLowerCase();
-  }
-
   function loadLabProgress(): Set<string> {
     if (!browser) return new Set();
 
@@ -151,51 +153,6 @@
         terminalLog.scrollTop = terminalLog.scrollHeight;
       }
     });
-  }
-
-  function simulateTerminalNavigation(commands: string[], config: NonNullable<ILearningSection["interactiveConfig"]>) {
-    const tree = config.directoryTree ?? { "/workspace": ["client", "server", "README.md"] };
-    const visited = new Set<string>();
-    let pointer = config.initialDirectory ?? "/workspace";
-    visited.add(pointer);
-
-    for (const rawCommand of commands) {
-      const normalized = normalizeCommand(rawCommand);
-      if (!normalized) continue;
-
-      const parts = normalized.split(" ");
-      const command = parts[0];
-      const argument = parts.slice(1).join(" ");
-
-      if (command !== "cd") continue;
-
-      const target = argument || "/";
-      const resolved = resolvePath(pointer, target);
-      if (!tree[resolved]) continue;
-      pointer = resolved;
-      visited.add(pointer);
-    }
-
-    return {
-      visited,
-      finalPath: pointer,
-    };
-  }
-
-  function resolvePath(currentPath: string, targetPath: string): string {
-    const base = targetPath.startsWith("/") ? [] : currentPath.split("/").filter(Boolean);
-    const incoming = targetPath.split("/").filter(Boolean);
-
-    for (const segment of incoming) {
-      if (segment === ".") continue;
-      if (segment === "..") {
-        base.pop();
-      } else {
-        base.push(segment);
-      }
-    }
-
-    return `/${base.join("/")}` || "/";
   }
 
   function resetInteractiveState(section: ILearningSection) {
@@ -309,7 +266,7 @@
         details.push(`You ended at ${actualState.finalPath}, but target end path is ${expectedState.finalPath}.`);
       }
 
-      terminalFeedback = `Output state check failed. ${details.join(" ")} Order is flexible; only the resulting navigation state is required.`;
+      terminalFeedback = `Output state check failed. ${details.join(" ")}`;
       return;
     }
 
@@ -324,169 +281,53 @@
   }
 
   function evaluateCodePractice() {
-    const required = activeSection.interactiveConfig?.requiredSnippets ?? [];
-    const requiredPatterns = activeSection.interactiveConfig?.requiredPatterns ?? [];
-    const outputAssertions = activeSection.interactiveConfig?.outputAssertions ?? [];
-    const outputAssertionMode = activeSection.interactiveConfig?.outputAssertionMode ?? "all";
+    const config = activeSection.interactiveConfig ?? {};
+    const entryPoint = config.entryPoint;
+    const testCases = config.testCases ?? [];
+    const editableRegions = config.editableRegions ?? [];
+    const starterCode = config.starterCode ?? "";
     const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
 
-    function isWordChar(char: string | undefined): boolean {
-      if (!char) return false;
-      return /[A-Za-z0-9_]/.test(char);
-    }
+    function setCodePracticeResult(passed: boolean, successMessage: string, failureMessage: string) {
+      codePracticePassed = passed;
 
-    function hasExactSnippet(content: string, snippet: string): boolean {
-      if (!snippet) return true;
-
-      let searchIndex = content.indexOf(snippet);
-      while (searchIndex !== -1) {
-        const snippetStartChar = snippet[0];
-        const snippetEndChar = snippet[snippet.length - 1];
-        const prevChar = searchIndex > 0 ? content[searchIndex - 1] : undefined;
-        const nextIndex = searchIndex + snippet.length;
-        const nextChar = nextIndex < content.length ? content[nextIndex] : undefined;
-
-        const prefixOk = !isWordChar(snippetStartChar) || !isWordChar(prevChar);
-        const suffixOk = !isWordChar(snippetEndChar) || !isWordChar(nextChar);
-
-        if (prefixOk && suffixOk) {
-          return true;
-        }
-
-        searchIndex = content.indexOf(snippet, searchIndex + 1);
-      }
-
-      return false;
-    }
-
-    function normalizeWhitespace(value: string): string {
-      return value.replace(/\s+/g, " ").trim();
-    }
-
-    function toPlainText(value: string): string {
-      return value
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\{[^}]+\}/g, " ")
-        .replace(/&nbsp;/gi, " ")
-        .replace(/&amp;/gi, "&")
-        .replace(/&lt;/gi, "<")
-        .replace(/&gt;/gi, ">")
-        .replace(/&quot;/gi, '"')
-        .replace(/&#39;/gi, "'")
-        .trim();
-    }
-
-    function evaluateOutputAssertion(assertion: {
-      type: "includes" | "equals" | "regex";
-      value: string;
-      caseSensitive?: boolean;
-      normalizeWhitespace?: boolean;
-      target?: "code" | "plainText";
-    }): boolean {
-      const target = assertion.target ?? "code";
-      const caseSensitive = assertion.caseSensitive ?? true;
-      const shouldNormalizeWhitespace = assertion.normalizeWhitespace ?? false;
-
-      const sourceRaw = target === "plainText" ? toPlainText(interactiveCode) : interactiveCode;
-      let source = sourceRaw;
-      let expected = assertion.value;
-
-      if (!caseSensitive) {
-        source = source.toLowerCase();
-        expected = expected.toLowerCase();
-      }
-
-      if (shouldNormalizeWhitespace) {
-        source = normalizeWhitespace(source);
-        expected = normalizeWhitespace(expected);
-      }
-
-      if (assertion.type === "equals") {
-        return source === expected;
-      }
-
-      if (assertion.type === "includes") {
-        return source.includes(expected);
-      }
-
-      try {
-        const flags = caseSensitive ? "" : "i";
-        return new RegExp(assertion.value, flags).test(sourceRaw);
-      } catch {
-        return false;
-      }
-    }
-
-    if (required.length === 0) {
-      if (requiredPatterns.length === 0 && outputAssertions.length === 0) {
-        codePracticePassed = true;
+      if (passed) {
         completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
-        codeFeedback = "Practice saved. Compare your solution with the lesson guidance.";
+        sectionLockFeedback = "";
+        codeFeedback = successMessage;
         if (!wasAlreadyCompleted) {
           labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
           isLabCongratsOpen = true;
         }
         return;
       }
-    }
 
-    const missing = required.filter((snippet: string) => !hasExactSnippet(interactiveCode, snippet));
-    const missingPatterns = requiredPatterns.filter((pattern: string) => {
-      try {
-        return !new RegExp(pattern).test(interactiveCode);
-      } catch {
-        return true;
-      }
-    });
-
-    const outputAssertionResults = outputAssertions.map((assertion) => evaluateOutputAssertion(assertion));
-    const failedOutputAssertions = outputAssertions.filter((_, index) => !outputAssertionResults[index]);
-    const outputAssertionsPassed =
-      outputAssertions.length === 0
-        ? true
-        : outputAssertionMode === "any"
-          ? outputAssertionResults.some(Boolean)
-          : outputAssertionResults.every(Boolean);
-
-    codePracticePassed = missing.length === 0 && missingPatterns.length === 0 && outputAssertionsPassed;
-    if (codePracticePassed) {
-      completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
-      sectionLockFeedback = "";
-      if (!wasAlreadyCompleted) {
-        labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
-        isLabCongratsOpen = true;
-      }
-    } else {
       if (completedInteractiveSections.has(activeSectionTypingKey)) {
         const nextCompleted = new Set(completedInteractiveSections);
         nextCompleted.delete(activeSectionTypingKey);
         completedInteractiveSections = nextCompleted;
       }
+
+      codeFeedback = failureMessage;
     }
 
-    const feedbackParts: string[] = [];
-    if (missing.length > 0) {
-      feedbackParts.push(`Missing expected code snippets: ${missing.join(", ")}`);
-    }
-    if (missingPatterns.length > 0) {
-      feedbackParts.push("Code structure/content does not match the required format for this lab.");
-    }
-    if (!outputAssertionsPassed) {
-      const failedCount =
-        outputAssertionMode === "any"
-          ? outputAssertions.length
-          : failedOutputAssertions.length;
-      feedbackParts.push(
-        outputAssertionMode === "any"
-          ? `Expected output not satisfied. Pass at least one of ${failedCount} output checks.`
-          : `Expected output not satisfied. Failed ${failedCount} output check(s).`,
-      );
+    if (entryPoint && testCases.length > 0) {
+      const result = evaluateFunctionLab(interactiveCode, entryPoint, testCases);
+      setCodePracticeResult(result.passed, result.feedback, result.feedback);
+      return;
     }
 
-    codeFeedback =
-      codePracticePassed
-        ? "Great job. Your code includes the required parts for this section."
-        : feedbackParts.join(" ");
+    if (editableRegions.length > 0 && starterCode) {
+      const result = evaluateEditableRegionsLab(interactiveCode, starterCode, editableRegions);
+      setCodePracticeResult(result.passed, result.feedback, result.feedback);
+      return;
+    }
+
+    setCodePracticeResult(
+      false,
+      "",
+      "This lab configuration is incomplete. It needs either function test cases or editable regions.",
+    );
   }
 
   $: {
@@ -663,6 +504,8 @@
         {:else if activeSection.interactiveMode === "CODE_EDITOR"}
           <CodeLab
             bind:code={interactiveCode}
+            starterCode={activeSection.interactiveConfig?.starterCode ?? ""}
+            editableRegions={activeSection.interactiveConfig?.editableRegions ?? []}
             feedback={codeFeedback}
             isPassed={codePracticePassed}
             on:check={evaluateCodePractice}

@@ -31,7 +31,7 @@
   import type { FileListResponse } from "$lib/interface/Files";
   import type { FileTab } from "$lib/components/workspace/FileTabBar.svelte";
   import { toast } from "$lib/stores/toast";
-  import type { UserData, IContainer, IScenario, ILevel } from "$lib/types";
+  import type { UserData, IContainer, IScenario, ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
   const SazOnboardingCoachComponent: any = SazOnboardingCoach;
@@ -103,34 +103,7 @@
   type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
   type WorkspaceTask = TestableTask & {
     boardStatus?: BoardTaskStatus;
-    learningSections?: Array<{
-      id: string;
-      title: string;
-      content: string;
-      order: number;
-      taskId: string;
-      sectionType: "PLAIN_TEXT" | "INTERACTIVE";
-      interactiveMode?: "TERMINAL_CD" | "CODE_EDITOR" | null;
-      interactiveConfig?: {
-        instructions?: string;
-        starterCode?: string;
-        expectedCommands?: string[];
-        initialDirectory?: string;
-        directoryTree?: Record<string, string[]>;
-        expectedOutput?: string;
-        requiredSnippets?: string[];
-        requiredPatterns?: string[];
-        outputAssertionMode?: "all" | "any";
-        outputAssertions?: Array<{
-          type: "includes" | "equals" | "regex";
-          value: string;
-          caseSensitive?: boolean;
-          normalizeWhitespace?: boolean;
-          target?: "code" | "plainText";
-        }>;
-        language?: string;
-      } | null;
-    }>;
+    learningSections?: ILearningSection[];
     userStory?: string;
   };
   let tasks: WorkspaceTask[] = [];

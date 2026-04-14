@@ -250,17 +250,11 @@ async function main() {
                     language: "tsx",
                     starterCode:
                       '<h1 className="header-title">Hello World</h1>',
-                    requiredSnippets: ["Welcome Back"],
-                    requiredPatterns: [
-                      '^\\s*<h1\\b[^>]*>\\s*Welcome Back\\s*<\\/h1>\\s*$',
-                    ],
-                    outputAssertions: [
+                    editableRegions: [
                       {
-                        type: "equals",
-                        value: "Welcome Back",
-                        target: "plainText",
+                        placeholder: "Hello World",
+                        mustContain: "Welcome Back",
                         caseSensitive: true,
-                        normalizeWhitespace: true,
                       },
                     ],
                   },
@@ -375,36 +369,29 @@ async function main() {
                   order: 6,
                 },
                 {
-                  title: "Practice Lab: Name Formatter Utility",
+                  title: "Practice Lab: Next Copy Counter",
                   content:
-                    "Practice writing a separate utility that formats member names safely for display.",
+                    "Practice writing a very simple number utility before doing the real workspace task.",
                   sectionType: "INTERACTIVE" as const,
                   interactiveMode: "CODE_EDITOR" as const,
                   interactiveConfig: {
                     instructions:
-                      "Create formatMemberName(first, last) that returns a trimmed full name.",
-                    language: "typescript",
+                      "Create getNextCopyCount(currentCopies) that returns currentCopies + 1.",
+                    language: "javascript",
                     starterCode:
-                      "export function formatMemberName(first: string, last: string): string {\n  // TODO\n}\n",
-                    requiredSnippets: ["formatMemberName", "trim", "return"],
-                    requiredPatterns: [
-                      "\\bformatMemberName\\b",
-                      "\\btrim\\s*\\(",
-                      "\\breturn\\b",
+                      "export function getNextCopyCount(currentCopies) {\n  // TODO\n}\n",
+                    editableRegions: [
+                      {
+                        placeholder: "// TODO",
+                        mustContain: "",
+                        caseSensitive: true,
+                      },
                     ],
-                    outputAssertions: [
-                      {
-                        type: "includes",
-                        value: "formatMemberName(",
-                        target: "code",
-                        caseSensitive: true,
-                      },
-                      {
-                        type: "regex",
-                        value: "return\\s+.*\\.trim\\s*\\(",
-                        target: "code",
-                        caseSensitive: true,
-                      },
+                    entryPoint: "getNextCopyCount",
+                    testCases: [
+                      { input: [0], expected: 1, label: "zero copies" },
+                      { input: [1], expected: 2, label: "one copy" },
+                      { input: [5], expected: 6, label: "five copies" },
                     ],
                   },
                   order: 7,
@@ -532,25 +519,13 @@ async function main() {
                   interactiveConfig: {
                     instructions:
                       "Replace inline status logic with getBorrowBadgeLabel helper usage.",
-                    language: "tsx",
+                    language: "javascript",
                     starterCode:
-                      'const badge = record.returnedAt ? "Returned" : "Active";\n',
-                    requiredSnippets: ["getBorrowBadgeLabel", "record"],
-                    requiredPatterns: [
-                      "\\bgetBorrowBadgeLabel\\s*\\(",
-                      "\\brecord\\b",
-                    ],
-                    outputAssertions: [
+                      "function getBorrowBadgeLabel(record) {\n  if (record.returnedAt) return \"Returned\";\n  return \"Active\";\n}\n\nconst badge = record.returnedAt ? \"Returned\" : \"Active\";\n",
+                    editableRegions: [
                       {
-                        type: "includes",
-                        value: "getBorrowBadgeLabel(",
-                        target: "code",
-                        caseSensitive: true,
-                      },
-                      {
-                        type: "regex",
-                        value: "const\\s+badge\\s*=",
-                        target: "code",
+                        placeholder: 'record.returnedAt ? "Returned" : "Active"',
+                        mustContain: "getBorrowBadgeLabel(record)",
                         caseSensitive: true,
                       },
                     ],
@@ -712,30 +687,21 @@ async function main() {
                       "Add three log checkpoints: before update, after first write, and after second write.",
                     language: "typescript",
                     starterCode:
-                      "async function returnBookFlow() {\n  // TODO: checkpoints\n}\n",
-                    requiredSnippets: ["console.log", "before", "after"],
-                    requiredPatterns: [
-                      "\\bconsole\\.log\\s*\\(",
-                      "\\bbefore\\b",
-                      "\\bafter\\b",
-                    ],
-                    outputAssertions: [
+                      "async function returnBookFlow() {\n  console.log(\"BEFORE_UPDATE\");\n  await updateBorrowRecord();\n  console.log(\"AFTER_FIRST_WRITE\");\n  await updateInventory();\n  console.log(\"AFTER_SECOND_WRITE\");\n}\n",
+                    editableRegions: [
                       {
-                        type: "includes",
-                        value: "console.log",
-                        target: "code",
-                        caseSensitive: true,
-                      },
-                      {
-                        type: "includes",
-                        value: "before",
-                        target: "code",
+                        placeholder: "BEFORE_UPDATE",
+                        mustContain: "before update",
                         caseSensitive: false,
                       },
                       {
-                        type: "includes",
-                        value: "after",
-                        target: "code",
+                        placeholder: "AFTER_FIRST_WRITE",
+                        mustContain: "after first write",
+                        caseSensitive: false,
+                      },
+                      {
+                        placeholder: "AFTER_SECOND_WRITE",
+                        mustContain: "after second write",
                         caseSensitive: false,
                       },
                     ],
@@ -853,33 +819,15 @@ async function main() {
                     language: "typescript",
                     starterCode:
                       "await prisma.$transaction([\n  // inventory update\n  // audit log insert\n]);\n",
-                    requiredSnippets: [
-                      "prisma.$transaction",
-                      "inventory",
-                      "audit",
-                    ],
-                    requiredPatterns: [
-                      "\\bprisma\\.\\$transaction\\s*\\(",
-                      "\\binventory\\b",
-                      "\\baudit\\b",
-                    ],
-                    outputAssertions: [
+                    editableRegions: [
                       {
-                        type: "includes",
-                        value: "prisma.$transaction",
-                        target: "code",
-                        caseSensitive: true,
-                      },
-                      {
-                        type: "includes",
-                        value: "inventory",
-                        target: "code",
+                        placeholder: "// inventory update",
+                        mustContain: "await tx.book.update",
                         caseSensitive: false,
                       },
                       {
-                        type: "includes",
-                        value: "audit",
-                        target: "code",
+                        placeholder: "// audit log insert",
+                        mustContain: "await tx.auditLog.create",
                         caseSensitive: false,
                       },
                     ],
@@ -1020,33 +968,37 @@ async function main() {
                   interactiveConfig: {
                     instructions:
                       "Validate required fields and return early errors before calling database logic.",
-                    language: "typescript",
+                    language: "javascript",
                     starterCode:
-                      "function validateReservationPayload(body: any) {\n  // TODO\n}\n",
-                    requiredSnippets: ["bookId", "memberId", "return"],
-                    requiredPatterns: [
-                      "\\bbookId\\b",
-                      "\\bmemberId\\b",
-                      "\\breturn\\b",
+                      "function validateReservationPayload(body) {\n  // return true only when both IDs are positive numbers\n}\n",
+                    editableRegions: [
+                      {
+                        placeholder: "// return true only when both IDs are positive numbers",
+                        mustContain: "",
+                        caseSensitive: true,
+                      },
                     ],
-                    outputAssertions: [
+                    entryPoint: "validateReservationPayload",
+                    testCases: [
                       {
-                        type: "includes",
-                        value: "bookId",
-                        target: "code",
-                        caseSensitive: true,
+                        input: [{ bookId: 4, memberId: 2 }],
+                        expected: true,
+                        label: "valid numeric IDs",
                       },
                       {
-                        type: "includes",
-                        value: "memberId",
-                        target: "code",
-                        caseSensitive: true,
+                        input: [{ bookId: 0, memberId: 2 }],
+                        expected: false,
+                        label: "zero bookId",
                       },
                       {
-                        type: "includes",
-                        value: "return",
-                        target: "code",
-                        caseSensitive: true,
+                        input: [{ bookId: 9, memberId: -1 }],
+                        expected: false,
+                        label: "negative memberId",
+                      },
+                      {
+                        input: [{ bookId: "9", memberId: 2 }],
+                        expected: false,
+                        label: "string bookId",
                       },
                     ],
                   },
@@ -1231,33 +1183,30 @@ async function main() {
                   interactiveConfig: {
                     instructions:
                       "Map reservation rows into readable summary lines with position + member + status.",
-                    language: "typescript",
+                    language: "javascript",
                     starterCode:
-                      "function formatQueueSnapshot(rows: any[]) {\n  // TODO\n}\n",
-                    requiredSnippets: ["queuePosition", "status", "map"],
-                    requiredPatterns: [
-                      "\\bqueuePosition\\b",
-                      "\\bstatus\\b",
-                      "\\bmap\\s*\\(",
+                      "function formatQueueSnapshot(rows) {\n  // Return one summary string joined by \" | \"\n}\n",
+                    editableRegions: [
+                      {
+                        placeholder: "// Return one summary string joined by \" | \"",
+                        mustContain: "",
+                        caseSensitive: true,
+                      },
                     ],
-                    outputAssertions: [
+                    entryPoint: "formatQueueSnapshot",
+                    testCases: [
                       {
-                        type: "includes",
-                        value: ".map(",
-                        target: "code",
-                        caseSensitive: true,
+                        input: [[
+                          { queuePosition: 1, memberName: "Ari", status: "RESERVED" },
+                          { queuePosition: 2, memberName: "Bea", status: "READY_FOR_PICKUP" },
+                        ]],
+                        expected: "#1 Ari [RESERVED] | #2 Bea [READY_FOR_PICKUP]",
+                        label: "two-row queue",
                       },
                       {
-                        type: "includes",
-                        value: "queuePosition",
-                        target: "code",
-                        caseSensitive: true,
-                      },
-                      {
-                        type: "includes",
-                        value: "status",
-                        target: "code",
-                        caseSensitive: true,
+                        input: [[]],
+                        expected: "(empty queue)",
+                        label: "empty queue",
                       },
                     ],
                   },
@@ -1449,39 +1398,32 @@ async function main() {
                   interactiveConfig: {
                     instructions:
                       'Create a helper that returns "OVERDUE" or "ON_TIME" from dueDate + returnedAt.',
-                    language: "typescript",
+                    language: "javascript",
                     starterCode:
-                      "function getOverdueLabel(dueDate: Date, returnedAt: Date | null): string {\n  // TODO\n}\n",
-                    requiredSnippets: ["returnedAt", "dueDate", "OVERDUE"],
-                    requiredPatterns: [
-                      "\\breturnedAt\\b",
-                      "\\bdueDate\\b",
-                      "(?:\"|')OVERDUE(?:\"|')",
+                      "function getOverdueLabel(dueDate, returnedAt) {\n  // TODO\n}\n",
+                    editableRegions: [
+                      {
+                        placeholder: "// TODO",
+                        mustContain: "",
+                        caseSensitive: true,
+                      },
                     ],
-                    outputAssertions: [
+                    entryPoint: "getOverdueLabel",
+                    testCases: [
                       {
-                        type: "includes",
-                        value: "returnedAt",
-                        target: "code",
-                        caseSensitive: true,
+                        input: ["2024-01-01T00:00:00.000Z", null],
+                        expected: "OVERDUE",
+                        label: "past due and not returned",
                       },
                       {
-                        type: "includes",
-                        value: "dueDate",
-                        target: "code",
-                        caseSensitive: true,
+                        input: ["3024-01-01T00:00:00.000Z", null],
+                        expected: "ON_TIME",
+                        label: "future due and not returned",
                       },
                       {
-                        type: "includes",
-                        value: "OVERDUE",
-                        target: "code",
-                        caseSensitive: true,
-                      },
-                      {
-                        type: "includes",
-                        value: "ON_TIME",
-                        target: "code",
-                        caseSensitive: true,
+                        input: ["2024-01-01T00:00:00.000Z", "2024-01-02T00:00:00.000Z"],
+                        expected: "ON_TIME",
+                        label: "already returned",
                       },
                     ],
                   },
@@ -1593,47 +1535,27 @@ async function main() {
                       "Write a 4-line timeline: detection, impact window, mitigation, and final verification.",
                     language: "markdown",
                     starterCode:
-                      "- Detection:\n- Impact Window:\n- Mitigation:\n- Verification:\n",
-                    requiredSnippets: [
-                      "Detection",
-                      "Impact Window",
-                      "Mitigation",
-                      "Verification",
-                    ],
-                    requiredPatterns: [
-                      "(?:^|\\n)\\s*-\\s*Detection\\s*:",
-                      "(?:^|\\n)\\s*-\\s*Impact\\s+Window\\s*:",
-                      "(?:^|\\n)\\s*-\\s*Mitigation\\s*:",
-                      "(?:^|\\n)\\s*-\\s*Verification\\s*:",
-                    ],
-                    outputAssertions: [
+                      "- Detection: [detection detail]\n- Impact Window: [impact window]\n- Mitigation: [mitigation step]\n- Verification: [verification result]\n",
+                    editableRegions: [
                       {
-                        type: "includes",
-                        value: "Detection:",
-                        target: "plainText",
-                        caseSensitive: true,
-                        normalizeWhitespace: true,
+                        placeholder: "[detection detail]",
+                        mustContain: "Alert from overdue report",
+                        caseSensitive: false,
                       },
                       {
-                        type: "includes",
-                        value: "Impact Window:",
-                        target: "plainText",
-                        caseSensitive: true,
-                        normalizeWhitespace: true,
+                        placeholder: "[impact window]",
+                        mustContain: "09:00-11:00 UTC",
+                        caseSensitive: false,
                       },
                       {
-                        type: "includes",
-                        value: "Mitigation:",
-                        target: "plainText",
-                        caseSensitive: true,
-                        normalizeWhitespace: true,
+                        placeholder: "[mitigation step]",
+                        mustContain: "query patched",
+                        caseSensitive: false,
                       },
                       {
-                        type: "includes",
-                        value: "Verification:",
-                        target: "plainText",
-                        caseSensitive: true,
-                        normalizeWhitespace: true,
+                        placeholder: "[verification result]",
+                        mustContain: "regression test passed",
+                        caseSensitive: false,
                       },
                     ],
                   },

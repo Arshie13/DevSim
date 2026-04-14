@@ -56,20 +56,20 @@ export interface ILearningSection {
   interactiveConfig?: {
     instructions?: string;
     starterCode?: string;
+    entryPoint?: string;
+    testCases?: Array<{
+      input: unknown[];
+      expected: unknown;
+      label: string;
+    }>;
+    editableRegions?: Array<{
+      placeholder: string;
+      mustContain: string;
+      caseSensitive?: boolean;
+    }>;
     expectedCommands?: string[];
     initialDirectory?: string;
     directoryTree?: Record<string, string[]>;
-    expectedOutput?: string;
-    requiredSnippets?: string[];
-    requiredPatterns?: string[];
-    outputAssertionMode?: "all" | "any";
-    outputAssertions?: Array<{
-      type: "includes" | "equals" | "regex";
-      value: string;
-      caseSensitive?: boolean;
-      normalizeWhitespace?: boolean;
-      target?: "code" | "plainText";
-    }>;
     language?: string;
   } | null;
 }
