@@ -79,18 +79,45 @@ async function main() {
               "As a developer, I want to set up my development environment so that I can start working on the project.",
             learningSections: {
               create: [
-                { title: "Overview\nSetting Up a PERN Stack Project", content: "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.", order: 1 },
-                { title: "What is the PERN Stack?", content: "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nPostgreSQL — the database that stores your data\nExpress — a Node.js framework that handles your server and API routes\nReact — the frontend library that builds your user interface\nNode.js — the JavaScript runtime that runs your server code", order: 2 },
-                { title: "How a PERN App is Structured", content: "A typical PERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach part has its own package.json, which means you need to install dependencies in all three locations.", order: 3 },
-                { title: "Package Management 101", content: "When you start a project, no dependencies are installed yet. You need to run npm install (or pnpm install) in each folder that has a package.json.\n\nWhy separate installs? Each folder is its own isolated module. The client uses React libraries, the server uses Express libraries — they don't share the same node_modules.", order: 4 },
-                { title: "Change Directory (cd) Basics", content: "In development, you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server before running installs or scripts.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running a command, because npm install and npm run commands affect the folder you are currently in.", order: 5 },
+                {
+                  title: "Overview\nSetting Up a PERN Stack Project",
+                  content:
+                    "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                  order: 1,
+                },
+                {
+                  title: "What is the PERN Stack?",
+                  content:
+                    "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nPostgreSQL — the database that stores your data\nExpress — a Node.js framework that handles your server and API routes\nReact — the frontend library that builds your user interface\nNode.js — the JavaScript runtime that runs your server code",
+                  order: 2,
+                },
+                {
+                  title: "How a PERN App is Structured",
+                  content:
+                    "A typical PERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach part has its own package.json, which means you need to install dependencies in all three locations.",
+                  order: 3,
+                },
+                {
+                  title: "Package Management 101",
+                  content:
+                    "When you start a project, no dependencies are installed yet. You need to run npm install (or pnpm install) in each folder that has a package.json.\n\nWhy separate installs? Each folder is its own isolated module. The client uses React libraries, the server uses Express libraries — they don't share the same node_modules.",
+                  order: 4,
+                },
+                {
+                  title: "Change Directory (cd) Basics",
+                  content:
+                    "In development, you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server before running installs or scripts.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running a command, because npm install and npm run commands affect the folder you are currently in.",
+                  order: 5,
+                },
                 {
                   title: "Practice Lab: cd Navigation",
-                  content: "Practice navigating folders with cd. Use `ls` to list files/folders in your current directory and `pwd` to print your current path when you want to verify where you are.",
+                  content:
+                    "Practice navigating folders with cd. Use `ls` to list files/folders in your current directory and `pwd` to print your current path when you want to verify where you are.",
                   sectionType: "INTERACTIVE" as const,
                   interactiveMode: "TERMINAL_CD" as const,
                   interactiveConfig: {
-                    instructions: "Goal: navigate to /workspace/client, then to /workspace/server, then back to /workspace. Tip: `ls` lists current directory contents and `pwd` prints your current path.",
+                    instructions:
+                      "Goal: navigate to /workspace/client, then to /workspace/server, then back to /workspace. Tip: `ls` lists current directory contents and `pwd` prints your current path.",
                     initialDirectory: "/workspace",
                     expectedCommands: ["cd client", "cd ../server", "cd .."],
                     directoryTree: {
@@ -101,10 +128,30 @@ async function main() {
                   },
                   order: 6,
                 },
-                { title: "Environment Variables", content: "Sensitive config (like database credentials) is stored in .env files — never hardcoded in source code. DATABASE_URL=\"postgresql://user:password@localhost:5432/mydb\"\nPORT=3000\n The dotenv package reads these files and makes them available as process.env.DATABASE_URL in your code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control. \n\n Note:\nIn this project, some environment variables will be provided by us, so no need to set it up", order: 7 },
-                { title: "What is Prisma?", content: "Prisma is an ORM (Object-Relational Mapper) — a tool that lets you interact with your database using JavaScript/TypeScript instead of raw SQL. Instead of writing:\nSELECT * FROM books WHERE id = 1;\n You write:\nawait prisma.book.findUnique({ where: { id: 1 } });", order: 8 },
-                { title: "Prisma Migrations", content: "A migration is a recorded change to your database schema (tables, columns, relationships). When you run npx prisma migrate dev, Prisma reads your schema.prisma file, compares it with the current state of the database, and then generates and executes the necessary SQL to synchronize them. This process ensures that every developer’s database remains consistent and follows the same structure.", order: 9 },
-                { title: "Key Takeaway", content: "Setting up a project isn't just installing packages — it's aligning your local environment (dependencies, env vars, database schema) so the app runs the same way for every developer on the team.", order: 10 },
+                {
+                  title: "Environment Variables",
+                  content:
+                    'Sensitive config (like database credentials) is stored in .env files — never hardcoded in source code. DATABASE_URL="postgresql://user:password@localhost:5432/mydb"\nPORT=3000\n The dotenv package reads these files and makes them available as process.env.DATABASE_URL in your code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control. \n\n Note:\nIn this project, some environment variables will be provided by us, so no need to set it up',
+                  order: 7,
+                },
+                {
+                  title: "What is Prisma?",
+                  content:
+                    "Prisma is an ORM (Object-Relational Mapper) — a tool that lets you interact with your database using JavaScript/TypeScript instead of raw SQL. Instead of writing:\nSELECT * FROM books WHERE id = 1;\n You write:\nawait prisma.book.findUnique({ where: { id: 1 } });",
+                  order: 8,
+                },
+                {
+                  title: "Prisma Migrations",
+                  content:
+                    "A migration is a recorded change to your database schema (tables, columns, relationships). When you run npx prisma migrate dev, Prisma reads your schema.prisma file, compares it with the current state of the database, and then generates and executes the necessary SQL to synchronize them. This process ensures that every developer’s database remains consistent and follows the same structure.",
+                  order: 9,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Setting up a project isn't just installing packages — it's aligning your local environment (dependencies, env vars, database schema) so the app runs the same way for every developer on the team.",
+                  order: 10,
+                },
               ],
             },
             hints: {
@@ -155,13 +202,77 @@ async function main() {
               "As a user, I want to see the updated brand subtitle on the website so that the interface reflects the library identity.",
             learningSections: {
               create: [
-                { title: "Overview\nReact Components and the UI Layer", content: "This section introduces the crash course for understanding React components and the UI layer. It gives a broad view of how interface elements are structured and where to make safe, task-focused UI updates.", order: 1 },
-                { title: "What is a React Component?", content: "A React component is a reusable piece of UI — like a header, a button, or a card. Components are just JavaScript functions that return HTML-like syntax called JSX.", order: 2 },
-                { title: "Layout Components", content: "In most React apps, elements like the header and footer live in layout components — shared wrappers used across multiple pages. This way, you change the header text in one place and it updates everywhere.\n\nA typical layout structure:\ncomponents/\n    └── layout/\n          ├── Header.tsx ← top navigation bar\n          ├── Sidebar.tsx ← side menu\n          └── Footer.tsx ← bottom bar", order: 3 },
-                { title: "How to Find What to Change", content: "When you need to update something you see in the browser, ask:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, you'd look inside the layout's header component for a hardcoded string like \"Public Library\" or similar.", order: 4 },
-                { title: "JSX Text Content", content: "Changing text in JSX is straightforward — it's just like editing HTML:\n// Before\n<p className=\"subtitle\">Old Subtitle</p>\n// After\n<p className=\"subtitle\">BookWise Public Library</p>", order: 5 },
-                { title: "Verifying Your Change", content: "After editing, save the file and check the browser. React's dev server (via Vite or CRA) supports Hot Module Replacement (HMR) — meaning the page updates instantly without a full refresh when you save a file.", order: 6 },
-                { title: "Key Takeaway", content: "UI changes in React always trace back to a component file. Layout components are the first place to look for global elements like headers. Find the component, find the text, change it.", order: 7 },
+                {
+                  title: "Overview\nReact Components and the UI Layer",
+                  content:
+                    "This section introduces the crash course for understanding React components and the UI layer. It gives a broad view of how interface elements are structured and where to make safe, task-focused UI updates.",
+                  order: 1,
+                },
+                {
+                  title: "What is a React Component?",
+                  content:
+                    "A React component is a reusable piece of UI — like a header, a button, or a card. Components are just JavaScript functions that return HTML-like syntax called JSX.",
+                  order: 2,
+                },
+                {
+                  title: "Layout Components",
+                  content:
+                    "In most React apps, elements like the header and footer live in layout components — shared wrappers used across multiple pages. This way, you change the header text in one place and it updates everywhere.\n\nA typical layout structure:\ncomponents/\n    └── layout/\n          ├── Header.tsx ← top navigation bar\n          ├── Sidebar.tsx ← side menu\n          └── Footer.tsx ← bottom bar",
+                  order: 3,
+                },
+                {
+                  title: "How to Find What to Change",
+                  content:
+                    "When you need to update something you see in the browser, ask:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, you'd look inside the layout's header component for a hardcoded string like \"Public Library\" or similar.",
+                  order: 4,
+                },
+                {
+                  title: "JSX Text Content",
+                  content:
+                    'Changing text in JSX is straightforward — it\'s just like editing HTML:\n// Before\n<p className="subtitle">Old Subtitle</p>\n// After\n<p className="subtitle">BookWise Public Library</p>',
+                  order: 5,
+                },
+                {
+                  title: "Verifying Your Change",
+                  content:
+                    "After editing, save the file and check the browser. React's dev server (via Vite or CRA) supports Hot Module Replacement (HMR) — meaning the page updates instantly without a full refresh when you save a file.",
+                  order: 6,
+                },
+                {
+                  title: "Practice Lab: Update Heading Text",
+                  content:
+                    "Practice a simple UI change by editing the text inside a heading element.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      'Change the text from "Hello World" to "Welcome Back".',
+                    language: "tsx",
+                    starterCode:
+                      '<h1 className="header-title">Hello World</h1>',
+                    requiredSnippets: ["Welcome Back"],
+                    requiredPatterns: [
+                      '^\\s*<h1\\b[^>]*>\\s*Welcome Back\\s*<\\/h1>\\s*$',
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "equals",
+                        value: "Welcome Back",
+                        target: "plainText",
+                        caseSensitive: true,
+                        normalizeWhitespace: true,
+                      },
+                    ],
+                  },
+                  order: 7,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "UI changes in React always trace back to a component file. Layout components are the first place to look for global elements like headers. Find the component, find the text, change it.",
+                  order: 8,
+                },
+
               ],
             },
             hints: {
@@ -226,26 +337,84 @@ async function main() {
               "As a developer, I want a reusable availability helper, So that borrow decisions stay correct and consistent.",
             learningSections: {
               create: [
-                { title: "Overview\nPure Functions and Utility Helpers in React", content: "This section introduces the crash course for pure functions and reusable utility helpers in React. It outlines why centralized logic improves consistency, testability, and maintainability across related task workflows.", order: 1 },
-                { title: "What is a Pure Function?", content: "A pure function is a function that:\n - Always returns the same output for the same input\n - Has no side effects (doesn't modify anything outside itself) \n// Pure function ✅\nfunction isBookAvailable(availableCopies: number): boolean { \n return availableCopies > 0; \n} \n// NOT pure ❌ — reads external state\n // depends on outside variable\nfunction isBookAvailable(): boolean {\n return globalBookCount > 0;\n}\n Pure functions are predictable, easy to test, and safe to reuse anywhere.", order: 2 },
-                { title: "Why Centralize Logic in a Helper?", content: "Imagine the same availability check scattered across 5 different components: \n // In Books.tsx\nif (book.availableCopies > 0) { ... } \n // In BorrowRecords.tsx\nif (book.copies !== 0) { ... }  ← slightly different!\n // In Dashboard.tsx\nif (book.availableCopies >= 1) { ... } \n Each variation is a bug waiting to happen. If the rule changes (e.g., \"reserve 1 copy for walk-ins\"), you'd need to update every file. With a centralized helper, every component imports uses the same logic.\nOne change = consistent behavior everywhere.", order: 3 },
-                { title: "Where to Put Helpers", content: "In React projects, shared utility functions live in a utils/ folder: \nclient/\n    src/\n        └── utils/\n              └── helpers.ts ← shared helper functions go here", order: 4 },
-                { title: "Boundary Conditions", content: "When writing availability logic, you need to handle edge cases — inputs at or near the boundary of expected values: \n| 5 | true (available) |\n| 1 | true (available) |\n| 0 | false (unavailable) |\n| -1 | false (unavailable — defensive) | \nThe 0 boundary is the most important: \na book with 0 copies is not available, even though 0 is technically a valid number.", order: 5 },
-                { title: "Exporting from a Module", content: "To use your helper in other files, you must export it: \n// utils/helpers.ts\nexport function isBookAvailable(availableCopies: number): boolean { \nreturn availableCopies > 0;\n} \nAnd import it where needed:\nimport { isBookAvailable } from '../utils/helpers';", order: 6 },
                 {
-                  title: "Practice Lab: Write isBookAvailable",
-                  content: "Use the mini editor to draft `isBookAvailable` so it returns true only when copies are greater than zero.",
+                  title:
+                    "Overview\nPure Functions and Utility Helpers in React",
+                  content:
+                    "This section introduces the crash course for pure functions and reusable utility helpers in React. It outlines why centralized logic improves consistency, testability, and maintainability across related task workflows.",
+                  order: 1,
+                },
+                {
+                  title: "What is a Pure Function?",
+                  content:
+                    "A pure function is a function that:\n - Always returns the same output for the same input\n - Has no side effects (doesn't modify anything outside itself) \n// Pure function ✅\nfunction isBookAvailable(availableCopies: number): boolean { \n return availableCopies > 0; \n} \n// NOT pure ❌ — reads external state\n // depends on outside variable\nfunction isBookAvailable(): boolean {\n return globalBookCount > 0;\n}\n Pure functions are predictable, easy to test, and safe to reuse anywhere.",
+                  order: 2,
+                },
+                {
+                  title: "Why Centralize Logic in a Helper?",
+                  content:
+                    'Imagine the same availability check scattered across 5 different components: \n // In Books.tsx\nif (book.availableCopies > 0) { ... } \n // In BorrowRecords.tsx\nif (book.copies !== 0) { ... }  ← slightly different!\n // In Dashboard.tsx\nif (book.availableCopies >= 1) { ... } \n Each variation is a bug waiting to happen. If the rule changes (e.g., "reserve 1 copy for walk-ins"), you\'d need to update every file. With a centralized helper, every component imports uses the same logic.\nOne change = consistent behavior everywhere.',
+                  order: 3,
+                },
+                {
+                  title: "Where to Put Helpers",
+                  content:
+                    "In React projects, shared utility functions live in a utils/ folder: \nclient/\n    src/\n        └── utils/\n              └── helpers.ts ← shared helper functions go here",
+                  order: 4,
+                },
+                {
+                  title: "Boundary Conditions",
+                  content:
+                    "When writing availability logic, you need to handle edge cases — inputs at or near the boundary of expected values: \n| 5 | true (available) |\n| 1 | true (available) |\n| 0 | false (unavailable) |\n| -1 | false (unavailable — defensive) | \nThe 0 boundary is the most important: \na book with 0 copies is not available, even though 0 is technically a valid number.",
+                  order: 5,
+                },
+                {
+                  title: "Exporting from a Module",
+                  content:
+                    "To use your helper in other files, you must export it: \n// utils/helpers.ts\nexport function isBookAvailable(availableCopies: number): boolean { \nreturn availableCopies > 0;\n} \nAnd import it where needed:\nimport { isBookAvailable } from '../utils/helpers';",
+                  order: 6,
+                },
+                {
+                  title: "Practice Lab: Name Formatter Utility",
+                  content:
+                    "Practice writing a separate utility that formats member names safely for display.",
                   sectionType: "INTERACTIVE" as const,
                   interactiveMode: "CODE_EDITOR" as const,
                   interactiveConfig: {
-                    instructions: "Create a function named isBookAvailable that accepts availableCopies and returns a boolean.",
+                    instructions:
+                      "Create formatMemberName(first, last) that returns a trimmed full name.",
                     language: "typescript",
-                    starterCode: "export function isBookAvailable(availableCopies: number): boolean {\n  // TODO\n}\n",
-                    requiredSnippets: ["isBookAvailable", "availableCopies", "return"],
+                    starterCode:
+                      "export function formatMemberName(first: string, last: string): string {\n  // TODO\n}\n",
+                    requiredSnippets: ["formatMemberName", "trim", "return"],
+                    requiredPatterns: [
+                      "\\bformatMemberName\\b",
+                      "\\btrim\\s*\\(",
+                      "\\breturn\\b",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: "formatMemberName(",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "regex",
+                        value: "return\\s+.*\\.trim\\s*\\(",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                    ],
                   },
                   order: 7,
                 },
-                { title: "Key Takeaway", content: "Small, focused pure functions are the building blocks of reliable UIs. By centralizing decision logic in a shared helper, you write it once, test it once, and trust it everywhere.", order: 8 },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Small, focused pure functions are the building blocks of reliable UIs. By centralizing decision logic in a shared helper, you write it once, test it once, and trust it everywhere.",
+                  order: 8,
+                },
               ],
             },
             hints: {
@@ -316,13 +485,84 @@ async function main() {
               "As a developer, I want BorrowRecords to use the shared availability helper, So that the logic stays consistent across views.",
             learningSections: {
               create: [
-                { title: "Overview\nRefactoring: Replacing Inline Logic with Shared Helpers", content: "This section introduces the crash course for refactoring inline checks into shared helpers. It provides a high-level guide for reducing duplication while keeping behavior stable across the task flow.", order: 1 },
-                { title: "What is Refactoring?", content: "Refactoring means improving the structure of existing code without changing what it does. The behavior stays the same — but the code becomes cleaner, more consistent, and easier to maintain.", order: 2 },
-                { title: "The Problem: Duplicated Logic", content: "When the same decision appears in multiple components with slight differences, bugs creep in:\n // Books.tsx\nconst canBorrow = book.availableCopies > 0;\n // BorrowRecords.tsx\nconst canBorrow = book.copies !== 0; ← different condition! These two checks look similar but behave differently at edge cases (e.g., negative copies). If a librarian borrows the last copy and copies somehow go negative, one check says \"unavailable\" and the other says \"available.\"", order: 3 },
-                { title: "The Fix: Import and Reuse", content: "Replace the inline condition with the shared helper: \n// Before — inline logic\nconst showBorrowButton = book.availableCopies !== 0;\n // After — shared helper\nimport { isBookAvailable } from '../utils/helpers';\nconst showBorrowButton = isBookAvailable(book.availableCopies); \nThe behavior is driven by the helper now. If the helper's rule ever changes, all components update automatically.", order: 4 },
-                { title: "Finding Inline Checks to Replace", content: "When refactoring, search the codebase for patterns that mirror the logic you're centralizing. In this case, look for:\n - Direct comparisons involving availableCopies\n - Conditions used to show/hide borrow UI elements\n - Any boolean derived from copy count", order: 5 },
-                { title: "Non-Regression: Making Sure You Didn't Break Anything", content: "After refactoring, verify the feature still works the same way:\nBooks with copies available → borrow button shown\nBooks with 0 copies → borrow button hidden\nThe \"Issue Book\" flow works end-to-end Refactoring should be invisible to the user — same behavior, better code.", order: 6 },
-                { title: "Key Takeaway", content: "Refactoring is a professional habit. Replace scattered inline conditions with centralized helpers to make your codebase consistent and easier to change safely in the future.", order: 7 },
+                {
+                  title:
+                    "Overview\nRefactoring: Replacing Inline Logic with Shared Helpers",
+                  content:
+                    "This section introduces the crash course for refactoring inline checks into shared helpers. It provides a high-level guide for reducing duplication while keeping behavior stable across the task flow.",
+                  order: 1,
+                },
+                {
+                  title: "What is Refactoring?",
+                  content:
+                    "Refactoring means improving the structure of existing code without changing what it does. The behavior stays the same — but the code becomes cleaner, more consistent, and easier to maintain.",
+                  order: 2,
+                },
+                {
+                  title: "The Problem: Duplicated Logic",
+                  content:
+                    'When the same decision appears in multiple components with slight differences, bugs creep in:\n // Books.tsx\nconst canBorrow = book.availableCopies > 0;\n // BorrowRecords.tsx\nconst canBorrow = book.copies !== 0; ← different condition! These two checks look similar but behave differently at edge cases (e.g., negative copies). If a librarian borrows the last copy and copies somehow go negative, one check says "unavailable" and the other says "available."',
+                  order: 3,
+                },
+                {
+                  title: "The Fix: Import and Reuse",
+                  content:
+                    "Replace the inline condition with the shared helper: \n// Before — inline logic\nconst showBorrowButton = book.availableCopies !== 0;\n // After — shared helper\nimport { isBookAvailable } from '../utils/helpers';\nconst showBorrowButton = isBookAvailable(book.availableCopies); \nThe behavior is driven by the helper now. If the helper's rule ever changes, all components update automatically.",
+                  order: 4,
+                },
+                {
+                  title: "Finding Inline Checks to Replace",
+                  content:
+                    "When refactoring, search the codebase for patterns that mirror the logic you're centralizing. In this case, look for:\n - Direct comparisons involving availableCopies\n - Conditions used to show/hide borrow UI elements\n - Any boolean derived from copy count",
+                  order: 5,
+                },
+                {
+                  title:
+                    "Non-Regression: Making Sure You Didn't Break Anything",
+                  content:
+                    'After refactoring, verify the feature still works the same way:\nBooks with copies available → borrow button shown\nBooks with 0 copies → borrow button hidden\nThe "Issue Book" flow works end-to-end Refactoring should be invisible to the user — same behavior, better code.',
+                  order: 6,
+                },
+                {
+                  title: "Practice Lab: Refactor Status Badge Rule",
+                  content:
+                    "Practice extracting an inline UI badge rule into a helper call.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Replace inline status logic with getBorrowBadgeLabel helper usage.",
+                    language: "tsx",
+                    starterCode:
+                      'const badge = record.returnedAt ? "Returned" : "Active";\n',
+                    requiredSnippets: ["getBorrowBadgeLabel", "record"],
+                    requiredPatterns: [
+                      "\\bgetBorrowBadgeLabel\\s*\\(",
+                      "\\brecord\\b",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: "getBorrowBadgeLabel(",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "regex",
+                        value: "const\\s+badge\\s*=",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                    ],
+                  },
+                  order: 7,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Refactoring is a professional habit. Replace scattered inline conditions with centralized helpers to make your codebase consistent and easier to change safely in the future.",
+                  order: 8,
+                },
               ],
             },
             hints: {
@@ -424,13 +664,90 @@ async function main() {
               "As a backend developer, I want to trace the return flow in the server, So that I can identify why available copy counts can become invalid.",
             learningSections: {
               create: [
-                { title: "Overview\nDebugging Backend Logic: Tracing a Data Flow", content: "This section introduces the crash course for tracing backend data flow during debugging. It gives an overview of how to inspect write sequences, isolate failure points, and identify the root cause of inconsistent task outcomes.", order: 1 },
-                { title: "What Does \"Debugging\" Mean Here?", content: "Debugging isn't just fixing errors — sometimes it means understanding why a system produces wrong data. In this case, the symptom is availableCopies going negative. Your job is to trace the code path that causes it.", order: 2 },
-                { title: "The Return Flow", content: "When a member returns a book, two things should happen:\n\nThe BorrowRecord is updated (e.g., returnedAt set, status changed)\nThe Book's availableCopies is incremented by 1\n\nBoth changes need to happen — but what if only one of them does?", order: 3 },
-                { title: "The Problem: Separate Writes", content: "If these two database updates are made in separate Prisma calls:\n\n// Step 1\nawait prisma.borrowRecord.update({\n  where: { id },\n  data: { returnedAt: new Date() }\n});\n\n// Step 2 — what if this crashes or the server restarts here?\nawait prisma.book.update({\n  where: { id: bookId },\n  data: { availableCopies: { increment: 1 } }\n});\n\n...then a failure between Step 1 and Step 2 leaves the database in a partial state:\n\nThe record says the book was returned ✅\nBut the inventory never updated ❌\n\nOver time, with repeated partial failures, counts drift and can go negative.", order: 4 },
-                { title: "How to Trace a Flow", content: "Open the controller responsible for returning books\nFind every prisma. call inside the return function\nAsk: \"What happens if the second write fails after the first succeeds?\"\nLook for any conditional logic that might skip the inventory update", order: 5 },
-                { title: "Identifying the Root Cause", content: "Document what you find:\nWhich line does the borrow record update?\nWhich line does the copy count update?\nAre they in the same operation, or separate?\nWhat scenario makes one succeed and the other fail? This kind of analysis — reading code to understand failure paths — is called root cause analysis and is a core backend engineering skill.", order: 6 },
-                { title: "Key Takeaway", content: "When data becomes inconsistent, the bug is usually in a write sequence that can be interrupted. Trace every write in the flow, and ask: \"What breaks if this step fails in isolation?\"", order: 7 },
+                {
+                  title:
+                    "Overview\nDebugging Backend Logic: Tracing a Data Flow",
+                  content:
+                    "This section introduces the crash course for tracing backend data flow during debugging. It gives an overview of how to inspect write sequences, isolate failure points, and identify the root cause of inconsistent task outcomes.",
+                  order: 1,
+                },
+                {
+                  title: 'What Does "Debugging" Mean Here?',
+                  content:
+                    "Debugging isn't just fixing errors — sometimes it means understanding why a system produces wrong data. In this case, the symptom is availableCopies going negative. Your job is to trace the code path that causes it.",
+                  order: 2,
+                },
+                {
+                  title: "The Return Flow",
+                  content:
+                    "When a member returns a book, two things should happen:\n\nThe BorrowRecord is updated (e.g., returnedAt set, status changed)\nThe Book's availableCopies is incremented by 1\n\nBoth changes need to happen — but what if only one of them does?",
+                  order: 3,
+                },
+                {
+                  title: "The Problem: Separate Writes",
+                  content:
+                    "If these two database updates are made in separate Prisma calls:\n\n// Step 1\nawait prisma.borrowRecord.update({\n  where: { id },\n  data: { returnedAt: new Date() }\n});\n\n// Step 2 — what if this crashes or the server restarts here?\nawait prisma.book.update({\n  where: { id: bookId },\n  data: { availableCopies: { increment: 1 } }\n});\n\n...then a failure between Step 1 and Step 2 leaves the database in a partial state:\n\nThe record says the book was returned ✅\nBut the inventory never updated ❌\n\nOver time, with repeated partial failures, counts drift and can go negative.",
+                  order: 4,
+                },
+                {
+                  title: "How to Trace a Flow",
+                  content:
+                    'Open the controller responsible for returning books\nFind every prisma. call inside the return function\nAsk: "What happens if the second write fails after the first succeeds?"\nLook for any conditional logic that might skip the inventory update',
+                  order: 5,
+                },
+                {
+                  title: "Identifying the Root Cause",
+                  content:
+                    "Document what you find:\nWhich line does the borrow record update?\nWhich line does the copy count update?\nAre they in the same operation, or separate?\nWhat scenario makes one succeed and the other fail? This kind of analysis — reading code to understand failure paths — is called root cause analysis and is a core backend engineering skill.",
+                  order: 6,
+                },
+                {
+                  title: "Practice Lab: Add Debug Checkpoints",
+                  content:
+                    "Practice adding structured debug checkpoints to trace a backend flow.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Add three log checkpoints: before update, after first write, and after second write.",
+                    language: "typescript",
+                    starterCode:
+                      "async function returnBookFlow() {\n  // TODO: checkpoints\n}\n",
+                    requiredSnippets: ["console.log", "before", "after"],
+                    requiredPatterns: [
+                      "\\bconsole\\.log\\s*\\(",
+                      "\\bbefore\\b",
+                      "\\bafter\\b",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: "console.log",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "before",
+                        target: "code",
+                        caseSensitive: false,
+                      },
+                      {
+                        type: "includes",
+                        value: "after",
+                        target: "code",
+                        caseSensitive: false,
+                      },
+                    ],
+                  },
+                  order: 7,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    'When data becomes inconsistent, the bug is usually in a write sequence that can be interrupted. Trace every write in the flow, and ask: "What breaks if this step fails in isolation?"',
+                  order: 8,
+                },
               ],
             },
             hints: {
@@ -487,13 +804,94 @@ async function main() {
               "As a backend engineer, I want the borrow and return flows in `server/src/controllers/borrow.controller.ts` to run atomically, So that concurrent requests cannot corrupt `availableCopies` and partial writes are never persisted.",
             learningSections: {
               create: [
-                { title: "Overview\nDatabase Transactions and Atomic Operations", content: "This section introduces the crash course for database transactions and atomic operations. It explains the core idea behind all-or-nothing updates and why transaction safety is essential for reliable task behavior.", order: 1 },
-                { title: "What is a Transaction?", content: "A database transaction is a group of operations that either all succeed or all fail together. There's no in-between.\n\nThink of it like a bank transfer:\nDeduct $100 from Account A\nAdd $100 to Account B\n\nIf step 2 fails after step 1, the money disappears. A transaction prevents this — it rolls back step 1 if step 2 fails.", order: 2 },
-                { title: "Atomicity: All or Nothing", content: "The key property of transactions is atomicity — the entire group of writes is treated as one indivisible unit. Without transaction:\nWrite 1 succeeds ✅\nWrite 2 fails ❌ ← partial state remains in DB With transaction:\nWrite 1 succeeds ✅\nWrite 2 fails ❌ ← transaction rolls back Write 1 too\nResult: DB unchanged, consistent state preserved ✅", order: 3 },
-                { title: "Prisma Transactions", content: "Prisma provides prisma.$transaction() to wrap multiple writes atomically:\n\nawait prisma.$transaction([\n  prisma.borrowRecord.update({\n    where: { id },\n    data: { returnedAt: new Date() }\n  }),\n  prisma.book.update({\n    where: { id: bookId },\n    data: { availableCopies: { increment: 1 } }\n  }),\n]);\n\nBoth writes succeed together, or neither is committed.", order: 4 },
-                { title: "The Concurrency Problem", content: "Even with correct logic, concurrent requests can corrupt data.\n\nTimeline (no protection):\nRequest A reads availableCopies = 1\nRequest B reads availableCopies = 1\nRequest A borrows → sets to 0\nRequest B borrows → sets to 0 ← should have been rejected!\n\nResult: 2 borrows, 0 copies (should be -1 if no guard)", order: 5 },
-                { title: "Guard Conditions", content: "A conditional update prevents this by including a safety check in the update itself:\n\nprisma.book.updateMany({\n  where: {\n    id: bookId,\n    availableCopies: { gt: 0 } // only update if copies > 0\n  },\n  data: {\n    availableCopies: { decrement: 1 }\n  },\n});\n\nIf 0 rows are updated, the borrow is rejected — the book is already gone.", order: 6 },
-                { title: "Key Takeaway", content: "Transactions protect against partial writes. Guard conditions protect against race conditions. Together, they ensure your inventory data stays accurate even under concurrent load.", order: 7 },
+                {
+                  title:
+                    "Overview\nDatabase Transactions and Atomic Operations",
+                  content:
+                    "This section introduces the crash course for database transactions and atomic operations. It explains the core idea behind all-or-nothing updates and why transaction safety is essential for reliable task behavior.",
+                  order: 1,
+                },
+                {
+                  title: "What is a Transaction?",
+                  content:
+                    "A database transaction is a group of operations that either all succeed or all fail together. There's no in-between.\n\nThink of it like a bank transfer:\nDeduct $100 from Account A\nAdd $100 to Account B\n\nIf step 2 fails after step 1, the money disappears. A transaction prevents this — it rolls back step 1 if step 2 fails.",
+                  order: 2,
+                },
+                {
+                  title: "Atomicity: All or Nothing",
+                  content:
+                    "The key property of transactions is atomicity — the entire group of writes is treated as one indivisible unit. Without transaction:\nWrite 1 succeeds ✅\nWrite 2 fails ❌ ← partial state remains in DB With transaction:\nWrite 1 succeeds ✅\nWrite 2 fails ❌ ← transaction rolls back Write 1 too\nResult: DB unchanged, consistent state preserved ✅",
+                  order: 3,
+                },
+                {
+                  title: "Prisma Transactions",
+                  content:
+                    "Prisma provides prisma.$transaction() to wrap multiple writes atomically:\n\nawait prisma.$transaction([\n  prisma.borrowRecord.update({\n    where: { id },\n    data: { returnedAt: new Date() }\n  }),\n  prisma.book.update({\n    where: { id: bookId },\n    data: { availableCopies: { increment: 1 } }\n  }),\n]);\n\nBoth writes succeed together, or neither is committed.",
+                  order: 4,
+                },
+                {
+                  title: "The Concurrency Problem",
+                  content:
+                    "Even with correct logic, concurrent requests can corrupt data.\n\nTimeline (no protection):\nRequest A reads availableCopies = 1\nRequest B reads availableCopies = 1\nRequest A borrows → sets to 0\nRequest B borrows → sets to 0 ← should have been rejected!\n\nResult: 2 borrows, 0 copies (should be -1 if no guard)",
+                  order: 5,
+                },
+                {
+                  title: "Guard Conditions",
+                  content:
+                    "A conditional update prevents this by including a safety check in the update itself:\n\nprisma.book.updateMany({\n  where: {\n    id: bookId,\n    availableCopies: { gt: 0 } // only update if copies > 0\n  },\n  data: {\n    availableCopies: { decrement: 1 }\n  },\n});\n\nIf 0 rows are updated, the borrow is rejected — the book is already gone.",
+                  order: 6,
+                },
+                {
+                  title: "Practice Lab: Atomic Audit Write",
+                  content:
+                    "Practice wrapping a data update with an audit-log write in one atomic transaction.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Wrap one inventory update and one audit insert in prisma.$transaction.",
+                    language: "typescript",
+                    starterCode:
+                      "await prisma.$transaction([\n  // inventory update\n  // audit log insert\n]);\n",
+                    requiredSnippets: [
+                      "prisma.$transaction",
+                      "inventory",
+                      "audit",
+                    ],
+                    requiredPatterns: [
+                      "\\bprisma\\.\\$transaction\\s*\\(",
+                      "\\binventory\\b",
+                      "\\baudit\\b",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: "prisma.$transaction",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "inventory",
+                        target: "code",
+                        caseSensitive: false,
+                      },
+                      {
+                        type: "includes",
+                        value: "audit",
+                        target: "code",
+                        caseSensitive: false,
+                      },
+                    ],
+                  },
+                  order: 7,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Transactions protect against partial writes. Guard conditions protect against race conditions. Together, they ensure your inventory data stays accurate even under concurrent load.",
+                  order: 8,
+                },
               ],
             },
             hints: {
@@ -570,14 +968,96 @@ async function main() {
               "As a library member, I want to reserve a book when all copies are borrowed, So that I can claim it when it becomes available.",
             learningSections: {
               create: [
-                { title: "Overview\nBuilding a Full-Stack Feature: Reservation Creation", content: "This section introduces the crash course for implementing reservation creation as a full-stack feature. It summarizes the end-to-end task flow between API logic, data validation, and user-facing interactions.", order: 1 },
-                { title: "What Does \"Full-Stack\" Mean for This Task?", content: "A full-stack feature touches both the server (API logic, database) and the client (UI, service calls). You'll build both ends and make them talk to each other.", order: 2 },
-                { title: "The Feature: Reservation Queue", content: "When all copies of a book are borrowed, a member should be able to join a queue. The queue determines who gets the book next when a copy becomes available.\n\n### Data Model Concept\nReservation {\n  id\n  bookId        ← which book\n  memberId      ← who reserved it\n  queuePosition ← their place in line (1 = first)\n  status        ← RESERVED | READY_FOR_PICKUP | CANCELLED\n  createdAt\n}", order: 3 },
-                { title: "Server Side: The API Endpoint", content: "### POST /api/reservations\nCreates a new reservation. Before inserting, the server must validate:\n- The book exists\n- availableCopies === 0 (reserving available books makes no sense)\n- The member doesn't already have an active reservation for this book\n\nAssigning Queue Position\nQueue position is calculated server-side — count active reservations and add 1:\n\nconst existingCount = await prisma.reservation.count({\n  where: { bookId, status: 'RESERVED' }\n});\nconst queuePosition = existingCount + 1;\n\n### GET /api/reservations?bookId=<id>\nReturns the reservation queue for a book, ordered by position. Each row includes member and book details so the UI doesn't need extra requests.", order: 4 },
-                { title: "Client Side: The Service Layer", content: "In a well-structured React app, API calls live in a service layer — not directly in components:\n\nclient/src/\n    └── services/\n          └── libraryService.ts  ← all API calls live here\n\nYour createReservation function in this file calls POST /api/reservations and returns the result.", order: 5 },
-                { title: "Client Side: The UI", content: "The Books.tsx page needs conditional rendering:\nIf availableCopies > 0 → show Borrow button\nIf availableCopies === 0 → show Reserve button\n\nAfter a successful reservation, show the member their queue position:\n\"You are #3 in line.\"\n\nThis number must come from the server response — not calculated on the client.", order: 6 },
-                { title: "Error Handling", content: "The UI should handle and display:\n\"Book is available — no reservation needed\"\n\"You already have an active reservation for this book\"\nGeneric server errors", order: 7 },
-                { title: "Key Takeaway", content: "Full-stack features require you to think in two layers: the API contract (what endpoints exist, what they accept, what they return) and the UI contract (what the user sees and does). Build the server first, then connect the client to it.", order: 8 },
+                {
+                  title:
+                    "Overview\nBuilding a Full-Stack Feature: Reservation Creation",
+                  content:
+                    "This section introduces the crash course for implementing reservation creation as a full-stack feature. It summarizes the end-to-end task flow between API logic, data validation, and user-facing interactions.",
+                  order: 1,
+                },
+                {
+                  title: 'What Does "Full-Stack" Mean for This Task?',
+                  content:
+                    "A full-stack feature touches both the server (API logic, database) and the client (UI, service calls). You'll build both ends and make them talk to each other.",
+                  order: 2,
+                },
+                {
+                  title: "The Feature: Reservation Queue",
+                  content:
+                    "When all copies of a book are borrowed, a member should be able to join a queue. The queue determines who gets the book next when a copy becomes available.\n\n### Data Model Concept\nReservation {\n  id\n  bookId        ← which book\n  memberId      ← who reserved it\n  queuePosition ← their place in line (1 = first)\n  status        ← RESERVED | READY_FOR_PICKUP | CANCELLED\n  createdAt\n}",
+                  order: 3,
+                },
+                {
+                  title: "Server Side: The API Endpoint",
+                  content:
+                    "### POST /api/reservations\nCreates a new reservation. Before inserting, the server must validate:\n- The book exists\n- availableCopies === 0 (reserving available books makes no sense)\n- The member doesn't already have an active reservation for this book\n\nAssigning Queue Position\nQueue position is calculated server-side — count active reservations and add 1:\n\nconst existingCount = await prisma.reservation.count({\n  where: { bookId, status: 'RESERVED' }\n});\nconst queuePosition = existingCount + 1;\n\n### GET /api/reservations?bookId=<id>\nReturns the reservation queue for a book, ordered by position. Each row includes member and book details so the UI doesn't need extra requests.",
+                  order: 4,
+                },
+                {
+                  title: "Client Side: The Service Layer",
+                  content:
+                    "In a well-structured React app, API calls live in a service layer — not directly in components:\n\nclient/src/\n    └── services/\n          └── libraryService.ts  ← all API calls live here\n\nYour createReservation function in this file calls POST /api/reservations and returns the result.",
+                  order: 5,
+                },
+                {
+                  title: "Client Side: The UI",
+                  content:
+                    'The Books.tsx page needs conditional rendering:\nIf availableCopies > 0 → show Borrow button\nIf availableCopies === 0 → show Reserve button\n\nAfter a successful reservation, show the member their queue position:\n"You are #3 in line."\n\nThis number must come from the server response — not calculated on the client.',
+                  order: 6,
+                },
+                {
+                  title: "Error Handling",
+                  content:
+                    'The UI should handle and display:\n"Book is available — no reservation needed"\n"You already have an active reservation for this book"\nGeneric server errors',
+                  order: 7,
+                },
+                {
+                  title: "Practice Lab: Reservation Payload Validator",
+                  content:
+                    "Practice writing request-payload validation for reservation creation input.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Validate required fields and return early errors before calling database logic.",
+                    language: "typescript",
+                    starterCode:
+                      "function validateReservationPayload(body: any) {\n  // TODO\n}\n",
+                    requiredSnippets: ["bookId", "memberId", "return"],
+                    requiredPatterns: [
+                      "\\bbookId\\b",
+                      "\\bmemberId\\b",
+                      "\\breturn\\b",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: "bookId",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "memberId",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "return",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                    ],
+                  },
+                  order: 8,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Full-stack features require you to think in two layers: the API contract (what endpoints exist, what they accept, what they return) and the UI contract (what the user sees and does). Build the server first, then connect the client to it.",
+                  order: 9,
+                },
               ],
             },
             hints: {
@@ -712,12 +1192,83 @@ async function main() {
               "As a librarian, I want reservation fulfillment and cancellation to update queue order automatically, So that members always see accurate reservation status and position.",
             learningSections: {
               create: [
-                { title: "Overview\nState Machines and Queue Management", content: "This section introduces the crash course for reservation lifecycle states and queue management. It provides a high-level view of status transitions, ordering rules, and consistent state handling throughout the task.", order: 1 },
-                { title: "What is a Lifecycle?", content: "A lifecycle describes all the states a thing can be in and how it moves between them. For a reservation, the lifecycle looks like this:\n\nRESERVED → READY_FOR_PICKUP → (borrowed, reservation complete)\n                     ↓\n                 CANCELLED\n\nEach state has meaning:\nRESERVED — in the queue, waiting\nREADY_FOR_PICKUP — a copy is available, this member is next\nCANCELLED — member withdrew from the queue", order: 2 },
-                { title: "State Transitions: When and How", content: "### RESERVED → READY_FOR_PICKUP\nThis happens automatically when a book is returned. The return flow should:\nMark the borrow record as returned\nIncrement availableCopies\nCheck if any active reservations exist for this book\nIf yes, promote the first one (lowest queuePosition) to READY_FOR_PICKUP\n\nAll of this happens inside one transaction — it's one atomic action.\n\n### RESERVED → CANCELLED\nTriggered by the member. The cancellation flow should:\nMark the reservation as CANCELLED\nReindex the remaining active reservations so positions stay continuous\n\n### Reindexing the Queue\nWhen reservation #2 is cancelled, the queue looks like this:\nPosition 1 → Member A (RESERVED)\nPosition 2 → CANCELLED\nPosition 3 → Member C (RESERVED)\n\nAfter reindex:\nPosition 1 → Member A\nPosition 2 → Member C ← was 3, now 2\n\nReindexing ensures members always see accurate \"You are #N in line\" numbers.", order: 3 },
-                { title: "Transactional Queue Mutations", content: "Both promotion and reindexing must happen inside a transaction:\n\nawait prisma.$transaction(async (tx) => {\n  // cancel the reservation\n  await tx.reservation.update({\n    where: { id },\n    data: { status: 'CANCELLED' }\n  });\n\n  // reindex remaining reservations\n  const remaining = await tx.reservation.findMany({\n    where: { bookId, status: 'RESERVED' },\n    orderBy: { createdAt: 'asc' }\n  });\n\n  for (let i = 0; i < remaining.length; i++) {\n    await tx.reservation.update({\n      where: { id: remaining[i].id },\n      data: { queuePosition: i + 1 }\n    });\n  }\n});", order: 4 },
-                { title: "Client Side: Reservation List View", content: "The UI should show each reservation with:\nBook title\nCurrent queue position\nStatus (visually distinct for READY_FOR_PICKUP vs RESERVED)\nA cancel button (only for active reservations)\n\nAlways render based on server data — never compute lifecycle status on the client.", order: 5 },
-                { title: "Key Takeaway", content: "Lifecycle management is about controlling state transitions carefully. Use explicit states, handle transitions in the right place (server), keep mutations atomic, and always let the backend be the source of truth.", order: 6 },
+                {
+                  title: "Overview\nState Machines and Queue Management",
+                  content:
+                    "This section introduces the crash course for reservation lifecycle states and queue management. It provides a high-level view of status transitions, ordering rules, and consistent state handling throughout the task.",
+                  order: 1,
+                },
+                {
+                  title: "What is a Lifecycle?",
+                  content:
+                    "A lifecycle describes all the states a thing can be in and how it moves between them. For a reservation, the lifecycle looks like this:\n\nRESERVED → READY_FOR_PICKUP → (borrowed, reservation complete)\n                     ↓\n                 CANCELLED\n\nEach state has meaning:\nRESERVED — in the queue, waiting\nREADY_FOR_PICKUP — a copy is available, this member is next\nCANCELLED — member withdrew from the queue",
+                  order: 2,
+                },
+                {
+                  title: "State Transitions: When and How",
+                  content:
+                    '### RESERVED → READY_FOR_PICKUP\nThis happens automatically when a book is returned. The return flow should:\nMark the borrow record as returned\nIncrement availableCopies\nCheck if any active reservations exist for this book\nIf yes, promote the first one (lowest queuePosition) to READY_FOR_PICKUP\n\nAll of this happens inside one transaction — it\'s one atomic action.\n\n### RESERVED → CANCELLED\nTriggered by the member. The cancellation flow should:\nMark the reservation as CANCELLED\nReindex the remaining active reservations so positions stay continuous\n\n### Reindexing the Queue\nWhen reservation #2 is cancelled, the queue looks like this:\nPosition 1 → Member A (RESERVED)\nPosition 2 → CANCELLED\nPosition 3 → Member C (RESERVED)\n\nAfter reindex:\nPosition 1 → Member A\nPosition 2 → Member C ← was 3, now 2\n\nReindexing ensures members always see accurate "You are #N in line" numbers.',
+                  order: 3,
+                },
+                {
+                  title: "Transactional Queue Mutations",
+                  content:
+                    "Both promotion and reindexing must happen inside a transaction:\n\nawait prisma.$transaction(async (tx) => {\n  // cancel the reservation\n  await tx.reservation.update({\n    where: { id },\n    data: { status: 'CANCELLED' }\n  });\n\n  // reindex remaining reservations\n  const remaining = await tx.reservation.findMany({\n    where: { bookId, status: 'RESERVED' },\n    orderBy: { createdAt: 'asc' }\n  });\n\n  for (let i = 0; i < remaining.length; i++) {\n    await tx.reservation.update({\n      where: { id: remaining[i].id },\n      data: { queuePosition: i + 1 }\n    });\n  }\n});",
+                  order: 4,
+                },
+                {
+                  title: "Client Side: Reservation List View",
+                  content:
+                    "The UI should show each reservation with:\nBook title\nCurrent queue position\nStatus (visually distinct for READY_FOR_PICKUP vs RESERVED)\nA cancel button (only for active reservations)\n\nAlways render based on server data — never compute lifecycle status on the client.",
+                  order: 5,
+                },
+                                {
+                  title: "Practice Lab: Queue Snapshot Formatter",
+                  content:
+                    "Practice building a queue summary formatter for UI display.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Map reservation rows into readable summary lines with position + member + status.",
+                    language: "typescript",
+                    starterCode:
+                      "function formatQueueSnapshot(rows: any[]) {\n  // TODO\n}\n",
+                    requiredSnippets: ["queuePosition", "status", "map"],
+                    requiredPatterns: [
+                      "\\bqueuePosition\\b",
+                      "\\bstatus\\b",
+                      "\\bmap\\s*\\(",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: ".map(",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "queuePosition",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "status",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Lifecycle management is about controlling state transitions carefully. Use explicit states, handle transitions in the right place (server), keep mutations atomic, and always let the backend be the source of truth.",
+                  order: 7,
+                },
               ],
             },
             hints: {
@@ -852,13 +1403,96 @@ async function main() {
               "As a developer, I want the overdue report to classify records by source-of-truth fields, So that client-visible overdue output remains correct even with stale status data.",
             learningSections: {
               create: [
-                { title: "Overview\nDebugging Production Data: Source of Truth vs. Stale State", content: "This section introduces the crash course for debugging production data using source-of-truth fields. It explains how to evaluate stale-state risks and classify records accurately within the task context.", order: 1 },
-                { title: "The Production Bug", content: "The overdue report is showing books as overdue even when they've already been returned. This is a stale data classification bug — the system is trusting a status field that may not reflect reality.", order: 2 },
-                { title: "Why Does Stale Status Happen?", content: "In a database, you often have:\n\nA computed/derived field — like status (BORROWED, OVERDUE, RETURNED) that gets set at specific points in time\nA source-of-truth field — like returnedAt which is only ever set when an actual return happens\n\nThe problem: status can become stale. If the code that updates status to RETURNED fails or is skipped, the record still has status = 'OVERDUE' even though returnedAt has a value.\n\nRecord:\n{ status: 'OVERDUE', returnedAt: '2024-01-10', dueDate: '2024-01-05' }\n↑ stale!\n↑ source of truth: book WAS returned", order: 3 },
-                { title: "The Fix: Trust Source-of-Truth Fields", content: "Instead of filtering overdue records by status:\n\n// ❌ Unreliable — status can be stale\nwhere: { status: 'OVERDUE' }\n\nFilter by the fields that cannot lie:\n\n// ✅ Reliable — returnedAt is only set when a return actually happened\nwhere: {\n  returnedAt: null, // not returned yet\n  dueDate: { lt: new Date() } // past due date\n}\n\nA record with returnedAt != null was returned — full stop. No status value can override that fact.", order: 4 },
-                { title: "UTC and Timezone Boundaries", content: "Overdue logic is time-sensitive. Bugs often appear at midnight boundaries due to timezone differences. Always use UTC timestamps in tests:\n\nconst yesterday = new Date('2024-01-09T23:59:59Z'); // just before midnight UTC\nconst today = new Date('2024-01-10T00:00:01Z'); // just after midnight UTC\n\nUsing fixed, deterministic timestamps makes bugs reproducible — especially at edge cases.", order: 5 },
-                { title: "What is a Regression Test?", content: "A regression test captures a bug so it can never silently return. You write it to reproduce the current broken behavior, then fix the code until the test passes. If the bug ever comes back, the test fails again — alerting you immediately.", order: 6 },
-                { title: "Key Takeaway", content: "In production debugging, always identify the source-of-truth field — the field that is set directly from a real-world event, not derived or computed. Build your queries around those fields, not cached status values.", order: 7 },
+                {
+                  title:
+                    "Overview\nDebugging Production Data: Source of Truth vs. Stale State",
+                  content:
+                    "This section introduces the crash course for debugging production data using source-of-truth fields. It explains how to evaluate stale-state risks and classify records accurately within the task context.",
+                  order: 1,
+                },
+                {
+                  title: "The Production Bug",
+                  content:
+                    "The overdue report is showing books as overdue even when they've already been returned. This is a stale data classification bug — the system is trusting a status field that may not reflect reality.",
+                  order: 2,
+                },
+                {
+                  title: "Why Does Stale Status Happen?",
+                  content:
+                    "In a database, you often have:\n\nA computed/derived field — like status (BORROWED, OVERDUE, RETURNED) that gets set at specific points in time\nA source-of-truth field — like returnedAt which is only ever set when an actual return happens\n\nThe problem: status can become stale. If the code that updates status to RETURNED fails or is skipped, the record still has status = 'OVERDUE' even though returnedAt has a value.\n\nRecord:\n{ status: 'OVERDUE', returnedAt: '2024-01-10', dueDate: '2024-01-05' }\n↑ stale!\n↑ source of truth: book WAS returned",
+                  order: 3,
+                },
+                {
+                  title: "The Fix: Trust Source-of-Truth Fields",
+                  content:
+                    "Instead of filtering overdue records by status:\n\n// ❌ Unreliable — status can be stale\nwhere: { status: 'OVERDUE' }\n\nFilter by the fields that cannot lie:\n\n// ✅ Reliable — returnedAt is only set when a return actually happened\nwhere: {\n  returnedAt: null, // not returned yet\n  dueDate: { lt: new Date() } // past due date\n}\n\nA record with returnedAt != null was returned — full stop. No status value can override that fact.",
+                  order: 4,
+                },
+                {
+                  title: "UTC and Timezone Boundaries",
+                  content:
+                    "Overdue logic is time-sensitive. Bugs often appear at midnight boundaries due to timezone differences. Always use UTC timestamps in tests:\n\nconst yesterday = new Date('2024-01-09T23:59:59Z'); // just before midnight UTC\nconst today = new Date('2024-01-10T00:00:01Z'); // just after midnight UTC\n\nUsing fixed, deterministic timestamps makes bugs reproducible — especially at edge cases.",
+                  order: 5,
+                },
+                {
+                  title: "What is a Regression Test?",
+                  content:
+                    "A regression test captures a bug so it can never silently return. You write it to reproduce the current broken behavior, then fix the code until the test passes. If the bug ever comes back, the test fails again — alerting you immediately.",
+                  order: 6,
+                },
+                                {
+                  title: "Practice Lab: Overdue Label Helper",
+                  content:
+                    "Practice writing a small helper that labels records as overdue/not overdue.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      'Create a helper that returns "OVERDUE" or "ON_TIME" from dueDate + returnedAt.',
+                    language: "typescript",
+                    starterCode:
+                      "function getOverdueLabel(dueDate: Date, returnedAt: Date | null): string {\n  // TODO\n}\n",
+                    requiredSnippets: ["returnedAt", "dueDate", "OVERDUE"],
+                    requiredPatterns: [
+                      "\\breturnedAt\\b",
+                      "\\bdueDate\\b",
+                      "(?:\"|')OVERDUE(?:\"|')",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: "returnedAt",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "dueDate",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "OVERDUE",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "ON_TIME",
+                        target: "code",
+                        caseSensitive: true,
+                      },
+                    ],
+                  },
+                  order: 7,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "In production debugging, always identify the source-of-truth field — the field that is set directly from a real-world event, not derived or computed. Build your queries around those fields, not cached status values.",
+                  order: 8,
+                },
               ],
             },
             hints: {
@@ -917,12 +1551,100 @@ async function main() {
               "As a developer, I want to fix overdue mismatches and document the root cause, So that the client can trust overdue reports.",
             learningSections: {
               create: [
-                { title: "Overview\nProduction Fixes: Regression Tests, Shared Utilities, and Postmortems", content: "This section introduces the crash course for delivering a durable production fix. It outlines the high-level task approach for using regression tests, shared logic, and documentation to prevent recurrence.", order: 1 },
-                { title: "The Professional Fix Workflow", content: "In production, a proper fix isn't just \"change the code and redeploy.\" It follows this pattern: Write a failing test that reproduces the bug\nImplement the fix\nConfirm the test now passes\nCentralize the logic to prevent future drift\nWrite a postmortem document", order: 2 },
-                { title: "Step 1: Regression Tests First", content: "Write the test before fixing the code. This proves:\nThe bug exists (test fails before fix)\nYour fix works (test passes after fix)\nThe bug can never silently return (test will catch it)\n\nit('should not list returned books as overdue even with stale OVERDUE status', async () => {\n  // create a record that has returnedAt set but status = 'OVERDUE'\n  // call /api/borrow-records/overdue\n  // assert: this record is NOT in the response\n});", order: 3 },
-                { title: "Step 2: Centralize the Date Logic", content: "Overdue determination logic (returnedAt === null && dueDate < now) should live in one shared utility:\n\n// utils/overdueUtils.ts\nexport function isOverdue(returnedAt: Date | null, dueDate: Date): boolean {\n  return returnedAt === null && dueDate < new Date();\n}\n\nThis prevents the same logic from being written differently in multiple places (the original cause of the bug).", order: 4 },
-                { title: "Step 3: Writing a Postmortem", content: "A postmortem is a short document written after a production incident. It's not about blame — it's about learning and preventing recurrence. A good postmortem includes:\n\n### Symptom\nWhat the user/client observed:\n\"Overdue report shows returned books as overdue\"\n\n### Root Cause\nThe technical reason it happened:\n\"The overdue query filtered by status field which can become stale when the return flow fails mid-way. Books with returnedAt set but status = 'OVERDUE' were incorrectly included.\"\n\n### Fix\nWhat you changed:\n\"Replaced status-based filter with returnedAt IS NULL AND dueDate < NOW() in the Prisma query. Centralized this logic in overdueUtils.ts.\"\n\n### Prevention\nHow to stop it from happening again:\n\"Added regression test coverage. Added code comment warning against using status for overdue classification.\"", order: 5 },
-                { title: "Key Takeaway", content: "A permanent fix includes tests, centralized logic, and documentation. Tests prevent regression. Shared utilities prevent drift. Postmortems prevent the same mistake from being made again by the next developer.", order: 6 },
+                {
+                  title:
+                    "Overview\nProduction Fixes: Regression Tests, Shared Utilities, and Postmortems",
+                  content:
+                    "This section introduces the crash course for delivering a durable production fix. It outlines the high-level task approach for using regression tests, shared logic, and documentation to prevent recurrence.",
+                  order: 1,
+                },
+                {
+                  title: "The Professional Fix Workflow",
+                  content:
+                    'In production, a proper fix isn\'t just "change the code and redeploy." It follows this pattern: Write a failing test that reproduces the bug\nImplement the fix\nConfirm the test now passes\nCentralize the logic to prevent future drift\nWrite a postmortem document',
+                  order: 2,
+                },
+                {
+                  title: "Step 1: Regression Tests First",
+                  content:
+                    "Write the test before fixing the code. This proves:\nThe bug exists (test fails before fix)\nYour fix works (test passes after fix)\nThe bug can never silently return (test will catch it)\n\nit('should not list returned books as overdue even with stale OVERDUE status', async () => {\n  // create a record that has returnedAt set but status = 'OVERDUE'\n  // call /api/borrow-records/overdue\n  // assert: this record is NOT in the response\n});",
+                  order: 3,
+                },
+                {
+                  title: "Step 2: Centralize the Date Logic",
+                  content:
+                    "Overdue determination logic (returnedAt === null && dueDate < now) should live in one shared utility:\n\n// utils/overdueUtils.ts\nexport function isOverdue(returnedAt: Date | null, dueDate: Date): boolean {\n  return returnedAt === null && dueDate < new Date();\n}\n\nThis prevents the same logic from being written differently in multiple places (the original cause of the bug).",
+                  order: 4,
+                },
+                {
+                  title: "Step 3: Writing a Postmortem",
+                  content:
+                    'A postmortem is a short document written after a production incident. It\'s not about blame — it\'s about learning and preventing recurrence. A good postmortem includes:\n\n### Symptom\nWhat the user/client observed:\n"Overdue report shows returned books as overdue"\n\n### Root Cause\nThe technical reason it happened:\n"The overdue query filtered by status field which can become stale when the return flow fails mid-way. Books with returnedAt set but status = \'OVERDUE\' were incorrectly included."\n\n### Fix\nWhat you changed:\n"Replaced status-based filter with returnedAt IS NULL AND dueDate < NOW() in the Prisma query. Centralized this logic in overdueUtils.ts."\n\n### Prevention\nHow to stop it from happening again:\n"Added regression test coverage. Added code comment warning against using status for overdue classification."',
+                  order: 5,
+                },
+                                {
+                  title: "Practice Lab: Incident Timeline Note",
+                  content:
+                    "Practice drafting a concise incident timeline separate from the full postmortem.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Write a 4-line timeline: detection, impact window, mitigation, and final verification.",
+                    language: "markdown",
+                    starterCode:
+                      "- Detection:\n- Impact Window:\n- Mitigation:\n- Verification:\n",
+                    requiredSnippets: [
+                      "Detection",
+                      "Impact Window",
+                      "Mitigation",
+                      "Verification",
+                    ],
+                    requiredPatterns: [
+                      "(?:^|\\n)\\s*-\\s*Detection\\s*:",
+                      "(?:^|\\n)\\s*-\\s*Impact\\s+Window\\s*:",
+                      "(?:^|\\n)\\s*-\\s*Mitigation\\s*:",
+                      "(?:^|\\n)\\s*-\\s*Verification\\s*:",
+                    ],
+                    outputAssertions: [
+                      {
+                        type: "includes",
+                        value: "Detection:",
+                        target: "plainText",
+                        caseSensitive: true,
+                        normalizeWhitespace: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "Impact Window:",
+                        target: "plainText",
+                        caseSensitive: true,
+                        normalizeWhitespace: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "Mitigation:",
+                        target: "plainText",
+                        caseSensitive: true,
+                        normalizeWhitespace: true,
+                      },
+                      {
+                        type: "includes",
+                        value: "Verification:",
+                        target: "plainText",
+                        caseSensitive: true,
+                        normalizeWhitespace: true,
+                      },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "A permanent fix includes tests, centralized logic, and documentation. Tests prevent regression. Shared utilities prevent drift. Postmortems prevent the same mistake from being made again by the next developer.",
+                  order: 7,
+                },
               ],
             },
             hints: {

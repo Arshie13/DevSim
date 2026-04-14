@@ -6,6 +6,7 @@
   import InteractiveLabModal from "$lib/components/workspace/crashcourse/lab/InteractiveLabModal.svelte";
   import TerminalLab from "$lib/components/workspace/crashcourse/lab/TerminalLab.svelte";
   import CodeLab from "$lib/components/workspace/crashcourse/lab/CodeLab.svelte";
+  import LabCongratsModal from "$lib/components/workspace/crashcourse/lab/LabCongratsModal.svelte";
   import type { ILearningSection, ILearningTask } from "$lib/types";
 
   const LAB_PROGRESS_STORAGE_KEY = "devsim-crashcourse-lab-progress-v1";
@@ -37,6 +38,8 @@
   let codeFeedback = "";
   let codePracticePassed = false;
   let isLabModalOpen = false;
+  let isLabCongratsOpen = false;
+  let labCongratsMessage = "";
   let sectionLockFeedback = "";
   let completedInteractiveSections: Set<string> = new Set();
   let hasLoadedLabProgress = false;
@@ -209,6 +212,7 @@
     codePracticePassed = false;
     sectionLockFeedback = "";
     isLabModalOpen = false;
+    isLabCongratsOpen = false;
   }
 
   function runCdCommand() {
@@ -278,6 +282,7 @@
     const config = activeSection.interactiveConfig ?? {};
     const expected = config.expectedCommands ?? [];
     const actual = terminalCommands;
+    const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
 
     if (expected.length === 0) {
       terminalPracticePassed = true;
@@ -312,28 +317,176 @@
     completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
     terminalFeedback = "Great work. Lab passed based on navigation output state (visited paths and final location).";
     sectionLockFeedback = "";
+    if (!wasAlreadyCompleted) {
+      labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
+      isLabCongratsOpen = true;
+    }
   }
 
   function evaluateCodePractice() {
     const required = activeSection.interactiveConfig?.requiredSnippets ?? [];
+    const requiredPatterns = activeSection.interactiveConfig?.requiredPatterns ?? [];
+    const outputAssertions = activeSection.interactiveConfig?.outputAssertions ?? [];
+    const outputAssertionMode = activeSection.interactiveConfig?.outputAssertionMode ?? "all";
+    const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
 
-    if (required.length === 0) {
-      codePracticePassed = true;
-      completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
-      codeFeedback = "Practice saved. Compare your solution with the lesson guidance.";
-      return;
+    function isWordChar(char: string | undefined): boolean {
+      if (!char) return false;
+      return /[A-Za-z0-9_]/.test(char);
     }
 
-    const missing = required.filter((snippet: string) => !interactiveCode.includes(snippet));
-    codePracticePassed = missing.length === 0;
+    function hasExactSnippet(content: string, snippet: string): boolean {
+      if (!snippet) return true;
+
+      let searchIndex = content.indexOf(snippet);
+      while (searchIndex !== -1) {
+        const snippetStartChar = snippet[0];
+        const snippetEndChar = snippet[snippet.length - 1];
+        const prevChar = searchIndex > 0 ? content[searchIndex - 1] : undefined;
+        const nextIndex = searchIndex + snippet.length;
+        const nextChar = nextIndex < content.length ? content[nextIndex] : undefined;
+
+        const prefixOk = !isWordChar(snippetStartChar) || !isWordChar(prevChar);
+        const suffixOk = !isWordChar(snippetEndChar) || !isWordChar(nextChar);
+
+        if (prefixOk && suffixOk) {
+          return true;
+        }
+
+        searchIndex = content.indexOf(snippet, searchIndex + 1);
+      }
+
+      return false;
+    }
+
+    function normalizeWhitespace(value: string): string {
+      return value.replace(/\s+/g, " ").trim();
+    }
+
+    function toPlainText(value: string): string {
+      return value
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\{[^}]+\}/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .trim();
+    }
+
+    function evaluateOutputAssertion(assertion: {
+      type: "includes" | "equals" | "regex";
+      value: string;
+      caseSensitive?: boolean;
+      normalizeWhitespace?: boolean;
+      target?: "code" | "plainText";
+    }): boolean {
+      const target = assertion.target ?? "code";
+      const caseSensitive = assertion.caseSensitive ?? true;
+      const shouldNormalizeWhitespace = assertion.normalizeWhitespace ?? false;
+
+      const sourceRaw = target === "plainText" ? toPlainText(interactiveCode) : interactiveCode;
+      let source = sourceRaw;
+      let expected = assertion.value;
+
+      if (!caseSensitive) {
+        source = source.toLowerCase();
+        expected = expected.toLowerCase();
+      }
+
+      if (shouldNormalizeWhitespace) {
+        source = normalizeWhitespace(source);
+        expected = normalizeWhitespace(expected);
+      }
+
+      if (assertion.type === "equals") {
+        return source === expected;
+      }
+
+      if (assertion.type === "includes") {
+        return source.includes(expected);
+      }
+
+      try {
+        const flags = caseSensitive ? "" : "i";
+        return new RegExp(assertion.value, flags).test(sourceRaw);
+      } catch {
+        return false;
+      }
+    }
+
+    if (required.length === 0) {
+      if (requiredPatterns.length === 0 && outputAssertions.length === 0) {
+        codePracticePassed = true;
+        completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+        codeFeedback = "Practice saved. Compare your solution with the lesson guidance.";
+        if (!wasAlreadyCompleted) {
+          labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
+          isLabCongratsOpen = true;
+        }
+        return;
+      }
+    }
+
+    const missing = required.filter((snippet: string) => !hasExactSnippet(interactiveCode, snippet));
+    const missingPatterns = requiredPatterns.filter((pattern: string) => {
+      try {
+        return !new RegExp(pattern).test(interactiveCode);
+      } catch {
+        return true;
+      }
+    });
+
+    const outputAssertionResults = outputAssertions.map((assertion) => evaluateOutputAssertion(assertion));
+    const failedOutputAssertions = outputAssertions.filter((_, index) => !outputAssertionResults[index]);
+    const outputAssertionsPassed =
+      outputAssertions.length === 0
+        ? true
+        : outputAssertionMode === "any"
+          ? outputAssertionResults.some(Boolean)
+          : outputAssertionResults.every(Boolean);
+
+    codePracticePassed = missing.length === 0 && missingPatterns.length === 0 && outputAssertionsPassed;
     if (codePracticePassed) {
       completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
       sectionLockFeedback = "";
+      if (!wasAlreadyCompleted) {
+        labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
+        isLabCongratsOpen = true;
+      }
+    } else {
+      if (completedInteractiveSections.has(activeSectionTypingKey)) {
+        const nextCompleted = new Set(completedInteractiveSections);
+        nextCompleted.delete(activeSectionTypingKey);
+        completedInteractiveSections = nextCompleted;
+      }
     }
+
+    const feedbackParts: string[] = [];
+    if (missing.length > 0) {
+      feedbackParts.push(`Missing expected code snippets: ${missing.join(", ")}`);
+    }
+    if (missingPatterns.length > 0) {
+      feedbackParts.push("Code structure/content does not match the required format for this lab.");
+    }
+    if (!outputAssertionsPassed) {
+      const failedCount =
+        outputAssertionMode === "any"
+          ? outputAssertions.length
+          : failedOutputAssertions.length;
+      feedbackParts.push(
+        outputAssertionMode === "any"
+          ? `Expected output not satisfied. Pass at least one of ${failedCount} output checks.`
+          : `Expected output not satisfied. Failed ${failedCount} output check(s).`,
+      );
+    }
+
     codeFeedback =
-      missing.length === 0
+      codePracticePassed
         ? "Great job. Your code includes the required parts for this section."
-        : `Missing expected code snippets: ${missing.join(", ")}`;
+        : feedbackParts.join(" ");
   }
 
   $: {
@@ -427,6 +580,11 @@
   function closeLabModal() {
     isLabModalOpen = false;
   }
+
+  function confirmLabCongrats() {
+    isLabCongratsOpen = false;
+    isLabModalOpen = false;
+  }
 </script>
 
 {#if open && learningTasks.length > 0}
@@ -511,6 +669,14 @@
           />
         {/if}
       </InteractiveLabModal>
+    {/if}
+
+    {#if isLabCongratsOpen}
+      <LabCongratsModal
+        title="Lab Completed"
+        message={labCongratsMessage}
+        on:confirm={confirmLabCongrats}
+      />
     {/if}
   </div>
 {/if}

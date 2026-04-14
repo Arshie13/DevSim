@@ -61,6 +61,15 @@ export interface ILearningSection {
     directoryTree?: Record<string, string[]>;
     expectedOutput?: string;
     requiredSnippets?: string[];
+    requiredPatterns?: string[];
+    outputAssertionMode?: "all" | "any";
+    outputAssertions?: Array<{
+      type: "includes" | "equals" | "regex";
+      value: string;
+      caseSensitive?: boolean;
+      normalizeWhitespace?: boolean;
+      target?: "code" | "plainText";
+    }>;
     language?: string;
   } | null;
 }
