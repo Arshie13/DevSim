@@ -62,9 +62,9 @@ export interface ILearningSection {
       expected: unknown;
       label: string;
     }>;
+    requiredCodeIncludes?: string[];
     editableRegions?: Array<{
       placeholder: string;
-      mustContain: string;
       caseSensitive?: boolean;
     }>;
     expectedCommands?: string[];

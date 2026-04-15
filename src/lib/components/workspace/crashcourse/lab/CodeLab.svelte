@@ -7,7 +7,6 @@
   export let starterCode: string = "";
   export let editableRegions: Array<{
     placeholder: string;
-    mustContain: string;
     caseSensitive?: boolean;
   }> = [];
 

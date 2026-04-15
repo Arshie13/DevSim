@@ -555,12 +555,20 @@
   }
 
   function getManualCrashCourseTask() {
+    const crashCourseTasks = [...tasks]
+      .sort((a, b) => a.order - b.order)
+      .filter((task) => (task.learningSections?.length ?? 0) > 0);
+
+    // Manual open should allow reviewing finished crash courses first.
+    const completedTask = [...crashCourseTasks]
+      .reverse()
+      .find((task) => crashCourseCompletedByTask[task.id]);
+    if (completedTask) return completedTask;
+
     const nextTask = getNextCrashCourseTask();
     if (nextTask) return nextTask;
 
-    return [...tasks]
-      .sort((a, b) => a.order - b.order)
-      .find((task) => (task.learningSections?.length ?? 0) > 0);
+    return crashCourseTasks[0];
   }
 
   function openCrashCourseForTask(taskId: string) {

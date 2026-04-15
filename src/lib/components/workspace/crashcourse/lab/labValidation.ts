@@ -102,17 +102,18 @@ function escapeRegExp(value: string): string {
 function sanitizeCodeForRunner(code: string): string {
   // Keep the transform intentionally lightweight for browser execution.
   return code
+    .replace(/^\s*import\s+[^\n]*\n/gm, "")
     .replace(/\bexport\s+/g, "")
     .replace(/\b(private|public|protected|readonly)\s+/g, "")
     .replace(/\)\s*:\s*[A-Za-z_$][\w<>,\s\[\]\|&?.]*\s*(?=\{)/g, ")")
     .replace(/([A-Za-z_$][\w$]*)\s*:\s*[A-Za-z_$][\w<>,\s\[\]\|&?.]*/g, "$1");
 }
 
-export function evaluateFunctionLab(
+export async function evaluateFunctionLab(
   interactiveCode: string,
   entryPoint: string,
   testCases: FunctionTestCase[],
-): { passed: boolean; feedback: string } {
+): Promise<{ passed: boolean; feedback: string }> {
   const executableCode = sanitizeCodeForRunner(interactiveCode);
 
   try {
@@ -132,7 +133,9 @@ export function evaluateFunctionLab(
 
     for (const testCase of testCases) {
       try {
-        const result = runnable(...testCase.input);
+        const maybePromise = runnable(...testCase.input);
+        const result =
+          maybePromise instanceof Promise ? await maybePromise : maybePromise;
         if (!deepEqual(result, testCase.expected)) {
           failedCases.push(
             `${testCase.label} (expected: ${toDisplay(testCase.expected)}, received: ${toDisplay(result)})`,
@@ -201,25 +204,25 @@ export function evaluateEditableRegionsLab(
     };
   }
 
-  const mismatches: string[] = [];
+  let hasMeaningfulEdit = false;
   for (let index = 0; index < editableRegions.length; index += 1) {
     const region = editableRegions[index];
     const actual = (match[index + 1] ?? "").trim();
-    const expected = region.mustContain.trim();
     const caseSensitive = region.caseSensitive ?? true;
-    const passes = caseSensitive
-      ? actual === expected
-      : actual.toLowerCase() === expected.toLowerCase();
+    const placeholder = region.placeholder.trim();
+    const edited = caseSensitive
+      ? actual !== placeholder
+      : actual.toLowerCase() !== placeholder.toLowerCase();
 
-    if (!passes) {
-      mismatches.push(`Text field should be: ${region.mustContain}`);
+    if (edited) {
+      hasMeaningfulEdit = true;
     }
   }
 
-  if (mismatches.length > 0) {
+  if (!hasMeaningfulEdit) {
     return {
       passed: false,
-      feedback: mismatches.join(" "),
+      feedback: "Update at least one editable region before checking your answer.",
     };
   }
 

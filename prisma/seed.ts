@@ -246,15 +246,22 @@ async function main() {
                   interactiveMode: "CODE_EDITOR" as const,
                   interactiveConfig: {
                     instructions:
-                      'Change the text from "Hello World" to "Welcome Back".',
+                      'Update the function output from "Hello World" to "Welcome Back".',
                     language: "tsx",
                     starterCode:
-                      '<h1 className="header-title">Hello World</h1>',
+                      'export function getUpdatedHeadingText() {\n  return "Hello World";\n}\n',
                     editableRegions: [
                       {
                         placeholder: "Hello World",
-                        mustContain: "Welcome Back",
                         caseSensitive: true,
+                      },
+                    ],
+                    entryPoint: "getUpdatedHeadingText",
+                    testCases: [
+                      {
+                        input: [],
+                        expected: "Welcome Back",
+                        label: "updated heading text",
                       },
                     ],
                   },
@@ -383,7 +390,6 @@ async function main() {
                     editableRegions: [
                       {
                         placeholder: "// TODO",
-                        mustContain: "",
                         caseSensitive: true,
                       },
                     ],
@@ -488,7 +494,7 @@ async function main() {
                 {
                   title: "The Problem: Duplicated Logic",
                   content:
-                    'When the same decision appears in multiple components with slight differences, bugs creep in:\n // Books.tsx\nconst canBorrow = book.availableCopies > 0;\n // BorrowRecords.tsx\nconst canBorrow = book.copies !== 0; ← different condition! These two checks look similar but behave differently at edge cases (e.g., negative copies). If a librarian borrows the last copy and copies somehow go negative, one check says "unavailable" and the other says "available."',
+                    'When the same decision appears in multiple components with slight differences, bugs creep in:\n // Books.tsx\nconst canBorrow = book.availableCopies > 0;\n // BorrowRecords.tsx\nconst canBorrow = book.copies !== 0; ← different condition!\nThese two checks look similar but behave differently at edge cases (e.g., negative copies). If a librarian borrows the last copy and copies somehow go negative, one check says "unavailable" and the other says "available."',
                   order: 3,
                 },
                 {
@@ -518,15 +524,31 @@ async function main() {
                   interactiveMode: "CODE_EDITOR" as const,
                   interactiveConfig: {
                     instructions:
-                      "Replace inline status logic with getBorrowBadgeLabel helper usage.",
+                      "Refactor the page logic to use the helper. The helper is shown below for reference as if it came from another file, and this section represents the page where you should import and use it.",
                     language: "javascript",
                     starterCode:
-                      "function getBorrowBadgeLabel(record) {\n  if (record.returnedAt) return \"Returned\";\n  return \"Active\";\n}\n\nconst badge = record.returnedAt ? \"Returned\" : \"Active\";\n",
+                      "// helper file (shown for context; this lives in another file)\nfunction getBorrowBadgeLabel(record) {\n  return record.returnedAt ? \"Returned\" : \"Active\";\n}\n\n// page file section (this is where you refactor)\nimport { getBorrowBadgeLabel } from '../utils/helpers';\n\nfunction getBadgeForRecord(record) {\n  return record.returnedAt ? \"Returned\" : \"Active\";\n}\n\nexport function renderBadgeLabel(record) {\n  return getBadgeForRecord(record);\n}\n",
+                    requiredCodeIncludes: [
+                      "import { getBorrowBadgeLabel } from '../utils/helpers';",
+                      "getBorrowBadgeLabel(record)",
+                    ],
                     editableRegions: [
                       {
                         placeholder: 'record.returnedAt ? "Returned" : "Active"',
-                        mustContain: "getBorrowBadgeLabel(record)",
                         caseSensitive: true,
+                      },
+                    ],
+                    entryPoint: "renderBadgeLabel",
+                    testCases: [
+                      {
+                        input: [{ returnedAt: null }],
+                        expected: "Active",
+                        label: "active record badge output",
+                      },
+                      {
+                        input: [{ returnedAt: "2026-01-10T00:00:00.000Z" }],
+                        expected: "Returned",
+                        label: "returned record badge output",
                       },
                     ],
                   },
@@ -667,7 +689,7 @@ async function main() {
                 {
                   title: "How to Trace a Flow",
                   content:
-                    'Open the controller responsible for returning books\nFind every prisma. call inside the return function\nAsk: "What happens if the second write fails after the first succeeds?"\nLook for any conditional logic that might skip the inventory update',
+                    'Open the controller responsible for returning books\nFind every prisma call inside the return function\nAsk: "What happens if the second write fails after the first succeeds?"\nLook for any conditional logic that might skip the inventory update',
                   order: 5,
                 },
                 {
@@ -687,22 +709,31 @@ async function main() {
                       "Add three log checkpoints: before update, after first write, and after second write.",
                     language: "typescript",
                     starterCode:
-                      "async function returnBookFlow() {\n  console.log(\"BEFORE_UPDATE\");\n  await updateBorrowRecord();\n  console.log(\"AFTER_FIRST_WRITE\");\n  await updateInventory();\n  console.log(\"AFTER_SECOND_WRITE\");\n}\n",
+                      "async function updateBorrowRecord() {\n  return true;\n}\n\nasync function updateInventory() {\n  return true;\n}\n\nexport async function returnBookFlow() {\n  const logs = [];\n  logs.push(\"BEFORE_UPDATE\");\n  await updateBorrowRecord();\n  logs.push(\"AFTER_FIRST_WRITE\");\n  await updateInventory();\n  logs.push(\"AFTER_SECOND_WRITE\");\n  return logs;\n}\n",
                     editableRegions: [
                       {
                         placeholder: "BEFORE_UPDATE",
-                        mustContain: "before update",
                         caseSensitive: false,
                       },
                       {
                         placeholder: "AFTER_FIRST_WRITE",
-                        mustContain: "after first write",
                         caseSensitive: false,
                       },
                       {
                         placeholder: "AFTER_SECOND_WRITE",
-                        mustContain: "after second write",
                         caseSensitive: false,
+                      },
+                    ],
+                    entryPoint: "returnBookFlow",
+                    testCases: [
+                      {
+                        input: [],
+                        expected: [
+                          "before update",
+                          "after first write",
+                          "after second write",
+                        ],
+                        label: "checkpoint log order and content",
                       },
                     ],
                   },
@@ -815,20 +846,26 @@ async function main() {
                   interactiveMode: "CODE_EDITOR" as const,
                   interactiveConfig: {
                     instructions:
-                      "Wrap one inventory update and one audit insert in prisma.$transaction.",
+                      "Create a function that returns both required transaction operations.",
                     language: "typescript",
                     starterCode:
-                      "await prisma.$transaction([\n  // inventory update\n  // audit log insert\n]);\n",
+                      "export function buildAtomicAuditPlan() {\n  // inventory update\n  // audit log insert\n  return [];\n}\n",
                     editableRegions: [
                       {
                         placeholder: "// inventory update",
-                        mustContain: "await tx.book.update",
                         caseSensitive: false,
                       },
                       {
                         placeholder: "// audit log insert",
-                        mustContain: "await tx.auditLog.create",
                         caseSensitive: false,
+                      },
+                    ],
+                    entryPoint: "buildAtomicAuditPlan",
+                    testCases: [
+                      {
+                        input: [],
+                        expected: ["tx.book.update", "tx.auditLog.create"],
+                        label: "contains both atomic operations",
                       },
                     ],
                   },
@@ -974,7 +1011,6 @@ async function main() {
                     editableRegions: [
                       {
                         placeholder: "// return true only when both IDs are positive numbers",
-                        mustContain: "",
                         caseSensitive: true,
                       },
                     ],
@@ -1189,7 +1225,6 @@ async function main() {
                     editableRegions: [
                       {
                         placeholder: "// Return one summary string joined by \" | \"",
-                        mustContain: "",
                         caseSensitive: true,
                       },
                     ],
@@ -1404,7 +1439,6 @@ async function main() {
                     editableRegions: [
                       {
                         placeholder: "// TODO",
-                        mustContain: "",
                         caseSensitive: true,
                       },
                     ],
@@ -1533,31 +1567,36 @@ async function main() {
                   interactiveConfig: {
                     instructions:
                       "Write a 4-line timeline: detection, impact window, mitigation, and final verification.",
-                    language: "markdown",
+                                    language: "javascript",
                     starterCode:
-                      "- Detection: [detection detail]\n- Impact Window: [impact window]\n- Mitigation: [mitigation step]\n- Verification: [verification result]\n",
+                                      "export function formatIncidentTimeline() {\n  return [\n    \"- Detection: [detection detail]\",\n    \"- Impact Window: [impact window]\",\n    \"- Mitigation: [mitigation step]\",\n    \"- Verification: [verification result]\",\n  ].join(\"\\n\");\n}\n",
                     editableRegions: [
                       {
                         placeholder: "[detection detail]",
-                        mustContain: "Alert from overdue report",
                         caseSensitive: false,
                       },
                       {
                         placeholder: "[impact window]",
-                        mustContain: "09:00-11:00 UTC",
                         caseSensitive: false,
                       },
                       {
                         placeholder: "[mitigation step]",
-                        mustContain: "query patched",
                         caseSensitive: false,
                       },
                       {
                         placeholder: "[verification result]",
-                        mustContain: "regression test passed",
                         caseSensitive: false,
                       },
                     ],
+                                    entryPoint: "formatIncidentTimeline",
+                                    testCases: [
+                                      {
+                                        input: [],
+                                        expected:
+                                          "- Detection: Alert from overdue report\n- Impact Window: 09:00-11:00 UTC\n- Mitigation: query patched\n- Verification: regression test passed",
+                                        label: "required incident timeline output",
+                                      },
+                                    ],
                   },
                   order: 6,
                 },

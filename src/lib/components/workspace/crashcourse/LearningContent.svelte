@@ -280,10 +280,11 @@
     }
   }
 
-  function evaluateCodePractice() {
+  async function evaluateCodePractice() {
     const config = activeSection.interactiveConfig ?? {};
     const entryPoint = config.entryPoint;
     const testCases = config.testCases ?? [];
+    const requiredCodeIncludes = config.requiredCodeIncludes ?? [];
     const editableRegions = config.editableRegions ?? [];
     const starterCode = config.starterCode ?? "";
     const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
@@ -311,8 +312,23 @@
       codeFeedback = failureMessage;
     }
 
+    if (requiredCodeIncludes.length > 0) {
+      const missingSnippets = requiredCodeIncludes.filter(
+        (snippet) => !interactiveCode.includes(snippet),
+      );
+
+      if (missingSnippets.length > 0) {
+        setCodePracticeResult(
+          false,
+          "",
+          `Refactor not complete yet. Missing required code usage: ${missingSnippets.join(" | ")}`,
+        );
+        return;
+      }
+    }
+
     if (entryPoint && testCases.length > 0) {
-      const result = evaluateFunctionLab(interactiveCode, entryPoint, testCases);
+      const result = await evaluateFunctionLab(interactiveCode, entryPoint, testCases);
       setCodePracticeResult(result.passed, result.feedback, result.feedback);
       return;
     }
