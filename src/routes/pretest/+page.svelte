@@ -27,8 +27,6 @@
   let showResult = $state(false);
   let showLearningScreen = $state(false);
   let submitted = $state(false);
-  let retryCountdown = $state(0);
-  let countdownInterval = $state<NodeJS.Timeout | null>(null);
   
   function selectAnswer(index: number) {
     if (!submitted) {
@@ -64,7 +62,6 @@
       showResult = true;
     } else {
       showLearningScreen = true;
-      startRetryCountdown();
     }
   }
   
@@ -108,24 +105,6 @@
     showResult = false;
     showLearningScreen = false;
     submitted = false;
-    if (countdownInterval) {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
-    }
-    retryCountdown = 0;
-  }
-
-  function startRetryCountdown() {
-    retryCountdown = 300;
-    countdownInterval = setInterval(() => {
-      retryCountdown--;
-      if (retryCountdown <= 0) {
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-        }
-      }
-    }, 1000);
   }
 </script>
 
@@ -256,7 +235,7 @@
             </p>
 
             <div class="text-left mb-10">
-              <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-4">RECOMMENDED LEARNING PATHS</h3>
+              <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-4">VIDEO TUTORIALS</h3>
               <div class="space-y-4">
                 <a href="https://www.youtube.com/watch?v=zJSY8tbf_ys" target="_blank" rel="noopener noreferrer"
                    class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
@@ -291,16 +270,49 @@
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-              {#if retryCountdown > 0}
-                <button disabled class="btn-cyber !px-8 opacity-50 cursor-not-allowed">
-                  RETRY QUIZ ({Math.floor(retryCountdown / 60)}:{(retryCountdown % 60).toString().padStart(2, '0')})
-                </button>
-              {:else}
-                <button onclick={retakeQuiz} class="btn-cyber !px-8">
-                  RETRY QUIZ NOW
-                </button>
-              {/if}
+            <div class="text-left mb-10">
+              <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-4">DOCUMENTATION & REFERENCE</h3>
+              <div class="space-y-4">
+                <a href="https://developer.mozilla.org/" target="_blank" rel="noopener noreferrer"
+                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
+                  <div class="flex items-start gap-3">
+                    <span class="text-[var(--accent)] text-xl">📖</span>
+                    <div>
+                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">MDN Web Docs</h4>
+                      <p class="text-[var(--text-muted)] text-sm">Comprehensive documentation for HTML, CSS, JavaScript</p>
+                    </div>
+                  </div>
+                </a>
+                <a href="https://nodejs.org/docs/" target="_blank" rel="noopener noreferrer"
+                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
+                  <div class="flex items-start gap-3">
+                    <span class="text-[var(--accent)] text-xl">📖</span>
+                    <div>
+                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">Node.js Docs</h4>
+                      <p class="text-[var(--text-muted)] text-sm">Official documentation for Node.js runtime</p>
+                    </div>
+                  </div>
+                </a>
+                <a href="https://expressjs.com/" target="_blank" rel="noopener noreferrer"
+                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
+                  <div class="flex items-start gap-3">
+                    <span class="text-[var(--accent)] text-xl">📖</span>
+                    <div>
+                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">Express.js Docs</h4>
+                      <p class="text-[var(--text-muted)] text-sm">Official guide for Express web framework</p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-4 mt-8">
+              <button onclick={retakeQuiz} class="btn-cyber w-full py-3">
+                RETRY QUIZ NOW
+              </button>
+              <button onclick={proceedToLogin} class="bg-[var(--accent)] text-[var(--bg)] py-3 px-8 rounded-lg font-bold w-full hover:opacity-90">
+                CONTINUE TO LOGIN
+              </button>
             </div>
           </div>
         </div>
