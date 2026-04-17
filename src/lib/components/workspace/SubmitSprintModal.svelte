@@ -905,6 +905,7 @@
 </script>
 
 <!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
+<div data-tour="submit-sprint-modal">
 <ConfirmationModal
   bind:open={showModal}
   icon={modalIcon}
@@ -959,6 +960,7 @@
     />
   </svelte:fragment>
 </ConfirmationModal>
+</div>
 
 <ConfirmationModal
   bind:open={showCancelConfirmModal}

@@ -1,20 +1,22 @@
 <script lang="ts">
-  import { FileCode, Shell, Globe, LayoutDashboard } from 'lucide-svelte';
+  import { FileCode, Shell, Globe, LayoutDashboard } from "lucide-svelte";
 
   /** The currently active tab. */
-  export let activeTab: 'editor' | 'terminal' | 'preview' | 'board';
+  export let activeTab: "editor" | "terminal" | "preview" | "board";
 
   /** Fired when the user selects a tab. */
-  export let onTabChange: (tab: 'editor' | 'terminal' | 'preview' | 'board') => void;
+  export let onTabChange: (
+    tab: "editor" | "terminal" | "preview" | "board",
+  ) => void;
   export let showCrashCourseButton: boolean = false;
   export let onOpenCrashCourse: () => void = () => {};
   export let crashCourseCompleted: boolean = false;
 
   const LEFT_TABS = [
-    { id: 'editor'   as const, icon: FileCode,       label: 'Editor'   },
-    { id: 'terminal' as const, icon: Shell,           label: 'Terminal' },
-    { id: 'preview'  as const, icon: Globe,           label: 'Preview'  },
-    { id: 'board' as const, icon: LayoutDashboard, label: 'Board' },
+    { id: "editor" as const, icon: FileCode, label: "Editor" },
+    { id: "terminal" as const, icon: Shell, label: "Terminal" },
+    { id: "preview" as const, icon: Globe, label: "Preview" },
+    { id: "board" as const, icon: LayoutDashboard, label: "Board" },
   ];
 </script>
 
@@ -23,12 +25,20 @@
   <div class="flex items-end min-w-0">
     {#each LEFT_TABS as tab}
       <button
-        data-tour={tab.id === 'preview' ? 'workspace-tab-preview' : undefined}
+        data-tour={tab.id === "preview"
+          ? "workspace-tab-preview"
+          : tab.id === "editor"
+            ? "workspace-tab-editor"
+            : tab.id === "terminal"
+              ? "workspace-tab-terminal"
+              : tab.id === "board"
+                ? "workspace-tab-board"
+                : undefined}
         on:click={() => onTabChange(tab.id)}
         class="relative px-5 py-2.5 flex items-center gap-2 text-[0.75rem] sm:text-[0.85rem] uppercase tracking-wider border-t-2 transition-all whitespace-nowrap
           {activeTab === tab.id
-            ? 'border-[#07a5c9] text-[#07a5c9] bg-[#12192a]'
-            : 'border-transparent text-[#8892a0] hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.04)]'}"
+          ? 'border-[#07a5c9] text-[#07a5c9] bg-[#12192a]'
+          : 'border-transparent text-[#8892a0] hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.04)]'}"
         style="font-family: 'Space Mono', monospace;"
       >
         <svelte:component this={tab.icon} class="w-4 h-4 flex-shrink-0" />
@@ -47,7 +57,9 @@
       >
         Open Crash Course
         {#if crashCourseCompleted}
-          <span class="text-[0.56rem] px-1.5 py-0.5 rounded border border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.12)] text-[#93f7a2]">
+          <span
+            class="text-[0.56rem] px-1.5 py-0.5 rounded border border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.12)] text-[#93f7a2]"
+          >
             Done
           </span>
         {/if}

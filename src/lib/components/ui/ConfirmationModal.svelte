@@ -74,6 +74,13 @@
     success: 'cm-btn-confirm--success',
   };
 
+  $: confirmButtonTour =
+    confirmLabel === 'Submit & Continue'
+      ? 'submit-sprint-confirm-button'
+      : confirmLabel === 'Proceed to Workspace'
+        ? 'tutorial-proceed-button'
+        : undefined;
+
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   function handleCancel() {
@@ -165,6 +172,7 @@
 
             <button
               type="button"
+              data-tour={confirmButtonTour}
               class="cm-btn-confirm {confirmBtnClass[variant]}"
               on:click={handleConfirm}
               disabled={isLoading}

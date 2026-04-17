@@ -344,20 +344,23 @@
           } catch (error) {
             console.error("Error refreshing preview:", error);
           }
-        } else if (previewUrl) {
+        } else {
           if (data.error) toast.error(data.error);
-          try {
-            const currentUrl = new URL(previewUrl);
-            currentUrl.searchParams.set("t", Date.now().toString());
-            previewUrl = currentUrl.toString();
-            if (iframeRef) iframeRef.src = previewUrl;
-          } catch (error) {
-            console.error("Error refreshing preview:", error);
+          if (previewUrl) {
+            try {
+              const currentUrl = new URL(previewUrl);
+              currentUrl.searchParams.set("t", Date.now().toString());
+              previewUrl = currentUrl.toString();
+              if (iframeRef) iframeRef.src = previewUrl;
+            } catch (error) {
+              console.error("Error refreshing preview:", error);
+            }
           }
         }
       })
       .catch((err) => {
         console.error("Error fetching ports:", err);
+        toast.error("Could not refresh preview");
         if (previewUrl) {
           try {
             const currentUrl = new URL(previewUrl);
@@ -664,7 +667,7 @@
       onRun: runDevServer,
       onStop: stopDevServer,
       onDemo: () => handleTabChange("preview"),
-      onSubmit: handleTutorialCompleted,
+onSubmit: submitSprint,
       onDownload: handleDownload,
     }}
   >
@@ -797,8 +800,8 @@
       backModalOpen = false;
     }}
   />
-
-  <ConfirmationModal
+    
+    <ConfirmationModal
     bind:open={proceedModalOpen}
     icon="?"
     iconVariant="success"
@@ -813,7 +816,7 @@
     on:confirm={proceedToWorkspace}
     on:cancel={() => goto("/scenario")}
   />
-</div>
+  </div>
 
 <div class="fixed inset-0 z-50 pointer-events-none">
   <div class="pointer-events-auto">
