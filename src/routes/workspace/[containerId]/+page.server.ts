@@ -51,6 +51,10 @@ export const load: PageServerLoad = async (event) => {
     }
   });
 
+  if (container?.status === 'tutorial') {
+    throw redirect(303, `/tutorial/${container.id}`);
+  }
+
   // Get completed tasks from the CompletedTask table
   // id might be wrong
   const completedTaskRecords = await prisma.completedTask.findMany({

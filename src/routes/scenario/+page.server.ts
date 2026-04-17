@@ -69,6 +69,13 @@ export const load: PageServerLoad = async (event) => {
 		stackName,
 		stackSummary: null as string | null,
 		selection: { frontend: null, backend: null, database: null, services: null } as StackSelection,
+		tutorialState: {
+			isNewUser: true,
+			isNewToStack: true,
+			isExistingUser: false,
+			tutorialRequired: true,
+			tutorialPromptEligible: false
+		},
 		user,
 		userCoins,
 		hasCompletedOnboarding
@@ -91,6 +98,46 @@ export const load: PageServerLoad = async (event) => {
 	} catch {
 		/* ignore malformed JSON */
 	}
+
+	const selectedStackIds = [selection.frontend, selection.backend, selection.database, selection.services]
+		.filter((value): value is string => typeof value === 'string' && value.length > 0)
+		.sort();
+
+	const userContainers = await prisma.container.findMany({
+		where: { userId: session.user.id, isArchived: false },
+		select: {
+			status: true,
+			containerStacks: {
+				select: { stackName: true }
+			}
+		}
+	});
+
+	const realContainers = userContainers.filter((container) => container.status !== 'tutorial');
+	const isNewUser = realContainers.length === 0;
+	const isExistingUser = !isNewUser;
+	const isNewToStack =
+		selectedStackIds.length === 0
+			? true
+			: !realContainers.some((container) => {
+				const existingStackIds = container.containerStacks
+					.map((entry) => entry.stackName)
+					.filter((value) => Boolean(value))
+					.sort();
+
+				return (
+					existingStackIds.length === selectedStackIds.length &&
+					existingStackIds.every((value, index) => value === selectedStackIds[index])
+				);
+			});
+
+	const tutorialState = {
+		isNewUser,
+		isNewToStack,
+		isExistingUser,
+		tutorialRequired: isNewUser,
+		tutorialPromptEligible: isExistingUser && isNewToStack
+	};
 
 	try {
 		await fs.access(stackDir);
@@ -179,5 +226,14 @@ export const load: PageServerLoad = async (event) => {
 		/* summary.md is optional */
 	}
 
-	return { scenarios, stackName: stackParam, stackSummary, selection, user, userCoins, hasCompletedOnboarding };
+	return {
+		scenarios,
+		stackName: stackParam,
+		stackSummary,
+		selection,
+		tutorialState,
+		user,
+		userCoins,
+		hasCompletedOnboarding
+	};
 };

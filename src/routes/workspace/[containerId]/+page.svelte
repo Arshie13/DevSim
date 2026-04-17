@@ -36,7 +36,6 @@
 
   const SazOnboardingCoachComponent: any = SazOnboardingCoach;
 
-
   interface WorkspaceProps {
     user: UserData;
     userId: string;
@@ -183,31 +182,16 @@
 
   $: operatorAlias = data.user?.username || data.user?.name || "Operator";
   $: workspaceProjectName = workspaceScenario?.name || title || "DevSim Workspace";
+  $: cameFromTutorial = page.url.searchParams.get("fromTutorial") === "1";
 
-  // Track onboarding state - initialize from URL
-  let isInOnboarding = page.url.searchParams.get("onboarding") === "1";
+  // Track if this workspace came from first-project guided flow.
+  let hasEverBeenInTutorial = false;
 
-  // Track if we've ever been in onboarding this session
-  let hasEverBeenInOnboarding = isInOnboarding;
-
-  // Update hasEverBeenInOnboarding when we detect onboarding in URL
-  $: {
-    if (page.url.searchParams.get("onboarding") === "1") {
-      hasEverBeenInOnboarding = true;
-    }
-  }
-
-  // Function to call when onboarding completes (called from OnboardingController)
+  // Called when tutorial onboarding + workspace tour completes.
   function handleOnboardingComplete() {
     onboardingTourCompleted = true;
-    // Saz should always appear before the level intro card.
-    if (tasks.length > 0 && !levelIntroCardShown) {
-      if (shouldShowSazOnboardingBeforeIntro()) {
-        sazOnboardingOpen = true;
-        sazOnboardingShown = true;
-        return;
-      }
 
+    if (tasks.length > 0 && !levelIntroCardShown) {
       levelIntroCardOpen = true;
       levelIntroCardShown = true;
     }
@@ -220,31 +204,15 @@
     pendingPostTestIntro = false;
   }
 
-  function shouldShowSazOnboardingBeforeIntro() {
-    return (
-      !sazOnboardingShown &&
-      onboardingTourCompleted &&
-      currentLevel === 1
-    );
-  }
-
   // Show level intro card after tasks load
   // Only show when NOT in onboarding (onboarding is done or user skipped it)
   $: if (
     tasks.length > 0 &&
-    !levelIntroCardShown &&
-    !isInOnboarding &&
-    !sazOnboardingOpen
+    !levelIntroCardShown
   ) {
     // Show level intro card after tasks load (for all users - both those who did onboarding and those who didn't)
     setTimeout(() => {
       if (!levelIntroCardShown) {
-        if (shouldShowSazOnboardingBeforeIntro()) {
-          sazOnboardingOpen = true;
-          sazOnboardingShown = true;
-          return;
-        }
-
         levelIntroCardOpen = true;
         levelIntroCardShown = true;
       }
@@ -677,6 +645,17 @@
     }, 1000);
 
     initWorkspace();
+
+    // Show Saz once after returning from tutorial flow.
+    if (browser && cameFromTutorial) {
+      const sazKey = `workspace-saz-shown:${containerId}`;
+      const hasShownSaz = localStorage.getItem(sazKey) === "1";
+      if (!hasShownSaz) {
+        sazOnboardingOpen = true;
+        sazOnboardingShown = true;
+        localStorage.setItem(sazKey, "1");
+      }
+    }
 
     return () => {
       clearInterval(timer);
@@ -1757,19 +1736,6 @@
   </div>
 </div>
 
-<!-- Onboarding -->
-{#if !isBooting && isInOnboarding}
-  <OnboardingController
-    {stack}
-    {title}
-    scenario={actualLevelConfig.scenario}
-    {level}
-    onSwitchTab={(tab) =>
-      handleTabChange(tab as "editor" | "terminal" | "preview" | "board")}
-    onComplete={handleOnboardingComplete}
-  />
-{/if}
-
 <!-- Level Intro Card -->
 <LevelIntroCard
   levelTitle={title}
@@ -1778,7 +1744,7 @@
   levelDescription={effectiveLevelIntroDescription}
   tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
   levelConfig={{
-    isFirstProjectCreation: hasEverBeenInOnboarding,
+    isFirstProjectCreation: hasEverBeenInTutorial,
     operatorAlias,
     projectName: workspaceProjectName
   }}
@@ -1807,10 +1773,6 @@
   stackName={stack}
   onClose={() => {
     sazOnboardingOpen = false;
-    if (tasks.length > 0 && !levelIntroCardShown) {
-      levelIntroCardOpen = true;
-      levelIntroCardShown = true;
-    }
   }}
 />
 

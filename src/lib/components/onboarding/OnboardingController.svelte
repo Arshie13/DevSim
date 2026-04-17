@@ -1,7 +1,6 @@
 <script lang="ts">
-  import OnboardingModal from './OnboardingModal.svelte';
-  import WorkspaceTour   from './WorkspaceTour.svelte';
-  import { getStackContent } from './onboardingContent';
+  import PERNTutorial from '../tutorial/PERN/PERNTutorial.svelte';
+  import { getStackKey } from './onboardingContent';
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
 
@@ -13,6 +12,10 @@
   export let scenario: string = '';
   /** Current level number. */
   export let level: number = 1;
+  /** Which stack tutorial to run after workspace tour. */
+  export let stackTutorialType: 'auto' | 'pern' | 'none' = 'auto';
+  /** Allows dismissing tutorial intro/tour. Set false for mandatory tutorials. */
+  export let allowSkip: boolean = true;
   /**
    * Called when a tour step needs the workspace to show a specific tab
    * (e.g. 'editor'). The parent page handles the actual tab switch.
@@ -23,14 +26,23 @@
    * Parent can use this to trigger UI transitions.
    */
   export let onComplete: (() => void) | undefined = undefined;
+  /**
+   * Called when the tutorial needs to run tests.
+   */
+  export let onRunTests: (() => void) | undefined = undefined;
+  /**
+   * Called when the tutorial needs to submit the sprint.
+   */
+  export let onSubmitSprint: (() => void) | undefined = undefined;
 
   // ── Phase machine ──────────────────────────────────────────────────────────
-  // The parent decides whether to render this component at all.
-  // When rendered, always start with the modal immediately.
-  // 'modal' → 'tour' → 'done'
-  let phase: 'modal' | 'tour' | 'done' = 'modal';
+  // Direct tutorial flow only: stackTutorial → done
+  let phase: 'stackTutorial' | 'done' = 'stackTutorial';
 
-  $: content = getStackContent(stack);
+  $: stackKey = getStackKey(stack);
+  $: isPernStack = stackKey === 'pern' || stackKey === 'react-express-postgres';
+  $: resolvedStackTutorialType =
+    stackTutorialType === 'auto' ? (isPernStack ? 'pern' : 'none') : stackTutorialType;
 
   // ── Mark completion in DB (non-critical) ──────────────────────────────────
   async function markOnboardingComplete() {
@@ -46,48 +58,44 @@
     if (browser) {
       const url = new URL(window.location.href);
       url.searchParams.delete('onboarding');
+      url.searchParams.delete('tutorial');
+      url.searchParams.delete('tutorialRequired');
       goto(url.pathname + url.search, { replaceState: true, noScroll: true });
     }
   }
 
   // ── Phase transitions ──────────────────────────────────────────────────────────
-  function onModalComplete() { 
-    phase = 'tour'; 
-  }
-
-  function onModalSkip() {
+  function finishTutorialFlow() {
     markOnboardingComplete();
     clearOnboardingParam();
     phase = 'done';
-  }
-
-  function onTourComplete() {
-    markOnboardingComplete();
-    clearOnboardingParam();
-    phase = 'done';
-    // Notify parent that onboarding is fully complete
     if (onComplete) {
       onComplete();
     }
   }
+
+  function onStackTutorialComplete() {
+    finishTutorialFlow();
+  }
+
+  $: if (phase === 'stackTutorial' && resolvedStackTutorialType === 'none') {
+    onStackTutorialComplete();
+  }
 </script>
 
 <!-- Only render anything while onboarding is active -->
-{#if phase === 'modal'}
-  <OnboardingModal
-    {stack}
-    {title}
-    {scenario}
-    {level}
-    on:complete={onModalComplete}
-    on:skip={onModalSkip}
-  />
-{/if}
-
-{#if phase === 'tour'}
-  <WorkspaceTour
-    accentColor={content.accentColor}
-    {onSwitchTab}
-    on:complete={onTourComplete}
-  />
+{#if phase === 'stackTutorial'}
+  {#if resolvedStackTutorialType === 'pern'}
+    <PERNTutorial
+      {stack}
+      {title}
+      {scenario}
+      {level}
+      {allowSkip}
+      {onSwitchTab}
+      {onRunTests}
+      {onSubmitSprint}
+      on:complete={onStackTutorialComplete}
+    />
+  {/if}
 {/if}

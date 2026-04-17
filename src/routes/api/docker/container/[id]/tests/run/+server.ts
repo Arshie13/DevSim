@@ -31,6 +31,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, passed: false, summary: { total: 0, passed: 0, failed: 0, duration: 0 }, results: [], output: '', message: 'Container not found or not running' } as TestRunResponse, { status: 404 });
     }
 
+    if (containerInfo.mode === 'tutorial') {
+      return json(buildTutorialDemoPassResponse(body));
+    }
+
     const startTime = Date.now();
 
     // ── Level run ─────────────────────────────────────────────────────────────
@@ -314,11 +318,80 @@ function isGroundTruthNameFailed(normalizedGroundTruthName: string, failedNames:
 // Docker helpers
 // ---------------------------------------------------------------------------
 
-async function getContainerInfo(containerId: string): Promise<{ id: string; state: string; projectFolder?: string } | null> {
+async function getContainerInfo(containerId: string): Promise<{ id: string; state: string; projectFolder?: string; mode?: string } | null> {
   try {
     const containerInfo = await docker.getContainer(containerId).inspect();
-    return { id: containerInfo.Id, state: containerInfo.State.Status, projectFolder: containerInfo.Config?.Labels?.['devsim.projectFolder'] };
+    return {
+      id: containerInfo.Id,
+      state: containerInfo.State.Status,
+      projectFolder: containerInfo.Config?.Labels?.['devsim.projectFolder'],
+      mode: containerInfo.Config?.Labels?.['devsim.mode']
+    };
   } catch { return null; }
+}
+
+function buildTutorialDemoPassResponse(
+  body: TestRunRequest & { testType?: 'task' | 'level' }
+): TestRunResponse {
+  const type = body.type ?? body.testType;
+  const taskId = body.taskId;
+  const taskIds = body.taskIds ?? [];
+  const duration = 300;
+
+  if (type === 'task' && taskId) {
+    const results: TestResult[] = [
+      {
+        testId: `demo-${taskId}-1`,
+        testName: 'Tutorial demo check',
+        passed: true,
+        message: 'Passed (tutorial demo mode)'
+      }
+    ];
+
+    return {
+      success: true,
+      passed: true,
+      summary: { total: 1, passed: 1, failed: 0, duration },
+      results,
+      output: 'Tutorial demo mode: tests are forced to pass.',
+      taskResults: [
+        {
+          taskId,
+          taskName: `Task ${taskId}`,
+          passed: true,
+          results,
+          errors: []
+        }
+      ]
+    };
+  }
+
+  const safeTaskIds = taskIds.length > 0 ? taskIds : ['task-1'];
+  const taskResults: TaskTestResult[] = safeTaskIds.map((id, index) => ({
+    taskId: id,
+    taskName: `Task ${index + 1}`,
+    passed: true,
+    results: [
+      {
+        testId: `demo-${id}-1`,
+        testName: 'Tutorial demo check',
+        passed: true,
+        message: 'Passed (tutorial demo mode)'
+      }
+    ],
+    errors: []
+  }));
+
+  const allResults = taskResults.flatMap((tr) => tr.results);
+
+  return {
+    success: true,
+    passed: true,
+    summary: { total: allResults.length, passed: allResults.length, failed: 0, duration },
+    results: allResults,
+    output: 'Tutorial demo mode: tests are forced to pass.',
+    taskResults
+  };
 }
 
 function buildNpmCommand(command: string, level: number, taskId?: string): string {

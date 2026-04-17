@@ -12,7 +12,7 @@
   export let iframeRef: HTMLIFrameElement;
 </script>
 
-<div class:hidden={!visible} class="h-full">
+<div class:hidden={!visible} class="h-full" data-tour="preview-panel-surface tutorial-preview-panel">
   <div class="h-full flex flex-col bg-white">
     <div class="bg-[#12192a] px-4 py-2 flex items-center justify-between">
       <div class="flex items-center gap-2">

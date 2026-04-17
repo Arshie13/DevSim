@@ -23,6 +23,7 @@
   <div class="flex items-end min-w-0">
     {#each LEFT_TABS as tab}
       <button
+        data-tour={tab.id === 'preview' ? 'workspace-tab-preview' : undefined}
         on:click={() => onTabChange(tab.id)}
         class="relative px-5 py-2.5 flex items-center gap-2 text-[0.75rem] sm:text-[0.85rem] uppercase tracking-wider border-t-2 transition-all whitespace-nowrap
           {activeTab === tab.id

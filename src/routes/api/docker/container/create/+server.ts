@@ -3,10 +3,13 @@ import type { RequestHandler } from './$types';
 import { saveUserContainer, type UserContainerRequest } from '$lib/server/docker/user/save-user-container'
 import { docker } from '$lib/server/docker/client';
 import prisma from '$lib/server/client';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 interface CreateContainerRequest {
   stackName: string;
   level: number;
+  mode?: 'tutorial' | 'workspace';
   stacks: {
     frontend?: string;
     backend?: string;
@@ -48,6 +51,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
     const req: CreateContainerRequest = await request.json()
     const { stackName, level, stacks, scenarioId, projectFolder } = req;
+    const launchMode: 'tutorial' | 'workspace' = req.mode === 'tutorial' ? 'tutorial' : 'workspace';
 
     // Look up the Scenario by name to get its database ID for currentScenarioId
     let currentScenarioId: string | null = null;
@@ -76,47 +80,55 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     // Only non-archived containers are reusable (archived ones have no running Docker container).
     // One container per stack — any existing container for this userId/level/stacks combination
     // triggers the "alreadyExists" modal, regardless of which scenario was selected.
-    const existingDbContainer = await prisma.container.findFirst({
+    const existingDbContainers = await prisma.container.findMany({
       where: {
         userId,
         level,
-        isArchived: false
+        isArchived: false,
+        ...(launchMode === 'tutorial'
+          ? { status: 'tutorial' }
+          : { status: { not: 'tutorial' } })
       },
       include: {
         containerStacks: true
       }
     });
 
-    // Check if the stacks match
+    // Check if stacks match any mode-compatible existing record.
+    const existingDbContainer = existingDbContainers.find((candidate) => {
+      const existingStackNames = candidate.containerStacks.map((s) => s.stackName);
+      return (
+        stacksArray.length === existingStackNames.length &&
+        stacksArray.every((s) => existingStackNames.includes(s.stackName))
+      );
+    });
+
     if (existingDbContainer) {
-      const existingStackNames = existingDbContainer.containerStacks.map(s => s.stackName);
-      const stacksMatch = stacksArray.length === existingStackNames.length &&
-        stacksArray.every(s => existingStackNames.includes(s.stackName));
-
-      if (stacksMatch) {
-        const existingDockerContainerId = existingDbContainer.containerId;
-        try {
-          const existingContainer = docker.getContainer(existingDockerContainerId);
-          const info = await existingContainer.inspect();
-          if (!info.State.Running) {
-            await existingContainer.start();
-          }
-          console.log('[create] DB-first: existing container found:', existingDockerContainerId);
-        } catch {
-          // The Docker container no longer exists (e.g. was deleted outside the app).
-          // Fall through to create a fresh one and update the DB record.
-          console.warn('[create] DB record found but Docker container is gone — creating fresh container.');
-          return await createFreshContainer();
+      const existingDockerContainerId = existingDbContainer.containerId;
+      try {
+        const existingContainer = docker.getContainer(existingDockerContainerId);
+        const info = await existingContainer.inspect();
+        if (!info.State.Running) {
+          await existingContainer.start();
         }
-
-        return json({
-          success: true,
-          alreadyExists: true,
-          message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
-          containerId: existingDockerContainerId,
-          dbContainerId: existingDbContainer.id
-        });
+        console.log('[create] DB-first: existing container found:', existingDockerContainerId);
+      } catch {
+        // The Docker container no longer exists (e.g. was deleted outside the app).
+        // Fall through to create a fresh one and update the DB record.
+        console.warn('[create] DB record found but Docker container is gone — creating fresh container.');
+        return await createFreshContainer();
       }
+
+      return json({
+        success: true,
+        alreadyExists: true,
+        message:
+          launchMode === 'tutorial'
+            ? 'You already have an active tutorial for this stack. Resume it or cancel to choose a different configuration.'
+            : 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
+        containerId: existingDockerContainerId,
+        dbContainerId: existingDbContainer.id
+      });
     }
 
     // --- DB found nothing: also check Docker by label as a fallback ---
@@ -127,7 +139,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         label: [
           `devsim.userId=${userId}`,
           `devsim.stack=${stackName}`,
-          `devsim.level=${level}`
+          `devsim.level=${level}`,
+          `devsim.mode=${launchMode}`
         ]
       })
     });
@@ -152,13 +165,16 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         currentScenarioId: currentScenarioId || '',
         stacks: stacksArray,
         level,
-        status: 'created'
+        status: launchMode === 'tutorial' ? 'tutorial' : 'created'
       });
       console.log('[create] Existing Container Found:', existingContainerId);
       return json({
         success: true,
         alreadyExists: true,
-        message: 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
+        message:
+          launchMode === 'tutorial'
+            ? 'You already have an active tutorial for this stack. Resume it or cancel to choose a different configuration.'
+            : 'You already have an active workspace for this stack. Resume your existing session or cancel to choose a different configuration.',
         containerId: existingContainerId,
         dbContainerId: existingDbId
       });
@@ -175,43 +191,76 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       // Generate volume name: {stack-name}-{scenario-folder}
       const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
 
-      // Generate custom image name based on stack and scenario
-      let customImageName = `devsim-project:${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
-      
-      // If projectFolder is provided (e.g., LIBRARY_MANAGEMENT), add it to the image name
-      if (req.projectFolder) {
-        customImageName += `-${req.projectFolder.toLowerCase().replace(/[_ ]+/g, '-')}`;
-      }
-      
-      // Check if custom image exists
       let imageToUse = 'devsim-workspace:latest';
-      let useVolume = false;
+      let bindTargetConfig: string | null = null;
       let volumeMountConfig: string | null = null;
-      
-      try {
-        await docker.getImage(customImageName).inspect();
-        imageToUse = customImageName;
-        useVolume = false; // If custom image exists, don't use volume
-        console.log(`[create] Using custom image: ${imageToUse} (no volume)`);
-      } catch {
-        console.log(`[create] Custom image '${customImageName}' not found, falling back to default: ${imageToUse} (with volume)`);
-        // Check if volume exists
-        try {
-          await docker.getVolume(volumeName).inspect();
-          useVolume = true;
-          console.log(`[create] Using volume: ${volumeName}`);
-        } catch {
-          // Volume doesn't exist, fall back to bind mount
-          console.log(`[create] Volume '${volumeName}' not found, falling back to bind mount`);
+
+      const normalizedStackName = stackName.toLowerCase().replace(/[_ ]+/g, '-');
+
+      if (launchMode === 'tutorial') {
+        const tutorialBasePath = path.join(process.cwd(), 'submodules', 'projects', 'tech-stacks', stackName, 'tutorial');
+        const tutorialCandidateImages: string[] = [`devsim-project-tutorial:${normalizedStackName}-tutorial`];
+
+        if (fs.existsSync(tutorialBasePath) && fs.statSync(tutorialBasePath).isDirectory()) {
+          // Keep a single canonical tutorial image per stack.
         }
-        
-        // Build mount configuration
-        if (useVolume) {
-          volumeMountConfig = `${volumeName}:/workspace`;
-        } else {
-          // Fallback to submodule bind mount — use scenarioFolder so scenario-2/scenario-3
-          // mount their own directory instead of always defaulting to scenario-1.
-          volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioFolder}:/workspace`.replace(/\\/g, '/');
+
+        let tutorialImageFound = false;
+        for (const candidateImage of tutorialCandidateImages) {
+          try {
+            await docker.getImage(candidateImage).inspect();
+            imageToUse = candidateImage;
+            tutorialImageFound = true;
+            console.log(`[create] Using tutorial image: ${candidateImage}`);
+            break;
+          } catch {
+            // Try next tutorial image candidate.
+          }
+        }
+
+        if (!tutorialImageFound) {
+          console.log(`[create] No tutorial image found for '${stackName}'. Falling back to tutorial source mount.`);
+
+          if (fs.existsSync(tutorialBasePath) && fs.statSync(tutorialBasePath).isDirectory()) {
+            const tutorialEntries = fs.readdirSync(tutorialBasePath, { withFileTypes: true });
+            const preferredTutorialProject = tutorialEntries.find(
+              (entry) => entry.isDirectory() && /to[-_ ]?do[-_ ]?list/i.test(entry.name),
+            );
+
+            const firstTutorialProject = preferredTutorialProject
+              ?? tutorialEntries.find((entry) => entry.isDirectory());
+
+            const mountPath = firstTutorialProject
+              ? path.join(tutorialBasePath, firstTutorialProject.name)
+              : tutorialBasePath;
+
+            bindTargetConfig = `${mountPath}:/workspace`.replace(/\\/g, '/');
+            console.log(`[create] Using tutorial bind mount: ${bindTargetConfig}`);
+          }
+        }
+      } else {
+        // Generate custom image name based on stack and scenario
+        let customImageName = `devsim-project:${normalizedStackName}-${scenarioFolder}`;
+
+        // If projectFolder is provided (e.g., LIBRARY_MANAGEMENT), add it to the image name
+        if (req.projectFolder) {
+          customImageName += `-${req.projectFolder.toLowerCase().replace(/[_ ]+/g, '-')}`;
+        }
+
+        try {
+          await docker.getImage(customImageName).inspect();
+          imageToUse = customImageName;
+          console.log(`[create] Using custom image: ${imageToUse} (no volume)`);
+        } catch {
+          console.log(`[create] Custom image '${customImageName}' not found, falling back to default: ${imageToUse} (with volume/bind)`);
+          try {
+            await docker.getVolume(volumeName).inspect();
+            volumeMountConfig = `${volumeName}:/workspace`;
+            console.log(`[create] Using volume: ${volumeName}`);
+          } catch {
+            console.log(`[create] Volume '${volumeName}' not found, falling back to bind mount`);
+            volumeMountConfig = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioFolder}:/workspace`.replace(/\\/g, '/');
+          }
         }
       }
 
@@ -220,7 +269,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       // so the project can be previewed from the browser without using host networking,
       const containerConfig: any = {
         Image: imageToUse,
-        name: `devsim-${stackName}-${userId}-${level}`,
+        name: `devsim-${stackName}-${userId}-${level}-${launchMode}`,
         Cmd: ['/bin/sh'],
         Tty: true,
         OpenStdin: true,
@@ -256,13 +305,15 @@ export const POST: RequestHandler = async ({ locals, request }) => {
           'devsim.userId': userId,
           'devsim.stack': stackName,
           'devsim.level': level.toString(),
+          'devsim.mode': launchMode,
           'devsim.projectFolder': projectFolder ?? ''
         }
       };
 
-      // Only add Binds if useVolume is true
-      if (useVolume && volumeMountConfig) {
-        containerConfig.HostConfig.Binds = [volumeMountConfig];
+      // Add bind/volume mounts when image fallback requires it.
+      const binds = [volumeMountConfig, bindTargetConfig].filter((bind): bind is string => Boolean(bind));
+      if (binds.length > 0) {
+        containerConfig.HostConfig.Binds = binds;
       }
 
       const container = await docker.createContainer(containerConfig);
@@ -282,7 +333,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
         currentScenarioId: currentScenarioId || '',
         stacks: stacksArray,
         level,
-        status: 'created'
+        status: launchMode === 'tutorial' ? 'tutorial' : 'created'
       };
 
       const { dbContainerId } = await saveUserContainer(userContainer);

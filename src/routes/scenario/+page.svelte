@@ -6,7 +6,7 @@
 
   export let data: PageData;
 
-  const headerUserData: UserData = {
+  const headerUserData: Partial<UserData> = {
     name: data.user?.name ?? 'No Name',
     email: data.user.email,
     image: data.user.image,
@@ -36,7 +36,8 @@
         scenarios={data.scenarios}
         stackName={data.stackName}
         selection={data.selection}
-        hasCompletedOnboarding={data.hasCompletedOnboarding}
+        tutorialState={data.tutorialState}
+        userId={data.user.id}
       />
     </main>
   </div>

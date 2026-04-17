@@ -19,22 +19,28 @@
   const dispatch = createEventDispatcher<{
     launchSprint: void;
     select: void;
-    requestSkipConfirm: void;
+    requestDisableTutorialConfirm: void;
   }>();
 
-  /** Whether to include the onboarding guide and workspace tour on launch. */
-  export let withOnboarding: boolean = false;
+  /** Whether to launch this scenario in tutorial mode first. */
+  export let withTutorial: boolean = false;
+  export let tutorialRequired: boolean = false;
 
-  function handleTourToggle(e: Event) {
+  function handleTutorialToggle(e: Event) {
     const input = e.target as HTMLInputElement;
-    if (input.checked) {
-      // Enabling tour — no confirmation needed, just sync the state.
-      withOnboarding = true;
-    } else {
-      // Immediately revert the DOM so the checkbox stays visually checked
-      // while the confirmation modal is open.
+
+    if (tutorialRequired) {
+      withTutorial = true;
       input.checked = true;
-      dispatch('requestSkipConfirm');
+      dispatch('requestDisableTutorialConfirm');
+      return;
+    }
+
+    if (input.checked) {
+      withTutorial = true;
+    } else {
+      withTutorial = false;
+      dispatch('requestDisableTutorialConfirm');
     }
   }
 
@@ -148,19 +154,22 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <!-- Onboarding toggle -->
+          <!-- Tutorial toggle -->
           <label
             class="onboarding-label"
-            title="Include onboarding guide and workspace tour on launch"
+            title={tutorialRequired
+              ? 'Tutorial is required for first-time stack users'
+              : 'Launch this scenario in tutorial mode first'}
           >
             <input
               type="checkbox"
               class="onboarding-check"
-              checked={withOnboarding}
-              on:change={handleTourToggle}
+              checked={withTutorial}
+              disabled={tutorialRequired}
+              on:change={handleTutorialToggle}
               on:click|stopPropagation
             />
-            <span style="color:{diffColor}99;">Tour</span>
+            <span style="color:{diffColor}99;">{tutorialRequired ? 'Tutorial Required' : 'Tutorial'}</span>
           </label>
 
           <button

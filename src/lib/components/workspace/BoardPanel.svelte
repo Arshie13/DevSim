@@ -457,7 +457,7 @@
               {#each kanbanTasks.filter((t) => t.status === col.id) as task, taskIndex (task.id)}
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y-no-static-element-interactions -->
                 <div
-                  data-tour={taskIndex === 0 ? 'board-task-ticket' : undefined}
+                  data-tour={task.order === 1 ? 'board-task-ticket' : task.order === 2 ? 'board-task-ticket-2' : undefined}
                   draggable={!(task.status === 'done' && task.taskType.toLowerCase() !== 'none')}
                   on:dragstart={(e) => handleDragStart(e, task.id)}
                   on:dragend={handleDragEnd}

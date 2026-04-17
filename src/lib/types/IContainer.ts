@@ -43,6 +43,7 @@ export interface ITask {
   learningSections?: ILearningSection[];
   isCompleted: boolean; // Optional field to track completion status on the client side
   testType: string;
+  userStory: string;
 }
 
 export interface ILearningSection {

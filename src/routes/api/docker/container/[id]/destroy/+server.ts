@@ -59,6 +59,11 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     }
     await container.remove();
 
+    // Tutorial instances are disposable: remove DB record after Docker cleanup.
+    if (record.status === 'tutorial') {
+      await prisma.container.delete({ where: { id: record.id } });
+    }
+
     return json({ success: true });
   } catch (err) {
     console.error('Error destroying container:', err);
