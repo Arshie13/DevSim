@@ -23,6 +23,7 @@
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
   import SazOnboardingCoach from "$lib/components/onboarding/SazOnboardingCoach.svelte";
   import LevelIntroCard from "$lib/components/workspace/LevelIntroCard.svelte";
+  import TriviaModal from "$lib/components/ui/TriviaModal.svelte";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -240,7 +241,6 @@
   let isDownloading: boolean = false;
 
   let backModalOpen: boolean = false;
-  let backModalLoading: boolean = false;
 
   let taskIntroCardOpen: boolean = false;
   let levelIntroCardOpen: boolean = false;
@@ -248,6 +248,70 @@
   let onboardingTourCompleted: boolean = false;
   let sazOnboardingOpen: boolean = false;
   let sazOnboardingShown: boolean = false;
+
+  // Trivia modal state
+  let triviaModalOpen: boolean = false;
+  let triviaCorrectCount: number = 0;
+  let triviaTotalCount: number = 0;
+  let triviaShownThisSession: boolean = false;
+
+  // Load trivia stats from localStorage
+  function loadTriviaStats() {
+    if (!browser) return;
+    try {
+      const stored = localStorage.getItem('trivia-stats');
+      if (stored) {
+        const stats = JSON.parse(stored);
+        triviaCorrectCount = stats.correct || 0;
+        triviaTotalCount = stats.total || 0;
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  // Save trivia stats to localStorage
+  function saveTriviaStats() {
+    if (!browser) return;
+    localStorage.setItem('trivia-stats', JSON.stringify({
+      correct: triviaCorrectCount,
+      total: triviaTotalCount
+    }));
+  }
+
+  // Show trivia modal once per workspace session (after 3 second delay)
+  function maybeShowTrivia() {
+    if (triviaShownThisSession) return;
+    triviaModalOpen = true;
+    triviaShownThisSession = true;
+  }
+
+  // Call this after tasks are loaded
+  $: if (tasks.length > 0 && !isInOnboarding) {
+    // Small delay to let user settle in
+    setTimeout(maybeShowTrivia, 3000);
+  }
+
+  const TRIVIA_COIN_REWARD = 5;
+
+  async function handleTriviaAnswer(event: CustomEvent<{ correct: boolean }>) {
+    triviaTotalCount += 1;
+    if (event.detail.correct) {
+      triviaCorrectCount += 1;
+      userCoins += TRIVIA_COIN_REWARD;
+      toast.success(`+${TRIVIA_COIN_REWARD} coins!`);
+      
+      // Persist coins to database
+      try {
+        await fetch(`/api/user/coins/add?amount=${TRIVIA_COIN_REWARD}`, {
+          method: 'POST'
+        });
+      } catch (err) {
+        console.error('Failed to save coins:', err);
+      }
+    }
+    saveTriviaStats();
+  }
 
 
 
@@ -477,6 +541,7 @@
     }, 1000);
 
     initWorkspace();
+    loadTriviaStats();
 
     return () => {
       clearInterval(timer);
@@ -903,10 +968,11 @@
     backModalOpen = true;
   }
 
-  async function confirmBack() {
-    backModalLoading = true;
-    await fetch(`/api/docker/container/${containerId}/stop`, {
-      method: "POST",
+  function confirmBack() {
+    backModalOpen = false;
+    // Fire and forget - let container stop in background
+    fetch(`/api/docker/container/${containerId}/stop`, {
+      method: "POST"
     });
     goto("/dashboard");
   }
@@ -1332,12 +1398,10 @@
     iconVariant="warning"
     title="Leave Workspace?"
     subtitle="Are you sure you want to leave? Your current progress will be lost."
-    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later."
+    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later. The container will stop in the background."
     confirmLabel="Leave"
     cancelLabel="Stay"
     variant="warning"
-    isLoading={backModalLoading}
-    loadingLabel="Stopping…"
     on:confirm={confirmBack}
     on:cancel={() => { backModalOpen = false; }}
   />
@@ -1358,6 +1422,12 @@
   variant="warning"
   on:confirm={handleRegressionConfirm}
   on:cancel={handleRegressionDismiss}
+/>
+
+<!-- Trivia Modal -->
+<TriviaModal
+  bind:open={triviaModalOpen}
+  on:answered={handleTriviaAnswer}
 />
 
 

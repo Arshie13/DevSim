@@ -3,6 +3,21 @@ import prisma from "$lib/server/client";
 import { docker } from "$lib/server/docker/client";
 import { error } from "@sveltejs/kit";
 
+async function stopContainerAsync(containerId: string, workspaceId: string) {
+  try {
+    await docker.getContainer(containerId).stop();
+    await prisma.workspace.update({
+      where: { id: workspaceId },
+      data: {
+        status: 'stopped',
+        stoppedAt: new Date()
+      }
+    });
+  } catch (err) {
+    console.error('Background container stop failed:', err);
+  }
+}
+
 export const POST: RequestHandler = async ({ params, locals }) => {
     // --- Auth check ---
     const session = await locals.auth();
@@ -16,13 +31,8 @@ export const POST: RequestHandler = async ({ params, locals }) => {
         return error(404, 'Container not found.');
     }
 
-    await docker.getContainer(id).stop();
-    await prisma.workspace.update({
-        where: { id: container.id },
-        data: {
-            status: 'stopped',
-            stoppedAt: new Date()
-        }
-    });
-    return json({success: true, })
+    // Fire and forget - stop in background
+    stopContainerAsync(id, container.id);
+    
+    return json({ success: true });
 }

@@ -30,6 +30,36 @@
   $: previewImages = scenario.previewImages ?? [];
   $: epics = scenario.epics ?? [];
 
+  // Fullscreen preview modal
+  let showPreviewModal = false;
+  let modalImageIndex = 0;
+
+  function openPreviewModal(index: number) {
+    modalImageIndex = index;
+    showPreviewModal = true;
+  }
+
+  function closePreviewModal() {
+    showPreviewModal = false;
+  }
+
+  function nextModalImage(e: Event) {
+    e.stopPropagation();
+    modalImageIndex = (modalImageIndex + 1) % previewImages.length;
+  }
+
+  function prevModalImage(e: Event) {
+    e.stopPropagation();
+    modalImageIndex = (modalImageIndex - 1 + previewImages.length) % previewImages.length;
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (!showPreviewModal) return;
+    if (e.key === 'Escape') closePreviewModal();
+    if (e.key === 'ArrowRight') nextModalImage(e);
+    if (e.key === 'ArrowLeft') prevModalImage(e);
+  }
+
   function nextImage(e: Event) {
     e.stopPropagation();
     if (previewImages.length > 1) {
@@ -126,7 +156,7 @@
       <!-- Preview Images Carousel -->
       {#if previewImages.length > 0}
         <div class="preview-carousel flex-shrink-0 mb-3">
-          <div class="preview-image-wrapper">
+          <div class="preview-image-wrapper" on:click={() => openPreviewModal(currentImageIndex)} on:keydown={(e) => e.key === 'Enter' && openPreviewModal(currentImageIndex)} role="button" tabindex="0">
             <img 
               src={previewImages[currentImageIndex]} 
               alt="Project preview {currentImageIndex + 1}"
@@ -648,4 +678,145 @@
     color: rgba(208, 215, 221, 0.4);
     font-size: 0.6rem;
   }
+
+  /* ── Fullscreen Preview Modal ─────────────────────────────────── */
+  .preview-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+  }
+  .preview-modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+  .preview-modal-image {
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+  .preview-modal-close {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 1001;
+  }
+  .preview-modal-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(7, 165, 201, 0.2);
+    border: 1px solid rgba(7, 165, 201, 0.5);
+    border-radius: 50%;
+    color: #07a5c9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .preview-modal-nav:hover {
+    background: rgba(7, 165, 201, 0.4);
+  }
+  .preview-modal-nav.prev {
+    left: 10px;
+  }
+  .preview-modal-nav.next {
+    right: 10px;
+  }
+  .preview-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .preview-modal-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+  }
+  .preview-modal-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .preview-modal-indicator.active {
+    background: #07a5c9;
+  }
 </style>
+
+<!-- Fullscreen Preview Modal -->
+{#if showPreviewModal}
+  <div 
+    class="preview-modal-overlay" 
+    on:click={closePreviewModal} 
+    on:keydown={handleKeydown}
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
+  >
+    <button class="preview-modal-close" on:click={closePreviewModal} aria-label="Close">
+      ×
+    </button>
+    
+    <div class="preview-modal-content" on:click|stopPropagation role="presentation">
+      
+      {#if previewImages.length > 1}
+        <button class="preview-modal-nav prev" on:click={prevModalImage} aria-label="Previous image">
+          <ChevronLeft class="w-6 h-6" />
+        </button>
+        <button class="preview-modal-nav next" on:click={nextModalImage} aria-label="Next image">
+          <ChevronRight class="w-6 h-6" />
+        </button>
+      {/if}
+      
+      <img 
+        src={previewImages[modalImageIndex]} 
+        alt="Project preview {modalImageIndex + 1}"
+        class="preview-modal-image"
+      />
+      
+      {#if previewImages.length > 1}
+        <div class="preview-modal-indicators">
+          {#each previewImages as _, idx}
+            <button 
+              class="preview-modal-indicator" 
+              class:active={idx === modalImageIndex}
+              on:click|stopPropagation={() => modalImageIndex = idx}
+              aria-label="Go to image {idx + 1}"
+            ></button>
+          {/each}
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}

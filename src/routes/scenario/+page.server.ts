@@ -240,9 +240,9 @@ export const load: PageServerLoad = async (event) => {
 			// No preview images directory, continue without
 		}
 
-		// Look for epics.md in stack root
+		// Look for epics.md in scenario directory
 		let epics: EpicMeta[] = [];
-		const epicsPath = path.join(stackDir, 'epics.md');
+		const epicsPath = path.join(scenarioPath, 'epics.md');
 		try {
 			const epicsContent = await fs.readFile(epicsPath, 'utf-8');
 			const parsedEpics = parseEpicsMd(epicsContent);

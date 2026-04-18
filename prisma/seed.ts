@@ -93,7 +93,14 @@ async function main() {
     },
   ];
 
-  // Insert epics first
+  // Insert scenarios first (required for epics foreign key)
+  console.log("\n📦 Creating scenarios...\n");
+  for (const scenario of scenarios) {
+    await prisma.scenario.create({ data: scenario });
+    console.log(`✅ Created scenario: ${scenario.name}`);
+  }
+
+  // Insert epics second (depends on scenarioId)
   console.log("\n🏃 Creating epics...\n");
   for (const epic of epics) {
     await prisma.epic.create({ data: epic });
@@ -896,13 +903,6 @@ async function main() {
       },
     },
   ];
-
-  // Insert scenarios first
-  console.log("\n📦 Creating scenarios...\n");
-  for (const scenario of scenarios) {
-    await prisma.scenario.create({ data: scenario });
-    console.log(`✅ Created scenario: ${scenario.name}`);
-  }
 
   // Insert levels
   console.log("\n🎯 Creating levels...\n");
