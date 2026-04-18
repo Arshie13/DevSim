@@ -25,6 +25,12 @@ export class MonacoInitializer {
         roundedSelection: false,
         scrollBeyondLastLine: false,
         automaticLayout: true,
+        quickSuggestions: true,
+        suggestOnTriggerCharacters: true,
+        acceptSuggestionOnEnter: "on",
+        tabCompletion: "on",
+        wordBasedSuggestions: "matching",
+        parameterHints: { enabled: true },
       });
 
       // Disable TypeScript/JavaScript diagnostics (linting)

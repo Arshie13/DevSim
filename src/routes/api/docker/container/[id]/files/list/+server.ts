@@ -31,12 +31,11 @@ export async function POST(event: RequestEvent) {
       });
     }
     const excludedPathExpr =
-      '! -path "*/node_modules" ! -path "*/node_modules/*" ' +
       '! -path "*/.next" ! -path "*/.next/*" ' +
       '! -path "*/.git" ! -path "*/.git/*" ' +
-      '! -path "*/tests" ! -path "*/tests/*" ' +
-      '! -path "*/__tests__" ! -path "*/__tests__/*" ' +
       '! -name ".dockerignore"';
+      '! -path "*/tests" ! -path "*/tests/*" ' +
+      '! -path "*/__tests__" ! -path "*/__tests__/*" ';
 
     const exec = await container.exec({
       Cmd: ['sh', '-c', `find "${path}" -type f ${excludedPathExpr} 2>/dev/null || echo ""`],
@@ -105,7 +104,7 @@ export async function POST(event: RequestEvent) {
     const isVisibleWorkspacePath = (relativePath: string) => {
       const segments = relativePath.split('/').filter(Boolean);
       if (segments[segments.length - 1] === '.dockerignore') return false;
-      return !segments.includes('tests') && !segments.includes('__tests__');
+      return true;
     };
 
     const files = output
