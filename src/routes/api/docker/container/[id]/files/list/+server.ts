@@ -33,9 +33,10 @@ export async function POST(event: RequestEvent) {
     const excludedPathExpr =
       '! -path "*/.next" ! -path "*/.next/*" ' +
       '! -path "*/.git" ! -path "*/.git/*" ' +
-      '! -name ".dockerignore"';
-      '! -path "*/tests" ! -path "*/tests/*" ' +
-      '! -path "*/__tests__" ! -path "*/__tests__/*" ';
+      '! -name ".dockerignore" ' +
+      '! -path "*/__tests__" ! -path "*/__tests__/*" ' +
+      '! -path "*/levels" ! -path "*/levels/*" ' +
+      '! -path "*/tests" ! -path "*/tests/*" ';
 
     const exec = await container.exec({
       Cmd: ['sh', '-c', `find "${path}" -type f ${excludedPathExpr} 2>/dev/null || echo ""`],
