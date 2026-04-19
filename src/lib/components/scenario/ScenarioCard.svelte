@@ -48,31 +48,6 @@
     isModalOpen = false;
   }
 
-  function nextImage(e: Event) {
-    e.stopPropagation();
-    if (previewImages.length > 1) {
-      currentImageIndex = (currentImageIndex + 1) % previewImages.length;
-    }
-  }
-
-  function prevImage(e: Event) {
-    e.stopPropagation();
-    if (previewImages.length > 1) {
-      currentImageIndex =
-        (currentImageIndex - 1 + previewImages.length) % previewImages.length;
-    }
-  }
-
-  /** Open the fullscreen preview modal */
-  let showPreviewModal = false;
-  function openPreviewModal() {
-    showPreviewModal = true;
-  }
-
-  function closePreviewModal() {
-    showPreviewModal = false;
-  }
-
   function handleTourToggle(e: Event) {
     const input = e.target as HTMLInputElement;
     if (input.checked) {
@@ -325,7 +300,7 @@
   </button>
 {/if}
 
-<PreviewImages images={previewImages} alt="Project preview" showInline={true} open={isModalOpen} />
+<PreviewImages images={previewImages} alt="Project preview" showInline={true} openModal={openModal} closeModal={closeModal} isOpen={isModalOpen} />
 
 <style>
   /* ── Card base ───────────────────────────────────────────────── */

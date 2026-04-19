@@ -27,21 +27,24 @@
   /** Show inline image preview instead of button */
   export let showInline: boolean = false;
 
+  export let isOpen: boolean;
+  export let openModal: () => void;
+  export let closeModal: () => void;
+
   const dispatch = createEventDispatcher<{ open: void; close: void }>();
 
-  export let open = false;
   let currentIndex = initialIndex;
 
-  function openModal() {
-    currentIndex = initialIndex;
-    open = true;
-    dispatch('open');
-  }
+  // function openModal() {
+  //   currentIndex = initialIndex;
+  //   isOpen = true;
+  //   dispatch('open');
+  // }
 
-  function closeModal() {
-    open = false;
-    dispatch('close');
-  }
+  // function closeModal() {
+  //   open = false;
+  //   dispatch('close');
+  // }
 
   function next(e?: Event) {
     e?.stopPropagation();
@@ -95,7 +98,7 @@
 {/if}
 
 <!-- ── Modal Overlay ── -->
-{#if open}
+{#if isOpen}
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
   <div
     class="overlay"
