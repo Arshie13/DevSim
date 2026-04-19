@@ -134,9 +134,35 @@
     }
   }
 
+  let previewPollInterval: ReturnType<typeof setInterval> | null = null;
+
+  function stopPreviewPoll() {
+    if (previewPollInterval !== null) {
+      clearInterval(previewPollInterval);
+      previewPollInterval = null;
+    }
+  }
+
+  function startPreviewPoll() {
+    stopPreviewPoll();
+    let attempts = 0;
+    previewPollInterval = setInterval(() => {
+      if (previewUrl || ++attempts >= 10) {
+        stopPreviewPoll();
+        return;
+      }
+      refreshPreview();
+    }, 3000);
+  }
+
   function handleTabChange(tab: "editor" | "terminal" | "preview" | "board") {
     activeTab = tab;
-    if (tab === "preview") refreshPreview();
+    if (tab === "preview") {
+      refreshPreview();
+      if (!previewUrl) startPreviewPoll();
+    } else {
+      stopPreviewPoll();
+    }
   }
 
   function markTabDirty(fileId: string, dirty: boolean) {
@@ -573,7 +599,28 @@
   }
 
   function handleTestsComplete(event: CustomEvent<{ success: boolean; result: TestRunResult }>) {
-    if (event.detail.success) {
+    const { success, result } = event.detail;
+
+    if (result?.taskResults) {
+      const byTaskId = new Map(result.taskResults.map((r) => [r.taskId, r]));
+      tasks = tasks.map((task, idx) => {
+        const directResult = byTaskId.get(task.id);
+        const fallbackResult = byTaskId.get(String(task.order ?? idx + 1));
+        const taskResult = directResult ?? fallbackResult;
+        if (!taskResult) return task;
+        if (taskResult.passed) {
+          return { ...task, boardStatus: "done", isCompleted: true, testStatus: "passed" };
+        }
+        return {
+          ...task,
+          boardStatus: task.boardStatus === "done" ? "in-review" : (task.boardStatus ?? "in-review"),
+          isCompleted: false,
+          testStatus: "failed",
+        };
+      });
+    }
+
+    if (success) {
       toast.success("Tutorial tests passed.");
     } else {
       toast.warn("Some tutorial tests failed. Continue following the guide.");
@@ -596,7 +643,6 @@
   }
 
   function handleSubmitted() {
-    handleTutorialCompleted();
     if (browser) {
       window.dispatchEvent(new CustomEvent("devsim-sprint-submitted"));
     }
@@ -630,9 +676,16 @@
     initTutorialWorkspace();
     window.addEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
 
+    function handleCloseResultModal() {
+      testCaseComponent?.closeResults();
+    }
+    window.addEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
+
     return () => {
       clearInterval(timer);
+      stopPreviewPoll();
       window.removeEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
+      window.removeEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
       terminalSessions.forEach((s) => s.instance?.dispose());
       monacoEditor?.dispose();
     };
@@ -719,7 +772,7 @@ onSubmit: submitSprint,
           bind:editorRef
         />
 
-        <div data-tour="terminal-panel" class="h-full">
+        <div data-tour="terminal-panel" class="absolute inset-0" class:hidden={activeTab !== "terminal"}>
           <TerminalPanel
             visible={activeTab === "terminal"}
             sessions={terminalSessions}
@@ -765,6 +818,7 @@ onSubmit: submitSprint,
     levelCoinReward={0}
     {fileContents}
     existingFiles={fileTree}
+    tutorialMode={true}
     on:submitted={handleSubmitted}
   />
 
@@ -776,7 +830,7 @@ onSubmit: submitSprint,
     stackTutorialType={tutorialStackType}
     allowSkip={!tutorialLaunchContext.tutorialRequired}
     onSwitchTab={(tab) => {
-      activeTab = tab as "editor" | "terminal" | "preview" | "board";
+      handleTabChange(tab as "editor" | "terminal" | "preview" | "board");
     }}
     onRunTests={runTests}
     onSubmitSprint={submitSprint}

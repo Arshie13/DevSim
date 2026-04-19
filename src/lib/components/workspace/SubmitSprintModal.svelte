@@ -17,6 +17,7 @@
   export let existingFiles: string[] = [];
   export let levelXpReward: number = 0;
   export let levelCoinReward: number = 0;
+  export let tutorialMode: boolean = false;
 
   // -- State --------------------------------------------------------------------
   type ModalState = "confirm" | "testing" | "loading" | "success" | "error";
@@ -247,8 +248,7 @@
     masteryReflection = "";
     impactedLayers = [];
 
-    // Fetch file changes when modal opens
-    fetchFileChanges();
+    if (!tutorialMode) fetchFileChanges();
   }
 
   function close() {
@@ -302,6 +302,17 @@
 
   // -- Submit flow --------------------------------------------------------------
   async function handleConfirm() {
+    if (tutorialMode) {
+      isSubmitFlowCanceled = false;
+      state = 'loading';
+      startSubmitStep(1); // show "Recording completion…"
+      await sleep(1800);
+      showModal = false;
+      state = 'confirm';
+      dispatch('submitted', { xp: 0, coins: 0, advanceToNextLevel: false, nextLevel: null });
+      return;
+    }
+
     if (!dbContainerId) {
       submitError =
         "Could not resolve container record. Please refresh and try again.";
@@ -905,8 +916,8 @@
 </script>
 
 <!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
-<div data-tour="submit-sprint-modal">
 <ConfirmationModal
+  tourId="submit-sprint-modal"
   bind:open={showModal}
   icon={modalIcon}
   {iconVariant}
@@ -960,7 +971,7 @@
     />
   </svelte:fragment>
 </ConfirmationModal>
-</div>
+
 
 <ConfirmationModal
   bind:open={showCancelConfirmModal}

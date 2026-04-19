@@ -31,19 +31,26 @@
   let waitingForTarget = false;
   let stepCodeSaveDone = false;
   let pendingTerminalCommand: string | null = null;
+  let terminalOutputPollId: ReturnType<typeof setInterval> | null = null;
+  let activeSpotlightTarget: string | null = null;
   let step: InteractiveStep = STEPS[0];
   let isCommandStep = false;
   let isManualConfirmStep = false;
   let progress = "1/1";
   let manualConfirmDisabled = false;
 
-  const CALLOUT_W = 420;
-  const CALLOUT_H = 280;
+  const CALLOUT_W = 440;
+  const CALLOUT_H = 360;
   const SPOT_PAD = 8;
   const GAP = 14;
   const EDGE_MARGIN = 12;
   const TARGET_RETRY_COUNT = 36;
   const TARGET_RETRY_DELAY_MS = 120;
+  const MODAL_SPOTLIGHT_TARGETS = new Set([
+    'submit-sprint-modal',
+    'test-selection-modal',
+    'test-result-modal',
+  ]);
 
   function getCurrentStep() {
     return STEPS[currentIdx];
@@ -51,7 +58,10 @@
 
   function normalizeCommand(value: string) {
     return value
-      .replace(/\[(?:200|201)~/g, "")
+      .replace(/\x1b\[[0-9;]*[A-Za-z]/g, "")  // ANSI escape sequences (cursor movement, colors)
+      .replace(/\x1b./g, "")                    // remaining ESC + single char sequences
+      .replace(/\[(?:200|201)~/g, "")           // bracket paste mode markers
+      .replace(/[\x00-\x08\x0b-\x1f\x7f]/g, "") // non-printable control characters
       .trim()
       .replace(/\s+/g, " ")
       .toLowerCase();
@@ -64,7 +74,9 @@
     if (normalized.startsWith("cd ")) {
       const rawPath = normalized.slice(3).trim();
       if (rawPath === "/") return "cd /";
-      const cleanedPath = rawPath.replace(/\/+$/, "");
+      const cleanedPath = rawPath
+        .replace(/\/+$/, "")   // strip trailing slashes (tab-completion adds these)
+        .replace(/^\.\//, ""); // strip leading ./ (tab-completion may prefix with ./)
       return `cd ${cleanedPath || rawPath}`;
     }
 
@@ -89,8 +101,18 @@
     );
   }
 
+  const CLOSE_RESULT_MODAL_STEPS = new Set([
+    'test-task-one-result-continue',
+    'test-task-two-result-continue',
+  ]);
+
   function advanceStep() {
     stepCodeSaveDone = false;
+
+    const currentStep = getCurrentStep();
+    if (browser && CLOSE_RESULT_MODAL_STEPS.has(currentStep.id)) {
+      window.dispatchEvent(new CustomEvent('devsim-tour-close-result-modal'));
+    }
 
     if (currentIdx >= STEPS.length - 1) {
       openCompletionModal();
@@ -129,7 +151,9 @@
     if (
       step.id === "read-readme" ||
       step.id === "search-works-confirm" ||
-      step.requireCommand
+      step.id === "task-two-ui-edit" ||
+      step.requireCommand ||
+      (step.spotlightTarget != null && MODAL_SPOTLIGHT_TARGETS.has(step.spotlightTarget))
     ) {
       arrowDir = "left";
       calloutLeft = Math.max(
@@ -247,9 +271,20 @@
 
   async function positionPointerForStep() {
     const step = getCurrentStep();
+    const spotlightTarget = step.spotlightTarget ?? step.target;
+
+    // If the next step targets the same element, skip the reset to avoid spotlight flash.
+    if (spotlightTarget && spotlightTarget === activeSpotlightTarget && pointerReady) {
+      const el = document.querySelector<HTMLElement>(`[data-tour="${spotlightTarget}"]`);
+      if (el) {
+        resolvePlacement(el.getBoundingClientRect(), step.preferSide ?? "auto");
+        return;
+      }
+    }
+
     pointerReady = false;
     waitingForTarget = false;
-    const spotlightTarget = step.spotlightTarget ?? step.target;
+    activeSpotlightTarget = null;
 
     if (!spotlightTarget) {
       setCalloutFallbackPosition();
@@ -271,6 +306,7 @@
         const rect = el.getBoundingClientRect();
         resolvePlacement(rect, step.preferSide ?? "auto");
         pointerReady = true;
+        activeSpotlightTarget = spotlightTarget;
         waitingForTarget = false;
         return;
       }
@@ -286,6 +322,7 @@
     const step = getCurrentStep();
     clickError = "";
     stepCodeSaveDone = false;
+    resetStepState();
 
     if (step.id === "open-explorer") {
       window.dispatchEvent(new CustomEvent("devsim-tour-open-explorer-panel"));
@@ -306,6 +343,13 @@
           },
         }),
       );
+    }
+
+    if (step.id === 'submit-sprint-reflection') {
+      // Trigger auto-fill
+      const event = new CustomEvent('focus', { bubbles: true });
+      const target = document.querySelector('[data-tour="mastery-reflection-input"]') as HTMLElement;
+      target?.dispatchEvent(event);
     }
 
     if (step.switchTab && onSwitchTab) {
@@ -335,6 +379,7 @@
     await positionPointerForStep();
   }
 
+
   function beginTutorial() {
     welcomeModalVisible = false;
     visible = true;
@@ -348,12 +393,49 @@
     completionModalVisible = true;
   }
 
+  function showCompletionModal() {
+    if (!browser) return;
+    window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
+    completionModalVisible = true;
+    // Keep visible = true so the proceed-to-real-workspace step still guides the user
+  }
+
+  let copySuccess = false;
+
+  async function copyStepText(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      copySuccess = true;
+      setTimeout(() => { copySuccess = false; }, 2000);
+    } catch {
+      copySuccess = false;
+    }
+  }
+
+  function handleSprintSubmitted() {
+    const current = getCurrentStep();
+    if (current.id === 'finish-tutorial-open-modal') {
+      currentIdx += 1;
+      void prepareStep();
+    }
+    showCompletionModal();
+  }
+
   function completeTutorial() {
     if (browser) {
       window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
     }
     completionModalVisible = false;
     setTimeout(() => dispatch("complete"), 180);
+  }
+
+  function replayTutorial() {
+    pendingTerminalCommand = null;
+    clickError = "";
+    completionModalVisible = false;
+    currentIdx = 0;
+    visible = true;
+    void prepareStep();
   }
 
   function skipTutorial() {
@@ -435,7 +517,7 @@
     return true;
   }
 
-  function handleInteractiveClick(event: MouseEvent) {
+function handleInteractiveClick(event: MouseEvent) {
     if (!visible) return;
     if (blockIfLocked(event)) return;
 
@@ -459,7 +541,7 @@
     );
 
     const requiresTargetClick =
-      step.requireTargetClick ??
+      step.requireTargetClick ?? 
       Boolean(
         step.target &&
           !step.requireCommand &&
@@ -470,7 +552,8 @@
       !step.target ||
       step.requireCommand ||
       step.action ||
-      !requiresTargetClick
+      !requiresTargetClick ||
+      !stepConfirmReady
     )
       return;
 
@@ -485,9 +568,31 @@
       : "Waiting for target to finish rendering. Click the required target once visible.";
   }
 
+
   function handleInteractivePointerDown(event: PointerEvent) {
     if (!visible) return;
     void blockIfLocked(event);
+  }
+
+  function stopTerminalOutputPoll() {
+    if (terminalOutputPollId !== null) {
+      clearInterval(terminalOutputPollId);
+      terminalOutputPollId = null;
+    }
+  }
+
+  function startTerminalOutputPoll(patterns: string[]) {
+    stopTerminalOutputPoll();
+    terminalOutputPollId = setInterval(() => {
+      const rows = document.querySelector('[data-tour="terminal-panel"] .xterm-rows');
+      const text = rows?.textContent ?? document.querySelector('[data-tour="terminal-panel"]')?.textContent ?? '';
+      if (patterns.every((p) => text.includes(p))) {
+        stopTerminalOutputPoll();
+        pendingTerminalCommand = null;
+        clickError = '';
+        advanceStep();
+      }
+    }, 1000);
   }
 
   function handleTerminalCommand(event: Event) {
@@ -507,6 +612,13 @@
       }
 
       pendingTerminalCommand = canonicalizeCommand(executed);
+
+      if (step.waitForTerminalOutput && step.waitForTerminalOutput.length > 0) {
+        clickError = "Command accepted. Waiting for client and server to start...";
+        startTerminalOutputPoll(step.waitForTerminalOutput);
+        return;
+      }
+
       clickError = "Command accepted. Waiting for terminal to finish...";
       return;
     }
@@ -610,6 +722,23 @@
       "devsim-tests-complete",
       handleTestsComplete as EventListener,
     );
+    window.addEventListener(
+      "devsim-sprint-submitted",
+      handleSprintSubmitted as EventListener,
+    );
+    window.addEventListener(
+      "change",
+      (e: Event) => {
+        const target = (e.target as HTMLElement);
+        const layerId = target.getAttribute('data-tour');
+        if (layerId && layerId.startsWith('impacted-layer-')) {
+          if (!layerClicks.includes(layerId)) {
+            layerClicks = [...layerClicks, layerId];
+          }
+        }
+      },
+      true
+    );
   });
 
   onDestroy(() => {
@@ -646,6 +775,11 @@
       "devsim-tests-complete",
       handleTestsComplete as EventListener,
     );
+    window.removeEventListener(
+      "devsim-sprint-submitted",
+      handleSprintSubmitted as EventListener,
+    );
+    stopTerminalOutputPoll();
     window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
   });
 
@@ -662,9 +796,28 @@
       step.action !== "runTests" &&
       step.action !== "submitSprint",
   );
-  $: manualConfirmDisabled =
+$: manualConfirmDisabled =
     step.id === "task-two-ui-edit" && !stepCodeSaveDone;
   $: progress = `${currentIdx + 1}/${STEPS.length}`;
+
+  let stepConfirmReady = false;
+  let layerClicks: string[] = [];
+  let reflectionInteracted = false;
+
+  function resetStepState() {
+    stopTerminalOutputPoll();
+    stepConfirmReady = false;
+    layerClicks = [];
+    reflectionInteracted = false;
+  }
+
+  $: if (step.id === 'submit-sprint-reflection') {
+    stepConfirmReady = reflectionInteracted;
+  } else if (step.id === 'submit-sprint-layers') {
+    stepConfirmReady = layerClicks.length >= 2;
+  } else {
+    stepConfirmReady = true;
+  }
 </script>
 
 <svelte:window on:resize={handleWindowResize} />
@@ -722,6 +875,7 @@
   <div class="pt-overlay" aria-live="polite">
     <div
       class="pt-panel"
+      class:pt-panel--locating={waitingForTarget && !pointerReady}
       role="dialog"
       aria-modal="false"
       aria-label="Interactive tutorial"
@@ -745,11 +899,19 @@
         <span class="pt-progress">Step {progress}</span>
       </header>
 
-      <p class="pt-instruction">{step.instruction}</p>
-      <p class="pt-hint">{step.hint}</p>
-      {#if waitingForTarget && !pointerReady}
+      <div class="pt-body">
+        <p class="pt-instruction">{step.instruction}</p>
+        <p class="pt-hint">{step.hint}</p>
+        {#if step.copyText}
+          <button
+            class="pt-btn pt-btn-secondary pt-copy-btn"
+            on:click={() => copyStepText(step.copyText ?? '')}
+          >{copySuccess ? '✓ Copied!' : 'Copy Example'}</button>
+        {/if}
+      </div>
+    {#if waitingForTarget && !pointerReady}
         <p class="pt-muted">Locating target in the workspace...</p>
-      {/if}
+      {/if}  
       {#if clickError}
         <p class="pt-error">{clickError}</p>
       {/if}
@@ -770,17 +932,6 @@
         <button class="pt-btn pt-btn-primary" on:click={handleRunTests}
           >Run Tests</button
         >
-      {:else if step.action === "submitSprint"}
-        <button
-          class="pt-btn pt-btn-primary"
-          on:click={() => {
-            onSubmitSprint?.();
-            clickError = "";
-            advanceStep();
-          }}
-        >
-          Submit Sprint
-        </button>
       {/if}
 
       <footer class="pt-footer">
@@ -810,7 +961,13 @@
         project to continue building.
       </p>
       <div class="pt-modal-actions">
-        <button class="pt-btn pt-btn-primary" on:click={completeTutorial}
+        <button class="pt-btn pt-btn-ghost" on:click={replayTutorial}
+          >Replay Tutorial</button
+        >
+        <button
+          class="pt-btn pt-btn-primary"
+          data-tour="tutorial-proceed-button"
+          on:click={completeTutorial}
           >Proceed To Workspace</button
         >
       </div>
@@ -833,15 +990,18 @@
   }
 
   .pt-modal-box {
-    width: min(520px, 94vw);
-    max-height: min(80vh, 680px);
-    overflow: auto;
+    width: min(520px, 90vw);
+    height: auto;
+    max-height: min(92vh, 820px);
+    overflow-y: auto;
     border-radius: 6px;
     border: 1px solid rgba(0, 194, 255, 0.35);
     background: #0d1425;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     padding: 1.35rem 1.2rem 1.15rem;
     position: relative;
+    display: flex;
+    flex-direction: column;
   }
 
   .pt-modal-accent {
@@ -919,9 +1079,9 @@
   .pt-panel {
     position: fixed;
     z-index: 10046;
-    width: min(420px, calc(100vw - 2rem));
-    min-height: 255px;
-    max-height: 280px;
+    width: min(440px, calc(90vw - 2rem));
+    min-height: 320px;
+    max-height: min(75vh, 520px);
     overflow: hidden;
     background: #0d1425;
     border: 1px solid rgba(0, 194, 255, 0.45);
@@ -931,6 +1091,14 @@
     pointer-events: auto;
     color: #d0d7dd;
     font-family: "Rajdhani", sans-serif;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  .pt-panel--locating {
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .pt-arrow {
@@ -989,15 +1157,33 @@
     color: rgba(208, 215, 221, 0.72);
   }
 
+  .pt-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding-right: 0.25rem;
+    box-sizing: border-box;
+  }
+
   .pt-instruction {
     margin: 0;
-    line-height: 1.35;
+    line-height: 1.45;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
   }
 
   .pt-hint {
-    margin: 0.35rem 0 0.55rem;
+    margin: 0;
     color: rgba(208, 215, 221, 0.72);
     font-size: 0.88rem;
+    line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
   }
 
   .pt-command {
@@ -1006,9 +1192,10 @@
     color: #00e5a0;
     font-family: "Share Tech Mono", monospace;
     font-size: 0.74rem;
-    white-space: nowrap;
+    white-space: pre-wrap;
+    word-break: break-all;
+    overflow-wrap: break-word;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .pt-error {
@@ -1024,9 +1211,26 @@
   }
 
   .pt-footer {
-    margin-top: 0.55rem;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(0, 194, 255, 0.15);
     display: flex;
     justify-content: flex-end;
+  }
+
+  @media (max-height: 700px), (max-width: 500px) {
+    .pt-modal-box, .pt-panel {
+      padding: 1rem 0.9rem !important;
+      margin: 0.5rem;
+    }
+    .pt-panel {
+      min-height: 280px;
+      max-height: 70vh;
+    }
+    .pt-instruction, .pt-hint {
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
   }
 
   .pt-btn {
@@ -1036,6 +1240,11 @@
     font-family: "Share Tech Mono", monospace;
     font-size: 0.72rem;
     cursor: pointer;
+  }
+
+  .pt-copy-btn {
+    align-self: flex-start;
+    margin-top: 0.2rem;
   }
 
   .pt-btn-primary {
