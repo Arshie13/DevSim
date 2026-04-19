@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
     const prismaContainer = await prisma.workspace.findFirst({
       where: {
-        containerId: id
+        container_id: id
       },
       select: {
         id: true
@@ -28,12 +28,12 @@ export const GET: RequestHandler = async ({ locals, params }) => {
       return json({ success: true, data: [] });
     }
 
-    const fileLogs = await prisma.userFileChanges.findMany({
+    const fileLogs = await prisma.user_file_changes.findMany({
       where: {
-        workspaceId: prismaContainer.id
+        workspace_id: prismaContainer.id
       },
       select: {
-        filePath: true,
+        file_path: true,
       }
     });
 
@@ -43,4 +43,3 @@ export const GET: RequestHandler = async ({ locals, params }) => {
     return error(500, 'Something went wrong when fetching all file logs');
   }
 }
-``

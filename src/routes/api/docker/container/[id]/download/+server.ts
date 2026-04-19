@@ -34,12 +34,12 @@ export const GET: RequestHandler = async ({ params, locals }) => {
       return error(404, 'Container not found');
     }
 
-    if (container.userId !== session.user.id) {
+    if (container.user_id !== session.user.id) {
       return error(403, 'You do not own this container');
     }
 
     // --- Get the Docker container ---
-    const dockerContainer = docker.getContainer(container.containerId);
+    const dockerContainer = docker.getContainer(container.container_id);
 
     // Check if container exists
     try {
@@ -89,7 +89,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     const tarBuffer = Buffer.concat(chunks);
 
     // --- Generate filename ---
-    const stackSlug = container.volumeName;
+    const stackSlug = container.volume_name;
     const sanitizedTitle = stackSlug || 'project';
     const filename = `${sanitizedTitle}-lvl${container.level}-${container.id.slice(0, 8)}.tar`;
 

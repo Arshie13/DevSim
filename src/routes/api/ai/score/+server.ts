@@ -35,13 +35,13 @@ async function getLevelInfo(level: number) {
   if (levelInfo) {
     levelCache.set(level, { 
       title: levelInfo.title, 
-      tasks: levelInfo.tasks.map(t => t.taskName) 
+      tasks: levelInfo.tasks.map(t => t.task_name) 
     });
   }
   
   return levelInfo ? { 
     title: levelInfo.title, 
-    tasks: levelInfo.tasks.map(t => t.taskName) 
+    tasks: levelInfo.tasks.map(t => t.task_name) 
   } : null;
 }
 

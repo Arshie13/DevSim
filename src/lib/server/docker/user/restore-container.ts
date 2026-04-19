@@ -28,11 +28,11 @@ export async function restoreContainer(
 		throw new Error('Container record not found.');
 	}
 
-	if (record.userId !== req.userId) {
+	if (record.user_id !== req.userId) {
 		throw new Error('You do not own this container.');
 	}
 
-	if (!record.isArchived || !record.volumeName) {
+	if (!record.is_archived || !record.volume_name) {
 		throw new Error('Container is not archived — nothing to restore.');
 	}
 
@@ -52,8 +52,8 @@ export async function restoreContainer(
 
 	// --- 3. Create the new container WITHOUT a volume mount ---
 	// Get stacks from ContainerStack relation for the label
-	const containerStacks = await prisma.workspaceStack.findMany({
-		where: { workspaceId: req.dbContainerId }
+	const containerStacks = await prisma.workspace_stack.findMany({
+		where: { workspace_id: req.dbContainerId }
 	});
 	const stackNames = containerStacks.map(s => s.stackName);
 
@@ -113,7 +113,7 @@ export async function restoreContainer(
 		Cmd: ['sh', '-c', 'sleep 60'],
 		name: `devsim-restore-helper-${helperSuffix}`,
 		HostConfig: {
-			Binds: [`${record.volumeName}:/data`]
+			Binds: [`${record.volume_name}:/data`]
 		}
 	});
 
@@ -140,9 +140,9 @@ export async function restoreContainer(
 		prisma.workspace.update({
 			where: { id: req.dbContainerId },
 			data: {
-				containerId: newContainer.id, // new Docker container ID
-				isArchived: false,
-				volumeName: null,
+				container_id: newContainer.id, // new Docker container ID
+				is_archived: false,
+				volume_name: null,
 				status: 'created'
 			}
 		}),
@@ -156,7 +156,7 @@ export async function restoreContainer(
 	// The new container holds the data in its own writable layer; the volume is no
 	// longer referenced by any container and Docker will allow the removal.
 	try {
-		const vol = docker.getVolume(record.volumeName);
+		const vol = docker.getVolume(record.volume_name);
 		await vol.remove();
 	} catch (volErr) {
 		// Non-fatal: log but don't fail the restore — the container is already running.

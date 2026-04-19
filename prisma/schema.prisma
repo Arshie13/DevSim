@@ -7,9 +7,9 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
+model user {
   id           String  @id @default(uuid())
-  dailyLoginId String? @unique
+  daily_login_id String? @unique
   email        String  @unique
   name         String
   image        String?
@@ -19,161 +19,161 @@ model User {
   xp           Int      @default(0)
   coins        Int      @default(0)
   level        Int      @default(1)
-  ownedAvatars String[] @default([])
+  owned_avatars String[] @default([])
 
   // Onboarding
-  hasCompletedOnboarding Boolean @default(false)
+  has_completed_onboarding Boolean @default(false)
 
   // Relations
-  dailyLogin   DailyLogin?       @relation
-  workspaces   Workspace[]
-  achievements UserAchievement[]
+  daily_login   daily_login?       @relation
+  workspaces   workspace[]
+  achievements user_achievement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Workspace {
+model workspace {
   id     String @id @default(cuid())
-  userId String
+  user_id String
   level  Int
   status String
 
-  containerId String
+  container_id String
 
   // Current progress tracking
-  currentScenarioId String
+  current_scenario_id String
 
   startedAt DateTime  @default(now())
   stoppedAt DateTime?
 
   // Archive fields — used when workspace is saved to a Docker volume before workspace deletion
-  volumeName String?
-  isArchived Boolean @default(false)
+  volume_name String?
+  is_archived Boolean @default(false)
 
   // Relations
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scenario Scenario @relation(fields: [currentScenarioId], references: [id])
+  user     user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  scenario scenario @relation(fields: [current_scenario_id], references: [id])
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  fileChanges     UserFileChanges[]
-  completedTasks  CompletedTask[]
-  workspaceStacks WorkspaceStack[]
+  file_changes     user_file_changes[]
+  completed_tasks  completed_task[]
+  workspace_stacks workspace_stack[]
 
-  @@index([userId])
+  @@index([user_id])
 }
 
-model Scenario {
+model scenario {
   id          String @id @default(cuid())
   name        String
   description String
   difficulty  String
 
   // Learning structure
-  epics       Epic[]
+  epics       epic[]
 
   // Relations
-  levels     Level[]
-  workspaces Workspace[]
+  levels     level[]
+  workspaces workspace[]
 }
 
-model Epic {
+model epic {
   id          String   @id @default(cuid())
   name        String
   description String
   order       Int      @default(0)
-  scenarioId  String
-  scenario    Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  scenario_id  String
+  scenario    scenario @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
 
   // Relations
-  levels Level[]
+  levels level[]
 
-  @@index([scenarioId])
+  @@index([scenario_id])
 }
 
-model Level {
+model level {
   id               String   @id @default(cuid())
   title            String
   subtitle         String
   order            Int      @default(0)
-  sprintNumber     Int      @default(1) // Which sprint this level belongs to
+  sprint_number     Int      @default(1) // Which sprint this level belongs to
   deadline         DateTime
-  levelDescription String
-  xpReward         Int
-  coinReward       Int
-  keyTakeaways     String
+  level_description String
+  xp_reward         Int
+  coin_reward       Int
+  key_takeaways     String
   prerequisites    Json?    // JSON array of prerequisite level IDs
 
   // Epic linking
-  epicId String?
-  epic   Epic? @relation(fields: [epicId], references: [id], onDelete: SetNull)
+  epic_id String?
+  epic   epic? @relation(fields: [epic_id], references: [id], onDelete: SetNull)
 
-  scenarioId       String
-  scenario         Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  scenario_id       String
+  scenario         scenario @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
 
   // Relations
-  tasks LevelTask[]
+  tasks level_task[]
 }
 
 // Tasks associated with a level
-model LevelTask {
+model level_task {
   id         String  @id @default(cuid())
-  levelId    String
-  taskName   String
-  userStory  String
+  level_id    String
+  task_name   String
+  user_story  String
   order      Int     @default(0)
-  isComplete Boolean @default(false)
-  testType   String   @default("none")
+  is_complete Boolean @default(false)
+  test_type   String   @default("none")
 
   // Epic linking - optional, for sprint structure
-  epicId String?
+  epic_id String?
 
-  level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
-  hints              Hint[]               @relation("TaskHints")
+  level              level                @relation(fields: [level_id], references: [id], onDelete: Cascade)
+  acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
+  hints              hint[]               @relation("TaskHints")
 
-  @@unique([levelId, taskName])
-  @@index([levelId])
+  @@unique([level_id, task_name])
+  @@index([level_id])
 }
 
 // Acceptance criteria for tasks
-model AcceptanceCriteria {
+model acceptance_criteria {
   id          String  @id @default(cuid())
-  taskId      String
+  task_id      String
   description String
-  isRequired  Boolean @default(false)
+  is_required  Boolean @default(false)
   order       Int     @default(0)
 
   // Relations
-  task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskAcceptanceCriteria")
+  task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade, name: "TaskAcceptanceCriteria")
 
-  @@index([taskId])
+  @@index([task_id])
 }
 
 // Hints associated with a task
-model Hint {
+model hint {
   id      String @id @default(cuid())
-  taskId  String
+  task_id  String
   description String
   order   Int    @default(0)
 
   // Relations
-  task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskHints")
+  task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade, name: "TaskHints")
 
-  @@index([taskId])
+  @@index([task_id])
 }
 
-model DailyLogin {
+model daily_login {
   id     String   @id @default(cuid())
   date   DateTime
   streak Int      @default(0)
-  userId String   @unique
+  user_id String   @unique
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-model Achievement {
+model achievement {
   id          String @id @default(cuid())
   name        String
   description String
@@ -183,67 +183,67 @@ model Achievement {
   // Requirements
   criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
 
-  xpReward   Int @default(100)
-  coinReward Int @default(50)
+  xp_reward   Int @default(100)
+  coin_reward Int @default(50)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userAchievements UserAchievement[]
+  user_achievements user_achievement[]
 
   @@unique([name])
 }
 
-model UserAchievement {
+model user_achievement {
   id            String   @id @default(cuid())
-  userId        String
+  user_id        String
   achievementId String
   earnedAt      DateTime @default(now())
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user        user        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  achievement achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, achievementId])
-  @@index([userId])
+  @@unique([user_id, achievementId])
+  @@index([user_id])
 }
 
 // File change tracking model
-model UserFileChanges {
+model user_file_changes {
   id          String   @id @default(cuid())
-  workspaceId String
-  filePath    String
+  workspace_id String
+  file_path    String
   action      String // "CREATE", "WRITE", "DELETE", "RENAME"
-  oldPath     String? // For rename operations - stores the original path
-  contentHash String? // Optional: hash of file content for change detection
+  old_path     String? // For rename operations - stores the original path
+  content_hash String? // Optional: hash of file content for change detection
   timestamp   DateTime @default(now())
 
   // Relations
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
-  @@index([workspaceId, timestamp])
+  @@index([workspace_id, timestamp])
 }
 
 // Completed tasks for a workspace
-model CompletedTask {
+model completed_task {
   id          String   @id @default(cuid())
-  workspaceId String
-  taskName    String
+  workspace_id String
+  task_name    String
   completedAt DateTime @default(now())
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
-  @@unique([workspaceId, taskName])
-  @@index([workspaceId])
+  @@unique([workspace_id, task_name])
+  @@index([workspace_id])
 }
 
 // Stack choices for a workspace
-model WorkspaceStack {
+model workspace_stack {
   id           String  @id @default(cuid())
-  workspaceId  String
+  workspace_id  String
   stackName    String
   stackVersion String?
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
-  @@index([workspaceId])
+  @@index([workspace_id])
 }

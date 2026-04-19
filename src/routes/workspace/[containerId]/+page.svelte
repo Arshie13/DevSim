@@ -53,7 +53,6 @@
 
   export let data: WorkspaceProps;
 
-  $: userId = data.userId || "";
   $: userCoins = data.userCoins || 0;
 
   let currentLevel = data.level || 1;
@@ -77,8 +76,6 @@
   $: stack = stackNames.length > 0 ? stackNames.join(" + ") : (workspaceScenario?.name ?? LEVEL_CONFIG.stack);
   $: difficulty = workspaceScenario?.difficulty ?? LEVEL_CONFIG.difficulty;
   $: level = currentLevel;
-
-  console.log("current level record: ", currentLevelRecord);
 
   // State
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
@@ -139,11 +136,11 @@
       const persistedState = persisted[task.id];
 
       const boardStatus =
-        persistedState?.boardStatus ?? (task.isCompleted ? "done" : "backlog");
-      const isCompleted = persistedState?.isCompleted ?? task.isCompleted;
+        persistedState?.boardStatus ?? (task.is_complete ? "done" : "backlog");
+      const isCompleted = persistedState?.isCompleted ?? task.is_complete;
       const testStatus =
         persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
-      const taskType = task.testType ?? "none";
+      const taskType = task.test_type ?? "none";
 
       return {
         ...task,
@@ -171,7 +168,7 @@
         stack: stack,
         difficulty,
         deadline: LEVEL_CONFIG.deadline,
-        scenario: currentLevelRecord?.levelDescription ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
+        scenario: currentLevelRecord?.level_description ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
         hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
         starterFiles: LEVEL_CONFIG.starterFiles,
       }
@@ -509,10 +506,10 @@
       (acc, task) => {
         acc[task.id] = {
           boardStatus:
-            task.boardStatus ?? (task.isCompleted ? "done" : "backlog"),
+            task.boardStatus ?? (task.is_complete ? "done" : "backlog"),
           testStatus:
-            task.testStatus ?? (task.isCompleted ? "passed" : "pending"),
-          isCompleted: task.isCompleted,
+            task.testStatus ?? (task.is_complete ? "passed" : "pending"),
+          isCompleted: task.is_complete,
         };
         return acc;
       },
@@ -563,7 +560,6 @@
         { method: "POST" },
       );
       const startData = await response.json();
-      console.log("starting container: ", startData.previewUrl);
       if (!startData.success) throw new Error(startData.error);
       previewUrl = startData.previewUrl;
 
@@ -838,7 +834,7 @@
       const directResult = byTaskId.get(task.id);
       const fallbackResult = byTaskId.get(String(getTaskNumber(task, index)));
       const taskResult = directResult ?? fallbackResult;
-      const canManuallyMoveToDone = (task.testType ?? "none").toLowerCase() === "none";
+      const canManuallyMoveToDone = (task.test_type ?? "none").toLowerCase() === "none";
 
       if (!taskResult) return task;
 
@@ -854,7 +850,7 @@
       if (task.boardStatus === "done" && !canManuallyMoveToDone) {
         regressions.push({
           taskId: task.id,
-          taskName: task.taskName,
+          taskName: task.task_name,
           previousStatus: task.boardStatus,
         });
         return { ...task, testStatus: "failed" };
@@ -1384,8 +1380,8 @@
     {containerId}
     {tasks}
     level={currentLevel}
-    levelXpReward={currentLevelRecord?.xpReward ?? 0}
-    levelCoinReward={currentLevelRecord?.coinReward ?? 0}
+    levelXpReward={currentLevelRecord?.xp_reward ?? 0}
+    levelCoinReward={currentLevelRecord?.coin_reward ?? 0}
     {fileContents}
     existingFiles={fileTree}
     on:submitted={handleSubmitted}
@@ -1468,7 +1464,7 @@
   levelNumber={currentLevel}
   isOpen={levelIntroCardOpen}
   levelDescription={actualLevelConfig?.scenario ?? ''}
-  tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
+  tasks={tasks.map(t => ({ id: t.id, text: t.task_name, completed: t.is_complete }))}
   levelConfig={{
     isFirstProjectCreation: hasEverBeenInOnboarding,
     operatorAlias,

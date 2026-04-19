@@ -34,12 +34,12 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     }
 
     // --- Ownership check ---
-    if (record.userId !== session.user.id) {
+    if (record.user_id !== session.user.id) {
       return error(403, 'You do not own this container.');
     }
 
     // --- Block deletion of completed-but-not-archived containers ---
-    if (record.status === 'completed' && !record.isArchived) {
+    if (record.status === 'completed' && !record.is_archived) {
       return json(
         {
           success: false,
@@ -51,7 +51,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     }
 
     // --- Stop and remove the Docker container ---
-    const container = docker.getContainer(record.containerId);
+    const container = docker.getContainer(record.container_id);
     try {
       await container.stop({ t: 5 });
     } catch {

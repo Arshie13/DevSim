@@ -28,26 +28,28 @@ export interface ILevel {
   title: string;
   order: number;
   deadline: Date | null;
-  levelDescription: string;
-  xpReward: number;
-  coinReward: number;
+  level_description: string;
+  xp_reward: number;
+  coin_reward: number;
   tasks: ITask[];
 }
 
 export interface ITask {
+  level_id: string;
   id: string;
-  taskName: string;
+  task_name: string;
   order: number;
   hints: IHints[];
-  acceptanceCriteria: IAcceptanceCriteria[];
-  isCompleted: boolean; // Optional field to track completion status on the client side
-  testType: string;
+  acceptance_criteria: IAcceptanceCriteria[];
+  is_complete: boolean; // Optional field to track completion status on the client side
+  test_type: string;
+  user_story: string;
 }
 
 export interface IHints {
   id: string;
   order: number;
-  taskId: string;
+  task_id: string;
   content: string;
 }
 

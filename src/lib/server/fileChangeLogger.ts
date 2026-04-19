@@ -20,7 +20,7 @@ export async function logFileChange(params: FileChangeLogParams) {
 
     const prismaContainer = await prisma.workspace.findFirst({
       where: {
-        containerId: params.containerId
+        container_id: params.containerId
       },
       select: {
         id: true
@@ -31,13 +31,13 @@ export async function logFileChange(params: FileChangeLogParams) {
       return null
     }
 
-    const fileChange = await prisma.userFileChanges.create({
+    const fileChange = await prisma.user_file_changes.create({
       data: {
-        workspaceId: prismaContainer?.id,
-        filePath: params.filePath,
+        workspace_id: prismaContainer?.id,
+        file_path: params.filePath,
         action: params.action,
-        oldPath: params.oldPath || null,
-        contentHash: params.contentHash || null,
+        old_path: params.oldPath || null,
+        content_hash: params.contentHash || null,
       },
     });
     return fileChange;
@@ -63,7 +63,7 @@ export async function getFileChanges(containerId: string): Promise<{
   try {
     const prismaContainer = await prisma.workspace.findFirst({
       where: {
-        containerId
+        container_id: containerId
       },
       select: {
         id: true
@@ -74,11 +74,19 @@ export async function getFileChanges(containerId: string): Promise<{
       return [];
     }
 
-    const changes = await prisma.userFileChanges.findMany({
-      where: { workspaceId: prismaContainer.id },
+    const changes = await prisma.user_file_changes.findMany({
+      where: { workspace_id: prismaContainer.id },
       orderBy: { timestamp: 'asc' },
     });
-    return changes;
+    return changes.map(change => ({
+      id: change.id,
+      workspaceId: change.workspace_id,
+      filePath: change.file_path,
+      action: change.action,
+      oldPath: change.old_path,
+      contentHash: change.content_hash,
+      timestamp: change.timestamp,
+    }));
   } catch (error) {
     console.error('Error fetching file changes:', error);
     return [];
@@ -92,7 +100,7 @@ export async function getFileChangeSummary(containerId: string) {
   try {
     const prismaContainer = await prisma.workspace.findFirst({
       where: {
-        containerId
+        container_id: containerId
       },
       select: {
         id: true
@@ -109,21 +117,21 @@ export async function getFileChangeSummary(containerId: string) {
       };
     }
 
-    const changes = await prisma.userFileChanges.findMany({
-      where: { workspaceId: prismaContainer.id },
+    const changes = await prisma.user_file_changes.findMany({
+      where: { workspace_id: prismaContainer.id },
       select: {
         action: true,
-        filePath: true,
+        file_path: true,
         timestamp: true,
       },
       orderBy: { timestamp: 'asc' },
     });
 
     const summary = {
-      created: changes.filter(c => c.action === 'CREATE').map(c => c.filePath),
-      modified: changes.filter(c => c.action === 'WRITE').map(c => c.filePath),
-      deleted: changes.filter(c => c.action === 'DELETE').map(c => c.filePath),
-      renamed: changes.filter(c => c.action === 'RENAME').map(c => ({ from: c.filePath, to: c.filePath })), // Note: oldPath would need to be captured
+      created: changes.filter(c => c.action === 'CREATE').map(c => c.file_path),
+      modified: changes.filter(c => c.action === 'WRITE').map(c => c.file_path),
+      deleted: changes.filter(c => c.action === 'DELETE').map(c => c.file_path),
+      renamed: changes.filter(c => c.action === 'RENAME').map(c => ({ from: c.file_path, to: c.file_path })), // Note: oldPath would need to be captured
       totalChanges: changes.length,
     };
 
@@ -137,7 +145,7 @@ export async function getFileChangeSummary(containerId: string) {
 export async function clearFileLogs(containerId: string) {
   const prismaContainer = await prisma.workspace.findFirst({
     where: {
-      containerId
+      container_id: containerId
     },
     select: {
       id: true
@@ -148,9 +156,9 @@ export async function clearFileLogs(containerId: string) {
     return;
   }
 
-  await prisma.userFileChanges.deleteMany({
+  await prisma.user_file_changes.deleteMany({
     where: {
-      workspaceId: prismaContainer.id
+      workspace_id: prismaContainer.id
     }
   });
 }

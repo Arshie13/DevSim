@@ -17,7 +17,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
     const prismaContainer = await prisma.workspace.findFirst({
       where: {
-        containerId: id
+        container_id: id
       },
       select: {
         id: true
@@ -28,9 +28,9 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
       return json({ success: true, data: { count: 0 } });
     }
 
-    const res = await prisma.userFileChanges.deleteMany({
+    const res = await prisma.user_file_changes.deleteMany({
       where: {
-        workspaceId: prismaContainer.id
+        workspace_id: prismaContainer.id
       }
     });
 

@@ -172,9 +172,6 @@ function buildProgressHintResponse(context: string): string {
 // Build the prompt for AI models
 function buildPrompt(message: string, context: string, level: number = 1, fileContents?: { path: string; name: string; content: string }[]): string {
   const progress = extractProgressFromContext(context);
-  
-  console.log("------------------------test--------------------");
-  console.log("file contents: ", fileContents);
 
   // Determine hand-holding level based on user progression
   // Levels 1-2: Give step-by-step guidance (hand-holdy)
@@ -392,8 +389,6 @@ export const POST: RequestHandler = async ({ request }) => {
         });
         const listData = await listRes.json();
 
-        console.log("[AI Hint] File list response:", listData);
-
         if (listData.success && listData.files && listData.files.length > 0) {
           const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs', '.json', '.html', '.css', '.md', '.txt'];
           const sourceFiles = listData.files.filter((f: string) =>
@@ -404,14 +399,11 @@ export const POST: RequestHandler = async ({ request }) => {
             !f.includes('build/')
           ).slice(0, 2);
 
-          console.log("[AI Hint] Source files to read:", sourceFiles);
-
           fileContentsForPrompt = [];
           for (const filePath of sourceFiles) {
             try {
               const filePathFull = `/workspace/${filePath}`;
               const fileContent = await readFile(filePathFull, containerId);
-              console.log("[AI Hint] File read result:", filePath, fileContent.error ? "Error" : "Success");
               if (!fileContent.error && fileContent.content) {
                 fileContentsForPrompt.push({
                   path: filePath,
@@ -423,7 +415,6 @@ export const POST: RequestHandler = async ({ request }) => {
               console.log("Error reading file", filePath, e);
             }
           }
-          console.log("[AI Hint] Auto-fetched files for context:", fileContentsForPrompt.length, "files");
         }
       } catch (e) {
         console.log("Error fetching file list:", e);
@@ -432,23 +423,18 @@ export const POST: RequestHandler = async ({ request }) => {
 
     let prompt: string;
     if (attachedFiles && attachedFiles.length > 0) {
-      console.log("[AI Hint] Reading explicitly attached files:", attachedFiles.length);
       const fileContents: { path: string; name: string; content: string }[] = [];
       for (const file of attachedFiles) {
         const filePath = `/workspace/${file.path}`;
         const fileContent = await readFile(filePath, containerId);
-        console.log("[AI Hint] Attached file read result:", file.path, fileContent.error ? "Error" : "Success");
         if (!fileContent.error && fileContent.content) {
           fileContents.push({ path: file.path, name: file.name, content: fileContent.content });
         }
       }
-      console.log("[AI Hint] File contents read:", fileContents.length, "files");
       prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContents);
     } else if (fileContentsForPrompt && fileContentsForPrompt.length > 0) {
-      console.log("[AI Hint] Using auto-fetched files:", fileContentsForPrompt.length);
       prompt = buildPrompt(message, context || "No additional context", currentLevel, fileContentsForPrompt);
     } else {
-      console.log("[AI Hint] No files attached or auto-fetched - using context only");
       prompt = buildPrompt(message, context || "No additional context", currentLevel);
     }
 

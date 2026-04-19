@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ params, locals }) => {
         return error(401, 'Unauthorized');
     }
     const { id } = params;
-    const container = await prisma.workspace.findFirst({ where: { containerId: id } });
+    const container = await prisma.workspace.findFirst({ where: { container_id: id } });
 
     if (!container) {
         return error(404, 'Container not found.');

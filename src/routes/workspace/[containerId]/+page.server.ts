@@ -26,9 +26,9 @@ export const load: PageServerLoad = async (event) => {
   const userId = session.user.id;
 
   const container = await prisma.workspace.findFirst({
-    where: { id: dbId, userId },
+    where: { id: dbId, user_id: userId },
     include: {
-      workspaceStacks: true,
+      workspace_stacks: true,
       scenario: {
         include: {
           levels: {
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async (event) => {
                 orderBy: { order: "asc" },
                 include: {
                   hints: true,
-                  acceptanceCriteria: true
+                  acceptance_criteria: true
                 }
               }
             }
@@ -50,11 +50,11 @@ export const load: PageServerLoad = async (event) => {
 
   // Get completed tasks from the CompletedTask table
   // id might be wrong
-  const completedTaskRecords = await prisma.completedTask.findMany({
-    where: { workspaceId: container?.id },
-    select: { taskName: true }
+  const completedTaskRecords = await prisma.completed_task.findMany({
+    where: { workspace_id: container?.id },
+    select: { task_name: true }
   });
-  const completedTaskNames = completedTaskRecords.map(r => r.taskName);
+  const completedTaskNames = completedTaskRecords.map(r => r.task_name);
 
   // Extract level tasks - try record.scenario first, fallback to direct level query
   let currentLevel = container?.scenario?.levels?.find(l => l.order === container.level);
@@ -68,7 +68,7 @@ export const load: PageServerLoad = async (event) => {
           orderBy: { order: "asc" },
           include: {
             hints: true,
-            acceptanceCriteria: true
+            acceptance_criteria: true
           }
         }
       }
@@ -78,16 +78,14 @@ export const load: PageServerLoad = async (event) => {
     }
   }
   
-  const levelTasks = currentLevel?.tasks?.map(t => t.taskName) || [];
-
-  console.log("container:", container);
+  const levelTasks = currentLevel?.tasks?.map(t => t.task_name) || [];
 
   return {
     user: session.user,
     userId: user?.id || "",
     userCoins: user?.coins || 0,
     // The actual Docker container ID — used by the client for all Docker API calls
-    dockerContainerId: container?.containerId ?? null,
+    dockerContainerId: container?.container_id ?? null,
     // Level info for tasks
     level: container?.level || 1,
     completedTasks: completedTaskNames,

@@ -111,12 +111,12 @@ export const load: PageServerLoad = async (event) => {
 
 	const dbUser = await prisma.user.findUnique({
 		where: { id: session.user.id },
-		select: { coins: true, image: true, hasCompletedOnboarding: true }
+		select: { coins: true, image: true, has_completed_onboarding: true }
 	});
 
 	const user = { ...session.user, image: dbUser?.image ?? session.user.image };
 	const userCoins = dbUser?.coins ?? 0;
-	const hasCompletedOnboarding = dbUser?.hasCompletedOnboarding ?? false;
+	const hasCompletedOnboarding = dbUser?.has_completed_onboarding ?? false;
 
 	const stackParam = event.url.searchParams.get('stack') ?? '';
 	const selectionRaw = event.url.searchParams.get('selection') ?? '{}';

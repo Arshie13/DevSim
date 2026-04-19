@@ -63,7 +63,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		// --- Look up the Container record ---
 		// params.id is the Docker container ID (stored in Prisma as containerId)
 		const record = await prisma.workspace.findFirst({
-			where: { containerId: params.id, userId: session.user.id }
+			where: { container_id: params.id, user_id: session.user.id }
 		});
 
 
@@ -72,7 +72,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		}
 
 		// --- Ownership check ---
-		if (record.userId !== session.user.id) {
+		if (record.user_id !== session.user.id) {
 			return error(403, 'You do not own this container.');
 		}
 
@@ -86,23 +86,23 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		}
 
 
-		const xpReward = levelInfo.xpReward || DEFAULT_XP_REWARD;
-		const coinReward = levelInfo.coinReward || DEFAULT_COIN_REWARD;
-		const levelTasks = levelInfo.tasks.map(t => t.taskName);
+		const xpReward = levelInfo.xp_reward || DEFAULT_XP_REWARD;
+		const coinReward = levelInfo.coin_reward || DEFAULT_COIN_REWARD;
+		const levelTasks = levelInfo.tasks.map(t => t.task_name);
 
 		// --- Get completed tasks from CompletedTask table ---
-		const currentCompletedTasks = await prisma.completedTask.findMany({
-			where: { workspaceId: record.id },
-			select: { taskName: true }
+		const currentCompletedTasks = await prisma.completed_task.findMany({
+			where: { workspace_id: record.id },
+			select: { task_name: true }
 		});
-		const completedTaskNames = currentCompletedTasks.map(t => t.taskName);
+		const completedTaskNames = currentCompletedTasks.map(t => t.task_name);
 
 		// --- Add new completed task if not already completed ---
 		if (!completedTaskNames.includes(taskId)) {
-			await prisma.completedTask.create({
+			await prisma.completed_task.create({
 				data: {
-					workspaceId: record.id,
-					taskName: taskId
+					workspace_id: record.id,
+					task_name: taskId
 				}
 			});
 			completedTaskNames.push(taskId);
@@ -169,8 +169,8 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 						}
 					}),
 					// Delete completed tasks for this container when advancing to next level
-					prisma.completedTask.deleteMany({
-						where: { workspaceId: record.id }
+					prisma.completed_task.deleteMany({
+						where: { workspace_id: record.id }
 					}),
 					prisma.user.update({
 						where: { id: session.user.id },

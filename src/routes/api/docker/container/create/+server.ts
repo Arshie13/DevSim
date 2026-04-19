@@ -78,23 +78,23 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     // triggers the "alreadyExists" modal, regardless of which scenario was selected.
     const existingDbContainer = await prisma.workspace.findFirst({
       where: {
-        userId,
+        user_id: userId,
         level,
-        isArchived: false
+        is_archived: false
       },
       include: {
-        workspaceStacks: true
+        workspace_stacks: true
       }
     });
 
     // Check if the stacks match
     if (existingDbContainer) {
-      const existingStackNames = existingDbContainer.workspaceStacks.map(s => s.stackName);
+      const existingStackNames = existingDbContainer.workspace_stacks.map(s => s.stackName);
       const stacksMatch = stacksArray.length === existingStackNames.length &&
         stacksArray.every(s => existingStackNames.includes(s.stackName));
 
       if (stacksMatch) {
-        const existingDockerContainerId = existingDbContainer.containerId;
+        const existingDockerContainerId = existingDbContainer.container_id;
         try {
           const existingContainer = docker.getContainer(existingDockerContainerId);
           const info = await existingContainer.inspect();
@@ -138,7 +138,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     // in-progress restore container and insert a duplicate DB entry.
     const dockerMatch = existingContainers.length > 0 ? existingContainers[0] : null;
     const dockerMatchDbRecord = dockerMatch
-      ? await prisma.workspace.findFirst({ where: { containerId: dockerMatch.Id, userId } })
+      ? await prisma.workspace.findFirst({ where: { container_id: dockerMatch.Id, user_id: userId } })
       : null;
 
     if (dockerMatch && dockerMatchDbRecord) {

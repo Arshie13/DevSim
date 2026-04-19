@@ -29,7 +29,7 @@ export async function archiveContainer(
 		throw new Error('Container record not found.');
 	}
 
-	if (record.userId !== req.userId) {
+	if (record.user_id !== req.userId) {
 		throw new Error('You do not own this container.');
 	}
 
@@ -37,19 +37,19 @@ export async function archiveContainer(
 		throw new Error('Only completed containers can be archived.');
 	}
 
-	if (record.isArchived) {
+	if (record.is_archived) {
 		throw new Error('Container is already archived.');
 	}
 
 	// --- 2. Build a deterministic volume name ---
 	// Get stacks from ContainerStack relation
-	const containerStacks = await prisma.workspaceStack.findMany({
-		where: { workspaceId: record.id }
+	const containerStacks = await prisma.workspace_stack.findMany({
+		where: { workspace_id: record.id }
 	});
 	const stackNames = containerStacks.map(s => s.stackName);
 	const stackSlug = stackNames.join('-').toLowerCase().replace(/\s+/g, '-');
 	const randomSuffix = crypto.randomBytes(4).toString('hex'); // 8 chars for uniqueness
-	const volumeName = `devsim-${record.userId}-${stackSlug}-${randomSuffix}`;
+	const volumeName = `devsim-${record.user_id}-${stackSlug}-${randomSuffix}`;
 
 	// --- 3. Create the named Docker volume ---
 	await docker.createVolume({ Name: volumeName });
@@ -64,7 +64,7 @@ export async function archiveContainer(
 		// directory. When putArchive writes into '/data' on the helper, the volume ends
 		// up with /data/file.txt — NOT /data/workspace/file.txt.
 		// This prevents the nested '/workspace/workspace/…' structure on restore.
-		const sourceContainer = docker.getContainer(record.containerId);
+		const sourceContainer = docker.getContainer(record.container_id);
 		const archiveStream = await sourceContainer.getArchive({ path: '/workspace/.' });
 
 		// Use node:20-alpine — already present on the host (same image as all user containers).
@@ -108,7 +108,7 @@ export async function archiveContainer(
 
 	// --- 5. Stop & remove the original Docker container ---
 	try {
-		const original = docker.getContainer(record.containerId);
+		const original = docker.getContainer(record.container_id);
 		const info = await original.inspect();
 		if (info.State.Running) {
 			await original.stop({ t: 5 });
@@ -123,8 +123,8 @@ export async function archiveContainer(
 	await prisma.workspace.update({
 		where: { id: record.id },
 		data: {
-			volumeName,
-			isArchived: true,
+			volume_name: volumeName,
+			is_archived: true,
 			stoppedAt: new Date()
 		}
 	});

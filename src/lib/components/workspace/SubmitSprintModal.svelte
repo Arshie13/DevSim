@@ -109,8 +109,8 @@
   function inferExpectedLayerCount() {
     const corpus = tasks
       .flatMap((task) => [
-        task.taskName,
-        ...(task.acceptanceCriteria?.map((criteria) => criteria.description) ?? []),
+        task.task_name,
+        ...(task.acceptance_criteria?.map((criteria) => criteria.description) ?? []),
       ])
       .join(" ")
       .toLowerCase();
@@ -185,7 +185,7 @@
   $: loadingSubtitle =
     activeSubmitStep?.detail ?? "Please keep this window open.";
 
-  $: completedCount = tasks.filter((t) => t.isCompleted).length;
+  $: completedCount = tasks.filter((t) => t.is_complete).length;
 
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{
@@ -343,7 +343,6 @@
 
       if (containerId) {
         try {
-          console.log("AI SCORING: Fetching file list from container...");
           const listRes = await fetch(
             `/api/docker/container/${containerId}/files/logs`,
             {
@@ -376,7 +375,6 @@
               throwIfSubmissionCanceled();
               // Skip if already read
               if (contentsToCheck[file]) {
-                console.log("AI SCORING: ↩ Already have:", file);
                 continue;
               }
               // Skip node_modules, .git, dist, .next
@@ -435,10 +433,8 @@
                 }
               } catch (e) {
                 filesFailed++;
-                console.log("AI SCORING: ✗ Exception:", file, "-", e);
               }
             }
-            console.log("AI SCORING: ==============================");
             console.log(
               "AI SCORING: Files read:",
               filesRead,
@@ -449,7 +445,6 @@
               "AI SCORING: All files for AI:",
               Object.keys(contentsToCheck),
             );
-            console.log("AI SCORING: ==============================");
           } else {
             console.warn("AI SCORING: File list fetch failed:", listData);
           }
@@ -484,9 +479,6 @@
       );
 
       const testData = await testRes.json();
-      console.log("[SUBMIT SPRINT] Test results:", testData);
-      console.log("[SUBMIT SPRINT] allKeyTakeaways:", testData.allKeyTakeaways);
-      console.log("[SUBMIT SPRINT] taskResults:", testData.taskResults);
 
       testResults = {
         passed: testData.passed,
@@ -522,14 +514,13 @@
       }
 
       // If tests failed, show error with details
-      console.log("[SUBMIT SPRINT] Final keyTakeaways:", keyTakeaways);
       if (!testData.passed) {
         state = "error";
         const failedCount = testResults.failedTasks.length;
 
         // Check for regressions - tasks that were marked as done but now fail
         const completedTaskIds = new Set(
-          tasks.filter((t) => t.isCompleted).map((t) => t.id),
+          tasks.filter((t) => t.is_complete).map((t) => t.id),
         );
         regressedTasks =
           testData.taskResults
@@ -580,7 +571,6 @@
         }
 
         submitError = errorMsg;
-        console.log("[SUBMIT SPRINT] Tests failed:", submitError);
         return;
       }
 
@@ -593,7 +583,6 @@
 
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
-      console.log("AI SCORING: Starting AI scoring...");
       console.log(
         "AI SCORING: Files available for AI:",
         Object.keys(contentsToCheck).length,
@@ -603,8 +592,8 @@
         throwIfSubmissionCanceled();
         // Get completed task texts for the scoring
         const completedTaskTexts = tasks
-          .filter((t) => t.isCompleted)
-          .map((t) => t.taskName);
+          .filter((t) => t.is_complete)
+          .map((t) => t.task_name);
         // Call AI scoring endpoint with test results
         const scoreRes = await fetch("/api/ai/score", {
           method: "POST",
@@ -622,7 +611,6 @@
         });
 
         const scoreData = await scoreRes.json();
-        console.log("AI SCORING: Response received:", scoreData);
         if (scoreData.success) {
           aiScoring = {
             stars: scoreData.stars || 1,
@@ -672,9 +660,6 @@
         "Score:",
         aiScoring.score,
       );
-      console.log("AI SCORING: feedback:", aiScoring.feedback);
-      console.log("AI SCORING: improvements:", aiScoring.improvements);
-      console.log("AI SCORING: nextTime:", aiScoring.nextTime);
       masteryTakeaway = aiScoring.masteryPassed
         ? "Mastery checkpoint passed. Great job explaining your reasoning across the selected stack layers."
         : `Mastery checkpoint needs revision. ${aiScoring.masteryGaps}`;
@@ -688,7 +673,7 @@
       }
 
       // Step 1 - Submit completed tasks
-      const completedTasks = tasks.filter((t) => t.isCompleted);
+      const completedTasks = tasks.filter((t) => t.is_complete);
 
       // Check if ALL tasks are completed before allowing submission
       if (completedTasks.length < tasks.length) {
@@ -720,7 +705,7 @@
             headers: { "Content-Type": "application/json" },
             signal,
             body: JSON.stringify({
-              taskId: task.taskName,
+              taskId: task.task_name,
               advanceLevel: isLastTask,
             }),
           },
@@ -729,7 +714,7 @@
 
         if (!submitRes.ok) {
           throw new Error(
-            submitData.message ?? `Failed to submit task: ${task.taskName}`,
+            submitData.message ?? `Failed to submit task: ${task.task_name}`,
           );
         }
 
@@ -749,7 +734,6 @@
       // Step 2 - Archive container if all levels are complete
       // Must be called AFTER submit API sets status to 'completed'
       if (allLevelsComplete && dbContainerId) {
-        console.log("[SUBMIT SPRINT] Archiving container:", dbContainerId);
         try {
           const archiveRes = await fetch(
             `/api/docker/container/${dbContainerId}/archive`,
@@ -811,7 +795,6 @@
               taskName: takeawayData.levelTitle || `Level ${level}`,
               takeaway: normalizeTakeawayText(takeawayData.keyTakeaways)
             }];
-            console.log("[SUBMIT SPRINT] Fetched key takeaways from database:", keyTakeaways);
           }
         }
       } catch (takeawayErr) {

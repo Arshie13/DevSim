@@ -90,7 +90,6 @@ export class TerminalInitializer {
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
-      console.log("🚀 Terminal WebSocket Connected");
       this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
     };
 

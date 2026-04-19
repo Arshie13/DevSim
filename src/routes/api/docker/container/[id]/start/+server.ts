@@ -9,8 +9,6 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 
     const isProduction = process.env.NODE_ENV === 'production';
 
-    console.log('environment: ', process.env.NODE_ENV);
-
     const session = await locals.auth();
     if (!session || !session.user || !session.user.id) {
       return error(401, 'Unauthorized');
@@ -56,8 +54,8 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       }
     }
 
-    const username = session.user.username ? 
-    session.user.username.toLowerCase().replace(/[^a-z0-9-]/g, '-') :
+    const username = session.user.name ? 
+    session.user.name.toLowerCase().replace(/[^a-z0-9-]/g, '-') :
     session.user.id // questionable fallback, but should always have username or id
     
     const hostPort = await pickPreviewHostPortWithProbe(previewPorts, { timeoutMs: 1000 });

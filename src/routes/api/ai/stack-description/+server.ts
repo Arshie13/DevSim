@@ -89,11 +89,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
           if (response.ok) {
             const data = await response.json();
-            console.log("Gemini response:", JSON.stringify(data, null, 2));
             if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
               const fullText = data.candidates[0].content.parts[0].text.trim();
-              console.log("Full Gemini text length:", fullText.length);
-              console.log("Full Gemini text:", fullText);
               return json({
                 success: true,
                 description: fullText,

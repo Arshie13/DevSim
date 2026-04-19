@@ -16,14 +16,14 @@ export const GET: RequestHandler = async (event) => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { hasCompletedOnboarding: true },
+    select: { has_completed_onboarding: true },
   });
 
   if (!user) {
     throw error(404, "User not found");
   }
 
-  return json({ completed: user.hasCompletedOnboarding });
+  return json({ completed: user.has_completed_onboarding });
 };
 
 /**
@@ -40,7 +40,7 @@ export const POST: RequestHandler = async (event) => {
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { hasCompletedOnboarding: true },
+    data: { has_completed_onboarding: true },
   });
 
   return json({ success: true });

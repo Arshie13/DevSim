@@ -22,8 +22,8 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
   const isExisting = await prisma.workspace.findFirst({
     where: {
       AND: [
-        { userId: data.userId },
-        { containerId: data.containerId },
+        { user_id: data.userId },
+        { container_id: data.containerId },
       ]
     }
   });
@@ -31,14 +31,14 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
   try {
     if (isExisting) {
       // Update existing container - delete old stacks and create new ones
-      await prisma.workspaceStack.deleteMany({
-        where: { workspaceId: isExisting.id }
+      await prisma.workspace_stack.deleteMany({
+        where: { workspace_id: isExisting.id }
       });
 
       await prisma.workspace.update({
         data: {
-          userId: data.userId,
-          containerId: data.containerId,
+          user_id: data.userId,
+          container_id: data.containerId,
           level: data.level,
           status: data.status,
         },
@@ -47,9 +47,9 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
 
       // Create new stack records
       if (data.stacks.length > 0) {
-        await prisma.workspaceStack.createMany({
+        await prisma.workspace_stack.createMany({
           data: data.stacks.map(stack => ({
-            workspaceId: isExisting.id,
+            workspace_id: isExisting.id,
             stackName: stack.stackName,
             stackVersion: stack.stackVersion || null
           }))
@@ -61,12 +61,12 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
 
     const created = await prisma.workspace.create({
       data: {
-        userId: data.userId,
-        containerId: data.containerId,
-        currentScenarioId: data.currentScenarioId,
+        user_id: data.userId,
+        container_id: data.containerId,
+        current_scenario_id: data.currentScenarioId,
         level: data.level,
         status: data.status,
-        workspaceStacks: {
+        workspace_stacks: {
           create: data.stacks.map(stack => ({
             stackName: stack.stackName,
             stackVersion: stack.stackVersion || null
