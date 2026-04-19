@@ -36,6 +36,7 @@ export async function POST(event: RequestEvent) {
       '! -path "*/.git" ! -path "*/.git/*" ' +
       '! -path "*/tests" ! -path "*/tests/*" ' +
       '! -path "*/__tests__" ! -path "*/__tests__/*" ' +
+      '! -path "*/levels" ! -path "*/levels/*" ' +
       '! -name ".dockerignore"';
 
     const exec = await container.exec({
