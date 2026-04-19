@@ -227,15 +227,15 @@ export const load: PageServerLoad = async (event) => {
 
 		const number = parseInt(dir.name.replace('scenario-', ''), 10);
 
-		// Look for preview images in scenario folder
+		// Look for preview images in scenario folder (at scenario level, not inside project folder)
 		let previewImages: string[] = [];
-		const previewDir = path.join(scenarioPath, projectFolder, 'previews');
+		const previewDir = path.join(scenarioPath, 'previews');
 		try {
 			const files = await fs.readdir(previewDir);
 			previewImages = files
 				.filter(f => /\.(png|jpg|jpeg|svg|webp)$/i.test(f))
 				.sort()
-				.map(f => `/images/tech-stacks/${stackParam}/${projectFolder}/previews/${f}`);
+				.map(f => `/images/tech-stacks/${stackParam}/${dir.name}/previews/${f}`);
 		} catch {
 			// No preview images directory, continue without
 		}

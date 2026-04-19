@@ -3,6 +3,7 @@
   import { ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { ScenarioMeta } from '$types';
   import ScenarioCard from './ScenarioCard.svelte';
+  import PreviewImages from './PreviewImages.svelte';
 
   export let scenarios: ScenarioMeta[];
   export let isLoading: boolean = false;
@@ -17,6 +18,21 @@
 
   let isTransitioning = false;
   let glitching = false;
+
+  // Preview modal state
+  let previewOpen = false;
+  let previewImages: string[] = [];
+  let previewInitialIndex = 0;
+
+  function openPreviewModal(images: string[], initialIndex: number = 0) {
+    previewImages = images;
+    previewInitialIndex = initialIndex;
+    previewOpen = true;
+  }
+
+  function closePreviewModal() {
+    previewOpen = false;
+  }
 
   const difficultyColors: Record<string, string> = {
     beginner: '#00e5a0', easy: '#00e5a0', medium: '#ffb400',
@@ -129,6 +145,7 @@
         on:launchSprint={() => dispatch('launchSprint')}
         on:select={() => goTo(i)}
         on:requestSkipConfirm={() => dispatch('requestSkipConfirm')}
+        on:openPreview={(e) => openPreviewModal(e.detail.images, e.detail.initialIndex)}
       />
     {/each}
 
@@ -154,6 +171,13 @@
     to navigate
   </p>
 
+  <!-- Preview Modal -->
+  <PreviewImages 
+    images={previewImages}
+    alt="Scenario preview"
+    initialIndex={previewInitialIndex}
+    showInline={false}
+  />
 </div>
 
 <style>
