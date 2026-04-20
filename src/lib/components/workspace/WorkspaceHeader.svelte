@@ -169,6 +169,9 @@
 
       <!-- Test Button Slot -->
       <slot name="test-button" />
+
+      <!-- Debug Button Slot -->
+      <slot name="debug-button" />
     </div>
 
     <!-- Download Project -->
