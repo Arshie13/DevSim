@@ -7,6 +7,7 @@
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
+  import WorkspaceSetupOverlay from "$lib/components/ui/WorkspaceSetupOverlay.svelte";
   import PrimarySidebar from "$lib/components/devSidebar/PrimarySidebar.svelte";
   import WorkspaceHeader from "$lib/components/workspace/WorkspaceHeader.svelte";
   import WorkspaceTabs from "$lib/components/workspace/WorkspaceTabs.svelte";
@@ -21,7 +22,8 @@
   import TestCase from "$lib/components/workspace/TestCase.svelte";
 
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
-  import { getTutorialWorkspaceData } from "$lib/components/tutorial/PERN/PERNTutorialData";
+  import { getTutorialWorkspaceData as getPernTutorialData } from "$lib/components/tutorial/PERN/PERNTutorialData";
+  import { NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA } from "$lib/components/tutorial/NESTJS_POSTGRES_PRISMA/NestjsPostgresPrismaTutorialData";
 
   import { toast } from "$lib/stores/toast";
   import type { FileListResponse } from "$lib/interface/Files";
@@ -46,12 +48,17 @@
 
   const stack =
     data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean).join(" + ") || "PERN";
-  const tutorialData = getTutorialWorkspaceData(stack);
+  const normalizedTutorialStack = stack.toLowerCase();
+  const tutorialData = normalizedTutorialStack.includes("nest")
+    ? NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA
+    : getPernTutorialData(stack);
   const title = tutorialData.scenarioTitle;
   const scenario = tutorialData.scenarioDescription;
-  const normalizedTutorialStack = stack.toLowerCase();
-  const tutorialStackType: "pern" | "none" =
-    /pern|react|express|postgres|prisma/.test(normalizedTutorialStack) ? "pern" : "none";
+  const tutorialStackType: "pern" | "nestjs" | "none" = normalizedTutorialStack.includes("nest")
+    ? "nestjs"
+    : /pern|react|express|postgres|prisma/.test(normalizedTutorialStack)
+      ? "pern"
+      : "none";
 
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let isRunning = false;
@@ -852,6 +859,8 @@ onSubmit: submitSprint,
   />
   </div>
 
+<WorkspaceSetupOverlay visible={tutorialCleanupLoading} />
+
 <div class="fixed inset-0 z-50 pointer-events-none">
   <div class="pointer-events-auto">
     <AiHelp
@@ -875,4 +884,5 @@ onSubmit: submitSprint,
     padding: 0;
     font-family: system-ui, -apple-system, sans-serif;
   }
+
 </style>
