@@ -1,5 +1,6 @@
 <script lang="ts">
   import PERNTutorial from '../tutorial/PERN/PERNTutorial.svelte';
+  import NestjsPostgresPrismaTutorial from '../tutorial/NESTJS_POSTGRES_PRISMA/NestjsPostgresPrismaTutorial.svelte';
   import { getStackKey } from './onboardingContent';
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
@@ -13,7 +14,7 @@
   /** Current level number. */
   export let level: number = 1;
   /** Which stack tutorial to run after workspace tour. */
-  export let stackTutorialType: 'auto' | 'pern' | 'none' = 'auto';
+  export let stackTutorialType: 'auto' | 'pern' | 'nestjs' | 'none' = 'auto';
   /** Allows dismissing tutorial intro/tour. Set false for mandatory tutorials. */
   export let allowSkip: boolean = true;
   /**
@@ -41,8 +42,15 @@
 
   $: stackKey = getStackKey(stack);
   $: isPernStack = stackKey === 'pern' || stackKey === 'react-express-postgres';
+  $: isNestjsStack = stackKey === 'nestjs-postgres';
   $: resolvedStackTutorialType =
-    stackTutorialType === 'auto' ? (isPernStack ? 'pern' : 'none') : stackTutorialType;
+    stackTutorialType === 'auto'
+      ? isPernStack
+        ? 'pern'
+        : isNestjsStack
+          ? 'nestjs'
+          : 'none'
+      : stackTutorialType;
 
   // ── Mark completion in DB (non-critical) ──────────────────────────────────
   async function markOnboardingComplete() {
@@ -88,6 +96,17 @@
   {#if resolvedStackTutorialType === 'pern'}
     <PERNTutorial
       {stack}
+      {title}
+      {scenario}
+      {level}
+      {allowSkip}
+      {onSwitchTab}
+      {onRunTests}
+      {onSubmitSprint}
+      on:complete={onStackTutorialComplete}
+    />
+  {:else if resolvedStackTutorialType === 'nestjs'}
+    <NestjsPostgresPrismaTutorial
       {title}
       {scenario}
       {level}

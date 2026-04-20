@@ -37,7 +37,6 @@
         stackName={data.stackName}
         selection={data.selection}
         tutorialState={data.tutorialState}
-        userId={data.user.id}
       />
     </main>
   </div>

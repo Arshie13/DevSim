@@ -54,12 +54,12 @@ export const load: PageServerLoad = async (event) => {
 
 	const dbUser = await prisma.user.findUnique({
 		where: { id: session.user.id },
-		select: { coins: true, image: true, hasCompletedOnboarding: true }
+		select: { coins: true, image: true, hasCompletedTutorial: true }
 	});
 
 	const user = { ...session.user, image: dbUser?.image ?? session.user.image };
 	const userCoins = dbUser?.coins ?? 0;
-	const hasCompletedOnboarding = dbUser?.hasCompletedOnboarding ?? false;
+	const hasCompletedTutorial = dbUser?.hasCompletedTutorial ?? false;
 
 	const stackParam = event.url.searchParams.get('stack') ?? '';
 	const selectionRaw = event.url.searchParams.get('selection') ?? '{}';
@@ -71,14 +71,11 @@ export const load: PageServerLoad = async (event) => {
 		selection: { frontend: null, backend: null, database: null, services: null } as StackSelection,
 		tutorialState: {
 			isNewUser: true,
-			isNewToStack: true,
-			isExistingUser: false,
-			tutorialRequired: false,
-			tutorialPromptEligible: false
+			hasCompletedTutorial: false,
 		},
 		user,
 		userCoins,
-		hasCompletedOnboarding
+		hasCompletedTutorial
 	});
 
 	// Strict validation: alphanumeric + hyphens only (prevents path traversal)
@@ -99,44 +96,17 @@ export const load: PageServerLoad = async (event) => {
 		/* ignore malformed JSON */
 	}
 
-	const selectedStackIds = [selection.frontend, selection.backend, selection.database, selection.services]
-		.filter((value): value is string => typeof value === 'string' && value.length > 0)
-		.sort();
-
 	const userContainers = await prisma.container.findMany({
 		where: { userId: session.user.id, isArchived: false },
-		select: {
-			status: true,
-			containerStacks: {
-				select: { stackName: true }
-			}
-		}
+		select: { status: true }
 	});
 
-	const realContainers = userContainers.filter((container) => container.status !== 'tutorial');
+	const realContainers = userContainers.filter((c) => c.status !== 'tutorial');
 	const isNewUser = realContainers.length === 0;
-	const isExistingUser = !isNewUser;
-	const isNewToStack =
-		selectedStackIds.length === 0
-			? true
-			: !realContainers.some((container) => {
-				const existingStackIds = container.containerStacks
-					.map((entry) => entry.stackName)
-					.filter((value) => Boolean(value))
-					.sort();
-
-				return (
-					existingStackIds.length === selectedStackIds.length &&
-					existingStackIds.every((value, index) => value === selectedStackIds[index])
-				);
-			});
 
 	const tutorialState = {
 		isNewUser,
-		isNewToStack,
-		isExistingUser,
-		tutorialRequired: false,
-		tutorialPromptEligible: false
+		hasCompletedTutorial,
 	};
 
 	try {
@@ -234,6 +204,6 @@ export const load: PageServerLoad = async (event) => {
 		tutorialState,
 		user,
 		userCoins,
-		hasCompletedOnboarding
+		hasCompletedTutorial
 	};
 };

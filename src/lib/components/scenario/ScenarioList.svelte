@@ -18,13 +18,9 @@
   export let scenarios: ScenarioMeta[];
   export let stackName: string;
   export let selection: StackSelection;
-  export let userId: string;
   export let tutorialState: {
     isNewUser: boolean;
-    isNewToStack: boolean;
-    isExistingUser: boolean;
-    tutorialRequired: boolean;
-    tutorialPromptEligible: boolean;
+    hasCompletedTutorial: boolean;
   };
 
   let activeIndex = 0;
@@ -37,13 +33,13 @@
   let showSkipTutorialWarning = false;
 
   onMount(() => {
-    withTutorial = tutorialState.isNewUser || tutorialState.isNewToStack;
+    withTutorial = !tutorialState.hasCompletedTutorial;
   });
 
   function handleTutorialToggleChange(e: Event) {
     const input = e.target as HTMLInputElement;
     if (!input.checked) {
-      if (tutorialState.isNewUser || tutorialState.isNewToStack) {
+      if (!tutorialState.hasCompletedTutorial) {
         input.checked = true;
         showSkipTutorialWarning = true;
       } else {
@@ -153,8 +149,8 @@
     <div class="tutorial-bar-right">
       {#if tutorialState.isNewUser}
         <span class="tutorial-bar-badge tutorial-bar-badge--new">New User</span>
-      {:else if tutorialState.isNewToStack}
-        <span class="tutorial-bar-badge">New Stack</span>
+      {:else if !tutorialState.hasCompletedTutorial}
+        <span class="tutorial-bar-badge">First Tutorial</span>
       {/if}
       <label class="tutorial-bar-switch" title={withTutorial ? 'Tutorial mode on — click to disable' : 'Tutorial mode off — click to enable'}>
         <input
@@ -208,10 +204,10 @@
   icon="⚠"
   iconVariant="warning"
   title="Skip the Tutorial?"
-  subtitle={tutorialState.isNewUser ? "You're new to DevSim" : "New stack detected"}
+  subtitle={tutorialState.isNewUser ? "You're new to DevSim" : "No tutorial completed yet"}
   description={tutorialState.isNewUser
     ? "You're launching DevSim for the first time. The guided tutorial walks you through the full sprint workflow — board setup, terminal commands, testing, and submission. Skipping it may make the real workspace harder to navigate."
-    : "You haven't used this tech stack in DevSim before. The tutorial covers stack-specific setup steps that differ from other stacks you've tried. Skipping it may lead to unexpected issues."}
+    : "You haven't completed a guided tutorial yet. The tutorial walks you through the full sprint workflow — board setup, terminal commands, testing, and submission. Skipping it may make the workspace harder to navigate."}
   confirmLabel="Skip Tutorial Anyway"
   cancelLabel="Keep Tutorial On"
   variant="warning"

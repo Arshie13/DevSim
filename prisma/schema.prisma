@@ -31,8 +31,8 @@ model User {
   level        Int      @default(1)
   ownedAvatars String[] @default([])
 
-  // Onboarding
-  hasCompletedOnboarding Boolean @default(false)
+  // Tutorial
+  hasCompletedTutorial Boolean @default(false)
 
   // Relations
   dailyLogin   DailyLogin?       @relation

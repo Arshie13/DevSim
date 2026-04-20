@@ -13,7 +13,7 @@ export const load: PageServerLoad = async (event) => {
   // immediately reflected without requiring a re-login.
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { image: true, coins: true, xp: true, level: true, ownedAvatars: true, hasCompletedOnboarding: true, username: true },
+    select: { image: true, coins: true, xp: true, level: true, ownedAvatars: true, hasCompletedTutorial: true, username: true },
   });
 
   return {
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async (event) => {
       xp: dbUser?.xp ?? 0,
       level: dbUser?.level ?? 1,
       ownedAvatars: dbUser?.ownedAvatars ?? [],
-      hasCompletedOnboarding: dbUser?.hasCompletedOnboarding ?? false,
+      hasCompletedTutorial: dbUser?.hasCompletedTutorial ?? false,
     },
     userCoins: dbUser?.coins ?? 0,
     ownedAvatars: dbUser?.ownedAvatars ?? [],
