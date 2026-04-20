@@ -1,4 +1,6 @@
 import type { IAcceptanceCriteria, IHints, ITask } from "$lib/types";
+import type { TutorialStep } from "$components/tutorial/tutorialTypes";
+export type { TutorialStep as InteractiveStep };
 
 export interface TutorialWorkspaceData {
   stackKey: string;
@@ -167,30 +169,7 @@ export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceDa
   };
 }
 
-  export type InteractiveStep = {
-    id: string;
-    title: string;
-    instruction: string;
-    hint: string;
-    target?: string;
-    spotlightTarget?: string;
-    targets?: string[];
-    requiredFileContains?: string;
-    switchTab?: 'editor' | 'terminal' | 'preview' | 'board';
-    boardSubTab?: 'scenario' | 'board';
-    lockBoardTaskModalToTaskOrder?: number;
-    command?: string;
-    requireCommand?: boolean;
-    waitForCompletion?: boolean;
-    waitForTerminalOutput?: string[];
-    preferSide?: 'auto' | 'top' | 'bottom' | 'left' | 'right';
-    action?: 'runTests' | 'submitSprint';
-    confirmLabel?: string;
-    requireTargetClick?: boolean;
-    copyText?: string;
-  };
-
- export const STEPS: InteractiveStep[] = [
+ export const STEPS: TutorialStep[] = [
     {
       id: 'board-kanban',
       title: 'Open Kanban View',
@@ -376,7 +355,6 @@ export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceDa
       instruction: 'Click the Preview tab to open the live application preview.',
       hint: 'Click the highlighted Preview tab in the workspace tabs.',
       target: 'workspace-tab-preview',
-      switchTab: 'preview',
       preferSide: 'bottom',
     },
     {
@@ -587,15 +565,6 @@ export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceDa
       title: 'Sprint Submitted!',
       instruction: 'Your sprint is being recorded. The tutorial completion summary will appear shortly.',
       hint: 'Hang tight — the finish modal is loading.',
-      preferSide: 'bottom',
-    },
-    {
-      id: 'proceed-to-real-workspace',
-      title: 'Tutorial Complete',
-      instruction: 'Review the summary, then click "Proceed To Workspace" to switch to your real project.',
-      hint: 'Click the highlighted Proceed To Workspace button to finish.',
-      target: 'tutorial-proceed-button',
-      requireTargetClick: true,
       preferSide: 'bottom',
     },
   ];

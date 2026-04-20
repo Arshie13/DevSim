@@ -19,30 +19,7 @@
   const dispatch = createEventDispatcher<{
     launchSprint: void;
     select: void;
-    requestDisableTutorialConfirm: void;
   }>();
-
-  /** Whether to launch this scenario in tutorial mode first. */
-  export let withTutorial: boolean = false;
-  export let tutorialRequired: boolean = false;
-
-  function handleTutorialToggle(e: Event) {
-    const input = e.target as HTMLInputElement;
-
-    if (tutorialRequired) {
-      withTutorial = true;
-      input.checked = true;
-      dispatch('requestDisableTutorialConfirm');
-      return;
-    }
-
-    if (input.checked) {
-      withTutorial = true;
-    } else {
-      withTutorial = false;
-      dispatch('requestDisableTutorialConfirm');
-    }
-  }
 
   let showMore = false;
   let needsExpand = false;
@@ -154,24 +131,6 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <!-- Tutorial toggle -->
-          <label
-            class="onboarding-label"
-            title={tutorialRequired
-              ? 'Tutorial is required for first-time stack users'
-              : 'Launch this scenario in tutorial mode first'}
-          >
-            <input
-              type="checkbox"
-              class="onboarding-check"
-              checked={withTutorial}
-              disabled={tutorialRequired}
-              on:change={handleTutorialToggle}
-              on:click|stopPropagation
-            />
-            <span style="color:{diffColor}99;">{tutorialRequired ? 'Tutorial Required' : 'Tutorial'}</span>
-          </label>
-
           <button
             class="launch-btn flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[#07a5c9] bg-[rgba(7,165,201,0.08)] border border-[rgba(7,165,201,0.35)] px-4 py-2 rounded-[3px] relative overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             on:click={() => dispatch('launchSprint')}
@@ -387,50 +346,6 @@
     transition: opacity 0.2s;
   }
   .show-more-btn:hover { opacity: 1; }
-
-  /* ── Onboarding checkbox label ──────────────────────────────── */
-  .onboarding-label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 0.62rem;
-    font-family: 'Chakra Petch', monospace;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .onboarding-check {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    border: 1.5px solid rgba(7, 165, 201, 0.45);
-    border-radius: 2px;
-    background: transparent;
-    cursor: pointer;
-    position: relative;
-    flex-shrink: 0;
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .onboarding-check:checked {
-    background: rgba(7, 165, 201, 0.2);
-    border-color: rgba(7, 165, 201, 0.8);
-  }
-  .onboarding-check:checked::after {
-    content: '';
-    position: absolute;
-    top: 1px;
-    left: 3px;
-    width: 4px;
-    height: 7px;
-    border: 1.5px solid #07a5c9;
-    border-top: none;
-    border-left: none;
-    transform: rotate(45deg);
-  }
 
   /* ── Launch button shimmer ───────────────────────────────────── */
   .launch-btn { clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); }

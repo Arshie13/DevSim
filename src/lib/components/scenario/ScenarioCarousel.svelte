@@ -7,13 +7,9 @@
   export let scenarios: ScenarioMeta[];
   export let isLoading: boolean = false;
   export let activeIndex: number = 0;
-  /** Bound to the parent — user can toggle tutorial mode via the card checkbox. */
-  export let withTutorial: boolean = false;
-  export let tutorialRequired: boolean = false;
 
   const dispatch = createEventDispatcher<{
     launchSprint: void;
-    requestDisableTutorialConfirm: void;
   }>();
 
   let isTransitioning = false;
@@ -126,11 +122,8 @@
         transform={getCardTransform(dist)}
         {diffColor}
         {isLoading}
-        withTutorial={withTutorial}
-        {tutorialRequired}
         on:launchSprint={() => dispatch('launchSprint')}
         on:select={() => goTo(i)}
-        on:requestDisableTutorialConfirm={() => dispatch('requestDisableTutorialConfirm')}
       />
     {/each}
 

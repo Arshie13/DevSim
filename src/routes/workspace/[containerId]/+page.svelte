@@ -204,15 +204,22 @@
     pendingPostTestIntro = false;
   }
 
-  // Show level intro card after tasks load
-  // Only show when NOT in onboarding (onboarding is done or user skipped it)
+  // Once boot completes, open queued Saz before anything else.
+  $: if (!isBooting && pendingSazOpen) {
+    pendingSazOpen = false;
+    sazOnboardingOpen = true;
+  }
+
+  // Show level intro card after boot completes and Saz (if any) is dismissed.
   $: if (
     tasks.length > 0 &&
-    !levelIntroCardShown
+    !levelIntroCardShown &&
+    !isBooting &&
+    !sazOnboardingOpen &&
+    !pendingSazOpen
   ) {
-    // Show level intro card after tasks load (for all users - both those who did onboarding and those who didn't)
     setTimeout(() => {
-      if (!levelIntroCardShown) {
+      if (!levelIntroCardShown && !sazOnboardingOpen && !pendingSazOpen) {
         levelIntroCardOpen = true;
         levelIntroCardShown = true;
       }
@@ -238,6 +245,7 @@
   let onboardingTourCompleted: boolean = false;
   let sazOnboardingOpen: boolean = false;
   let sazOnboardingShown: boolean = false;
+  let pendingSazOpen: boolean = false;
   let crashCourseOpen: boolean = false;
   let levelIntroDismissed: boolean = false;
   let activeCrashCourseTaskId: string = "";
@@ -646,12 +654,12 @@
 
     initWorkspace();
 
-    // Show Saz once after returning from tutorial flow.
+    // Queue Saz to show once boot finishes (tutorial or first workspace creation).
     if (browser && cameFromTutorial) {
       const sazKey = `workspace-saz-shown:${containerId}`;
       const hasShownSaz = localStorage.getItem(sazKey) === "1";
       if (!hasShownSaz) {
-        sazOnboardingOpen = true;
+        pendingSazOpen = true;
         sazOnboardingShown = true;
         localStorage.setItem(sazKey, "1");
       }

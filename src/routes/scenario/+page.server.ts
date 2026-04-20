@@ -73,7 +73,7 @@ export const load: PageServerLoad = async (event) => {
 			isNewUser: true,
 			isNewToStack: true,
 			isExistingUser: false,
-			tutorialRequired: true,
+			tutorialRequired: false,
 			tutorialPromptEligible: false
 		},
 		user,
@@ -135,8 +135,8 @@ export const load: PageServerLoad = async (event) => {
 		isNewUser,
 		isNewToStack,
 		isExistingUser,
-		tutorialRequired: isNewUser,
-		tutorialPromptEligible: isExistingUser && isNewToStack
+		tutorialRequired: false,
+		tutorialPromptEligible: false
 	};
 
 	try {

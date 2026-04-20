@@ -60,8 +60,6 @@
   let bootStep = 0;
   let bootError = "";
   let tutorialCleanupLoading = false;
-  let proceedModalOpen = false;
-  let proceedLoading = false;
   let backModalOpen = false;
   let backModalLoading = false;
 
@@ -521,7 +519,7 @@
   }
 
   async function handleTutorialCompleted() {
-    if (tutorialCleanupLoading || proceedModalOpen) return;
+    if (tutorialCleanupLoading) return;
 
     tutorialCleanupLoading = true;
 
@@ -536,30 +534,28 @@
           cleanupPayload?.error ||
             "Tutorial finished, but we could not clean up the tutorial container. Please retry.",
         );
+        if (browser) window.dispatchEvent(new CustomEvent("devsim-tutorial-proceed-failed"));
         return;
       }
 
-      toast.success("Tutorial container deleted successfully.");
-      proceedModalOpen = true;
+      await proceedToWorkspace();
     } catch (error) {
       console.error("Tutorial cleanup failed:", error);
       toast.error("Tutorial cleanup failed. Please try again.");
+      if (browser) window.dispatchEvent(new CustomEvent("devsim-tutorial-proceed-failed"));
     } finally {
       tutorialCleanupLoading = false;
     }
   }
 
   async function proceedToWorkspace() {
-    if (proceedLoading) return;
-
     const selection = parseSelection();
 
     if (!tutorialLaunchContext.stackName || !selection) {
       toast.error("Missing stack context. Return to scenarios and launch again.");
+      if (browser) window.dispatchEvent(new CustomEvent("devsim-tutorial-proceed-failed"));
       return;
     }
-
-    proceedLoading = true;
 
     try {
       const createRes = await fetch("/api/docker/container/create", {
@@ -579,6 +575,7 @@
       const createPayload = await createRes.json();
       if (!createPayload.success || !createPayload.dbContainerId) {
         toast.error(createPayload.error || "Could not create workspace container.");
+        if (browser) window.dispatchEvent(new CustomEvent("devsim-tutorial-proceed-failed"));
         return;
       }
 
@@ -593,8 +590,7 @@
     } catch (error) {
       console.error("Failed to create workspace after tutorial:", error);
       toast.error("Workspace creation failed. Please try again.");
-    } finally {
-      proceedLoading = false;
+      if (browser) window.dispatchEvent(new CustomEvent("devsim-tutorial-proceed-failed"));
     }
   }
 
@@ -853,22 +849,6 @@ onSubmit: submitSprint,
     on:cancel={() => {
       backModalOpen = false;
     }}
-  />
-    
-    <ConfirmationModal
-    bind:open={proceedModalOpen}
-    icon="?"
-    iconVariant="success"
-    title="Tutorial Complete!"
-    subtitle="Stack tutorial finished"
-    description="You have finished the stack tutorial. You can now proceed to your selected workspace scenario."
-    confirmLabel="Proceed to Workspace"
-    cancelLabel="Back to Scenarios"
-    variant="primary"
-    isLoading={proceedLoading}
-    loadingLabel="Creating workspace..."
-    on:confirm={proceedToWorkspace}
-    on:cancel={() => goto("/scenario")}
   />
   </div>
 
