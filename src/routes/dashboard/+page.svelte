@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { onMount } from "svelte";
   import type { FinishedStack, IContainer, UserData } from "$types";
   import { Plus, ArrowRight } from "lucide-svelte";
   import Header from "$components/Header.svelte";
@@ -30,6 +31,7 @@
     name: data.user.name ?? "No Name",
     email: data.user.email,
     image: data.user.image,
+    avatar: data.user.image ?? '',
     coins: data.userCoins,
     xp: data.user.xp,
     level: data.user.level,

@@ -87,15 +87,59 @@
     return "New to web development? No worries! We'll guide you from the basics.";
   }
   
-  function proceedToLogin() {
+  async function proceedToDashboard() {
+    const avgScore = getAverageScore();
+    const skillLevel = getSkillLevel();
+    
+    // Build scores object from answers
+    const scores: Record<string, number> = {};
+    const topicLabels = [
+      "HTML/CSS Layout",
+      "JavaScript Interactivity", 
+      "Node.js/Express",
+      "Database Management",
+      "Frontend-Backend Integration",
+      "API Development",
+      "Command Line Operations",
+      "Web Security"
+    ];
+    
+    answers.forEach((score, index) => {
+      if (topicLabels[index]) {
+        scores[topicLabels[index]] = score;
+      }
+    });
+    
+    try {
+      // Save pretest scores to database
+      const response = await fetch('/api/user/pretest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scores,
+          skillLevel,
+          averageScore: avgScore
+        })
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to save pretest scores');
+      }
+    } catch (error) {
+      console.error('Error saving pretest scores:', error);
+    }
+    
     const result = {
-      score: getAverageScore(),
-      skillLevel: getSkillLevel(),
+      score: avgScore,
+      skillLevel,
       completed: true,
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('pretest_result', JSON.stringify(result));
-    goto('/login');
+    console.log('Pretest result:', result);
+    goto('/dashboard');
   }
   
   function retakeQuiz() {
@@ -310,8 +354,8 @@
               <button onclick={retakeQuiz} class="btn-cyber w-full py-3">
                 RETRY QUIZ NOW
               </button>
-              <button onclick={proceedToLogin} class="bg-[var(--accent)] text-[var(--bg)] py-3 px-8 rounded-lg font-bold w-full hover:opacity-90">
-                CONTINUE TO LOGIN
+              <button onclick={proceedToDashboard} class="bg-[var(--accent)] text-[var(--bg)] py-3 px-8 rounded-lg font-bold w-full hover:opacity-90">
+                CONTINUE TO DASHBOARD
               </button>
             </div>
           </div>
@@ -347,8 +391,8 @@
               <button onclick={retakeQuiz} class="btn-cyber !px-8">
                 RETAKE QUIZ
               </button>
-              <button onclick={proceedToLogin} class="btn-cyber btn-cyber-solid !px-10">
-                CONTINUE TO SIGN IN →
+              <button onclick={proceedToDashboard} class="btn-cyber btn-cyber-solid !px-10">
+                ENTER DASHBOARD →
               </button>
             </div>
           </div>

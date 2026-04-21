@@ -14,6 +14,20 @@ function randomDefaultAvatarPath(): string {
   return DEFAULT_AVATARS[idx].path;
 }
 
+/**
+ * Check if user has completed pretest by looking for any preScore in AssessmentTopicScore
+ */
+async function hasCompletedPretest(userId: string): Promise<boolean> {
+  const pretestScores = await prisma.assessmentTopicScore.findMany({
+    where: {
+      userId: userId,
+      preScore: { not: null },
+    },
+    take: 1,
+  });
+  return pretestScores.length > 0;
+}
+
 export const { handle } = SvelteKitAuth({
   trustHost: true,
   providers: [
@@ -74,7 +88,7 @@ export const { handle } = SvelteKitAuth({
         return false;
       }
     },
-     async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile }) {
       // On initial sign-in, load the DB user to get their ID and stored image.
       if (user && user.email) {
         const dbUser = await prisma.user.findUnique({
@@ -85,8 +99,12 @@ export const { handle } = SvelteKitAuth({
           token.id = dbUser.id;
           token.image = dbUser.image;
           token.username = dbUser.username;
-          token.givenName = profile?.given_name
-          token.fullName = profile?.name
+          token.givenName = profile?.given_name;
+          token.fullName = profile?.name;
+          
+          // Check if user has completed pretest and store in token
+          const hasPretest = await hasCompletedPretest(dbUser.id);
+          token.hasCompletedPretest = hasPretest;
         }
       }
 
@@ -100,14 +118,18 @@ export const { handle } = SvelteKitAuth({
           token.id = dbUser.id;
           token.image = dbUser.image;
           token.username = dbUser.username;
-          token.givenName = profile?.given_name
-          token.fullName = profile?.name
+          token.givenName = profile?.given_name;
+          token.fullName = profile?.name;
+          
+          // Check if user has completed pretest and store in token
+          const hasPretest = await hasCompletedPretest(dbUser.id);
+          token.hasCompletedPretest = hasPretest;
         }
       }
 
       return token;
     },
-     async session({ session, token }) {
+    async session({ session, token }) {
       if (token && session.user) {
         if (token.id) session.user.id = token.id as string;
         if (token.username) session.user.username = token.username as string | null;
@@ -117,6 +139,10 @@ export const { handle } = SvelteKitAuth({
           session.user.name = token.name as string | null;
           session.user.fullName = token.fullName as string | null;
           session.user.givenName = token.givenName as string | null;
+        }
+        // Pass pretest completion status to the session
+        if (token.hasCompletedPretest !== undefined) {
+          session.user.hasCompletedPretest = token.hasCompletedPretest as boolean;
         }
       }
       return session;
