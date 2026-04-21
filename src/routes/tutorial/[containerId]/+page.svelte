@@ -24,6 +24,7 @@
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
   import { getTutorialWorkspaceData as getPernTutorialData } from "$lib/components/tutorial/PERN/PERNTutorialData";
   import { NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA } from "$lib/components/tutorial/NESTJS_POSTGRES_PRISMA/NestjsPostgresPrismaTutorialData";
+  import { NEXTJS_SHADCN_TUTORIAL_DATA } from "$lib/components/tutorial/NEXTJS_SHADCN/NextjsShadcnTutorialData";
 
   import { toast } from "$lib/stores/toast";
   import type { FileListResponse } from "$lib/interface/Files";
@@ -51,14 +52,19 @@
   const normalizedTutorialStack = stack.toLowerCase();
   const tutorialData = normalizedTutorialStack.includes("nest")
     ? NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA
-    : getPernTutorialData(stack);
+    : normalizedTutorialStack.includes("shadcn")
+      ? NEXTJS_SHADCN_TUTORIAL_DATA
+      : getPernTutorialData(stack);
   const title = tutorialData.scenarioTitle;
   const scenario = tutorialData.scenarioDescription;
-  const tutorialStackType: "pern" | "nestjs" | "none" = normalizedTutorialStack.includes("nest")
-    ? "nestjs"
-    : /pern|react|express|postgres|prisma/.test(normalizedTutorialStack)
-      ? "pern"
-      : "none";
+  const tutorialStackType: "pern" | "nestjs" | "shadcn" | "none" =
+    normalizedTutorialStack.includes("nest")
+      ? "nestjs"
+      : normalizedTutorialStack.includes("shadcn")
+        ? "shadcn"
+        : /pern|react|express|postgres|prisma/.test(normalizedTutorialStack)
+          ? "pern"
+          : "none";
 
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let isRunning = false;

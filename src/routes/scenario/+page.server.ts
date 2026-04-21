@@ -96,16 +96,8 @@ export const load: PageServerLoad = async (event) => {
 		/* ignore malformed JSON */
 	}
 
-	const userContainers = await prisma.container.findMany({
-		where: { userId: session.user.id, isArchived: false },
-		select: { status: true }
-	});
-
-	const realContainers = userContainers.filter((c) => c.status !== 'tutorial');
-	const isNewUser = realContainers.length === 0;
-
 	const tutorialState = {
-		isNewUser,
+		isNewUser: !hasCompletedTutorial,
 		hasCompletedTutorial,
 	};
 

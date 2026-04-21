@@ -149,8 +149,6 @@
     <div class="tutorial-bar-right">
       {#if tutorialState.isNewUser}
         <span class="tutorial-bar-badge tutorial-bar-badge--new">New User</span>
-      {:else if !tutorialState.hasCompletedTutorial}
-        <span class="tutorial-bar-badge">First Tutorial</span>
       {/if}
       <label class="tutorial-bar-switch" title={withTutorial ? 'Tutorial mode on — click to disable' : 'Tutorial mode off — click to enable'}>
         <input

@@ -11,8 +11,8 @@ export interface TutorialWorkspaceData {
   tasks: ITask[];
 }
 
-function buildNestjsTaskOne(): ITask {
-  const taskId = "tutorial-nestjs-level1-task1";
+function buildShadcnTaskOne(): ITask {
+  const taskId = "tutorial-shadcn-level1-task1";
 
   const hints: IHints[] = [
     {
@@ -20,21 +20,21 @@ function buildNestjsTaskOne(): ITask {
       order: 1,
       taskId,
       content:
-        "Read README.md first — it lists the exact setup sequence including the .env copy step before running migrations.",
+        "This project is frontend-only — no database or .env is needed. Just install dependencies and start the dev server.",
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "Copy .env.example to .env before running any Prisma commands. The DATABASE_URL must be set or migrations will fail.",
+        "Read README.md first. It explains the project structure and the two-step setup: npm install, then npm run dev.",
     },
     {
       id: `${taskId}-hint-3`,
       order: 3,
       taskId,
       content:
-        "Run `npm run prisma:migrate` from the project root after generating the Prisma client to apply the schema to the database.",
+        "The app runs on http://localhost:3000 by default. Look for the 'Ready in' message in the terminal to confirm the server started.",
     },
   ];
 
@@ -51,28 +51,14 @@ function buildNestjsTaskOne(): ITask {
       taskId,
       order: 2,
       isRequired: true,
-      description: ".env file configured with valid DATABASE_URL",
+      description: "Next.js dev server starts and the terminal shows 'Ready'",
     },
     {
       id: `${taskId}-ac-3`,
       taskId,
       order: 3,
       isRequired: true,
-      description: "Prisma migration runs successfully and tables are created",
-    },
-    {
-      id: `${taskId}-ac-4`,
-      taskId,
-      order: 4,
-      isRequired: true,
-      description: "Seed data inserted — sample todos visible in the database",
-    },
-    {
-      id: `${taskId}-ac-5`,
-      taskId,
-      order: 5,
-      isRequired: true,
-      description: "NestJS dev server starts and responds at /api/todos",
+      description: "Preview shows the To-Do List app with mock todos loaded",
     },
   ];
 
@@ -84,14 +70,14 @@ function buildNestjsTaskOne(): ITask {
     acceptanceCriteria,
     learningSections: [],
     isCompleted: false,
-    testType: "server",
+    testType: "client",
     userStory:
-      "As a developer, I need to set up the NestJS development environment so that I can start building and testing the To-Do List API.",
+      "As a developer, I need to set up the Next.js + shadcn UI development environment so that I can start working on the To-Do List app.",
   };
 }
 
-function buildNestjsTaskTwo(): ITask {
-  const taskId = "tutorial-nestjs-level1-task2";
+function buildShadcnTaskTwo(): ITask {
+  const taskId = "tutorial-shadcn-level1-task2";
 
   const hints: IHints[] = [
     {
@@ -99,21 +85,21 @@ function buildNestjsTaskTwo(): ITask {
       order: 1,
       taskId,
       content:
-        "Open prisma/schema.prisma. Add `priority Int @default(0)` as a new field inside the Todo model.",
+        'In src/app/page.tsx, find the <h1> tag inside the <header> and change the text from "My To-Do List" to "Task Tracker". Save the file — Next.js hot-reloads instantly.',
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "After editing the schema, stop the dev server (Ctrl+C), then run `npx prisma migrate dev --name add-priority-to-todo`.",
+        "To add a new shadcn component, run `npx shadcn@latest add separator` in the terminal. shadcn generates the component file at src/components/ui/separator.tsx automatically.",
     },
     {
       id: `${taskId}-hint-3`,
       order: 3,
       taskId,
       content:
-        "Restart the server with `npm run dev` and verify the API still responds at /api/todos.",
+        'Import the Separator at the top of page.tsx: `import { Separator } from "@/components/ui/separator"`. Then place `<Separator className="my-4" />` between the stats cards and the Add Task card.',
     },
   ];
 
@@ -123,49 +109,58 @@ function buildNestjsTaskTwo(): ITask {
       taskId,
       order: 1,
       isRequired: true,
-      description: "Added `priority Int @default(0)` field to the Todo model in prisma/schema.prisma",
+      description: 'Header in src/app/page.tsx updated from "My To-Do List" to "Task Tracker"',
     },
     {
       id: `${taskId}-ac-2`,
       taskId,
       order: 2,
       isRequired: true,
-      description: "Migration runs successfully — new `priority` column created in the todos table",
+      description:
+        "Separator component added via `npx shadcn@latest add separator` — file exists at src/components/ui/separator.tsx",
     },
     {
       id: `${taskId}-ac-3`,
       taskId,
       order: 3,
       isRequired: true,
-      description: "Dev server restarts without errors after schema change",
+      description: "Separator imported and placed in src/app/page.tsx between sections",
+    },
+    {
+      id: `${taskId}-ac-4`,
+      taskId,
+      order: 4,
+      isRequired: true,
+      description: "Preview shows the updated heading and a visible separator line between sections",
     },
   ];
 
   return {
     id: taskId,
-    taskName: "Add Priority Field to Todo",
+    taskName: "Update UI & Add a shadcn Component",
     order: 2,
     hints,
     acceptanceCriteria,
     learningSections: [],
     isCompleted: false,
-    testType: "server",
+    testType: "client",
     userStory:
-      "As a developer, I need to add a priority field to the Todo model in prisma/schema.prisma so I can practice making and migrating a targeted schema change.",
+      "As a developer, I need to update the app header and add a new shadcn Separator component so I can practice editing real UI and using the shadcn CLI to extend the component library.",
   };
 }
 
-export const NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA: TutorialWorkspaceData = {
-  stackKey: "nestjs-postgres-prisma",
-  stackLabel: "NestJS + Postgres + Prisma",
-  scenarioTitle: "NestJS + Postgres + Prisma Tutorial",
+export const NEXTJS_SHADCN_TUTORIAL_DATA: TutorialWorkspaceData = {
+  stackKey: "nextjs-shadcn",
+  stackLabel: "Next.js + shadcn/ui",
+  scenarioTitle: "Next.js + shadcn/ui Tutorial",
   scenarioDescription:
-    "Set up the NestJS tutorial workspace by reading docs, installing dependencies, configuring the environment, running Prisma migrations, seeding the database, and verifying the API.",
+    "Set up the Next.js tutorial workspace by reading docs, installing dependencies, starting the dev server, and verifying the app in preview.",
   level: 1,
-  tasks: [buildNestjsTaskOne(), buildNestjsTaskTwo()],
+  tasks: [buildShadcnTaskOne(), buildShadcnTaskTwo()],
 };
 
 export const STEPS: TutorialStep[] = [
+  // ── Phase 1: Board orientation ────────────────────────────────────────────
   {
     id: "board-kanban",
     title: "Open Kanban View",
@@ -226,6 +221,8 @@ export const STEPS: TutorialStep[] = [
     requireTargetClick: false,
     preferSide: "left",
   },
+
+  // ── Phase 2: Terminal setup ───────────────────────────────────────────────
   {
     id: "click-terminal",
     title: "Open the Terminal Tab",
@@ -247,64 +244,33 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
   {
-    id: "terminal-prisma-generate",
-    title: "Generate Prisma Client",
-    instruction: "Generate the Prisma client artifacts based on your schema.",
-    hint: "Run: npx prisma generate",
-    switchTab: "terminal",
-    command: "npx prisma generate",
-    requireCommand: true,
-    target: "terminal-panel",
-    preferSide: "left",
-  },
-  {
-    id: "terminal-prisma-migrate",
-    title: "Run Prisma Migration",
-    instruction: "Apply schema migrations to create the database tables.",
-    hint: "Run: npm run prisma:migrate",
-    switchTab: "terminal",
-    command: "npm run prisma:migrate",
-    requireCommand: true,
-    target: "terminal-panel",
-    preferSide: "left",
-  },
-  {
-    id: "terminal-prisma-seed",
-    title: "Seed the Database",
-    instruction: "Populate the database with initial sample todo records.",
-    hint: "Run: npm run prisma:seed",
-    switchTab: "terminal",
-    command: "npm run prisma:seed",
-    requireCommand: true,
-    target: "terminal-panel",
-    preferSide: "left",
-  },
-  {
     id: "terminal-dev-start",
     title: "Start Development Server",
     instruction:
-      "Start the NestJS app in development mode. The step will advance automatically once the server is ready.",
+      "Start the Next.js app in development mode. The step advances automatically once the server is ready.",
     hint: "Run: npm run dev",
     command: "npm run dev",
     requireCommand: true,
-    waitForTerminalOutput: ["Application is running on", "Nest application successfully"],
+    waitForTerminalOutput: ["localhost:3000", "Ready in"],
     target: "terminal-panel",
     preferSide: "left",
   },
+
+  // ── Phase 3: Preview & Task 1 tests ──────────────────────────────────────
   {
     id: "preview-button",
     title: "Open Preview",
-    instruction: "Click the Preview tab to open the live API preview.",
+    instruction: "Click the Preview tab to open the live application preview.",
     hint: "Click the highlighted Preview tab in the workspace tabs.",
     target: "workspace-tab-preview",
     preferSide: "bottom",
   },
   {
     id: "preview-check",
-    title: "Verify API Is Running",
+    title: "Verify Running App",
     instruction:
-      "Confirm the NestJS API is responding in the Preview panel. You should see a JSON response from /api/todos.",
-    hint: "Once you see the API response in the preview iframe, continue to the testing step.",
+      "Confirm the To-Do List app is running in Preview. You should see the task list with mock todos.",
+    hint: "Once you can see the app in the preview iframe, continue to the testing step.",
     target: "tutorial-preview-panel",
     switchTab: "preview",
     confirmLabel: "Preview Looks Good",
@@ -338,6 +304,8 @@ export const STEPS: TutorialStep[] = [
     requireTargetClick: true,
     preferSide: "left",
   },
+
+  // ── Phase 4: Task 2 board review ─────────────────────────────────────────
   {
     id: "task-two-kanban",
     title: "Back To Kanban",
@@ -365,6 +333,8 @@ export const STEPS: TutorialStep[] = [
     target: "board-task-modal",
     preferSide: "left",
   },
+
+  // ── Phase 5: Update the header ────────────────────────────────────────────
   {
     id: "search-open-panel",
     title: "Open Search Tool",
@@ -376,10 +346,10 @@ export const STEPS: TutorialStep[] = [
   },
   {
     id: "search-type-query",
-    title: "Search Files",
+    title: "Search for the Header Text",
     instruction:
-      'Search for "completed Boolean" to find the Prisma schema file you need to edit for Task 2.',
-    hint: 'Type "completed Boolean" in the search box and click the highlighted result snippet.',
+      'Search for "My To-Do List" to find the heading you need to update in the page component.',
+    hint: 'Type "My To-Do List" in the search box and click the highlighted result snippet.',
     target: "tutorial-search-result-item",
     spotlightTarget: "tutorial-search-panel",
     switchTab: "editor",
@@ -390,7 +360,7 @@ export const STEPS: TutorialStep[] = [
     id: "search-works-confirm",
     title: "Search Works",
     instruction:
-      "Great. Search opened the Prisma schema in the editor and shows exactly where the Todo fields are.",
+      "Great. Search opened page.tsx right at the header — this is the element you'll update.",
     hint: "Click Next",
     target: "editor-workspace",
     confirmLabel: "Next",
@@ -398,72 +368,116 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
   {
-    id: "task-two-schema-edit",
-    title: "Add Priority Field to Schema",
+    id: "task-two-header-edit",
+    title: "Update the Page Header",
     instruction:
-      'Edit prisma/schema.prisma and add `priority Int @default(0)` as a new field inside the Todo model, below the `completed` field.',
-    hint: "Add the field, then save the file (Ctrl+S).",
+      'In src/app/page.tsx, change the <h1> text from "My To-Do List" to "Task Tracker". Save the file (Ctrl+S) — Next.js will hot-reload the preview automatically.',
+    hint: 'Find the <h1> tag inside the <header> element and update its text content. Save with Ctrl+S.',
     switchTab: "editor",
     target: "editor-workspace",
-    confirmLabel: "Schema Change Done",
+    confirmLabel: "Header Updated",
     requireTargetClick: false,
     preferSide: "left",
   },
   {
-    id: "terminal-stop-server",
-    title: "Stop Dev Server",
+    id: "preview-header-button",
+    title: "Open Preview",
+    instruction: "Click the Preview tab to verify the heading change.",
+    hint: "Click the highlighted Preview tab in the workspace tabs.",
+    target: "workspace-tab-preview",
+    preferSide: "bottom",
+  },
+  {
+    id: "preview-header-check",
+    title: "Verify Updated Heading",
     instruction:
-      "Before running the migration, press Ctrl+C in the terminal to stop the running development server.",
-    hint: "Press Ctrl+C in the terminal panel, then click Server Stopped below.",
-    switchTab: "terminal",
-    target: "terminal-panel",
-    confirmLabel: "Server Stopped",
+      'Confirm the app header now reads "Task Tracker" in Preview. Next.js hot-reloads on save — if it hasn\'t updated yet, wait a moment.',
+    hint: 'Look for "Task Tracker" in the top-left of the preview.',
+    target: "tutorial-preview-panel",
+    switchTab: "preview",
+    confirmLabel: "Heading Looks Good",
+    requireTargetClick: false,
+    preferSide: "left",
+  },
+
+  // ── Phase 6: Add shadcn Separator component ───────────────────────────────
+  {
+    id: "task-two-shadcn-intro",
+    title: "Adding a shadcn Component",
+    instruction:
+      "The project already has some shadcn components (Button, Card, Badge…). Now you'll add a new one using the shadcn CLI — this is how you extend a shadcn project with any component from the library.",
+    hint: "Click Next to open the terminal and run the add command.",
+    target: "editor-workspace",
+    confirmLabel: "Next",
     requireTargetClick: false,
     preferSide: "left",
   },
   {
-    id: "terminal-migrate-priority",
-    title: "Run Migration for New Field",
-    instruction: "Apply the schema change to the database with a named migration.",
-    hint: "Run: npx prisma migrate dev --name add-priority-to-todo",
+    id: "task-two-shadcn-terminal",
+    title: "Switch to Terminal",
+    instruction: "Open the Terminal tab to run the shadcn add command.",
+    hint: "Click the highlighted Terminal tab.",
+    target: "workspace-tab-terminal",
+    preferSide: "bottom",
+  },
+  {
+    id: "task-two-shadcn-add",
+    title: "Add the Separator Component",
+    instruction:
+      "Run the shadcn CLI to generate the Separator component. It will create src/components/ui/separator.tsx automatically — no manual file creation needed.",
+    hint: "Run: npx shadcn@latest add separator",
     switchTab: "terminal",
-    command: "npx prisma migrate dev --name add-priority-to-todo",
+    command: "npx shadcn@latest add separator",
     requireCommand: true,
     target: "terminal-panel",
     preferSide: "left",
   },
   {
-    id: "terminal-dev-restart",
-    title: "Restart Dev Server",
-    instruction: "Start the development server again to verify the schema change works.",
-    hint: "Run: npm run dev",
-    switchTab: "terminal",
-    command: "npm run dev",
-    requireCommand: true,
-    waitForTerminalOutput: ["Application is running on", "Nest application successfully"],
-    target: "terminal-panel",
+    id: "task-two-shadcn-view",
+    title: "View the Generated Component",
+    instruction:
+      "Open src/components/ui/separator.tsx in the editor to see the component shadcn just generated. Notice how it wraps a Radix UI primitive with Tailwind classes — this is the shadcn pattern.",
+    hint: "Find separator.tsx in the file explorer under src/components/ui/ and click it to open.",
+    switchTab: "editor",
+    target: "editor-workspace",
+    confirmLabel: "Got It",
+    requireTargetClick: false,
+    preferSide: "left",
+  },
+  {
+    id: "task-two-shadcn-use",
+    title: "Use the Separator in the Page",
+    instruction:
+      'Open src/app/page.tsx and add the Separator between the stats section and the "Add a new task" card.\n\n1. Import: `import { Separator } from "@/components/ui/separator"`\n2. Place `<Separator className="my-2" />` between the stats grid and the next Card.',
+    hint: "Add the import at the top of the file, then place <Separator className=\"my-2\" /> between the stats cards and the Add Task card. Save the file.",
+    switchTab: "editor",
+    target: "editor-workspace",
+    confirmLabel: "Separator Added",
+    requireTargetClick: false,
     preferSide: "left",
   },
   {
     id: "preview-task-two-button",
     title: "Open Preview Again",
-    instruction: "Click the Preview tab to verify the API still works after the schema change.",
+    instruction: "Click the Preview tab to verify all Task 2 changes.",
     hint: "Click the highlighted Preview tab in the workspace tabs.",
     target: "workspace-tab-preview",
     preferSide: "bottom",
   },
   {
     id: "preview-task-two-check",
-    title: "Verify API Still Works",
+    title: "Verify Task 2 Changes",
     instruction:
-      "Confirm the API responds correctly in Preview. The todos should load and include the new priority field.",
-    hint: "Look for a JSON response at /api/todos — each todo should now have a priority property.",
+      'Check that Preview shows "Task Tracker" as the heading and a horizontal separator line between the stats and the task form.',
+    hint: 'Look for the updated "Task Tracker" heading and the thin divider line below the stats cards.',
     target: "tutorial-preview-panel",
     switchTab: "preview",
     confirmLabel: "Changes Verified",
     requireTargetClick: false,
     preferSide: "left",
   },
+
+  // ── Phase 7: Tests ────────────────────────────────────────────────────────
   {
     id: "test-task-two-open-modal",
     title: "Open Test Modal",
@@ -491,6 +505,8 @@ export const STEPS: TutorialStep[] = [
     requireTargetClick: true,
     preferSide: "left",
   },
+
+  // ── Phase 8: Submit sprint ────────────────────────────────────────────────
   {
     id: "submit-sprint-click",
     title: "Submit Sprint",
@@ -517,9 +533,9 @@ export const STEPS: TutorialStep[] = [
     title: "Enter Mastery Reflection",
     instruction:
       "Type a short reflection on what you learned. Use the Copy button below to paste the example into the field.",
-    hint: 'Example: "I set up the NestJS + Postgres + Prisma stack by following the README — installing dependencies, copying the .env file, running Prisma migrations, seeding the database, and starting the dev server. For Task 2, I used search to locate the Prisma schema and added a priority field to the Todo model, then ran a migration and restarted the server. This tutorial showed me how the NestJS backend, Prisma ORM, and workspace tools work together."',
+    hint: 'Example: "I set up the Next.js + shadcn/ui stack with npm install and npm run dev. For Task 2, I updated the page header in page.tsx and used the shadcn CLI to add a Separator component with npx shadcn@latest add separator. I then imported and placed it between sections in the layout. This showed me how shadcn generates ready-to-use components and how hot-reload makes UI changes instant."',
     copyText:
-      "I set up the NestJS + Postgres + Prisma stack by following the README — installing dependencies, copying the .env file, running Prisma migrations, seeding the database, and starting the dev server. For Task 2, I used search to locate the Prisma schema and added a priority field to the Todo model, then ran a migration and restarted the server. This tutorial showed me how the NestJS backend, Prisma ORM, and workspace tools work together.",
+      "I set up the Next.js + shadcn/ui stack with npm install and npm run dev. For Task 2, I updated the page header in page.tsx and used the shadcn CLI to add a Separator component with npx shadcn@latest add separator. I then imported and placed it between sections in the layout. This showed me how shadcn generates ready-to-use components and how hot-reload makes UI changes instant.",
     target: "mastery-reflection-input",
     confirmLabel: "Next",
     requireTargetClick: false,
@@ -530,9 +546,9 @@ export const STEPS: TutorialStep[] = [
     id: "submit-sprint-layers",
     title: "Select Impacted Layers (Tutorial Mode)",
     instruction:
-      "Click Backend + Database checkboxes.\nNote: In real workspace, this will be checked strictly. Click Next.",
+      "Click the Frontend checkbox — this project is frontend-only.\nNote: In real workspace, this will be checked strictly. Click Next.",
     hint: "",
-    targets: ["impacted-layer-backend", "impacted-layer-database"],
+    targets: ["impacted-layer-frontend"],
     confirmLabel: "Next",
     requireTargetClick: false,
     spotlightTarget: "submit-sprint-modal",
@@ -550,7 +566,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "finish-tutorial-open-modal",
     title: "Sprint Submitted!",
-    instruction: "Your sprint is being recorded. The tutorial completion summary will appear shortly.",
+    instruction:
+      "Your sprint is being recorded. The tutorial completion summary will appear shortly.",
     hint: "Hang tight — the finish modal is loading.",
     preferSide: "bottom",
   },
