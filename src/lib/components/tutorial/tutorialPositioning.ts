@@ -69,6 +69,10 @@ export function resolvePlacement(
     step.id === "read-readme" ||
     step.id === "search-works-confirm" ||
     step.id === codeEditStepId ||
+    step.id === "shadcn-intro" ||
+    step.id === "shadcn-init-wait" ||
+    step.id === "shadcn-add" ||
+    step.id === "shadcn-add-wait" ||
     step.requireCommand ||
     (step.spotlightTarget != null && MODAL_SPOTLIGHT_TARGETS.has(step.spotlightTarget))
   ) {

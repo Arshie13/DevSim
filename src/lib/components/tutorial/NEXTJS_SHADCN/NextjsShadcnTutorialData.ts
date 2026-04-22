@@ -20,21 +20,21 @@ function buildShadcnTaskOne(): ITask {
       order: 1,
       taskId,
       content:
-        "This project is frontend-only — no database or .env is needed. Just install dependencies and start the dev server.",
+        "Start by initializing shadcn: `npx shadcn@latest init`. Accept all default prompts — this creates components.json and wires up the CLI for the project.",
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "Read README.md first. It explains the project structure and the two-step setup: npm install, then npm run dev.",
+        "Once init completes, add the Separator component with `npx shadcn@latest add separator`. shadcn copies the source file directly into src/components/ui/separator.tsx — no npm package needed.",
     },
     {
       id: `${taskId}-hint-3`,
       order: 3,
       taskId,
       content:
-        "The app runs on http://localhost:3000 by default. Look for the 'Ready in' message in the terminal to confirm the server started.",
+        "After shadcn setup, run `npm install` to install remaining project dependencies, then `npm run dev` to start the dev server. Look for 'Ready in' in the terminal to confirm startup.",
     },
   ];
 
@@ -44,19 +44,33 @@ function buildShadcnTaskOne(): ITask {
       taskId,
       order: 1,
       isRequired: true,
-      description: "Dependencies installed without errors",
+      description: "Ran `npx shadcn@latest init` — components.json present in the project root",
     },
     {
       id: `${taskId}-ac-2`,
       taskId,
       order: 2,
       isRequired: true,
-      description: "Next.js dev server starts and the terminal shows 'Ready'",
+      description: "Ran `npx shadcn@latest add separator` — src/components/ui/separator.tsx exists",
     },
     {
       id: `${taskId}-ac-3`,
       taskId,
       order: 3,
+      isRequired: true,
+      description: "Dependencies installed without errors (npm install)",
+    },
+    {
+      id: `${taskId}-ac-4`,
+      taskId,
+      order: 4,
+      isRequired: true,
+      description: "Next.js dev server starts and the terminal shows 'Ready'",
+    },
+    {
+      id: `${taskId}-ac-5`,
+      taskId,
+      order: 5,
       isRequired: true,
       description: "Preview shows the To-Do List app with mock todos loaded",
     },
@@ -64,7 +78,7 @@ function buildShadcnTaskOne(): ITask {
 
   return {
     id: taskId,
-    taskName: "Prepare Development Environment",
+    taskName: "Setup Development Environment",
     order: 1,
     hints,
     acceptanceCriteria,
@@ -72,7 +86,7 @@ function buildShadcnTaskOne(): ITask {
     isCompleted: false,
     testType: "client",
     userStory:
-      "As a developer, I need to set up the Next.js + shadcn UI development environment so that I can start working on the To-Do List app.",
+      "As a developer, I need to initialize shadcn, add the Separator component via the shadcn CLI, install all project dependencies, and start the dev server so the app is fully running and I understand the complete shadcn setup workflow.",
   };
 }
 
@@ -85,21 +99,21 @@ function buildShadcnTaskTwo(): ITask {
       order: 1,
       taskId,
       content:
-        'In src/app/page.tsx, find the <h1> tag inside the <header> and change the text from "My To-Do List" to "Task Tracker". Save the file — Next.js hot-reloads instantly.',
+        'In src/app/page.tsx, find the <h1> tag inside the <header> and change the text from "My To-Do List" to "Task Tracker".',
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "To add a new shadcn component, run `npx shadcn@latest add separator` in the terminal. shadcn generates the component file at src/components/ui/separator.tsx automatically.",
+        "Save the file with Ctrl+S. Next.js will hot-reload the preview within a second — no restart needed.",
     },
     {
       id: `${taskId}-hint-3`,
       order: 3,
       taskId,
       content:
-        'Import the Separator at the top of page.tsx: `import { Separator } from "@/components/ui/separator"`. Then place `<Separator className="my-4" />` between the stats cards and the Add Task card.',
+        "Confirm the heading updated in Preview before running the Task 2 tests.",
     },
   ];
 
@@ -116,28 +130,13 @@ function buildShadcnTaskTwo(): ITask {
       taskId,
       order: 2,
       isRequired: true,
-      description:
-        "Separator component added via `npx shadcn@latest add separator` — file exists at src/components/ui/separator.tsx",
-    },
-    {
-      id: `${taskId}-ac-3`,
-      taskId,
-      order: 3,
-      isRequired: true,
-      description: "Separator imported and placed in src/app/page.tsx between sections",
-    },
-    {
-      id: `${taskId}-ac-4`,
-      taskId,
-      order: 4,
-      isRequired: true,
-      description: "Preview shows the updated heading and a visible separator line between sections",
+      description: "Preview reflects the new heading after save",
     },
   ];
 
   return {
     id: taskId,
-    taskName: "Update UI & Add a shadcn Component",
+    taskName: "Update the Page Header",
     order: 2,
     hints,
     acceptanceCriteria,
@@ -145,7 +144,7 @@ function buildShadcnTaskTwo(): ITask {
     isCompleted: false,
     testType: "client",
     userStory:
-      "As a developer, I need to update the app header and add a new shadcn Separator component so I can practice editing real UI and using the shadcn CLI to extend the component library.",
+      "As a developer, I need to update the app header in src/app/page.tsx so I can practice making a targeted UI change and verifying it live through Next.js hot-reload.",
   };
 }
 
@@ -154,7 +153,7 @@ export const NEXTJS_SHADCN_TUTORIAL_DATA: TutorialWorkspaceData = {
   stackLabel: "Next.js + shadcn/ui",
   scenarioTitle: "Next.js + shadcn/ui Tutorial",
   scenarioDescription:
-    "Set up the Next.js tutorial workspace by reading docs, installing dependencies, starting the dev server, and verifying the app in preview.",
+    "Initialize shadcn, add your first component via the CLI, spin up the dev server, then make a live UI change and verify it through hot-reload.",
   level: 1,
   tasks: [buildShadcnTaskOne(), buildShadcnTaskTwo()],
 };
@@ -222,16 +221,67 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 2: Terminal setup ───────────────────────────────────────────────
+  // ── Phase 2: shadcn setup (init + add separator) ──────────────────────────
   {
-    id: "click-terminal",
-    title: "Open the Terminal Tab",
-    instruction: "Click the Terminal Tab Button to open it.",
-    hint: "",
+    id: "shadcn-terminal",
+    title: "Switch to Terminal",
+    instruction: "Open the Terminal tab to run the shadcn CLI commands.",
+    hint: "Click the highlighted Terminal tab.",
     target: "workspace-tab-terminal",
-    targets: ["workspace-tab-terminal"],
-    preferSide: "right",
+    preferSide: "bottom",
   },
+  {
+    id: "shadcn-init",
+    title: "Initialize shadcn",
+    instruction:
+      "Run `npx shadcn@latest init` to initialize shadcn in the project. This creates components.json and configures the CLI for this codebase. When prompted, accept the defaults.",
+    hint: "Run: npx shadcn@latest init",
+    switchTab: "terminal",
+    command: "npx shadcn@latest init",
+    requireCommand: true,
+    waitForCompletion: false,
+    target: "terminal-panel",
+    preferSide: "left",
+  },
+  {
+    id: "shadcn-init-wait",
+    title: "Answer the Init Prompts",
+    instruction:
+      "shadcn@4.x will ask you a few questions:\n\n1. **Select a component library** — choose Radix (default, press Enter)\n2. **Which preset would you like to use?** — pick any you like (Nova is a good default)\n\nFor any remaining prompts just press Enter to accept the defaults. Click Done once the terminal shows a success or completion message.",
+    hint: 'Use arrow keys to navigate each prompt, Enter to confirm. Click Done once init finishes.',
+    switchTab: "terminal",
+    target: "terminal-panel",
+    confirmLabel: "Init Complete",
+    requireTargetClick: false,
+    preferSide: "left",
+  },
+  {
+    id: "shadcn-add",
+    title: "Add the Separator Component",
+    instruction:
+      "Now add a specific component with the shadcn CLI. This creates src/components/ui/separator.tsx — shadcn copies the source directly into your project so you can customize it freely.",
+    hint: "Run: npx shadcn@latest add separator",
+    switchTab: "terminal",
+    command: "npx shadcn@latest add separator",
+    requireCommand: true,
+    waitForCompletion: false,
+    target: "terminal-panel",
+    preferSide: "left",
+  },
+  {
+    id: "shadcn-add-wait",
+    title: "Wait for the Component to Install",
+    instruction:
+      "shadcn will fetch the Separator source and install any needed Radix dependencies (`@radix-ui/react-separator`). When the terminal shows the component was created, click Done.",
+    hint: 'Look for the "Created" line in the terminal output.',
+    switchTab: "terminal",
+    target: "terminal-panel",
+    confirmLabel: "Component Installed",
+    requireTargetClick: false,
+    preferSide: "left",
+  },
+
+  // ── Phase 3: npm install + dev server ─────────────────────────────────────
   {
     id: "terminal-install",
     title: "Install Dependencies",
@@ -256,7 +306,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 3: Preview & Task 1 tests ──────────────────────────────────────
+  // ── Phase 4: Preview & Task 1 tests ──────────────────────────────────────
   {
     id: "preview-button",
     title: "Open Preview",
@@ -305,7 +355,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 4: Task 2 board review ─────────────────────────────────────────
+  // ── Phase 5: Task 2 — Update the page header ─────────────────────────────
   {
     id: "task-two-kanban",
     title: "Back To Kanban",
@@ -319,7 +369,7 @@ export const STEPS: TutorialStep[] = [
   {
     id: "task-two-open",
     title: "Open Task 2 Ticket",
-    instruction: "Open Task 2 and review its requirements.",
+    instruction: "Open Task 2 and review its requirements — you'll update the page header.",
     hint: "Click on the second task card in the Kanban board.",
     target: "board-task-ticket-2",
     boardSubTab: "board",
@@ -333,8 +383,6 @@ export const STEPS: TutorialStep[] = [
     target: "board-task-modal",
     preferSide: "left",
   },
-
-  // ── Phase 5: Update the header ────────────────────────────────────────────
   {
     id: "search-open-panel",
     title: "Open Search Tool",
@@ -372,7 +420,7 @@ export const STEPS: TutorialStep[] = [
     title: "Update the Page Header",
     instruction:
       'In src/app/page.tsx, change the <h1> text from "My To-Do List" to "Task Tracker". Save the file (Ctrl+S) — Next.js will hot-reload the preview automatically.',
-    hint: 'Find the <h1> tag inside the <header> element and update its text content. Save with Ctrl+S.',
+    hint: "Find the <h1> tag inside the <header> element and update its text content. Save with Ctrl+S.",
     switchTab: "editor",
     target: "editor-workspace",
     confirmLabel: "Header Updated",
@@ -380,7 +428,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
   {
-    id: "preview-header-button",
+    id: "preview-task-two-button",
     title: "Open Preview",
     instruction: "Click the Preview tab to verify the heading change.",
     hint: "Click the highlighted Preview tab in the workspace tabs.",
@@ -388,7 +436,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "bottom",
   },
   {
-    id: "preview-header-check",
+    id: "preview-task-two-check",
     title: "Verify Updated Heading",
     instruction:
       'Confirm the app header now reads "Task Tracker" in Preview. Next.js hot-reloads on save — if it hasn\'t updated yet, wait a moment.',
@@ -399,85 +447,6 @@ export const STEPS: TutorialStep[] = [
     requireTargetClick: false,
     preferSide: "left",
   },
-
-  // ── Phase 6: Add shadcn Separator component ───────────────────────────────
-  {
-    id: "task-two-shadcn-intro",
-    title: "Adding a shadcn Component",
-    instruction:
-      "The project already has some shadcn components (Button, Card, Badge…). Now you'll add a new one using the shadcn CLI — this is how you extend a shadcn project with any component from the library.",
-    hint: "Click Next to open the terminal and run the add command.",
-    target: "editor-workspace",
-    confirmLabel: "Next",
-    requireTargetClick: false,
-    preferSide: "left",
-  },
-  {
-    id: "task-two-shadcn-terminal",
-    title: "Switch to Terminal",
-    instruction: "Open the Terminal tab to run the shadcn add command.",
-    hint: "Click the highlighted Terminal tab.",
-    target: "workspace-tab-terminal",
-    preferSide: "bottom",
-  },
-  {
-    id: "task-two-shadcn-add",
-    title: "Add the Separator Component",
-    instruction:
-      "Run the shadcn CLI to generate the Separator component. It will create src/components/ui/separator.tsx automatically — no manual file creation needed.",
-    hint: "Run: npx shadcn@latest add separator",
-    switchTab: "terminal",
-    command: "npx shadcn@latest add separator",
-    requireCommand: true,
-    target: "terminal-panel",
-    preferSide: "left",
-  },
-  {
-    id: "task-two-shadcn-view",
-    title: "View the Generated Component",
-    instruction:
-      "Open src/components/ui/separator.tsx in the editor to see the component shadcn just generated. Notice how it wraps a Radix UI primitive with Tailwind classes — this is the shadcn pattern.",
-    hint: "Find separator.tsx in the file explorer under src/components/ui/ and click it to open.",
-    switchTab: "editor",
-    target: "editor-workspace",
-    confirmLabel: "Got It",
-    requireTargetClick: false,
-    preferSide: "left",
-  },
-  {
-    id: "task-two-shadcn-use",
-    title: "Use the Separator in the Page",
-    instruction:
-      'Open src/app/page.tsx and add the Separator between the stats section and the "Add a new task" card.\n\n1. Import: `import { Separator } from "@/components/ui/separator"`\n2. Place `<Separator className="my-2" />` between the stats grid and the next Card.',
-    hint: "Add the import at the top of the file, then place <Separator className=\"my-2\" /> between the stats cards and the Add Task card. Save the file.",
-    switchTab: "editor",
-    target: "editor-workspace",
-    confirmLabel: "Separator Added",
-    requireTargetClick: false,
-    preferSide: "left",
-  },
-  {
-    id: "preview-task-two-button",
-    title: "Open Preview Again",
-    instruction: "Click the Preview tab to verify all Task 2 changes.",
-    hint: "Click the highlighted Preview tab in the workspace tabs.",
-    target: "workspace-tab-preview",
-    preferSide: "bottom",
-  },
-  {
-    id: "preview-task-two-check",
-    title: "Verify Task 2 Changes",
-    instruction:
-      'Check that Preview shows "Task Tracker" as the heading and a horizontal separator line between the stats and the task form.',
-    hint: 'Look for the updated "Task Tracker" heading and the thin divider line below the stats cards.',
-    target: "tutorial-preview-panel",
-    switchTab: "preview",
-    confirmLabel: "Changes Verified",
-    requireTargetClick: false,
-    preferSide: "left",
-  },
-
-  // ── Phase 7: Tests ────────────────────────────────────────────────────────
   {
     id: "test-task-two-open-modal",
     title: "Open Test Modal",
@@ -506,7 +475,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 8: Submit sprint ────────────────────────────────────────────────
+  // ── Phase 6: Submit Sprint ────────────────────────────────────────────────
   {
     id: "submit-sprint-click",
     title: "Submit Sprint",
@@ -533,9 +502,9 @@ export const STEPS: TutorialStep[] = [
     title: "Enter Mastery Reflection",
     instruction:
       "Type a short reflection on what you learned. Use the Copy button below to paste the example into the field.",
-    hint: 'Example: "I set up the Next.js + shadcn/ui stack with npm install and npm run dev. For Task 2, I updated the page header in page.tsx and used the shadcn CLI to add a Separator component with npx shadcn@latest add separator. I then imported and placed it between sections in the layout. This showed me how shadcn generates ready-to-use components and how hot-reload makes UI changes instant."',
+    hint: 'Example: "I initialized shadcn with `npx shadcn@latest init`, added the Separator component via `npx shadcn@latest add separator`, then ran npm install and npm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload."',
     copyText:
-      "I set up the Next.js + shadcn/ui stack with npm install and npm run dev. For Task 2, I updated the page header in page.tsx and used the shadcn CLI to add a Separator component with npx shadcn@latest add separator. I then imported and placed it between sections in the layout. This showed me how shadcn generates ready-to-use components and how hot-reload makes UI changes instant.",
+      "I initialized shadcn with `npx shadcn@latest init`, added the Separator component via `npx shadcn@latest add separator`, then ran npm install and npm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload.",
     target: "mastery-reflection-input",
     confirmLabel: "Next",
     requireTargetClick: false,

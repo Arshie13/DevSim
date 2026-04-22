@@ -80,6 +80,7 @@ export class TerminalInitializer {
 
       window.addEventListener("resize", () => {
         this.fitAddon?.fit();
+        this.sendResize();
       });
 
       return this.terminal;
@@ -89,13 +90,22 @@ export class TerminalInitializer {
     }
   }
 
+  private sendResize() {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+    if (!this.terminal) return;
+    this.socket.send(JSON.stringify({ type: "resize", cols: this.terminal.cols, rows: this.terminal.rows }));
+  }
+
   private connectSocket() {
-    const wsUrl = getTerminalWsUrl(this.containerId);
+    const cols = this.terminal?.cols ?? 80;
+    const rows = this.terminal?.rows ?? 24;
+    const wsUrl = `${getTerminalWsUrl(this.containerId)}&cols=${cols}&rows=${rows}`;
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
       console.log("🚀 Terminal WebSocket Connected");
       this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
+      this.sendResize();
     };
 
     this.socket.onmessage = (event) => {

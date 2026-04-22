@@ -21,6 +21,16 @@
 
   let copySuccess = false;
 
+  function renderMarkdown(text: string): string {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/`([^`]+)`/g, '<code class="pt-inline-code">$1</code>')
+      .replace(/\n/g, "<br>");
+  }
+
   async function handleCopy(text: string) {
     try {
       await navigator.clipboard.writeText(text);
@@ -60,8 +70,8 @@
     </header>
 
     <div class="pt-body">
-      <p class="pt-instruction">{step.instruction}</p>
-      <p class="pt-hint">{step.hint}</p>
+      <p class="pt-instruction">{@html renderMarkdown(step.instruction)}</p>
+      <p class="pt-hint">{@html renderMarkdown(step.hint ?? "")}</p>
       {#if step.copyText}
         <button
           class="pt-btn pt-btn-secondary pt-copy-btn"
@@ -175,6 +185,7 @@
 
   .pt-instruction { margin: 0; line-height: 1.45; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
   .pt-hint { margin: 0; color: rgba(208, 215, 221, 0.72); font-size: 0.88rem; line-height: 1.4; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
+  :global(.pt-inline-code) { font-family: "Share Tech Mono", monospace; font-size: 0.85em; background: rgba(0, 194, 255, 0.1); border: 1px solid rgba(0, 194, 255, 0.25); border-radius: 3px; padding: 0.05em 0.3em; color: #00e5a0; }
 
   .pt-command {
     display: block;
