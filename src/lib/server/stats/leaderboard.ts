@@ -11,6 +11,7 @@ export async function getLeaderboard(limit = 5, currentUserId?: string): Promise
   return users.map((u, idx) => ({
     rank: idx + 1,
     username: u.username ?? u.name,
+    name: u.name,
     avatar: u.image ?? "🧑‍💻",
     xp: u.xp,
     level: u.level,

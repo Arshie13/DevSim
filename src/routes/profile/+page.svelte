@@ -25,7 +25,6 @@
     coins: data.user.coins ?? data.userCoins ?? 0,
     level: data.user.level ?? 1,
     ownedAvatars: data.user.ownedAvatars ?? [],
-    avatar: data.user.avatar ?? '',
     // Tutorial
     hasCompletedTutorial: data.user.hasCompletedTutorial ?? false,
     username: data.user.username,

@@ -32,6 +32,7 @@ export interface KPIData {
 export interface LeaderboardEntry {
   rank: number;
   username: string;
+  name?: string;
   avatar: string;
   xp: number;
   level: number;
