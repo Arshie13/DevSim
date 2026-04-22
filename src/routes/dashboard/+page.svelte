@@ -33,7 +33,7 @@
     xp: data.user.xp,
     level: data.user.level,
     ownedAvatars: data.user.ownedAvatars,
-    hasCompletedOnboarding: data.user.hasCompletedOnboarding,
+    hasCompletedTutorial: data.user.hasCompletedTutorial,
   };
 
   function formatCompact(n: number): string {

@@ -159,7 +159,7 @@
       {/if}
 
       <button
-        data-tour="demo-button"
+        data-tour="preview-header-button"
         on:click={onDemo}
         class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#07a5c9] border border-[rgba(7,165,201,0.35)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] flex items-center gap-1.5 transition-all"
         style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
@@ -194,6 +194,7 @@
     <div class="w-px h-5 bg-[rgba(7,165,201,0.12)] mx-1"></div>
         <!-- Submit Sprint -->
     <button
+      data-tour="submit-sprint-button"
       on:click={onSubmit}
       class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#0a0e1a] bg-[#07a5c9] border border-[#07a5c9] hover:bg-[#00f5ff] hover:border-[#00f5ff] flex items-center gap-1.5 transition-all"
       style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;box-shadow:0 0 14px rgba(7,165,201,0.35);"

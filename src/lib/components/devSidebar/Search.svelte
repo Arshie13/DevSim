@@ -17,6 +17,7 @@
   let searchResults: FileMatch[] = [];
   let totalMatchCount: number = 0;
   let expandedFiles: Set<string> = new Set();
+  let selectedResultKey: string | null = null;
   let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let searchRunId = 0;
   let lastContainerId = "";
@@ -180,6 +181,7 @@
       searchResults = [];
       totalMatchCount = 0;
       expandedFiles = new Set();
+      selectedResultKey = null;
     }
   }
 
@@ -195,6 +197,7 @@
     totalMatchCount = 0;
     expandedFiles = new Set();
     isSearching = false;
+    selectedResultKey = null;
 
     if (searchQuery.trim().length >= 2) {
       triggerDebouncedSearch();
@@ -207,6 +210,16 @@
     searchQuery = "";
     searchResults = [];
     totalMatchCount = 0;
+    selectedResultKey = null;
+  }
+
+  function buildResultKey(filePath: string, lineNumber: number) {
+    return `${filePath}:${lineNumber}`;
+  }
+
+  function handleSelectResult(filePath: string, lineNumber: number) {
+    selectedResultKey = buildResultKey(filePath, lineNumber);
+    onSelectFile(filePath, lineNumber, searchQuery);
   }
 
   function toggleFileExpand(filePath: string) {
@@ -219,12 +232,13 @@
   }
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex flex-col h-full" data-tour="tutorial-search-panel">
   <!-- Search Input -->
   <div class="p-3 border-b border-[#27272a]">
     <div class="relative">
       <SearchIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#d0d7dd]/40" />
       <input
+        data-tour="tutorial-search-input"
         type="text"
         bind:value={searchQuery}
         on:input={handleSearchInput}
@@ -292,8 +306,9 @@
           {#if expandedFiles.has(fileMatch.filePath)}
             {#each fileMatch.matches as match}
               <button
-                on:click={() => onSelectFile(fileMatch.filePath, match.lineNumber, searchQuery)}
-                class="w-full text-left pl-9 pr-2 py-0.5 flex items-start gap-2 text-[12px] hover:bg-[#2d3446]/50 transition-all"
+                data-tour="tutorial-search-result-item"
+                on:click={() => handleSelectResult(fileMatch.filePath, match.lineNumber)}
+                class="w-full text-left pl-9 pr-2 py-0.5 flex items-start gap-2 text-[12px] transition-all hover:bg-[#2d3446]/50 {selectedResultKey === buildResultKey(fileMatch.filePath, match.lineNumber) ? 'bg-[#07a5c9]/18 ring-1 ring-[#07a5c9]/45' : ''}"
               >
                 <span class="text-[#d0d7dd]/25 flex-shrink-0 w-6 text-right font-mono text-[10px] leading-[18px] tabular-nums">
                   {match.lineNumber}

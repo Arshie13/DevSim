@@ -20,6 +20,7 @@
   interface KanbanTask {
     id: string;
     text: string;
+    order: number;
     status: KanbanStatus;
     taskType: string;
     userStory: string;
@@ -42,6 +43,7 @@
     kanbanTasks = incoming.map((t) => ({
       id: t.id,
       text: t.taskName,
+      order: t.order,
       status: getInitialStatus(t),
       taskType: t.testType,
       userStory: ((t as ITask & { userStory?: string }).userStory ?? '').trim(),
@@ -56,6 +58,20 @@
         .map((h) => ({ id: h.id, content: (h as any).description ?? h.content, order: h.order }))
         .filter(Boolean),
     }));
+  }
+
+  function getBlockingTask(targetTask: KanbanTask): KanbanTask | null {
+    const ordered = [...kanbanTasks].sort((a, b) => a.order - b.order);
+    const targetIndex = ordered.findIndex((task) => task.id === targetTask.id);
+    if (targetIndex <= 0) return null;
+
+    for (let i = 0; i < targetIndex; i += 1) {
+      if (ordered[i].status !== 'done') {
+        return ordered[i];
+      }
+    }
+
+    return null;
   }
 
   $: {
@@ -155,6 +171,19 @@
     }
 
     const canManuallyMoveToDone = task.taskType.toLowerCase() === 'none';
+    const requiresOrderGate = column === 'in-progress' || column === 'in-review' || column === 'done';
+
+    if (requiresOrderGate) {
+      const blockingTask = getBlockingTask(task);
+      if (blockingTask) {
+        toast.warn(
+          `Finish Task ${blockingTask.order} first before moving Task ${task.order} to ${column.replace('-', ' ')}.`,
+        );
+        draggingId = null;
+        dragOverColumn = null;
+        return;
+      }
+    }
 
     // Test-backed tasks are locked once completed and cannot be moved out of Done.
     if (task.status === 'done' && !canManuallyMoveToDone && column !== 'done') {
@@ -428,7 +457,7 @@
               {#each kanbanTasks.filter((t) => t.status === col.id) as task, taskIndex (task.id)}
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y-no-static-element-interactions -->
                 <div
-                  data-tour={taskIndex === 0 ? 'board-task-ticket' : undefined}
+                  data-tour={task.order === 1 ? 'board-task-ticket' : task.order === 2 ? 'board-task-ticket-2' : undefined}
                   draggable={!(task.status === 'done' && task.taskType.toLowerCase() !== 'none')}
                   on:dragstart={(e) => handleDragStart(e, task.id)}
                   on:dragend={handleDragEnd}
@@ -443,8 +472,16 @@
                   style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
                   role="button"
                   tabindex="0"
-                  aria-label="Drag task: {task.text}"
+                  aria-label="Drag Task {task.order}: {task.text}"
                 >
+                  <div class="mb-2 flex justify-start">
+                    <span
+                      class="text-[0.58rem] uppercase tracking-wider px-1 py-0.5 rounded"
+                      style="font-family: 'Space Mono', monospace; color: {col.color}; background: {col.bg}; border: 1px solid {col.color}44;"
+                    >
+                      Task {task.order}
+                    </span>
+                  </div>
                   <div class="flex items-start gap-2">
                     <!-- Drag handle -->
                     <GripVertical

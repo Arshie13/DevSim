@@ -84,7 +84,7 @@ const STACK_MAP: Record<string, StackContent> = {
   },
 };
 
-function normalizeStackKey(stack: string): string {
+export function getStackKey(stack: string): string {
   const s = stack.toLowerCase().replace(/[\s·]/g, '-').replace(/\++/g, '-').replace(/-+/g, '-');
   if (s.includes('next') && (s.includes('prisma') || s.includes('postgres')) && !s.includes('supabase')) return 'nextjs-prisma';
   if (s.includes('next') && s.includes('shadcn')) return 'nextjs-shadcn';
@@ -98,7 +98,7 @@ function normalizeStackKey(stack: string): string {
 }
 
 export function getStackContent(stack: string): StackContent {
-  const key = normalizeStackKey(stack);
+  const key = getStackKey(stack);
   return (
     STACK_MAP[key] ?? {
       stackName: stack,
