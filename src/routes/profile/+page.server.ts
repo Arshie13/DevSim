@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import prisma from '$lib/server/client';
+import { getProfileMetrics, getRivals } from '$lib/server/stats';
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -9,17 +10,18 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, '/');
   }
 
-  // Always fetch the latest user data from the DB so changes are
-  // immediately reflected without requiring a re-login.
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { image: true, coins: true, xp: true, level: true, ownedAvatars: true, hasCompletedOnboarding: true, username: true },
-  });
+  const [dbUser, metrics, rivals] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { image: true, coins: true, xp: true, level: true, ownedAvatars: true, hasCompletedOnboarding: true, username: true },
+    }),
+    getProfileMetrics(session.user.id),
+    getRivals(session.user.id, 6),
+  ]);
 
   return {
     user: {
       ...session.user,
-      // Override session values with live DB values
       image: dbUser?.image ?? session.user.image,
       username: dbUser?.username,
       coins: dbUser?.coins ?? 0,
@@ -30,5 +32,7 @@ export const load: PageServerLoad = async (event) => {
     },
     userCoins: dbUser?.coins ?? 0,
     ownedAvatars: dbUser?.ownedAvatars ?? [],
+    metrics,
+    rivals,
   };
 };

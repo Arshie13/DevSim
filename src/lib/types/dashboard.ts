@@ -10,10 +10,11 @@ export interface ActivityItem {
 }
 
 export interface WeeklyStats {
-  codingHours: number[];
+  counts: number[];
   days: string[];
-  totalHours: number;
+  total: number;
   avgPerDay: number;
+  growthLabel?: string;
 }
 
 export interface KPIData {
@@ -35,4 +36,38 @@ export interface LeaderboardEntry {
   xp: number;
   level: number;
   isCurrentUser?: boolean;
+}
+
+export interface UserKpis {
+  stacksCompleted: number;
+  totalXp: number;
+  dayStreak: number;
+  achievementsUnlocked: number;
+}
+
+export interface RivalEntry {
+  id: string;
+  username: string;
+  name: string;
+  image: string | null;
+  xp: number;
+  level: number;
+}
+
+export interface ProfileMetricsData {
+  tasksCompleted: number;
+  fileEdits: number;
+  coinsEarned: number;
+  achievementsCount: number;
+  memberSince: Date;
+  dayStreak: number;
+  leaderboardRank: number;
+  weeklyGrowth: string;
+}
+
+export interface LandingStats {
+  activeDevs: string;
+  techStacks: string;
+  scenarios: string;
+  rating: string;
 }

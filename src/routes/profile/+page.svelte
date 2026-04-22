@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { ArrowLeft, GitCommitHorizontalIcon, Award, Target, Star } from "lucide-svelte";
+  import { ArrowLeft, GitCommitHorizontalIcon, Award, Target, Coins } from "lucide-svelte";
   import type { PageData } from "./$types";
-  import type { UserData } from "$types";
+  import type { UserData, ProfileMetricsData, RivalEntry } from "$types";
 
   // ── Modular profile components ────────────────────────────────────────────────
   import ProfileCard      from "$components/profile/ProfileCard.svelte";
@@ -15,19 +15,16 @@
   export let data: PageData;
 
   // ── User state ────────────────────────────────────────────────────────────────
-  // Avatar is always loaded from the DB (data.user.image). The DB stores either
-  // an OAuth URL or a local /avatars/ path assigned at first login.
   let user: UserData = {
     id: data.user.id,
     name: data.user?.name ?? '',
     email: data.user.email,
     image: data.user.image,
-    // Leveling System
+    avatar: data.user.avatar ?? data.user.image ?? "",
     xp: data.user.xp ?? 0,
     coins: data.user.coins ?? data.userCoins ?? 0,
     level: data.user.level ?? 1,
     ownedAvatars: data.user.ownedAvatars ?? [],
-    // Onboarding
     hasCompletedOnboarding: data.user.hasCompletedOnboarding ?? false,
     username: data.user.username,
   };
@@ -39,7 +36,6 @@
     const updated = event.detail;
     user = updated;
 
-    // Persist avatar change to the database whenever it differs from current
     if (updated.image && updated.image !== data.user?.image) {
       try {
         await fetch('/api/user/avatar', {
@@ -57,29 +53,26 @@
     }
   }
 
-  // ── Static profile data ───────────────────────────────────────────────────────
-  const memberSince     = "Sep 12, 2025";
-  const bio             = "Passionate full-stack developer who loves building scalable web applications. Currently exploring systems programming and real-time architectures.";
-  const location        = "Remote";
-  const role            = "Full-Stack Developer";
-  const streakDays      = 7;
-  const leaderboardRank = 4;
-  const weeklyGrowth    = "+12%";
+  // ── Derive profile values from server data ────────────────────────────────────
+  const metrics: ProfileMetricsData = data.metrics;
+  const rivals: RivalEntry[] = data.rivals ?? [];
+
+  const memberSince  = new Date(metrics.memberSince).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const streakDays   = metrics.dayStreak;
+  const leaderboardRank = metrics.leaderboardRank;
+  const weeklyGrowth = metrics.weeklyGrowth;
+
+  // bio / location / role have no DB home yet — leave as empty strings
+  const bio      = "";
+  const location = "";
+  const role     = "";
 
   // ── Metric cards ─────────────────────────────────────────────────────────────
-  const metrics = [
-    { label: "Commits",    value: "342", icon: GitCommitHorizontalIcon, color: "#07a5c9", bg: "rgba(7,165,201,0.12)"  },
-    { label: "Challenges", value: "28",  icon: Target,                   color: "#ffb400", bg: "rgba(255,180,0,0.12)"  },
-    { label: "Reviews",    value: "64",  icon: Award,                    color: "#a855f7", bg: "rgba(168,85,247,0.12)" },
-    { label: "Reputation", value: "4.8", icon: Star,                     color: "#00e5a0", bg: "rgba(0,229,160,0.12)" },
-  ];
-
-  // ── Friends mock ──────────────────────────────────────────────────────────────
-  const friends = [
-    { name: "CodeNinja42", avatar: "🥷", level: 18 },
-    { name: "DevMaster_X", avatar: "🧙", level: 24 },
-    { name: "StackPro",    avatar: "🦸", level: 15 },
-    { name: "ByteRunner",  avatar: "🏃", level: 21 },
+  const metricCards = [
+    { label: "Tasks Completed", value: String(metrics.tasksCompleted), icon: Target,                   color: "#07a5c9", bg: "rgba(7,165,201,0.12)"  },
+    { label: "File Edits",      value: String(metrics.fileEdits),      icon: GitCommitHorizontalIcon,   color: "#a855f7", bg: "rgba(168,85,247,0.12)" },
+    { label: "Coins Earned",    value: String(metrics.coinsEarned),    icon: Coins,                     color: "#ffb400", bg: "rgba(255,180,0,0.12)"  },
+    { label: "Achievements",    value: String(metrics.achievementsCount), icon: Award,                  color: "#00e5a0", bg: "rgba(0,229,160,0.12)"  },
   ];
 
   function backToDashboard() {
@@ -126,9 +119,9 @@
 
       <ProgressSection {user} {streakDays} {weeklyGrowth} />
 
-      <MetricsSection {metrics} />
+      <MetricsSection metrics={metricCards} />
 
-      <FriendsSection {friends} />
+      <FriendsSection {rivals} />
 
     </div>
 

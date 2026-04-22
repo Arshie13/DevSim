@@ -1,24 +1,22 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import type { FinishedStack, IContainer, UserData } from "$types";
+  import type { IContainer, UserData, KPIData, WeeklyStats, ActivityItem, LeaderboardEntry, UserKpis } from "$types";
   import { Plus, ArrowRight } from "lucide-svelte";
   import Header from "$components/Header.svelte";
   import KPIs from "$components/dashboard/KPIs.svelte";
   import CurrentStacks from "$components/dashboard/CurrentStacks.svelte";
   import FinishedStacks from "$components/dashboard/FinishedStacks.svelte";
   import StatsDrawer from "$components/dashboard/StatsDrawer.svelte";
-  import { 
-    kpiData, 
-    weeklyStats,
-    recentActivity,
-    leaderboardSnapshot,
-  } from "$mocks";
 
   interface DashboardProps {
     user: UserData;
     userContainerList: IContainer[];
     archivedStacks: IContainer[];
     userCoins: number;
+    kpis: UserKpis;
+    weekly: WeeklyStats;
+    activity: ActivityItem[];
+    leaderboard: LeaderboardEntry[];
   }
 
   export let data: DashboardProps;
@@ -30,6 +28,7 @@
     name: data.user.name ?? "No Name",
     email: data.user.email,
     image: data.user.image,
+    avatar: data.user.avatar ?? data.user.image ?? "",
     coins: data.userCoins,
     xp: data.user.xp,
     level: data.user.level,
@@ -37,10 +36,16 @@
     hasCompletedOnboarding: data.user.hasCompletedOnboarding,
   };
 
-  function firstName (fullName: string) {
-    const fnArr = fullName.split(" ");
-    return `${fnArr[0]} ${fnArr[1]}`;
+  function formatCompact(n: number): string {
+    return n < 1000 ? `${n}` : `${Math.floor(n / 100) / 10}K`;
   }
+
+  const kpis: KPIData[] = [
+    { id: "stacks-completed",      label: "Stacks Completed",      value: data.kpis.stacksCompleted,          icon: "🏆", color: "from-amber-500 to-orange-600" },
+    { id: "total-xp",              label: "Total XP",               value: formatCompact(data.kpis.totalXp),   icon: "⚡", color: "from-cyan-500 to-blue-600" },
+    { id: "day-streak",            label: "Day Streak",             value: data.kpis.dayStreak,                icon: "🔥", color: "from-rose-500 to-pink-600" },
+    { id: "achievements-unlocked", label: "Achievements Unlocked",  value: data.kpis.achievementsUnlocked,    icon: "🏅", color: "from-purple-500 to-fuchsia-600" },
+  ];
 
   function openStatsDrawer() {
     isStatsDrawerOpen = true;
@@ -60,11 +65,11 @@
   <Header userData={headerUserData} onOpenStats={openStatsDrawer} />
 
   <!-- Stats Drawer -->
-  <StatsDrawer 
+  <StatsDrawer
     bind:isOpen={isStatsDrawerOpen}
-    activities={recentActivity}
-    weeklyStats={weeklyStats}
-    leaderboard={leaderboardSnapshot}
+    activities={data.activity}
+    weeklyStats={data.weekly}
+    leaderboard={data.leaderboard}
   />
 
   <!-- Main Content -->
@@ -80,7 +85,7 @@
           Ready to continue your developer journey? Your progress awaits.
         </p>
       </div>
-      
+
       <!-- Start New Stack Button -->
       <button
         on:click={navigateToStacks}
@@ -99,7 +104,7 @@
 
     <!-- KPIs Row -->
     <div class="mb-5 lg:mb-8">
-      <KPIs kpis={kpiData} />
+      <KPIs {kpis} />
     </div>
 
     <!-- Stacks Section - Side by Side -->
