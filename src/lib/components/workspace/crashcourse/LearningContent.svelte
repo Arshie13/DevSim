@@ -15,13 +15,16 @@
   } from "$lib/components/workspace/crashcourse/lab/labValidation";
   import type { ILearningSection, ILearningTask } from "$lib/types";
 
-  const LAB_PROGRESS_STORAGE_KEY = "devsim-crashcourse-lab-progress-v1";
-
   export let open: boolean = false;
   export let tasks: ILearningTask[] = [];
   export let isCompleted: boolean = false;
+  export let containerId: string = "";
   export let onClose: () => void = () => {};
   export let onComplete: () => void = () => {};
+
+  $: LAB_PROGRESS_STORAGE_KEY = containerId
+    ? `devsim-crashcourse-lab-progress-v1:${containerId}`
+    : "devsim-crashcourse-lab-progress-v1";
 
   let taskIndex = 0;
   let sectionIndex = 0;
@@ -352,6 +355,12 @@
       interactiveFingerprint = nextInteractiveFingerprint;
       resetInteractiveState(activeSection);
     }
+  }
+
+  let _loadedForContainer = "";
+  $: if (browser && (containerId !== _loadedForContainer)) {
+    _loadedForContainer = containerId;
+    hasLoadedLabProgress = false;
   }
 
   $: if (browser && !hasLoadedLabProgress) {

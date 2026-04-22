@@ -1762,6 +1762,7 @@
 <LearningContent
   open={crashCourseOpen}
   isCompleted={Boolean(activeCrashCourseTaskId && crashCourseCompletedByTask[activeCrashCourseTaskId])}
+  {containerId}
   tasks={tasks
     .filter((task) => task.id === activeCrashCourseTaskId)
     .map((task) => ({

@@ -52,12 +52,26 @@ async function main() {
         "Build a full-featured web-based Library Management System to manage books, members, and borrowing workflows using React, Express, PostgreSQL, and Prisma.",
       difficulty: "expert",
     },
+    {
+      id: "scenario-2",
+      name: "UrbanPottery Online Enterprise",
+      description:
+        "Build and debug a production-grade e-commerce platform for UrbanPottery ceramics using React 18, Express, Prisma, and PostgreSQL. Progress from environment setup through client helpers, backend transactions, full-stack features, and a critical revenue bug fix.",
+      difficulty: "expert",
+    },
+    {
+      id: "scenario-3",
+      name: "IPPO POS System",
+      description:
+        "Build and debug a production-grade Point-of-Sale system for IPPO Software Solutions using React 18, Express, Prisma, and PostgreSQL. Progress from environment setup through cashier UI helpers, transactional inventory/void flows, a full-stack promo-code feature, and a critical revenue-reporting bug.",
+      difficulty: "expert",
+    },
   ];
 
   // Define levels with progressive difficulty
   const levels = [
     {
-      id: "level-1",
+      id: "pern-lb-level-1",
       title: "Getting Familiar with the Codebase",
       subtitle:
         "Set up the development environment and make a minor UI change.",
@@ -143,7 +157,7 @@ async function main() {
                 {
                   title: "Prisma Migrations",
                   content:
-                    "A migration is a recorded change to your database schema (tables, columns, relationships). When you run npx prisma migrate dev, Prisma reads your schema.prisma file, compares it with the current state of the database, and then generates and executes the necessary SQL to synchronize them. This process ensures that every developer’s database remains consistent and follows the same structure.",
+                    "A migration is a recorded change to your database schema (tables, columns, relationships). When you run npx prisma migrate dev, Prisma reads your schema.prisma file, compares it with the current state of the database, and then generates and executes the necessary SQL to synchronize them. This process ensures that every developer's database remains consistent and follows the same structure.",
                   order: 9,
                 },
                 {
@@ -317,7 +331,7 @@ async function main() {
       },
     },
     {
-      id: "level-2",
+      id: "pern-lb-level-2",
       title: "Client-Side Exploration",
       subtitle: "Investigate Client-Side Borrowing Logic and UI Helpers",
       order: 2,
@@ -639,7 +653,7 @@ async function main() {
       },
     },
     {
-      id: "level-3",
+      id: "pern-lb-level-3",
       title: "Debugging and Stabilizing the Backend",
       subtitle:
         "Trace return-flow issues and enforce transactional consistency.",
@@ -932,7 +946,7 @@ async function main() {
       },
     },
     {
-      id: "level-4",
+      id: "pern-lb-level-4",
       title: "Starting my Full-Stack Journey",
       subtitle: "Implement Reservation Queue and Lifecycle Management",
       order: 4,
@@ -1210,7 +1224,7 @@ async function main() {
                     "The UI should show each reservation with:\nBook title\nCurrent queue position\nStatus (visually distinct for READY_FOR_PICKUP vs RESERVED)\nA cancel button (only for active reservations)\n\nAlways render based on server data — never compute lifecycle status on the client.",
                   order: 5,
                 },
-                                {
+                {
                   title: "Practice Lab: Queue Snapshot Formatter",
                   content:
                     "Practice building a queue summary formatter for UI display.",
@@ -1366,7 +1380,7 @@ async function main() {
       },
     },
     {
-      id: "level-5",
+      id: "pern-lb-level-5",
       title: "The Production Struggle",
       subtitle: "Investigate and fix a critical production issue.",
       order: 5,
@@ -1424,7 +1438,7 @@ async function main() {
                     "A regression test captures a bug so it can never silently return. You write it to reproduce the current broken behavior, then fix the code until the test passes. If the bug ever comes back, the test fails again — alerting you immediately.",
                   order: 6,
                 },
-                                {
+                {
                   title: "Practice Lab: Overdue Label Helper",
                   content:
                     "Practice writing a small helper that labels records as overdue/not overdue.",
@@ -1558,7 +1572,7 @@ async function main() {
                     'A postmortem is a short document written after a production incident. It\'s not about blame — it\'s about learning and preventing recurrence. A good postmortem includes:\n\n### Symptom\nWhat the user/client observed:\n"Overdue report shows returned books as overdue"\n\n### Root Cause\nThe technical reason it happened:\n"The overdue query filtered by status field which can become stale when the return flow fails mid-way. Books with returnedAt set but status = \'OVERDUE\' were incorrectly included."\n\n### Fix\nWhat you changed:\n"Replaced status-based filter with returnedAt IS NULL AND dueDate < NOW() in the Prisma query. Centralized this logic in overdueUtils.ts."\n\n### Prevention\nHow to stop it from happening again:\n"Added regression test coverage. Added code comment warning against using status for overdue classification."',
                   order: 5,
                 },
-                                {
+                {
                   title: "Practice Lab: Incident Timeline Note",
                   content:
                     "Practice drafting a concise incident timeline separate from the full postmortem.",
@@ -1567,9 +1581,9 @@ async function main() {
                   interactiveConfig: {
                     instructions:
                       "Write a 4-line timeline: detection, impact window, mitigation, and final verification.",
-                                    language: "javascript",
+                    language: "javascript",
                     starterCode:
-                                      "export function formatIncidentTimeline() {\n  return [\n    \"- Detection: [detection detail]\",\n    \"- Impact Window: [impact window]\",\n    \"- Mitigation: [mitigation step]\",\n    \"- Verification: [verification result]\",\n  ].join(\"\\n\");\n}\n",
+                      "export function formatIncidentTimeline() {\n  return [\n    \"- Detection: [detection detail]\",\n    \"- Impact Window: [impact window]\",\n    \"- Mitigation: [mitigation step]\",\n    \"- Verification: [verification result]\",\n  ].join(\"\\n\");\n}\n",
                     editableRegions: [
                       {
                         placeholder: "[detection detail]",
@@ -1588,15 +1602,15 @@ async function main() {
                         caseSensitive: false,
                       },
                     ],
-                                    entryPoint: "formatIncidentTimeline",
-                                    testCases: [
-                                      {
-                                        input: [],
-                                        expected:
-                                          "- Detection: Alert from overdue report\n- Impact Window: 09:00-11:00 UTC\n- Mitigation: query patched\n- Verification: regression test passed",
-                                        label: "required incident timeline output",
-                                      },
-                                    ],
+                    entryPoint: "formatIncidentTimeline",
+                    testCases: [
+                      {
+                        input: [],
+                        expected:
+                          "- Detection: Alert from overdue report\n- Impact Window: 09:00-11:00 UTC\n- Mitigation: query patched\n- Verification: regression test passed",
+                        label: "required incident timeline output",
+                      },
+                    ],
                   },
                   order: 6,
                 },
@@ -1661,6 +1675,2507 @@ async function main() {
                     "Fix approach and validation steps are documented",
                   isRequired: true,
                   order: 6,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    // ─────────────────────────────────────────────
+    // SCENARIO 2 — UrbanPottery Online Enterprise
+    // ─────────────────────────────────────────────
+    {
+      id: "pern-oe-level-1",
+      title: "Getting Familiar with the Codebase",
+      subtitle: "Set up the development environment and make a minor brand UI change.",
+      order: 1,
+      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: UrbanPottery has just onboarded a new developer. Get the PERN stack running locally — install dependencies in all three package roots, run Prisma migrations, start both dev servers, and update the brand name in the Navbar to match the official style guide.",
+      xpReward: 100,
+      coinReward: 50,
+      keyTakeaways:
+        "A PERN stack project requires separate npm install runs in the root, client/, and server/ directories. Prisma migrations keep the PostgreSQL schema in sync with your code. Environment variables (DATABASE_URL, PORT) are read by dotenv and must never be committed. React layout components like Navbar are the single place to update global brand text — change it once and it updates everywhere.",
+      scenarioId: "scenario-2",
+      tasks: {
+        create: [
+          {
+            taskName: "Prepare Development Environment",
+            testType: "client",
+            userStory:
+              "As a developer, I want to set up my local PERN environment so that I can run the UrbanPottery app and start contributing.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nSetting Up a PERN Stack Project",
+                  content:
+                    "This crash course walks you through preparing a PERN (PostgreSQL + Express + React + Node.js) development environment from scratch. By the end you will have both servers running and the database schema applied.",
+                  order: 1,
+                },
+                {
+                  title: "What is the PERN Stack?",
+                  content:
+                    "PERN = PostgreSQL + Express + React + Node.js.\n\nPostgreSQL stores your data.\nExpress (Node.js) handles your API routes.\nReact renders the user interface.\nPrisma bridges Express and PostgreSQL with a type-safe ORM.",
+                  order: 2,
+                },
+                {
+                  title: "Three Package Roots",
+                  content:
+                    "This project has three separate package.json files:\nroot/          ← shared scripts (test runner, concurrently)\n├── client/    ← React + Vite + Tailwind\n└── server/    ← Express + Prisma\n\nRun npm install in each directory independently.",
+                  order: 3,
+                },
+                {
+                  title: "Environment Variables",
+                  content:
+                    "Sensitive configuration lives in .env files:\nDATABASE_URL=\"postgresql://user:pass@localhost:5432/urbanpottery\"\nPORT=5000\nJWT_SECRET=your-secret\n\nThe dotenv package loads these at runtime. Never commit .env — it is gitignored intentionally. The project's README lists every required variable.",
+                  order: 4,
+                },
+                {
+                  title: "Prisma Migrations",
+                  content:
+                    "After installing dependencies, run:\nnpx prisma migrate dev --name init\n\nThis reads server/prisma/schema.prisma, creates SQL, and applies it to PostgreSQL. Run prisma generate afterward (or it runs automatically) to regenerate the type-safe client.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: cd Navigation",
+                  content: "Practice navigating between the three project directories.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "TERMINAL_CD" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Navigate from /workspace to /workspace/client, then to /workspace/server, then back to /workspace.",
+                    initialDirectory: "/workspace",
+                    expectedCommands: ["cd client", "cd ../server", "cd .."],
+                    directoryTree: {
+                      "/workspace": ["client", "server", "package.json"],
+                      "/workspace/client": ["src", "package.json"],
+                      "/workspace/server": ["src", "prisma", "package.json"],
+                    },
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "A working PERN environment means: all three node_modules folders present, .env configured, Prisma schema migrated, and both dev servers running without errors.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "There are three directories that each contain a package.json — you must run npm install in all three (root, client/, server/).",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Check the README for the required environment variables and create a .env file inside server/ before running migrations.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "After installing server dependencies, run `npx prisma migrate dev` inside the server/ directory to apply the schema.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "Dependencies installed in root, client/, and server/ without errors",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "Prisma migrations executed successfully (schema applied to PostgreSQL)",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "Both client (port 5173) and server (port 5000) start without errors",
+                  isRequired: true,
+                  order: 3,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Update Brand Identity in Navbar",
+            testType: "client",
+            userStory:
+              "As a user, I want the navbar to show the full official brand name so that the site matches the marketing style guide.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nEditing React Layout Components",
+                  content:
+                    "This crash course shows you how to locate and safely update a brand string inside a React layout component without breaking the surrounding UI.",
+                  order: 1,
+                },
+                {
+                  title: "What is a Layout Component?",
+                  content:
+                    "Layout components (Navbar, Footer, Sidebar) are rendered on every page. They live in client/src/components/layout/. Changing text in one file updates the brand across the entire app instantly.",
+                  order: 2,
+                },
+                {
+                  title: "JSX Text Nodes",
+                  content:
+                    "In JSX, plain text inside tags is a text node:\n<span className=\"font-bold\">UrbanPottery</span>\n\nTo update the brand, find this span and change its content to the exact required string — case and spaces matter.",
+                  order: 3,
+                },
+                {
+                  title: "Vite HMR",
+                  content:
+                    "Vite's Hot Module Replacement updates the browser instantly when you save a file — no manual refresh needed. Save the file and watch the Navbar update in real time.",
+                  order: 4,
+                },
+                {
+                  title: "Practice Lab: Update Heading Text",
+                  content: "Practice editing a JSX text node to match a target string.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions: 'Change the returned string from "UrbanPottery" to "UrbanPottery Artisan Ceramics".',
+                    language: "tsx",
+                    starterCode: 'export function getBrandName() {\n  return "UrbanPottery";\n}\n',
+                    editableRegions: [{ placeholder: "UrbanPottery", caseSensitive: true }],
+                    entryPoint: "getBrandName",
+                    testCases: [
+                      { input: [], expected: "UrbanPottery Artisan Ceramics", label: "exact brand string" },
+                    ],
+                  },
+                  order: 5,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Layout components are the single source of truth for global UI text. Update the text node in Navbar.tsx and the change propagates everywhere — no search-and-replace across pages needed.",
+                  order: 6,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Open client/src/components/layout/Navbar.tsx and search for the current brand text — it is a hardcoded string inside a <span> element near the logo.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "The acceptance criteria specifies the exact string — copy it character-for-character including spaces and capitalisation.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "After saving, confirm the change appears in the running browser on both desktop and mobile viewport widths.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: 'Navbar brand text is exactly "UrbanPottery Artisan Ceramics"',
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "Brand renders correctly on desktop and mobile viewports",
+                  isRequired: true,
+                  order: 2,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-oe-level-2",
+      title: "Client-Side Exploration",
+      subtitle: "Build a stock status helper and adopt it across the UI.",
+      order: 2,
+      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: The shop page uses duplicate inline stock checks scattered across components. Your job is to create a shared getStockStatus helper that returns a 3-state enum, then refactor ProductCard to use it and add a 'Hide out-of-stock' toggle on the Shop page.",
+      xpReward: 25,
+      coinReward: 125,
+      keyTakeaways:
+        "Pure functions returning union types are more expressive than booleans when there are more than two meaningful states. Centralising threshold logic in a shared helper eliminates drift between components. A user-facing filter toggle driven by the helper proves the abstraction is working end-to-end.",
+      scenarioId: "scenario-2",
+      tasks: {
+        create: [
+          {
+            taskName: "Add Stock Status Classifier Helper",
+            testType: "client",
+            userStory:
+              "As a developer, I want a getStockStatus helper in formatters.ts so that stock-level decisions are consistent and testable across all components.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nPure Functions Returning Union Types",
+                  content:
+                    "This crash course covers writing a threshold-based classifier as a pure function that returns a typed union rather than a boolean.",
+                  order: 1,
+                },
+                {
+                  title: "Why a Union Type Instead of a Boolean?",
+                  content:
+                    "A boolean tells you available / not available.\nA union type tells you IN_STOCK | LOW_STOCK | OUT_OF_STOCK.\n\nThree states allow the UI to show three different badge colours and the filter to make a more precise decision. Booleans collapse that information.",
+                  order: 2,
+                },
+                {
+                  title: "Threshold-Based Classification",
+                  content:
+                    "Classify stock into three buckets:\nstock <= 0  → 'OUT_OF_STOCK'\n1 ≤ stock ≤ 5 → 'LOW_STOCK'\nstock > 5   → 'IN_STOCK'\n\nBoundary values (0, 1, 5, 6) are the most important to test.",
+                  order: 3,
+                },
+                {
+                  title: "Placing the Helper",
+                  content:
+                    "Add getStockStatus to the existing file:\nclient/src/utils/formatters.ts\n\nIt already contains formatCurrency, formatDate, truncateText, and getStarRating. Export the new function from the same file and re-export it through client/src/utils/index.ts.",
+                  order: 4,
+                },
+                {
+                  title: "Testing Boundary Values",
+                  content:
+                    "Always test at, just inside, and just outside each boundary:\ngetStockStatus(0)  → 'OUT_OF_STOCK'\ngetStockStatus(1)  → 'LOW_STOCK'\ngetStockStatus(5)  → 'LOW_STOCK'\ngetStockStatus(6)  → 'IN_STOCK'",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Three-Bucket Classifier",
+                  content: "Practice writing a threshold classifier that returns one of three string values.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Implement getStockStatus(stock): returns 'OUT_OF_STOCK' (<=0), 'LOW_STOCK' (1-5), or 'IN_STOCK' (>5).",
+                    language: "javascript",
+                    starterCode:
+                      "export function getStockStatus(stock) {\n  // TODO\n}\n",
+                    editableRegions: [{ placeholder: "// TODO", caseSensitive: true }],
+                    entryPoint: "getStockStatus",
+                    testCases: [
+                      { input: [0], expected: "OUT_OF_STOCK", label: "zero stock" },
+                      { input: [3], expected: "LOW_STOCK", label: "low stock" },
+                      { input: [10], expected: "IN_STOCK", label: "in stock" },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "When a domain concept has more than two states, use a union type. One pure function with clear thresholds is easier to test and read than multiple ad-hoc comparisons spread across components.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Add the function to client/src/utils/formatters.ts and export it — you do not need a new file.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Pay close attention to the boundary values: stock === 0 must be OUT_OF_STOCK, stock === 1 must be LOW_STOCK, stock === 5 must be LOW_STOCK, and stock === 6 must be IN_STOCK.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Make sure the function is also re-exported from client/src/utils/index.ts so other files can import it via '../utils'.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "getStockStatus is exported from client/src/utils/formatters.ts",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "Returns 'OUT_OF_STOCK' for stock <= 0",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "Returns 'LOW_STOCK' for stock 1..5 (inclusive)",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "Returns 'IN_STOCK' for stock > 5",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "Boundary values 0, 1, 5, 6 all return the correct bucket",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description: "Function is pure — same input always returns same output",
+                  isRequired: true,
+                  order: 6,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Adopt Stock Helper in ProductCard & Shop Filter",
+            testType: "client",
+            userStory:
+              "As a shopper, I want to toggle 'Hide out-of-stock' on the Shop page so I only see products I can actually buy.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nRefactoring Inline Checks and Adding a Filter Toggle",
+                  content:
+                    "This crash course covers replacing duplicated inline stock comparisons with the shared helper, and adding a new user-facing toggle that uses the same helper for filtering.",
+                  order: 1,
+                },
+                {
+                  title: "The Refactoring Goal",
+                  content:
+                    "ProductCard.tsx currently has:\nconst isOutOfStock = product.stock === 0;\nconst isLowStock = product.stock > 0 && product.stock <= 5;\n\nAfter refactoring:\nconst status = getStockStatus(product.stock);\nconst isOutOfStock = status === 'OUT_OF_STOCK';\nconst isLowStock = status === 'LOW_STOCK';",
+                  order: 2,
+                },
+                {
+                  title: "Adding the Shop Toggle",
+                  content:
+                    "Add a boolean state to Shop.tsx:\nconst [hideOutOfStock, setHideOutOfStock] = useState(false);\n\nFilter the products list:\nconst filteredProducts = products.filter(p => {\n  if (hideOutOfStock && getStockStatus(p.stock) === 'OUT_OF_STOCK') return false;\n  // existing search/category filters...\n  return true;\n});\n\nRender a checkbox or toggle button labelled 'Hide out-of-stock'.",
+                  order: 3,
+                },
+                {
+                  title: "Non-Regression Checklist",
+                  content:
+                    "After refactoring:\n- Out-of-stock products still show the 'Out of Stock' overlay\n- Low-stock products still show the 'Only N left' badge\n- The toggle hides out-of-stock when active and shows them when inactive\n- Existing search and category filters still work",
+                  order: 4,
+                },
+                {
+                  title: "Practice Lab: Refactor a Stock Badge",
+                  content: "Practice replacing an inline stock check with a helper call.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Refactor getBadgeLabel to use getStockStatus instead of an inline comparison.",
+                    language: "javascript",
+                    starterCode:
+                      "function getStockStatus(stock) {\n  if (stock <= 0) return 'OUT_OF_STOCK';\n  if (stock <= 5) return 'LOW_STOCK';\n  return 'IN_STOCK';\n}\n\nexport function getBadgeLabel(stock) {\n  if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';\n}\n",
+                    requiredCodeIncludes: ["getStockStatus(stock)"],
+                    editableRegions: [{ placeholder: "if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';", caseSensitive: false }],
+                    entryPoint: "getBadgeLabel",
+                    testCases: [
+                      { input: [0], expected: "Out of Stock", label: "zero stock" },
+                      { input: [3], expected: "Low Stock", label: "low stock" },
+                      { input: [10], expected: "In Stock", label: "in stock" },
+                    ],
+                  },
+                  order: 5,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Refactoring consolidates logic into one helper and proves it works by wiring the same helper into a new user-facing feature. The toggle is the integration test for the helper.",
+                  order: 6,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "In ProductCard.tsx, replace the two isOutOfStock and isLowStock const declarations with a single getStockStatus call, then derive the booleans from the returned status string.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "In Shop.tsx, add a useState for hideOutOfStock (default false), a filter step that calls getStockStatus, and a visible toggle button or checkbox in the filter card.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Make sure importing getStockStatus in Shop.tsx comes from '../utils' (via the re-export) — not directly from '../utils/formatters'.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "ProductCard.tsx imports and uses getStockStatus instead of inline comparisons",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "Shop.tsx imports and uses getStockStatus for the out-of-stock filter",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "A 'Hide out-of-stock' toggle is visible on the Shop page",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "Toggle filters OUT_OF_STOCK products from the grid when active",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "Existing search and category filters still work after refactor",
+                  isRequired: true,
+                  order: 5,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-oe-level-3",
+      title: "Backend Debugging & Transactional Consistency",
+      subtitle: "Diagnose the cancel-flow stock leak and enforce atomic operations.",
+      order: 3,
+      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: Finance reports that cancelled orders are not restoring product stock — meaning the warehouse counts are wrong. Diagnose the missing restore in the PATCH /orders/:id/status route, then implement an atomic cancelOrder function with a new cancelledAt timestamp field and a concurrency guard at checkout.",
+      xpReward: 40,
+      coinReward: 200,
+      keyTakeaways:
+        "The current PATCH /status route only flips the status field — it never restores stock. Extracting a dedicated cancelOrder controller function wrapped in prisma.$transaction ensures both the status flip and stock restoration happen atomically. Adding a cancelledAt DateTime? column creates a tamper-proof source of truth used by Level 5's revenue fix.",
+      scenarioId: "scenario-2",
+      tasks: {
+        create: [
+          {
+            taskName: "Diagnose Cancelled-Order Stock Leak",
+            testType: "server",
+            userStory:
+              "As a backend developer, I want to trace the cancel flow and document why product stock is not restored when orders are cancelled.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nTracing a Cancel-Path Data Leak",
+                  content:
+                    "This crash course shows you how to read a route handler, identify missing writes, and understand why stock levels become incorrect after cancellation.",
+                  order: 1,
+                },
+                {
+                  title: "The Bug: Only Status Changes",
+                  content:
+                    "Open server/src/routes/orders.ts and find the PATCH /:id/status handler. It does exactly one thing:\nawait prisma.order.update({ data: { status } });\n\nThere is no step that increments Product.stock for each cancelled OrderItem. Cancelled stock silently disappears.",
+                  order: 2,
+                },
+                {
+                  title: "The Concurrent Oversell Race",
+                  content:
+                    "A second bug: the POST /orders checkout reads stock, then decrements it in a later write. Between the read and write, another request can place the same item. Both succeed, driving stock negative.\n\nThis is a classic TOCTOU (Time-Of-Check-Time-Of-Use) race.",
+                  order: 3,
+                },
+                {
+                  title: "Root Cause Analysis",
+                  content:
+                    "Document both failure paths:\n1. Cancel path — PATCH handler has no stock increment for OrderItems\n2. Concurrent checkout — stock check and decrement are not atomic\n\nEvidence: trace the Prisma calls and list what is missing from each path.",
+                  order: 4,
+                },
+                {
+                  title: "Practice Lab: Spot the Missing Write",
+                  content: "Practice identifying missing writes in a two-step sequence.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "The function cancels an order but forgets to restore stock. Add the missing step.",
+                    language: "typescript",
+                    starterCode:
+                      "export async function cancelOrderFlow(orderId: string) {\n  const steps: string[] = [];\n  steps.push('SET status=CANCELLED');\n  // TODO: add missing step\n  return steps;\n}\n",
+                    editableRegions: [{ placeholder: "// TODO: add missing step", caseSensitive: false }],
+                    entryPoint: "cancelOrderFlow",
+                    testCases: [
+                      { input: ["order-1"], expected: ["SET status=CANCELLED", "RESTORE stock"], label: "both steps present" },
+                    ],
+                  },
+                  order: 5,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "A route handler that changes order status without touching inventory is a data-integrity bug waiting to compound. Every state transition that affects related models needs atomic, coordinated writes.",
+                  order: 6,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Read the PATCH /:id/status handler in server/src/routes/orders.ts — count the Prisma calls. If there is only one (order.update), that is the bug.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Check the POST /orders checkout path — the stock check (findMany) and the stock decrement (update) are in separate steps with no guard condition.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Create server/src/controllers/order.controller.ts with an exported cancelOrder function to house the fix — the tests import from that exact path.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "server/src/controllers/order.controller.ts exists and exports cancelOrder",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "cancelOrder references cancelledAt (documents where the timestamp will live)",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "schema.prisma Order model includes cancelledAt field",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "Problematic cancel path (no stock restore) is identified and documented",
+                  isRequired: true,
+                  order: 4,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Atomic Order Cancellation + Concurrency Guard",
+            testType: "server",
+            userStory:
+              "As a backend engineer, I want cancelOrder to run inside a prisma.$transaction so that stock is atomically restored and cancelledAt is set — and I want checkout to guard against concurrent oversell.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nPrisma Transactions and Schema Migrations",
+                  content:
+                    "This crash course covers adding a new column via Prisma migration and implementing a multi-step atomic cancel that restores stock in one transaction.",
+                  order: 1,
+                },
+                {
+                  title: "Prisma Schema Migration",
+                  content:
+                    "Add to the Order model in schema.prisma:\ncancelledAt  DateTime?\n\nThen run:\nnpx prisma migrate dev --name add-cancelled-at\n\nThe ? makes it nullable — existing orders keep cancelledAt: null. Only cancelled orders get a timestamp.",
+                  order: 2,
+                },
+                {
+                  title: "The cancelOrder Transaction",
+                  content:
+                    "await prisma.$transaction(async (tx) => {\n  // 1. Guard: only cancel PENDING or PROCESSING\n  // 2. Flip status to CANCELLED, set cancelledAt: new Date()\n  // 3. Find all OrderItems for this order\n  // 4. For each item, increment Product.stock by item.quantity\n});\n\nAll four steps succeed or all roll back.",
+                  order: 3,
+                },
+                {
+                  title: "Concurrency Guard at Checkout",
+                  content:
+                    "Replace the separate read+update with updateMany that includes the guard:\nawait tx.product.updateMany({\n  where: { id: item.productId, stock: { gte: item.quantity } },\n  data: { stock: { decrement: item.quantity } },\n});\n\nIf 0 rows updated → stock was insufficient → throw and roll back.",
+                  order: 4,
+                },
+                {
+                  title: "Practice Lab: Atomic Audit Write",
+                  content: "Practice building a two-step atomic transaction plan.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions: "Return both required atomic steps as an array.",
+                    language: "typescript",
+                    starterCode:
+                      "export function buildCancelPlan(): string[] {\n  return [];\n}\n",
+                    editableRegions: [{ placeholder: "return [];", caseSensitive: false }],
+                    entryPoint: "buildCancelPlan",
+                    testCases: [
+                      { input: [], expected: ["flip status + set cancelledAt", "restore stock"], label: "both cancel steps" },
+                    ],
+                  },
+                  order: 5,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Transactions make multiple writes atomic. Guard conditions on updateMany prevent race conditions. Together they keep inventory accurate under concurrent load.",
+                  order: 6,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Add cancelledAt DateTime? to the Order model in schema.prisma and run prisma migrate dev before implementing the controller.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Inside the $transaction callback, query for the order's items first, then loop through them calling tx.product.update with { stock: { increment: item.quantity } }.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "In the POST /orders checkout handler, replace the standalone product.update with product.updateMany and include a where condition: { stock: { gte: item.quantity } }. If count === 0, throw an insufficient-stock error.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "schema.prisma Order model has cancelledAt DateTime? field",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "cancelOrder uses prisma.$transaction",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "cancelOrder sets cancelledAt: new Date() on the order",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "cancelOrder increments Product.stock for each OrderItem",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "cancelOrder only allows cancellation from PENDING or PROCESSING status",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description: "POST /api/orders checkout uses updateMany with stock gte guard",
+                  isRequired: true,
+                  order: 6,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-oe-level-4",
+      title: "Starting my Full-Stack Journey",
+      subtitle: "Implement Coupon / Discount Codes end-to-end.",
+      order: 4,
+      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: Marketing wants a coupon system. Build the Coupon model, a validate endpoint, extend order creation to apply discounts, add coupon input UI to Checkout, and enforce usage limits + expiry atomically — including decrementing usedCount on order cancellation.",
+      xpReward: 60,
+      coinReward: 300,
+      keyTakeaways:
+        "A full-stack feature requires coordinating a new Prisma model, a validation endpoint, a client service, and UI state in one coherent change. Atomic counter mutations (increment/decrement with guards) prevent race conditions where two users both consume the last available coupon slot.",
+      scenarioId: "scenario-2",
+      tasks: {
+        create: [
+          {
+            taskName: "Validate & Apply Coupon at Checkout",
+            testType: "both",
+            userStory:
+              "As a shopper, I want to enter a coupon code at checkout and see my discounted total before placing the order.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nBuilding a Validation Endpoint + Client Service",
+                  content:
+                    "This crash course covers adding a new Prisma model, a POST /api/coupons/validate endpoint, extending the order creation flow, and building the client service layer and UI.",
+                  order: 1,
+                },
+                {
+                  title: "The Coupon Model",
+                  content:
+                    "Add to schema.prisma:\nmodel Coupon {\n  id              String   @id @default(uuid())\n  code            String   @unique\n  discountPercent Float\n  maxUses         Int\n  usedCount       Int      @default(0)\n  expiresAt       DateTime\n  isActive        Boolean  @default(true)\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n}\n\nRun prisma migrate dev after adding.",
+                  order: 2,
+                },
+                {
+                  title: "POST /api/coupons/validate",
+                  content:
+                    "Accepts { code, subtotal }. Returns:\n{ success: true, data: { discountPercent, finalTotal } }\nor 400 if coupon is invalid/expired/exhausted.\n\nValidation checks (all inside one DB read):\n1. Coupon exists and isActive === true\n2. expiresAt > now\n3. usedCount < maxUses",
+                  order: 3,
+                },
+                {
+                  title: "Extending POST /api/orders",
+                  content:
+                    "Accept optional couponCode in the request body. Inside the existing $transaction:\n1. Re-validate the coupon (atomically)\n2. Apply discountPercent to the total\n3. Increment coupon.usedCount",
+                  order: 4,
+                },
+                {
+                  title: "Client Service Layer",
+                  content:
+                    "Create client/src/services/couponService.ts:\nexport async function validateCoupon(code: string, subtotal: number) {\n  const res = await api.post('/api/coupons/validate', { code, subtotal });\n  return res.data;\n}",
+                  order: 5,
+                },
+                {
+                  title: "Checkout UI",
+                  content:
+                    "Add to Checkout.tsx:\n- A text input for coupon code\n- An 'Apply' button that calls validateCoupon\n- State for: applied / invalid / expired / exhausted\n- Display the discounted total when a coupon is applied",
+                  order: 6,
+                },
+                {
+                  title: "Practice Lab: Coupon Validator",
+                  content: "Practice writing a coupon validation function.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions: "Return true only if all three conditions pass.",
+                    language: "javascript",
+                    starterCode:
+                      "export function isCouponValid(coupon, now) {\n  // isActive, not expired, has remaining uses\n}\n",
+                    editableRegions: [{ placeholder: "// isActive, not expired, has remaining uses", caseSensitive: false }],
+                    entryPoint: "isCouponValid",
+                    testCases: [
+                      { input: [{ isActive: true, expiresAt: new Date(9999, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: true, label: "valid coupon" },
+                      { input: [{ isActive: false, expiresAt: new Date(9999, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: false, label: "inactive coupon" },
+                      { input: [{ isActive: true, expiresAt: new Date(2000, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: false, label: "expired coupon" },
+                      { input: [{ isActive: true, expiresAt: new Date(9999, 0, 1), usedCount: 10, maxUses: 10 }, new Date()], expected: false, label: "exhausted coupon" },
+                    ],
+                  },
+                  order: 7,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Always re-validate the coupon inside the order transaction — the client-side check is UX only. The atomic server-side check prevents two simultaneous checkouts from both consuming the last slot.",
+                  order: 8,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Add the Coupon model to server/prisma/schema.prisma with all six required fields, then run `npx prisma migrate dev` from the server directory.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Create server/src/controllers/coupon.controller.ts with a validateCoupon function, and server/src/routes/coupons.ts that registers it at POST /validate. Register the coupons router in server/src/routes/index.ts.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "In Checkout.tsx, add a useState for couponCode (string) and appliedDiscount (number | null). Call validateCoupon from couponService and update state on success.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "Coupon model exists in schema.prisma with all required fields",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "server/src/controllers/coupon.controller.ts exports validateCoupon",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "server/src/routes/coupons.ts registers POST /validate",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "POST /api/orders accepts optional couponCode and increments usedCount inside the transaction",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "client/src/services/couponService.ts exports validateCoupon calling POST /api/coupons/validate",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description: "Checkout.tsx renders a coupon input field and displays discounted total",
+                  isRequired: true,
+                  order: 6,
+                },
+                {
+                  description: "Invalid / expired / exhausted coupon states are shown in the UI",
+                  isRequired: true,
+                  order: 7,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Coupon Lifecycle + Usage Integrity",
+            testType: "both",
+            userStory:
+              "As a store admin, I want to see coupon usage stats, and as a system, I want coupon usedCount to be decremented when a coupon-bearing order is cancelled.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nAtomic Counters, Expiry Guards, and Admin Observability",
+                  content:
+                    "This crash course covers enforcing usage limits atomically, adding an admin coupon list endpoint, and wiring the cancel flow to decrement usedCount.",
+                  order: 1,
+                },
+                {
+                  title: "Atomic usedCount Guard",
+                  content:
+                    "To prevent two simultaneous checkouts both consuming the last slot:\nawait tx.coupon.updateMany({\n  where: { id: couponId, usedCount: { lt: maxUses } },\n  data: { usedCount: { increment: 1 } },\n});\nif (updated.count === 0) throw new Error('Coupon exhausted');\n\nThis is the same guard-condition pattern as the stock race fix in Level 3.",
+                  order: 2,
+                },
+                {
+                  title: "Expiry and isActive Check",
+                  content:
+                    "Always check both conditions before accepting a coupon:\n1. isActive === true\n2. expiresAt > new Date()\n3. usedCount < maxUses\n\nAll three must pass — and re-check server-side inside the order transaction.",
+                  order: 3,
+                },
+                {
+                  title: "GET /api/coupons (Admin)",
+                  content:
+                    "Admin-only endpoint returning all coupons with usage stats:\nGET /api/coupons → { id, code, discountPercent, usedCount, maxUses, expiresAt, isActive }\n\nRequires requireAdmin middleware.",
+                  order: 4,
+                },
+                {
+                  title: "Cancel Order Decrements usedCount",
+                  content:
+                    "When a coupon-bearing order is cancelled, decrement usedCount inside the same cancelOrder $transaction:\nif (order.couponId) {\n  await tx.coupon.update({\n    where: { id: order.couponId },\n    data: { usedCount: { decrement: 1 } },\n  });\n}\n\nThis keeps coupon slots accurate after cancellations.",
+                  order: 5,
+                },
+                {
+                  title: "Admin Coupon Panel",
+                  content:
+                    "Add a section to admin/Dashboard.tsx (or a new admin/Coupons.tsx) that:\n- Fetches GET /api/coupons\n- Shows each coupon's code, remaining uses (maxUses - usedCount), and expiry date",
+                  order: 6,
+                },
+                {
+                  title: "Practice Lab: Counter Guard",
+                  content: "Practice writing an atomic counter guard.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions: "Return true only if usedCount is strictly less than maxUses.",
+                    language: "javascript",
+                    starterCode: "export function canUseCoupon(usedCount, maxUses) {\n  // TODO\n}\n",
+                    editableRegions: [{ placeholder: "// TODO", caseSensitive: false }],
+                    entryPoint: "canUseCoupon",
+                    testCases: [
+                      { input: [0, 10], expected: true, label: "has remaining uses" },
+                      { input: [10, 10], expected: false, label: "exactly exhausted" },
+                      { input: [11, 10], expected: false, label: "over limit" },
+                    ],
+                  },
+                  order: 7,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Usage counters must be guarded atomically on increment AND decremented on reversal. Without the decrement on cancel, refunded customers can never use the coupon slot they freed up.",
+                  order: 8,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Update the coupon validation in coupon.controller.ts to use updateMany with a usedCount: { lt: maxUses } guard, so two concurrent requests cannot both pass.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Add GET /api/coupons to coupons.ts protected by requireAdmin middleware, and include all usage stats in the response.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "In the cancelOrder transaction in order.controller.ts, check if the order has a couponId and if so, decrement the coupon's usedCount inside the same transaction.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "coupon.controller.ts enforces usedCount < maxUses guard",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "coupon.controller.ts enforces expiresAt > now check",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "coupon.controller.ts enforces isActive check",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "GET /api/coupons admin route exists with usage stats",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "cancelOrder decrements usedCount atomically when a coupon was applied",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description: "Admin coupon panel shows code, remaining uses, and expiry",
+                  isRequired: true,
+                  order: 6,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-oe-level-5",
+      title: "The Production Struggle: Sales Revenue Bug",
+      subtitle: "Fix the inflated revenue dashboard and write a postmortem.",
+      order: 5,
+      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: Finance cannot close the books. The admin Dashboard's total revenue includes cancelled orders, inflating figures. Worse, if an admin manually flips a cancelled order's status back to PENDING, the status field becomes stale — but cancelledAt still holds the truth. Fix the revenue query to use cancelledAt IS NULL as the source of truth, extract it into a shared utility, and write a postmortem.",
+      xpReward: 75,
+      coinReward: 375,
+      keyTakeaways:
+        "Source-of-truth timestamps (cancelledAt) are more reliable than mutable status fields for financial queries. A shared revenueUtils.ts prevents the same filter logic from being written differently in multiple report endpoints. A postmortem turns a production incident into institutional knowledge that prevents recurrence.",
+      scenarioId: "scenario-2",
+      tasks: {
+        create: [
+          {
+            taskName: "Stabilize Revenue Classification",
+            testType: "server",
+            userStory:
+              "As a finance officer, I want the revenue dashboard to exclude cancelled orders even when an admin has accidentally changed the status field, so I can trust the totals.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nSource-of-Truth Fields vs. Stale Status",
+                  content:
+                    "This crash course explains why mutable status fields are unreliable for financial queries and how cancelledAt provides an immutable source of truth.",
+                  order: 1,
+                },
+                {
+                  title: "The Bug",
+                  content:
+                    "GET /api/orders/stats sums order.total across ALL orders with no WHERE clause. Cancelled orders are included, inflating revenue.\n\nWorse: if an admin accidentally changes a cancelled order's status back to PENDING, any status-based filter would miss that order entirely.",
+                  order: 2,
+                },
+                {
+                  title: "Why status Is Unreliable",
+                  content:
+                    "status is a mutable field — any admin action can change it. An order can have:\nstatus: 'PENDING'   — because an admin fat-fingered it\ncancelledAt: <date> — the immutable proof it was actually cancelled\n\nThe cancelledAt timestamp is set once and never changed. It is the source of truth.",
+                  order: 3,
+                },
+                {
+                  title: "The Fix: cancelledAt IS NULL",
+                  content:
+                    "Replace the unfiltered query:\n// BEFORE (buggy)\nwhere: {}\n\n// AFTER (correct)\nwhere: { cancelledAt: null }\n\nAn order with cancelledAt set was cancelled — regardless of what status says.",
+                  order: 4,
+                },
+                {
+                  title: "Stale-Status Test Case",
+                  content:
+                    "Write a test with this data:\nOrder A: status='PENDING', cancelledAt=<yesterday>  ← MUST be excluded\nOrder B: status='PENDING', cancelledAt=null           ← MUST be included\n\nIf only filtering by status, both appear identical and both are included — the bug.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Revenue Filter",
+                  content: "Practice writing a revenue filter that trusts cancelledAt.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions: "Filter orders to only include those with cancelledAt === null.",
+                    language: "javascript",
+                    starterCode:
+                      "export function getRevenueOrders(orders) {\n  // TODO: return only non-cancelled orders\n}\n",
+                    editableRegions: [{ placeholder: "// TODO: return only non-cancelled orders", caseSensitive: false }],
+                    entryPoint: "getRevenueOrders",
+                    testCases: [
+                      {
+                        input: [[{ total: 100, cancelledAt: null }, { total: 50, cancelledAt: new Date() }]],
+                        expected: [{ total: 100, cancelledAt: null }],
+                        label: "excludes cancelled",
+                      },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "In financial reporting, never trust mutable status fields. Use the immutable timestamp that was set at the moment the real-world event (cancellation) occurred.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Find the GET /api/orders/stats handler in server/src/routes/orders.ts and add a where: { cancelledAt: null } clause to the findMany call.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Create a test order with cancelledAt set to a past date but status left as 'PENDING' — verify it is excluded from the revenue total after your fix.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Do NOT filter by status: { not: 'CANCELLED' } — a stale PENDING order with cancelledAt set must also be excluded.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "GET /api/orders/stats exists in orders.ts",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "Stats WHERE clause uses cancelledAt: null (source-of-truth filter)",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "Stale-status orders (cancelledAt set, status PENDING) are excluded from revenue",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "Active PENDING and DELIVERED orders (cancelledAt null) are included",
+                  isRequired: true,
+                  order: 4,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Permanent Fix + Centralization + Postmortem",
+            testType: "server",
+            userStory:
+              "As a developer, I want to extract the revenue predicate into a shared utility and document the incident in a postmortem so the team can prevent similar bugs.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nShared Utilities, Regression Tests, and Postmortems",
+                  content:
+                    "This crash course covers extracting a Prisma where-clause builder into a reusable utility, writing regression tests, and producing a structured postmortem document.",
+                  order: 1,
+                },
+                {
+                  title: "Why Centralise the Revenue Predicate?",
+                  content:
+                    "If the same cancelledAt: null filter is copied into three report endpoints and one of them is updated while the others are forgotten, the bug returns. A single isRevenueEligibleOrder function is the single point of change.",
+                  order: 2,
+                },
+                {
+                  title: "revenueUtils.ts",
+                  content:
+                    "Create server/src/utils/revenueUtils.ts:\nexport function isRevenueEligibleOrder(order: { cancelledAt: Date | null; status: string }): boolean {\n  return order.cancelledAt === null;\n}\n\nThis is a pure function — testable without mocking Prisma.",
+                  order: 3,
+                },
+                {
+                  title: "Regression Test Cases",
+                  content:
+                    "Test all four meaningful scenarios:\n1. cancelledAt set, status CANCELLED → false (normal cancel)\n2. cancelledAt set, status PENDING   → false (stale status!)\n3. cancelledAt null, status PENDING  → true (active order)\n4. cancelledAt null, status DELIVERED → true (completed order)",
+                  order: 4,
+                },
+                {
+                  title: "Writing a Postmortem",
+                  content:
+                    "Create server/POSTMORTEM_REVENUE.md with four sections:\n## Symptom\nWhat finance observed.\n\n## Root Cause\nWhy the stats query was wrong technically.\n\n## Fix\nWhat changed in the code.\n\n## Prevention\nWhat will stop this from happening again.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Incident Timeline",
+                  content: "Practice drafting a 4-line incident timeline.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Fill in each placeholder with a meaningful detail.",
+                    language: "javascript",
+                    starterCode:
+                      "export function formatTimeline() {\n  return [\n    '- Detection: [fill in]',\n    '- Impact Window: [fill in]',\n    '- Mitigation: [fill in]',\n    '- Verification: [fill in]',\n  ].join('\\n');\n}\n",
+                    editableRegions: [
+                      { placeholder: "[fill in]", caseSensitive: false },
+                    ],
+                    entryPoint: "formatTimeline",
+                    testCases: [
+                      {
+                        input: [],
+                        expected: "- Detection: Finance report showed inflated revenue\n- Impact Window: Unknown — since cancelledAt was added in L3\n- Mitigation: Added cancelledAt: null WHERE filter to stats query\n- Verification: Regression tests pass; finance confirmed correct totals",
+                        label: "complete timeline",
+                      },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "A production fix is only complete when there are tests that would have caught the bug, shared logic that prevents drift, and documentation that teaches the next developer why the filter is the way it is.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Create server/src/utils/revenueUtils.ts with an isRevenueEligibleOrder function that takes an object with cancelledAt and returns cancelledAt === null.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Write four test cases: normal cancelled (false), stale-status cancelled (false), active pending (true), delivered (true).",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Create server/POSTMORTEM_REVENUE.md with the four required sections: Symptom, Root Cause, Fix, Prevention.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "server/src/utils/revenueUtils.ts exists and exports isRevenueEligibleOrder",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "isRevenueEligibleOrder(order) returns false when cancelledAt is set",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "isRevenueEligibleOrder returns false even when status is PENDING (stale-status case)",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "isRevenueEligibleOrder returns true for active orders (cancelledAt: null)",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "server/POSTMORTEM_REVENUE.md exists with Symptom, Root Cause, Fix, and Prevention sections",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description: "orders.ts stats endpoint references revenueUtils or uses cancelledAt: null consistently",
+                  isRequired: true,
+                  order: 6,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    // ─────────────────────────────────────────────
+    // SCENARIO 3 — IPPO POS System
+    // ─────────────────────────────────────────────
+    {
+      id: "pern-pos-level-1",
+      title: "Getting Familiar with the Codebase",
+      subtitle: "Set up the POS environment and align the sidebar brand.",
+      order: 1,
+      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: IPPO has just onboarded a new cashier-support engineer. Get the PERN POS stack running locally — install in all three package roots, run Prisma migrations, start both dev servers, and update the sidebar subtitle to match the company's official style guide.",
+      xpReward: 100,
+      coinReward: 50,
+      keyTakeaways:
+        "A PERN POS project needs npm install in root, client/, and server/. Prisma migrations keep Postgres aligned with schema.prisma. React layout components (Sidebar) are the single source of truth for brand text — update them once and every page reflects the change.",
+      scenarioId: "scenario-3",
+      tasks: {
+        create: [
+          {
+            taskName: "Prepare Development Environment",
+            testType: "client",
+            userStory:
+              "As an engineer, I want to set up my local PERN environment so that I can run the IPPO POS app and start contributing.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nSetting Up a PERN Stack POS",
+                  content:
+                    "This crash course walks you through preparing a PERN (PostgreSQL + Express + React + Node.js) POS environment from scratch. By the end you will have both servers running and the database schema applied.",
+                  order: 1,
+                },
+                {
+                  title: "Why POS Systems Are Demanding",
+                  content:
+                    "A POS system is transactional by nature — every checkout writes to multiple tables (Order, OrderItem, Inventory). A correct local setup ensures these transactions behave the same way on your laptop as in production. Missing migrations or a stale Prisma client are the most common first-day pitfalls.",
+                  order: 2,
+                },
+                {
+                  title: "Three Package Roots",
+                  content:
+                    "This project has three separate package.json files:\nroot/          ← monorepo orchestrator + test scripts\n├── client/    ← React + Vite + Tailwind\n└── server/    ← Express + Prisma\n\nRun npm install in each directory independently.",
+                  order: 3,
+                },
+                {
+                  title: "Environment Variables",
+                  content:
+                    "Sensitive configuration lives in .env files:\nDATABASE_URL=\"postgresql://user:pass@localhost:5432/pos_system\"\nPORT=5000\nJWT_SECRET=your-secret\n\nThe dotenv package loads these at runtime. Never commit .env.",
+                  order: 4,
+                },
+                {
+                  title: "Prisma Migrations",
+                  content:
+                    "After installing server dependencies, run:\nnpx prisma migrate dev --name init\n\nThis reads server/prisma/schema.prisma, creates SQL, and applies it. Prisma generate then regenerates the type-safe client.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: cd Navigation",
+                  content: "Practice navigating between the three project directories.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "TERMINAL_CD" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Navigate from /workspace to /workspace/client, then to /workspace/server, then back to /workspace.",
+                    initialDirectory: "/workspace",
+                    expectedCommands: ["cd client", "cd ../server", "cd .."],
+                    directoryTree: {
+                      "/workspace": ["client", "server", "package.json"],
+                      "/workspace/client": ["src", "package.json"],
+                      "/workspace/server": ["src", "prisma", "package.json"],
+                    },
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "A working PERN POS environment means: three node_modules folders, a server .env, a migrated Prisma schema, and both dev servers running without errors.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Run npm install in all three directories (root, client/, server/) — each has its own package.json.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Check the readme for required environment variables and create a .env file inside server/ before running migrations.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Run `npx prisma migrate dev` inside server/ to apply the schema to your Postgres database.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "Dependencies installed in root, client/, and server/ without errors",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "Prisma migrations applied successfully to PostgreSQL",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "Client (port 5173) and server (port 5000) start without errors",
+                  isRequired: true,
+                  order: 3,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Update Brand Identity in Sidebar",
+            testType: "client",
+            userStory:
+              "As a user, I want the sidebar to show the full official brand name so the POS matches IPPO's marketing style guide.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nEditing React Layout Components",
+                  content:
+                    "This crash course shows how to locate and safely update a brand string in a React layout component without breaking the surrounding UI.",
+                  order: 1,
+                },
+                {
+                  title: "What is a Layout Component?",
+                  content:
+                    "Layout components (Sidebar, Navbar, Footer) render on every page. In this app the Sidebar lives in client/src/components/layout/Sidebar.tsx. Updating a string in that one file changes the brand everywhere.",
+                  order: 2,
+                },
+                {
+                  title: "JSX Text Nodes",
+                  content:
+                    "In JSX, plain text inside tags is a text node:\n<span className=\"text-sm\">IPPO Solutions</span>\n\nUpdate the span text to the exact required string — case and spacing matter.",
+                  order: 3,
+                },
+                {
+                  title: "Vite HMR",
+                  content:
+                    "Vite's Hot Module Replacement updates the browser instantly on save — no manual refresh needed. Save and watch the sidebar update live.",
+                  order: 4,
+                },
+                {
+                  title: "Practice Lab: Update Heading Text",
+                  content: "Practice editing a JSX text node to match a target string.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      'Change the returned string from "IPPO Solutions" to "IPPO Software Solutions".',
+                    language: "tsx",
+                    starterCode:
+                      'export function getBrandSubtitle() {\n  return "IPPO Solutions";\n}\n',
+                    editableRegions: [{ placeholder: "IPPO Solutions", caseSensitive: true }],
+                    entryPoint: "getBrandSubtitle",
+                    testCases: [
+                      {
+                        input: [],
+                        expected: "IPPO Software Solutions",
+                        label: "exact subtitle string",
+                      },
+                    ],
+                  },
+                  order: 5,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Layout components are the single source of truth for global UI text. Update Sidebar.tsx once and the change propagates to every page.",
+                  order: 6,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Open client/src/components/layout/Sidebar.tsx and search for the current subtitle — it is a hardcoded string inside a <span> element near the brand logo.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Copy the exact string from the acceptance criteria — including spaces and capitalisation.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "After saving, confirm the change appears in the running browser on both expanded and collapsed sidebar states.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: 'Sidebar subtitle is exactly "IPPO Software Solutions"',
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "Subtitle renders correctly across sidebar states",
+                  isRequired: true,
+                  order: 2,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-pos-level-2",
+      title: "Client-Side Exploration",
+      subtitle: "Build a per-product stock classifier and adopt it across POS + Inventory pages.",
+      order: 2,
+      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: POS and Inventory pages each repeat inline stock checks. Create a pure getStockLevel(quantity, threshold) helper that returns a 3-state union, refactor both pages to use it, and add a cashier-facing 'Hide out-of-stock items' toggle on the POS page.",
+      xpReward: 150,
+      coinReward: 125,
+      keyTakeaways:
+        "Pure two-argument classifiers return richer information than booleans. Per-product thresholds let each SKU set its own LOW_STOCK boundary. Centralising the logic eliminates drift between the POS grid and the Inventory table, and a visible toggle proves the abstraction reaches the user.",
+      scenarioId: "scenario-3",
+      tasks: {
+        create: [
+          {
+            taskName: "Add Stock Level Classifier Helper",
+            testType: "client",
+            userStory:
+              "As a developer, I want a getStockLevel(quantity, threshold) helper in formatters.ts so stock-level decisions are consistent and testable across the POS and Inventory pages.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nPure Two-Argument Classifiers",
+                  content:
+                    "This crash course covers writing a threshold-based classifier as a pure two-argument function that returns a typed union rather than a boolean.",
+                  order: 1,
+                },
+                {
+                  title: "Why Two Arguments?",
+                  content:
+                    "POS inventory stores a per-product `lowStock` threshold. A single-argument helper with a fixed threshold would force every SKU to use the same cutoff — wrong for a shop that sells both low-volume and high-volume items. A two-arg signature (quantity, threshold) lets each product set its own LOW_STOCK boundary.",
+                  order: 2,
+                },
+                {
+                  title: "Union Types vs Booleans",
+                  content:
+                    "Boolean: in-stock / not.\nUnion: IN_STOCK | LOW_STOCK | OUT_OF_STOCK.\n\nThree states let the UI render three badge colours and let the filter make a precise decision. Booleans collapse that information.",
+                  order: 3,
+                },
+                {
+                  title: "Threshold Order Matters",
+                  content:
+                    "Check <=0 first, then <=threshold, then default to IN_STOCK. Swapping the order breaks the OUT_OF_STOCK case when threshold itself is 0. Always validate boundaries.",
+                  order: 4,
+                },
+                {
+                  title: "Pure Functions Are Testable",
+                  content:
+                    "A pure function depends only on its inputs and never mutates state. getStockLevel takes two numbers and returns a string literal — no side effects, no hidden config. That means a single unit test table covers every branch.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Write the Classifier",
+                  content: "Implement getStockLevel and verify all three branches.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Return 'OUT_OF_STOCK' if quantity <= 0, 'LOW_STOCK' if quantity <= threshold, otherwise 'IN_STOCK'.",
+                    language: "ts",
+                    starterCode:
+                      "export function getStockLevel(quantity: number, threshold: number) {\n  // TODO: return 'OUT_OF_STOCK' | 'LOW_STOCK' | 'IN_STOCK'\n  return 'IN_STOCK';\n}\n",
+                    entryPoint: "getStockLevel",
+                    testCases: [
+                      { input: [0, 5], expected: "OUT_OF_STOCK", label: "zero quantity" },
+                      { input: [3, 5], expected: "LOW_STOCK", label: "below threshold" },
+                      { input: [5, 5], expected: "LOW_STOCK", label: "at threshold" },
+                      { input: [10, 5], expected: "IN_STOCK", label: "above threshold" },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "A two-argument pure classifier + union-typed return replaces scattered inline checks with one testable helper — and prevents threshold drift between components.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Create client/src/utils/formatters.ts and export getStockLevel(quantity: number, threshold: number).",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Handle quantity <= 0 first — otherwise an OUT_OF_STOCK item with a threshold of 0 is misclassified as LOW_STOCK.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "The function must be pure — no imports, no DOM, no network. Just two numbers in, a string out.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "formatters.ts exists at client/src/utils/formatters.ts",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "getStockLevel is exported as a named export",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "Returns 'OUT_OF_STOCK' when quantity <= 0",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "Returns 'LOW_STOCK' when 0 < quantity <= threshold",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "Returns 'IN_STOCK' when quantity > threshold",
+                  isRequired: true,
+                  order: 5,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Adopt Stock Helper in POS Grid + Inventory Page",
+            testType: "client",
+            userStory:
+              "As a cashier, I want the POS grid to clearly mark out-of-stock items and let me hide them, so I don't waste time trying to ring up unavailable products.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nRefactoring Duplicated Logic Across Pages",
+                  content:
+                    "This crash course refactors inline stock checks in POSPage.tsx and InventoryPage.tsx to use the shared getStockLevel helper, then adds a cashier-visible 'Hide out-of-stock items' toggle on POSPage.",
+                  order: 1,
+                },
+                {
+                  title: "Why Refactor?",
+                  content:
+                    "Inline checks like `quantity === 0 ? 'Out of Stock' : quantity <= lowStock ? 'Low' : 'In Stock'` duplicate logic. If the classification rules change (say, a 'BACKORDERED' state gets added), every site must be updated in lockstep. A shared helper fixes drift once and for all.",
+                  order: 2,
+                },
+                {
+                  title: "Controlled Inputs in React",
+                  content:
+                    "A controlled input binds its value to state:\nconst [hide, setHide] = useState(false);\n<input type=\"checkbox\" checked={hide} onChange={e => setHide(e.target.checked)} />\n\nThe filter then reads hide to decide whether to drop OUT_OF_STOCK items.",
+                  order: 3,
+                },
+                {
+                  title: "Disabling vs Hiding",
+                  content:
+                    "Two UX choices: disable the button (visible but non-clickable) or hide the item (removed from the grid). This task does both — always disable OUT_OF_STOCK items, and when the toggle is on, hide them entirely from the grid.",
+                  order: 4,
+                },
+                {
+                  title: "Accessibility",
+                  content:
+                    "A hidden item must not receive keyboard focus. Use conditional rendering (filter before map) rather than CSS display:none when you want the element gone for screen readers and tab navigation too.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Filter an Array",
+                  content: "Practice writing the filter predicate that the toggle drives.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Filter out OUT_OF_STOCK items when hideOutOfStock is true. Return the array of kept items.",
+                    language: "ts",
+                    starterCode:
+                      "export function filterProducts(products: { stockLevel: string }[], hideOutOfStock: boolean) {\n  // TODO: drop OUT_OF_STOCK when hideOutOfStock is true\n  return products;\n}\n",
+                    entryPoint: "filterProducts",
+                    testCases: [
+                      {
+                        input: [
+                          [
+                            { stockLevel: "IN_STOCK" },
+                            { stockLevel: "OUT_OF_STOCK" },
+                            { stockLevel: "LOW_STOCK" },
+                          ],
+                          true,
+                        ],
+                        expected: [{ stockLevel: "IN_STOCK" }, { stockLevel: "LOW_STOCK" }],
+                        label: "hides when toggle on",
+                      },
+                      {
+                        input: [[{ stockLevel: "OUT_OF_STOCK" }], false],
+                        expected: [{ stockLevel: "OUT_OF_STOCK" }],
+                        label: "shows all when toggle off",
+                      },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Shared helpers + controlled inputs + accessible conditional rendering = a cashier-facing feature that is testable, consistent, and easy to evolve.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Import getStockLevel in POSPage.tsx and InventoryPage.tsx, then replace inline stock checks with the helper.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Add a boolean state (hideOutOfStock) to POSPage and a checkbox labelled 'Hide out-of-stock items' that toggles it.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "When hideOutOfStock is true, filter OUT_OF_STOCK products out of the grid — don't just hide them with CSS.",
+                  order: 3,
+                },
+                {
+                  description:
+                    "Always disable the add-to-cart button for OUT_OF_STOCK items so the cashier can't accidentally ring them up.",
+                  order: 4,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "POSPage.tsx imports getStockLevel from formatters",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "InventoryPage.tsx imports getStockLevel from formatters",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "POSPage renders a 'Hide out-of-stock items' checkbox",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description:
+                    "Toggling the checkbox filters OUT_OF_STOCK items out of the product grid",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "OUT_OF_STOCK products are disabled (cannot be added to cart)",
+                  isRequired: true,
+                  order: 5,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-pos-level-3",
+      title: "Backend: Introduce Void Flow + Concurrency Guard",
+      subtitle: "Diagnose the oversell race, then ship an atomic void endpoint and oversell-safe checkout.",
+      order: 3,
+      deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: The POS has two structural gaps — the existing checkout reads inventory then decrements later (two cashiers can both sell the last unit), and there is no way to void a mistaken sale. Diagnose both, then add an OrderStatus enum + voidedAt column, an atomic voidOrder controller, and an oversell-safe checkout using updateMany + gte guard.",
+      xpReward: 200,
+      coinReward: 200,
+      keyTakeaways:
+        "Read-then-write is unsafe under concurrency. Prisma's updateMany with a gte guard + a count check is the textbook atomic fix. Multi-table transactions (Order + OrderItem + Inventory) must share a single prisma.$transaction to guarantee rollback. Source-of-truth timestamps (voidedAt) are safer than mutable status fields.",
+      scenarioId: "scenario-3",
+      tasks: {
+        create: [
+          {
+            taskName: "Diagnose Oversell Race & Missing Void Flow",
+            testType: "server",
+            userStory:
+              "As an engineer, I want to document the oversell race and the absence of a void flow so that the team can prioritize the fix.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nDiagnosing Transactional Bugs",
+                  content:
+                    "This crash course teaches you how to read a checkout route, spot a read-then-write race, and produce evidence that the race is real.",
+                  order: 1,
+                },
+                {
+                  title: "Read-Then-Write Races in POS",
+                  content:
+                    "The current checkout reads inventory, validates quantity, then writes later. Between the read and the write, another cashier on another register can perform the same read. Both pass the guard, both decrement, and inventory goes negative. POS systems are especially vulnerable because multiple cashiers are the norm, not the exception.",
+                  order: 2,
+                },
+                {
+                  title: "Why There Is No Void Today",
+                  content:
+                    "The Order model has no status column and no voidedAt column. The schema literally cannot represent a voided order, so the API has no endpoint for it. Any reversal today would require the admin to mutate inventory by hand — and they'd do it without an audit trail.",
+                  order: 3,
+                },
+                {
+                  title: "Writing an Evidence Test",
+                  content:
+                    "A diagnosis is only as good as its reproduction. A concurrent-sale integration test fires two overlapping checkouts for the last unit and asserts that at most one succeeds. Today's code fails that test — that failure is the evidence.",
+                  order: 4,
+                },
+                {
+                  title: "The Status vs Timestamp Question",
+                  content:
+                    "When we add the void flow next task, we'll learn that status columns are mutable (admins can flip them) but timestamps are write-once in transactional code. This matters for reporting in Level 5 — spoiler: voidedAt will be the source of truth, not status.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Spot the Race",
+                  content: "Identify the offending line in a simplified checkout.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "The function returns true if inventory is sufficient. Replace it with a version that uses updateMany + gte so two concurrent calls can never both succeed.",
+                    language: "ts",
+                    starterCode:
+                      "export async function checkout(productId: number, qty: number, tx: any) {\n  const inv = await tx.inventory.findUnique({ where: { productId } });\n  if (inv.quantity < qty) return false;\n  await tx.inventory.update({ where: { productId }, data: { quantity: { decrement: qty } } });\n  return true;\n}\n",
+                    entryPoint: "checkout",
+                    testCases: [
+                      {
+                        input: [
+                          1,
+                          1,
+                          {
+                            inventory: {
+                              findUnique: { returns: { quantity: 1 } },
+                              update: { returns: {} },
+                              updateMany: { returns: { count: 1 } },
+                            },
+                          },
+                        ],
+                        expected: true,
+                        label: "last unit succeeds",
+                      },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Document the two failure paths (oversell race + missing void) with an evidence test before you write the fix. The test is the contract the fix must satisfy.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Open server/src/routes/orders.ts and locate the checkout handler — look for where inventory is read before it is decremented.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Open server/prisma/schema.prisma and confirm that the Order model has no status or voidedAt columns today.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Your test must exercise the schema and route as they exist today — the tests in tests/server/level-3/task-1 document the gaps that Level 3 Task 2 will fix.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description:
+                    "tests/server/level-3/task-1 tests assert the current schema lacks OrderStatus + voidedAt",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description:
+                    "Tests assert that there is no voidOrder export today (it will be introduced in Task 2)",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "Tests assert that no POST /:id/void route is registered yet",
+                  isRequired: true,
+                  order: 3,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Atomic Void + Oversell-Safe Checkout",
+            testType: "server",
+            userStory:
+              "As a cashier, I want to void a mistaken sale so that inventory is restored and the order is marked voided — and I need checkout to never oversell under concurrent use.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nAtomic Transactions for POS",
+                  content:
+                    "This crash course adds an OrderStatus enum, a voidedAt column, a voidOrder controller, and an oversell-safe checkout using Prisma's updateMany with a gte guard.",
+                  order: 1,
+                },
+                {
+                  title: "Schema Changes",
+                  content:
+                    "Add an OrderStatus enum (COMPLETED, VOIDED) with a default of COMPLETED. Add a voidedAt DateTime? column. Both are net new — POS had no void flow before.",
+                  order: 2,
+                },
+                {
+                  title: "updateMany + gte Guard",
+                  content:
+                    "Prisma's updateMany accepts a where-clause and returns { count }. Using `where: { productId, quantity: { gte: item.quantity } }` means the update only applies if the stock is still sufficient at the moment the UPDATE hits the database. If count !== 1, another transaction beat us to it — throw and the outer $transaction rolls back.",
+                  order: 3,
+                },
+                {
+                  title: "Multi-Table Atomicity",
+                  content:
+                    "voidOrder touches Order (status + voidedAt), Inventory (increment each OrderItem's quantity back), and PromoCode (decrement usedCount if one was applied). All three must live inside a single prisma.$transaction(async (tx) => { ... }) block so that a failure anywhere rolls back everything.",
+                  order: 4,
+                },
+                {
+                  title: "Guard the Transition",
+                  content:
+                    "Only a COMPLETED order can be voided. If the status is already VOIDED, throw — otherwise a double-void would double-restore inventory and drive stock up unfairly.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Write the Guard",
+                  content: "Write the check that only allows voiding COMPLETED orders.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Throw if the status is anything other than 'COMPLETED'. Otherwise return true.",
+                    language: "ts",
+                    starterCode:
+                      "export function assertCanVoid(status: string) {\n  // TODO: throw if not COMPLETED\n  return true;\n}\n",
+                    entryPoint: "assertCanVoid",
+                    testCases: [
+                      { input: ["COMPLETED"], expected: true, label: "completed passes" },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Atomic transactions + updateMany gte guards + explicit status transitions are how you ship a POS void flow that can't be exploited by concurrent cashiers.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Add `enum OrderStatus { COMPLETED VOIDED }`, `status OrderStatus @default(COMPLETED)`, and `voidedAt DateTime?` to server/prisma/schema.prisma.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Create server/src/controllers/order.controller.ts exporting voidOrder(orderId). Wrap every DB touch in prisma.$transaction.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "In checkout, replace the read-then-decrement pattern with `tx.inventory.updateMany({ where: { productId, quantity: { gte: item.quantity } }, data: { quantity: { decrement: item.quantity } } })` and throw when count !== 1.",
+                  order: 3,
+                },
+                {
+                  description:
+                    "Wire POST /api/orders/:id/void to voidOrderHandler inside server/src/routes/orders.ts.",
+                  order: 4,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "schema.prisma has OrderStatus enum with COMPLETED and VOIDED",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "schema.prisma Order model has voidedAt DateTime? field",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description:
+                    "order.controller.ts exports voidOrder which uses prisma.$transaction",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description:
+                    "voidOrder restores inventory via increment on each OrderItem",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "voidOrder stamps voidedAt = new Date() and flips status to VOIDED",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description:
+                    "Checkout uses updateMany with gte guard and throws when count !== 1",
+                  isRequired: true,
+                  order: 6,
+                },
+                {
+                  description: "POST /api/orders/:id/void route is registered",
+                  isRequired: true,
+                  order: 7,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-pos-level-4",
+      title: "Full-Stack Feature: Promo Codes",
+      subtitle: "Ship end-to-end validate-apply-redeem promo code flow with admin observability.",
+      order: 4,
+      deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: Marketing wants reusable promo codes the cashier can apply at checkout. Add a PromoCode model, POST /api/promos/validate, GET /api/promos (admin), wire the order create path to apply + atomically increment usedCount, hook voidOrder to decrement on reversal, and build the cashier UI + admin observability panel.",
+      xpReward: 250,
+      coinReward: 300,
+      keyTakeaways:
+        "Validation endpoints can share business rules with transactional endpoints when both read the same source-of-truth row. Atomic counter updates with updateMany prevent two concurrent sales from consuming the same last slot. Admin observability panels make a feature operable from day one — cashiers and accountants shouldn't have to ask engineering what's happening.",
+      scenarioId: "scenario-3",
+      tasks: {
+        create: [
+          {
+            taskName: "Validate & Apply Promo Code at POS Checkout",
+            testType: "both",
+            userStory:
+              "As a cashier, I want to enter a promo code at checkout and see an applied discount so that customers get the promotions marketing is running.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nEnd-to-End Promo Flow",
+                  content:
+                    "This crash course builds a promo-code feature spanning a new Prisma model, two server routes, a client service, and a UI hook-up in the checkout modal.",
+                  order: 1,
+                },
+                {
+                  title: "PromoCode Model",
+                  content:
+                    "Add a PromoCode model with: `code String @unique`, `discountPercent Int`, `maxUses Int`, `usedCount Int @default(0)`, `expiresAt DateTime`, `isActive Boolean @default(true)`. Link Order with optional `promoCodeId Int?`.",
+                  order: 2,
+                },
+                {
+                  title: "validatePromo — Pure-ish Helper",
+                  content:
+                    "validatePromo(code, subtotal) returns a discriminated union: `{ ok: true, discountPercent, finalTotal }` or `{ ok: false, reason: 'NOT_FOUND' | 'INACTIVE' | 'EXPIRED' | 'EXHAUSTED' }`. Same helper can be called by the validate endpoint and re-checked inside the order transaction.",
+                  order: 3,
+                },
+                {
+                  title: "Why Re-Validate in the Transaction?",
+                  content:
+                    "The validate endpoint is advisory — it can succeed at t=0 but the promo might be exhausted by the time the cashier clicks Pay at t=3s. The order create path must re-validate inside the transaction with an atomic counter update.",
+                  order: 4,
+                },
+                {
+                  title: "Cashier UX States",
+                  content:
+                    "The UI must render four states: (a) no promo entered — input + Apply button; (b) applied — green message + Remove button; (c) invalid — red message with the reason (NOT_FOUND / INACTIVE / EXPIRED / EXHAUSTED); (d) in-flight — loading spinner on the Apply button.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Build the Discount Total",
+                  content: "Compute the final total given a subtotal and a discount percent.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Return subtotal * (1 - discountPercent / 100). Round nothing — the caller handles rounding.",
+                    language: "ts",
+                    starterCode:
+                      "export function applyDiscount(subtotal: number, discountPercent: number) {\n  return subtotal;\n}\n",
+                    entryPoint: "applyDiscount",
+                    testCases: [
+                      { input: [100, 10], expected: 90, label: "10% off 100" },
+                      { input: [50, 25], expected: 37.5, label: "25% off 50" },
+                      { input: [100, 0], expected: 100, label: "0% off" },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Share a validatePromo helper between the validate endpoint and the order transaction, and render explicit states in the UI. Never trust an advisory validation — re-check in the transaction.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Add the PromoCode model to schema.prisma and add optional promoCodeId to Order, then run prisma migrate dev.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Create server/src/controllers/promo.controller.ts with validatePromo (helper) + validatePromoHandler (Express handler).",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Create server/src/routes/promos.ts and mount it at /api/promos in server/src/index.ts.",
+                  order: 3,
+                },
+                {
+                  description:
+                    "Create client/src/services/promoService.ts and call it from POSPage.tsx's checkout modal.",
+                  order: 4,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "schema.prisma has PromoCode model with unique code field",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description:
+                    "POST /api/promos/validate returns discountPercent + finalTotal on success",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description:
+                    "POST /api/orders accepts optional promoCode and applies the discount",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "Order transaction increments PromoCode.usedCount atomically",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "POSPage checkout modal renders a Promo Code input + Apply button",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description:
+                    "POSPage renders applied / invalid / expired / exhausted states clearly",
+                  isRequired: true,
+                  order: 6,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Promo Lifecycle + Usage Integrity",
+            testType: "both",
+            userStory:
+              "As an admin, I want to see each promo's remaining uses and I want voiding a promo order to return its use to the pool — otherwise promotions become impossible to reconcile.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nAtomic Counters + Lifecycle Hooks",
+                  content:
+                    "This crash course enforces maxUses + expiresAt + isActive atomically inside the order transaction and hooks voidOrder to decrement usedCount on reversal.",
+                  order: 1,
+                },
+                {
+                  title: "Atomic Counter Pattern",
+                  content:
+                    "`tx.promoCode.updateMany({ where: { id, isActive: true, expiresAt: { gt: now }, usedCount: { lt: maxUses } }, data: { usedCount: { increment: 1 } } })` with a count check of 1 — if the count is 0, someone else just consumed the last slot and we throw.",
+                  order: 2,
+                },
+                {
+                  title: "Why Not { lt: fields.maxUses }?",
+                  content:
+                    "Prisma cannot reference a sibling column in a single UPDATE — there is no Postgres-style `usedCount < maxUses` in Prisma's generated API. We read maxUses in a preceding findUnique and pass the literal into the updateMany guard.",
+                  order: 3,
+                },
+                {
+                  title: "Lifecycle Hook: Void Decrements",
+                  content:
+                    "Inside voidOrder's $transaction, if the order has promoCodeId, decrement that promo's usedCount by 1. This returns the use to the pool and keeps the admin panel's remaining uses accurate.",
+                  order: 4,
+                },
+                {
+                  title: "Admin Observability",
+                  content:
+                    "The /api/promos list endpoint (ADMIN only) returns each promo's code, discountPercent, maxUses, usedCount, and a derived remainingUses = maxUses - usedCount. The SettingsPage renders this in a simple table.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: Remaining Uses",
+                  content: "Compute remainingUses without letting it go negative.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions: "Return max(0, maxUses - usedCount).",
+                    language: "ts",
+                    starterCode:
+                      "export function remainingUses(maxUses: number, usedCount: number) {\n  return maxUses - usedCount;\n}\n",
+                    entryPoint: "remainingUses",
+                    testCases: [
+                      { input: [10, 3], expected: 7, label: "normal" },
+                      { input: [10, 10], expected: 0, label: "exhausted" },
+                      { input: [5, 8], expected: 0, label: "negative clamped" },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Atomic counter guards prevent overspend, lifecycle hooks keep the counter honest, and an admin panel makes the whole flow observable.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Inside POST /api/orders, after findUnique(promo), use updateMany with a usedCount: { lt: appliedPromo.maxUses } guard and check count === 1.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "In voidOrder, after flipping status, check if order.promoCodeId is set and decrement that row's usedCount inside the same transaction.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "GET /api/promos should be protected by authorize('ADMIN') and include remainingUses in the response shape.",
+                  order: 3,
+                },
+                {
+                  description:
+                    "SettingsPage.tsx should load promoService.listPromos() on mount and render a table with code, discount, remainingUses, expiresAt, and isActive.",
+                  order: 4,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description:
+                    "Order creation uses updateMany with usedCount: { lt: maxUses } guard",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description:
+                    "Order creation validates expiresAt and isActive inside the same transaction",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "voidOrder decrements PromoCode.usedCount when promoCodeId is set",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description: "GET /api/promos is ADMIN-only",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description: "GET /api/promos returns remainingUses for each promo",
+                  isRequired: true,
+                  order: 5,
+                },
+                {
+                  description: "SettingsPage renders an admin promo-list panel",
+                  isRequired: true,
+                  order: 6,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      id: "pern-pos-level-5",
+      title: "The Production Struggle: Sales Revenue Bug",
+      subtitle: "Voided sales are inflating the Reports page — fix the source-of-truth predicate and centralize it.",
+      order: 5,
+      deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
+      levelDescription:
+        "Mission Briefing: Finance escalated — the Reports page total revenue doesn't match the cash drawer. Voided orders are still being counted, and worse, admins with edit access can flip status back to COMPLETED while voidedAt still holds the truth. Fix the predicate, centralize it, and write a postmortem so this never happens again.",
+      xpReward: 300,
+      coinReward: 400,
+      keyTakeaways:
+        "Timestamp columns are write-once when set inside a transaction — that makes them source-of-truth for historical questions. Status enums are mutable and unreliable for financial reporting. Centralizing a Prisma where-clause builder + writing a postmortem converts a one-time fix into durable institutional knowledge.",
+      scenarioId: "scenario-3",
+      tasks: {
+        create: [
+          {
+            taskName: "Stabilize Revenue Classification",
+            testType: "server",
+            userStory:
+              "As the finance lead, I want the Reports page revenue to exclude voided orders — including ones whose status has been manually flipped back to COMPLETED — so I can close the books.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nSource-of-Truth Timestamps for Financial Reporting",
+                  content:
+                    "This crash course teaches why timestamp columns (like voidedAt) are safer than mutable enums (like status) as the predicate for financial queries.",
+                  order: 1,
+                },
+                {
+                  title: "The Stale-Status Pitfall",
+                  content:
+                    "An admin with DB-edit rights can flip Order.status from VOIDED back to COMPLETED. They cannot undo voidedAt without an explicit UPDATE — and voidedAt is never written by the checkout path, only by voidOrder. So voidedAt IS NULL is equivalent to 'this order has never been voided'.",
+                  order: 2,
+                },
+                {
+                  title: "Writing the Predicate",
+                  content:
+                    "In Prisma, the revenue where-clause is simply `{ voidedAt: null }`. When combined with a date range it becomes `{ createdAt: { gte, lt }, voidedAt: null }`. Any query that sums `order.total` must carry this predicate.",
+                  order: 3,
+                },
+                {
+                  title: "Regression Tests That Matter",
+                  content:
+                    "Your test suite must include at least one 'stale-status' scenario: an order with status COMPLETED but voidedAt set. The predicate must exclude it. If future refactors try to short-circuit the check with `status === 'COMPLETED'`, this test will fail and catch them.",
+                  order: 4,
+                },
+                {
+                  title: "Extending the Pattern",
+                  content:
+                    "The same idea applies to OE's cancelledAt, any softDeletedAt column, or archivedAt — if the business question is 'did X ever happen?', use a timestamp column, not a status enum.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: isRevenueEligibleOrder",
+                  content:
+                    "Implement the predicate that every revenue query will share.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Return true only when order.voidedAt is null or undefined. Do not look at status.",
+                    language: "ts",
+                    starterCode:
+                      "export function isRevenueEligibleOrder(order: { voidedAt: Date | null | undefined }) {\n  return true;\n}\n",
+                    entryPoint: "isRevenueEligibleOrder",
+                    testCases: [
+                      { input: [{ voidedAt: null }], expected: true, label: "never voided" },
+                      { input: [{ voidedAt: new Date() }], expected: false, label: "voided" },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "voidedAt IS NULL is the correct predicate. Status is a UI hint, not a financial truth.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Open server/src/routes/orders.ts and locate GET /reports/daily. Replace status-based filtering with voidedAt: null.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Write a regression test at tests/server/level-5/task-1/revenue-classification.test.ts that asserts a stale-status order is excluded.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Do not filter by status === 'COMPLETED' as a substitute — the bug is that status can be flipped back.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 1,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description: "Daily revenue query filters by voidedAt: null",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description:
+                    "Stale-status test (status COMPLETED, voidedAt set) fails without the fix and passes with it",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description: "Normal completed order (voidedAt null) is still included",
+                  isRequired: true,
+                  order: 3,
+                },
+              ],
+            },
+          },
+          {
+            taskName: "Permanent Fix + Centralization + Postmortem",
+            testType: "server",
+            userStory:
+              "As an engineer, I want the revenue predicate centralized into a utility and a postmortem written so the next person inheriting this code doesn't re-introduce the bug.",
+            learningSections: {
+              create: [
+                {
+                  title: "Overview\nFrom Fix to Institutional Knowledge",
+                  content:
+                    "This crash course centralizes the revenue predicate into a shared utility and documents the bug + fix in a postmortem so the lesson outlives the commit.",
+                  order: 1,
+                },
+                {
+                  title: "Centralization",
+                  content:
+                    "Create server/src/utils/revenueUtils.ts exporting two things: `isRevenueEligibleOrder(order)` for in-memory filtering and `revenueWhereClause(extra)` that spreads into Prisma findMany/aggregate `where` clauses. Every revenue query imports these — no more copies.",
+                  order: 2,
+                },
+                {
+                  title: "Why a where-clause Builder?",
+                  content:
+                    "A predicate-as-function is easy to write but easy to misuse — someone could call it in application code after loading all orders, doubling the cost. A where-clause builder is pushed down to Postgres, so the DB never returns voided rows to the app.",
+                  order: 3,
+                },
+                {
+                  title: "Postmortem Structure",
+                  content:
+                    "server/POSTMORTEM_REVENUE.md must have four sections: Symptom (what finance saw), Root Cause (why status-based filtering is wrong), Fix (voidedAt: null + centralization), Prevention (reviewers reject status-based revenue predicates; the regression test must never be weakened).",
+                  order: 4,
+                },
+                {
+                  title: "Code Review Checklist",
+                  content:
+                    "A new PR line that reads `where: { status: 'COMPLETED' }` in any revenue context should be rejected at review. The utility exists so reviewers have a single concrete thing to point at.",
+                  order: 5,
+                },
+                {
+                  title: "Practice Lab: revenueWhereClause",
+                  content:
+                    "Merge extra predicates into the base revenue where-clause.",
+                  sectionType: "INTERACTIVE" as const,
+                  interactiveMode: "CODE_EDITOR" as const,
+                  interactiveConfig: {
+                    instructions:
+                      "Return an object with voidedAt: null plus any extra keys from the argument.",
+                    language: "ts",
+                    starterCode:
+                      "export function revenueWhereClause(extra: Record<string, unknown> = {}) {\n  return {};\n}\n",
+                    entryPoint: "revenueWhereClause",
+                    testCases: [
+                      { input: [], expected: { voidedAt: null }, label: "no extras" },
+                    ],
+                  },
+                  order: 6,
+                },
+                {
+                  title: "Key Takeaway",
+                  content:
+                    "Fix once, centralize always, and document the reasoning so the next person to touch revenue queries doesn't repeat the bug.",
+                  order: 7,
+                },
+              ],
+            },
+            hints: {
+              create: [
+                {
+                  description:
+                    "Create server/src/utils/revenueUtils.ts exporting isRevenueEligibleOrder and revenueWhereClause.",
+                  order: 1,
+                },
+                {
+                  description:
+                    "Replace the ad-hoc `voidedAt: null` spreads in orders.ts with imports from revenueUtils.",
+                  order: 2,
+                },
+                {
+                  description:
+                    "Create server/POSTMORTEM_REVENUE.md with the four required sections: Symptom, Root Cause, Fix, Prevention.",
+                  order: 3,
+                },
+              ],
+            },
+            order: 2,
+            acceptanceCriteria: {
+              create: [
+                {
+                  description:
+                    "server/src/utils/revenueUtils.ts exists and exports isRevenueEligibleOrder + revenueWhereClause",
+                  isRequired: true,
+                  order: 1,
+                },
+                {
+                  description: "revenueWhereClause() returns { voidedAt: null }",
+                  isRequired: true,
+                  order: 2,
+                },
+                {
+                  description:
+                    "isRevenueEligibleOrder returns false for stale-status voided orders",
+                  isRequired: true,
+                  order: 3,
+                },
+                {
+                  description:
+                    "orders.ts stats/reports endpoints import revenueWhereClause",
+                  isRequired: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "POSTMORTEM_REVENUE.md exists with Symptom, Root Cause, Fix, and Prevention sections",
+                  isRequired: true,
+                  order: 5,
                 },
               ],
             },

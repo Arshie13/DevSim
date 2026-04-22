@@ -230,6 +230,10 @@ async function buildProjectImage(
   // We track the path so we can clean it up in the finally block.
   const dockerignorePath = path.join(fullProjectPath, ".dockerignore");
   const dockerignoreAlreadyExisted = fs.existsSync(dockerignorePath);
+  const originalDockerignoreContent = dockerignoreAlreadyExisted
+    ? fs.readFileSync(dockerignorePath, "utf-8")
+    : null;
+  let dockerignoreWasModified = false;
 
   try {
     const dockerfileContent = `
@@ -243,6 +247,8 @@ COPY --chown=postgres:postgres . /workspace/
 
 WORKDIR /workspace
 
+RUN rm -rf /workspace/node_modules /workspace/client/node_modules /workspace/server/node_modules
+
 RUN chown -R postgres:postgres /workspace
 RUN chmod -R 755 /workspace
 
@@ -251,8 +257,7 @@ CMD ["/entrypoint.sh"]
 
     fs.writeFileSync(tempDockerfile, dockerfileContent);
 
-    // CHANGE 4 (continued): Write .dockerignore only if one doesn't already exist,
-    // so we don't overwrite a custom .dockerignore the project author may have set up.
+    const nodeModulesEntries = ["node_modules", "**/node_modules"];
     if (!dockerignoreAlreadyExisted) {
       fs.writeFileSync(dockerignorePath, [
         "node_modules",
@@ -261,6 +266,16 @@ CMD ["/entrypoint.sh"]
         "*.log",
         ".env",
       ].join("\n"));
+    } else {
+      // Merge node_modules exclusion into existing .dockerignore without overwriting it.
+      // An existing .dockerignore may not exclude node_modules, which causes corrupted
+      // node_modules from the host to be copied into the image and break npm install at runtime.
+      const existingLines = originalDockerignoreContent!.split("\n").map((l) => l.trim());
+      const missingEntries = nodeModulesEntries.filter((e) => !existingLines.includes(e));
+      if (missingEntries.length > 0) {
+        fs.writeFileSync(dockerignorePath, originalDockerignoreContent + "\n" + missingEntries.join("\n"));
+        dockerignoreWasModified = true;
+      }
     }
 
     console.log("  Building image...");
@@ -278,10 +293,10 @@ CMD ["/entrypoint.sh"]
       fs.unlinkSync(tempDockerfile);
     }
 
-    // CHANGE 4 (continued): Only delete the .dockerignore if we created it.
-    // If the project already had one, leave it untouched.
     if (!dockerignoreAlreadyExisted && fs.existsSync(dockerignorePath)) {
       fs.unlinkSync(dockerignorePath);
+    } else if (dockerignoreWasModified && originalDockerignoreContent !== null) {
+      fs.writeFileSync(dockerignorePath, originalDockerignoreContent);
     }
   }
 }
