@@ -1289,9 +1289,6 @@
         replaceState: true,
         noScroll: true,
       });
-
-      // Keep local level in sync even if navigation data resolves slightly later.
-      currentLevel = (data.level || targetLevel);
     }
   }
 
