@@ -7,14 +7,11 @@
   import { signOut } from "@auth/sveltekit/client";
   import {
     Calendar,
-    Flame,
     Pencil,
-    Settings,
-    Trophy,
     LogOut,
     Link as LinkIcon,
     MapPin,
-    CodeIcon,
+    Trophy,
   } from "lucide-svelte";
   import type { UserData } from "$types";
 
@@ -22,9 +19,6 @@
   export let user: UserData;
   export let memberSince: string = "";
   export let bio: string = "";
-  export let location: string = "Remote";
-  export let role: string = "Full-Stack Developer";
-  export let streakDays: number = 7;
   export let leaderboardRank: number = 4;
 
   // ── Derived ──────────────────────────────────────────────────────────────────
@@ -41,15 +35,18 @@
   class="relative h-full bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-card overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] flex flex-col"
 >
   <!-- Top glow line -->
-  <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-accent/40 to-transparent"></div>
+  <div
+    class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-accent/40 to-transparent"
+  ></div>
   <!-- Grid pattern overlay -->
   <div
     class="absolute inset-0 opacity-[0.02]"
     style="background-image: linear-gradient(rgba(7,165,201,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(7,165,201,0.5) 1px, transparent 1px); background-size: 40px 40px;"
   ></div>
 
-  <div class="relative flex-1 flex flex-col items-center justify-center px-5 gap-4">
-
+  <div
+    class="relative flex-1 flex flex-col items-center justify-center px-5 gap-4"
+  >
     <!-- ── Avatar ─────────────────────────────────────────────────────────── -->
     <div class="relative shrink-0">
       <div
@@ -60,7 +57,9 @@
             src={user.image}
             alt={user.name}
             class="w-full h-full object-contain"
-            on:error={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            on:error={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
           />
         {:else}
           <!-- Legacy emoji fallback -->
@@ -69,78 +68,56 @@
       </div>
 
       <!-- Online status -->
-      <div class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-[2.5px] border-obsidian-surface shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+      <div
+        class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-[2.5px] border-obsidian-surface shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+      ></div>
     </div>
 
     <!-- ── Name & Role ─────────────────────────────────────────────────────── -->
     <div class="flex flex-col items-center text-center">
-      <h1 class="text-2xl font-orbitron font-bold text-obsidian-text-muted tracking-tight">{user.name}</h1>
-      <p class="text-xs font-mono text-obsidian-accent font-semibold mt-1 flex items-center gap-1.5 uppercase tracking-widest">
-        <CodeIcon class="w-4 h-4" />{role}
-      </p>
+      <h1
+        class="text-2xl font-orbitron font-bold text-obsidian-text-muted tracking-tight"
+      >
+        {user.name}
+      </h1>
+      <span
+        class="relative text-lg font-orbitron font-bold text-obsidian-text-muted leading-none flex items-center gap-0.5"
+      >
+        <Trophy class="w-4 h-4 text-amber-400" />#{leaderboardRank}
+      </span>
 
       <!-- Meta line -->
-      <div class="flex items-center gap-3 mt-2.5 text-[0.65rem] font-mono text-obsidian-text-primary/50 uppercase tracking-wider">
-        <span class="flex items-center gap-1"><Calendar class="w-3.5 h-3.5" />{memberSince}</span>
+      <div
+        class="flex items-center gap-3 mt-2.5 text-[0.65rem] font-mono text-obsidian-text-primary/50 uppercase tracking-wider"
+      >
+        <span class="flex items-center gap-1"
+          ><Calendar class="w-3.5 h-3.5" />{memberSince}</span
+        >
         <span class="w-1 h-1 rounded-full bg-obsidian-border"></span>
-        <span class="flex items-center gap-1"><MapPin class="w-3.5 h-3.5" />{location}</span>
       </div>
 
       <!-- Bio -->
-      <p class="mt-3 text-sm font-rajdhani text-obsidian-text-primary/55 leading-relaxed max-w-[280px]">{bio}</p>
-    </div>
-
-    <!-- ── Quick Stats ─────────────────────────────────────────────────────── -->
-    <div class="w-full grid grid-cols-3 gap-3 px-1">
-      <!-- Mastered -->
-      <div
-        class="group relative flex flex-col items-center py-3 bg-obsidian-surface/60 rounded-card border border-obsidian-accent/25 shadow-[0_0_20px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_30px_rgba(7,165,201,0.2)] transition-all duration-300 cursor-default overflow-hidden"
+      <p
+        class="mt-3 text-sm font-rajdhani text-obsidian-text-primary/55 leading-relaxed max-w-[280px]"
       >
-        <div class="absolute inset-0 bg-gradient-to-br from-obsidian-accent/[0.06] to-transparent"></div>
-        <div class="absolute inset-0 bg-obsidian-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <span class="relative text-[0.6rem] font-mono text-obsidian-text-primary/40 mt-1.5 uppercase tracking-wider">Mastered</span>
-      </div>
-
-      <!-- Streak -->
-      <div
-        class="group relative flex flex-col items-center py-3 bg-obsidian-surface/60 rounded-card border border-obsidian-accent/25 shadow-[0_0_20px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_30px_rgba(7,165,201,0.2)] transition-all duration-300 cursor-default overflow-hidden"
-      >
-        <div class="absolute inset-0 bg-gradient-to-br from-orange-500/[0.06] to-transparent"></div>
-        <div class="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <span class="relative text-lg font-orbitron font-bold text-obsidian-text-muted leading-none flex items-center gap-0.5">
-          <Flame class="w-4 h-4 text-orange-400" />{streakDays}
-        </span>
-        <span class="relative text-[0.6rem] font-mono text-obsidian-text-primary/40 mt-1.5 uppercase tracking-wider">Streak</span>
-      </div>
-
-      <!-- Rank -->
-      <div
-        class="group relative flex flex-col items-center py-3 bg-obsidian-surface/60 rounded-card border border-obsidian-accent/25 shadow-[0_0_20px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_30px_rgba(7,165,201,0.2)] transition-all duration-300 cursor-default overflow-hidden"
-      >
-        <div class="absolute inset-0 bg-gradient-to-br from-amber-500/[0.06] to-transparent"></div>
-        <div class="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <span class="relative text-lg font-orbitron font-bold text-obsidian-text-muted leading-none flex items-center gap-0.5">
-          <Trophy class="w-4 h-4 text-amber-400" />#{leaderboardRank}
-        </span>
-        <span class="relative text-[0.6rem] font-mono text-obsidian-text-primary/40 mt-1.5 uppercase tracking-wider">Rank</span>
-      </div>
+        {bio}
+      </p>
     </div>
 
     <!-- ── Action Buttons ─────────────────────────────────────────────────── -->
     <div class="w-full space-y-2 px-1">
-      <button
-        on:click={() => dispatch("editProfile")}
-        class="btn-cyber btn-cyber-outline w-full flex items-center justify-center gap-2"
-      >
-        <Pencil class="w-3.5 h-3.5" /> Edit Profile
-      </button>
-
       <div class="grid grid-cols-2 gap-2">
-        <button class="btn-cyber btn-cyber-secondary flex items-center justify-center gap-1.5 !py-2 !px-3">
-          <LinkIcon class="w-3 h-3" /> Share
+        <button
+          on:click={() => dispatch("editProfile")}
+          class="btn-cyber btn-cyber-outline w-full flex items-center justify-center gap-2"
+        >
+          <Pencil class="w-3.5 h-3.5" /> Edit Profile
         </button>
-        <button class="btn-cyber btn-cyber-secondary flex items-center justify-center gap-1.5 !py-2 !px-3">
-          <Settings class="w-3 h-3" /> Settings
+
+        <button
+          class="btn-cyber btn-cyber-secondary flex items-center justify-center gap-1.5 !py-2 !px-3"
+        >
+          <LinkIcon class="w-3 h-3" /> Share
         </button>
       </div>
 
@@ -151,7 +128,6 @@
         <LogOut class="w-3.5 h-3.5" /> Log Out
       </button>
     </div>
-
   </div>
 </section>
 
@@ -160,7 +136,7 @@
     position: relative;
   }
   .avatar-ring::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -6px;
     border-radius: 4px;
@@ -170,12 +146,16 @@
     pointer-events: none;
   }
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   :global(.btn-cyber-danger) {
-    border: 1px solid rgba(255, 56, 96, 0.50);
+    border: 1px solid rgba(255, 56, 96, 0.5);
     color: #ff3860;
     background: rgba(255, 56, 96, 0.08);
   }
@@ -186,8 +166,8 @@
     color: #ff6080;
   }
   :global(.btn-cyber-secondary) {
-    border: 1px solid rgba(39, 39, 42, 0.80);
-    color: rgba(208, 215, 221, 0.60);
+    border: 1px solid rgba(39, 39, 42, 0.8);
+    color: rgba(208, 215, 221, 0.6);
     background: #12192a;
   }
   :global(.btn-cyber-secondary:hover) {

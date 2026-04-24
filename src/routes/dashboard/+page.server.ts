@@ -3,6 +3,7 @@ import { redirect } from "@sveltejs/kit";
 import { getAllUserContainer, getArchivedContainers } from "$lib/server/docker/user/get-user-container";
 import prisma from "$lib/server/client";
 import { getUserKpis, getWeeklyTaskStats, getRecentActivity, getLeaderboard } from "$lib/server/stats";
+import { getAchievementFeedItems } from "$lib/server/achievements/catalog";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -12,7 +13,7 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, '/')
   }
 
-  const [allContainers, archivedStacks, dbUser, kpis, weekly, activity, leaderboard] =
+  const [allContainers, archivedStacks, dbUser, kpis, weekly, activity, leaderboard, achievementItems] =
     await Promise.all([
       getAllUserContainer(userData.id),
       getArchivedContainers(userData.id),
@@ -21,6 +22,7 @@ export const load: PageServerLoad = async (event) => {
       getWeeklyTaskStats(userData.id),
       getRecentActivity(userData.id, 8),
       getLeaderboard(5, userData.id),
+      getAchievementFeedItems(userData.id, 5),
     ]);
 
   const userContainerList = allContainers.filter((c) => !c.isArchived);
@@ -37,5 +39,6 @@ export const load: PageServerLoad = async (event) => {
     weekly,
     activity,
     leaderboard,
+    achievementItems,
   };
 }

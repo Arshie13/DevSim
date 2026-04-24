@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import type { IContainer, UserData, KPIData, WeeklyStats, ActivityItem, LeaderboardEntry, UserKpis } from "$types";
+  import type { IContainer, UserData, KPIData, WeeklyStats, ActivityItem, LeaderboardEntry, UserKpis, AchievementFeedItem } from "$types";
   import { Plus, ArrowRight } from "lucide-svelte";
   import Header from "$components/Header.svelte";
   import KPIs from "$components/dashboard/KPIs.svelte";
@@ -17,6 +17,7 @@
     weekly: WeeklyStats;
     activity: ActivityItem[];
     leaderboard: LeaderboardEntry[];
+    achievementItems: AchievementFeedItem[];
   }
 
   export let data: DashboardProps;
@@ -70,6 +71,7 @@
     activities={data.activity}
     weeklyStats={data.weekly}
     leaderboard={data.leaderboard}
+    achievementItems={data.achievementItems}
   />
 
   <!-- Main Content -->

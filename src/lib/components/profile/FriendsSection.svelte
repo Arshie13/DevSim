@@ -33,6 +33,15 @@
 
   <!-- Grid -->
   <div class="flex-1 p-3 lg:p-4 flex items-center">
+    {#if rivals.length === 0}
+      <div class="w-full flex flex-col items-center justify-center gap-3 text-center py-8">
+        <div class="w-12 h-12 rounded-card bg-obsidian-accent/10 border border-obsidian-accent/20 flex items-center justify-center">
+          <Users class="w-6 h-6 text-obsidian-accent/40" />
+        </div>
+        <p class="text-sm font-orbitron text-obsidian-text-primary/40 uppercase tracking-wider">No rivals yet</p>
+        <p class="text-[0.65rem] font-mono text-obsidian-text-primary/25">Complete scenarios to rank up and find rivals</p>
+      </div>
+    {:else}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 w-full h-full">
       {#each rivals as rival (rival.id)}
         <button
@@ -82,5 +91,6 @@
         </button>
       {/each}
     </div>
+    {/if}
   </div>
 </section>

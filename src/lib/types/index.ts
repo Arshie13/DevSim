@@ -14,3 +14,4 @@ export type {
   ILearningTask,
 } from "./IContainer"
 export * from "./test";
+export * from "./achievements";

@@ -4,12 +4,13 @@
   import ActivityFeed from "./ActivityFeed.svelte";
   import WeeklyStats from "./WeeklyStats.svelte";
   import LeaderboardSnapshot from "./LeaderboardSnapshot.svelte";
-  import type { ActivityItem, WeeklyStats as WeeklyStatsType, LeaderboardEntry } from "$types";
+  import type { ActivityItem, WeeklyStats as WeeklyStatsType, LeaderboardEntry, AchievementFeedItem } from "$types";
 
   export let isOpen = false;
   export let activities: ActivityItem[];
   export let weeklyStats: WeeklyStatsType;
   export let leaderboard: LeaderboardEntry[];
+  export let achievementItems: AchievementFeedItem[] = [];
 
   function closeDrawer() {
     isOpen = false;
@@ -86,7 +87,7 @@
 
       <!-- Activity Feed -->
       <div class="pb-6">
-        <ActivityFeed {activities} />
+        <ActivityFeed {activities} {achievementItems} />
       </div>
     </div>
   </div>

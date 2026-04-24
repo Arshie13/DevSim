@@ -17,6 +17,12 @@ enum LearningInteractiveMode {
   CODE_EDITOR
 }
 
+enum achievement_tier_level {
+  ROOKIE
+  AMATEUR
+  PRO
+}
+
 model User {
   id           String  @id @default(uuid())
   dailyLoginId String? @unique
@@ -65,8 +71,8 @@ model Container {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   scenario Scenario @relation(fields: [currentScenarioId], references: [id])
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   fileChanges     UserFileChanges[]
   completedTasks  CompletedTask[]
   containerStacks ContainerStack[]
@@ -122,13 +128,13 @@ model LevelTask {
 }
 
 model LearningSection {
-  id      String @id @default(cuid())
-  taskId  String
-  title   String
-  content String
-  order   Int    @default(0)
-  sectionType     LearningSectionType    @default(PLAIN_TEXT)
-  interactiveMode LearningInteractiveMode?
+  id                String                   @id @default(cuid())
+  taskId            String
+  title             String
+  content           String
+  order             Int                      @default(0)
+  sectionType       LearningSectionType      @default(PLAIN_TEXT)
+  interactiveMode   LearningInteractiveMode?
   interactiveConfig Json?
 
   task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
@@ -152,10 +158,10 @@ model AcceptanceCriteria {
 
 // Hints associated with a task
 model Hint {
-  id      String @id @default(cuid())
-  taskId  String
+  id          String @id @default(cuid())
+  taskId      String
   description String
-  order   Int    @default(0)
+  order       Int    @default(0)
 
   // Relations
   task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskHints")
@@ -179,18 +185,33 @@ model Achievement {
   icon        String
   category    String
 
-  // Requirements
-  criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
-
-  xpReward   Int @default(100)
-  coinReward Int @default(50)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   userAchievements UserAchievement[]
+  tiers            achievement_tier[]
 
   @@unique([name])
+}
+
+model achievement_tier {
+  id             String               @id @default(cuid()) @map("id")
+  achievement_id String
+  tier           achievement_tier_level
+  description    String
+  icon           String?
+  criteria       Json
+  xp_reward      Int                  @default(100)
+  coin_reward    Int                  @default(50)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  achievement Achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+
+  @@unique([achievement_id, tier])
+  @@index([achievement_id])
+  @@map("achievement_tiers")
 }
 
 model UserAchievement {
