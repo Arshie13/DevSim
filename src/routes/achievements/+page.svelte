@@ -6,7 +6,7 @@
 
   export let data: PageData;
 
-  let filter: "all" | "completed" | "in-progress" = "all";
+  let filter: "default" | "category" | "completed" | "in-progress" = "default";
 
   $: achievements = data.achievements;
   $: totalTiers   = achievements.reduce((sum, a) => sum + a.tiers.length, 0);
@@ -15,12 +15,22 @@
     0,
   );
 
-  $: filtered = filter === "all"
-    ? achievements
-    : achievements.filter((a) => {
+  // For "completed" and "in-progress" we filter the list; for the rest we pass everything.
+  $: filtered = (() => {
+    if (filter === "completed") {
+      return achievements.filter((a) => a.tiers.length > 0 && a.tiers.every((t) => t.unlocked));
+    }
+    if (filter === "in-progress") {
+      return achievements.filter((a) => {
         const done = a.tiers.length > 0 && a.tiers.every((t) => t.unlocked);
-        return filter === "completed" ? done : !done;
+        return !done;
       });
+    }
+    return achievements;
+  })();
+
+  // "default" → flat sorted, "category" → grouped by category
+  $: sectionMode = (filter === "category" ? "category" : "default") as "default" | "category";
 
   function backToDashboard() {
     history.back();
@@ -56,7 +66,7 @@
       <AchievementFilter bind:filter />
     </div>
 
-    <AchievementsSection achievements={filtered} />
+    <AchievementsSection achievements={filtered} mode={sectionMode} />
   </main>
 
   <!-- Ambient background -->

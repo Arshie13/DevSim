@@ -1,11 +1,14 @@
 <!--
-  AchievementsSection.svelte — Grid of achievement families grouped by category.
+  AchievementsSection.svelte — Grid of achievement families.
+  mode="default"  → flat list sorted by completion rank (no category headers)
+  mode="category" → grouped by category, sorted within each group by rank
 -->
 <script lang="ts">
   import type { AchievementCategory, AchievementView } from "$types";
   import AchievementCard from "./AchievementCard.svelte";
 
   export let achievements: AchievementView[] = [];
+  export let mode: "default" | "category" = "category";
 
   const CATEGORY_ORDER: AchievementCategory[] = ["progress", "exploration", "consistency", "mastery"];
   const CATEGORY_LABEL: Record<AchievementCategory, string> = {
@@ -15,7 +18,7 @@
     mastery:     "Mastery",
   };
 
-  // completed (PRO) → AMATEUR in-progress → ROOKIE in-progress → not started
+  // Rank 0 = completed, 1 = amateur in-progress, 2 = rookie in-progress, 3 = not started
   function completionRank(a: AchievementView): number {
     if (a.tiers.length > 0 && a.tiers.every((t) => t.unlocked)) return 0;
     const unlocked = a.tiers.filter((t) => t.unlocked);
@@ -24,6 +27,10 @@
     return highest === "AMATEUR" ? 1 : 2;
   }
 
+  // Flat sorted list for "default" mode
+  $: flatSorted = [...achievements].sort((a, b) => completionRank(a) - completionRank(b));
+
+  // Grouped list for "category" mode
   $: grouped = CATEGORY_ORDER
     .map((cat) => ({
       category: cat,
@@ -35,19 +42,27 @@
 </script>
 
 <section class="achievements-section">
-  {#each grouped as group (group.category)}
-    <div class="category-block">
-      <h3 class="category-heading">{CATEGORY_LABEL[group.category]}</h3>
-      <div class="card-grid">
-        {#each group.items as achievement (achievement.id)}
-          <AchievementCard {achievement} />
-        {/each}
-      </div>
-    </div>
-  {/each}
-
   {#if achievements.length === 0}
-    <p class="text-obsidian-text-primary/50 text-xs font-mono">No achievements defined yet.</p>
+    <p class="text-obsidian-text-primary/50 text-xs font-mono">No achievements found.</p>
+
+  {:else if mode === "default"}
+    <div class="card-grid">
+      {#each flatSorted as achievement (achievement.id)}
+        <AchievementCard {achievement} />
+      {/each}
+    </div>
+
+  {:else}
+    {#each grouped as group (group.category)}
+      <div class="category-block">
+        <h3 class="category-heading">{CATEGORY_LABEL[group.category]}</h3>
+        <div class="card-grid">
+          {#each group.items as achievement (achievement.id)}
+            <AchievementCard {achievement} />
+          {/each}
+        </div>
+      </div>
+    {/each}
   {/if}
 </section>
 

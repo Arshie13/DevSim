@@ -2,10 +2,11 @@
   AchievementFilter.svelte — Tab-style filter for the achievements page.
 -->
 <script lang="ts">
-  export let filter: "all" | "completed" | "in-progress" = "all";
+  export let filter: "default" | "category" | "completed" | "in-progress" = "default";
 
   const OPTIONS = [
-    { value: "all",         label: "All"         },
+    { value: "default",     label: "Default"     },
+    { value: "category",    label: "Category"    },
     { value: "completed",   label: "Completed"   },
     { value: "in-progress", label: "In Progress" },
   ] as const;
@@ -29,6 +30,7 @@
   .filter-bar {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
   }
 
   .filter-btn {

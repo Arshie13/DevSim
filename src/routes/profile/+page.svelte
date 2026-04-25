@@ -80,7 +80,7 @@
   <title>Profile | DevSim</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col bg-obsidian-bg text-obsidian-text-primary text-sm overflow-hidden">
+<div class="h-screen flex flex-col bg-obsidian-bg bg-grid-cyber text-obsidian-text-primary text-sm overflow-hidden">
 
   <!-- Back button bar -->
   <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-3 md:px-6 lg:px-8">
@@ -96,9 +96,9 @@
   <!-- ── Main asymmetric grid ─────────────────────────────────────────────── -->
   <main
     class="flex-1 min-h-0 w-full max-w-[1400px] mx-auto px-4 py-3 md:px-6 lg:px-8 grid gap-3 lg:gap-4"
-    style="grid-template-columns: 30% 1fr;"
+    style="grid-template-columns: clamp(260px, 28%, 360px) 1fr;"
   >
-    <!-- LEFT COLUMN (30%) — Profile + Snapshot -->
+    <!-- LEFT COLUMN — Profile + Snapshot -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
       <!-- S1: Profile data -->
       <div class="flex-[3] min-h-0">

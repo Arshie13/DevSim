@@ -13,7 +13,7 @@
 </script>
 
 <section
-  class="relative flex-1 min-h-0 bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-card overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)] transition-shadow duration-500 flex flex-col"
+  class="relative flex-1 min-h-0 bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)] transition-shadow duration-500 flex flex-col"
 >
   <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-accent/40 to-transparent"></div>
 
@@ -45,7 +45,7 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 w-full h-full">
       {#each rivals as rival (rival.id)}
         <button
-          class="group relative flex flex-col items-center justify-center gap-3 bg-obsidian-surface/60 border border-obsidian-accent/25 rounded-card transition-all duration-300 shadow-[0_0_25px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_35px_rgba(7,165,201,0.25)] hover:-translate-y-0.5 cursor-pointer overflow-hidden p-3"
+          class="group relative flex flex-col items-center justify-center gap-3 bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card transition-all duration-300 shadow-[0_0_25px_rgba(7,165,201,0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_35px_rgba(7,165,201,0.25)] hover:-translate-y-0.5 cursor-pointer overflow-hidden p-3"
         >
           <!-- Inner glow -->
           <div class="absolute inset-0 bg-gradient-to-br from-obsidian-accent/[0.06] to-transparent"></div>

@@ -1,14 +1,19 @@
 import prisma from "$lib/server/client";
 import type { UserKpis, ProfileMetricsData, WeeklyStats } from "$lib/types/dashboard";
 import { formatMemberSince } from "./format";
+import { getAchievementsForUser } from "$lib/server/achievements/catalog";
 
 export async function getUserKpis(userId: string): Promise<UserKpis> {
-  const [stacksCompleted, achievementsUnlocked, dbUser, dailyLogin] = await Promise.all([
+  const [stacksCompleted, allAchievements, dbUser, dailyLogin] = await Promise.all([
     prisma.container.count({ where: { userId, isArchived: true } }),
-    prisma.userAchievement.count({ where: { userId } }),
+    getAchievementsForUser(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true } }),
     prisma.dailyLogin.findUnique({ where: { userId }, select: { streak: true } }),
   ]);
+
+  const achievementsUnlocked = allAchievements.filter((a) =>
+    a.tiers.some((t) => t.unlocked),
+  ).length;
 
   return {
     stacksCompleted,
@@ -70,7 +75,7 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
   const [
     tasksCompleted,
     fileEdits,
-    achievementsCount,
+    allAchievements,
     dbUser,
     dailyLogin,
     thisWeekCount,
@@ -78,12 +83,16 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
   ] = await Promise.all([
     prisma.completedTask.count({ where: { container: { userId } } }),
     prisma.userFileChanges.count({ where: { container: { userId } } }),
-    prisma.userAchievement.count({ where: { userId } }),
+    getAchievementsForUser(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true, coins: true, createdAt: true } }),
     prisma.dailyLogin.findUnique({ where: { userId }, select: { streak: true } }),
     prisma.completedTask.count({ where: { container: { userId }, completedAt: { gte: sevenDaysAgo } } }),
     prisma.completedTask.count({ where: { container: { userId }, completedAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
   ]);
+
+  const achievementsCount = allAchievements.filter((a) =>
+    a.tiers.some((t) => t.unlocked),
+  ).length;
 
   const currentXp = dbUser?.xp ?? 0;
   const leaderboardRank = (await prisma.user.count({ where: { xp: { gt: currentXp } } })) + 1;
