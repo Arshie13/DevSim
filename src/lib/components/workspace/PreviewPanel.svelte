@@ -9,7 +9,7 @@
   export let onRefresh: () => void;
 
   /** Bind this to the iframe element from the parent. */
-  export let iframeRef: HTMLIFrameElement;
+  export let iframeRef: HTMLIFrameElement | null;
 </script>
 
 <div class:hidden={!visible} class="h-full" data-tour="preview-panel-surface">

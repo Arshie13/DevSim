@@ -55,6 +55,25 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, `/tutorial/${container.id}`);
   }
 
+  const scenario = await prisma.scenario.findFirst({
+    where: {
+      id: container?.scenario.id
+    }
+  });
+
+  const workspaceStacks = await prisma.workspace_stack.findMany({
+    where: {
+      workspace_id: container?.id
+    }
+  });
+
+  const level = await prisma.level.findFirst({
+    where: {
+      scenario_id: scenario?.id,
+      order: container?.level
+    }
+  });
+
   // Get completed tasks from the CompletedTask table
   // id might be wrong
   const completedTaskRecords = await prisma.completed_task.findMany({
@@ -65,6 +84,22 @@ export const load: PageServerLoad = async (event) => {
 
   // Extract level tasks - try record.scenario first, fallback to direct level query
   let currentLevel = container?.scenario.levels?.find(l => l.order === container.level);
+
+  let currentLevelV2 = await prisma.level.findMany({
+    where: {
+      scenario_id: scenario?.id,
+      order: container?.level
+    },
+    include: {
+      tasks: {
+        include: {
+          hints: true,
+          learning_sections: true,
+          acceptance_criteria: true
+        }
+      },
+    }
+  });
   
   // If scenario is null (currentScenarioId not set), fallback to querying Level directly
   if (!currentLevel && container?.level) {
@@ -88,7 +123,10 @@ export const load: PageServerLoad = async (event) => {
     }
   }
    
-   const levelTasks = currentLevel?.tasks?.map(t => t.task_name) || [];
+   const levelTasks = currentLevel?.tasks?.map(t => ({
+    taskName: t.task_name,
+    order: t.order,
+  })) || [];
 
    // Fetch app settings
    const masterySetting = await prisma.app_setting.findUnique({
@@ -105,8 +143,17 @@ export const load: PageServerLoad = async (event) => {
      // Level info for tasks
      level: container?.level || 1,
      completedTasks: completedTaskNames,
+     currentLevel: currentLevelV2,
      levelTasks: levelTasks,
      container: container,
+     workspaceStacks: workspaceStacks.map((stack) => ({
+      id: stack.id,
+      workspaceId: stack.workspace_id,
+      stackName: stack.stack_name,
+      stackVersion: stack.stack_version,
+     })),
+     scenario,
+     scenarioLevels: level,
      hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
      masteryCheckpointEnabled
    };

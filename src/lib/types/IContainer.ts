@@ -23,20 +23,29 @@ export interface IContainerStack {
   stackVersion?: string;
 }
 
+export interface IEpic {
+  id: string;
+  name: string;
+  description: string;
+  order: number;
+  scenarioId: string;
+}
+
 export interface ILevel {
   id: string;
   title: string;
   order: number;
   deadline: Date | null;
-  level_description: string;
-  xp_reward: number;
-  coin_reward: number;
+  levelDescription: string;
+  xpReward: number;
+  coinReward: number;
+  keyTakeaways: string;
   tasks: ITask[];
 }
 
 export interface ITask {
-  levelId: string;
   id: string;
+  levelId: string;
   taskName: string;
   userStory: string;
   order: number;
@@ -56,7 +65,10 @@ export interface ILearningSection {
   taskId: string;
   sectionType: "PLAIN_TEXT" | "INTERACTIVE";
   interactiveMode?: "TERMINAL_CD" | "CODE_EDITOR" | null;
-  interactiveConfig?: {
+  interactiveConfig?: IInteractiveConfig | null;
+}
+
+export interface IInteractiveConfig {
     instructions?: string;
     starterCode?: string;
     entryPoint?: string;
@@ -74,8 +86,7 @@ export interface ILearningSection {
     initialDirectory?: string;
     directoryTree?: Record<string, string[]>;
     language?: string;
-  } | null;
-}
+  };
 
   export interface ILearningTask  {
     id: string;
@@ -86,15 +97,15 @@ export interface ILearningSection {
 
 export interface IHints {
   id: string;
-  order: number;
   taskId: string;
+  order: number;
   content: string;
 }
 
 export interface IAcceptanceCriteria {
   id: string;
+  taskId: string;
   description: string;
   order: number;
-  taskId: string;
   isRequired: boolean;
 }

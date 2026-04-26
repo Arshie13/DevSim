@@ -8,7 +8,7 @@
   /** Fired when the user clicks Save (or presses Ctrl+S). */
   export let onSave: () => void;
   /** Bind this to the editor container div from the parent. */
-  export let editorRef: HTMLDivElement;
+  export let editorRef: HTMLDivElement | null;
 
   // ── File tab bar props ───────────────────────────────────────────────────
   export let openTabs: FileTab[] = [];

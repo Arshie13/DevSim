@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
+  import { type PageData } from "./$types";
   import { browser } from "$app/environment";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { MonacoInitializer } from "$client/MonacoInitializer";
-
   // Components
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import PrimarySidebar from "$lib/components/devSidebar/PrimarySidebar.svelte";
@@ -30,55 +30,82 @@
   import type { FileListResponse } from "$lib/interface/Files";
   import type { FileTab } from "$lib/components/workspace/FileTabBar.svelte";
   import { toast } from "$lib/stores/toast";
-  import type { UserData, IContainer, IScenario, ILevel, ILearningSection } from "$lib/types";
+  import type { ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
+    import type { IInteractiveConfig } from "$lib/types/IContainer";
 
-  const SazOnboardingCoachComponent: any = SazOnboardingCoach;
+  // const SazOnboardingCoachComponent: any = SazOnboardingCoach;
 
-   interface WorkspaceProps {
-     user: UserData;
-     userId: string;
-     userCoins: number;
-     dockerContainerId: string;
-     level: number;
-     completedTasks: string[];
-     container: IContainer;
-     hints: IHints[];
-     levelDescription: string;
-     scenarioTitle: string;
-     stacks: string[];
-     masteryCheckpointEnabled: boolean;
-   }
+  let { data}: { data: PageData } = $props();
 
-  export let data: WorkspaceProps;
+  let userCoins = $derived(data.userCoins ?? 0);
 
-  $: userCoins = data.userCoins || 0;
-
-  let currentLevel = data.level || 1;
+  let currentLevel = $derived(data.level || 1);
 
   function getLevelByOrder(
-    scenario: IScenario | null | undefined,
+    levels: ILevel[] | null | undefined,
     order: number,
   ): ILevel | null {
-    if (!scenario?.levels?.length) return null;
+    if (!levels?.length) return null;
     return (
-      scenario.levels.find((lvl: ILevel) => lvl.order === order) ??
-      scenario.levels[order - 1] ??
+      levels.find((lvl: ILevel) => lvl.order === order) ??
+      levels[order - 1] ??
       null
     );
   }
 
-  $: workspaceScenario = data.container?.scenario ?? null;
-  $: stackNames = data.container?.containerStacks?.map((entry) => entry.stack_name).filter(Boolean) ?? [];
-  $: currentLevelRecord = getLevelByOrder(workspaceScenario, currentLevel);
-  $: title = currentLevelRecord?.title ?? LEVEL_CONFIG.title;
-  $: stack = stackNames.length > 0 ? stackNames.join(" + ") : (workspaceScenario?.name ?? LEVEL_CONFIG.stack);
-  $: difficulty = workspaceScenario?.difficulty ?? LEVEL_CONFIG.difficulty;
-  $: level = currentLevel;
+  let workspaceScenario = $derived(data.scenario ?? null);
+  let stackNames = $derived(data.workspaceStacks?.map((entry) => entry.stackName).filter(Boolean) ?? []);
+  let currentLevelRecord = $derived(getLevelByOrder(data.currentLevel.map((level) => ({
+    id: level.id,
+    title: level.title,
+    order: level.order,
+    deadline: level.deadline,
+    levelDescription: level.level_description,
+    xpReward: level.xp_reward,
+    coinReward: level.coin_reward,
+    keyTakeaways: level.key_takeaways,
+    tasks: level.tasks.map((task) => ({
+      id: task.id,
+      levelId: task.level_id,
+      taskName: task.task_name,
+      userStory: task.user_story,
+      order: task.order,
+      isCompleted: task.is_complete,
+      testType: task.test_type,
+      hints: task.hints.map((hint) => ({
+        id: hint.id,
+        taskId: hint.task_id,
+        content: hint.description,
+        order: hint.order
+      })),
+      learningSections: task.learning_sections.map((section) => ({
+        id: section.id,
+        title: section.title,
+        content: section.content,
+        order: section.order,
+        taskId: section.task_id,
+        sectionType: section.section_type,
+        interactiveMode: section.interactive_mode,
+        interactiveConfig: section.interactive_config as IInteractiveConfig | null,
+      })),
+      acceptanceCriteria: task.acceptance_criteria.map((criteria) => ({
+        id: criteria.id,
+        taskId: criteria.task_id,
+        description: criteria.description,
+        order: criteria.order,
+        isRequired: criteria.is_required
+      }))
+    }))
+  })), currentLevel));
+  let title = $derived(currentLevelRecord?.title ?? LEVEL_CONFIG.title);
+  let stack = $derived(stackNames.length > 0 ? stackNames.join(" + ") : (workspaceScenario?.name ?? LEVEL_CONFIG.stack));
+  let difficulty = $derived(workspaceScenario?.difficulty ?? LEVEL_CONFIG.difficulty);
+  let level = $derived(currentLevel);
 
   // State
-  let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
-  let selectedFile: string = "app/page.tsx";
+  let activeTab: "editor" | "terminal" | "preview" | "board" = $state("editor");
+  let selectedFile: string = $state("app/page.tsx");
   let fileContents: Record<string, string> = {};
   const protectedPackageFiles = new Set([
     "package.json",
@@ -94,78 +121,71 @@
     "readme.txt",
   ]);
 
-  let openTabs: FileTab[] = [];
-  let activeTabId: string = "";
+  let openTabs: FileTab[] = $state([]);
+  let activeTabId: string = $state("");
   type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
   type WorkspaceTask = TestableTask & {
     boardStatus?: BoardTaskStatus;
     learningSections?: ILearningSection[];
     userStory?: string;
   };
-  let tasks: WorkspaceTask[] = [];
-  let timeRemaining: number = 4 * 60 * 60;
-  let isRunning: boolean = false;
+  let timeRemaining: number = $derived(4 * 60 * 60);
+  let isRunning: boolean = $state(false);
   let monacoEditor: MonacoInitializer | null = null;
-  let previewUrl: string = "";
+  let previewUrl: string = $state("");
   let editorValue: string = "";
-  let fileTree: string[] = [];
-  let directories: string[] = [];
-  
+  let fileTree: string[] = $state([]);
+  let directories: string[] = $state([]);
 
   interface TermSession {
     id: string;
     label: string;
     instance: TerminalInitializer | null;
   }
-  let terminalSessions: TermSession[] = [];
-  let activeTerminalId: string = "";
+  let terminalSessions: TermSession[] = $state([]);
+  let activeTerminalId: string = $state("");
   let terminalCounter = 0;
   const pendingTerminalInits = new Map<string, (el: HTMLDivElement) => void>();
-  $: activeTerminalSession =
-    terminalSessions.find((s) => s.id === activeTerminalId) ?? null;
 
-   $: {
-     const levelTasks = currentLevelRecord?.tasks || [];
-     const persisted = loadTaskProgress(currentLevel);
+  let activeTerminalSession = $derived(terminalSessions.find((s) => s.id === activeTerminalId) ?? null);
 
-     tasks = levelTasks.map((task: ITask, index: number) => {
-       const taskNumber = getTaskNumber(task, index);
-       const config = getLevelConfig(currentLevel);
-       const hasMappedTest = Boolean(
-         config?.tasks.find(
-           (testTask) => Number(testTask.taskId) === taskNumber,
-         ),
-       );
-        const persistedState = persisted[task.id];
+  function computeTasks() {
+  const levelTasks = currentLevelRecord?.tasks || [];
+  const persisted = loadTaskProgress(currentLevel);
 
-        const boardStatus =
-          persistedState?.boardStatus ?? (task.is_complete ? "done" : "backlog");
-        // Check completion: persisted state > DB completed tasks > task default
-        const dbCompleted = data.completedTasks?.includes(task.task_name) ?? false;
-        const isCompleted = persistedState?.isCompleted ?? dbCompleted ?? task.is_complete;
-        const testStatus =
-          persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
-       const taskType = task.test_type ?? "none";
+  return levelTasks.map((task) => {
+    const persistedState = persisted[task.id];
 
-       return {
-         ...task,
-         // Override is_complete with actual completion status (persisted or DB)
-         isCompleted,
-         boardStatus,
-         testStatus,
-         hasClientTest: taskType === "client" || taskType === "both",
-         hasServerTest: taskType === "server" || taskType === "both",
-       };
-     });
-   }
+    const boardStatus =
+      persistedState?.boardStatus ?? (task.isCompleted ? "done" : "backlog");
+    const dbCompleted = data.completedTasks?.includes(task.taskName) ?? false;
+    const isCompleted = persistedState?.isCompleted ?? dbCompleted ?? task.isCompleted;
+    const testStatus =
+      persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
+    const taskType = task.testType ?? "none";
 
-  $: levelHints =
+    return {
+      ...task,
+      hints: task.hints,
+      learningSections: task.learningSections,
+      isCompleted,
+      boardStatus,
+      testStatus,
+      hasClientTest: taskType === "client" || taskType === "both",
+      hasServerTest: taskType === "server" || taskType === "both",
+    };
+  });
+}
+
+  let tasks = $derived(computeTasks());
+
+  let levelHints = $derived(
     currentLevelRecord?.tasks?.flatMap(
       (task: ITask) => task.hints ?? [],
-    ) || [];
-  $: levelTestConfig = getLevelConfig(currentLevel);
+    ) || []);
+  let levelTestConfig = $derived(getLevelConfig(currentLevel));
 
-  $: actualLevelConfig = levelTestConfig
+  let actualLevelConfig = $derived(levelTestConfig
     ? {
         ...LEVEL_CONFIG,
         ...levelTestConfig,
@@ -174,28 +194,19 @@
         stack: stack,
         difficulty,
         deadline: LEVEL_CONFIG.deadline,
-        scenario: currentLevelRecord?.level_description ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
+        scenario: currentLevelRecord?.levelDescription ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
         hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
         starterFiles: LEVEL_CONFIG.starterFiles,
       }
-    : LEVEL_CONFIG;
+    : LEVEL_CONFIG
+  );
 
-  $: operatorAlias = data.user?.username || data.user?.name || "Operator";
-  $: workspaceProjectName = workspaceScenario?.name || title || "DevSim Workspace";
-  $: cameFromTutorial = page.url.searchParams.get("fromTutorial") === "1";
+  let operatorAlias = $derived(data.user?.name || data.user?.name || "Operator");
+  let workspaceProjectName = $derived(workspaceScenario?.name || title || "DevSim Workspace");
+  let cameFromTutorial = $derived(page.url.searchParams.get("fromTutorial") === "1");
 
   // Track if this workspace came from first-project guided flow.
   let hasEverBeenInTutorial = false;
-
-  // Called when tutorial onboarding + workspace tour completes.
-  function handleOnboardingComplete() {
-    onboardingTourCompleted = true;
-
-    if (tasks.length > 0 && !levelIntroCardShown) {
-      levelIntroCardOpen = true;
-      levelIntroCardShown = true;
-    }
-  }
 
   function handleLevelIntroClose() {
     levelIntroCardOpen = false;
@@ -205,66 +216,72 @@
   }
 
   // Once boot completes, open queued Saz before anything else.
-  $: if (!isBooting && pendingSazOpen) {
+  $effect(() => {
+  if (!isBooting && pendingSazOpen) {
     pendingSazOpen = false;
     sazOnboardingOpen = true;
   }
+});
 
   // Show level intro card after boot completes and Saz (if any) is dismissed.
-  $: if (
+  $effect(() => {
+  if (
     tasks.length > 0 &&
     !levelIntroCardShown &&
     !isBooting &&
     !sazOnboardingOpen &&
     !pendingSazOpen
   ) {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       if (!levelIntroCardShown && !sazOnboardingOpen && !pendingSazOpen) {
         levelIntroCardOpen = true;
         levelIntroCardShown = true;
       }
     }, 1000);
+
+    return () => clearTimeout(timer);
   }
+});
 
-
-  $: if (actualLevelConfig) {
-    timeRemaining = actualLevelConfig.deadline || 4 * 60 * 60;
-  }
-
+  $effect(() => {
+    if (actualLevelConfig) {
+      timeRemaining = actualLevelConfig.deadline || 4 * 60 * 60;
+    }
+  })
 
   let aiPanelOpen: boolean = false;
-  let aiPanelMode: "chat" | "quick" = "chat";
-  let isDownloading: boolean = false;
+  let aiPanelMode: "chat" | "quick" = $state("chat");
+  let isDownloading: boolean = $state(false);
 
-  let backModalOpen: boolean = false;
+  let backModalOpen: boolean = $state(false);
 
   let taskIntroCardOpen: boolean = false;
-  let levelIntroCardOpen: boolean = false;
+  let levelIntroCardOpen: boolean = $state(false);
   let levelIntroCardShown: boolean = false;
-  let onboardingTourCompleted: boolean = false;
   let sazOnboardingOpen: boolean = false;
   let sazOnboardingShown: boolean = false;
   let pendingSazOpen: boolean = false;
-  let crashCourseOpen: boolean = false;
+  let crashCourseOpen: boolean = $state(false);
   let levelIntroDismissed: boolean = false;
-  let activeCrashCourseTaskId: string = "";
+  let activeCrashCourseTaskId: string = $state("");
   let crashCourseSeenByTask: Record<string, boolean> = {};
-  let crashCourseCompletedByTask: Record<string, boolean> = {};
-  let crashCourseCompletePromptOpen: boolean = false;
-  let crashCourseClosePromptOpen: boolean = false;
-  let crashCourseCloseDonePromptOpen: boolean = false;
-  let crashCoursePromptTaskNumber: number = 1;
+  let crashCourseCompletedByTask: Record<string, boolean> = $state({});
+  let crashCourseCompletePromptOpen: boolean = $state(false);
+  let crashCourseClosePromptOpen: boolean = $state(false);
+  let crashCourseCloseDonePromptOpen: boolean = $state(false);
+  let crashCoursePromptTaskNumber: number = $state(1);
   let crashCoursePromptTaskId: string = "";
   let crashCourseStorageLoadedKey: string = "";
 
   // // Call this after tasks are loaded
-  // $: if (tasks.length > 0 && !isInOnboarding) {
-  //   // Small delay to let user settle in
-  //   setTimeout(maybeShowTrivia, 3000);
-  // }
+  $effect(() => {
+    if (tasks.length > 0) {
+      setTimeout(maybeShowTrivia, 3000);
+    }
+  })
 
   // Trivia modal state
-  let triviaModalOpen: boolean = false;
+  let triviaModalOpen: boolean = $state(false);
   let triviaCorrectCount: number = 0;
   let triviaTotalCount: number = 0;
   let triviaShownThisSession: boolean = false;
@@ -321,45 +338,12 @@
     saveTriviaStats();
   }
 
-
-
-  let hints: Array<{
-    id: string;
-    title: string;
-    content: string;
-    category: 'concept' | 'best-practice' | 'tip' | 'warning';
-    priority: 'low' | 'medium' | 'high';
-    relatedTask?: string;
-  }> = [
-    {
-      id: '1',
-      title: 'Clean Code Principles',
-      content: 'Use meaningful variable names and keep functions small. This makes your code more readable and maintainable.',
-      category: 'best-practice',
-      priority: 'medium'
-    },
-    {
-      id: '2',
-      title: 'Error Handling',
-      content: 'Always handle potential errors gracefully. Use try-catch blocks and provide meaningful error messages to users.',
-      category: 'concept',
-      priority: 'high'
-    },
-    {
-      id: '3',
-      title: 'Test Your Code',
-      content: 'Write tests for your functions. This ensures they work correctly and prevents regressions when you make changes.',
-      category: 'tip',
-      priority: 'medium'
-    }
-  ];
-
-  let testRegressionModalOpen: boolean = false;
+  let testRegressionModalOpen: boolean = $state(false);
   let testResultModalOpen: boolean = false;
   let pendingPostTestIntro: boolean = false;
   let postTestCompletedTaskOrder: number | null = null;
   let postTestNextTaskOrder: number | null = null;
-  let regressionTaskName: string = "";
+  let regressionTaskName: string = $state("");
   let regressionTaskId: string = "";
   let pendingRegressionUpdates: Array<{
     taskId: string;
@@ -367,14 +351,10 @@
     previousStatus: BoardTaskStatus;
   }> = [];
 
-  function toggleAiPanel() {
-    aiPanelOpen = !aiPanelOpen;
-  }
-
-  let isBooting = true;
-  let bootStep = 0;
-  let bootError = "";
-  let bootStepStartedAt = 0;
+  let isBooting = $state(true);
+  let bootStep = $state(0);
+  let bootError = $state("");
+  let bootStepStartedAt = $state(0);
 
   const DEFAULT_BOOT_STEP_VISIBLE_MS = 1200;
   const BOOT_STEP_VISIBLE_MS: Record<number, number> = {
@@ -445,12 +425,13 @@
   }
 
   let submitSprintModal: SubmitSprintModal;
+  let editorRef = $state<HTMLDivElement | null>(null);
+  let iframeRef = $state<HTMLIFrameElement | null>(null);
+  
   let testCaseComponent: TestCase;
-  let editorRef: HTMLDivElement;
-  let iframeRef: HTMLIFrameElement;
 
-  $: containerId = data.dockerContainerId ?? "";
-  $: projectName = "workspace";
+  let containerId = $derived(data.dockerContainerId ?? "");
+  let projectName = $derived("workspace");
 
   function normalizeWorkspaceRelativePath(inputPath: string): string {
     return inputPath
@@ -468,8 +449,11 @@
     return !normalized.includes("/") && protectedRootFiles.has(normalized);
   }
 
-  $: isSelectedFileReadOnly = isFrontendReadOnlyFile(selectedFile);
-  $: monacoEditor?.setReadOnly(isSelectedFileReadOnly);
+  let isSelectedFileReadOnly = $derived(isFrontendReadOnlyFile(selectedFile));
+
+  $effect(() => {
+    monacoEditor?.setReadOnly(isSelectedFileReadOnly);
+  });
 
   function flattenFiles(structure: any, prefix = ""): string[] {
     const files: string[] = [];
@@ -529,10 +513,10 @@
       (acc, task) => {
         acc[task.id] = {
           boardStatus:
-            task.boardStatus ?? (task.is_complete ? "done" : "backlog"),
+            task.boardStatus ?? (task.isCompleted ? "done" : "backlog"),
           testStatus:
-            task.testStatus ?? (task.is_complete ? "passed" : "pending"),
-          isCompleted: task.is_complete,
+            task.testStatus ?? (task.isCompleted ? "passed" : "pending"),
+          isCompleted: task.isCompleted,
         };
         return acc;
       },
@@ -655,17 +639,18 @@
     crashCourseCloseDonePromptOpen = false;
   }
 
-  $: hasCompletedCrashCourse = Object.values(crashCourseCompletedByTask).some(Boolean);
+  let hasCompletedCrashCourse = $derived(Object.values(crashCourseCompletedByTask).some(Boolean));
 
-  $: effectiveLevelIntroDescription = pendingPostTestIntro && postTestCompletedTaskOrder && postTestNextTaskOrder
+  let effectiveLevelIntroDescription = $derived(pendingPostTestIntro && postTestCompletedTaskOrder && postTestNextTaskOrder
     ? `Task ${postTestCompletedTaskOrder} is now completed. You can now proceed to Task ${postTestNextTaskOrder}. Review the updated objectives, then continue implementation.`
-    : (actualLevelConfig?.scenario ?? '');
+    : (actualLevelConfig?.scenario ?? ''));
 
-  $: {
-    const stableContainerId = getStableProgressContainerId();
-    if (browser && stableContainerId) {
-      const key = getCrashCourseStorageKey(currentLevel);
-      if (key !== crashCourseStorageLoadedKey) {
+  $effect(() => {
+  const stableContainerId = getStableProgressContainerId();
+  if (browser && stableContainerId) {
+    const key = getCrashCourseStorageKey(currentLevel);
+    if (key !== crashCourseStorageLoadedKey) {
+      untrack(() => {
         crashCourseStorageLoadedKey = key;
         crashCourseSeenByTask = loadCrashCourseSeenState(currentLevel);
         crashCourseCompletedByTask = loadCrashCourseCompletedState(currentLevel);
@@ -675,11 +660,13 @@
         pendingPostTestIntro = false;
         postTestCompletedTaskOrder = null;
         postTestNextTaskOrder = null;
-      }
+      })
     }
   }
+});
 
-  $: if (
+$effect(() => {
+  if (
     levelIntroDismissed &&
     !crashCourseOpen &&
     !levelIntroCardOpen &&
@@ -692,13 +679,11 @@
     !crashCourseCloseDonePromptOpen
   ) {
     const nextTask = getNextCrashCourseTask();
-    if (
-      nextTask &&
-      !crashCourseSeenByTask[nextTask.id]
-    ) {
+    if (nextTask && !crashCourseSeenByTask[nextTask.id]) {
       openCrashCourseForTask(nextTask.id);
     }
   }
+});
 
   function getTaskNumber(task: ITask, index: number): number {
     if (typeof task.order === "number" && task.order > 0) return task.order;
@@ -1108,7 +1093,7 @@
        const directResult = byTaskId.get(task.id);
        const fallbackResult = byTaskId.get(String(getTaskNumber(task, index)));
        const taskResult = directResult ?? fallbackResult;
-       const canManuallyMoveToDone = (task.test_type ?? "none").toLowerCase() === "none";
+       const canManuallyMoveToDone = (task.testType ?? "none").toLowerCase() === "none";
 
        if (!taskResult) return task;
 
@@ -1134,7 +1119,7 @@
        if (task.boardStatus === "done" && !canManuallyMoveToDone) {
          regressions.push({
            taskId: task.id,
-           taskName: task.task_name,
+           taskName: task.taskName,
            previousStatus: task.boardStatus,
          });
          return { ...task, testStatus: "failed", is_complete: false };
@@ -1705,8 +1690,8 @@
      {containerId}
      {tasks}
      level={currentLevel}
-     levelXpReward={currentLevelRecord?.xp_reward ?? 0}
-     levelCoinReward={currentLevelRecord?.coin_reward ?? 0}
+     levelXpReward={currentLevelRecord?.xpReward ?? 0}
+     levelCoinReward={currentLevelRecord?.coinReward ?? 0}
      {fileContents}
      existingFiles={fileTree}
      masteryCheckpointEnabled={data.masteryCheckpointEnabled}
@@ -1799,7 +1784,7 @@
 <div class="fixed inset-0 z-50 pointer-events-none">
   <div class="pointer-events-auto">
     <AiHelp
-      containerId={data.dockerContainerId}
+      containerId={data.dockerContainerId!}
       userId={data.userId}
       scenario={actualLevelConfig.scenario}
       {tasks}
@@ -1819,7 +1804,7 @@
   levelNumber={currentLevel}
   isOpen={levelIntroCardOpen}
   levelDescription={effectiveLevelIntroDescription}
-  tasks={tasks.map(t => ({ id: t.id, text: t.task_name, completed: t.isCompleted }))}
+  tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
   levelConfig={{
     isFirstProjectCreation: hasEverBeenInTutorial,
     operatorAlias,
@@ -1843,18 +1828,6 @@
   onClose={handleCrashCourseClose}
   onComplete={handleCrashCourseComplete}
 />
-
-<svelte:component
-  this={SazOnboardingCoachComponent}
-  open={sazOnboardingOpen}
-  accentColor="#07a5c9"
-  stackName={stack}
-  onClose={() => {
-    sazOnboardingOpen = false;
-  }}
-/>
-
-
 
 <style>
   :global(body) {

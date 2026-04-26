@@ -36,18 +36,18 @@
   // parent (via onTaskStatusChange) does NOT trigger a spurious board reset.
   function getInitialStatus(task: BoardTask): KanbanStatus {
     if (task.boardStatus) return task.boardStatus;
-    return task.is_complete ? 'done' : 'backlog';
+    return task.isCompleted ? 'done' : 'backlog';
   }
 
   function refreshTasks(incoming: BoardTask[]) {
     kanbanTasks = incoming.map((t) => ({
       id: t.id,
-      text: t.task_name,
+      text: t.taskName,
       order: t.order,
       status: getInitialStatus(t),
-      taskType: t.test_type,
+      taskType: t.testType,
       userStory: ((t as ITask & { userStory?: string }).userStory ?? '').trim(),
-      acceptanceCriteria: (t.acceptance_criteria ?? [])
+      acceptanceCriteria: (t.acceptanceCriteria ?? [])
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((criteria) => criteria.description)
@@ -76,7 +76,7 @@
 
   $: {
     const newFingerprint = tasks
-      .map((t) => `${t.id}:${t.task_name}:${getInitialStatus(t)}`)
+      .map((t) => `${t.id}:${t.taskName}:${getInitialStatus(t)}`)
       .join('|');
     if (newFingerprint !== taskFingerprint && tasks.length > 0) {
       taskFingerprint = newFingerprint;
