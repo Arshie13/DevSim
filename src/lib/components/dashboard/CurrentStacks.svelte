@@ -33,12 +33,13 @@
         <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} active container{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
-    <button
+    <a
+      href="/projects?view=current"
       class="tag-cyber tag-cyan flex items-center gap-1 hover:bg-obsidian-accent/15 transition-colors cursor-pointer"
     >
       See All
       <ChevronRight class="w-3 h-3" />
-    </button>
+    </a>
   </div>
 
     <!-- Stack Cards -->
