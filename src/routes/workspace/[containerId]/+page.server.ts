@@ -38,7 +38,10 @@ export const load: PageServerLoad = async (event) => {
                 orderBy: { order: "asc" },
                 include: {
                   hints: true,
-                  acceptance_criteria: true
+                  acceptance_criteria: true,
+                  learningSections: {
+                    orderBy: { order: "asc" }
+                  }
                 }
               }
             }
@@ -47,6 +50,10 @@ export const load: PageServerLoad = async (event) => {
       }
     }
   });
+
+  if (container?.status === 'tutorial') {
+    throw redirect(303, `/tutorial/${container.id}`);
+  }
 
   // Get completed tasks from the CompletedTask table
   // id might be wrong
@@ -57,7 +64,7 @@ export const load: PageServerLoad = async (event) => {
   const completedTaskNames = completedTaskRecords.map(r => r.task_name);
 
   // Extract level tasks - try record.scenario first, fallback to direct level query
-  let currentLevel = container?.scenario?.levels?.find(l => l.order === container.level);
+  let currentLevel = container?.scenario.levels?.find(l => l.order === container.level);
   
   // If scenario is null (currentScenarioId not set), fallback to querying Level directly
   if (!currentLevel && container?.level) {
@@ -68,7 +75,10 @@ export const load: PageServerLoad = async (event) => {
           orderBy: { order: "asc" },
           include: {
             hints: true,
-            acceptance_criteria: true
+            acceptance_criteria: true,
+            learningSections: {
+              orderBy: { order: "asc" }
+            }
           }
         }
       }

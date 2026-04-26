@@ -85,7 +85,7 @@
         >
           <span
             class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {settings.mastery_checkpoint_enabled ? 'translate-x-6' : 'translate-x-1'}"
-          />
+          ></span>
           {#if isLoading}
             <div class="absolute inset-0 flex items-center justify-center">
               <Loader2 class="h-4 w-4 animate-spin text-[var(--accent)]" />

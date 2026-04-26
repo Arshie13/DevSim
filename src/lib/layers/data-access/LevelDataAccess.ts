@@ -25,7 +25,7 @@ export class LevelDataAccess {
       xpReward: level.xp_reward,
       coinReward: level.coin_reward,
       keyTakeaways: level.key_takeaways,
-      prerequisites: level.prerequisites,
+      // prerequisites: level.prerequisites,
       epicId: level.epic_id,
       scenarioId: level.scenario_id,
       tasks: level.tasks.map(task => ({

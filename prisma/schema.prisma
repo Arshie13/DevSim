@@ -7,6 +7,22 @@ datasource db {
   provider = "postgresql"
 }
 
+enum LearningSectionType {
+  PLAIN_TEXT
+  INTERACTIVE
+}
+
+enum LearningInteractiveMode {
+  TERMINAL_CD
+  CODE_EDITOR
+}
+
+enum achievement_tier_level {
+  ROOKIE
+  AMATEUR
+  PRO
+}
+
 model user {
   id           String  @id @default(uuid())
   daily_login_id String? @unique
@@ -22,8 +38,11 @@ model user {
   level        Int      @default(1)
   owned_avatars String[] @default([])
 
-  // Onboarding
+    // Onboarding
   has_completed_onboarding Boolean @default(false)
+  
+  // Tutorial
+  hasCompletedTutorial Boolean @default(false)
 
   // Relations
   daily_login   daily_login?       @relation
@@ -104,7 +123,7 @@ model level {
   xp_reward         Int
   coin_reward       Int
   key_takeaways     String
-  prerequisites    Json?    // JSON array of prerequisite level IDs
+  // prerequisites    Json?    // JSON array of prerequisite level IDs
 
   // Epic linking
   epic_id String?
@@ -133,9 +152,25 @@ model level_task {
   level              level                @relation(fields: [level_id], references: [id], onDelete: Cascade)
   acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
   hints              hint[]               @relation("TaskHints")
+  learningSections   LearningSection[]
 
   @@unique([level_id, task_name])
   @@index([level_id])
+}
+
+model LearningSection {
+  id                String                   @id @default(cuid())
+  taskId            String
+  title             String
+  content           String
+  order             Int                      @default(0)
+  sectionType       LearningSectionType      @default(PLAIN_TEXT)
+  interactiveMode   LearningInteractiveMode?
+  interactiveConfig Json?
+
+  task level_task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 // Acceptance criteria for tasks
@@ -157,10 +192,13 @@ model hint {
   id      String @id @default(cuid())
   task_id  String
   description String
-  order   Int    @default(0)
+  order       Int    @default(0)
 
   // Relations
   task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade, name: "TaskHints")
+
+  // icon        String
+  // category    String
 
   @@index([task_id])
 }
@@ -182,7 +220,7 @@ model achievement {
   category    String
 
   // Requirements
-  criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
+  // criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
 
   xp_reward   Int @default(100)
   coin_reward Int @default(50)
@@ -191,21 +229,51 @@ model achievement {
   updatedAt DateTime @updatedAt
 
   user_achievements user_achievement[]
+  tiers            achievement_tier[]
 
   @@unique([name])
 }
 
+model achievement_tier {
+  id             String               @id @default(cuid())
+  achievement_id String
+  tier           achievement_tier_level
+  description    String
+  icon           String?
+  criteria       Json
+  xp_reward      Int                  @default(100)
+  coin_reward    Int                  @default(50)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  achievement achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+
+  @@unique([achievement_id, tier])
+  @@index([achievement_id])
+  @@map("achievement_tiers")
+}
+
 model user_achievement {
-  id            String   @id @default(cuid())
-  user_id        String
-  achievementId String
-  earnedAt      DateTime @default(now())
+  id             String               @id @default(cuid()) @map("id")
+  user_id        String               @map("user_id")
+  achievement_id String
+  tier           achievement_tier_level
+  description    String
+  icon           String?
+  criteria       Json
+  xp_reward      Int                  @default(100)
+  coin_reward    Int                  @default(50)
 
-  user        user        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  achievement achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  @@unique([user_id, achievementId])
-  @@index([user_id])
+  achievement achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+
+  @@unique([achievement_id, tier], map: "user_achievement_achievement_id_tier_key")
+  @@index([achievement_id], map: "user_achievement_achievement_id_idx")
+  @@map("user_achievement_tiers")
+  users user[]
 }
 
 // File change tracking model

@@ -1,10 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
 const BASE_DIR = path.join(process.cwd(), 'submodules/projects/tech-stacks');
 
-export const GET = async ({ params }) => {
+export const GET: RequestHandler = async ({ params }) => {
   const { path: imagePath } = params;
   
   if (!imagePath) {

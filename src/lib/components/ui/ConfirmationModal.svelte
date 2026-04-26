@@ -49,6 +49,9 @@
    */
   export let closeOnBackdropClick: boolean = true;
 
+  /** Optional data-tour attribute forwarded to the backdrop element for tutorial spotlight targeting. */
+  export let tourId: string | undefined = undefined;
+
   // ── Events ─────────────────────────────────────────────────────────────────
 
   const dispatch = createEventDispatcher<{
@@ -73,6 +76,13 @@
     warning: 'cm-btn-confirm--warning',
     success: 'cm-btn-confirm--success',
   };
+
+  $: confirmButtonTour =
+    confirmLabel === 'Submit & Continue'
+      ? 'submit-sprint-confirm-button'
+      : confirmLabel === 'Proceed to Workspace'
+        ? 'tutorial-proceed-button'
+        : undefined;
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -105,6 +115,7 @@
     tabindex="-1"
     on:click={handleBackdropClick}
     on:keydown={handleKeydown}
+    data-tour={tourId}
   >
     <div class="cm-card ds-scrollbar">
       <!-- Animated gradient border glow -->
@@ -165,6 +176,7 @@
 
             <button
               type="button"
+              data-tour={confirmButtonTour}
               class="cm-btn-confirm {confirmBtnClass[variant]}"
               on:click={handleConfirm}
               disabled={isLoading}

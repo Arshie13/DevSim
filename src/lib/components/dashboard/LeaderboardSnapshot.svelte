@@ -54,14 +54,14 @@
         </div>
 
         <!-- Avatar -->
-        <div class="w-6 h-6 rounded-full bg-obsidian-bg border border-obsidian-accent/20 flex items-center justify-center text-sm">
-          {entry.avatar}
+        <div class="w-8 h-8 rounded-full bg-obsidian-bg border border-obsidian-accent/20 flex items-center justify-center overflow-hidden">
+          <img src={entry.avatar} alt="{entry.username}'s avatar" class="w-full h-full object-cover" referrerpolicy="no-referrer" />
         </div>
 
         <!-- User Info -->
         <div class="flex-1 min-w-0">
           <p class="text-xs font-mono font-medium truncate {entry.isCurrentUser ? 'text-obsidian-accent' : 'text-obsidian-text-muted'}">
-            {entry.username}
+            {entry.name?.split(' ')[0] ?? entry.username}
             {#if entry.isCurrentUser}
               <span class="text-[10px] text-obsidian-accent/70">(You)</span>
             {/if}

@@ -1,0 +1,118 @@
+import prisma from "$lib/server/client";
+import type { UserKpis, ProfileMetricsData, WeeklyStats } from "$lib/types/dashboard";
+import { formatMemberSince } from "./format";
+import { getAchievementsForUser } from "$lib/server/achievements/catalog";
+
+export async function getUserKpis(userId: string): Promise<UserKpis> {
+  const [stacksCompleted, allAchievements, dbUser, dailyLogin] = await Promise.all([
+    prisma.workspace.count({ where: { user_id: userId, is_archived: true } }),
+    getAchievementsForUser(userId),
+    prisma.user.findUnique({ where: { id: userId }, select: { xp: true } }),
+    prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
+  ]);
+
+  const achievementsUnlocked = allAchievements.filter((a) =>
+    a.tiers.some((t) => t.unlocked),
+  ).length;
+
+  return {
+    stacksCompleted,
+    totalXp: dbUser?.xp ?? 0,
+    dayStreak: dailyLogin?.streak ?? 0,
+    achievementsUnlocked,
+  };
+}
+
+export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const [recentTasks, priorCount] = await Promise.all([
+    prisma.completed_task.findMany({
+      where: { workspace: { user_id: userId }, completedAt: { gte: sevenDaysAgo } },
+      select: { completedAt: true },
+    }),
+    prisma.completed_task.count({
+      where: { workspace: { user_id: userId }, completedAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
+    }),
+  ]);
+
+  // Build 7-day buckets starting from 6 days ago to today
+  const days: string[] = [];
+  const counts: number[] = Array(7).fill(0);
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    days.push(d.toLocaleDateString("en-US", { weekday: "short" }));
+  }
+
+  for (const { completedAt } of recentTasks) {
+    const daysAgo = Math.floor((now.getTime() - completedAt.getTime()) / (24 * 60 * 60 * 1000));
+    const idx = 6 - daysAgo;
+    if (idx >= 0 && idx < 7) counts[idx]++;
+  }
+
+  const total = counts.reduce((s, c) => s + c, 0);
+  const avgPerDay = Math.round((total / 7) * 10) / 10;
+
+  let growthLabel = "+0%";
+  if (priorCount > 0) {
+    const pct = Math.round(((total - priorCount) / priorCount) * 100);
+    growthLabel = pct >= 0 ? `+${pct}%` : `${pct}%`;
+  } else if (total > 0) {
+    growthLabel = "+100%";
+  }
+
+  return { counts, days, total, avgPerDay, growthLabel };
+}
+
+export async function getProfileMetrics(userId: string): Promise<ProfileMetricsData> {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const [
+    tasksCompleted,
+    fileEdits,
+    allAchievements,
+    dbUser,
+    dailyLogin,
+    thisWeekCount,
+    priorWeekCount,
+  ] = await Promise.all([
+    prisma.completed_task.count({ where: { workspace: { user_id: userId } } }),
+    prisma.user_file_changes.count({ where: { workspace: { user_id: userId } } }),
+    getAchievementsForUser(userId),
+    prisma.user.findUnique({ where: { id: userId }, select: { xp: true, coins: true, createdAt: true } }),
+    prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
+    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completedAt: { gte: sevenDaysAgo } } }),
+    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completedAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+  ]);
+
+  const achievementsCount = allAchievements.filter((a) =>
+    a.tiers.some((t) => t.unlocked),
+  ).length;
+
+  const currentXp = dbUser?.xp ?? 0;
+  const leaderboardRank = (await prisma.user.count({ where: { xp: { gt: currentXp } } })) + 1;
+
+  let weeklyGrowth = "+0%";
+  if (priorWeekCount > 0) {
+    const pct = Math.round(((thisWeekCount - priorWeekCount) / priorWeekCount) * 100);
+    weeklyGrowth = pct >= 0 ? `+${pct}%` : `${pct}%`;
+  } else if (thisWeekCount > 0) {
+    weeklyGrowth = "+100%";
+  }
+
+  return {
+    tasksCompleted,
+    fileEdits,
+    coinsEarned: dbUser?.coins ?? 0,
+    achievementsCount,
+    memberSince: dbUser?.createdAt ?? new Date(),
+    dayStreak: dailyLogin?.streak ?? 0,
+    leaderboardRank,
+    weeklyGrowth,
+  };
+}

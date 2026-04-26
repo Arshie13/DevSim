@@ -24,6 +24,7 @@
 
   const dispatch = createEventDispatcher<{
     testsComplete: { success: boolean; result: TestRunResult };
+    resultModalClosed: void;
   }>();
 
   function openTestModal() {
@@ -50,6 +51,7 @@
     }
 
     showResultModal = false;
+    dispatch('resultModalClosed');
   }
 
   function handleCancelConfirmDismiss() {
@@ -431,6 +433,7 @@
   // Public method to close result modal
   export function closeResults() {
     showResultModal = false;
+    dispatch('resultModalClosed');
   }
 
   // -- Derived ------------------------------------------------------------------

@@ -16,19 +16,19 @@ export const GET: RequestHandler = async (event) => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { has_completed_onboarding: true },
+    select: { hasCompletedTutorial: true },
   });
 
   if (!user) {
     throw error(404, "User not found");
   }
 
-  return json({ completed: user.has_completed_onboarding });
+  return json({ completed: user.hasCompletedTutorial });
 };
 
 /**
  * POST /api/user/onboarding
- * Marks the onboarding as completed for the authenticated user.
+ * Marks the tutorial as completed for the authenticated user.
  * Idempotent — safe to call multiple times.
  */
 export const POST: RequestHandler = async (event) => {
@@ -40,7 +40,7 @@ export const POST: RequestHandler = async (event) => {
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { has_completed_onboarding: true },
+    data: { hasCompletedTutorial: true },
   });
 
   return json({ success: true });

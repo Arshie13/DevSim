@@ -35,7 +35,7 @@
         scenarios={data.scenarios}
         stackName={data.stackName}
         selection={data.selection}
-        hasCompletedOnboarding={data.hasCompletedOnboarding}
+        tutorialState={data.tutorialState}
       />
     </main>
   </div>

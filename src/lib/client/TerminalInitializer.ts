@@ -28,6 +28,10 @@ export class TerminalInitializer {
   private socket: WebSocket | null = null;
   private containerId: string = "";
   private dataListenerRegistered: boolean = false;
+  private commandBuffer: string = "";
+  private outputBuffer: string = "";
+  private pendingCommandForCompletion: string | null = null;
+  private waitingForFreshPrompt: boolean = false;
 
   async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string) {
     if (typeof window === "undefined") return;
@@ -76,6 +80,7 @@ export class TerminalInitializer {
 
       window.addEventListener("resize", () => {
         this.fitAddon?.fit();
+        this.sendResize();
       });
 
       return this.terminal;
@@ -85,19 +90,31 @@ export class TerminalInitializer {
     }
   }
 
+  private sendResize() {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+    if (!this.terminal) return;
+    this.socket.send(JSON.stringify({ type: "resize", cols: this.terminal.cols, rows: this.terminal.rows }));
+  }
+
   private connectSocket() {
-    const wsUrl = getTerminalWsUrl(this.containerId);
+    const cols = this.terminal?.cols ?? 80;
+    const rows = this.terminal?.rows ?? 24;
+    const wsUrl = `${getTerminalWsUrl(this.containerId)}&cols=${cols}&rows=${rows}`;
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
       this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
+      this.sendResize();
     };
 
     this.socket.onmessage = (event) => {
       if (typeof event.data === "string") {
+        this.trackCommandCompletion(event.data);
         this.terminal?.write(event.data);
       } else {
         event.data.arrayBuffer().then((buffer: ArrayBuffer) => {
+          const chunk = new TextDecoder().decode(new Uint8Array(buffer));
+          this.trackCommandCompletion(chunk);
           this.terminal?.write(new Uint8Array(buffer));
         });
       }
@@ -110,12 +127,82 @@ export class TerminalInitializer {
     // Only register the data listener once - don't add duplicate listeners on reconnect
     if (!this.dataListenerRegistered) {
       this.terminal!.onData((data) => {
+        this.trackCommandInput(data);
         if (this.socket?.readyState === WebSocket.OPEN) {
           this.socket.send(data);
         }
       });
       this.dataListenerRegistered = true;
     }
+  }
+
+  private trackCommandInput(data: string) {
+    if (typeof window === "undefined") return;
+
+    // Remove xterm control/escape sequences so only real typed text is evaluated.
+    const sanitizedData = data
+      .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "")
+      .replace(/\[(?:200|201)~/g, "");
+
+    for (const ch of sanitizedData) {
+      if (ch === "\r") {
+        const command = this.commandBuffer.trim().replace(/\s+/g, " ");
+        if (command.length > 0) {
+          if (!this.pendingCommandForCompletion) {
+            this.pendingCommandForCompletion = command;
+            // Reset buffer so we only detect the next prompt produced after this command.
+            this.outputBuffer = "";
+            this.waitingForFreshPrompt = true;
+            window.dispatchEvent(
+              new CustomEvent("devsim-terminal-command", {
+                detail: { command, containerId: this.containerId },
+              }),
+            );
+          }
+          // If there is already a pending command, this Enter is likely interactive input
+          // for the running process (e.g., prisma migration name prompt), so we ignore it.
+        }
+        this.commandBuffer = "";
+        continue;
+      }
+
+      if (ch === "\u007f") {
+        this.commandBuffer = this.commandBuffer.slice(0, -1);
+        continue;
+      }
+
+      if (ch < " " || ch === "\u001b") {
+        continue;
+      }
+
+      this.commandBuffer += ch;
+    }
+  }
+
+  private stripAnsi(value: string) {
+    return value.replace(/\x1B\[[0-9;?]*[ -/]*[@-~]/g, "");
+  }
+
+  private trackCommandCompletion(chunk: string) {
+    if (typeof window === "undefined") return;
+    if (!this.pendingCommandForCompletion) return;
+    if (!this.waitingForFreshPrompt) return;
+
+    const clean = this.stripAnsi(chunk);
+    this.outputBuffer = `${this.outputBuffer}${clean}`.slice(-1200);
+
+    // Prompt format in the tutorial shell is similar to: /workspace #
+    const promptDetected = /(^|\n)[^\n]*\s#\s*$/.test(this.outputBuffer);
+    if (!promptDetected) return;
+
+    const completedCommand = this.pendingCommandForCompletion;
+    this.pendingCommandForCompletion = null;
+    this.waitingForFreshPrompt = false;
+    window.dispatchEvent(
+      new CustomEvent("devsim-terminal-command-complete", {
+        detail: { command: completedCommand, containerId: this.containerId },
+      }),
+    );
   }
 
   reconnect() {
@@ -151,5 +238,9 @@ export class TerminalInitializer {
     this.terminal?.dispose();
     this.terminal = null;
     this.fitAddon = null;
+    this.commandBuffer = "";
+    this.outputBuffer = "";
+    this.pendingCommandForCompletion = null;
+    this.waitingForFreshPrompt = false;
   }
 }

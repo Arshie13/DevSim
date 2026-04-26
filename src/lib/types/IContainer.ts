@@ -35,21 +35,59 @@ export interface ILevel {
 }
 
 export interface ITask {
-  level_id: string;
+  levelId: string;
   id: string;
-  task_name: string;
+  taskName: string;
+  userStory: string;
   order: number;
   hints: IHints[];
-  acceptance_criteria: IAcceptanceCriteria[];
-  is_complete: boolean; // Optional field to track completion status on the client side
-  test_type: string;
-  user_story: string;
+  acceptanceCriteria: IAcceptanceCriteria[];
+  learningSections?: ILearningSection[];
+
+  isCompleted: boolean; // Optional field to track completion status on the client side
+  testType: string;
 }
+
+export interface ILearningSection {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+  taskId: string;
+  sectionType: "PLAIN_TEXT" | "INTERACTIVE";
+  interactiveMode?: "TERMINAL_CD" | "CODE_EDITOR" | null;
+  interactiveConfig?: {
+    instructions?: string;
+    starterCode?: string;
+    entryPoint?: string;
+    testCases?: Array<{
+      input: unknown[];
+      expected: unknown;
+      label: string;
+    }>;
+    requiredCodeIncludes?: string[];
+    editableRegions?: Array<{
+      placeholder: string;
+      caseSensitive?: boolean;
+    }>;
+    expectedCommands?: string[];
+    initialDirectory?: string;
+    directoryTree?: Record<string, string[]>;
+    language?: string;
+  } | null;
+}
+
+  export interface ILearningTask  {
+    id: string;
+    taskName: string;
+    order: number;
+    learningSections: ILearningSection[];
+  };
 
 export interface IHints {
   id: string;
   order: number;
-  task_id: string;
+  taskId: string;
   content: string;
 }
 

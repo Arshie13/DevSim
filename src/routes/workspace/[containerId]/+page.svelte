@@ -23,6 +23,7 @@
   import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
   import SazOnboardingCoach from "$lib/components/onboarding/SazOnboardingCoach.svelte";
   import LevelIntroCard from "$lib/components/workspace/LevelIntroCard.svelte";
+  import LearningContent from "$lib/components/workspace/crashcourse/LearningContent.svelte";
   import TriviaModal from "$lib/components/ui/TriviaModal.svelte";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
@@ -31,11 +32,10 @@
   import type { FileListResponse } from "$lib/interface/Files";
   import type { FileTab } from "$lib/components/workspace/FileTabBar.svelte";
   import { toast } from "$lib/stores/toast";
-  import type { UserData, IContainer, IScenario, ILevel } from "$lib/types";
+  import type { UserData, IContainer, IScenario, ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
 
   const SazOnboardingCoachComponent: any = SazOnboardingCoach;
-
 
    interface WorkspaceProps {
      user: UserData;
@@ -99,7 +99,11 @@
   let openTabs: FileTab[] = [];
   let activeTabId: string = "";
   type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
-  type WorkspaceTask = TestableTask & { boardStatus?: BoardTaskStatus };
+  type WorkspaceTask = TestableTask & {
+    boardStatus?: BoardTaskStatus;
+    learningSections?: ILearningSection[];
+    userStory?: string;
+  };
   let tasks: WorkspaceTask[] = [];
   let timeRemaining: number = 4 * 60 * 60;
   let isRunning: boolean = false;
@@ -181,24 +185,15 @@
 
   $: operatorAlias = data.user?.username || data.user?.name || "Operator";
   $: workspaceProjectName = workspaceScenario?.name || title || "DevSim Workspace";
+  $: cameFromTutorial = page.url.searchParams.get("fromTutorial") === "1";
 
-  // Track onboarding state - initialize from URL
-  let isInOnboarding = page.url.searchParams.get("onboarding") === "1";
+  // Track if this workspace came from first-project guided flow.
+  let hasEverBeenInTutorial = false;
 
-  // Track if we've ever been in onboarding this session
-  let hasEverBeenInOnboarding = isInOnboarding;
-
-  // Update hasEverBeenInOnboarding when we detect onboarding in URL
-  $: {
-    if (page.url.searchParams.get("onboarding") === "1") {
-      hasEverBeenInOnboarding = true;
-    }
-  }
-
-  // Function to call when onboarding completes (called from OnboardingController)
+  // Called when tutorial onboarding + workspace tour completes.
   function handleOnboardingComplete() {
     onboardingTourCompleted = true;
-    // Show level intro card after onboarding completes (only if not already shown)
+
     if (tasks.length > 0 && !levelIntroCardShown) {
       levelIntroCardOpen = true;
       levelIntroCardShown = true;
@@ -208,24 +203,26 @@
   function handleLevelIntroClose() {
     levelIntroCardOpen = false;
     activeTab = 'board';
-
-    const shouldShowSazOnboarding =
-      !sazOnboardingShown &&
-      onboardingTourCompleted &&
-      currentLevel === 1;
-
-    if (shouldShowSazOnboarding) {
-      sazOnboardingOpen = true;
-      sazOnboardingShown = true;
-    }
+    levelIntroDismissed = true;
+    pendingPostTestIntro = false;
   }
 
-  // Show level intro card after tasks load
-  // Only show when NOT in onboarding (onboarding is done or user skipped it)
-  $: if (tasks.length > 0 && !levelIntroCardShown && !isInOnboarding) {
-    // Show level intro card after tasks load (for all users - both those who did onboarding and those who didn't)
+  // Once boot completes, open queued Saz before anything else.
+  $: if (!isBooting && pendingSazOpen) {
+    pendingSazOpen = false;
+    sazOnboardingOpen = true;
+  }
+
+  // Show level intro card after boot completes and Saz (if any) is dismissed.
+  $: if (
+    tasks.length > 0 &&
+    !levelIntroCardShown &&
+    !isBooting &&
+    !sazOnboardingOpen &&
+    !pendingSazOpen
+  ) {
     setTimeout(() => {
-      if (!levelIntroCardShown) {
+      if (!levelIntroCardShown && !sazOnboardingOpen && !pendingSazOpen) {
         levelIntroCardOpen = true;
         levelIntroCardShown = true;
       }
@@ -250,6 +247,24 @@
   let onboardingTourCompleted: boolean = false;
   let sazOnboardingOpen: boolean = false;
   let sazOnboardingShown: boolean = false;
+  let pendingSazOpen: boolean = false;
+  let crashCourseOpen: boolean = false;
+  let levelIntroDismissed: boolean = false;
+  let activeCrashCourseTaskId: string = "";
+  let crashCourseSeenByTask: Record<string, boolean> = {};
+  let crashCourseCompletedByTask: Record<string, boolean> = {};
+  let crashCourseCompletePromptOpen: boolean = false;
+  let crashCourseClosePromptOpen: boolean = false;
+  let crashCourseCloseDonePromptOpen: boolean = false;
+  let crashCoursePromptTaskNumber: number = 1;
+  let crashCoursePromptTaskId: string = "";
+  let crashCourseStorageLoadedKey: string = "";
+
+  // // Call this after tasks are loaded
+  // $: if (tasks.length > 0 && !isInOnboarding) {
+  //   // Small delay to let user settle in
+  //   setTimeout(maybeShowTrivia, 3000);
+  // }
 
   // Trivia modal state
   let triviaModalOpen: boolean = false;
@@ -286,12 +301,6 @@
     if (triviaShownThisSession) return;
     triviaModalOpen = true;
     triviaShownThisSession = true;
-  }
-
-  // Call this after tasks are loaded
-  $: if (tasks.length > 0 && !isInOnboarding) {
-    // Small delay to let user settle in
-    setTimeout(maybeShowTrivia, 3000);
   }
 
   const TRIVIA_COIN_REWARD = 5;
@@ -349,6 +358,10 @@
   ];
 
   let testRegressionModalOpen: boolean = false;
+  let testResultModalOpen: boolean = false;
+  let pendingPostTestIntro: boolean = false;
+  let postTestCompletedTaskOrder: number | null = null;
+  let postTestNextTaskOrder: number | null = null;
   let regressionTaskName: string = "";
   let regressionTaskId: string = "";
   let pendingRegressionUpdates: Array<{
@@ -490,6 +503,14 @@
     return `workspace-task-progress:${getStableProgressContainerId()}:l${levelNumber}`;
   }
 
+  function getCrashCourseStorageKey(levelNumber: number): string {
+    return `workspace-crashcourse-seen:${getStableProgressContainerId()}:l${levelNumber}`;
+  }
+
+  function getCrashCourseCompletedStorageKey(levelNumber: number): string {
+    return `workspace-crashcourse-completed:${getStableProgressContainerId()}:l${levelNumber}`;
+  }
+
   function loadTaskProgress(
     levelNumber: number,
   ): Record<string, PersistedTaskState> {
@@ -527,6 +548,161 @@
     );
   }
 
+  function loadCrashCourseSeenState(levelNumber: number): Record<string, boolean> {
+    if (!browser || !getStableProgressContainerId()) return {};
+    try {
+      const raw = localStorage.getItem(getCrashCourseStorageKey(levelNumber));
+      return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+    } catch (error) {
+      console.warn("Failed to load crash course state:", error);
+      return {};
+    }
+  }
+
+  function persistCrashCourseSeenState(levelNumber: number) {
+    if (!browser || !getStableProgressContainerId()) return;
+    localStorage.setItem(
+      getCrashCourseStorageKey(levelNumber),
+      JSON.stringify(crashCourseSeenByTask),
+    );
+  }
+
+  function loadCrashCourseCompletedState(levelNumber: number): Record<string, boolean> {
+    if (!browser || !getStableProgressContainerId()) return {};
+    try {
+      const raw = localStorage.getItem(getCrashCourseCompletedStorageKey(levelNumber));
+      return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+    } catch (error) {
+      console.warn("Failed to load crash course completion state:", error);
+      return {};
+    }
+  }
+
+  function persistCrashCourseCompletedState(levelNumber: number) {
+    if (!browser || !getStableProgressContainerId()) return;
+    localStorage.setItem(
+      getCrashCourseCompletedStorageKey(levelNumber),
+      JSON.stringify(crashCourseCompletedByTask),
+    );
+  }
+
+  function getNextCrashCourseTask() {
+    return [...tasks]
+      .sort((a, b) => a.order - b.order)
+      .find(
+        (task) =>
+          (task.learningSections?.length ?? 0) > 0 &&
+          task.boardStatus !== "done",
+      );
+  }
+
+  function getManualCrashCourseTask() {
+    const crashCourseTasks = [...tasks]
+      .sort((a, b) => a.order - b.order)
+      .filter((task) => (task.learningSections?.length ?? 0) > 0);
+
+    // Manual open should allow reviewing finished crash courses first.
+    const completedTask = [...crashCourseTasks]
+      .reverse()
+      .find((task) => crashCourseCompletedByTask[task.id]);
+    if (completedTask) return completedTask;
+
+    const nextTask = getNextCrashCourseTask();
+    if (nextTask) return nextTask;
+
+    return crashCourseTasks[0];
+  }
+
+  function openCrashCourseForTask(taskId: string) {
+    activeCrashCourseTaskId = taskId;
+    crashCourseOpen = true;
+  }
+
+  function markCrashCourseSeen(taskId: string) {
+    if (!taskId) return;
+    crashCourseSeenByTask = {
+      ...crashCourseSeenByTask,
+      [taskId]: true,
+    };
+    persistCrashCourseSeenState(currentLevel);
+  }
+
+  function showCrashCourseMoveTaskMessage(taskId: string, mode: "completed" | "closed" | "closed-done") {
+    const task = tasks.find((candidate) => candidate.id === taskId);
+    crashCoursePromptTaskNumber = task?.order ?? 1;
+    crashCoursePromptTaskId = taskId;
+    crashCourseCompletePromptOpen = mode === "completed";
+    crashCourseClosePromptOpen = mode === "closed";
+    crashCourseCloseDonePromptOpen = mode === "closed-done";
+  }
+
+  function handleCrashCoursePromptConfirm() {
+    crashCourseCompletePromptOpen = false;
+    crashCourseClosePromptOpen = false;
+    crashCourseCloseDonePromptOpen = false;
+    crashCoursePromptTaskId = "";
+  }
+
+  function handleCrashCoursePromptBack() {
+    if (!crashCoursePromptTaskId) {
+      crashCourseCompletePromptOpen = false;
+      crashCourseClosePromptOpen = false;
+      crashCourseCloseDonePromptOpen = false;
+      return;
+    }
+
+    activeCrashCourseTaskId = crashCoursePromptTaskId;
+    crashCourseOpen = true;
+    crashCourseCompletePromptOpen = false;
+    crashCourseClosePromptOpen = false;
+    crashCourseCloseDonePromptOpen = false;
+  }
+
+  $: hasCompletedCrashCourse = Object.values(crashCourseCompletedByTask).some(Boolean);
+
+  $: effectiveLevelIntroDescription = pendingPostTestIntro && postTestCompletedTaskOrder && postTestNextTaskOrder
+    ? `Task ${postTestCompletedTaskOrder} is now completed. You can now proceed to Task ${postTestNextTaskOrder}. Review the updated objectives, then continue implementation.`
+    : (actualLevelConfig?.scenario ?? '');
+
+  $: {
+    const stableContainerId = getStableProgressContainerId();
+    if (browser && stableContainerId) {
+      const key = getCrashCourseStorageKey(currentLevel);
+      if (key !== crashCourseStorageLoadedKey) {
+        crashCourseStorageLoadedKey = key;
+        crashCourseSeenByTask = loadCrashCourseSeenState(currentLevel);
+        crashCourseCompletedByTask = loadCrashCourseCompletedState(currentLevel);
+        crashCourseOpen = false;
+        activeCrashCourseTaskId = "";
+        levelIntroDismissed = false;
+        pendingPostTestIntro = false;
+        postTestCompletedTaskOrder = null;
+        postTestNextTaskOrder = null;
+      }
+    }
+  }
+
+  $: if (
+    levelIntroDismissed &&
+    !crashCourseOpen &&
+    !levelIntroCardOpen &&
+    tasks.length > 0 &&
+    !testResultModalOpen &&
+    !testRegressionModalOpen &&
+    !pendingPostTestIntro &&
+    !crashCourseCompletePromptOpen &&
+    !crashCourseClosePromptOpen &&
+    !crashCourseCloseDonePromptOpen
+  ) {
+    const nextTask = getNextCrashCourseTask();
+    if (
+      nextTask &&
+      !crashCourseSeenByTask[nextTask.id]
+    ) {
+      openCrashCourseForTask(nextTask.id);
+    }
+  }
+
   function getTaskNumber(task: ITask, index: number): number {
     if (typeof task.order === "number" && task.order > 0) return task.order;
 
@@ -544,6 +720,17 @@
 
     initWorkspace();
     loadTriviaStats();
+
+    // Queue Saz to show once boot finishes (tutorial or first workspace creation).
+    if (browser && cameFromTutorial) {
+      const sazKey = `workspace-saz-shown:${containerId}`;
+      const hasShownSaz = localStorage.getItem(sazKey) === "1";
+      if (!hasShownSaz) {
+        pendingSazOpen = true;
+        sazOnboardingShown = true;
+        localStorage.setItem(sazKey, "1");
+      }
+    }
 
     return () => {
       clearInterval(timer);
@@ -794,9 +981,25 @@
     isRunning = false;
   }
 
-   function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
-     tasks = tasks.map((task) => {
-       if (task.id !== taskId) return task;
+  function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
+    if (status === "in-progress" || status === "in-review" || status === "done") {
+      const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
+      const targetIndex = orderedTasks.findIndex((task) => task.id === taskId);
+
+      if (targetIndex > 0) {
+        const blockingTask = orderedTasks
+          .slice(0, targetIndex)
+          .find((task) => task.boardStatus !== "done");
+
+        if (blockingTask) {
+          toast.warn(`Finish Task ${blockingTask.order} first before moving to the next task.`);
+          return;
+        }
+      }
+    }
+
+    tasks = tasks.map((task) => {
+      if (task.id !== taskId) return task;
 
        const nextIsCompleted = status === "done";
        const nextTestStatus =
@@ -817,14 +1020,81 @@
        };
      });
 
-     persistTaskProgress();
-   }
+    persistTaskProgress();
+  }
+
+  function openBoardKanbanView() {
+    activeTab = "board";
+    if (!browser) return;
+
+    requestAnimationFrame(() => {
+      window.dispatchEvent(
+        new CustomEvent("devsim-tour-board-subtab", { detail: { subTab: "board" } }),
+      );
+    });
+  }
+
+  function handleCrashCourseClose() {
+    const closedTaskId = activeCrashCourseTaskId;
+    markCrashCourseSeen(closedTaskId);
+    crashCourseOpen = false;
+    activeCrashCourseTaskId = "";
+    openBoardKanbanView();
+    if (closedTaskId && crashCourseCompletedByTask[closedTaskId]) {
+      showCrashCourseMoveTaskMessage(closedTaskId, "closed-done");
+      return;
+    }
+
+    showCrashCourseMoveTaskMessage(closedTaskId, "closed");
+  }
+
+  function handleCrashCourseComplete() {
+    const completedTaskId = activeCrashCourseTaskId;
+
+    if (completedTaskId && crashCourseCompletedByTask[completedTaskId]) {
+      crashCourseOpen = false;
+      activeCrashCourseTaskId = "";
+      openBoardKanbanView();
+      return;
+    }
+
+    markCrashCourseSeen(completedTaskId);
+    if (completedTaskId) {
+      crashCourseCompletedByTask = {
+        ...crashCourseCompletedByTask,
+        [completedTaskId]: true,
+      };
+      persistCrashCourseCompletedState(currentLevel);
+    }
+    crashCourseOpen = false;
+    activeCrashCourseTaskId = "";
+    openBoardKanbanView();
+    showCrashCourseMoveTaskMessage(completedTaskId, "completed");
+  }
 
   function handleTestsComplete(
     event: CustomEvent<{ success: boolean; result: TestRunResult }>,
   ) {
+    testResultModalOpen = true;
+    const previousTasks = tasks.map((task) => ({
+      id: task.id,
+      order: task.order,
+      isCompleted: task.isCompleted,
+    }));
+
     const { result } = event.detail;
     if (!result || !result.taskResults) return;
+
+    const orderLockedTaskIds = new Set<string>();
+    const orderedSnapshot = [...tasks].sort((a, b) => a.order - b.order);
+    for (let i = 0; i < orderedSnapshot.length; i += 1) {
+      const hasIncompletePrevious = orderedSnapshot
+        .slice(0, i)
+        .some((task) => task.boardStatus !== "done");
+      if (hasIncompletePrevious) {
+        orderLockedTaskIds.add(orderedSnapshot[i].id);
+      }
+    }
 
     const byTaskId = new Map(
       result.taskResults.map((taskResult) => [taskResult.taskId, taskResult]),
@@ -835,6 +1105,7 @@
       taskName: string;
       previousStatus: BoardTaskStatus;
     }> = [];
+    const skippedByOrder: string[] = [];
 
      tasks = tasks.map((task, index) => {
        const directResult = byTaskId.get(task.id);
@@ -844,15 +1115,24 @@
 
        if (!taskResult) return task;
 
-       if (taskResult.passed) {
-         return {
-           ...task,
-           boardStatus: "done",
-           isCompleted: true,
-           is_complete: true,
-           testStatus: "passed",
-         };
-       }
+      if (taskResult.passed) {
+        if (orderLockedTaskIds.has(task.id)) {
+          skippedByOrder.push(task.taskName);
+          return {
+            ...task,
+            boardStatus: task.boardStatus ?? "backlog",
+            isCompleted: false,
+            testStatus: "pending",
+          };
+        }
+
+        return {
+          ...task,
+          boardStatus: "done",
+          isCompleted: true,
+          testStatus: "passed",
+        };
+      }
 
        if (task.boardStatus === "done" && !canManuallyMoveToDone) {
          regressions.push({
@@ -877,9 +1157,39 @@
 
     persistTaskProgress();
 
+    if (skippedByOrder.length > 0) {
+      toast.warn("Complete earlier tasks first before marking later tasks as done.");
+    }
+
     if (regressions.length > 0) {
       pendingRegressionUpdates = regressions;
       showNextRegressionModal();
+    }
+
+    const newlyCompletedOrders = tasks
+      .filter((task) => {
+        const prev = previousTasks.find((entry) => entry.id === task.id);
+        return task.isCompleted && !prev?.isCompleted;
+      })
+      .map((task) => task.order)
+      .sort((a, b) => a - b);
+
+    const nextTask = getNextCrashCourseTask();
+    if (newlyCompletedOrders.length > 0 && nextTask) {
+      pendingPostTestIntro = true;
+      postTestCompletedTaskOrder = newlyCompletedOrders[newlyCompletedOrders.length - 1];
+      postTestNextTaskOrder = nextTask.order;
+      levelIntroDismissed = false;
+    }
+  }
+
+  function handleTestResultModalClosed() {
+    testResultModalOpen = false;
+
+    if (pendingPostTestIntro) {
+      levelIntroCardOpen = true;
+      levelIntroCardShown = true;
+      activeTab = 'board';
     }
   }
 
@@ -1040,6 +1350,7 @@
       currentLevel = targetLevel;
       levelIntroCardOpen = false;
       levelIntroCardShown = false;
+      levelIntroDismissed = false;
 
       localStorage.setItem('showTaskIntroCard', 'true');
       
@@ -1048,9 +1359,6 @@
         replaceState: true,
         noScroll: true,
       });
-
-      // Keep local level in sync even if navigation data resolves slightly later.
-      currentLevel = (data.level || targetLevel);
     }
   }
 
@@ -1297,6 +1605,7 @@
         tasks={tasks as TestableTask[]}
         disabled={isBooting}
         on:testsComplete={handleTestsComplete}
+        on:resultModalClosed={handleTestResultModalClosed}
       />
     </svelte:fragment>
   </WorkspaceHeader>
@@ -1323,7 +1632,17 @@
     <div class="flex-1 flex flex-col min-w-0" data-tour="editor-workspace">
       <!-- Tab Bar -->
       <div data-tour="workspace-tabs">
-        <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
+        <WorkspaceTabs
+          {activeTab}
+          onTabChange={handleTabChange}
+          showCrashCourseButton={tasks.some((task) => (task.learningSections?.length ?? 0) > 0)}
+          crashCourseCompleted={hasCompletedCrashCourse}
+          onOpenCrashCourse={() => {
+            const manualTask = getManualCrashCourseTask();
+            if (!manualTask) return;
+            openCrashCourseForTask(manualTask.id);
+          }}
+        />
       </div>
 
       <!-- Content Area -->
@@ -1436,6 +1755,48 @@
   on:answered={handleTriviaAnswer}
 />
 
+<ConfirmationModal
+  bind:open={crashCourseCompletePromptOpen}
+  icon="🎯"
+  iconVariant="accent"
+  title="Crash Course Complete"
+  subtitle={`Task ${crashCoursePromptTaskNumber} is ready`}
+  description={`You finished the crash course for Task ${crashCoursePromptTaskNumber}. Move this ticket to in progress when you're ready.`}
+  confirmLabel="Got it"
+  cancelLabel="Back"
+  variant="primary"
+  on:confirm={handleCrashCoursePromptConfirm}
+  on:cancel={handleCrashCoursePromptBack}
+/>
+
+<ConfirmationModal
+  bind:open={crashCourseClosePromptOpen}
+  icon="🛑"
+  iconVariant="warning"
+  title="Crash Course Closed"
+  subtitle={`Task ${crashCoursePromptTaskNumber} crash course was closed`}
+  description={`You closed the crash course before marking it as finished. You can return now or open it again later from the tab button.`}
+  confirmLabel="Got it"
+  cancelLabel="Back to Crash Course"
+  variant="warning"
+  on:confirm={handleCrashCoursePromptConfirm}
+  on:cancel={handleCrashCoursePromptBack}
+/>
+
+<ConfirmationModal
+  bind:open={crashCourseCloseDonePromptOpen}
+  icon="✅"
+  iconVariant="success"
+  title="Crash Course Already Completed"
+  subtitle={`Task ${crashCoursePromptTaskNumber} crash course is already marked done`}
+  description={`You have already finished this crash course. You can continue to the task board or go back to review the crash course again.`}
+  confirmLabel="Got it"
+  cancelLabel="Back to Crash Course"
+  variant="primary"
+  on:confirm={handleCrashCoursePromptConfirm}
+  on:cancel={handleCrashCoursePromptBack}
+/>
+
 
 <!-- Floating AI Help -->
 <div class="fixed inset-0 z-50 pointer-events-none">
@@ -1455,32 +1816,35 @@
   </div>
 </div>
 
-<!-- Onboarding -->
-{#if !isBooting && isInOnboarding}
-  <OnboardingController
-    {stack}
-    {title}
-    scenario={actualLevelConfig.scenario}
-    {level}
-    onSwitchTab={(tab) =>
-      handleTabChange(tab as "editor" | "terminal" | "preview" | "board")}
-    onComplete={handleOnboardingComplete}
-  />
-{/if}
-
 <!-- Level Intro Card -->
 <LevelIntroCard
   levelTitle={title}
   levelNumber={currentLevel}
   isOpen={levelIntroCardOpen}
-  levelDescription={actualLevelConfig?.scenario ?? ''}
-  tasks={tasks.map(t => ({ id: t.id, text: t.task_name, completed: t.is_complete }))}
+  levelDescription={effectiveLevelIntroDescription}
+  tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
   levelConfig={{
-    isFirstProjectCreation: hasEverBeenInOnboarding,
+    isFirstProjectCreation: hasEverBeenInTutorial,
     operatorAlias,
     projectName: workspaceProjectName
   }}
   onClose={handleLevelIntroClose}
+/>
+
+<LearningContent
+  open={crashCourseOpen}
+  isCompleted={Boolean(activeCrashCourseTaskId && crashCourseCompletedByTask[activeCrashCourseTaskId])}
+  {containerId}
+  tasks={tasks
+    .filter((task) => task.id === activeCrashCourseTaskId)
+    .map((task) => ({
+      id: task.id,
+      taskName: task.taskName,
+      order: task.order,
+      learningSections: task.learningSections ?? [],
+    }))}
+  onClose={handleCrashCourseClose}
+  onComplete={handleCrashCourseComplete}
 />
 
 <svelte:component

@@ -80,6 +80,7 @@
 
 {#if open}
   <div
+    data-tour="test-result-modal"
     class="result-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-4 backdrop-blur-[6px]"
     role="dialog"
     aria-modal="true"
@@ -273,8 +274,10 @@
       <!-- Footer -->
       <div class="flex justify-end gap-3 border-t border-[rgba(7,165,201,0.1)] bg-[rgba(7,165,201,0.02)] px-6 py-4">
         <button
+          data-tour="test-result-continue-button"
           class="btn-cyber cursor-pointer border border-[rgba(136,146,160,0.3)] bg-transparent !px-[1.125rem] !py-[0.625rem] [font-family:var(--font-heading)] !text-[0.6875rem] font-semibold text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(136,146,160,0.5)] hover:bg-[rgba(136,146,160,0.08)] hover:text-[var(--text-primary)]"
           on:click={() => close('footer')}
+          disabled={loading}
         >
           {allPassed ? 'Close' : 'Continue Working'}
         </button>

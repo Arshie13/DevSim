@@ -1,34 +1,43 @@
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import prisma from '$lib/server/client';
+import { getProfileMetrics, getRivals } from '$lib/server/stats';
+import { getTopAchievements } from '$lib/server/achievements/snapshots';
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
 
-  if (!session?.user) {
+  const userSession = session?.user;
+
+  if (!userSession || !userSession.id) {
     throw redirect(303, '/');
   }
 
-  // Always fetch the latest user data from the DB so changes are
-  // immediately reflected without requiring a re-login.
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { image: true, coins: true, xp: true, level: true, owned_avatars: true, has_completed_onboarding: true, username: true },
-  });
+  const [dbUser, metrics, rivals, topAchievements] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userSession.id },
+      select: { image: true, coins: true, xp: true, level: true, owned_avatars: true, hasCompletedTutorial: true, username: true },
+    }),
+    getProfileMetrics(userSession.id),
+    getRivals(userSession.id, 6),
+    getTopAchievements(userSession.id, 3),
+  ]);
 
   return {
     user: {
       ...session.user,
-      // Override session values with live DB values
-      image: dbUser?.image ?? session.user.image,
+      image: dbUser?.image ?? userSession.image,
       username: dbUser?.username,
       coins: dbUser?.coins ?? 0,
       xp: dbUser?.xp ?? 0,
       level: dbUser?.level ?? 1,
       ownedAvatars: dbUser?.owned_avatars ?? [],
-      hasCompletedOnboarding: dbUser?.has_completed_onboarding ?? false,
+      hasCompletedTutorial: dbUser?.hasCompletedTutorial ?? false,
     },
     userCoins: dbUser?.coins ?? 0,
     ownedAvatars: dbUser?.owned_avatars ?? [],
+    metrics,
+    rivals,
+    topAchievements,
   };
 };

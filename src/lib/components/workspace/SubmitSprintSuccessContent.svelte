@@ -76,7 +76,7 @@
     <div class="rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.7)] px-3 py-3">
       <div class="flex flex-wrap justify-center gap-3">
         {#if advancingToNextLevel}
-          <button on:click={handleContinueWorking}
+          <button data-tour="finish-tutorial-continue-button" on:click={handleContinueWorking}
             class="btn-cyber fade-up cursor-pointer border border-[rgba(0,229,160,0.55)] bg-[rgba(0,229,160,0.12)] !px-5 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] text-[var(--success)] shadow-[0_0_16px_rgba(0,229,160,0.25)] transition-all duration-200 hover:-translate-y-[1px] hover:border-[rgba(0,229,160,0.8)] hover:bg-[rgba(0,229,160,0.2)]">
             Continue Working →
           </button>

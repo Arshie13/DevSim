@@ -111,12 +111,12 @@ export const load: PageServerLoad = async (event) => {
 
 	const dbUser = await prisma.user.findUnique({
 		where: { id: session.user.id },
-		select: { coins: true, image: true, has_completed_onboarding: true }
+		select: { coins: true, image: true, hasCompletedTutorial: true }
 	});
 
 	const user = { ...session.user, image: dbUser?.image ?? session.user.image };
 	const userCoins = dbUser?.coins ?? 0;
-	const hasCompletedOnboarding = dbUser?.has_completed_onboarding ?? false;
+	const hasCompletedTutorial = dbUser?.hasCompletedTutorial ?? false;
 
 	const stackParam = event.url.searchParams.get('stack') ?? '';
 	const selectionRaw = event.url.searchParams.get('selection') ?? '{}';
@@ -126,9 +126,13 @@ export const load: PageServerLoad = async (event) => {
 		stackName,
 		stackSummary: null as string | null,
 		selection: { frontend: null, backend: null, database: null, services: null } as StackSelection,
+		tutorialState: {
+			isNewUser: true,
+			hasCompletedTutorial: false,
+		},
 		user,
 		userCoins,
-		hasCompletedOnboarding
+		hasCompletedTutorial
 	});
 
 	// Strict validation: alphanumeric + hyphens only (prevents path traversal)
@@ -148,6 +152,11 @@ export const load: PageServerLoad = async (event) => {
 	} catch {
 		/* ignore malformed JSON */
 	}
+
+	const tutorialState = {
+		isNewUser: !hasCompletedTutorial,
+		hasCompletedTutorial,
+	};
 
 	try {
 		await fs.access(stackDir);
@@ -267,5 +276,14 @@ export const load: PageServerLoad = async (event) => {
 		/* summary.md is optional */
 	}
 
-	return { scenarios, stackName: stackParam, stackSummary, selection, user, userCoins, hasCompletedOnboarding };
+	return {
+		scenarios,
+		stackName: stackParam,
+		stackSummary,
+		selection,
+		tutorialState,
+		user,
+		userCoins,
+		hasCompletedTutorial
+	};
 };
