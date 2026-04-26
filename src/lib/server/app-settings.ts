@@ -57,7 +57,7 @@ export async function setAppSetting(key: string, value: SettingValue): Promise<v
 
   await prisma.app_setting.upsert({
     where: { key },
-    update: { value: stringValue, type, updatedAt: new Date() },
+    update: { value: stringValue, type, updated_at: new Date() },
     create: { key, value: stringValue, type }
   });
 }

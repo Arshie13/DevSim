@@ -30,11 +30,11 @@ export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
 
   const [recentTasks, priorCount] = await Promise.all([
     prisma.completed_task.findMany({
-      where: { workspace: { user_id: userId }, completedAt: { gte: sevenDaysAgo } },
-      select: { completedAt: true },
+      where: { workspace: { user_id: userId }, completed_at: { gte: sevenDaysAgo } },
+      select: { completed_at: true },
     }),
     prisma.completed_task.count({
-      where: { workspace: { user_id: userId }, completedAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
+      where: { workspace: { user_id: userId }, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
     }),
   ]);
 
@@ -47,8 +47,8 @@ export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
     days.push(d.toLocaleDateString("en-US", { weekday: "short" }));
   }
 
-  for (const { completedAt } of recentTasks) {
-    const daysAgo = Math.floor((now.getTime() - completedAt.getTime()) / (24 * 60 * 60 * 1000));
+  for (const { completed_at } of recentTasks) {
+    const daysAgo = Math.floor((now.getTime() - completed_at.getTime()) / (24 * 60 * 60 * 1000));
     const idx = 6 - daysAgo;
     if (idx >= 0 && idx < 7) counts[idx]++;
   }
@@ -86,8 +86,8 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
     getAchievementsForUser(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true, coins: true, createdAt: true } }),
     prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
-    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completedAt: { gte: sevenDaysAgo } } }),
-    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completedAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completed_at: { gte: sevenDaysAgo } } }),
+    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
   ]);
 
   const achievementsCount = allAchievements.filter((a) =>

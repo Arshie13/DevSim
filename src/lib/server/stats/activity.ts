@@ -7,7 +7,7 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
     prisma.completed_task.findMany({
       where: { workspace: { user_id: userId } },
       include: { workspace: { select: { level: true } } },
-      orderBy: { completedAt: "desc" },
+      orderBy: { completed_at: "desc" },
       take: limit,
     }),
     prisma.user_achievement.findMany({
@@ -23,7 +23,7 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
     type: "challenge" as const,
     title: t.task_name,
     description: `Task completed in Level ${t.workspace.level}`,
-    timestamp: formatRelativeTime(t.completedAt),
+    timestamp: formatRelativeTime(t.completed_at),
     icon: "🐛",
   }));
 

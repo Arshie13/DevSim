@@ -7,6 +7,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 enum LearningSectionType {
   PLAIN_TEXT
   INTERACTIVE
@@ -64,8 +69,8 @@ model workspace {
   // Current progress tracking
   current_scenario_id String
 
-  startedAt DateTime  @default(now())
-  stoppedAt DateTime?
+  started_at DateTime  @default(now())
+  stopped_at DateTime?
 
   // Archive fields — used when workspace is saved to a Docker volume before workspace deletion
   volume_name String?
@@ -75,8 +80,8 @@ model workspace {
   user     user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   scenario scenario @relation(fields: [current_scenario_id], references: [id])
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
   file_changes     user_file_changes[]
   completed_tasks  completed_task[]
   workspace_stacks workspace_stack[]
@@ -152,25 +157,25 @@ model level_task {
   level              level                @relation(fields: [level_id], references: [id], onDelete: Cascade)
   acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
   hints              hint[]               @relation("TaskHints")
-  learningSections   LearningSection[]
+  learning_sections   learning_section[]
 
   @@unique([level_id, task_name])
   @@index([level_id])
 }
 
-model LearningSection {
+model learning_section {
   id                String                   @id @default(cuid())
-  taskId            String
+  task_id            String
   title             String
   content           String
   order             Int                      @default(0)
-  sectionType       LearningSectionType      @default(PLAIN_TEXT)
-  interactiveMode   LearningInteractiveMode?
-  interactiveConfig Json?
+  section_type       LearningSectionType      @default(PLAIN_TEXT)
+  interactive_mode   LearningInteractiveMode?
+  interactive_config Json?
 
-  task level_task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade)
 
-  @@index([taskId])
+  @@index([task_id])
 }
 
 // Acceptance criteria for tasks
@@ -225,8 +230,8 @@ model achievement {
   xp_reward   Int @default(100)
   coin_reward Int @default(50)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   user_achievements user_achievement[]
   tiers            achievement_tier[]
@@ -297,7 +302,7 @@ model completed_task {
   id          String   @id @default(cuid())
   workspace_id String
   task_name    String
-  completedAt DateTime @default(now())
+  completed_at DateTime @default(now())
 
   workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
@@ -309,17 +314,12 @@ model completed_task {
 model workspace_stack {
   id           String  @id @default(cuid())
   workspace_id  String
-  stackName    String
-  stackVersion String?
+  stack_name    String
+  stack_version String?
 
   workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@index([workspace_id])
-}
-
-enum UserRole {
-  USER
-  ADMIN
 }
 
 model app_setting {
@@ -328,6 +328,6 @@ model app_setting {
   value String
   type  String @default("boolean") // "boolean", "string", "number", "json"
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }

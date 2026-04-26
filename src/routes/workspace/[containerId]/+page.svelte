@@ -19,8 +19,6 @@
   import AiHelp from "$lib/components/aiHelp/AiHelp.svelte";
   import BoardPanel from "$lib/components/workspace/BoardPanel.svelte";
   import TestCase from "$lib/components/workspace/TestCase.svelte";
-
-  import OnboardingController from "$lib/components/onboarding/OnboardingController.svelte";
   import SazOnboardingCoach from "$lib/components/onboarding/SazOnboardingCoach.svelte";
   import LevelIntroCard from "$lib/components/workspace/LevelIntroCard.svelte";
   import LearningContent from "$lib/components/workspace/crashcourse/LearningContent.svelte";
@@ -71,7 +69,7 @@
   }
 
   $: workspaceScenario = data.container?.scenario ?? null;
-  $: stackNames = data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean) ?? [];
+  $: stackNames = data.container?.containerStacks?.map((entry) => entry.stack_name).filter(Boolean) ?? [];
   $: currentLevelRecord = getLevelByOrder(workspaceScenario, currentLevel);
   $: title = currentLevelRecord?.title ?? LEVEL_CONFIG.title;
   $: stack = stackNames.length > 0 ? stackNames.join(" + ") : (workspaceScenario?.name ?? LEVEL_CONFIG.stack);
@@ -152,7 +150,6 @@
        return {
          ...task,
          // Override is_complete with actual completion status (persisted or DB)
-         is_complete: isCompleted,
          isCompleted,
          boardStatus,
          testStatus,
@@ -1822,7 +1819,7 @@
   levelNumber={currentLevel}
   isOpen={levelIntroCardOpen}
   levelDescription={effectiveLevelIntroDescription}
-  tasks={tasks.map(t => ({ id: t.id, text: t.taskName, completed: t.isCompleted }))}
+  tasks={tasks.map(t => ({ id: t.id, text: t.task_name, completed: t.isCompleted }))}
   levelConfig={{
     isFirstProjectCreation: hasEverBeenInTutorial,
     operatorAlias,

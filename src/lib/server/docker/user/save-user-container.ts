@@ -59,8 +59,8 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
         await prisma.workspace_stack.createMany({
           data: stacks.map(_ => ({
             workspace_id: isExisting.id,
-            stackName: stackName,
-            stackVersion: '1.0.0'
+            stack_name: stackName,
+            stack_version: '1.0.0'
           }))
         });
       }
@@ -77,8 +77,8 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
         status: data.status,
         workspace_stacks: {
           create: stacks.map(_ => ({
-            stackName,
-            stackVersion: '1.0.0'
+            stack_name: stackName,
+            stack_version: '1.0.0'
           }))
         }
       },

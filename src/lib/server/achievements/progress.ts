@@ -29,7 +29,7 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
     prisma.workspace.findMany({
       where: { user_id: userId, is_archived: true },
       include: {
-        workspace_stacks: { select: { stackName: true } },
+        workspace_stacks: { select: { stack_name: true } },
       }
     }),
   ]);
@@ -37,7 +37,7 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
   const stackCounts = new Map<string, number>();
   for (const c of archivedContainers) {
     for (const s of c.workspace_stacks) {
-      stackCounts.set(s.stackName, (stackCounts.get(s.stackName) ?? 0) + 1);
+      stackCounts.set(s.stack_name, (stackCounts.get(s.stack_name) ?? 0) + 1);
     }
   }
 

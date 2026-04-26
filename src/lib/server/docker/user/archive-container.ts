@@ -40,7 +40,7 @@ export async function archiveContainer(
 	const containerStacks = await prisma.workspace_stack.findMany({
 		where: { workspace_id: record.id }
 	});
-	const stackNames = containerStacks.map(s => s.stackName);
+	const stackNames = containerStacks.map(s => s.stack_name);
 	const stackSlug = stackNames.join('-').toLowerCase().replace(/\s+/g, '-');
 	const randomSuffix = crypto.randomBytes(4).toString('hex'); // 8 chars for uniqueness
 	const volumeName = `devsim-${record.user_id}-${stackSlug}-${randomSuffix}`;
@@ -99,7 +99,7 @@ export async function archiveContainer(
 		data: {
 			volume_name: volumeName,
 			is_archived: true,
-			stoppedAt: new Date()
+			stopped_at: new Date()
 		}
 	});
 

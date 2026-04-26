@@ -173,6 +173,7 @@
     alt="Scenario preview"
     initialIndex={previewInitialIndex}
     showInline={false}
+    isOpen={previewOpen}
   />
 </div>
 

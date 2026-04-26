@@ -28,23 +28,23 @@
   export let showInline: boolean = false;
 
   export let isOpen: boolean;
-  export let openModal: () => void;
-  export let closeModal: () => void;
+  // export let openModal: () => void;
+  // export let closeModal: () => void;
 
   const dispatch = createEventDispatcher<{ open: void; close: void }>();
 
   let currentIndex = initialIndex;
 
-  // function openModal() {
-  //   currentIndex = initialIndex;
-  //   isOpen = true;
-  //   dispatch('open');
-  // }
+  function openModal() {
+    currentIndex = initialIndex;
+    isOpen = true;
+    dispatch('open');
+  }
 
-  // function closeModal() {
-  //   open = false;
-  //   dispatch('close');
-  // }
+  function closeModal() {
+    isOpen = false;
+    dispatch('close');
+  }
 
   function next(e?: Event) {
     e?.stopPropagation();

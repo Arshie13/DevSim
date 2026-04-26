@@ -177,7 +177,7 @@ export class WorkspaceService {
     const stacks = await this.workspace.findWorkspaceStacks(record.id);
 
     const stackSlug = stacks
-      .map(s => s.stackName)
+      .map(s => s.stack_name)
       .join('-')
       .toLowerCase()
       .replace(/\s+/g, '-');

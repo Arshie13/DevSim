@@ -33,6 +33,20 @@
   let needsExpand = false;
   let descP: HTMLParagraphElement;
 
+    // Preview image carousel state
+  $: previewImages = scenario.previewImages ?? [];
+  $: epics = scenario.epics ?? [];
+
+    let isModalOpen = false;
+
+  function openModal() {
+    isModalOpen = true;
+  }
+
+  function closeModal() {
+    isModalOpen = false;
+  }
+
   // When the active card or scenario changes, reset and detect clamp
   $: if (isActive && scenario) {
     showMore = false;
@@ -253,7 +267,7 @@
   </button>
 {/if}
 
-<PreviewImages images={previewImages} alt="Project preview" showInline={true} openModal={openModal} closeModal={closeModal} isOpen={isModalOpen} />
+<PreviewImages images={previewImages} alt="Project preview" showInline={true} isOpen={isModalOpen} />
 
 <style>
   /* ── Card base ───────────────────────────────────────────────── */

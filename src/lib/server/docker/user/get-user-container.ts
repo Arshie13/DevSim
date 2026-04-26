@@ -86,7 +86,7 @@ export async function getArchivedContainers(userId: string) {
       is_archived: true,
     },
     orderBy: {
-      updatedAt: 'desc',
+      updated_at: 'desc',
     },
     include: {
       scenario: true,

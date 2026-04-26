@@ -52,7 +52,7 @@ export class WorkspaceDataAccess {
         workspace_stacks: true
       }
     });
-    return row ? mapWorkspace(row as WorkspaceRow & { workspace_stacks: WorkspaceStackRow[] }) : null;
+    return row ? mapWorkspace(row as unknown as WorkspaceRow & { workspace_stacks: WorkspaceStackRow[] }) : null;
   }
 
   async findWorkspaceByContainerId(userId: string, containerId: string) {
@@ -62,7 +62,7 @@ export class WorkspaceDataAccess {
         container_id: containerId
       }
     });
-    return row ? mapWorkspace(row as WorkspaceRow) : null;
+    return row ? mapWorkspace(row as unknown as WorkspaceRow) : null;
   }
 
   async findActiveWorkspaceByStacks(userId: string, level: number, stacks: Array<{ stackName: string }>) {
@@ -79,11 +79,11 @@ export class WorkspaceDataAccess {
 
     const stackNames = stacks.map(s => s.stackName);
     for (const ws of activeWorkspaces) {
-      const existingStackNames = (ws.workspace_stacks || []).map(s => s.stackName);
+      const existingStackNames = (ws.workspace_stacks || []).map(s => s.stack_name);
       const stacksMatch = stackNames.length === existingStackNames.length &&
         stackNames.every(sn => existingStackNames.includes(sn));
       if (stacksMatch) {
-        return mapWorkspace(ws as WorkspaceRow & { workspace_stacks: WorkspaceStackRow[] });
+        return mapWorkspace(ws as unknown as WorkspaceRow & { workspace_stacks: WorkspaceStackRow[] });
       }
     }
     return null;
@@ -107,7 +107,7 @@ export class WorkspaceDataAccess {
       data: {
         volume_name: volumeName,
         is_archived: true,
-        stoppedAt: new Date()
+        stopped_at: new Date()
       }
     });
   }
@@ -129,7 +129,7 @@ export class WorkspaceDataAccess {
         where: { id: workspaceId },
         data: {
           status: 'stopped',
-          stoppedAt: new Date()
+          stopped_at: new Date()
         }
       });
 
@@ -147,7 +147,7 @@ export class WorkspaceDataAccess {
           where: { id: workspaceId },
           data: {
             status,
-            stoppedAt: status === 'completed' ? new Date() : null
+            stopped_at: status === 'completed' ? new Date() : null
           }
         });
       } else {

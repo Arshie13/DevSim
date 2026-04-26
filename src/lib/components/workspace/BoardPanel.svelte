@@ -42,7 +42,7 @@
   function refreshTasks(incoming: BoardTask[]) {
     kanbanTasks = incoming.map((t) => ({
       id: t.id,
-      text: t.taskName,
+      text: t.task_name,
       order: t.order,
       status: getInitialStatus(t),
       taskType: t.test_type,
@@ -220,6 +220,7 @@
   // ── Derived ───────────────────────────────────────────────────────────────
   $: doneCount = kanbanTasks.filter((t) => t.status === 'done').length;
   $: progress = kanbanTasks.length > 0 ? (doneCount / kanbanTasks.length) * 100 : 0;
+
 </script>
 
 <div class="flex flex-col h-full bg-[#0a0e1a] overflow-hidden" data-tour="board-panel">

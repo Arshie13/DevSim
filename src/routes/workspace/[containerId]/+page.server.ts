@@ -39,7 +39,7 @@ export const load: PageServerLoad = async (event) => {
                 include: {
                   hints: true,
                   acceptance_criteria: true,
-                  learningSections: {
+                  learning_sections: {
                     orderBy: { order: "asc" }
                   }
                 }
@@ -59,7 +59,7 @@ export const load: PageServerLoad = async (event) => {
   // id might be wrong
   const completedTaskRecords = await prisma.completed_task.findMany({
     where: { workspace_id: container?.id },
-    select: { task_name: true }
+    select: { id: true, task_name: true }
   });
   const completedTaskNames = completedTaskRecords.map(r => r.task_name);
 
@@ -76,7 +76,7 @@ export const load: PageServerLoad = async (event) => {
           include: {
             hints: true,
             acceptance_criteria: true,
-            learningSections: {
+            learning_sections: {
               orderBy: { order: "asc" }
             }
           }

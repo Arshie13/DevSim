@@ -55,7 +55,7 @@ export async function restoreContainer(
 	const containerStacks = await prisma.workspace_stack.findMany({
 		where: { workspace_id: req.dbContainerId }
 	});
-	const stackNames = containerStacks.map(s => s.stackName);
+	const stackNames = containerStacks.map(s => s.stack_name);
 
 	// We intentionally do NOT bind the volume here. If we mount the volume directly
 	// into the running container, Docker will refuse to delete it (volume in use).
