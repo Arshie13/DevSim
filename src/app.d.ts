@@ -28,6 +28,7 @@ declare module "@auth/sveltekit" {
 			fullName?: string | null;
 			givenName?: string | null;
 			username?: string | null;
+			hasCompletedPretest?: boolean;
 		};
 	}
 }

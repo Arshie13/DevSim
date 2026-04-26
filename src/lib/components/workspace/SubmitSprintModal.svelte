@@ -948,6 +948,7 @@
       {aiScoring}
       {submitRewards}
       {keyTakeaways}
+      {level}
       on:done={handleDone}
       on:continue={handleContinueWorking}
     />
