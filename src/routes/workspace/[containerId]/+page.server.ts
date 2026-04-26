@@ -77,20 +77,27 @@ export const load: PageServerLoad = async (event) => {
       currentLevel = fallbackLevel;
     }
   }
-  
-  const levelTasks = currentLevel?.tasks?.map(t => t.task_name) || [];
+   
+   const levelTasks = currentLevel?.tasks?.map(t => t.task_name) || [];
 
-  return {
-    user: session.user,
-    userId: user?.id || "",
-    userCoins: user?.coins || 0,
-    // The actual Docker container ID — used by the client for all Docker API calls
-    dockerContainerId: container?.container_id ?? null,
-    // Level info for tasks
-    level: container?.level || 1,
-    completedTasks: completedTaskNames,
-    levelTasks: levelTasks,
-    container: container,
-    hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
-  };
-};
+   // Fetch app settings
+   const masterySetting = await prisma.app_setting.findUnique({
+     where: { key: 'mastery_checkpoint_enabled' }
+   });
+   const masteryCheckpointEnabled = masterySetting ? masterySetting.value === 'true' : true;
+
+   return {
+     user: session.user,
+     userId: user?.id || "",
+     userCoins: user?.coins || 0,
+     // The actual Docker container ID — used by the client for all Docker API calls
+     dockerContainerId: container?.container_id ?? null,
+     // Level info for tasks
+     level: container?.level || 1,
+     completedTasks: completedTaskNames,
+     levelTasks: levelTasks,
+     container: container,
+     hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
+     masteryCheckpointEnabled
+   };
+ };

@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { goto } from "$app/navigation";
   import type { ITask } from "$lib/types";
@@ -8,15 +8,18 @@
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
   import KeyTakeawaysModal from "./KeyTakeawaysModal.svelte";
 
-  // -- Props --------------------------------------------------------------------
-  export let dbContainerId: string | null;
-  export let containerId: string; // Docker container ID for file operations
-  export let tasks: ITask[];
-  export let level: number = 1;
-  export let fileContents: Record<string, string> = {};
-  export let existingFiles: string[] = [];
-  export let levelXpReward: number = 0;
-  export let levelCoinReward: number = 0;
+   // -- Props --------------------------------------------------------------------
+   export let dbContainerId: string | null;
+   export let containerId: string; // Docker container ID for file operations
+   export let tasks: ITask[];
+   export let level: number = 1;
+   export let fileContents: Record<string, string> = {};
+   export let existingFiles: string[] = [];
+   export let levelXpReward: number = 0;
+   export let levelCoinReward: number = 0;
+   export let masteryCheckpointEnabled: boolean = true;
+
+   console.log("[SubmitSprintModal] tasks: ", tasks);
 
   // -- State --------------------------------------------------------------------
   type ModalState = "confirm" | "testing" | "loading" | "success" | "error";
@@ -301,39 +304,42 @@
   }
 
   // -- Submit flow --------------------------------------------------------------
-  async function handleConfirm() {
-    if (!dbContainerId) {
-      submitError =
-        "Could not resolve container record. Please refresh and try again.";
-      state = "error";
-      return;
-    }
+   async function handleConfirm() {
+     if (!dbContainerId) {
+       submitError =
+         "Could not resolve container record. Please refresh and try again.";
+       state = "error";
+       return;
+     }
 
-    isSubmitFlowCanceled = false;
-    cancelingSubmit = false;
-    submitAbortController = new AbortController();
-    const signal = submitAbortController.signal;
+     isSubmitFlowCanceled = false;
+     cancelingSubmit = false;
+     submitAbortController = new AbortController();
+     const signal = submitAbortController.signal;
 
-    state = "loading";
-    startSubmitStep(0);
-    submitError = "";
-    testResults = null;
+     state = "loading";
+     startSubmitStep(0);
+     submitError = "";
+     testResults = null;
 
-    try {
-      if (masteryReflection.trim().length < 80) {
-        throw new Error(
-          "Add a clearer technical reflection (at least 80 characters) before submitting.",
-        );
-      }
-      if (impactedLayers.length < expectedLayerCount) {
-        throw new Error(
-          expectedLayerCount > 1
-            ? "This sprint looks multi-layer. Select at least 2 impacted layers."
-            : "Select at least 1 impacted layer before submitting.",
-        );
-      }
+     try {
+       // Mastery checkpoint validation (only if enabled globally)
+       if (masteryCheckpointEnabled) {
+         if (masteryReflection.trim().length < 80) {
+           throw new Error(
+             "Add a clearer technical reflection (at least 80 characters) before submitting.",
+           );
+         }
+         if (impactedLayers.length < expectedLayerCount) {
+           throw new Error(
+             expectedLayerCount > 1
+               ? "This sprint looks multi-layer. Select at least 2 impacted layers."
+               : "Select at least 1 impacted layer before submitting.",
+           );
+         }
+       }
 
-      throwIfSubmissionCanceled();
+       throwIfSubmissionCanceled();
       // Step 0 - Run tests to validate user work
 
       // Always fetch ALL files from the container for complete AI analysis
@@ -595,6 +601,7 @@
           .filter((t) => t.is_complete)
           .map((t) => t.task_name);
         // Call AI scoring endpoint with test results
+
         const scoreRes = await fetch("/api/ai/score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -654,40 +661,34 @@
           done: true,
         };
       }
-      console.log(
-        "AI SCORING: Complete - Stars:",
-        aiScoring.stars,
-        "Score:",
-        aiScoring.score,
-      );
-      masteryTakeaway = aiScoring.masteryPassed
-        ? "Mastery checkpoint passed. Great job explaining your reasoning across the selected stack layers."
-        : `Mastery checkpoint needs revision. ${aiScoring.masteryGaps}`;
+       console.log(
+         "AI SCORING: Complete - Stars:",
+         aiScoring.stars,
+         "Score:",
+         aiScoring.score,
+       );
+       
+       // Mastery checkpoint handling (only if enabled)
+       if (masteryCheckpointEnabled) {
+         masteryTakeaway = aiScoring.masteryPassed
+           ? "Mastery checkpoint passed. Great job explaining your reasoning across the selected stack layers."
+           : `Mastery checkpoint needs revision. ${aiScoring.masteryGaps}`;
 
-      if (!aiScoring.masteryPassed) {
-        submitError =
-          "Mastery checkpoint not met yet.\n\n" +
-          (aiScoring.masteryGaps || "Explain your implementation and cross-stack reasoning with more depth.");
-        state = "error";
-        return;
-      }
+         if (!aiScoring.masteryPassed) {
+           submitError =
+             "Mastery checkpoint not met yet.\n\n" +
+             (aiScoring.masteryGaps || "Explain your implementation and cross-stack reasoning with more depth.");
+           state = "error";
+           return;
+         }
+       } else {
+         // When disabled, provide a generic takeaway
+         masteryTakeaway = "Mastery checkpoint bypassed. Good work!";
+       }
 
-      // Step 1 - Submit completed tasks
-      const completedTasks = tasks.filter((t) => t.is_complete);
-
-      // Check if ALL tasks are completed before allowing submission
-      if (completedTasks.length < tasks.length) {
-        const remainingCount = tasks.length - completedTasks.length;
-        submitError =
-          `You must complete all ${tasks.length} tasks before submitting.
-
-` +
-          `Currently completed: ${completedTasks.length}/${tasks.length}
-` +
-          `Remaining: ${remainingCount} task(s)`;
-        state = "error";
-        return;
-      }
+       // Step 1 - Submit completed tasks
+       // After tests pass, all tasks are considered complete
+       const completedTasks = tasks;
 
       // Submit each completed task one by one
       let allLevelsComplete = false;
@@ -714,7 +715,7 @@
 
         if (!submitRes.ok) {
           throw new Error(
-            submitData.message ?? `Failed to submit task: ${task.task_name}`,
+            submitData.error ?? `Failed to submit task: ${task.task_name}`,
           );
         }
 
@@ -850,7 +851,6 @@
     });
   }
 
-
   // -- Derived props fed into ConfirmationModal ----------------------------------
   $: modalIcon = state === "error" ? "⚠" : state === "loading" ? "" : "⟨/⟩";
   $: iconVariant = (
@@ -905,19 +905,20 @@
   on:cancel={close}
 >
   <!-- Default slot: body changes per state -->
-  {#if state === "confirm"}
-    <SubmitSprintConfirmContent
-      {tasks}
-      {completedCount}
-      {loadingFileChanges}
-      {fileChanges}
-      expectedLayerCount={expectedLayerCount}
-      bind:masteryReflection
-      bind:impactedLayers
-      rewardXp={levelXpReward}
-      rewardCoins={levelCoinReward}
-    />
-  {:else if state === "loading" || state === "testing"}
+   {#if state === "confirm"}
+     <SubmitSprintConfirmContent
+       {tasks}
+       {completedCount}
+       {loadingFileChanges}
+       {fileChanges}
+       expectedLayerCount={expectedLayerCount}
+       bind:masteryReflection
+       bind:impactedLayers
+       rewardXp={levelXpReward}
+       rewardCoins={levelCoinReward}
+       showMasteryCheckpoint={masteryCheckpointEnabled}
+     />
+   {:else if state === "loading" || state === "testing"}
     <SubmitSprintProgressContent
       state={state as "loading" | "testing"}
       {activeSubmitStepIndex}

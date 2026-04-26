@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import prisma from '$lib/server/client';
+import { WorkspaceService } from '$lib/layers/service/WorkspaceService';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
   try {
@@ -15,26 +15,10 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
       return error(400, 'Container ID is required');
     }
 
-    const prismaContainer = await prisma.workspace.findFirst({
-      where: {
-        container_id: id
-      },
-      select: {
-        id: true
-      }
-    });
+    const workspaceService = new WorkspaceService();
+    const res = await workspaceService.clearUserFileChanges({ workspaceId: id, dbContainerId: id });
 
-    if (!prismaContainer) {
-      return json({ success: true, data: { count: 0 } });
-    }
-
-    const res = await prisma.user_file_changes.deleteMany({
-      where: {
-        workspace_id: prismaContainer.id
-      }
-    });
-
-    return json({ success: true, data: res });
+    return json(res);
   }
   catch {
     return error(500, 'Something went wrong when fetching all file logs');

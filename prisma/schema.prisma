@@ -14,6 +14,7 @@ model user {
   name         String
   image        String?
   username     String  @unique
+  role         UserRole @default(USER)
 
   // Leveling System
   xp           Int      @default(0)
@@ -246,4 +247,19 @@ model workspace_stack {
   workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@index([workspace_id])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model app_setting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+  type  String @default("boolean") // "boolean", "string", "number", "json"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

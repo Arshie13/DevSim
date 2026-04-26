@@ -1,8 +1,7 @@
 // src/routes/api/container/[id]/files/list/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
-import { docker } from '$lib/server/docker/client';
-import { Writable } from 'stream';
+import { ContainerService } from '$lib/layers/service/ContainerService';
 
 export async function POST(event: RequestEvent) {
   try {
@@ -19,119 +18,18 @@ export async function POST(event: RequestEvent) {
       console.warn('Could not parse request body, using defaults:', parseError);
     }
     const path = requestData.path || '/workspace';
-    const container = docker.getContainer(containerId);
 
-    // Check if container exists and is running
-    const info = await container.inspect();
-    if (!info.State.Running) {
-      return json({ 
-        success: false, 
-        error: 'Container is not running',
-        files: [] 
-      });
-    }
-    const excludedPathExpr =
-      '! -path "*/node_modules" ! -path "*/node_modules/*" ' +
-      '! -path "*/.next" ! -path "*/.next/*" ' +
-      '! -path "*/.git" ! -path "*/.git/*" ' +
-      '! -path "*/tests" ! -path "*/tests/*" ' +
-      '! -path "*/__tests__" ! -path "*/__tests__/*" ' +
-      '! -path "*/levels" ! -path "*/levels/*" ' +
-      '! -name ".dockerignore"';
+    const service = new ContainerService();
+    const { files, directories } = await service.listFiles(containerId, path);
 
-    const exec = await container.exec({
-      Cmd: ['sh', '-c', `find "${path}" -type f ${excludedPathExpr} 2>/dev/null || echo ""`],
-      AttachStdout: true,
-      AttachStderr: true
-    });
-    const stream = await exec.start({});
-
-    let output = '';
-    let errorOutput = '';
-
-    const stdout = new Writable({
-      write(chunk, encoding, callback) {
-        output += chunk.toString();
-        callback();
-      }
-    });
-
-    const stderr = new Writable({
-      write(chunk, encoding, callback) {
-        errorOutput += chunk.toString();
-        callback();
-      }
-    });
-
-
-
-    container.modem.demuxStream(stream, stdout, stderr);
-
-    await new Promise((resolve, reject) => {
-      stream.on('end', resolve);
-      stream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
-    });
-
-    // Also list directories
-    const dirExec = await container.exec({
-      Cmd: ['sh', '-c', `find "${path}" -type d ! -path "${path}" ${excludedPathExpr} 2>/dev/null || echo ""`],
-      AttachStdout: true,
-      AttachStderr: true
-    });
-
-    const dirStream = await dirExec.start({});
-
-    let dirOutput = '';
-
-    const dirStdout = new Writable({
-      write(chunk, encoding, callback) {
-        dirOutput += chunk.toString();
-        callback();
-      }
-    });
-
-    container.modem.demuxStream(dirStream, dirStdout, new Writable({ write: () => {} }));
-
-    await new Promise((resolve, reject) => {
-      dirStream.on('end', resolve);
-      dirStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 100000); // 10s timeout
-    });
-
-    if (errorOutput) {
-      console.log('Stderr output:', errorOutput);
-    }
-
-    const isVisibleWorkspacePath = (relativePath: string) => {
-      const segments = relativePath.split('/').filter(Boolean);
-      if (segments[segments.length - 1] === '.dockerignore') return false;
-      return !segments.includes('tests') && !segments.includes('__tests__');
-    };
-
-    const files = output
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map(f => f.replace('/workspace/', ''))
-      .filter(isVisibleWorkspacePath);
-
-    // Process directories
-    const directories = dirOutput
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map(f => f.replace('/workspace/', ''))
-      .filter(isVisibleWorkspacePath);
-
-    // Only return files, not directories (the client will iterate and read each as a file)
     return json({ success: true, files, directories });
   } catch (error) {
     console.error('Error listing files:', error);
     return json({ 
       success: false, 
       error: String(error),
-      files: [] 
+      files: [],
+      directories: [] 
     }, { status: 500 });
   }
 }

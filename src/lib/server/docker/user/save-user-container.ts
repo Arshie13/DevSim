@@ -1,14 +1,12 @@
 import prisma from '$lib/server/client';
+import { type StackSelection } from '$lib/types/techstack';
 import { Prisma } from '$prismaclient';
 
 export interface UserContainerRequest {
   userId: string;
   containerId: string;
   currentScenarioId: string;
-  stacks: Array<{
-    stackName: string;
-    stackVersion?: string;
-  }>;
+  stacks: StackSelection;
   level: number;
   status: string;
 }
@@ -29,7 +27,17 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
   });
 
   try {
-    if (isExisting) {
+    const stacks = [
+      data.stacks.frontend && { stackName: data.stacks.frontend },
+      data.stacks.backend && { stackName: data.stacks.backend },
+      data.stacks.database && { stackName: data.stacks.database },
+      data.stacks.services && { stackName: data.stacks.services }
+    ].filter(Boolean);
+
+    // normalize stack name by concatenating each name
+    const stackName = stacks.map(stack => typeof stack === 'object' ? stack?.stackName : stack).join('-');
+
+    if (isExisting && stacks && stacks.length > 0) {
       // Update existing container - delete old stacks and create new ones
       await prisma.workspace_stack.deleteMany({
         where: { workspace_id: isExisting.id }
@@ -46,12 +54,13 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
       });
 
       // Create new stack records
-      if (data.stacks.length > 0) {
+      if (stacks && stacks.length > 0) {
+
         await prisma.workspace_stack.createMany({
-          data: data.stacks.map(stack => ({
+          data: stacks.map(_ => ({
             workspace_id: isExisting.id,
-            stackName: stack.stackName,
-            stackVersion: stack.stackVersion || null
+            stackName: stackName,
+            stackVersion: '1.0.0'
           }))
         });
       }
@@ -67,9 +76,9 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
         level: data.level,
         status: data.status,
         workspace_stacks: {
-          create: data.stacks.map(stack => ({
-            stackName: stack.stackName,
-            stackVersion: stack.stackVersion || null
+          create: stacks.map(_ => ({
+            stackName,
+            stackVersion: '1.0.0'
           }))
         }
       },
@@ -88,7 +97,4 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
     }
     throw err;
   }
-
-  // Unreachable but satisfies TypeScript
-  throw new Error('Unexpected error in saveUserContainer');
 }

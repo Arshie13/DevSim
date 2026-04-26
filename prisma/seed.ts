@@ -911,13 +911,22 @@ async function main() {
     console.log(`✅ Created level: ${level.title}`);
   }
 
-  console.log("\n🎉 Database seeded successfully!\n");
+   console.log("\n🎉 Database seeded successfully!\n");
 
-  // Summary
-  console.log("📊 Summary:");
-  console.log(`   Levels: ${levels.length}`);
-  console.log(`   Scenarios: ${scenarios.length}`);
-  console.log("\n📋 Difficulty breakdown:");
+   // Seed default app settings
+   console.log("\n⚙️  Seeding default application settings...\n");
+   await prisma.app_setting.upsert({
+     where: { key: 'mastery_checkpoint_enabled' },
+     update: {},
+     create: { key: 'mastery_checkpoint_enabled', value: 'true', type: 'boolean' }
+   });
+   console.log("✅ Default settings seeded\n");
+
+   // Summary
+   console.log("📊 Summary:");
+   console.log(`   Levels: ${levels.length}`);
+   console.log(`   Scenarios: ${scenarios.length}`);
+   console.log("\n📋 Difficulty breakdown:");
   const difficultyCount = scenarios.reduce(
     (acc, s) => {
       acc[s.difficulty] = (acc[s.difficulty] || 0) + 1;

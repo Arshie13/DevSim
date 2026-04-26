@@ -6,14 +6,13 @@
 
   export let data: PageData;
 
-  const headerUserData: UserData = {
+  const headerUserData: Partial<UserData> = {
     name: data.user?.name ?? 'No Name',
-    email: data.user.email,
-    image: data.user.image,
-    id: data.user.id,
-    avatar: data.user?.image ?? '',
-    givenName: data.user.givenName,
-    fullName: data.user?.fullName ?? data.user?.name ?? 'No Name',
+    email: data.user.email ?? 'No email',
+    image: data.user.image ?? 'No image found',
+    id: data.user.id ?? '',
+    avatar: data.user?.image ?? '../static/avatars/defaultcyan.svg',
+    fullName: data.user?.name ?? data.user?.name ?? 'No name found',
     coins: data.userCoins,
   };
 </script>

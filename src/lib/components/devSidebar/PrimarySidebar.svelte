@@ -62,7 +62,7 @@
   const SIDEBAR_MAX_WIDTH = 520;
 
   // Compute remaining tasks for badge
-  $: completedTasks = tasks.filter((t) => t.isCompleted).length;
+  $: completedTasks = tasks.filter((t) => t.is_complete).length;
   $: remainingTasks = tasks.length - completedTasks;
 
   // Panel label map

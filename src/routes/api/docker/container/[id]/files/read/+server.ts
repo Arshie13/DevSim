@@ -1,49 +1,14 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { docker } from '$lib/server/docker/client';
+import { ContainerService } from '$lib/layers/service/ContainerService';
 
 export const POST: RequestHandler = async ({ params, request }) => {
   try {
     const { path } = await request.json();
+    const containerId = params.id;
 
-    const container = docker.getContainer(params.id);
-
-    const exec = await container.exec({
-      Cmd: ['cat', path],
-      AttachStdout: true,
-      AttachStderr: true,
-      Tty: false
-    });
-
-    const stream = await exec.start({ hijack: true });
-
-    const stdout: Buffer[] = [];
-    const stderr: Buffer[] = [];
-
-    await new Promise<void>((resolve, reject) => {
-      container.modem.demuxStream(
-        stream,
-        {
-          write: (chunk: Buffer) => stdout.push(chunk),
-          end: () => { }
-        },
-        {
-          write: (chunk: Buffer) => stderr.push(chunk),
-          end: () => { }
-        }
-      );
-
-      stream.on('end', resolve);
-      stream.on('error', reject);
-    });
-
-    const content = Buffer.concat(stdout).toString('utf8');
-    const errorOutput = Buffer.concat(stderr).toString('utf8');
-
-    if (errorOutput && !content) {
-      console.error("Read error:", errorOutput);
-      return json({ success: false, error: errorOutput.trim() });
-    }
+    const service = new ContainerService();
+    const { content } = await service.readFile(containerId, path);
 
     return json({ success: true, content });
   } catch (error) {

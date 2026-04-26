@@ -1,7 +1,7 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { docker } from "$lib/server/docker/client";
-import { logFileChange } from "$lib/server/fileChangeLogger";
+import { ContainerService } from "$lib/layers/service/ContainerService";
+import { FileDataAccess } from "$lib/layers/data-access/FileDataAccess";
 
 const PROTECTED_PACKAGE_FILES = new Set([
   "package.json",
@@ -57,55 +57,35 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       return json({ success: false, error: "This root file is protected and cannot be modified." }, { status: 403 });
     }
 
-    const container = docker.getContainer(containerId);
+    const containerService = new ContainerService();
+    const fileDataAccess = new FileDataAccess();
+
+    // Find workspace for file change logging
+    const workspace = await fileDataAccess.findWorkspaceByContainerId(userId, containerId);
 
     if (isDirectory) {
-      // Create directory using exec
-      const exec = await container.exec({
-        Cmd: ["mkdir", "-p", path],
-        AttachStdout: true,
-        AttachStderr: true,
-      });
-      const stream = await exec.start({ hijack: true });
-      await new Promise<void>((resolve) => {
-        stream.on("end", resolve);
-      });
-
-      const execResult = await exec.inspect();
-      if (execResult.ExitCode !== 0) {
-        return json({ success: false, error: `mkdir failed with code ${execResult.ExitCode}` }, { status: 500 });
-      }
+      await containerService.createDirectory(containerId, path);
     } else {
-      // Create empty file using exec
-      const exec = await container.exec({
-        Cmd: ["touch", path],
-        AttachStdout: true,
-        AttachStderr: true,
-      });
-      const stream = await exec.start({ hijack: true });
-      docker.modem.demuxStream(stream, process.stdout, process.stderr);
-
-      await new Promise<void>((resolve) => {
-        stream.on("end", resolve);
-      });
-
-      const execResult = await exec.inspect();
-      if (execResult.ExitCode !== 0) {
-        return json({ success: false, error: `touch failed with code ${execResult.ExitCode}` }, { status: 500 });
-      }
+      await containerService.createFile(containerId, path);
     }
 
     // Log the file change
-    await logFileChange({
-      containerId,
-      userId,
-      filePath: path,
-      action: isDirectory ? 'CREATE' : 'CREATE',
-    });
+    if (workspace) {
+      try {
+        await fileDataAccess.createFileChange({
+          workspaceId: workspace.id,
+          userId,
+          filePath: path,
+          action: "CREATE",
+        });
+      } catch (logErr) {
+        console.warn("Failed to log file change (non-critical):", logErr);
+      }
+    }
 
     return json({ success: true });
   } catch (error) {
     console.error("Error creating file:", error);
     return json({ success: false, error: String(error) });
   }
-};
+}

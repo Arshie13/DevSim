@@ -37,19 +37,20 @@
   const SazOnboardingCoachComponent: any = SazOnboardingCoach;
 
 
-  interface WorkspaceProps {
-    user: UserData;
-    userId: string;
-    userCoins: number;
-    dockerContainerId: string;
-    level: number;
-    completedTasks: string[];
-    container: IContainer;
-    hints: IHints[];
-    levelDescription: string;
-    scenarioTitle: string;
-    stacks: string[];
-  }
+   interface WorkspaceProps {
+     user: UserData;
+     userId: string;
+     userCoins: number;
+     dockerContainerId: string;
+     level: number;
+     completedTasks: string[];
+     container: IContainer;
+     hints: IHints[];
+     levelDescription: string;
+     scenarioTitle: string;
+     stacks: string[];
+     masteryCheckpointEnabled: boolean;
+   }
 
   export let data: WorkspaceProps;
 
@@ -121,37 +122,41 @@
   $: activeTerminalSession =
     terminalSessions.find((s) => s.id === activeTerminalId) ?? null;
 
-  $: {
-    const levelTasks = currentLevelRecord?.tasks || [];
-    const persisted = loadTaskProgress(currentLevel);
+   $: {
+     const levelTasks = currentLevelRecord?.tasks || [];
+     const persisted = loadTaskProgress(currentLevel);
 
-    tasks = levelTasks.map((task: ITask, index: number) => {
-      const taskNumber = getTaskNumber(task, index);
-      const config = getLevelConfig(currentLevel);
-      const hasMappedTest = Boolean(
-        config?.tasks.find(
-          (testTask) => Number(testTask.taskId) === taskNumber,
-        ),
-      );
-      const persistedState = persisted[task.id];
+     tasks = levelTasks.map((task: ITask, index: number) => {
+       const taskNumber = getTaskNumber(task, index);
+       const config = getLevelConfig(currentLevel);
+       const hasMappedTest = Boolean(
+         config?.tasks.find(
+           (testTask) => Number(testTask.taskId) === taskNumber,
+         ),
+       );
+        const persistedState = persisted[task.id];
 
-      const boardStatus =
-        persistedState?.boardStatus ?? (task.is_complete ? "done" : "backlog");
-      const isCompleted = persistedState?.isCompleted ?? task.is_complete;
-      const testStatus =
-        persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
-      const taskType = task.test_type ?? "none";
+        const boardStatus =
+          persistedState?.boardStatus ?? (task.is_complete ? "done" : "backlog");
+        // Check completion: persisted state > DB completed tasks > task default
+        const dbCompleted = data.completedTasks?.includes(task.task_name) ?? false;
+        const isCompleted = persistedState?.isCompleted ?? dbCompleted ?? task.is_complete;
+        const testStatus =
+          persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
+       const taskType = task.test_type ?? "none";
 
-      return {
-        ...task,
-        isCompleted,
-        boardStatus,
-        testStatus,
-        hasClientTest: taskType === "client" || taskType === "both",
-        hasServerTest: taskType === "server" || taskType === "both",
-      };
-    });
-  }
+       return {
+         ...task,
+         // Override is_complete with actual completion status (persisted or DB)
+         is_complete: isCompleted,
+         isCompleted,
+         boardStatus,
+         testStatus,
+         hasClientTest: taskType === "client" || taskType === "both",
+         hasServerTest: taskType === "server" || taskType === "both",
+       };
+     });
+   }
 
   $: levelHints =
     currentLevelRecord?.tasks?.flatMap(
@@ -789,30 +794,31 @@
     isRunning = false;
   }
 
-  function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
-    tasks = tasks.map((task) => {
-      if (task.id !== taskId) return task;
+   function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
+     tasks = tasks.map((task) => {
+       if (task.id !== taskId) return task;
 
-      const nextIsCompleted = status === "done";
-      const nextTestStatus =
-        status === "done"
-          ? "passed"
-          : status === "in-review"
-            ? task.testStatus === "passed"
-              ? "pending"
-              : (task.testStatus ?? "pending")
-            : "pending";
+       const nextIsCompleted = status === "done";
+       const nextTestStatus =
+         status === "done"
+           ? "passed"
+           : status === "in-review"
+             ? task.testStatus === "passed"
+               ? "pending"
+               : (task.testStatus ?? "pending")
+             : "pending";
 
-      return {
-        ...task,
-        boardStatus: status,
-        isCompleted: nextIsCompleted,
-        testStatus: nextTestStatus,
-      };
-    });
+       return {
+         ...task,
+         boardStatus: status,
+         isCompleted: nextIsCompleted,
+         is_complete: nextIsCompleted,
+         testStatus: nextTestStatus,
+       };
+     });
 
-    persistTaskProgress();
-  }
+     persistTaskProgress();
+   }
 
   function handleTestsComplete(
     event: CustomEvent<{ success: boolean; result: TestRunResult }>,
@@ -830,42 +836,44 @@
       previousStatus: BoardTaskStatus;
     }> = [];
 
-    tasks = tasks.map((task, index) => {
-      const directResult = byTaskId.get(task.id);
-      const fallbackResult = byTaskId.get(String(getTaskNumber(task, index)));
-      const taskResult = directResult ?? fallbackResult;
-      const canManuallyMoveToDone = (task.test_type ?? "none").toLowerCase() === "none";
+     tasks = tasks.map((task, index) => {
+       const directResult = byTaskId.get(task.id);
+       const fallbackResult = byTaskId.get(String(getTaskNumber(task, index)));
+       const taskResult = directResult ?? fallbackResult;
+       const canManuallyMoveToDone = (task.test_type ?? "none").toLowerCase() === "none";
 
-      if (!taskResult) return task;
+       if (!taskResult) return task;
 
-      if (taskResult.passed) {
-        return {
-          ...task,
-          boardStatus: "done",
-          isCompleted: true,
-          testStatus: "passed",
-        };
-      }
+       if (taskResult.passed) {
+         return {
+           ...task,
+           boardStatus: "done",
+           isCompleted: true,
+           is_complete: true,
+           testStatus: "passed",
+         };
+       }
 
-      if (task.boardStatus === "done" && !canManuallyMoveToDone) {
-        regressions.push({
-          taskId: task.id,
-          taskName: task.task_name,
-          previousStatus: task.boardStatus,
-        });
-        return { ...task, testStatus: "failed" };
-      }
+       if (task.boardStatus === "done" && !canManuallyMoveToDone) {
+         regressions.push({
+           taskId: task.id,
+           taskName: task.task_name,
+           previousStatus: task.boardStatus,
+         });
+         return { ...task, testStatus: "failed", is_complete: false };
+       }
 
-      return {
-        ...task,
-        boardStatus:
-          task.boardStatus === "done"
-            ? "in-review"
-            : (task.boardStatus ?? "in-review"),
-        isCompleted: false,
-        testStatus: "failed",
-      };
-    });
+       return {
+         ...task,
+         boardStatus:
+           task.boardStatus === "done"
+             ? "in-review"
+             : (task.boardStatus ?? "in-review"),
+         isCompleted: false,
+         is_complete: false,
+         testStatus: "failed",
+       };
+     });
 
     persistTaskProgress();
 
@@ -887,24 +895,25 @@
     testRegressionModalOpen = true;
   }
 
-  function handleRegressionConfirm() {
-    tasks = tasks.map((task) => {
-      if (task.id === regressionTaskId) {
-        return {
-          ...task,
-          boardStatus: "in-review",
-          isCompleted: false,
-          testStatus: "failed",
-        };
-      }
-      return task;
-    });
-    persistTaskProgress();
-    testRegressionModalOpen = false;
+   function handleRegressionConfirm() {
+     tasks = tasks.map((task) => {
+       if (task.id === regressionTaskId) {
+         return {
+           ...task,
+           boardStatus: "in-review",
+           isCompleted: false,
+           is_complete: false,
+           testStatus: "failed",
+         };
+       }
+       return task;
+     });
+     persistTaskProgress();
+     testRegressionModalOpen = false;
 
-    pendingRegressionUpdates = pendingRegressionUpdates.slice(1);
-    setTimeout(() => showNextRegressionModal(), 300);
-  }
+     pendingRegressionUpdates = pendingRegressionUpdates.slice(1);
+     setTimeout(() => showNextRegressionModal(), 300);
+   }
 
   function handleRegressionDismiss() {
     testRegressionModalOpen = false;
@@ -1373,19 +1382,20 @@
     {/if}
   </div>
 
-  <!-- Submit Sprint modal -->
-  <SubmitSprintModal
-    bind:this={submitSprintModal}
-    dbContainerId={containerId}
-    {containerId}
-    {tasks}
-    level={currentLevel}
-    levelXpReward={currentLevelRecord?.xp_reward ?? 0}
-    levelCoinReward={currentLevelRecord?.coin_reward ?? 0}
-    {fileContents}
-    existingFiles={fileTree}
-    on:submitted={handleSubmitted}
-  />
+   <!-- Submit Sprint modal -->
+   <SubmitSprintModal
+     bind:this={submitSprintModal}
+     dbContainerId={containerId}
+     {containerId}
+     {tasks}
+     level={currentLevel}
+     levelXpReward={currentLevelRecord?.xp_reward ?? 0}
+     levelCoinReward={currentLevelRecord?.coin_reward ?? 0}
+     {fileContents}
+     existingFiles={fileTree}
+     masteryCheckpointEnabled={data.masteryCheckpointEnabled}
+     on:submitted={handleSubmitted}
+   />
 
   <!-- Back confirmation modal -->
   <ConfirmationModal

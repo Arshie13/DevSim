@@ -1,22 +1,8 @@
 import { json, type RequestHandler } from "@sveltejs/kit";
-import prisma from "$lib/server/client";
-import { docker } from "$lib/server/docker/client";
 import { error } from "@sveltejs/kit";
+import { WorkspaceService } from "$lib/layers/service/WorkspaceService";
 
-async function stopContainerAsync(containerId: string, workspaceId: string) {
-  try {
-    await docker.getContainer(containerId).stop();
-    await prisma.workspace.update({
-      where: { id: workspaceId },
-      data: {
-        status: 'stopped',
-        stoppedAt: new Date()
-      }
-    });
-  } catch (err) {
-    console.error('Background container stop failed:', err);
-  }
-}
+const workspaceService = new WorkspaceService();
 
 export const POST: RequestHandler = async ({ params, locals }) => {
     // --- Auth check ---
@@ -25,14 +11,7 @@ export const POST: RequestHandler = async ({ params, locals }) => {
         return error(401, 'Unauthorized');
     }
     const { id } = params;
-    const container = await prisma.workspace.findFirst({ where: { container_id: id } });
 
-    if (!container) {
-        return error(404, 'Container not found.');
-    }
-
-    // Fire and forget - stop in background
-    stopContainerAsync(id, container.id);
-    
-    return json({ success: true });
+    const res = await workspaceService.stopWorkspace(id)
+    return json({ success: true, data: res });
 }
