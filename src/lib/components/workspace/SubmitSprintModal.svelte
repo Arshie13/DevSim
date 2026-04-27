@@ -361,7 +361,7 @@
           const listRes = await fetch(
             `/api/docker/container/${containerId}/files/logs`,
             {
-              method: "POST",
+              method: "GET",
               headers: { "Content-Type": "application/json" },
               signal,
               body: JSON.stringify({}),

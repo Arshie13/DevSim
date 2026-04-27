@@ -3,6 +3,7 @@ import { ContainerService } from './ContainerService';
 import { UserDataAccess } from '../data-access/UserDataAccess';
 import { LevelDataAccess } from '../data-access/LevelDataAccess';
 import { TasksDataAccess } from '../data-access/TasksDataAccess';
+import { FileChangesDataAccess } from '../data-access/FileChangesDataAccess';
 import { saveUserContainer } from '$lib/server/docker/user/save-user-container';
 import { type CreateWorkspaceRequest } from '$lib/contracts/request/CreateWorkspaceRequest';
 import type { StackSelection } from '$lib/types';
@@ -41,7 +42,8 @@ export class WorkspaceService {
     private readonly container = new ContainerService(),
     private readonly user = new UserDataAccess(),
     private readonly level = new LevelDataAccess(),
-    private readonly tasks = new TasksDataAccess()
+    private readonly tasks = new TasksDataAccess(),
+    private readonly fileChanges = new FileChangesDataAccess(),
   ) { }
 
   async createOrReuseWorkspace(params: CreateWorkspaceRequest) {
@@ -399,5 +401,19 @@ export class WorkspaceService {
         error
       }
     }
+  }
+
+  async getFileLogs(userId: string, containerId: string) {
+    const workspaceContainer = await this.workspace.findWorkspaceByContainerId(userId, containerId);
+
+    if (!workspaceContainer) {
+      return {
+        success: false,
+        status: 404,
+        error: "Workspace not found"
+      }
+    }
+
+    return await this.fileChanges.getFileLogs(workspaceContainer.id)
   }
 }
