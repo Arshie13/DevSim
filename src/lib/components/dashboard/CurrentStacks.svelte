@@ -65,7 +65,7 @@
                     </h4>
                     {#if container.scenario.name}
                       <p class="text-xs font-mono text-[var(--accent)] opacity-70 mt-0.5 truncate">
-                        {parseStackName(container.containerStacks)}
+                        {parseStackName(container.workspace_stacks ?? container.containerStacks ?? [])}
                       </p>
                     {/if}
                     <p class="text-xs font-mono text-[var(--text-muted)] mt-0.5">

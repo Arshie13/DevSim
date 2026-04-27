@@ -53,7 +53,7 @@
   }
 
   let workspaceScenario = $derived(data.scenario ?? null);
-  let stackNames = $derived(data.workspaceStacks?.map((entry) => entry.stackName).filter(Boolean) ?? []);
+  let stackNames = $derived([...new Set(data.workspaceStacks?.map((entry) => entry.stackName).filter(Boolean) ?? [])]);
   let currentLevelRecord = $derived(getLevelByOrder(data.currentLevel.map((level) => ({
     id: level.id,
     title: level.title,
@@ -252,6 +252,7 @@
   let isDownloading: boolean = $state(false);
 
   let backModalOpen: boolean = $state(false);
+  let isLeavingWorkspace: boolean = $state(false);
 
   let taskIntroCardOpen: boolean = false;
   let levelIntroCardOpen: boolean = $state(false);
@@ -310,6 +311,7 @@
   // Show trivia modal once per workspace session (after 3 second delay)
   function maybeShowTrivia() {
     if (triviaShownThisSession) return;
+    if (!levelIntroDismissed || levelIntroCardOpen) return;
     triviaModalOpen = true;
     triviaShownThisSession = true;
   }
@@ -688,10 +690,11 @@ $effect(() => {
   }
 });
 
-// Show trivia after tasks load, but block it when the crash course hasn't been
-// completed yet (new workspace). Re-runs when hasCompletedCrashCourse flips.
+// Show trivia after tasks load, but only after the level intro card is dismissed
+// and the crash course has been completed (if applicable).
 $effect(() => {
   if (tasks.length === 0) return;
+  if (!levelIntroDismissed) return;
   const tasksHaveCrashCourse = tasks.some(t => (t.learningSections?.length ?? 0) > 0);
   if (tasksHaveCrashCourse && !hasCompletedCrashCourse) return;
 
@@ -1289,12 +1292,15 @@ $effect(() => {
     backModalOpen = true;
   }
 
-  function confirmBack() {
-    backModalOpen = false;
-    // Fire and forget - let container stop in background
-    fetch(`/api/docker/container/${containerId}/stop`, {
-      method: "POST"
-    });
+  async function confirmBack() {
+    isLeavingWorkspace = true;
+    try {
+      await fetch(`/api/docker/container/${containerId}/stop`, {
+        method: "POST"
+      });
+    } catch (err) {
+      console.error("Failed to stop container:", err);
+    }
     goto("/dashboard");
   }
 
@@ -1729,10 +1735,13 @@ $effect(() => {
     iconVariant="warning"
     title="Leave Workspace?"
     subtitle="Are you sure you want to leave? Your current progress will be lost."
-    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later. The container will stop in the background."
+    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later."
     confirmLabel="Leave"
     cancelLabel="Stay"
     variant="warning"
+    isLoading={isLeavingWorkspace}
+    loadingLabel="Stopping…"
+    closeOnBackdropClick={!isLeavingWorkspace}
     on:confirm={confirmBack}
     on:cancel={() => { backModalOpen = false; }}
   />
