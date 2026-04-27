@@ -29,7 +29,7 @@ interface StackInfo {
 }
 
 interface SubmitWorkParams {
-  taskId: string;
+  taskName: string;
   containerId: string;
   userId: string;
   advanceLevel?: boolean; // If true, will advance level when all tasks complete
@@ -291,7 +291,7 @@ export class WorkspaceService {
 
   async submitWork(params: SubmitWorkParams) {
     try {
-      const { containerId, taskId, userId, advanceLevel } = params;
+      const { containerId, taskName, userId, advanceLevel } = params;
       const workspaceRecord = await this.workspace.findWorkspaceByContainerId(userId, containerId);
 
       if (!workspaceRecord) {
@@ -306,10 +306,10 @@ export class WorkspaceService {
 
       const levelInfo = await this.level.getLevelByOrder(currentLevel);
 
-      if (!levelInfo) {
+      if (!levelInfo || levelInfo.error) {
         return {
           success: false,
-          status: 404,
+          status: levelInfo.status,
           error: 'Level not found'
         }
       }
@@ -326,16 +326,16 @@ export class WorkspaceService {
 
       const completedTaskNames = currentCompletedTasks.completedTasks?.map(t => t.taskName) ?? [];
       
-      if (!completedTaskNames!.includes(taskId)) {
-        await this.tasks.createCompletedTask(workspaceRecord.id, taskId);
-        completedTaskNames.push(taskId);
+      if (!completedTaskNames!.includes(taskName)) {
+        await this.tasks.createCompletedTask(workspaceRecord.id, taskName);
+        completedTaskNames.push(taskName);
       }
 
       const xpReward = levelInfo.xpReward;
       const coinReward = levelInfo.coinReward;
-      const levelTasks = levelInfo.tasks.map(t => t.taskName);
+      const levelTasks = levelInfo.tasks?.map(t => t.taskName);
 
-      const allTasksCompleted = levelTasks.every(task =>
+      const allTasksCompleted = levelTasks?.every(task =>
         completedTaskNames.includes(task)
       );
 
@@ -353,13 +353,13 @@ export class WorkspaceService {
         if (isLastLevel) {
           await Promise.allSettled([
             this.workspace.updateWorkspaceStatus(workspaceRecord.id, 'completed', false),
-            this.user.updateUserXpAndCoins(userId, xpReward * 2, coinReward * 2, false)
+            this.user.updateUserXpAndCoins(userId, xpReward! * 2, coinReward! * 2, false)
           ]);
 
           return {
             success: true,
             status: 200,
-            rewards: { xp: xpReward * 2, coins: coinReward * 2 },
+            rewards: { xp: xpReward! * 2, coins: coinReward! * 2 },
             levelComplete,
             allLevelsComplete: true,
             nextLevel: null
@@ -368,26 +368,26 @@ export class WorkspaceService {
           await Promise.allSettled([
             this.workspace.updateWorkspaceStatus(workspaceRecord.id, 'in-progress', true),
             this.tasks.deleteCompletedTasks(workspaceRecord.id),
-            this.user.updateUserXpAndCoins(userId, xpReward, coinReward, true )
+            this.user.updateUserXpAndCoins(userId, xpReward!, coinReward!, true )
           ]);
         }
       } else {
-        await this.user.updateUserXpAndCoins(userId, Math.floor(xpReward / levelTasks.length), Math.floor(coinReward / levelTasks.length), false);
+        await this.user.updateUserXpAndCoins(userId, Math.floor(xpReward! / levelTasks!.length), Math.floor(coinReward! / levelTasks!.length), false);
       }
 
       return {
         success: true,
         status: 200,
         rewards: {
-          xp: allTasksCompleted ? xpReward : Math.floor(xpReward / levelTasks.length),
-          coins: allTasksCompleted ? coinReward : Math.floor(coinReward / levelTasks.length)
+          xp: allTasksCompleted ? xpReward : Math.floor(xpReward! / levelTasks!.length),
+          coins: allTasksCompleted ? coinReward : Math.floor(coinReward! / levelTasks!.length)
         },
         levelComplete,
         allLevelsComplete: false,
         nextLevel: levelComplete ? nextLevel : null,
         progress: {
           completed: completedTaskNames.length,
-          total: levelTasks.length
+          total: levelTasks!.length
         }
       }
 

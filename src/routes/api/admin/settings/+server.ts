@@ -1,56 +1,47 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import prisma from '$lib/server/client';
-import { getAllAppSettings, setAppSetting } from '$lib/server/app-settings';
+import { AdminSettingsService } from '$lib/layers/service/AdminSettingsService';
+
+const adminSettingsService = new AdminSettingsService();
 
 export const GET: RequestHandler = async ({ locals }) => {
   const session = await locals.auth();
   
-  if (!session?.user) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session?.user || !session.user.id) {
+    return json({ error: 'Missing or stale session' }, { status: 401 });
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true }
-  });
+  const result = await adminSettingsService.getAllAppSettings(session.user.id);
 
-  if (!dbUser || dbUser.role !== 'ADMIN') {
-    return json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+  if (result.error) {
+    return json({ error: result.error }, { status: result.status });
   }
 
-  const settings = await getAllAppSettings();
-  return json(settings);
+  return json(result.data);
 };
 
 export const PATCH: RequestHandler = async ({ locals, request }) => {
   const session = await locals.auth();
   
-  if (!session?.user) {
+  if (!session?.user || !session.user.id) {
     return json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true }
-  });
-
-  if (!dbUser || dbUser.role !== 'ADMIN') {
-    return json({ error: 'Forbidden: Admin access required' }, { status: 403 });
   }
 
   try {
     const body = await request.json();
     const { key, value } = body;
 
-    if (!key || value === undefined) {
-      return json({ error: 'Missing required fields: key, value' }, { status: 400 });
+    const adminSettingsService = new AdminSettingsService();
+    const result = await adminSettingsService.setAppSetting(session.user.id, key, value);
+
+    if (result.error) {
+      return json({
+        error: result.error,
+        status: result.status
+      })
     }
 
-    await setAppSetting(key, value);
-    
-    const updatedSettings = await getAllAppSettings();
-    return json(updatedSettings);
+    return json(result);
   } catch (error) {
     console.error('Error updating app setting:', error);
     return json(

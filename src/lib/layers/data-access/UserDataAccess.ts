@@ -29,4 +29,17 @@ export class UserDataAccess {
       return { success: false, error: error }
     }
   }
+
+  async isAdmin(userId: string) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+
+    if (!dbUser || dbUser.role !== 'ADMIN') {
+      return false;
+    }
+
+    return true;
+  }
 }
