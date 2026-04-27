@@ -2,8 +2,8 @@ import type { ILearningSection } from "$lib/types";
 
 type InteractiveConfig = NonNullable<ILearningSection["interactiveConfig"]>;
 
-type FunctionTestCase = NonNullable<InteractiveConfig["testCases"]>[number];
-type EditableRegion = NonNullable<InteractiveConfig["editableRegions"]>[number];
+type FunctionTestCase = NonNullable<InteractiveConfig["test_cases"]>[number];
+type EditableRegion = NonNullable<InteractiveConfig["editable_regions"]>[number];
 
 export function normalizeCommand(value: string): string {
   return value.trim().replace(/\s+/g, " ").toLowerCase();
@@ -25,10 +25,27 @@ export function resolvePath(currentPath: string, targetPath: string): string {
   return `/${base.join("/")}` || "/";
 }
 
+/**
+ * Checks whether a resolved absolute path is a valid directory in the tree.
+ * The tree may be stored as { "/workspace": ["client", "server"] } (parent → children)
+ * rather than having every subdirectory as an explicit key, so we check both forms.
+ */
+export function isValidDirectory(
+  tree: Record<string, string[]>,
+  path: string,
+): boolean {
+  if (Object.prototype.hasOwnProperty.call(tree, path)) return true;
+  const lastSlash = path.lastIndexOf("/");
+  const parentPath = lastSlash > 0 ? path.slice(0, lastSlash) : "/";
+  const dirName = path.slice(lastSlash + 1);
+  const siblings = tree[parentPath] ?? [];
+  return siblings.includes(dirName);
+}
+
 export function simulateTerminalNavigation(commands: string[], config: InteractiveConfig) {
-  const tree = config.directoryTree ?? { "/workspace": ["client", "server", "README.md"] };
+  const tree = config.directory_tree ?? { "/workspace": ["client", "server", "README.md"] };
   const visited = new Set<string>();
-  let pointer = config.initialDirectory ?? "/workspace";
+  let pointer = config.initial_directory ?? "/workspace";
   visited.add(pointer);
 
   for (const rawCommand of commands) {
@@ -43,7 +60,7 @@ export function simulateTerminalNavigation(commands: string[], config: Interacti
 
     const target = argument || "/";
     const resolved = resolvePath(pointer, target);
-    if (!tree[resolved]) continue;
+    if (!isValidDirectory(tree, resolved)) continue;
     pointer = resolved;
     visited.add(pointer);
   }
@@ -208,7 +225,7 @@ export function evaluateEditableRegionsLab(
   for (let index = 0; index < editableRegions.length; index += 1) {
     const region = editableRegions[index];
     const actual = (match[index + 1] ?? "").trim();
-    const caseSensitive = region.caseSensitive ?? true;
+    const caseSensitive = region.case_sensitive ?? true;
     const placeholder = region.placeholder.trim();
     const edited = caseSensitive
       ? actual !== placeholder

@@ -70,21 +70,21 @@ export interface ILearningSection {
 
 export interface IInteractiveConfig {
     instructions?: string;
-    starterCode?: string;
-    entryPoint?: string;
-    testCases?: Array<{
+    starter_code?: string;
+    entry_point?: string;
+    test_cases?: Array<{
       input: unknown[];
       expected: unknown;
       label: string;
     }>;
-    requiredCodeIncludes?: string[];
-    editableRegions?: Array<{
+    required_code_includes?: string[];
+    editable_regions?: Array<{
       placeholder: string;
-      caseSensitive?: boolean;
+      case_sensitive?: boolean;
     }>;
-    expectedCommands?: string[];
-    initialDirectory?: string;
-    directoryTree?: Record<string, string[]>;
+    expected_commands?: string[];
+    initial_directory?: string;
+    directory_tree?: Record<string, string[]>;
     language?: string;
   };
 

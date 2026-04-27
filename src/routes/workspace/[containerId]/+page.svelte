@@ -34,8 +34,6 @@
   import { TerminalInitializer } from "$client/TerminalInitializer";
     import type { IInteractiveConfig } from "$lib/types/IContainer";
 
-  // const SazOnboardingCoachComponent: any = SazOnboardingCoach;
-
   let { data}: { data: PageData } = $props();
 
   let userCoins = $derived(data.userCoins ?? 0);
@@ -262,7 +260,7 @@
   let sazOnboardingShown: boolean = false;
   let pendingSazOpen: boolean = false;
   let crashCourseOpen: boolean = $state(false);
-  let levelIntroDismissed: boolean = false;
+  let levelIntroDismissed: boolean = $state(false);
   let activeCrashCourseTaskId: string = $state("");
   let crashCourseSeenByTask: Record<string, boolean> = {};
   let crashCourseCompletedByTask: Record<string, boolean> = $state({});
@@ -273,18 +271,17 @@
   let crashCoursePromptTaskId: string = "";
   let crashCourseStorageLoadedKey: string = "";
 
-  // // Call this after tasks are loaded
-  $effect(() => {
-    if (tasks.length > 0) {
-      setTimeout(maybeShowTrivia, 3000);
-    }
-  })
-
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
   let triviaCorrectCount: number = 0;
   let triviaTotalCount: number = 0;
   let triviaShownThisSession: boolean = false;
+  // Fixed per session so randomness doesn't re-roll on re-renders
+  const triviaSessionChance: number = Math.random();
+  let triviaTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  // Set when crash course completes for the first time this session, so trivia
+  // fires after the user dismisses the completion prompt.
+  let pendingTriviaAfterCrashCourse: boolean = false;
 
   // Load trivia stats from localStorage
   function loadTriviaStats() {
@@ -618,10 +615,16 @@
   }
 
   function handleCrashCoursePromptConfirm() {
+    const wasCompletionPrompt = crashCourseCompletePromptOpen;
     crashCourseCompletePromptOpen = false;
     crashCourseClosePromptOpen = false;
     crashCourseCloseDonePromptOpen = false;
     crashCoursePromptTaskId = "";
+
+    if (wasCompletionPrompt && pendingTriviaAfterCrashCourse && !triviaShownThisSession) {
+      pendingTriviaAfterCrashCourse = false;
+      setTimeout(maybeShowTrivia, 1500);
+    }
   }
 
   function handleCrashCoursePromptBack() {
@@ -679,10 +682,29 @@ $effect(() => {
     !crashCourseCloseDonePromptOpen
   ) {
     const nextTask = getNextCrashCourseTask();
-    if (nextTask && !crashCourseSeenByTask[nextTask.id]) {
+    if (nextTask && !crashCourseCompletedByTask[nextTask.id]) {
       openCrashCourseForTask(nextTask.id);
     }
   }
+});
+
+// Show trivia after tasks load, but block it when the crash course hasn't been
+// completed yet (new workspace). Re-runs when hasCompletedCrashCourse flips.
+$effect(() => {
+  if (tasks.length === 0) return;
+  const tasksHaveCrashCourse = tasks.some(t => (t.learningSections?.length ?? 0) > 0);
+  if (tasksHaveCrashCourse && !hasCompletedCrashCourse) return;
+
+  if (triviaTimeoutId) clearTimeout(triviaTimeoutId);
+  // ~70 % of sessions for workspaces where crash course is already done.
+  // First-time completion is handled via pendingTriviaAfterCrashCourse.
+  if (triviaSessionChance < 0.7) {
+    triviaTimeoutId = setTimeout(maybeShowTrivia, 5000 + Math.random() * 10000);
+  }
+
+  return () => {
+    if (triviaTimeoutId) clearTimeout(triviaTimeoutId);
+  };
 });
 
   function getTaskNumber(task: ITask, index: number): number {
@@ -1052,6 +1074,8 @@ $effect(() => {
     activeCrashCourseTaskId = "";
     openBoardKanbanView();
     showCrashCourseMoveTaskMessage(completedTaskId, "completed");
+    // Guarantee trivia shows after the user confirms the completion prompt.
+    pendingTriviaAfterCrashCourse = true;
   }
 
   function handleTestsComplete(
