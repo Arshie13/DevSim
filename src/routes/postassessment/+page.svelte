@@ -3,49 +3,32 @@
   import { onMount } from "svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
 
-  // Get data from server load (dynamic concepts from completed tasks)
   let { concepts = [], stackName = 'react-express-postgres-prisma', completedTasks = [] } = $props();
   
-  // Type for concepts
   interface Concept {
     id: string;
     concept: string;
     category: string;
   }
 
-  // Post-assessment self-assessment questions based on levels 1-5
   const questions = [
-    // Level 1: Environment Setup
     { id: 1, question: "How confident are you in setting up a local development environment with React, Express, PostgreSQL, and Prisma?" },
     { id: 2, question: "How well do you understand package managers (pnpm/npm) for installing dependencies in full-stack projects?" },
-    
-    // Level 2: Utility Functions
     { id: 3, question: "How confident are you in creating reusable utility functions to avoid code duplication?" },
     { id: 4, question: "How well do you understand pure functions with predictable outputs?" },
-    
-    // Level 3: Backend Debugging
     { id: 5, question: "How confident are you in debugging Express backend applications?" },
     { id: 6, question: "How well can you trace HTTP request flow through Express controller logic?" },
-    
-    // Level 4: Reservation Queue
     { id: 7, question: "How confident are you in implementing queue-based reservation systems for limited resources?" },
     { id: 8, question: "How well do you understand handling concurrent requests with database transactions?" },
-    
-    // Level 5: Production Debugging
     { id: 9, question: "How confident are you in debugging production issues in full-stack applications?" },
     { id: 10, question: "How well do you understand identifying root causes vs symptoms in bugs?" }
   ];
 
   const topicKeys = [
-    // Level 1
     "env_setup", "package_managers",
-    // Level 2
     "utility_functions", "pure_functions",
-    // Level 3
     "backend_debugging", "express_controllers",
-    // Level 4
     "reservation_queues", "concurrent_requests",
-    // Level 5
     "production_debugging", "root_causes"
   ];
 
@@ -57,10 +40,6 @@
     { value: 5, label: "Very Confident" }
   ];
 
-  // Post-assessment - now 10 questions from levels 1-5
-  // Scale: 1-5 for confidence rating
-
-  // If server has concepts, use those; otherwise fallback
   const fallbackConcepts: Concept[] = [
     { id: "fallback-1", concept: "Full-stack development", category: "General" },
     { id: "fallback-2", concept: "API development", category: "General" },
@@ -70,7 +49,6 @@
   ];
   let availableConcepts = $state<Concept[]>(concepts.length > 0 ? concepts : fallbackConcepts);
 
-  // Group concepts by category for display
   let conceptsByCategory = $derived.by((): Record<string, Concept[]> => {
     const grouped: Record<string, Concept[]> = {};
     for (const concept of availableConcepts) {
@@ -94,26 +72,17 @@
   let showWarningModal = $state(false);
   let processingResults = $state(false);
   let submittingReflection = $state(false);
-  // Reflection by topic - users must answer for each topic
   let reflectionByTopic = $state<Record<string, Set<string>>>({});
-  // Text explanations for each topic
   let reflectionText = $state<Record<string, string>>({});
 
-  // Define topics based on the levels 1-5
   const topics = [
-    // Level 1: Environment Setup
     { id: "level1", name: "Level 1: Environment Setup", concepts: ["Package managers (pnpm/npm)", "Environment variables & .env", "Prisma migrations", "Running multiple services locally", "Monorepo architecture"] },
-    // Level 2: Utility Functions
     { id: "level2", name: "Level 2: Utility Functions", concepts: ["Creating reusable utility functions", "Pure functions with predictable outputs", "Centralizing business logic", "Reducing code duplication", "Importing utilities in frontend/backend"] },
-    // Level 3: Backend Debugging
     { id: "level3", name: "Level 3: Backend Debugging", concepts: ["Tracing Express controller logic", "Debugging Prisma queries", "Documenting bugs with test cases", "Identifying root causes vs symptoms", "Reading backend logs"] },
-    // Level 4: Reservation Queue
     { id: "level4", name: "Level 4: Reservation Queue", concepts: ["Queue-based reservation systems", "Handling concurrent requests", "Database transactions (Prisma $transaction)", "Fair resource allocation", "Queue position tracking"] },
-    // Level 5: Production Debugging
     { id: "level5", name: "Level 5: Production Debugging", concepts: ["Debugging production issues", "Understanding table relationships", "Datetime & timezone issues", "Validating report accuracy", "Tracing data flow end-to-end"] }
   ];
 
-  // Initialize reflection tracking only once
   $effect(() => {
     if (Object.keys(reflectionByTopic).length === 0) {
       const initial: Record<string, Set<string>> = {};
@@ -124,7 +93,6 @@
     }
   });
   
-  // Check if all topics have at least one selection (required to proceed)
   let allTopicsAnswered = $derived(() => {
     return topics.every(topic => {
       const hasConcepts = (reflectionByTopic[topic.id]?.size || 0) > 0;
@@ -133,31 +101,22 @@
     });
   });
   
-  // Validate reflection text - check for generic/unrelated responses
   function validateReflectionText(text: string): { valid: boolean; message: string } {
     const trimmed = text.trim().toLowerCase();
-    
-    // Too short
     if (trimmed.length < 10) {
       return { valid: false, message: "Response is too short. Please provide more detail." };
     }
-    
-    // Generic/placeholder words
     const invalidWords = ['sample', 'test', 'none', 'good', 'okay', 'ok', 'nice', 'great', 'bad', 'n/a', 'na', 'pending', 'tbd'];
     if (invalidWords.includes(trimmed)) {
       return { valid: false, message: "Please provide a specific reflection about what you learned, not a placeholder." };
     }
-    
-    // Check if it's mostly just letters with no meaningful content
     const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
     if (wordCount < 3) {
       return { valid: false, message: "Please provide more detail about your learning (at least 3 words)." };
     }
-    
     return { valid: true, message: "" };
   }
   
-  // Check if any reflection text is invalid
   function hasInvalidReflections(): { valid: boolean; topic?: string; message?: string } {
     for (const topic of topics) {
       const text = reflectionText[topic.id] || '';
@@ -191,6 +150,7 @@
     }
     return total;
   }
+
   let submitted = $state(false);
   let preScores = $state<Record<string, { pre: number | null; post: number | null; improvement: number | null }>>({});
   let loading = $state(true);
@@ -199,7 +159,6 @@
     try {
       const response = await fetch('/api/user/postassessment');
       const data = await response.json();
-      console.log('Pre-scores fetched:', data);
       preScores = data;
     } catch (e) {
       console.error('Failed to fetch pre-scores', e);
@@ -229,7 +188,6 @@
       selectedAnswer = answers[currentQuestion] !== undefined ? answers[currentQuestion] : null;
     }
   }
-
   
   async function submitQuiz() {
     if (selectedAnswer !== null) {
@@ -240,16 +198,13 @@
   }
   
   async function proceedToResults() {
-    // First validate that all reflection text is substantive
     const validationResult = hasInvalidReflections();
     if (!validationResult.valid && validationResult.topic && validationResult.message) {
-      // Show warning modal popup
       showWarningModal = true;
       warningMessage = `${validationResult.topic}: ${validationResult.message}`;
       return;
     }
     
-    // Must answer all topics before proceeding - both concept selection AND text explanation
     const allAnswered = topics.every(topic => {
       const hasConcepts = (reflectionByTopic[topic.id]?.size || 0) > 0;
       const hasExplanation = reflectionText[topic.id] && reflectionText[topic.id].trim().length > 0;
@@ -257,7 +212,6 @@
     });
     
     if (!allAnswered) {
-      // Show alert or set error state
       alert('Please provide an explanation for what you learned in each topic before continuing.');
       return;
     }
@@ -273,13 +227,10 @@
       }
     }
     
-    // Collect all reflection answers (selected concepts + text explanations)
-    console.log("Collecting reflections, reflectionText:", JSON.stringify(reflectionText, null, 2));
     const allReflections: { topic: string; concepts: string[]; explanation: string }[] = [];
     for (const topic of topics) {
       const concepts = reflectionByTopic[topic.id];
       const explanation = reflectionText[topic.id] || '';
-      console.log(`Topic ${topic.id}: concepts=${concepts?.size}, explanation="${explanation}"`);
       if (concepts && concepts.size > 0) {
         allReflections.push({
           topic: topic.name,
@@ -288,14 +239,11 @@
         });
       }
     }
-    console.log("All reflections to send:", JSON.stringify(allReflections, null, 2));
     
-    // Ensure loading screen has time to render before API call
     await new Promise(resolve => setTimeout(resolve, 50));
     
     try {
       submittingReflection = true;
-      // Add timestamp to prevent caching
       const cacheBuster = '_t=' + Date.now();
       const response = await fetch('/api/user/postassessment?' + cacheBuster, {
         method: 'POST',
@@ -312,16 +260,12 @@
         })
       });
       const data = await response.json();
-      console.log('Post-assessment response:', data);
       if (data.aiGrading) {
         aiGradingResult = data.aiGrading;
-        console.log('AI Grading result set:', aiGradingResult);
       }
       if (data.contentWarning) {
         showWarningModal = true;
         warningMessage = "Your reflection responses do not appear to be related to the level concepts you learned.";
-        console.log('Content warning triggered - responses not related to level concepts');
-        // Keep showing loading while modal is displayed
         return;
       }
     } catch (e) {
@@ -333,7 +277,6 @@
   }
 
   function goToLevelComplete() {
-    // Do a full page reload to ensure all state is cleared
     window.location.href = '/dashboard';
   }
   
@@ -375,13 +318,8 @@
     if (avg >= 2.5) return "Good foundation! Keep practicing to strengthen your skills.";
     return "You've started your journey. Continue learning and practicing!";
   }
-
-  function getSelectedConceptNames(): string {
-    return "";
-  }
   
   function proceedToDashboard() {
-    // Do a full page reload to ensure all state is cleared
     window.location.href = '/dashboard';
   }
 </script>
@@ -450,7 +388,6 @@
                     {reflectionByTopic[topic.id]?.size || 0} selected
                   </p>
                   
-                  <!-- Text box for explaining what they learned -->
                   <div class="mt-4">
                     <label for="reflection-{topic.id}" class="text-sm text-[var(--text-muted)] block mb-2">
                       Explain what you learned in this topic (required):
@@ -516,33 +453,21 @@
             </h2>
             <p class="text-[var(--text-muted)] text-sm mb-6">Rate your confidence from 1 (not confident) to 5 (very confident)</p>
             
-            <div class="relative">
-              <input
-                type="range"
-                min="1"
-                max="5"
-                step="1"
-                bind:value={selectedAnswer}
-                oninput={() => { if (selectedAnswer !== null) selectAnswer(selectedAnswer); }}
-                class="w-full h-3 bg-[var(--bg-light)] rounded-lg appearance-none cursor-pointer"
-                style="accent-color: var(--accent);"
-              />
-              <div class="flex justify-between mt-3">
-                {#each scaleOptions as option}
-                  <div class="text-center">
-                    <div class="w-14 h-14 rounded-full border-2 flex items-center justify-center font-mono text-lg font-bold transition-all duration-200
+            <div class="flex justify-between mt-3">
+              {#each scaleOptions as option}
+                <div class="text-center">
+                  <div 
+                    class="w-14 h-14 rounded-full border-2 flex items-center justify-center font-mono text-lg font-bold transition-all duration-200 cursor-pointer
                       {selectedAnswer === option.value 
                         ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]' 
-                        : 'border-[var(--card-border)] text-[var(--text-muted)]'}"
-                      onclick={() => selectAnswer(option.value)}
-                      style="cursor: pointer;"
-                    >
-                      {option.value}
-                    </div>
-                    <div class="text-xs mt-2 text-[var(--text-muted)] font-medium leading-tight">{option.label}</div>
+                        : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--accent)]'}"
+                    onclick={() => selectAnswer(option.value)}
+                  >
+                    {option.value}
                   </div>
-                {/each}
-              </div>
+                  <div class="text-xs mt-2 text-[var(--text-muted)] font-medium leading-tight">{option.label}</div>
+                </div>
+              {/each}
             </div>
           </div>
 
@@ -555,21 +480,21 @@
               ← PREV
             </button>
             
-            {#if currentQuestion === questions.length - 1}
-              <button 
-                onclick={submitQuiz}
-                disabled={selectedAnswer === null}
-                class="btn-cyber btn-cyber-solid !px-8 {selectedAnswer === null ? 'opacity-50 cursor-not-allowed' : ''}"
-              >
-                SUBMIT QUIZ
-              </button>
-            {:else if showResult && !showSuccess}
+            {#if currentQuestion < questions.length - 1}
               <button 
                 onclick={nextQuestion}
                 disabled={selectedAnswer === null}
                 class="btn-cyber btn-cyber-solid !px-8 {selectedAnswer === null ? 'opacity-50 cursor-not-allowed' : ''}"
               >
                 NEXT →
+              </button>
+            {:else}
+              <button 
+                onclick={submitQuiz}
+                disabled={selectedAnswer === null}
+                class="btn-cyber btn-cyber-solid !px-8 {selectedAnswer === null ? 'opacity-50 cursor-not-allowed' : ''}"
+              >
+                SUBMIT QUIZ
               </button>
             {/if}
           </div>
@@ -588,9 +513,7 @@
               
               <div class="mb-8">
                 <div class="inline-flex items-center justify-center w-32 h-32 rounded-full border-4 mb-4 animate-pulse" style="border-color: var(--accent); background: var(--bg-light);">
-                  <span class="font-heading text-4xl font-bold text-[var(--accent)]">
-                    ...
-                  </span>
+                  <span class="font-heading text-4xl font-bold text-[var(--accent)]">...</span>
                 </div>
               </div>
               
@@ -608,111 +531,113 @@
             </div>
           </div>
         {:else}
-          <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
-          <div class="absolute top-5 right-5 w-7 h-7 border-t-2 border-r-2 border-[var(--accent)] opacity-40"></div>
-          <div class="absolute bottom-5 left-5 w-7 h-7 border-b-2 border-l-2 border-[var(--accent)] opacity-40"></div>
-          <div class="absolute bottom-5 right-5 w-7 h-7 border-b-2 border-r-2 border-[var(--accent)] opacity-40"></div>
+          <div class="card-cyber p-8 text-center relative">
+            <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
+            <div class="absolute top-5 right-5 w-7 h-7 border-t-2 border-r-2 border-[var(--accent)] opacity-40"></div>
+            <div class="absolute bottom-5 left-5 w-7 h-7 border-b-2 border-l-2 border-[var(--accent)] opacity-40"></div>
+            <div class="absolute bottom-5 right-5 w-7 h-7 border-b-2 border-r-2 border-[var(--accent)] opacity-40"></div>
 
-          <div class="relative z-10">
-            <span class="tag-cyber tag-cyan inline-block mb-6">// ASSESSMENT COMPLETE</span>
-            
-            <div class="mb-8">
-              <div class="flex items-center justify-center w-32 h-32 rounded-full border-4 mb-4 mx-auto" style="border-color: var(--accent); background: var(--bg-light);">
-                <span class="font-heading text-4xl font-bold text-[var(--accent)]">
-                  {getAverageScore().toFixed(1)}/5
-                </span>
-              </div>
-            </div>
-
-            {#if getPreAverage() > 0}
-              <div class="mb-6 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)]">
-                <div class="flex items-center justify-center gap-4">
-                  <span class="text-zinc-400">Pre: {getPreAverage().toFixed(1)}</span>
-                  <span class="text-[var(--accent)]">→</span>
-                  <span class="text-[var(--accent)] font-bold">Post: {getAverageScore().toFixed(1)}</span>
-                  <span class="text-green-400 font-bold">({getImprovement()})</span>
+            <div class="relative z-10">
+              <span class="tag-cyber tag-cyan inline-block mb-6">// ASSESSMENT COMPLETE</span>
+              
+              <div class="mb-8">
+                <div class="flex items-center justify-center w-32 h-32 rounded-full border-4 mb-4 mx-auto" style="border-color: var(--accent); background: var(--bg-light);">
+                  <span class="font-heading text-4xl font-bold text-[var(--accent)]">
+                    {getAverageScore().toFixed(1)}/5
+                  </span>
                 </div>
               </div>
-            {/if}
 
-            <h2 class="font-heading text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-4">
-              {getSkillLevel()} Developer
-            </h2>
-            
-            <p class="text-[var(--text-muted)] mb-10 max-w-lg mx-auto leading-relaxed font-body">
-              {getSkillDescription()}
-            </p>
+              {#if getPreAverage() > 0}
+                <div class="mb-6 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)]">
+                  <div class="flex items-center justify-center gap-4">
+                    <span class="text-zinc-400">Pre: {getPreAverage().toFixed(1)}</span>
+                    <span class="text-[var(--accent)]">→</span>
+                    <span class="text-[var(--accent)] font-bold">Post: {getAverageScore().toFixed(1)}</span>
+                    <span class="text-green-400 font-bold">({getImprovement()})</span>
+                  </div>
+                </div>
+              {/if}
 
-            {#if getTotalSelections() > 0}
-              <div class="mb-8 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)] text-left">
-                <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-3">
-                  CONCEPTS YOU'VE MASTERED
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                  {#each topics as topic}
-                    {#each Array.from(reflectionByTopic[topic.id] || []) as concept}
-                      <span class="px-3 py-1 rounded-full bg-green-900/30 border border-green-500/50 text-green-400 text-sm">
-                        ✓ {concept}
-                      </span>
-                    {/each}
-                  {/each}
-                </div>
-              </div>
-            {/if}
+              <h2 class="font-heading text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-4">
+                {getSkillLevel()} Developer
+              </h2>
+              
+              <p class="text-[var(--text-muted)] mb-10 max-w-lg mx-auto leading-relaxed font-body">
+                {getSkillDescription()}
+              </p>
 
-            {#if contentWarning && showResult}
-              <div class="mb-8 p-6 rounded-lg bg-red-500/10 border border-red-500/30 text-left">
-                <h3 class="font-label text-[0.7rem] tracking-widest text-red-500 mb-4">
-                  ⚠️ CONTENT WARNING
-                </h3>
-                <p class="text-[var(--text-primary)] text-lg mb-4">
-                  Your reflection responses do not appear to be related to the level concepts you learned.
-                </p>
-                <p class="text-[var(--text-muted)] text-sm mb-4">
-                  Please provide specific details about what you learned in each level.
-                </p>
-                <div class="flex gap-3">
-                  <button 
-                    onclick={() => { contentWarning = false; showResult = false; showReflection = true; processingResults = false; submittingReflection = false; }} 
-                    class="btn-cyber btn-cyber-solid !px-6"
-                  >
-                    GO BACK AND REVISE
-                  </button>
-                </div>
-              </div>
-            {:else if aiGradingResult}
-              <div class="mb-8 p-6 rounded-lg bg-gradient-to-r from-[var(--accent)]/10 to-purple-500/10 border border-[var(--accent)]/30 text-left">
-                <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--accent)] mb-4">
-                  AI REFLECTION GRADING
-                </h3>
-                <div class="mb-4">
-                  <p class="text-[var(--text-primary)] text-lg font-bold">
-                    Overall Score: {aiGradingResult.overallScore}%
-                  </p>
-                  <p class="text-[var(--text-muted)] text-sm">
-                    Improvement: {aiGradingResult.improvement}
-                  </p>
-                </div>
-                {#if Object.keys(aiGradingResult.grades).length > 0}
-                  <div class="space-y-3">
-                    {#each Object.entries(aiGradingResult.grades) as [topic, grade]}
-                      <div class="p-3 rounded bg-[var(--bg)] border border-[var(--card-border)]">
-                        <div class="flex justify-between items-center mb-1">
-                          <span class="text-[var(--text-primary)] text-sm font-medium">{topic}</span>
-                          <span class="text-[var(--accent)] text-sm font-bold">{grade.score}%</span>
-                        </div>
-                        <p class="text-[var(--text-muted)] text-xs">{grade.feedback}</p>
-                      </div>
+              {#if getTotalSelections() > 0}
+                <div class="mb-8 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)] text-left">
+                  <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-3">
+                    CONCEPTS YOU'VE MASTERED
+                  </h3>
+                  <div class="flex flex-wrap gap-2">
+                    {#each topics as topic}
+                      {#each Array.from(reflectionByTopic[topic.id] || []) as concept}
+                        <span class="px-3 py-1 rounded-full bg-green-900/30 border border-green-500/50 text-green-400 text-sm">
+                          ✓ {concept}
+                        </span>
+                      {/each}
                     {/each}
                   </div>
-                {/if}
-              </div>
-            {/if}
+                </div>
+              {/if}
 
-            <div class="flex justify-center">
-              <button onclick={() => { showSuccess = true; return false; }} class="btn-cyber btn-cyber-solid !px-10">
-                CONTINUE TO SUCCESS →
-              </button>
+              {#if contentWarning && showResult}
+                <div class="mb-8 p-6 rounded-lg bg-red-500/10 border border-red-500/30 text-left">
+                  <h3 class="font-label text-[0.7rem] tracking-widest text-red-500 mb-4">
+                    ⚠️ CONTENT WARNING
+                  </h3>
+                  <p class="text-[var(--text-primary)] text-lg mb-4">
+                    Your reflection responses do not appear to be related to the level concepts you learned.
+                  </p>
+                  <p class="text-[var(--text-muted)] text-sm mb-4">
+                    Please provide specific details about what you learned in each level.
+                  </p>
+                  <div class="flex gap-3">
+                    <button 
+                      onclick={() => { contentWarning = false; showResult = false; showReflection = true; processingResults = false; submittingReflection = false; }} 
+                      class="btn-cyber btn-cyber-solid !px-6"
+                    >
+                      GO BACK AND REVISE
+                    </button>
+                  </div>
+                </div>
+              {:else if aiGradingResult}
+                <div class="mb-8 p-6 rounded-lg bg-gradient-to-r from-[var(--accent)]/10 to-purple-500/10 border border-[var(--accent)]/30 text-left">
+                  <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--accent)] mb-4">
+                    AI REFLECTION GRADING
+                  </h3>
+                  <div class="mb-4">
+                    <p class="text-[var(--text-primary)] text-lg font-bold">
+                      Overall Score: {aiGradingResult.overallScore}%
+                    </p>
+                    <p class="text-[var(--text-muted)] text-sm">
+                      Improvement: {aiGradingResult.improvement}
+                    </p>
+                  </div>
+                  {#if Object.keys(aiGradingResult.grades).length > 0}
+                    <div class="space-y-3">
+                      {#each Object.entries(aiGradingResult.grades) as [topic, grade]}
+                        <div class="p-3 rounded bg-[var(--bg)] border border-[var(--card-border)]">
+                          <div class="flex justify-between items-center mb-1">
+                            <span class="text-[var(--text-primary)] text-sm font-medium">{topic}</span>
+                            <span class="text-[var(--accent)] text-sm font-bold">{grade.score}%</span>
+                          </div>
+                          <p class="text-[var(--text-muted)] text-xs">{grade.feedback}</p>
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+              {/if}
+
+              <div class="flex justify-center">
+                <button onclick={() => { showSuccess = true; return false; }} class="btn-cyber btn-cyber-solid !px-10">
+                  CONTINUE TO SUCCESS →
+                </button>
+              </div>
             </div>
           </div>
         {/if}
@@ -742,9 +667,7 @@
         
         <div class="relative z-10">
           <div class="text-5xl mb-4">⚠️</div>
-          <h3 class="font-heading text-xl text-red-500 mb-4">
-            CONTENT WARNING
-          </h3>
+          <h3 class="font-heading text-xl text-red-500 mb-4">CONTENT WARNING</h3>
           <p class="text-[var(--text-primary)] text-lg mb-2">
             Your reflection responses do not appear to be related to the level concepts you learned.
           </p>
