@@ -42,12 +42,9 @@ model user {
   coins        Int      @default(0)
   level        Int      @default(1)
   owned_avatars String[] @default([])
-
-    // Onboarding
-  has_completed_onboarding Boolean @default(false)
   
   // Tutorial
-  hasCompletedTutorial Boolean @default(false)
+  has_completed_tutorial Boolean @default(false)
 
   // Relations
   daily_login   daily_login?       @relation

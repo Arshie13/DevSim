@@ -45,9 +45,10 @@ export class WorkspaceService {
   ) { }
 
   async createOrReuseWorkspace(params: CreateWorkspaceRequest) {
-    const { userId, stackName, level, stacks, scenarioId = undefined, projectFolder } = params;
+    const { userId, stackName, level, stacks, scenarioId = undefined, projectFolder, mode = 'workspace' } = params;
 
     const currentScenarioId = await this.getScenarioId(scenarioId);
+    const workspaceStatus = mode === 'tutorial' ? 'tutorial' : 'created';
 
     // Convert stacks (frontend/backend/database/services) to array format
     const stacksArray: Array<{ stackName: string }> = [
@@ -63,6 +64,10 @@ export class WorkspaceService {
     if (existing && existing.workspaceStacks && this.stacksMatch(existing.workspaceStacks, stacks)) {
       try {
         await this.container.ensureRunning(existing.containerId);
+
+        if (mode === 'tutorial') {
+          await this.workspace.updateWorkspaceStatus(existing.id, 'tutorial', false);
+        }
 
         return {
           alreadyExists: true,
@@ -89,7 +94,7 @@ export class WorkspaceService {
           currentScenarioId: currentScenarioId || '',
           stacks,
           level,
-          status: 'created'
+          status: workspaceStatus
         });
 
         return {
@@ -116,7 +121,7 @@ export class WorkspaceService {
       currentScenarioId: currentScenarioId || '',
       stacks,
       level,
-      status: 'created'
+      status: workspaceStatus
     });
 
     return {

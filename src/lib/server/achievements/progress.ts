@@ -21,7 +21,7 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
   const [dbUser, streak, tasks, fileEdits, archivedContainers] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { xp: true, coins: true, hasCompletedTutorial: true },
+      select: { xp: true, coins: true, has_completed_tutorial: true },
     }),
     prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
     prisma.completed_task.count({ where: { workspace: { user_id: userId } } }),
@@ -57,7 +57,7 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
     distinctStacks: stackCounts.size,
     maxScenariosInAnyStack,
     levelsCompleted,
-    tutorialCompleted: dbUser?.hasCompletedTutorial ?? false,
+    tutorialCompleted: dbUser?.has_completed_tutorial ?? false,
   };
 }
 

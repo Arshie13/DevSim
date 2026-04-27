@@ -12,7 +12,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
     const userId = session.user.id;
     const req = await request.json();
-    const { stackName, level, stacks, scenarioId, projectFolder, scenarioTitle } = req;
+    const { stackName, level, stacks, scenarioId, projectFolder, scenarioTitle, mode } = req;
 
     const service = new WorkspaceService();
     const result = await service.createOrReuseWorkspace({
@@ -22,7 +22,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       stacks,
       scenarioId: scenarioId || undefined,
       projectFolder: projectFolder || undefined,
-      scenarioTitle: scenarioTitle || ''
+      scenarioTitle: scenarioTitle || '',
+      mode: mode === 'tutorial' ? 'tutorial' : 'workspace'
     });
 
     return json({ success: true, ...result });
