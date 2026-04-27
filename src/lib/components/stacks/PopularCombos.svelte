@@ -101,9 +101,7 @@
   <!-- ══ RAIL ══ -->
   <aside class="rail">
     <div class="rail-hd">
-      <span class="rail-title">LOADOUTS</span>
-      <span class="rail-sep">//</span>
-      <span class="rail-sub">SELECT CONFIG</span>
+      <span class="rail-title">TECH STACKS</span>
     </div>
 
     <div class="rail-list">
@@ -146,7 +144,7 @@
     </div>
 
     <div class="rail-foot">
-      <span class="rail-foot-txt">{POPULAR_COMBOS.filter(c => !c.comingSoon).length} CONFIGS AVAILABLE</span>
+      <span class="rail-foot-txt">{POPULAR_COMBOS.filter(c => !c.comingSoon).length} STACKS AVAILABLE</span>
     </div>
   </aside>
 
@@ -268,17 +266,6 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     color: #d0d7dd;
-  }
-  .rail-sep {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(0.52rem, calc(0.24rem + 0.49vw), 0.82rem);
-    color: rgba(7,165,201,0.30);
-  }
-  .rail-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(0.46rem, calc(0.21rem + 0.44vw), 0.74rem);
-    letter-spacing: 0.08em;
-    color: rgba(7,165,201,0.42);
   }
 
   .rail-list {
