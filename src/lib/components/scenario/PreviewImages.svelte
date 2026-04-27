@@ -26,6 +26,8 @@
   export let initialIndex: number = 0;
   /** Show inline image preview instead of button */
   export let showInline: boolean = false;
+  /** Suppress the trigger button — use when isOpen is controlled externally */
+  export let noTrigger: boolean = false;
 
   export let isOpen: boolean;
   // export let openModal: () => void;
@@ -85,7 +87,7 @@
     {/if}
     <p class="preview-label">What you'll build</p>
   </div>
-{:else}
+{:else if !noTrigger}
 <!-- ── Trigger Button ── -->
   <button class="trigger-btn" on:click={openModal} aria-haspopup="dialog">
     <ZoomIn class="w-3.5 h-3.5" />
@@ -134,8 +136,13 @@
       <!-- Header -->
       <div class="panel-header">
         <div class="panel-label">
-          <span class="label-tag">IMG</span>
-          <span class="label-index">{currentIndex + 1} / {images.length}</span>
+          <span class="label-tag">PREVIEW</span>
+          <div class="panel-title-group">
+            <span class="panel-title">What You'll Build</span>
+            {#if hasMultiple}
+              <span class="label-index">{currentIndex + 1} / {images.length}</span>
+            {/if}
+          </div>
         </div>
         <button class="close-btn" on:click={closeModal} aria-label="Close modal">
           <X class="w-4 h-4" />
@@ -379,30 +386,45 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 18px 10px;
+    padding: 14px 20px 12px;
     border-bottom: 1px solid rgba(7, 165, 201, 0.15);
+    background: rgba(7, 165, 201, 0.03);
   }
   .panel-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+  }
+  .panel-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .panel-title {
+    font-family: 'Chakra Petch', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #e2e8f0;
   }
   .label-tag {
     font-family: 'Chakra Petch', monospace;
-    font-size: 0.58rem;
+    font-size: 0.55rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #07a5c9;
     background: rgba(7, 165, 201, 0.12);
     border: 1px solid rgba(7, 165, 201, 0.35);
-    padding: 2px 6px;
+    padding: 3px 7px;
     border-radius: 2px;
+    flex-shrink: 0;
   }
   .label-index {
     font-family: 'Chakra Petch', monospace;
-    font-size: 0.62rem;
-    color: rgba(7, 165, 201, 0.55);
+    font-size: 0.6rem;
+    color: rgba(7, 165, 201, 0.5);
     letter-spacing: 0.06em;
   }
   .close-btn {
