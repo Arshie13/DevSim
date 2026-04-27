@@ -1,6 +1,8 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import prisma from '$lib/server/client';
+import { WorkspaceService } from '$lib/layers/service/WorkspaceService';
+
+const workspaceService = new WorkspaceService();
 
 export const GET: RequestHandler = async ({ locals, params }) => {
   try {
@@ -15,27 +17,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
       return error(400, 'Container ID is required');
     }
 
-    const prismaContainer = await prisma.workspace.findFirst({
-      where: {
-        container_id: id
-      },
-      select: {
-        id: true
-      }
-    });
-
-    if (!prismaContainer) {
-      return json({ success: true, data: [] });
-    }
-
-    const fileLogs = await prisma.user_file_changes.findMany({
-      where: {
-        workspace_id: prismaContainer.id
-      },
-      select: {
-        file_path: true,
-      }
-    });
+    const fileLogs = await workspaceService.getFileLogs(session.user.id, id);
 
     return json({ success: true, data: fileLogs });
   }

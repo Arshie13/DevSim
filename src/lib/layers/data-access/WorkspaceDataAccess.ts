@@ -27,6 +27,8 @@ function mapWorkspace(row: WorkspaceRow & { workspace_stacks?: WorkspaceStackRow
 export type WorkspaceWithStacks = ReturnType<typeof mapWorkspace>;
 
 export class WorkspaceDataAccess {
+
+  // TODO: move this to UserDataAccess if not already there
   async findUserById(userId: string) {
     return prisma.user.findUnique({
       where: { id: userId },
@@ -34,6 +36,7 @@ export class WorkspaceDataAccess {
     });
   }
 
+  // TODO: move this to ScenarioDataAccess if not already there
   async findScenarioById(scenarioId: string) {
     return prisma.scenario.findFirst({
       where: { id: scenarioId },
