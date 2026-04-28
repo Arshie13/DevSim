@@ -10,6 +10,7 @@ export interface CreateContainerParams {
   stacks: Array<{ stackName: string }>;
   scenarioId?: string;
   projectFolder?: string;
+  mode?: 'tutorial' | 'workspace';
 }
 
 export interface CreateContainerResult {
@@ -30,16 +31,17 @@ interface InspectResult {
 }
 
 export class ContainerService {
-  async findByLabels(userId: string, stackName: string, level: number) {
+  async findByLabels(userId: string, stackName: string, level: number, mode?: 'tutorial' | 'workspace') {
+    const labels = [
+      `devsim.userId=${userId}`,
+      `devsim.stack=${stackName}`,
+      `devsim.level=${level}`
+    ];
+    if (mode) labels.push(`devsim.mode=${mode}`);
+
     const containers = await docker.listContainers({
       all: true,
-      filters: JSON.stringify({
-        label: [
-          `devsim.userId=${userId}`,
-          `devsim.stack=${stackName}`,
-          `devsim.level=${level}`
-        ]
-      })
+      filters: JSON.stringify({ label: labels })
     });
 
     return containers.length > 0 ? containers[0] : null;
@@ -60,7 +62,7 @@ export class ContainerService {
    * Resolve which image/volume to use for a container.
    * Returns: { imageToUse, volumeMount, scenarioFolder }
    */
-  async resolveImageAndVolume(stackName: string, level: number, scenarioId?: string, projectFolder?: string) {
+  async resolveImageAndVolume(stackName: string, level: number, scenarioId?: string, projectFolder?: string, mode?: 'tutorial' | 'workspace') {
     const scenarioFolder = scenarioId ?? `scenario-${level}`;
     const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
 
@@ -69,6 +71,34 @@ export class ContainerService {
     let volumeMount: string | null = null;
 
     const imageBase = stackName.toLowerCase().replace(/[_ ]+/g, '-');
+
+    if (mode === 'tutorial') {
+      const tutorialImageName = `devsim-project-tutorial:${imageBase}-tutorial`;
+      try {
+        await docker.getImage(tutorialImageName).inspect();
+        imageToUse = tutorialImageName;
+        return {
+          imageToUse,
+          volumeMount: null,
+          bindMount: null,
+          scenarioFolder: 'tutorial',
+          volumeName
+        };
+      } catch {
+        // Tutorial image not found — fall back to tutorial bind mount
+        useVolume = false;
+        const bindPath = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/tutorial:/workspace`;
+        volumeMount = bindPath.replace(/\\/g, '/');
+        return {
+          imageToUse,
+          volumeMount: null,
+          bindMount: volumeMount,
+          scenarioFolder: 'tutorial',
+          volumeName
+        };
+      }
+    }
+
     const customImageName = projectFolder
       ? `devsim-project:${imageBase}-${scenarioFolder}-${projectFolder.toLowerCase().replace(/[_ ]+/g, '-')}`
       : `devsim-project:${imageBase}-${scenarioFolder}`;
@@ -102,15 +132,15 @@ export class ContainerService {
    * Create a fresh workspace container with all necessary configuration.
    */
   async createContainer(params: CreateContainerParams): Promise<CreateContainerResult> {
-    const { userId, stackName, level, stacks, scenarioId, projectFolder } = params;
+    const { userId, stackName, level, stacks, scenarioId, projectFolder, mode } = params;
 
-    const resolved = await this.resolveImageAndVolume(stackName, level, scenarioId, projectFolder);
+    const resolved = await this.resolveImageAndVolume(stackName, level, scenarioId, projectFolder, mode);
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
 
     const containerConfig: any = {
       Image: resolved.imageToUse,
-      name: `devsim-${stackName}-${userId}-${level}`,
+      name: mode === 'tutorial' ? `devsim-${stackName}-${userId}-${level}-tutorial` : `devsim-${stackName}-${userId}-${level}`,
       Cmd: ['/bin/sh'],
       Tty: true,
       OpenStdin: true,
@@ -145,7 +175,8 @@ export class ContainerService {
         'devsim.userId': userId,
         'devsim.stack': stackName,
         'devsim.level': level.toString(),
-        'devsim.projectFolder': projectFolder ?? ''
+        'devsim.projectFolder': projectFolder ?? '',
+        'devsim.mode': mode ?? 'workspace'
       }
     };
 

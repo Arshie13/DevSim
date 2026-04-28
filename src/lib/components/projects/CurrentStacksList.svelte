@@ -151,9 +151,9 @@
   >
     <div class="space-y-3">
       <div class="info-row">
-        <p class="info-title">{confirmTarget.scenario?.name ?? parseStackName(confirmTarget.workspace_stacks ?? confirmTarget.containerStacks ?? [])}</p>
+        <p class="info-title">{confirmTarget.scenario?.name ?? parseStackName(confirmTarget.workspace_stacks ?? [])}</p>
         {#if confirmTarget.scenario?.name}
-          <p class="info-sub">{parseStackName(confirmTarget.workspace_stacks ?? confirmTarget.containerStacks ?? [])}</p>
+          <p class="info-sub">{parseStackName(confirmTarget.workspace_stacks ?? [])}</p>
         {/if}
         <p class="info-sub">Level {confirmTarget.level}</p>
       </div>

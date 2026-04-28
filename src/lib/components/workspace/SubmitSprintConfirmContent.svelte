@@ -137,6 +137,7 @@
        Explain what you changed and why it works. This is required to unlock the next level.
      </p>
      <textarea
+       data-tour="mastery-reflection-input"
        bind:value={masteryReflection}
        rows="4"
        placeholder="Example: I updated the API validation to reject empty titles, then adjusted the frontend form and DB migration so the same constraint is enforced end-to-end..."
@@ -157,7 +158,8 @@
          {#each layerOptions as layer}
            <button
              type="button"
-             on:click={() => toggleLayer(layer)}
+             data-tour="impacted-layer-{layer}"
+             on:click={(e) => { toggleLayer(layer); (e.currentTarget as HTMLElement).dispatchEvent(new Event('change', { bubbles: true })); }}
              class="rounded-[3px] border px-2.5 py-1 [font-family:var(--font-mono)] text-[0.68rem] uppercase tracking-[0.06em] transition-colors {impactedLayers.includes(layer) ? 'border-[rgba(0,229,160,0.45)] bg-[rgba(0,229,160,0.14)] text-[var(--success)]' : 'border-[rgba(136,146,160,0.35)] bg-[rgba(10,14,26,0.8)] text-[var(--text-muted)]'}"
            >
              {impactedLayers.includes(layer) ? '✓ ' : ''}{layer}

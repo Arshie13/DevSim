@@ -187,8 +187,8 @@
         {/if}
       </div>
 
-    <Scrollbar className="flex-1">
-      {#if activeSidebarPanel === "files"}
+    {#if activeSidebarPanel === "files"}
+      <Scrollbar className="flex-1">
         <Explorer
           {fileTree}
           {directories}
@@ -199,14 +199,16 @@
           {onDeleteFile}
           {onRenameFile}
         />
-      {:else if activeSidebarPanel === "search"}
+      </Scrollbar>
+    {:else if activeSidebarPanel === "search"}
+      <div class="flex-1 min-h-0 overflow-hidden">
         <Search
           {fileTree}
           {containerId}
           {onSelectFile}
         />
-      {/if}
-    </Scrollbar>
+      </div>
+    {/if}
 
     <button
       type="button"

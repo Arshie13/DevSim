@@ -4,7 +4,6 @@ export interface IContainer {
   status: string;
   level: number;
   scenario: IScenario;
-  containerStacks?: IContainerStack[];
   workspace_stacks?: IContainerStack[];
   isArchived?: boolean;
   volumeName?: string;

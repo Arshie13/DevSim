@@ -232,7 +232,7 @@
   }
 </script>
 
-<div class="flex flex-col h-full" data-tour="tutorial-search-panel">
+<div class="flex flex-col h-full min-h-0" data-tour="tutorial-search-panel">
   <!-- Search Input -->
   <div class="p-3 border-b border-[#27272a]">
     <div class="relative">

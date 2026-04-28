@@ -41,10 +41,6 @@ export const load: PageServerLoad = async (event) => {
     container: {
       ...container,
       containerId: container.container_id,
-      containerStacks: container.workspace_stacks.map((s) => ({
-        stackName: s.stack_name,
-        stackVersion: s.stack_version,
-      })),
     },
   };
 };

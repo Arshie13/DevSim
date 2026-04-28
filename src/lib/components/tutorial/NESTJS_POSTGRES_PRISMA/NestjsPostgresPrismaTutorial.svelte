@@ -21,6 +21,7 @@
 
     if (step.id === "readme-open") {
       window.dispatchEvent(new CustomEvent("devsim-tour-open-explorer-panel"));
+      window.dispatchEvent(new CustomEvent("devsim-tour-scroll-to-readme"));
     }
 
     if (step.id === "task-two-schema-edit") {
@@ -56,4 +57,5 @@
   {onSubmitSprint}
   onPrepareStep={handlePrepareStep}
   on:complete
+  on:skip
 />

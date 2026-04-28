@@ -12,7 +12,7 @@
   export let container: ContainerWithDates;
   export let variant: "current" | "finished" = "current";
 
-  $: stacks = container.workspace_stacks ?? container.containerStacks ?? [];
+  $: stacks = container.workspace_stacks ?? [];
   $: stackLabel = parseStackName(stacks);
   $: chipNames = [...new Set(
     stacks.flatMap((s) => {

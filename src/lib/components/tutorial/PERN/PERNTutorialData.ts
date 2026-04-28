@@ -362,7 +362,7 @@ export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceDa
     {
       id: 'preview-check',
       title: 'Verify Running App',
-      instruction: 'Confirm the website is running in the Preview panel.',
+      instruction: 'Confirm the website is running in the Preview panel. If the preview is not loading, click the Refresh button in the Preview panel.',
       hint: 'Once you can see the app in the preview iframe, continue to the testing step.',
       target: 'tutorial-preview-panel',
       switchTab: 'preview',

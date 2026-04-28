@@ -145,9 +145,9 @@
   >
     <div class="space-y-3">
       <div class="info-row">
-        <p class="info-title">{target.scenario?.name ?? parseStackName(target.workspace_stacks ?? target.containerStacks ?? [])}</p>
+        <p class="info-title">{target.scenario?.name ?? parseStackName(target.workspace_stacks ?? [])}</p>
         {#if target.scenario?.name}
-          <p class="info-sub">{parseStackName(target.workspace_stacks ?? target.containerStacks ?? [])}</p>
+          <p class="info-sub">{parseStackName(target.workspace_stacks ?? [])}</p>
         {/if}
         <p class="info-sub">Level {target.level}</p>
       </div>

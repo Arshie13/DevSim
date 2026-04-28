@@ -305,7 +305,7 @@ export const STEPS: TutorialStep[] = [
     id: "preview-check",
     title: "Verify API Is Running",
     instruction:
-      "Confirm the NestJS API is responding in the Preview panel. You should see a JSON response from /api/todos.",
+      "Confirm the NestJS API is responding in the Preview panel. You should see a JSON response from /api/todos. If the preview is not loading, click the Refresh button in the Preview panel.",
     hint: "Once you see the API response in the preview iframe, continue to the testing step.",
     target: "tutorial-preview-panel",
     switchTab: "preview",

@@ -128,14 +128,24 @@
     collapseRootFolder();
   }
 
+  async function handleTourScrollToReadme() {
+    // Collapse all sub-folders so README is near the top and fully in view
+    expandedFolders = new Set([""]);
+    await tick();
+    const readmeEl = document.querySelector('[data-tour="tutorial-readme-file"]') as HTMLElement | null;
+    readmeEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
   onMount(() => {
     if (typeof window === 'undefined') return;
     window.addEventListener('devsim-tour-collapse-root-folder', handleTourCollapseRootFolder as EventListener);
+    window.addEventListener('devsim-tour-scroll-to-readme', handleTourScrollToReadme as EventListener);
   });
 
   onDestroy(() => {
     if (typeof window === 'undefined') return;
     window.removeEventListener('devsim-tour-collapse-root-folder', handleTourCollapseRootFolder as EventListener);
+    window.removeEventListener('devsim-tour-scroll-to-readme', handleTourScrollToReadme as EventListener);
   });
 
   function toggleFolder(path: string) {

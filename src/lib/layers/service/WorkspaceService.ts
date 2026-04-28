@@ -61,18 +61,17 @@ export class WorkspaceService {
     // check if workspace already exists in DB
     const existing = await this.workspace.findActiveWorkspace(userId, level);
 
-    if (existing && existing.workspaceStacks && this.stacksMatch(existing.workspaceStacks, stacks)) {
-      try {
-        await this.container.ensureRunning(existing.containerId);
+    const existingMatchesMode = existing &&
+      (mode === 'tutorial' ? existing.status === 'tutorial' : existing.status !== 'tutorial');
 
-        if (mode === 'tutorial') {
-          await this.workspace.updateWorkspaceStatus(existing.id, 'tutorial', false);
-        }
+    if (existingMatchesMode && existing!.workspaceStacks && this.stacksMatch(existing!.workspaceStacks, stacks)) {
+      try {
+        await this.container.ensureRunning(existing!.containerId);
 
         return {
           alreadyExists: true,
-          containerId: existing.containerId,
-          dbContainerId: existing.id
+          containerId: existing!.containerId,
+          dbContainerId: existing!.id
         };
       } catch {
         // fall through → recreate
@@ -80,7 +79,7 @@ export class WorkspaceService {
     }
 
     // 2. Docker fallback
-    const dockerMatch = await this.container.findByLabels(userId, stackName, level);
+    const dockerMatch = await this.container.findByLabels(userId, stackName, level, mode);
 
     if (dockerMatch) {
       const dbRecord = await this.workspace.findWorkspaceByContainerId(userId, dockerMatch.Id);
@@ -112,7 +111,8 @@ export class WorkspaceService {
       level,
       stacks: stacksArray,
       scenarioId,
-      projectFolder
+      projectFolder,
+      mode
     });
 
     const { dbContainerId } = await saveUserContainer({

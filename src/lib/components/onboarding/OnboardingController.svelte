@@ -5,6 +5,7 @@
   import { getStackKey } from './onboardingContent';
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
+  import { toast } from '$lib/stores/toast';
 
   /** The tech stack label (e.g. "Next.js + Prisma"). */
   export let stack: string = '';
@@ -56,10 +57,17 @@
             : 'none'
       : stackTutorialType;
 
-  // ── Mark completion in DB (non-critical) ──────────────────────────────────
+  // ── Mark completion in DB and unlock achievements ─────────────────────────
   async function markOnboardingComplete() {
     try {
-      await fetch('/api/user/onboarding', { method: 'POST' });
+      const res = await fetch('/api/user/onboarding', { method: 'POST' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const unlocked: { name: string; icon: string; xpReward: number; coinReward: number }[] =
+        data.unlockedAchievements ?? [];
+      for (const a of unlocked) {
+        toast.success(`${a.icon} Achievement unlocked: ${a.name} (+${a.xpReward} XP, +${a.coinReward} coins)`, 6000);
+      }
     } catch {
       // Non-critical — ignore
     }
@@ -86,8 +94,20 @@
     }
   }
 
+  function dismissTutorialFlow() {
+    clearOnboardingParam();
+    phase = 'done';
+    if (onComplete) {
+      onComplete();
+    }
+  }
+
   function onStackTutorialComplete() {
     finishTutorialFlow();
+  }
+
+  function onStackTutorialSkipped() {
+    dismissTutorialFlow();
   }
 
   $: if (phase === 'stackTutorial' && resolvedStackTutorialType === 'none') {
@@ -107,6 +127,7 @@
       {onRunTests}
       {onSubmitSprint}
       on:complete={onStackTutorialComplete}
+      on:skip={onStackTutorialSkipped}
     />
   {:else if resolvedStackTutorialType === 'nestjs'}
     <NestjsPostgresPrismaTutorial
@@ -118,6 +139,7 @@
       {onRunTests}
       {onSubmitSprint}
       on:complete={onStackTutorialComplete}
+      on:skip={onStackTutorialSkipped}
     />
   {:else if resolvedStackTutorialType === 'shadcn'}
     <NextjsShadcnTutorial
@@ -129,6 +151,7 @@
       {onRunTests}
       {onSubmitSprint}
       on:complete={onStackTutorialComplete}
+      on:skip={onStackTutorialSkipped}
     />
   {/if}
 {/if}

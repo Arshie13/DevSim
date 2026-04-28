@@ -111,8 +111,8 @@
   function inferExpectedLayerCount() {
     const corpus = tasks
       .flatMap((task) => [
-        task.task_name,
-        ...(task.acceptance_criteria?.map((criteria) => criteria.description) ?? []),
+        task.taskName,
+        ...(task.acceptanceCriteria?.map((criteria) => criteria.description) ?? []),
       ])
       .join(" ")
       .toLowerCase();
@@ -187,7 +187,7 @@
   $: loadingSubtitle =
     activeSubmitStep?.detail ?? "Please keep this window open.";
 
-  $: completedCount = tasks.filter((t) => t.is_complete).length;
+  $: completedCount = tasks.filter((t) => t.isCompleted).length;
 
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{
@@ -535,7 +535,7 @@
 
         // Check for regressions - tasks that were marked as done but now fail
         const completedTaskIds = new Set(
-          tasks.filter((t) => t.is_complete).map((t) => t.id),
+          tasks.filter((t) => t.isCompleted).map((t) => t.id),
         );
         regressedTasks =
           testData.taskResults
@@ -607,8 +607,8 @@
         throwIfSubmissionCanceled();
         // Get completed task texts for the scoring
         const completedTaskTexts = tasks
-          .filter((t) => t.is_complete)
-          .map((t) => t.task_name);
+          .filter((t) => t.isCompleted)
+          .map((t) => t.taskName);
         // Call AI scoring endpoint with test results
 
         const scoreRes = await fetch("/api/ai/score", {
@@ -715,7 +715,7 @@
             headers: { "Content-Type": "application/json" },
             signal,
             body: JSON.stringify({
-              taskId: task.task_name,
+              taskId: task.taskName,
               advanceLevel: isLastTask,
             }),
           },
@@ -724,7 +724,7 @@
 
         if (!submitRes.ok) {
           throw new Error(
-            submitData.error ?? `Failed to submit task: ${task.task_name}`,
+            submitData.error ?? `Failed to submit task: ${task.taskName}`,
           );
         }
 

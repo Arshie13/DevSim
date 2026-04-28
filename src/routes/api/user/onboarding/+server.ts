@@ -1,6 +1,7 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
+import { unlockNewAchievements } from "$lib/server/achievements/unlock";
 
 /**
  * GET /api/user/onboarding
@@ -43,5 +44,7 @@ export const POST: RequestHandler = async (event) => {
     data: { has_completed_tutorial: true },
   });
 
-  return json({ success: true });
+  const unlockedAchievements = await unlockNewAchievements(session.user.id);
+
+  return json({ success: true, unlockedAchievements });
 };

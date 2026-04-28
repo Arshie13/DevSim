@@ -274,7 +274,7 @@ model user_achievement {
 
   achievement achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
 
-  @@unique([achievement_id, tier], map: "user_achievement_achievement_id_tier_key")
+  @@unique([user_id, achievement_id, tier], map: "user_achievement_user_id_achievement_id_tier_key")
   @@index([achievement_id], map: "user_achievement_achievement_id_idx")
   @@map("user_achievement_tiers")
   users user[]

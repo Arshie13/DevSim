@@ -24,7 +24,7 @@
   export let layersStepId: string = "submit-sprint-layers";
   export let layersMinClicks: number = 2;
 
-  const dispatch = createEventDispatcher<{ complete: void }>();
+  const dispatch = createEventDispatcher<{ complete: void; skip: void }>();
 
   // ── UI state ────────────────────────────────────────────────────────────────
   let currentIdx = 0;
@@ -169,7 +169,7 @@
   }
 
   function skipTutorial() { if (allowSkip) showSkipConfirm = true; }
-  function confirmSkip() { showSkipConfirm = false; completeTutorial(); }
+  function confirmSkip() { showSkipConfirm = false; dispatch("skip"); }
 
   function resetStepState() {
     stopTerminalOutputPoll();

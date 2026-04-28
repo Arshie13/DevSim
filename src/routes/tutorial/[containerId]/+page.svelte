@@ -35,10 +35,14 @@
 
   export let data: PageData;
 
+  const uniqueStackNames = [
+    ...new Set(data.container?.workspace_stacks?.map((s) => s.stack_name).filter(Boolean) ?? []),
+  ];
+
   const tutorialLaunchContext = {
     stackName:
       page.url.searchParams.get("stackName") ||
-      data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean).join("-") ||
+      uniqueStackNames.join("-") ||
       "",
     scenarioId: page.url.searchParams.get("scenarioId"),
     projectFolder: page.url.searchParams.get("projectFolder"),
@@ -47,8 +51,7 @@
     tutorialRequired: page.url.searchParams.get("tutorialRequired") === "1",
   };
 
-  const stack =
-    data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean).join(" + ") || "PERN";
+  const stack = uniqueStackNames.join(" + ") || "PERN";
   const normalizedTutorialStack = stack.toLowerCase();
   const tutorialData = normalizedTutorialStack.includes("nest")
     ? NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA
@@ -740,6 +743,7 @@ onSubmit: submitSprint,
         level={tutorialLevel}
         tasks={tasks as TestableTask[]}
         disabled={isBooting}
+        tutorialMode={true}
         on:testsComplete={handleTestsComplete}
         on:resultModalClosed={handleTestResultModalClosed}
       />
