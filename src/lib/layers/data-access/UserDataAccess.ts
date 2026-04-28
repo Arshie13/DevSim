@@ -1,6 +1,13 @@
 import prisma from '$lib/server/client';
 
 export class UserDataAccess {
+  async findUserById(userId: string) {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true }
+    });
+  }
+
   async updateUserXpAndCoins(userId: string, xp: number, coins: number, incrementLevel: boolean) {
     try {
 

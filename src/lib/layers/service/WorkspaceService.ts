@@ -4,6 +4,7 @@ import { UserDataAccess } from '../data-access/UserDataAccess';
 import { LevelDataAccess } from '../data-access/LevelDataAccess';
 import { TasksDataAccess } from '../data-access/TasksDataAccess';
 import { FileChangesDataAccess } from '../data-access/FileChangesDataAccess';
+import { ScenarioDataAccess } from '../data-access/ScenarioDataAccess';
 import { saveUserContainer } from '$lib/server/docker/user/save-user-container';
 import { type CreateWorkspaceRequest } from '$lib/contracts/request/CreateWorkspaceRequest';
 import type { StackSelection } from '$lib/types';
@@ -44,6 +45,7 @@ export class WorkspaceService {
     private readonly level = new LevelDataAccess(),
     private readonly tasks = new TasksDataAccess(),
     private readonly fileChanges = new FileChangesDataAccess(),
+    private readonly scenario = new ScenarioDataAccess()
   ) { }
 
   async createOrReuseWorkspace(params: CreateWorkspaceRequest) {
@@ -130,7 +132,7 @@ export class WorkspaceService {
 
   async getScenarioId(scenarioId?: string) {
     if (!scenarioId) return null;
-    const scenario = await this.workspace.findScenarioById(scenarioId);
+    const scenario = await this.scenario.findScenarioById(scenarioId);
     return scenario?.id ?? null;
   }
 
@@ -223,7 +225,7 @@ export class WorkspaceService {
       throw new Error('Invalid workspace ID.');
     }
 
-    return this.workspace.clearUserFileChanges(workspaceId);
+    return this.fileChanges.clearUserFileChanges(workspaceId);
   }
 
   async startContainerForPreview(params: StartContainerForPreviewParams): Promise<StartContainerForPreviewResult> {
