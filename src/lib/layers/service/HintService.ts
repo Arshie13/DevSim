@@ -1,4 +1,4 @@
-import { UserCoinsDataAccess } from '../data-access/UserCoinsDataAccess';
+import { UserDataAccess } from '../data-access/UserDataAccess';
 import { ContainerService } from './ContainerService';
 
 const QUICK_HINT_COST = 100;
@@ -30,7 +30,7 @@ interface HintResult {
 
 export class HintService {
   constructor(
-    private readonly userCoins = new UserCoinsDataAccess(),
+    private readonly userDataAccess = new UserDataAccess(),
     private readonly containerService = new ContainerService()
   ) {}
 
@@ -75,7 +75,7 @@ export class HintService {
     }
 
     // Verify user exists
-    const userResult = await this.userCoins.getUserCoins(userId);
+    const userResult = await this.userDataAccess.getUserCoins(userId);
     if (!userResult.success || !userResult.user) {
       return { success: false, error: 'User not found. Please log in again.' };
     }
@@ -96,7 +96,7 @@ export class HintService {
     }
 
     // Deduct coins
-    const deductResult = await this.userCoins.deductCoins(userId, totalCost);
+    const deductResult = await this.userDataAccess.deductCoins(userId, totalCost);
     if (!deductResult.success) {
       return { success: false, error: 'Failed to deduct coins' };
     }
@@ -127,7 +127,7 @@ export class HintService {
       };
     } catch (error) {
       // Refund coins on error
-      await this.userCoins.refundCoins(userId, totalCost);
+      await this.userDataAccess.refundCoins(userId, totalCost);
       console.error('Error generating hint:', error);
       return { success: false, error: 'Failed to generate hint' };
     }
@@ -458,7 +458,7 @@ Example of CORRECT answer (based on actual file content):
   }
 
   private async getUserCoinBalance(userId: string): Promise<number> {
-    const result = await this.userCoins.getUserCoins(userId);
+    const result = await this.userDataAccess.getUserCoins(userId);
     return result.success ? (result.coins ?? 0) : 0;
   }
 }
