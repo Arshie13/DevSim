@@ -25,4 +25,16 @@ export class FileChangesDataAccess {
 
     return { success: true, data: res }
   }
+
+  async createFileChange(workspaceId: string, filePath: string) {
+    const res = await prisma.user_file_changes.create({
+      data: {
+        workspace_id: workspaceId,
+        file_path: filePath,
+        action: "CREATE"
+      }
+    });
+
+    return { success: true, data: res }
+  }
 }

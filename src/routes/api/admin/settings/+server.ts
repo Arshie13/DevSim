@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ locals }) => {
     return json({ error: 'Missing or stale session' }, { status: 401 });
   }
 
-  const result = await adminSettingsService.getAllAppSettings(session.user.id);
+  const result = await adminSettingsService.getAllAppSettings();
 
   if (result.error) {
     return json({ error: result.error }, { status: result.status });

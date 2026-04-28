@@ -4,13 +4,20 @@ import type { SettingValue } from "../data-access/AppSettingsDataAccess";
 
 export class AdminSettingsService {
   async getAllAppSettings() {
-    const appSettingsDataAccess = new AppSettingsDataAccess();
-    const settings = await appSettingsDataAccess.getAllAppSettings();
-
-    return {
-      data: settings,
-      status: 200
-    };
+    try {
+      const appSettingsDataAccess = new AppSettingsDataAccess();
+      const settings = await appSettingsDataAccess.getAllAppSettings();
+  
+      return {
+        data: settings,
+        status: 200
+      };
+    } catch (error) {
+      console.error('Error fetching app settings:', error);
+      return {
+        error: error instanceof Error ? error.message : 'Failed to fetch settings',
+      };
+    }
   }
 
   async setAppSetting(userId: string, key: string, value: SettingValue) {

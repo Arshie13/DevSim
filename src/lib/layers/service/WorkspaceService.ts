@@ -423,4 +423,36 @@ export class WorkspaceService {
 
     return await this.fileChanges.getFileLogs(workspaceContainer.id)
   }
+
+  async findWorkspaceByContainerId(userId: string, containerId: string) {
+    return await this.workspace.findWorkspaceByContainerId(userId, containerId);
+  }
+
+  async createFileChanges(userId: string, workspaceId: string, filePath: string) {
+    try {
+      const workspace = await this.workspace.findWorkspaceById(workspaceId);
+
+      if (!workspace) {
+        return {
+          success: false,
+          status: 404,
+          error: "Workspace not found"
+        }
+      }
+
+      const fileChanges = await this.fileChanges.createFileChange(workspaceId, filePath);
+
+      return {
+        success: true,
+        status: 200,
+        data: fileChanges
+      }
+    } catch (error) {
+      return {
+        success: false,
+        status: 500,
+        error
+      }
+    }
+  }
 }

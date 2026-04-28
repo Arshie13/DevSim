@@ -1,6 +1,7 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { ContainerService } from "$lib/layers/service/ContainerService";
+import { WorkspaceService } from "$lib/layers/service/WorkspaceService";
 import { FileDataAccess } from "$lib/layers/data-access/FileDataAccess";
 
 const PROTECTED_PACKAGE_FILES = new Set([
@@ -58,10 +59,10 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     }
 
     const containerService = new ContainerService();
-    const fileDataAccess = new FileDataAccess();
+    const workspaceService = new WorkspaceService();
 
     // Find workspace for file change logging
-    const workspace = await fileDataAccess.findWorkspaceByContainerId(userId, containerId);
+    const workspace = await workspaceService.findWorkspaceByContainerId(userId, containerId);
 
     if (isDirectory) {
       await containerService.createDirectory(containerId, path);
@@ -72,12 +73,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     // Log the file change
     if (workspace) {
       try {
-        await fileDataAccess.createFileChange({
-          workspaceId: workspace.id,
+        await workspaceService.createFileChanges(
           userId,
-          filePath: path,
-          action: "CREATE",
-        });
+          workspace.id,
+          path,
+        );
       } catch (logErr) {
         console.warn("Failed to log file change (non-critical):", logErr);
       }
