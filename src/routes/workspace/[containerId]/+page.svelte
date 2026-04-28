@@ -265,6 +265,7 @@
   let activeCrashCourseTaskId: string = $state("");
   let crashCourseSeenByTask: Record<string, boolean> = {};
   let crashCourseCompletedByTask: Record<string, boolean> = $state({});
+  let crashCourseExplicitlyDismissedByTask: Record<string, boolean> = $state({});
   let crashCourseCompletePromptOpen: boolean = $state(false);
   let crashCourseClosePromptOpen: boolean = $state(false);
   let crashCourseCloseDonePromptOpen: boolean = $state(false);
@@ -618,10 +619,20 @@
 
   function handleCrashCoursePromptConfirm() {
     const wasCompletionPrompt = crashCourseCompletePromptOpen;
+    const wasClosePrompt = crashCourseClosePromptOpen || crashCourseCloseDonePromptOpen;
+    const taskId = crashCoursePromptTaskId;
+
     crashCourseCompletePromptOpen = false;
     crashCourseClosePromptOpen = false;
     crashCourseCloseDonePromptOpen = false;
     crashCoursePromptTaskId = "";
+
+    if (wasClosePrompt && taskId) {
+      crashCourseExplicitlyDismissedByTask = {
+        ...crashCourseExplicitlyDismissedByTask,
+        [taskId]: true,
+      };
+    }
 
     if (wasCompletionPrompt && pendingTriviaAfterCrashCourse && !triviaShownThisSession) {
       pendingTriviaAfterCrashCourse = false;
@@ -684,7 +695,7 @@ $effect(() => {
     !crashCourseCloseDonePromptOpen
   ) {
     const nextTask = getNextCrashCourseTask();
-    if (nextTask && !crashCourseCompletedByTask[nextTask.id]) {
+    if (nextTask && !crashCourseCompletedByTask[nextTask.id] && !crashCourseExplicitlyDismissedByTask[nextTask.id]) {
       openCrashCourseForTask(nextTask.id);
     }
   }
@@ -1175,13 +1186,36 @@ $effect(() => {
       showNextRegressionModal();
     }
 
-    const newlyCompletedOrders = tasks
-      .filter((task) => {
-        const prev = previousTasks.find((entry) => entry.id === task.id);
-        return task.isCompleted && !prev?.isCompleted;
-      })
+    const newlyCompletedTasks = tasks.filter((task) => {
+      const prev = previousTasks.find((entry) => entry.id === task.id);
+      return task.isCompleted && !prev?.isCompleted;
+    });
+
+    const newlyCompletedOrders = newlyCompletedTasks
       .map((task) => task.order)
       .sort((a, b) => a - b);
+
+    if (newlyCompletedTasks.length > 0) {
+      (async () => {
+        for (const task of newlyCompletedTasks) {
+          try {
+            const res = await fetch(`/api/docker/container/${containerId}/tasks/complete`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ taskName: task.taskName }),
+            });
+            const data = await res.json();
+            if (data.success && data.unlockedAchievements?.length) {
+              for (const achievement of data.unlockedAchievements) {
+                toast.success(`Achievement unlocked: ${achievement.icon} ${achievement.name} (${achievement.tier})`);
+              }
+            }
+          } catch (err) {
+            console.error('Failed to record task completion:', err);
+          }
+        }
+      })();
+    }
 
     const nextTask = getNextCrashCourseTask();
     if (newlyCompletedOrders.length > 0 && nextTask) {

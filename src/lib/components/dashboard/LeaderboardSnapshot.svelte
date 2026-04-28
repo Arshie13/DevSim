@@ -4,6 +4,22 @@
 
   export let entries: LeaderboardEntry[];
 
+  function xpRequiredForLevel(level: number): number {
+    return Math.floor(100 * Math.pow(1.5, level - 1));
+  }
+
+  function computeLevelFromXp(totalXp: number): number {
+    let level = 1;
+    let accumulated = 0;
+    while (level < 200) {
+      const needed = xpRequiredForLevel(level);
+      if (accumulated + needed > totalXp) return level;
+      accumulated += needed;
+      level++;
+    }
+    return level;
+  }
+
   function getRankIcon(rank: number) {
     if (rank === 1) return { icon: Crown, color: "text-yellow-400" };
     if (rank === 2) return { icon: Medal, color: "text-gray-300" };
@@ -66,7 +82,7 @@
               <span class="text-[10px] text-obsidian-accent/70">(You)</span>
             {/if}
           </p>
-          <p class="text-[10px] font-mono text-[var(--text-muted)]">Level {entry.level}</p>
+          <p class="text-[10px] font-mono text-[var(--text-muted)]">Level {computeLevelFromXp(entry.xp)}</p>
         </div>
 
         <!-- XP -->
