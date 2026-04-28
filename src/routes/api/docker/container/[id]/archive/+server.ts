@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { WorkspaceService } from '$lib/layers/service/WorkspaceService';
+import { unlockNewAchievements } from '$lib/server/achievements/unlock';
 
 const workspaceService = new WorkspaceService();
 
@@ -17,10 +18,13 @@ export const POST: RequestHandler = async ({ params, locals }) => {
       userId: session.user.id
     });
 
+    const unlockedAchievements = await unlockNewAchievements(session.user.id);
+
     return json({
       success: true,
       volumeName: result.volumeName,
-      dbContainerId: result.dbContainerId
+      dbContainerId: result.dbContainerId,
+      unlockedAchievements,
     });
 
   } catch (err) {

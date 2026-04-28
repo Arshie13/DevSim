@@ -16,12 +16,12 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
     }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true },
+      select: { achievement_id: true, tier: true },
     }),
     getUserProgressSnapshot(userId),
   ]);
 
-  const unlockedFamilies = new Set(unlocked.map((u) => u.achievement_id));
+  const unlockedSet = new Set(unlocked.map((u) => `${u.achievement_id}:${u.tier}`));
 
   return achievements.map((a) => ({
     id: a.id,
@@ -35,14 +35,14 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
       .map((t) => {
         const { current, target } = evaluateCriterion(t.criteria, snapshot);
         const ratio = target > 0 ? Math.min(1, current / target) : 0;
-        const unlocked = unlockedFamilies.has(a.id) || current >= target;
+        const isUnlocked = unlockedSet.has(`${a.id}:${t.tier}`) || current >= target;
         return {
           id: t.id,
           tier: t.tier,
           description: t.description,
           xpReward: t.xp_reward,
           coinReward: t.coin_reward,
-          unlocked,
+          unlocked: isUnlocked,
           currentValue: current,
           targetValue: target,
           progress: ratio,
@@ -64,7 +64,13 @@ export async function getAchievementFeedItems(userId: string, limit = 5): Promis
     }),
   ]);
 
-  const earnedAtMap = new Map(userAchievements.map((ua) => [ua.achievement_id, ua.created_at]));
+  const earnedAtMap = new Map<string, Date>();
+  for (const ua of userAchievements) {
+    const existing = earnedAtMap.get(ua.achievement_id);
+    if (!existing || ua.created_at > existing) {
+      earnedAtMap.set(ua.achievement_id, ua.created_at);
+    }
+  }
 
   type Ranked = AchievementFeedItem & { _earnedAt: Date };
   const ranked: Ranked[] = [];

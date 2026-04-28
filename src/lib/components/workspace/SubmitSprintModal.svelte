@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { goto } from "$app/navigation";
+  import { toast } from "svelte-sonner";
   import type { ITask } from "$lib/types";
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import SubmitSprintConfirmContent from "$lib/components/workspace/SubmitSprintConfirmContent.svelte";
@@ -188,6 +189,13 @@
     activeSubmitStep?.detail ?? "Please keep this window open.";
 
   $: completedCount = tasks.filter((t) => t.isCompleted).length;
+
+  // -- Achievement helpers -------------------------------------------------------
+  function showAchievementToasts(achievements: Array<{ icon: string; name: string; tier: string }>) {
+    for (const a of achievements) {
+      toast.success(`Achievement unlocked: ${a.icon} ${a.name} (${a.tier})`);
+    }
+  }
 
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{
@@ -731,6 +739,11 @@
         // Collect rewards (last one will have the full reward)
         submitRewards = submitData.rewards;
 
+        // Show achievement toasts if any were unlocked
+        if (submitData.unlockedAchievements?.length) {
+          showAchievementToasts(submitData.unlockedAchievements);
+        }
+
         // Check if all levels are now complete
         allLevelsComplete = submitData.allLevelsComplete ?? false;
         nextLevelFromSubmit = submitData.nextLevel ?? null;
@@ -765,6 +778,9 @@
               "[SUBMIT SPRINT] Container archived successfully:",
               archiveData.volumeName,
             );
+            if (archiveData.unlockedAchievements?.length) {
+              showAchievementToasts(archiveData.unlockedAchievements);
+            }
           }
         } catch (e) {
           console.error("[SUBMIT SPRINT] Archive request error:", e);

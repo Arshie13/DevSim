@@ -71,15 +71,15 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       stream.on("end", resolve);
     });
 
-    // Log the file change
-    await logFileChange({
+    // Log the file change and check achievements
+    const logResult = await logFileChange({
       containerId,
       userId,
       filePath: path,
       action: 'DELETE',
     });
 
-    return json({ success: true });
+    return json({ success: true, unlockedAchievements: logResult?.unlockedAchievements ?? [] });
   } catch (error) {
     console.error("Error deleting file:", error);
     return json({ success: false, error: String(error) });

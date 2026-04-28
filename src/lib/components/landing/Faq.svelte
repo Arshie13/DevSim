@@ -10,7 +10,7 @@
     },
     {
       q: "Who is DevSim designed for?",
-      a: "DevSim is built for aspiring and intermediate developers who want to move beyond tutorials and build actual project experience with modern, production-grade tech stacks.",
+      a: "DevSim is built for aspiring and intermediate developers who want to move beyond tutorials and build actual project experience with modern, production-grade tech stacks. However, we recommend users to have some basic web development experience before diving in.",
     },
     {
       q: "Is DevSim free to use?",

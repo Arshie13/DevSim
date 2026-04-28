@@ -879,6 +879,11 @@ $effect(() => {
       if (result.success) {
         toast.success("File saved");
         markTabDirty(selectedFile, false);
+        if (result.unlockedAchievements?.length) {
+          for (const achievement of result.unlockedAchievements) {
+            toast.success(`Achievement unlocked: ${achievement.icon} ${achievement.name} (${achievement.tier})`);
+          }
+        }
       }
     } catch (error) {
       console.error("Error saving file:", error);

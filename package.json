@@ -66,6 +66,7 @@
 		"express": "^5.2.1",
 		"lucide-svelte": "^0.562.0",
 		"monaco-editor": "^0.55.1",
+		"svelte-sonner": "^1.1.1",
 		"ws": "^8.19.0"
 	}
 }

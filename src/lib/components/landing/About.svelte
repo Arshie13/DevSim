@@ -1,7 +1,7 @@
 ﻿<script lang="ts">
   const items = [
     { label: "PROJECT-BASED", desc: "Every session is a real scenario — no random exercises or isolated theory modules." },
-    { label: "MULTI-STACK",   desc: "Mix and match 12+ technologies across frontend, backend, database, and services." },
+    { label: "MULTI-STACK",   desc: "Explore multiple stacks to practice and improve your web development skills" },
     { label: "XP SYSTEM",     desc: "Earn XP, unlock achievements, and track growth across every sprint you complete." },
   ];
 </script>

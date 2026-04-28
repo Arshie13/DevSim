@@ -70,8 +70,8 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       stream.on("end", resolve);
     });
 
-    // Log the file change
-    await logFileChange({
+    // Log the file change and check achievements
+    const logResult = await logFileChange({
       containerId,
       userId,
       filePath: newPath,
@@ -79,7 +79,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       oldPath: oldPath,
     });
 
-    return json({ success: true });
+    return json({ success: true, unlockedAchievements: logResult?.unlockedAchievements ?? [] });
   } catch (error) {
     console.error("Error renaming file:", error);
     return json({ success: false, error: String(error) });

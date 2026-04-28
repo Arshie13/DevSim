@@ -67,15 +67,15 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     stream.write(content);
     stream.end();
 
-    // Log the file change
-    await logFileChange({
+    // Log the file change and check achievements
+    const logResult = await logFileChange({
       containerId,
       userId,
       filePath: path,
       action: 'WRITE',
     });
 
-    return json({ success: true });
+    return json({ success: true, unlockedAchievements: logResult?.unlockedAchievements ?? [] });
   } catch (error) {
     console.error('Error writing file:', error);
     return json({ success: false, error: String(error) }, { status: 500 });

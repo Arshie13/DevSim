@@ -12,7 +12,7 @@ export default defineConfig({
     ]
   },
   ssr: {
-    noExternal: ['@xterm/xterm', '@xterm/addon-fit', '@xterm/addon-web-links']
+    noExternal: ['@xterm/xterm', '@xterm/addon-fit', '@xterm/addon-web-links', 'svelte-sonner']
   },
   plugins: [
     sveltekit()

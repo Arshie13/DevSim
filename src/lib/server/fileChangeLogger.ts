@@ -1,4 +1,5 @@
 import prisma from './client';
+import { unlockNewAchievements } from './achievements/unlock';
 
 export type FileChangeAction = 'CREATE' | 'WRITE' | 'DELETE' | 'RENAME';
 
@@ -15,32 +16,31 @@ export interface FileChangeLogParams {
  * Logs a file change to the database
  * This function is called by file operation endpoints to track user modifications
  */
-export async function logFileChange(params: FileChangeLogParams) {
+export async function logFileChange(params: FileChangeLogParams): Promise<{
+  unlockedAchievements: Awaited<ReturnType<typeof unlockNewAchievements>>;
+} | null> {
   try {
+    const workspace = await prisma.workspace.findFirst({
+      where: { container_id: params.containerId },
+      select: { id: true, user_id: true },
+    });
 
-    const prismaContainer = await prisma.workspace.findFirst({
-      where: {
-        container_id: params.containerId
-      },
-      select: {
-        id: true
-      }
-    })
-
-    if (!prismaContainer) {
-      return null
+    if (!workspace) {
+      return null;
     }
 
-    const fileChange = await prisma.user_file_changes.create({
+    await prisma.user_file_changes.create({
       data: {
-        workspace_id: prismaContainer?.id,
+        workspace_id: workspace.id,
         file_path: params.filePath,
         action: params.action,
         old_path: params.oldPath || null,
         content_hash: params.contentHash || null,
       },
     });
-    return fileChange;
+
+    const unlockedAchievements = await unlockNewAchievements(workspace.user_id);
+    return { unlockedAchievements };
   } catch (error) {
     console.error('Error logging file change:', error);
     // Don't throw - file tracking shouldn't break file operations

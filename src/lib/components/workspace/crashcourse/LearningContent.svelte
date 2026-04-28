@@ -246,9 +246,18 @@
     const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
 
     if (expected.length === 0) {
+      if (terminalCommands.length === 0) {
+        terminalFeedback = "Try running at least one command to complete this practice section.";
+        return;
+      }
       terminalPracticePassed = true;
       completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
-      terminalFeedback = "No required command checklist for this practice section.";
+      terminalFeedback = "Good work! Free practice section completed.";
+      sectionLockFeedback = "";
+      if (!wasAlreadyCompleted) {
+        labCongratsMessage = `You passed "${activeSection.title}". Progress saved.`;
+        isLabCongratsOpen = true;
+      }
       return;
     }
 
@@ -402,6 +411,8 @@
       return;
     }
 
+    sectionLockFeedback = "";
+
     if (sectionIndex < activeSections.length - 1) {
       sectionIndex += 1;
       return;
@@ -422,6 +433,8 @@
   }
 
   function goBackSection() {
+    sectionLockFeedback = "";
+
     if (sectionIndex > 0) {
       sectionIndex -= 1;
       return;

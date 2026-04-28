@@ -9,6 +9,7 @@ import type { StackSelection } from '$lib/types';
 import { CloudflaredWrapper } from '$lib/wrapper/cloudflared';
 import * as crypto from 'crypto';
 import prisma from '$lib/server/client';
+import { unlockNewAchievements } from '$lib/server/achievements/unlock';
 
 interface StartContainerForPreviewParams {
   containerId: string;
@@ -361,13 +362,16 @@ export class WorkspaceService {
             this.user.updateUserXpAndCoins(userId, xpReward * 2, coinReward * 2, false)
           ]);
 
+          const unlockedAchievements = await unlockNewAchievements(userId);
+
           return {
             success: true,
             status: 200,
             rewards: { xp: xpReward * 2, coins: coinReward * 2 },
             levelComplete,
             allLevelsComplete: true,
-            nextLevel: null
+            nextLevel: null,
+            unlockedAchievements,
           }
         } else {
           await Promise.allSettled([
@@ -379,6 +383,8 @@ export class WorkspaceService {
       } else {
         await this.user.updateUserXpAndCoins(userId, Math.floor(xpReward / levelTasks.length), Math.floor(coinReward / levelTasks.length), false);
       }
+
+      const unlockedAchievements = await unlockNewAchievements(userId);
 
       return {
         success: true,
@@ -393,7 +399,8 @@ export class WorkspaceService {
         progress: {
           completed: completedTaskNames.length,
           total: levelTasks.length
-        }
+        },
+        unlockedAchievements,
       }
 
     } catch (error) {

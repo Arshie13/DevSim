@@ -207,10 +207,15 @@
         };
 
         tasks = tasks.map(t =>
-          t.id === taskId ? { ...t, testStatus: 'passed' } : t
+          t.id === taskId ? { ...t, testStatus: passed ? 'passed' : 'failed' } : t
         );
         clearRunningTaskTracking();
-        toast.success(`Tests passed for "${taskName}"`);
+
+        if (passed) {
+          toast.success(`Tests passed for "${taskName}"`);
+        } else {
+          toast.error(`Tests failed for "${taskName}"`);
+        }
       } else {
         clearRunningTaskTracking();
         throw new Error(data.message || 'Test execution failed');
