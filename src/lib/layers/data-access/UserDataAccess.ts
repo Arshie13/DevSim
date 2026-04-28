@@ -60,6 +60,19 @@ export class UserDataAccess {
     }
   }
 
+  async addUserCoins(userId: string, amount: number) {
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { coins: { increment: amount } }
+      });
+      return { success: true, coins: user.coins };
+    } catch (error) {
+      console.error('Error adding coins:', error);
+      return { success: false, error };
+    }
+  }
+
   async deductCoins(userId: string, amount: number) {
     try {
       const user = await prisma.user.update({
