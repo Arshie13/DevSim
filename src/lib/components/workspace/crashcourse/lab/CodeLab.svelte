@@ -118,7 +118,7 @@
 </script>
 
 <div class="mini-editor">
-  <textarea bind:this={textareaEl} value={code} spellcheck="false" on:input={handleInput}></textarea>
+  <textarea bind:this={textareaEl} bind:value={code} spellcheck="false" on:input={handleInput}></textarea>
   {#if isLockedMode()}
     <p class="structure-note">Structure lock enabled: edit only the target text region(s).</p>
   {/if}
