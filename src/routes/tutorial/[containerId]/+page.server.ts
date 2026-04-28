@@ -38,6 +38,13 @@ export const load: PageServerLoad = async (event) => {
     user: session.user,
     userId: dbUser?.id || '',
     userCoins: dbUser?.coins || 0,
-    container,
+    container: {
+      ...container,
+      containerId: container.container_id,
+      containerStacks: container.workspace_stacks.map((s) => ({
+        stackName: s.stack_name,
+        stackVersion: s.stack_version,
+      })),
+    },
   };
 };

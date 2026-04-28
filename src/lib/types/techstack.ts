@@ -21,6 +21,8 @@ export interface TechCategory {
 export interface StackSelection {
   id?: string;
   name?: string;
+  stackType?: 'fullstack' | 'backend' | 'frontend';
+  comingSoon?: boolean;
   frontend: string | null;
   backend: string | null;
   database: string | null;

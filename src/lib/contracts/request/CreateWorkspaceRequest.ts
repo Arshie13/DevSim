@@ -8,4 +8,5 @@ export interface CreateWorkspaceRequest {
   scenarioId: string;
   projectFolder: string;
   scenarioTitle: string;
+  mode?: 'tutorial' | 'workspace';
 }

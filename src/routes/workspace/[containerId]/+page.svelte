@@ -34,8 +34,6 @@
   import { TerminalInitializer } from "$client/TerminalInitializer";
     import type { IInteractiveConfig } from "$lib/types/IContainer";
 
-  // const SazOnboardingCoachComponent: any = SazOnboardingCoach;
-
   let { data}: { data: PageData } = $props();
 
   let userCoins = $derived(data.userCoins ?? 0);
@@ -55,7 +53,7 @@
   }
 
   let workspaceScenario = $derived(data.scenario ?? null);
-  let stackNames = $derived(data.workspaceStacks?.map((entry) => entry.stackName).filter(Boolean) ?? []);
+  let stackNames = $derived([...new Set(data.workspaceStacks?.map((entry) => entry.stackName).filter(Boolean) ?? [])]);
   let currentLevelRecord = $derived(getLevelByOrder(data.currentLevel.map((level) => ({
     id: level.id,
     title: level.title,
@@ -254,6 +252,7 @@
   let isDownloading: boolean = $state(false);
 
   let backModalOpen: boolean = $state(false);
+  let isLeavingWorkspace: boolean = $state(false);
 
   let taskIntroCardOpen: boolean = false;
   let levelIntroCardOpen: boolean = $state(false);
@@ -262,7 +261,7 @@
   let sazOnboardingShown: boolean = false;
   let pendingSazOpen: boolean = false;
   let crashCourseOpen: boolean = $state(false);
-  let levelIntroDismissed: boolean = false;
+  let levelIntroDismissed: boolean = $state(false);
   let activeCrashCourseTaskId: string = $state("");
   let crashCourseSeenByTask: Record<string, boolean> = {};
   let crashCourseCompletedByTask: Record<string, boolean> = $state({});
@@ -273,18 +272,17 @@
   let crashCoursePromptTaskId: string = "";
   let crashCourseStorageLoadedKey: string = "";
 
-  // // Call this after tasks are loaded
-  $effect(() => {
-    if (tasks.length > 0) {
-      setTimeout(maybeShowTrivia, 3000);
-    }
-  })
-
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
   let triviaCorrectCount: number = 0;
   let triviaTotalCount: number = 0;
   let triviaShownThisSession: boolean = false;
+  // Fixed per session so randomness doesn't re-roll on re-renders
+  const triviaSessionChance: number = Math.random();
+  let triviaTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  // Set when crash course completes for the first time this session, so trivia
+  // fires after the user dismisses the completion prompt.
+  let pendingTriviaAfterCrashCourse: boolean = false;
 
   // Load trivia stats from localStorage
   function loadTriviaStats() {
@@ -313,6 +311,7 @@
   // Show trivia modal once per workspace session (after 3 second delay)
   function maybeShowTrivia() {
     if (triviaShownThisSession) return;
+    if (!levelIntroDismissed || levelIntroCardOpen) return;
     triviaModalOpen = true;
     triviaShownThisSession = true;
   }
@@ -618,10 +617,16 @@
   }
 
   function handleCrashCoursePromptConfirm() {
+    const wasCompletionPrompt = crashCourseCompletePromptOpen;
     crashCourseCompletePromptOpen = false;
     crashCourseClosePromptOpen = false;
     crashCourseCloseDonePromptOpen = false;
     crashCoursePromptTaskId = "";
+
+    if (wasCompletionPrompt && pendingTriviaAfterCrashCourse && !triviaShownThisSession) {
+      pendingTriviaAfterCrashCourse = false;
+      setTimeout(maybeShowTrivia, 1500);
+    }
   }
 
   function handleCrashCoursePromptBack() {
@@ -679,10 +684,30 @@ $effect(() => {
     !crashCourseCloseDonePromptOpen
   ) {
     const nextTask = getNextCrashCourseTask();
-    if (nextTask && !crashCourseSeenByTask[nextTask.id]) {
+    if (nextTask && !crashCourseCompletedByTask[nextTask.id]) {
       openCrashCourseForTask(nextTask.id);
     }
   }
+});
+
+// Show trivia after tasks load, but only after the level intro card is dismissed
+// and the crash course has been completed (if applicable).
+$effect(() => {
+  if (tasks.length === 0) return;
+  if (!levelIntroDismissed) return;
+  const tasksHaveCrashCourse = tasks.some(t => (t.learningSections?.length ?? 0) > 0);
+  if (tasksHaveCrashCourse && !hasCompletedCrashCourse) return;
+
+  if (triviaTimeoutId) clearTimeout(triviaTimeoutId);
+  // ~70 % of sessions for workspaces where crash course is already done.
+  // First-time completion is handled via pendingTriviaAfterCrashCourse.
+  if (triviaSessionChance < 0.7) {
+    triviaTimeoutId = setTimeout(maybeShowTrivia, 5000 + Math.random() * 10000);
+  }
+
+  return () => {
+    if (triviaTimeoutId) clearTimeout(triviaTimeoutId);
+  };
 });
 
   function getTaskNumber(task: ITask, index: number): number {
@@ -1052,6 +1077,8 @@ $effect(() => {
     activeCrashCourseTaskId = "";
     openBoardKanbanView();
     showCrashCourseMoveTaskMessage(completedTaskId, "completed");
+    // Guarantee trivia shows after the user confirms the completion prompt.
+    pendingTriviaAfterCrashCourse = true;
   }
 
   function handleTestsComplete(
@@ -1265,12 +1292,15 @@ $effect(() => {
     backModalOpen = true;
   }
 
-  function confirmBack() {
-    backModalOpen = false;
-    // Fire and forget - let container stop in background
-    fetch(`/api/docker/container/${containerId}/stop`, {
-      method: "POST"
-    });
+  async function confirmBack() {
+    isLeavingWorkspace = true;
+    try {
+      await fetch(`/api/docker/container/${containerId}/stop`, {
+        method: "POST"
+      });
+    } catch (err) {
+      console.error("Failed to stop container:", err);
+    }
     goto("/dashboard");
   }
 
@@ -1705,10 +1735,13 @@ $effect(() => {
     iconVariant="warning"
     title="Leave Workspace?"
     subtitle="Are you sure you want to leave? Your current progress will be lost."
-    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later. The container will stop in the background."
+    description="Any changes not saved in the sprint will be discarded. You can always come back to this level later."
     confirmLabel="Leave"
     cancelLabel="Stay"
     variant="warning"
+    isLoading={isLeavingWorkspace}
+    loadingLabel="Stopping…"
+    closeOnBackdropClick={!isLeavingWorkspace}
     on:confirm={confirmBack}
     on:cancel={() => { backModalOpen = false; }}
   />

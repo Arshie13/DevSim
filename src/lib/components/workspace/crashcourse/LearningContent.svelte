@@ -10,6 +10,7 @@
   import {
     evaluateEditableRegionsLab,
     evaluateFunctionLab,
+    isValidDirectory,
     resolvePath,
     simulateTerminalNavigation,
   } from "$lib/components/workspace/crashcourse/lab/labValidation";
@@ -160,14 +161,14 @@
 
   function resetInteractiveState(section: ILearningSection) {
     const config = section.interactiveConfig ?? {};
-    cdCurrentPath = config.initialDirectory ?? "/workspace";
+    cdCurrentPath = config.initial_directory ?? "/workspace";
     cdInput = "";
     cdHistory = ["Type help for available commands."];
     terminalCommands = [];
     terminalFeedback = "";
     terminalPracticePassed = false;
 
-    interactiveCode = config.starterCode ?? "";
+    interactiveCode = config.starter_code ?? "";
     codeFeedback = "";
     codePracticePassed = false;
     sectionLockFeedback = "";
@@ -180,7 +181,7 @@
     if (!raw) return;
 
     const config = activeSection.interactiveConfig ?? {};
-    const tree = config.directoryTree ?? { "/workspace": ["client", "server", "README.md"] };
+    const tree = config.directory_tree ?? { "/workspace": ["client", "server", "README.md"] };
     const parts = raw.split(/\s+/);
     const command = parts[0]?.toLowerCase();
     const argument = parts.slice(1).join(" ");
@@ -223,7 +224,7 @@
     if (command === "cd") {
       const target = argument || "/";
       const resolved = resolvePath(cdCurrentPath, target);
-      if (tree[resolved]) {
+      if (isValidDirectory(tree, resolved)) {
         cdCurrentPath = resolved;
       } else {
         cdHistory = [...cdHistory, `cd: no such directory: ${target}`];
@@ -240,7 +241,7 @@
 
   function checkTerminalPractice() {
     const config = activeSection.interactiveConfig ?? {};
-    const expected = config.expectedCommands ?? [];
+    const expected = config.expected_commands ?? [];
     const actual = terminalCommands;
     const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
 
@@ -285,11 +286,11 @@
 
   async function evaluateCodePractice() {
     const config = activeSection.interactiveConfig ?? {};
-    const entryPoint = config.entryPoint;
-    const testCases = config.testCases ?? [];
-    const requiredCodeIncludes = config.requiredCodeIncludes ?? [];
-    const editableRegions = config.editableRegions ?? [];
-    const starterCode = config.starterCode ?? "";
+    const entryPoint = config.entry_point;
+    const testCases = config.test_cases ?? [];
+    const requiredCodeIncludes = config.required_code_includes ?? [];
+    const editableRegions = config.editable_regions ?? [];
+    const starterCode = config.starter_code ?? "";
     const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
 
     function setCodePracticeResult(passed: boolean, successMessage: string, failureMessage: string) {
@@ -529,8 +530,8 @@
         {:else if activeSection.interactiveMode === "CODE_EDITOR"}
           <CodeLab
             bind:code={interactiveCode}
-            starterCode={activeSection.interactiveConfig?.starterCode ?? ""}
-            editableRegions={activeSection.interactiveConfig?.editableRegions ?? []}
+            starterCode={activeSection.interactiveConfig?.starter_code ?? ""}
+            editableRegions={activeSection.interactiveConfig?.editable_regions ?? []}
             feedback={codeFeedback}
             isPassed={codePracticePassed}
             on:check={evaluateCodePractice}

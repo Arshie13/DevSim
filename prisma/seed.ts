@@ -265,7 +265,7 @@ async function main() {
                     instructions:
                       'Update the function output from "Hello World" to "Welcome Back".',
                     language: "tsx",
-                    starterCode:
+                    starter_code:
                       'export function getUpdatedHeadingText() {\n  return "Hello World";\n}\n',
                     editable_regions: [
                       {
@@ -273,8 +273,8 @@ async function main() {
                         case_sensitive: true,
                       },
                     ],
-                    entryPoint: "getUpdatedHeadingText",
-                    testCases: [
+                    entry_point: "getUpdatedHeadingText",
+                    test_cases: [
                       {
                         input: [],
                         expected: "Welcome Back",
@@ -402,7 +402,7 @@ async function main() {
                     instructions:
                       "Create getNextCopyCount(currentCopies) that returns currentCopies + 1.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "export function getNextCopyCount(currentCopies) {\n  // TODO\n}\n",
                     editable_regions: [
                       {
@@ -410,8 +410,8 @@ async function main() {
                         case_sensitive: true,
                       },
                     ],
-                    entryPoint: "getNextCopyCount",
-                    testCases: [
+                    entry_point: "getNextCopyCount",
+                    test_cases: [
                       { input: [0], expected: 1, label: "zero copies" },
                       { input: [1], expected: 2, label: "one copy" },
                       { input: [5], expected: 6, label: "five copies" },
@@ -543,9 +543,9 @@ async function main() {
                     instructions:
                       "Refactor the page logic to use the helper. The helper is shown below for reference as if it came from another file, and this section represents the page where you should import and use it.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "// helper file (shown for context; this lives in another file)\nfunction getBorrowBadgeLabel(record) {\n  return record.returnedAt ? \"Returned\" : \"Active\";\n}\n\n// page file section (this is where you refactor)\nimport { getBorrowBadgeLabel } from '../utils/helpers';\n\nfunction getBadgeForRecord(record) {\n  return record.returnedAt ? \"Returned\" : \"Active\";\n}\n\nexport function renderBadgeLabel(record) {\n  return getBadgeForRecord(record);\n}\n",
-                    requiredCodeIncludes: [
+                    required_code_includes: [
                       "import { getBorrowBadgeLabel } from '../utils/helpers';",
                       "getBorrowBadgeLabel(record)",
                     ],
@@ -555,8 +555,8 @@ async function main() {
                         case_sensitive: true,
                       },
                     ],
-                    entryPoint: "renderBadgeLabel",
-                    testCases: [
+                    entry_point: "renderBadgeLabel",
+                    test_cases: [
                       {
                         input: [{ returnedAt: null }],
                         expected: "Active",
@@ -725,24 +725,24 @@ async function main() {
                     instructions:
                       "Add three log checkpoints: before update, after first write, and after second write.",
                     language: "typescript",
-                    starterCode:
+                    starter_code:
                       "async function updateBorrowRecord() {\n  return true;\n}\n\nasync function updateInventory() {\n  return true;\n}\n\nexport async function returnBookFlow() {\n  const logs = [];\n  logs.push(\"BEFORE_UPDATE\");\n  await updateBorrowRecord();\n  logs.push(\"AFTER_FIRST_WRITE\");\n  await updateInventory();\n  logs.push(\"AFTER_SECOND_WRITE\");\n  return logs;\n}\n",
                     editable_regions: [
                       {
                         placeholder: "BEFORE_UPDATE",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                       {
                         placeholder: "AFTER_FIRST_WRITE",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                       {
                         placeholder: "AFTER_SECOND_WRITE",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                     ],
-                    entryPoint: "returnBookFlow",
-                    testCases: [
+                    entry_point: "returnBookFlow",
+                    test_cases: [
                       {
                         input: [],
                         expected: [
@@ -865,20 +865,20 @@ async function main() {
                     instructions:
                       "Create a function that returns both required transaction operations.",
                     language: "typescript",
-                    starterCode:
+                    starter_code:
                       "export function buildAtomicAuditPlan() {\n  // inventory update\n  // audit log insert\n  return [];\n}\n",
                     editable_regions: [
                       {
                         placeholder: "// inventory update",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                       {
                         placeholder: "// audit log insert",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                     ],
-                    entryPoint: "buildAtomicAuditPlan",
-                    testCases: [
+                    entry_point: "buildAtomicAuditPlan",
+                    test_cases: [
                       {
                         input: [],
                         expected: ["tx.book.update", "tx.auditLog.create"],
@@ -1023,7 +1023,7 @@ async function main() {
                     instructions:
                       "Validate required fields and return early errors before calling database logic.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "function validateReservationPayload(body) {\n  // return true only when both IDs are positive numbers\n}\n",
                     editable_regions: [
                       {
@@ -1031,8 +1031,8 @@ async function main() {
                         case_sensitive: true,
                       },
                     ],
-                    entryPoint: "validateReservationPayload",
-                    testCases: [
+                    entry_point: "validateReservationPayload",
+                    test_cases: [
                       {
                         input: [{ bookId: 4, memberId: 2 }],
                         expected: true,
@@ -1237,7 +1237,7 @@ async function main() {
                     instructions:
                       "Map reservation rows into readable summary lines with position + member + status.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "function formatQueueSnapshot(rows) {\n  // Return one summary string joined by \" | \"\n}\n",
                     editable_regions: [
                       {
@@ -1245,8 +1245,8 @@ async function main() {
                         case_sensitive: true,
                       },
                     ],
-                    entryPoint: "formatQueueSnapshot",
-                    testCases: [
+                    entry_point: "formatQueueSnapshot",
+                    test_cases: [
                       {
                         input: [[
                           { queuePosition: 1, memberName: "Ari", status: "RESERVED" },
@@ -1451,7 +1451,7 @@ async function main() {
                     instructions:
                       'Create a helper that returns "OVERDUE" or "ON_TIME" from dueDate + returnedAt.',
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "function getOverdueLabel(dueDate, returnedAt) {\n  // TODO\n}\n",
                     editable_regions: [
                       {
@@ -1459,8 +1459,8 @@ async function main() {
                         case_sensitive: true,
                       },
                     ],
-                    entryPoint: "getOverdueLabel",
-                    testCases: [
+                    entry_point: "getOverdueLabel",
+                    test_cases: [
                       {
                         input: ["2024-01-01T00:00:00.000Z", null],
                         expected: "OVERDUE",
@@ -1585,28 +1585,28 @@ async function main() {
                     instructions:
                       "Write a 4-line timeline: detection, impact window, mitigation, and final verification.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "export function formatIncidentTimeline() {\n  return [\n    \"- Detection: [detection detail]\",\n    \"- Impact Window: [impact window]\",\n    \"- Mitigation: [mitigation step]\",\n    \"- Verification: [verification result]\",\n  ].join(\"\\n\");\n}\n",
                     editable_regions: [
                       {
                         placeholder: "[detection detail]",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                       {
                         placeholder: "[impact window]",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                       {
                         placeholder: "[mitigation step]",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                       {
                         placeholder: "[verification result]",
-                        case_sensitive: false,
+                        case_sensitive:false,
                       },
                     ],
-                    entryPoint: "formatIncidentTimeline",
-                    testCases: [
+                    entry_point: "formatIncidentTimeline",
+                    test_cases: [
                       {
                         input: [],
                         expected:
@@ -1845,10 +1845,10 @@ async function main() {
                   interactive_config: {
                     instructions: 'Change the returned string from "UrbanPottery" to "UrbanPottery Artisan Ceramics".',
                     language: "tsx",
-                    starterCode: 'export function getBrandName() {\n  return "UrbanPottery";\n}\n',
-                    editable_regions: [{ placeholder: "UrbanPottery", case_sensitive: true }],
-                    entryPoint: "getBrandName",
-                    testCases: [
+                    starter_code: 'export function getBrandName() {\n  return "UrbanPottery";\n}\n',
+                    editable_regions: [{ placeholder: "UrbanPottery", case_sensitive:true }],
+                    entry_point: "getBrandName",
+                    test_cases: [
                       { input: [], expected: "UrbanPottery Artisan Ceramics", label: "exact brand string" },
                     ],
                   },
@@ -1961,11 +1961,11 @@ async function main() {
                     instructions:
                       "Implement getStockStatus(stock): returns 'OUT_OF_STOCK' (<=0), 'LOW_STOCK' (1-5), or 'IN_STOCK' (>5).",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "export function getStockStatus(stock) {\n  // TODO\n}\n",
-                    editable_regions: [{ placeholder: "// TODO", case_sensitive: true }],
-                    entryPoint: "getStockStatus",
-                    testCases: [
+                    editable_regions: [{ placeholder: "// TODO", case_sensitive:true }],
+                    entry_point: "getStockStatus",
+                    test_cases: [
                       { input: [0], expected: "OUT_OF_STOCK", label: "zero stock" },
                       { input: [3], expected: "LOW_STOCK", label: "low stock" },
                       { input: [10], expected: "IN_STOCK", label: "in stock" },
@@ -2076,12 +2076,12 @@ async function main() {
                     instructions:
                       "Refactor getBadgeLabel to use getStockStatus instead of an inline comparison.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "function getStockStatus(stock) {\n  if (stock <= 0) return 'OUT_OF_STOCK';\n  if (stock <= 5) return 'LOW_STOCK';\n  return 'IN_STOCK';\n}\n\nexport function getBadgeLabel(stock) {\n  if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';\n}\n",
-                    requiredCodeIncludes: ["getStockStatus(stock)"],
-                    editable_regions: [{ placeholder: "if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';", case_sensitive: false }],
-                    entryPoint: "getBadgeLabel",
-                    testCases: [
+                    required_code_includes: ["getStockStatus(stock)"],
+                    editable_regions: [{ placeholder: "if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';", case_sensitive:false }],
+                    entry_point: "getBadgeLabel",
+                    test_cases: [
                       { input: [0], expected: "Out of Stock", label: "zero stock" },
                       { input: [3], expected: "Low Stock", label: "low stock" },
                       { input: [10], expected: "In Stock", label: "in stock" },
@@ -2205,11 +2205,11 @@ async function main() {
                     instructions:
                       "The function cancels an order but forgets to restore stock. Add the missing step.",
                     language: "typescript",
-                    starterCode:
+                    starter_code:
                       "export async function cancelOrderFlow(orderId: string) {\n  const steps: string[] = [];\n  steps.push('SET status=CANCELLED');\n  // TODO: add missing step\n  return steps;\n}\n",
-                    editable_regions: [{ placeholder: "// TODO: add missing step", case_sensitive: false }],
-                    entryPoint: "cancelOrderFlow",
-                    testCases: [
+                    editable_regions: [{ placeholder: "// TODO: add missing step", case_sensitive:false }],
+                    entry_point: "cancelOrderFlow",
+                    test_cases: [
                       { input: ["order-1"], expected: ["SET status=CANCELLED", "RESTORE stock"], label: "both steps present" },
                     ],
                   },
@@ -2307,11 +2307,11 @@ async function main() {
                   interactive_config: {
                     instructions: "Return both required atomic steps as an array.",
                     language: "typescript",
-                    starterCode:
+                    starter_code:
                       "export function buildCancelPlan(): string[] {\n  return [];\n}\n",
-                    editable_regions: [{ placeholder: "return [];", case_sensitive: false }],
-                    entryPoint: "buildCancelPlan",
-                    testCases: [
+                    editable_regions: [{ placeholder: "return [];", case_sensitive:false }],
+                    entry_point: "buildCancelPlan",
+                    test_cases: [
                       { input: [], expected: ["flip status + set cancelledAt", "restore stock"], label: "both cancel steps" },
                     ],
                   },
@@ -2449,11 +2449,11 @@ async function main() {
                   interactive_config: {
                     instructions: "Return true only if all three conditions pass.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "export function isCouponValid(coupon, now) {\n  // isActive, not expired, has remaining uses\n}\n",
-                    editable_regions: [{ placeholder: "// isActive, not expired, has remaining uses", case_sensitive: false }],
-                    entryPoint: "isCouponValid",
-                    testCases: [
+                    editable_regions: [{ placeholder: "// isActive, not expired, has remaining uses", case_sensitive:false }],
+                    entry_point: "isCouponValid",
+                    test_cases: [
                       { input: [{ isActive: true, expiresAt: new Date(9999, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: true, label: "valid coupon" },
                       { input: [{ isActive: false, expiresAt: new Date(9999, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: false, label: "inactive coupon" },
                       { input: [{ isActive: true, expiresAt: new Date(2000, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: false, label: "expired coupon" },
@@ -2581,10 +2581,10 @@ async function main() {
                   interactive_config: {
                     instructions: "Return true only if usedCount is strictly less than maxUses.",
                     language: "javascript",
-                    starterCode: "export function canUseCoupon(usedCount, maxUses) {\n  // TODO\n}\n",
-                    editable_regions: [{ placeholder: "// TODO", case_sensitive: false }],
-                    entryPoint: "canUseCoupon",
-                    testCases: [
+                    starter_code: "export function canUseCoupon(usedCount, maxUses) {\n  // TODO\n}\n",
+                    editable_regions: [{ placeholder: "// TODO", case_sensitive:false }],
+                    entry_point: "canUseCoupon",
+                    test_cases: [
                       { input: [0, 10], expected: true, label: "has remaining uses" },
                       { input: [10, 10], expected: false, label: "exactly exhausted" },
                       { input: [11, 10], expected: false, label: "over limit" },
@@ -2718,11 +2718,11 @@ async function main() {
                   interactive_config: {
                     instructions: "Filter orders to only include those with cancelledAt === null.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "export function getRevenueOrders(orders) {\n  // TODO: return only non-cancelled orders\n}\n",
-                    editable_regions: [{ placeholder: "// TODO: return only non-cancelled orders", case_sensitive: false }],
-                    entryPoint: "getRevenueOrders",
-                    testCases: [
+                    editable_regions: [{ placeholder: "// TODO: return only non-cancelled orders", case_sensitive:false }],
+                    entry_point: "getRevenueOrders",
+                    test_cases: [
                       {
                         input: [[{ total: 100, cancelledAt: null }, { total: 50, cancelledAt: new Date() }]],
                         expected: [{ total: 100, cancelledAt: null }],
@@ -2831,13 +2831,13 @@ async function main() {
                     instructions:
                       "Fill in each placeholder with a meaningful detail.",
                     language: "javascript",
-                    starterCode:
+                    starter_code:
                       "export function formatTimeline() {\n  return [\n    '- Detection: [fill in]',\n    '- Impact Window: [fill in]',\n    '- Mitigation: [fill in]',\n    '- Verification: [fill in]',\n  ].join('\\n');\n}\n",
                     editable_regions: [
-                      { placeholder: "[fill in]", case_sensitive: false },
+                      { placeholder: "[fill in]", case_sensitive:false },
                     ],
-                    entryPoint: "formatTimeline",
-                    testCases: [
+                    entry_point: "formatTimeline",
+                    test_cases: [
                       {
                         input: [],
                         expected: "- Detection: Finance report showed inflated revenue\n- Impact Window: Unknown — since cancelledAt was added in L3\n- Mitigation: Added cancelledAt: null WHERE filter to stats query\n- Verification: Regression tests pass; finance confirmed correct totals",
@@ -3074,11 +3074,11 @@ async function main() {
                     instructions:
                       'Change the returned string from "IPPO Solutions" to "IPPO Software Solutions".',
                     language: "tsx",
-                    starterCode:
+                    starter_code:
                       'export function getBrandSubtitle() {\n  return "IPPO Solutions";\n}\n',
-                    editable_regions: [{ placeholder: "IPPO Solutions", case_sensitive: true }],
-                    entryPoint: "getBrandSubtitle",
-                    testCases: [
+                    editable_regions: [{ placeholder: "IPPO Solutions", case_sensitive:true }],
+                    entry_point: "getBrandSubtitle",
+                    test_cases: [
                       {
                         input: [],
                         expected: "IPPO Software Solutions",
@@ -3195,10 +3195,10 @@ async function main() {
                     instructions:
                       "Return 'OUT_OF_STOCK' if quantity <= 0, 'LOW_STOCK' if quantity <= threshold, otherwise 'IN_STOCK'.",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export function getStockLevel(quantity: number, threshold: number) {\n  // TODO: return 'OUT_OF_STOCK' | 'LOW_STOCK' | 'IN_STOCK'\n  return 'IN_STOCK';\n}\n",
-                    entryPoint: "getStockLevel",
-                    testCases: [
+                    entry_point: "getStockLevel",
+                    test_cases: [
                       { input: [0, 5], expected: "OUT_OF_STOCK", label: "zero quantity" },
                       { input: [3, 5], expected: "LOW_STOCK", label: "below threshold" },
                       { input: [5, 5], expected: "LOW_STOCK", label: "at threshold" },
@@ -3311,10 +3311,10 @@ async function main() {
                     instructions:
                       "Filter out OUT_OF_STOCK items when hideOutOfStock is true. Return the array of kept items.",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export function filterProducts(products: { stockLevel: string }[], hideOutOfStock: boolean) {\n  // TODO: drop OUT_OF_STOCK when hideOutOfStock is true\n  return products;\n}\n",
-                    entryPoint: "filterProducts",
-                    testCases: [
+                    entry_point: "filterProducts",
+                    test_cases: [
                       {
                         input: [
                           [
@@ -3464,10 +3464,10 @@ async function main() {
                     instructions:
                       "The function returns true if inventory is sufficient. Replace it with a version that uses updateMany + gte so two concurrent calls can never both succeed.",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export async function checkout(productId: number, qty: number, tx: any) {\n  const inv = await tx.inventory.findUnique({ where: { productId } });\n  if (inv.quantity < qty) return false;\n  await tx.inventory.update({ where: { productId }, data: { quantity: { decrement: qty } } });\n  return true;\n}\n",
-                    entryPoint: "checkout",
-                    testCases: [
+                    entry_point: "checkout",
+                    test_cases: [
                       {
                         input: [
                           1,
@@ -3583,10 +3583,10 @@ async function main() {
                     instructions:
                       "Throw if the status is anything other than 'COMPLETED'. Otherwise return true.",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export function assertCanVoid(status: string) {\n  // TODO: throw if not COMPLETED\n  return true;\n}\n",
-                    entryPoint: "assertCanVoid",
-                    testCases: [
+                    entry_point: "assertCanVoid",
+                    test_cases: [
                       { input: ["COMPLETED"], expected: true, label: "completed passes" },
                     ],
                   },
@@ -3732,10 +3732,10 @@ async function main() {
                     instructions:
                       "Return subtotal * (1 - discountPercent / 100). Round nothing — the caller handles rounding.",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export function applyDiscount(subtotal: number, discountPercent: number) {\n  return subtotal;\n}\n",
-                    entryPoint: "applyDiscount",
-                    testCases: [
+                    entry_point: "applyDiscount",
+                    test_cases: [
                       { input: [100, 10], expected: 90, label: "10% off 100" },
                       { input: [50, 25], expected: 37.5, label: "25% off 50" },
                       { input: [100, 0], expected: 100, label: "0% off" },
@@ -3860,10 +3860,10 @@ async function main() {
                   interactive_config: {
                     instructions: "Return max(0, maxUses - usedCount).",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export function remainingUses(maxUses: number, usedCount: number) {\n  return maxUses - usedCount;\n}\n",
-                    entryPoint: "remainingUses",
-                    testCases: [
+                    entry_point: "remainingUses",
+                    test_cases: [
                       { input: [10, 3], expected: 7, label: "normal" },
                       { input: [10, 10], expected: 0, label: "exhausted" },
                       { input: [5, 8], expected: 0, label: "negative clamped" },
@@ -4006,10 +4006,10 @@ async function main() {
                     instructions:
                       "Return true only when order.voidedAt is null or undefined. Do not look at status.",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export function isRevenueEligibleOrder(order: { voidedAt: Date | null | undefined }) {\n  return true;\n}\n",
-                    entryPoint: "isRevenueEligibleOrder",
-                    testCases: [
+                    entry_point: "isRevenueEligibleOrder",
+                    test_cases: [
                       { input: [{ voidedAt: null }], expected: true, label: "never voided" },
                       { input: [{ voidedAt: new Date() }], expected: false, label: "voided" },
                     ],
@@ -4112,10 +4112,10 @@ async function main() {
                     instructions:
                       "Return an object with voidedAt: null plus any extra keys from the argument.",
                     language: "ts",
-                    starterCode:
+                    starter_code:
                       "export function revenueWhereClause(extra: Record<string, unknown> = {}) {\n  return {};\n}\n",
-                    entryPoint: "revenueWhereClause",
-                    testCases: [
+                    entry_point: "revenueWhereClause",
+                    test_cases: [
                       { input: [], expected: { voidedAt: null }, label: "no extras" },
                     ],
                   },

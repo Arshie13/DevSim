@@ -16,7 +16,7 @@ export const load: PageServerLoad = async (event) => {
   const [dbUser, metrics, rivals, topAchievements] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userSession.id },
-      select: { image: true, coins: true, xp: true, level: true, owned_avatars: true, hasCompletedTutorial: true, username: true },
+      select: { image: true, coins: true, xp: true, level: true, owned_avatars: true, has_completed_tutorial: true, username: true },
     }),
     getProfileMetrics(userSession.id),
     getRivals(userSession.id, 6),
@@ -32,7 +32,7 @@ export const load: PageServerLoad = async (event) => {
       xp: dbUser?.xp ?? 0,
       level: dbUser?.level ?? 1,
       ownedAvatars: dbUser?.owned_avatars ?? [],
-      hasCompletedTutorial: dbUser?.hasCompletedTutorial ?? false,
+      hasCompletedTutorial: dbUser?.has_completed_tutorial ?? false,
     },
     userCoins: dbUser?.coins ?? 0,
     ownedAvatars: dbUser?.owned_avatars ?? [],
