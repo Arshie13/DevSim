@@ -208,10 +208,13 @@ model hint {
 }
 
 model daily_login {
-  id     String   @id @default(cuid())
-  date   DateTime
-  streak Int      @default(0)
-  user_id String   @unique
+  id            String   @id @default(cuid())
+  date          DateTime
+  streak        Int      @default(0)
+  user_id       String   @unique
+  claimedDays   Int[]    @default([])  // Indices 0-6 for days 1-7
+  currentDay    Int      @default(1)   // First unclaimed day number (1..8, where 8 = all claimed)
+  lastClaimedAt DateTime?
 
   user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }

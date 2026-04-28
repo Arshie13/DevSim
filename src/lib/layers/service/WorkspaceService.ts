@@ -428,7 +428,7 @@ export class WorkspaceService {
     return await this.workspace.findWorkspaceByContainerId(userId, containerId);
   }
 
-  async createFileChanges(userId: string, workspaceId: string, filePath: string) {
+  async createFileChanges(workspaceId: string, filePath: string) {
     try {
       const workspace = await this.workspace.findWorkspaceById(workspaceId);
 
