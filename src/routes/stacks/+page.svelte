@@ -5,16 +5,18 @@
   import StackSummary from "$components/stacks/StackSummary.svelte";
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
+  import { POPULAR_COMBOS } from "$mocks";
   import { Layers, Sparkles } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import type { UserData } from "$types";
 
-  // Stack selection state
+  // Pre-select the first available combo so the button is active on load
+  const _default = POPULAR_COMBOS.find(c => !c.comingSoon);
   let selection: StackSelection = {
-    frontend: null,
-    backend: null,
-    database: null,
-    services: null,
+    frontend: _default?.frontend ?? null,
+    backend: _default?.backend ?? null,
+    database: _default?.database ?? null,
+    services: _default?.services ?? null,
   };
 
   let showInfoModal = false;

@@ -23,6 +23,7 @@ export interface StackSelection {
   name?: string;
   stackType?: 'fullstack' | 'backend' | 'frontend';
   comingSoon?: boolean;
+  description?: string;
   frontend: string | null;
   backend: string | null;
   database: string | null;

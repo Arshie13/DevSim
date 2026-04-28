@@ -27,14 +27,12 @@
     return options.find((o) => o.id === id) ?? null;
   }
 
-  function isSelected(combo: StackSelection): boolean {
-    return (
-      combo.frontend === selection.frontend &&
-      combo.backend  === selection.backend  &&
-      combo.database === selection.database &&
-      combo.services === selection.services
-    );
-  }
+  $: selectedComboId = POPULAR_COMBOS.find(c =>
+      c.frontend === selection.frontend &&
+      c.backend  === selection.backend  &&
+      c.database === selection.database &&
+      c.services === selection.services
+    )?.id ?? null;
 
   interface Layer { id: string; icon: string; name: string; role: string }
 
@@ -60,16 +58,15 @@
   }
 
   function getPreviewDescription(combo: StackSelection): string {
-    const parts: string[] = [];
-    const fe = getOption(FRONTEND_OPTIONS, combo.frontend);
-    const be = getOption(BACKEND_OPTIONS,  combo.backend);
-    const db = getOption(DATABASE_OPTIONS, combo.database);
-    const sv = getOption(SERVICES_OPTIONS, combo.services);
-    if (fe?.finalProjectDescription) parts.push(fe.finalProjectDescription);
-    if (be?.finalProjectDescription) parts.push(be.finalProjectDescription);
-    if (db?.finalProjectDescription) parts.push(db.finalProjectDescription);
-    if (sv?.finalProjectDescription) parts.push(sv.finalProjectDescription);
-    return parts.join(" · ");
+    return combo.description ?? "";
+  }
+
+  function handleHover(combo: StackSelection) {
+    if (combo.comingSoon) return;
+    if (previewCombo?.id !== combo.id) {
+      previewCombo = combo;
+      briefKey++;
+    }
   }
 
   function handleSelect(combo: StackSelection) {
@@ -106,7 +103,7 @@
 
     <div class="rail-list">
       {#each POPULAR_COMBOS as combo}
-        {@const sel    = isSelected(combo)}
+        {@const sel    = combo.id === selectedComboId}
         {@const active = previewCombo?.id === combo.id}
         {@const tk     = combo.stackType ?? "fullstack"}
         {@const layers = buildLayers(combo)}
@@ -117,6 +114,7 @@
           class:is-locked={combo.comingSoon}
           disabled={combo.comingSoon}
           style="--accent:{TYPE_ACCENT[tk]};--rgb:{TYPE_RGB[tk]};"
+          on:mouseenter={() => handleHover(combo)}
           on:click={() => handleSelect(combo)}
         >
           <div class="row-bar"></div>
@@ -156,7 +154,7 @@
     {#key briefKey}
       {@const tk          = previewCombo?.stackType ?? "fullstack"}
       {@const layers      = buildLayers(previewCombo)}
-      {@const sel         = isSelected(previewCombo)}
+      {@const sel         = previewCombo?.id === selectedComboId}
       {@const previewDesc = getPreviewDescription(previewCombo)}
 
       <div class="br br-tl"></div>
@@ -222,6 +220,11 @@
               <div class="armed-pulse"></div>
               <CircleCheck size={15} style="color:var(--accent);flex-shrink:0;" />
               <span>LOADOUT ARMED — CONFIRM IN STATUS BAR</span>
+            </div>
+          {:else}
+            <div class="cta-unselected">
+              <ChevronRight size={13} style="flex-shrink:0;" />
+              <span>CLICK TO ARM THIS LOADOUT</span>
             </div>
           {/if}
         </div>
@@ -642,6 +645,21 @@
     font-size: clamp(0.42rem, calc(0.22rem + 0.36vw), 0.65rem);
     letter-spacing: 0.12em;
     color: rgba(208,215,221,0.26);
+  }
+
+  .cta-unselected {
+    display: flex;
+    align-items: center;
+    gap: 0.38rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(0.42rem, calc(0.22rem + 0.36vw), 0.65rem);
+    letter-spacing: 0.12em;
+    color: rgba(var(--rgb),0.45);
+    animation: ctaPulse 2.8s ease infinite;
+  }
+  @keyframes ctaPulse {
+    0%, 100% { opacity: 0.45; }
+    50%       { opacity: 0.85; }
   }
 
   /* ══ RESPONSIVE ══ */
