@@ -322,6 +322,12 @@
       return;
     }
 
+    // If we're in an error state, reset to confirm state first (retry behavior)
+    if (state === "error") {
+      open();
+      return;
+    }
+
     if (!dbContainerId) {
       submitError =
         "Could not resolve container record. Please refresh and try again.";
