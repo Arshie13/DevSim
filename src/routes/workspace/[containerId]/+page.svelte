@@ -202,6 +202,7 @@
   let operatorAlias = $derived(data.user?.name || data.user?.name || "Operator");
   let workspaceProjectName = $derived(workspaceScenario?.name || title || "DevSim Workspace");
   let cameFromTutorial = $derived(page.url.searchParams.get("fromTutorial") === "1");
+  let containerId = $derived(data.dockerContainerId ?? "");
 
   // Track if this workspace came from first-project guided flow.
   let hasEverBeenInTutorial = $derived(
@@ -324,22 +325,21 @@
     triviaShownThisSession = true;
   }
 
-  const TRIVIA_COIN_REWARD = 5;
-
   async function handleTriviaAnswer(event: CustomEvent<{ correct: boolean }>) {
     triviaTotalCount += 1;
     if (event.detail.correct) {
       triviaCorrectCount += 1;
-      userCoins += TRIVIA_COIN_REWARD;
-      toast.success(`+${TRIVIA_COIN_REWARD} coins!`);
-      
-      // Persist coins to database
       try {
-        await fetch(`/api/user/coins/add?amount=${TRIVIA_COIN_REWARD}`, {
-          method: 'POST'
-        });
+        const res = await fetch('/api/trivia/reward', { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          toast.success(`+${data.xp} XP  +${data.coins} coins!`);
+          for (const achievement of data.unlockedAchievements ?? []) {
+            toast.success(`Achievement unlocked: ${achievement.icon} ${achievement.name} (${achievement.tier})`);
+          }
+        }
       } catch (err) {
-        console.error('Failed to save coins:', err);
+        console.error('Failed to save trivia reward:', err);
       }
     }
     saveTriviaStats();
@@ -437,7 +437,6 @@
   
   let testCaseComponent: TestCase;
 
-  let containerId = $derived(data.dockerContainerId ?? "");
   let projectName = $derived("workspace");
 
   function normalizeWorkspaceRelativePath(inputPath: string): string {

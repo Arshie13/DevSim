@@ -46,6 +46,9 @@ model user {
   // Tutorial
   has_completed_tutorial Boolean @default(false)
 
+  // Trivia
+  trivia_correct_count Int @default(0)
+
   // Relations
   daily_login   daily_login?       @relation
   workspaces   workspace[]

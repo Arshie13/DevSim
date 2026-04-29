@@ -4351,6 +4351,21 @@ async function main() {
         { type: "coins_earned", coins: 5000 },
       ),
     },
+    // Trivia ──────────────────────────────────────────────────────────────
+    {
+      name: "Quiz Whiz",
+      description: "Answer trivia questions correctly",
+      icon: "🧠",
+      category: "mastery",
+      tiers: trio(
+        "Get your first trivia answer right",
+        "Answer 10 trivia questions correctly",
+        "Answer 25 trivia questions correctly",
+        { type: "trivia_correct", count: 1 },
+        { type: "trivia_correct", count: 10 },
+        { type: "trivia_correct", count: 25 },
+      ),
+    },
     // Single-tier exception (First Boot) ──────────────────────────────────
     {
       name: "First Boot",

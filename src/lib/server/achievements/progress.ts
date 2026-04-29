@@ -15,13 +15,14 @@ export interface UserProgressSnapshot {
   maxScenariosInAnyStack: number;
   levelsCompleted: number;
   tutorialCompleted: boolean;
+  triviaCorrect: number;
 }
 
 export async function getUserProgressSnapshot(userId: string): Promise<UserProgressSnapshot> {
   const [dbUser, streak, tasks, fileEdits, archivedContainers] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { xp: true, coins: true, has_completed_tutorial: true },
+      select: { xp: true, coins: true, has_completed_tutorial: true, trivia_correct_count: true },
     }),
     prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
     prisma.completed_task.count({ where: { workspace: { user_id: userId } } }),
@@ -58,6 +59,7 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
     maxScenariosInAnyStack,
     levelsCompleted,
     tutorialCompleted: dbUser?.has_completed_tutorial ?? false,
+    triviaCorrect: dbUser?.trivia_correct_count ?? 0,
   };
 }
 
@@ -95,6 +97,8 @@ export function evaluateCriterion(criteria: unknown, snap: UserProgressSnapshot)
       return { current: snap.fileEdits, target: c.count ?? 1 };
     case "tutorial_completed":
       return { current: snap.tutorialCompleted ? 1 : 0, target: 1 };
+    case "trivia_correct":
+      return { current: snap.triviaCorrect, target: c.count ?? 1 };
     default:
       return { current: 0, target: 1 };
   }
