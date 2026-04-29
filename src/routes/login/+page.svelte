@@ -42,13 +42,13 @@
 			</div>
 
 			<div class="mt-6">
-				<button
-					onclick={() => signIn("google", { redirectTo: "/auth" })}
-					type="button"
-					class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-lg font-semibold shadow-lg shadow-blue-500/25 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/30"
-				>
-					Sign up with Google
-				</button>
+			<button
+				onclick={() => signIn("google", { redirectTo: "/pretest" })}
+				type="button"
+				class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-lg font-semibold shadow-lg shadow-blue-500/25 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/30"
+			>
+				Sign up with Google
+			</button>
 			</div>
 		</div>
 	</div>

@@ -36,6 +36,34 @@
   let submitAbortController: AbortController | null = null;
   let isSubmitFlowCanceled = false;
 
+  // Cleanup function to be called whenever modal closes
+  function cleanupOnClose() {
+    // Abort any ongoing submission if not in confirm state
+    if (state !== "confirm" && submitAbortController) {
+      submitAbortController.abort();
+      submitAbortController = null;
+    }
+    
+    // Cancel test execution if running
+    if (state === "testing" && containerId) {
+      // Best effort: stop test process in container
+      fetch(`/api/docker/container/${containerId}/tests/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }).catch(error => {
+        console.warn("[SUBMIT SPRINT] Failed to cancel running tests:", error);
+      });
+    }
+    
+    showModal = false;
+    showKeyTakeawaysModal = false;
+    hasViewedTakeaways = false;
+    state = "confirm";
+    submitError = "";
+    isSubmitFlowCanceled = false;
+    cancelingSubmit = false;
+  }
+
   // File changes tracking
   type FileChangeSummary = {
     created: string[];
@@ -261,12 +289,8 @@
   }
 
   function close() {
-    if (state === "loading") return;
-    showModal = false;
-    showKeyTakeawaysModal = false;
-    hasViewedTakeaways = false;
-    state = "confirm";
-  }
+  cleanupOnClose();
+}
 
   function openCancelConfirmation() {
     showCancelConfirmModal = true;
@@ -910,12 +934,12 @@
   $: cancelLabel =
     state === "error" ? "Close" : state === "testing" ? "Cancel" : "Cancel";
   $: variant = (
-    state === "error" ? "danger" : state === "testing" ? "warning" : "primary"
-  ) as "primary" | "danger" | "warning" | "success";
-  $: modalError = state === "error" ? submitError : "";
-  $: hideActions = state === "loading" || state === "testing";
-  $: hideHeader = state === "loading" || state === "testing";
-  $: showSuccess = state === "success" && hasViewedTakeaways;
+  state === "error" ? "danger" : state === "testing" ? "warning" : "primary"
+) as "primary" | "danger" | "warning" | "success";
+$: modalError = state === "error" ? submitError : "";
+$: hideActions = state === "loading";
+$: hideHeader = state === "loading";
+$: showSuccess = state === "success" && hasViewedTakeaways;
 </script>
 
 <!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
@@ -951,16 +975,16 @@
        showMasteryCheckpoint={masteryCheckpointEnabled}
      />
    {:else if state === "loading" || state === "testing"}
-    <SubmitSprintProgressContent
-      state={state as "loading" | "testing"}
-      {activeSubmitStepIndex}
-      {activeSubmitStep}
-      submitSteps={SUBMIT_STEPS}
-      {loadingTitle}
-      {loadingSubtitle}
-      {cancelingSubmit}
-      on:cancel={openCancelConfirmation}
-    />
+     <SubmitSprintProgressContent
+       state={state as "loading" | "testing"}
+       {activeSubmitStepIndex}
+       {activeSubmitStep}
+       submitSteps={SUBMIT_STEPS}
+       {loadingTitle}
+       {loadingSubtitle}
+       {cancelingSubmit}
+       on:cancel={close}
+     />
   {/if}
 
   <!-- Success slot -->
