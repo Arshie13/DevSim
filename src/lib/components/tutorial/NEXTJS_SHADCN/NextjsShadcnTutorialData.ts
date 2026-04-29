@@ -321,7 +321,7 @@ export const STEPS: TutorialStep[] = [
     id: "preview-check",
     title: "Verify Running App",
     instruction:
-      "Confirm the To-Do List app is running in Preview. You should see the task list with mock todos. If the preview is not loading, click the Refresh button in the Preview panel.",
+      "Confirm the To-Do List app is running in Preview. You should see the task list with mock todos. Click the refresh button at the upper right if the preview is not loading.",
     hint: "Once you can see the app in the preview iframe, continue to the testing step.",
     target: "tutorial-preview-panel",
     switchTab: "preview",

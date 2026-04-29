@@ -632,9 +632,7 @@
       });
     }
 
-    if (success) {
-      toast.success("Tutorial tests passed.");
-    } else {
+    if (!success) {
       toast.warn("Some tutorial tests failed. Continue following the guide.");
     }
     if (browser) {
