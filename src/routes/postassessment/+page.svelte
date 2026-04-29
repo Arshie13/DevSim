@@ -148,16 +148,19 @@ const questions = [
   }
 
   let submitted = $state(false);
-  let preScores = $state<Record<string, { pre: number | null; post: number | null; improvement: number | null }>>({});
+  let pretestScore = $state<number | null>(null);
+  let posttestScore = $state<number | null>(null);
+  let quizAverage = $state<number | null>(null);
   let loading = $state(true);
 
   onMount(async () => {
     try {
       const response = await fetch('/api/user/postassessment');
       const data = await response.json();
-      preScores = data;
+      pretestScore = data.pretest_score;
+      posttestScore = data.posttest_score;
     } catch (e) {
-      console.error('Failed to fetch pre-scores', e);
+      console.error('Failed to fetch assessment scores', e);
     }
     loading = false;
   });
@@ -249,15 +252,18 @@ const questions = [
           'Pragma': 'no-cache',
           'Expires': '0'
         },
-        body: JSON.stringify({ 
-          scores: topicScores, 
+        body: JSON.stringify({
+          scores: topicScores,
           reflections: allReflections,
-          preScores: preScores
+          preScores: pretestScore
         })
       });
       const data = await response.json();
       if (data.aiGrading) {
         aiGradingResult = data.aiGrading;
+      }
+      if (data.quizAverage !== undefined) {
+        quizAverage = data.quizAverage;
       }
       if (data.contentWarning) {
         showWarningModal = true;
@@ -283,20 +289,18 @@ const questions = [
   }
 
   function getImprovement(): string {
-    const preScoresArray = Object.values(preScores).filter(v => v !== null && v.pre !== null) as { pre: number }[];
-    if (preScoresArray.length === 0) return "N/A";
-    const preAvg = preScoresArray.reduce((a, b) => a + b.pre, 0) / preScoresArray.length;
-    const current = getAverageScore();
-    const diff = current - preAvg;
+    if (pretestScore === null || pretestScore === undefined) return "N/A";
+    // Calculate actual improvement: Post quiz score - Pre test score
+    const quizScore = getAverageScore();
+    const diff = quizScore - pretestScore;
     if (diff > 0) return `+${diff.toFixed(1)}`;
     if (diff < 0) return diff.toFixed(1);
     return "No change";
   }
 
   function getPreAverage(): number {
-    const preScoresArray = Object.values(preScores).filter(v => v !== null && v.pre !== null) as { pre: number }[];
-    if (preScoresArray.length === 0) return 0;
-    return preScoresArray.reduce((a, b) => a + b.pre, 0) / preScoresArray.length;
+    // Return pretest score (1-5 scale)
+    return pretestScore ?? 0;
   }
 
   function getSkillLevel(): string {
@@ -544,7 +548,7 @@ const questions = [
                 </div>
               </div>
 
-              {#if getPreAverage() > 0}
+              {#if pretestScore != null}
                 <div class="mb-6 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)]">
                   <div class="flex items-center justify-center gap-4">
                     <span class="text-zinc-400">Pre: {getPreAverage().toFixed(1)}</span>
@@ -584,7 +588,7 @@ const questions = [
               {#if getTotalSelections() > 0}
                 <div class="mb-8 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)] text-left">
                   <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-3">
-                    CONCEPTS YOU'VE MASTERED
+                    CONCEPTS YOU'VE COMPLETED
                   </h3>
                   <div class="flex flex-wrap gap-2">
                     {#each topics as topic}
@@ -649,7 +653,7 @@ const questions = [
 
               <div class="flex justify-center">
                 <button onclick={() => { showSuccess = true; return false; }} class="btn-cyber btn-cyber-solid !px-10">
-                  CONTINUE TO DASHBOARD →
+                  CONTINUE TO RATING SCREEN →
                 </button>
               </div>
             </div>

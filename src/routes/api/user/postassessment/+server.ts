@@ -187,24 +187,17 @@ export const GET: RequestHandler = async (event) => {
   
   const userId = session.user.id;
   
-  // Fetch pre-assessment scores from database
-  const preScoresRecords = await prisma.assessment_topic_score.findMany({
-    where: { user_id: userId },
-    orderBy: { topic: 'asc' }
+  // Fetch assessment scores from user
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { pretest_score: true, posttest_score: true },
   });
   
-  // Convert to the format expected by the frontend
-  // Frontend expects: { "Level 1: Topic": { pre: number, post: number | null, improvement: number | null } }
-  const preScores: Record<string, { pre: number | null; post: number | null; improvement: number | null }> = {};
-  for (const record of preScoresRecords) {
-    preScores[record.topic] = {
-      pre: record.pre_score,
-      post: record.post_score,
-      improvement: record.improvement
-    };
-  }
-  
-  return json(preScores);
+  // Return simplified format with overall pre/post scores
+  return json({
+    pretest_score: user?.pretest_score ?? null,
+    posttest_score: user?.posttest_score ?? null,
+  });
 };
 
 export const POST: RequestHandler = async (event) => {
@@ -242,10 +235,31 @@ export const POST: RequestHandler = async (event) => {
     console.log("No reflections with explanations found. reflections:", reflections);
   }
   
+  // Save posttest score to user
+  const session = await event.locals.auth();
+  if (session?.user?.id && aiGrading) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { posttest_score: Math.round(aiGrading.overallScore) },
+    });
+  }
+
+  // Calculate quiz average score (normalized to 0-100 scale to match AI grading)
+  let quizAverage = 0;
+  if (scores && typeof scores === 'object') {
+    const scoreValues = Object.values(scores).filter((v): v is number => typeof v === 'number');
+    if (scoreValues.length > 0) {
+      const avg = scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length;
+      // Convert 1-5 scale to 0-100 scale
+      quizAverage = (avg / 5) * 100;
+    }
+  }
+
   // Return success with grading results
   return json({
     success: true,
     aiGrading,
+    quizAverage,
     // Include a flag to indicate if content validation failed - increased threshold for less strict checking
     contentWarning: aiGrading && aiGrading.overallScore <= 5 // Only flag truly nonsense responses (score 5 or below)
   });

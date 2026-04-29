@@ -15,17 +15,14 @@ function randomDefaultAvatarPath(): string {
 }
 
 /**
- * Check if user has completed pretest by looking for any preScore in AssessmentTopicScore
+ * Check if user has completed pretest by looking for pretest_score on user
  */
 async function hasCompletedPretest(userId: string): Promise<boolean> {
-  const pretestScores = await prisma.assessment_topic_score.findMany({
-    where: {
-      user_id: userId,
-      pre_score: { not: null },
-    },
-    take: 1,
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { pretest_score: true },
   });
-  return pretestScores.length > 0;
+  return user?.pretest_score != null;
 }
 
 export const { handle } = SvelteKitAuth({
@@ -37,93 +34,102 @@ export const { handle } = SvelteKitAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (!user.email) {
-        return false;
-      }
-
-      try {
-        // Check if user exists
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-
-        if (!existingUser) {
-          // New user: use OAuth image if provided, otherwise assign a random default avatar
-          const imageToStore = randomDefaultAvatarPath();
-          // Generate username from email (remove domain and replace invalid characters)
-          const username = user.email!.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
-          await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name || "User",
-              image: imageToStore,
-              username: username,
-            },
-          });
-        } else {
-          // Determine whether to update the image:
-          // - If DB image is null/empty → fill with OAuth image or a new default avatar
-          // - If DB image is a local avatar path → the user chose it; don't overwrite
-          // - If DB image is an OAuth URL → update from the latest OAuth data
-          let newImage: string | undefined;
-          if (!existingUser.image) {
-            newImage = user.image ?? randomDefaultAvatarPath();
-          } else if (user.image && !isLocalAvatar(existingUser.image)) {
-            newImage = user.image;
-          }
-
-          await prisma.user.update({
-            where: { email: user.email },
-            data: {
-              name: user.name || existingUser.name,
-              ...(newImage ? { image: newImage } : {}),
-            },
-          });
-        }
-
-        return true;
-      } catch (error) {
-        console.error("Error creating/updating user:", error);
-        return false;
-      }
+    async signIn({ user }) {
+      // Only check if email is present - allow sign in to proceed
+      // User creation/update is handled in jwt callback to avoid blocking auth on DB errors
+      return !!user.email;
     },
     async jwt({ token, user, account, profile }) {
-      // On initial sign-in, load the DB user to get their ID and stored image.
+      // On initial sign-in, create or update user in database
       if (user && user.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { id: true, image: true, username: true },
-        });
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.image = dbUser.image;
-          token.username = dbUser.username;
-          token.givenName = profile?.given_name;
-          token.fullName = profile?.name;
-          
-          // Check if user has completed pretest and store in token
-          const hasPretest = await hasCompletedPretest(dbUser.id);
-          token.hasCompletedPretest = hasPretest;
+        try {
+          // Check if user exists
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+
+          if (!existingUser) {
+            // New user: use OAuth image if provided, otherwise assign a random default avatar
+            const imageToStore = randomDefaultAvatarPath();
+            // Generate username from email (remove domain and replace invalid characters)
+            const username = user.email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || "User",
+                image: imageToStore,
+                username: username,
+              },
+            });
+          } else {
+            // Determine whether to update the image:
+            // - If DB image is null/empty → fill with OAuth image or a new default avatar
+            // - If DB image is a local avatar path → the user chose it; don't overwrite
+            // - If DB image is an OAuth URL → update from the latest OAuth data
+            let newImage: string | undefined;
+            if (!existingUser.image) {
+              newImage = user.image ?? randomDefaultAvatarPath();
+            } else if (user.image && !isLocalAvatar(existingUser.image)) {
+              newImage = user.image;
+            }
+
+            await prisma.user.update({
+              where: { email: user.email },
+              data: {
+                name: user.name || existingUser.name,
+                ...(newImage ? { image: newImage } : {}),
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error creating/updating user:", error);
+          // Don't throw - allow authentication to proceed even if DB operations fail
+        }
+
+        // Load the DB user to get their ID and stored image.
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            select: { id: true, image: true, username: true },
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.image = dbUser.image;
+            token.username = dbUser.username;
+            token.givenName = profile?.given_name;
+            token.fullName = profile?.name;
+            
+            // Check if user has completed pretest and store in token
+            const hasPretest = await hasCompletedPretest(dbUser.id);
+            token.hasCompletedPretest = hasPretest;
+          }
+        } catch (error) {
+          console.error("Error loading user from database:", error);
+          // Continue without DB user info if there's an error
         }
       }
 
       // Fallback: resolve via profile email if token.id is still missing.
       if (!token.id && profile?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: profile.email },
-          select: { id: true, image: true, username: true },
-        });
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.image = dbUser.image;
-          token.username = dbUser.username;
-          token.givenName = profile?.given_name;
-          token.fullName = profile?.name;
-          
-          // Check if user has completed pretest and store in token
-          const hasPretest = await hasCompletedPretest(dbUser.id);
-          token.hasCompletedPretest = hasPretest;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: profile.email },
+            select: { id: true, image: true, username: true },
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.image = dbUser.image;
+            token.username = dbUser.username;
+            token.givenName = profile?.given_name;
+            token.fullName = profile?.name;
+            
+            // Check if user has completed pretest and store in token
+            const hasPretest = await hasCompletedPretest(dbUser.id);
+            token.hasCompletedPretest = hasPretest;
+          }
+        } catch (error) {
+          console.error("Error loading user from database (fallback):", error);
+          // Continue without DB user info if there's an error
         }
       }
 
