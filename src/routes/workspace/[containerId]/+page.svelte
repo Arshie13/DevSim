@@ -605,6 +605,11 @@
     crashCourseOpen = true;
   }
 
+  function taskRequiresCrashCourse(task: { id: string; learningSections?: ILearningSection[] | null }): boolean {
+    return (task.learningSections?.length ?? 0) > 0
+      && !crashCourseCompletedByTask[task.id];
+  }
+
   function markCrashCourseSeen(taskId: string) {
     if (!taskId) return;
     crashCourseSeenByTask = {
@@ -662,6 +667,15 @@
   }
 
   let hasCompletedCrashCourse = $derived(Object.values(crashCourseCompletedByTask).some(Boolean));
+
+  let crashCoursePendingTaskIds = $derived(
+    tasks.reduce<Record<string, boolean>>((acc, task) => {
+      if ((task.learningSections?.length ?? 0) > 0 && !crashCourseCompletedByTask[task.id]) {
+        acc[task.id] = true;
+      }
+      return acc;
+    }, {})
+  );
 
   let effectiveLevelIntroDescription = $derived(pendingPostTestIntro && postTestCompletedTaskOrder && postTestNextTaskOrder
     ? `Task ${postTestCompletedTaskOrder} is now completed. You can now proceed to Task ${postTestNextTaskOrder}. Review the updated objectives, then continue implementation.`
@@ -1012,6 +1026,13 @@ $effect(() => {
 
   function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
     if (status === "in-progress" || status === "in-review" || status === "done") {
+      const targetTask = tasks.find((task) => task.id === taskId);
+      if (targetTask && taskRequiresCrashCourse(targetTask)) {
+        toast.warn(`Finish the crash course for Task ${targetTask.order} before starting work on it.`);
+        openCrashCourseForTask(targetTask.id);
+        return;
+      }
+
       const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
       const targetIndex = orderedTasks.findIndex((task) => task.id === taskId);
 
@@ -1137,6 +1158,7 @@ $effect(() => {
       previousStatus: BoardTaskStatus;
     }> = [];
     const skippedByOrder: string[] = [];
+    const skippedByCrashCourse: Array<{ taskName: string; order: number }> = [];
 
      tasks = tasks.map((task, index) => {
        const directResult = byTaskId.get(task.id);
@@ -1149,6 +1171,16 @@ $effect(() => {
       if (taskResult.passed) {
         if (orderLockedTaskIds.has(task.id)) {
           skippedByOrder.push(task.taskName);
+          return {
+            ...task,
+            boardStatus: task.boardStatus ?? "backlog",
+            isCompleted: false,
+            testStatus: "pending",
+          };
+        }
+
+        if (taskRequiresCrashCourse(task)) {
+          skippedByCrashCourse.push({ taskName: task.taskName, order: task.order });
           return {
             ...task,
             boardStatus: task.boardStatus ?? "backlog",
@@ -1190,6 +1222,11 @@ $effect(() => {
 
     if (skippedByOrder.length > 0) {
       toast.warn("Complete earlier tasks first before marking later tasks as done.");
+    }
+
+    if (skippedByCrashCourse.length > 0) {
+      const orders = skippedByCrashCourse.map((entry) => `Task ${entry.order}`).join(", ");
+      toast.warn(`Tests passed but ${orders} still need their crash course finished before completing.`);
     }
 
     if (regressions.length > 0) {
@@ -1234,6 +1271,12 @@ $effect(() => {
       postTestCompletedTaskOrder = newlyCompletedOrders[newlyCompletedOrders.length - 1];
       postTestNextTaskOrder = nextTask.order;
       levelIntroDismissed = false;
+
+      if (crashCourseExplicitlyDismissedByTask[nextTask.id]) {
+        const nextDismissed = { ...crashCourseExplicitlyDismissedByTask };
+        delete nextDismissed[nextTask.id];
+        crashCourseExplicitlyDismissedByTask = nextDismissed;
+      }
     }
   }
 
@@ -1398,19 +1441,12 @@ $effect(() => {
     const { advanceToNextLevel, nextLevel } = event.detail;
 
     if (advanceToNextLevel) {
-      const targetLevel =
-        typeof nextLevel === "number" && nextLevel > 0
-          ? nextLevel
-          : currentLevel + 1;
-
-      // Immediately switch local UI state to the next level.
-      currentLevel = targetLevel;
       levelIntroCardOpen = false;
       levelIntroCardShown = false;
       levelIntroDismissed = false;
 
       localStorage.setItem('showTaskIntroCard', 'true');
-      
+
       await goto(`?reload=${Date.now()}`, {
         invalidateAll: true,
         replaceState: true,
@@ -1739,6 +1775,8 @@ $effect(() => {
               scenario={actualLevelConfig.scenario}
               {tasks}
               onTaskStatusChange={handleTaskStatusChange}
+              crashCoursePendingTaskIds={crashCoursePendingTaskIds}
+              onOpenCrashCourse={openCrashCourseForTask}
             />
           </div>
         {/if}
@@ -1831,14 +1869,14 @@ $effect(() => {
 
 <ConfirmationModal
   bind:open={crashCourseClosePromptOpen}
-  icon="🛑"
-  iconVariant="warning"
-  title="Crash Course Closed"
-  subtitle={`Task ${crashCoursePromptTaskNumber} crash course was closed`}
-  description={`You closed the crash course before marking it as finished. You can return now or open it again later from the tab button.`}
+  icon="📘"
+  iconVariant="accent"
+  title="Crash Course Paused"
+  subtitle={`Task ${crashCoursePromptTaskNumber} is still locked`}
+  description={`You can reopen the crash course anytime from the Crash Course tab. Finishing it unlocks Task ${crashCoursePromptTaskNumber} on the board so you can start working on it.`}
   confirmLabel="Got it"
   cancelLabel="Back to Crash Course"
-  variant="warning"
+  variant="primary"
   on:confirm={handleCrashCoursePromptConfirm}
   on:cancel={handleCrashCoursePromptBack}
 />

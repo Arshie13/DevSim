@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff } from 'lucide-svelte';
+  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff, BookOpen, Lock } from 'lucide-svelte';
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
   import { type ITask, type IHints } from '$lib/types';
   import { toast } from '$lib/stores/toast';
@@ -11,6 +11,8 @@
 
   export let tasks: BoardTask[] = [];
   export let onTaskStatusChange: (taskId: string, status: KanbanStatus) => void = () => {};
+  export let crashCoursePendingTaskIds: Record<string, boolean> = {};
+  export let onOpenCrashCourse: (taskId: string) => void = () => {};
 
   // ── Hints toggle state ─────────────────────────────────────────────────────
   let showHints = false;
@@ -381,6 +383,19 @@
                   >
                     {t.text}
                   </span>
+                  {#if crashCoursePendingTaskIds[t.id]}
+                    <button
+                      type="button"
+                      on:click|stopPropagation={() => onOpenCrashCourse(t.id)}
+                      on:keydown|stopPropagation
+                      class="flex items-center gap-1 text-[0.6rem] uppercase tracking-wider px-2 py-0.5 rounded transition-colors"
+                      style="font-family: 'Space Mono', monospace; color: #FFB400; background: rgba(255,180,0,0.08); border: 1px solid rgba(255,180,0,0.35);"
+                      title="Open the crash course for this task"
+                    >
+                      <BookOpen class="w-3 h-3" />
+                      Crash course required
+                    </button>
+                  {/if}
                   <!-- Status label -->
                   <span
                     class="text-[0.6rem] uppercase tracking-wider px-2 py-0.5 rounded"
@@ -475,13 +490,27 @@
                   tabindex="0"
                   aria-label="Drag Task {task.order}: {task.text}"
                 >
-                  <div class="mb-2 flex justify-start">
+                  <div class="mb-2 flex justify-start items-center gap-1.5 flex-wrap">
                     <span
                       class="text-[0.58rem] uppercase tracking-wider px-1 py-0.5 rounded"
                       style="font-family: 'Space Mono', monospace; color: {col.color}; background: {col.bg}; border: 1px solid {col.color}44;"
                     >
                       Task {task.order}
                     </span>
+                    {#if crashCoursePendingTaskIds[task.id]}
+                      <button
+                        type="button"
+                        on:click|stopPropagation={() => onOpenCrashCourse(task.id)}
+                        on:keydown|stopPropagation
+                        on:dragstart|preventDefault|stopPropagation
+                        class="flex items-center gap-1 text-[0.58rem] uppercase tracking-wider px-1.5 py-0.5 rounded transition-colors"
+                        style="font-family: 'Space Mono', monospace; color: #FFB400; background: rgba(255,180,0,0.08); border: 1px solid rgba(255,180,0,0.35);"
+                        title="Open the crash course to unlock this task"
+                      >
+                        <Lock class="w-3 h-3" />
+                        Locked
+                      </button>
+                    {/if}
                   </div>
                   <div class="flex items-start gap-2">
                     <!-- Drag handle -->
@@ -532,6 +561,9 @@
     acceptanceCriteria={selectedTask?.acceptanceCriteria ?? []}
     hints={selectedTask?.hints ?? []}
     status={selectedTask?.status ?? 'backlog'}
+    isLocked={selectedTask ? !!crashCoursePendingTaskIds[selectedTask.id] : false}
+    taskOrder={selectedTask?.order ?? null}
     onClose={closeTaskDetails}
+    onOpenCrashCourse={() => selectedTask && onOpenCrashCourse(selectedTask.id)}
   />
 </div>

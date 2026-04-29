@@ -123,7 +123,7 @@ function sanitizeCodeForRunner(code: string): string {
     .replace(/\bexport\s+/g, "")
     .replace(/\b(private|public|protected|readonly)\s+/g, "")
     .replace(/\)\s*:\s*[A-Za-z_$][\w<>,\s\[\]\|&?.]*\s*(?=\{)/g, ")")
-    .replace(/([A-Za-z_$][\w$]*)\s*:\s*[A-Za-z_$][\w<>,\s\[\]\|&?.]*/g, "$1");
+    .replace(/([A-Za-z_$][\w$]*)\s*:\s*[A-Za-z_$][\w<>\s\[\]\|&?.]*/g, "$1");
 }
 
 export async function evaluateFunctionLab(

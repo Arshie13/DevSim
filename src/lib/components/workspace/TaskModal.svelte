@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Lock, BookOpen } from 'lucide-svelte';
 	import Scrollbar from '../ui/Scrollbar.svelte';
 
 	export let open = false;
@@ -7,7 +8,15 @@
 	export let acceptanceCriteria: string[] = [];
 	export let hints: { id: string; content: string; order: number }[] = [];
 	export let status: 'backlog' | 'in-progress' | 'in-review' | 'done' = 'backlog';
+	export let isLocked: boolean = false;
+	export let taskOrder: number | null = null;
 	export let onClose: () => void = () => {};
+	export let onOpenCrashCourse: () => void = () => {};
+
+	function handleOpenCrashCourse() {
+		onOpenCrashCourse();
+		onClose();
+	}
 
 	let showHints = false;
 
@@ -84,6 +93,28 @@
 
 			<Scrollbar className="max-h-[70vh]">
 				<div class="space-y-5 px-5 py-5">
+					{#if isLocked}
+						<section class="rounded-[4px] border border-[rgba(255,180,0,0.3)] bg-[rgba(255,180,0,0.06)] p-6 text-center">
+							<div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(255,180,0,0.4)] bg-[rgba(255,180,0,0.12)]">
+								<Lock class="h-5 w-5" style="color: #FFB400;" />
+							</div>
+							<p class="mb-2 text-[0.72rem] uppercase tracking-[0.16em] [font-family:var(--font-mono)]" style="color: #FFB400;">
+								Crash course required
+							</p>
+							<p class="mb-4 text-[0.92rem] leading-relaxed text-[var(--text-primary)] [font-family:var(--font-body)]">
+								Complete the crash course{taskOrder ? ` for Task ${taskOrder}` : ''} to unlock the user story, acceptance criteria, and hints.
+							</p>
+							<button
+								type="button"
+								on:click={handleOpenCrashCourse}
+								class="inline-flex items-center gap-2 rounded-[3px] border px-4 py-2 text-[0.7rem] uppercase tracking-[0.12em] transition-colors [font-family:var(--font-mono)]"
+								style="color: #FFB400; background: rgba(255,180,0,0.12); border-color: rgba(255,180,0,0.45);"
+							>
+								<BookOpen class="h-4 w-4" />
+								Open Crash Course
+							</button>
+						</section>
+					{:else}
 					<section class="rounded-[4px] border border-[rgba(7,165,201,0.18)] bg-[rgba(7,165,201,0.06)] p-4">
 					<p class="mb-2 text-[0.64rem] uppercase tracking-[0.14em] text-[var(--accent)] [font-family:var(--font-mono)]">
 						User Story
@@ -148,6 +179,7 @@
 								</ol>
 							{/if}
 						</section>
+					{/if}
 					{/if}
 				</div>
 			</Scrollbar>

@@ -1,9 +1,9 @@
 import prisma from '$lib/server/client';
 
 export class LevelDataAccess {
-  async getLevelByOrder(order: number) {
+  async getLevelByOrder(order: number, scenarioId?: string | null) {
     const level = await prisma.level.findFirst({
-      where: { order },
+      where: scenarioId ? { order, scenario_id: scenarioId } : { order },
       orderBy: { order: 'asc' },
       include: {
         tasks: {

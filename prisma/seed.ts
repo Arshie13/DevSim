@@ -3194,9 +3194,14 @@ async function main() {
                   interactive_config: {
                     instructions:
                       "Return 'OUT_OF_STOCK' if quantity <= 0, 'LOW_STOCK' if quantity <= threshold, otherwise 'IN_STOCK'.",
-                    language: "ts",
+                    language: "javascript",
                     starter_code:
-                      "export function getStockLevel(quantity: number, threshold: number) {\n  // TODO: return 'OUT_OF_STOCK' | 'LOW_STOCK' | 'IN_STOCK'\n  return 'IN_STOCK';\n}\n",
+                      "export function getStockLevel(quantity, threshold) {\n  if (/* out-of-stock condition */) {\n    return 'OUT_OF_STOCK';\n  } else if (/* low-stock condition */) {\n    return 'LOW_STOCK';\n  } else {\n    return 'IN_STOCK';\n  }\n}\n",
+                    required_code_includes: ["quantity <= 0", "quantity <= threshold"],
+                    editable_regions: [
+                      { placeholder: "/* out-of-stock condition */", case_sensitive: true },
+                      { placeholder: "/* low-stock condition */", case_sensitive: true },
+                    ],
                     entry_point: "getStockLevel",
                     test_cases: [
                       { input: [0, 5], expected: "OUT_OF_STOCK", label: "zero quantity" },
