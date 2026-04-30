@@ -19,38 +19,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     
     const userId = session.user.id;
     
-    // Save each topic score to the database
-    const scorePromises = Object.entries(scores).map(([topic, score]) => {
-      const topicKey = topic.toLowerCase().replace(/\s+/g, '_');
-      
-      return prisma.assessment_topic_score.upsert({
-        where: {
-          user_id_topic: {
-            user_id: userId,
-            topic: topicKey,
-          },
-        },
-        update: {
-          pre_score: score as number,
-          assessed_at: new Date(),
-        },
-        create: {
-          id: `${userId}_${topicKey}_pre`,
-          user_id: userId,
-          topic: topicKey,
-          pre_score: score as number,
-          assessed_at: new Date(),
-        },
-      });
+    // Save pretest score to user
+    await prisma.user.update({
+      where: { id: userId },
+      data: { pretest_score: Math.round(averageScore) },
     });
     
-    await Promise.all(scorePromises);
+    console.log("Pre-test score saved for user:", userId, { averageScore, skillLevel });
     
-    console.log("Pre-test scores saved for user:", userId, { scores, skillLevel, averageScore });
-    
-    return json({ 
-      success: true, 
-      message: "Pre-test scores saved successfully",
+    return json({
+      success: true,
+      message: "Pre-test score saved successfully",
       skillLevel,
       averageScore
     });

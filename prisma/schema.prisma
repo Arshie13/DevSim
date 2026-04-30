@@ -54,10 +54,12 @@ model user {
   workspaces   workspace[]
   achievements user_achievement[]
 
+  // Assessment scores
+  pretest_score  Int?
+  posttest_score Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  assessmentTopicScores assessment_topic_score[]
 }
 
 model workspace {
@@ -333,18 +335,3 @@ model app_setting {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
-
-model assessment_topic_score {
-  id          String   @id
-  user_id      String
-  topic       String
-  pre_score    Int?
-  post_score   Int?
-  improvement Int?
-  assessed_at  DateTime @default(now())
-  user        user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, topic])
-  @@index([user_id])
-}
-
