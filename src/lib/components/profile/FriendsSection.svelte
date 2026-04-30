@@ -10,6 +10,22 @@
   function isImagePath(avatar: string | null): avatar is string {
     return !!avatar && (avatar.startsWith("/") || /^https?:\/\//i.test(avatar));
   }
+
+  function xpRequiredForLevel(level: number): number {
+    return Math.floor(100 * Math.pow(1.5, level - 1));
+  }
+
+  function computeLevelFromXp(totalXp: number): number {
+    let level = 1;
+    let accumulated = 0;
+    while (level < 200) {
+      const needed = xpRequiredForLevel(level);
+      if (accumulated + needed > totalXp) return level;
+      accumulated += needed;
+      level++;
+    }
+    return level;
+  }
 </script>
 
 <section
@@ -72,7 +88,7 @@
             <div
               class="absolute -bottom-1.5 -right-1.5 min-w-[2rem] h-[2rem] rounded-card bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-orbitron text-xs font-bold text-white shadow-[0_0_10px_rgba(251,191,36,0.5)] border-2 border-obsidian-surface px-1.5"
             >
-              {rival.level}
+              {computeLevelFromXp(rival.xp)}
             </div>
           </div>
 

@@ -197,7 +197,7 @@
 
   /* ── Rank pill ─────────────────────────────────────────────── */
   .rank-pill {
-    font-size: 0.52rem;
+    font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -267,7 +267,7 @@
   .badge-emoji-center { font-size: 1.6rem; }
 
   .tier-text {
-    font-size: 0.4rem;
+    font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -298,7 +298,7 @@
 
   /* ── Name label ────────────────────────────────────────────── */
   .badge-label {
-    font-size: 0.5rem;
+    font-size: 0.6rem;
     letter-spacing: 0.03em;
     color: rgba(208,215,221,0.75);
     text-align: center;
