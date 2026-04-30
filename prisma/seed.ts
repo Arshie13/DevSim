@@ -744,11 +744,8 @@ async function main() {
                     test_cases: [
                       {
                         input: [],
-                        expected: [
-                          "before update",
-                          "after first write",
-                          "after second write",
-                        ],
+                        expected:
+                          "before update\nafter first write\nafter second write",
                         label: "checkpoint log order and content",
                       },
                     ],
