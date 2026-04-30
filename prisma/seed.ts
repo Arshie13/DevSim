@@ -290,7 +290,6 @@ async function main() {
                     "UI changes in React always trace back to a component file. Layout components are the first place to look for global elements like headers. Find the component, find the text, change it.",
                   order: 8,
                 },
-
               ],
             },
             hints: {
@@ -544,18 +543,18 @@ async function main() {
                       "Refactor the page logic to use the helper. The helper is shown below for reference as if it came from another file, and this section represents the page where you should import and use it.",
                     language: "javascript",
                     starter_code:
-                      "// helper file (shown for context; this lives in another file)\nfunction getBorrowBadgeLabel(record) {\n  return record.returnedAt ? \"Returned\" : \"Active\";\n}\n\n// page file section (this is where you refactor)\nimport { getBorrowBadgeLabel } from '../utils/helpers';\n\nfunction getBadgeForRecord(record) {\n  return record.returnedAt ? \"Returned\" : \"Active\";\n}\n\nexport function renderBadgeLabel(record) {\n  return getBadgeForRecord(record);\n}\n",
+                      '// helper file (shown for context; this lives in another file)\nfunction getBorrowBadgeLabel(record) {\n  if (record.returnedAt) return "Returned";\n  return "Active";\n}\n\n// page file section (this is where you refactor)\nimport { getBorrowBadgeLabel } from \'../utils/helpers\';\n\nexport function getBadgeForRecord(record) {\n  return record.returnedAt ? "Returned" : "Active";\n}\n',
                     required_code_includes: [
-                      "import { getBorrowBadgeLabel } from '../utils/helpers';",
-                      "getBorrowBadgeLabel(record)",
+                      "return getBorrowBadgeLabel(record)",
                     ],
                     editable_regions: [
                       {
-                        placeholder: 'record.returnedAt ? "Returned" : "Active"',
+                        placeholder:
+                          'record.returnedAt ? "Returned" : "Active"',
                         case_sensitive: true,
                       },
                     ],
-                    entry_point: "renderBadgeLabel",
+                    entry_point: "getBadgeForRecord",
                     test_cases: [
                       {
                         input: [{ returnedAt: null }],
@@ -726,19 +725,19 @@ async function main() {
                       "Add three log checkpoints: before update, after first write, and after second write.",
                     language: "typescript",
                     starter_code:
-                      "async function updateBorrowRecord() {\n  return true;\n}\n\nasync function updateInventory() {\n  return true;\n}\n\nexport async function returnBookFlow() {\n  const logs = [];\n  logs.push(\"BEFORE_UPDATE\");\n  await updateBorrowRecord();\n  logs.push(\"AFTER_FIRST_WRITE\");\n  await updateInventory();\n  logs.push(\"AFTER_SECOND_WRITE\");\n  return logs;\n}\n",
+                      "async function updateBorrowRecord() {\n  return true;\n}\n\nasync function updateInventory() {\n  return true;\n}\n\nexport async function returnBookFlow() {\n  // before update\n  await updateBorrowRecord();\n  // after first write\n  await updateInventory();\n  // after second write\n}\n",
                     editable_regions: [
                       {
-                        placeholder: "BEFORE_UPDATE",
-                        case_sensitive:false,
+                        placeholder: "// before update",
+                        case_sensitive: false,
                       },
                       {
-                        placeholder: "AFTER_FIRST_WRITE",
-                        case_sensitive:false,
+                        placeholder: "// after first write",
+                        case_sensitive: false,
                       },
                       {
-                        placeholder: "AFTER_SECOND_WRITE",
-                        case_sensitive:false,
+                        placeholder: "// after second write",
+                        case_sensitive: false,
                       },
                     ],
                     entry_point: "returnBookFlow",
@@ -866,15 +865,19 @@ async function main() {
                       "Create a function that returns both required transaction operations.",
                     language: "typescript",
                     starter_code:
-                      "export function buildAtomicAuditPlan() {\n  // inventory update\n  // audit log insert\n  return [];\n}\n",
+                      "export function buildAtomicAuditPlan() {\n  // inventory update\n  // audit log insert\n  return [/* operations */];\n}\n",
                     editable_regions: [
                       {
                         placeholder: "// inventory update",
-                        case_sensitive:false,
+                        case_sensitive: false,
                       },
                       {
                         placeholder: "// audit log insert",
-                        case_sensitive:false,
+                        case_sensitive: false,
+                      },
+                      {
+                        placeholder: "/* operations */",
+                        case_sensitive: false,
                       },
                     ],
                     entry_point: "buildAtomicAuditPlan",
@@ -1027,7 +1030,8 @@ async function main() {
                       "function validateReservationPayload(body) {\n  // return true only when both IDs are positive numbers\n}\n",
                     editable_regions: [
                       {
-                        placeholder: "// return true only when both IDs are positive numbers",
+                        placeholder:
+                          "// return true only when both IDs are positive numbers",
                         case_sensitive: true,
                       },
                     ],
@@ -1238,21 +1242,33 @@ async function main() {
                       "Map reservation rows into readable summary lines with position + member + status.",
                     language: "javascript",
                     starter_code:
-                      "function formatQueueSnapshot(rows) {\n  // Return one summary string joined by \" | \"\n}\n",
+                      'function formatQueueSnapshot(rows) {\n  // Return one summary string joined by " | "\n}\n',
                     editable_regions: [
                       {
-                        placeholder: "// Return one summary string joined by \" | \"",
+                        placeholder:
+                          '// Return one summary string joined by " | "',
                         case_sensitive: true,
                       },
                     ],
                     entry_point: "formatQueueSnapshot",
                     test_cases: [
                       {
-                        input: [[
-                          { queuePosition: 1, memberName: "Ari", status: "RESERVED" },
-                          { queuePosition: 2, memberName: "Bea", status: "READY_FOR_PICKUP" },
-                        ]],
-                        expected: "#1 Ari [RESERVED] | #2 Bea [READY_FOR_PICKUP]",
+                        input: [
+                          [
+                            {
+                              queuePosition: 1,
+                              memberName: "Ari",
+                              status: "RESERVED",
+                            },
+                            {
+                              queuePosition: 2,
+                              memberName: "Bea",
+                              status: "READY_FOR_PICKUP",
+                            },
+                          ],
+                        ],
+                        expected:
+                          "#1 Ari [RESERVED] | #2 Bea [READY_FOR_PICKUP]",
                         label: "two-row queue",
                       },
                       {
@@ -1472,7 +1488,10 @@ async function main() {
                         label: "future due and not returned",
                       },
                       {
-                        input: ["2024-01-01T00:00:00.000Z", "2024-01-02T00:00:00.000Z"],
+                        input: [
+                          "2024-01-01T00:00:00.000Z",
+                          "2024-01-02T00:00:00.000Z",
+                        ],
                         expected: "ON_TIME",
                         label: "already returned",
                       },
@@ -1586,23 +1605,23 @@ async function main() {
                       "Write a 4-line timeline: detection, impact window, mitigation, and final verification.",
                     language: "javascript",
                     starter_code:
-                      "export function formatIncidentTimeline() {\n  return [\n    \"- Detection: [detection detail]\",\n    \"- Impact Window: [impact window]\",\n    \"- Mitigation: [mitigation step]\",\n    \"- Verification: [verification result]\",\n  ].join(\"\\n\");\n}\n",
+                      'export function formatIncidentTimeline() {\n  return [\n    "- Detection: [detection detail]",\n    "- Impact Window: [impact window]",\n    "- Mitigation: [mitigation step]",\n    "- Verification: [verification result]",\n  ].join("\\n");\n}\n',
                     editable_regions: [
                       {
                         placeholder: "[detection detail]",
-                        case_sensitive:false,
+                        case_sensitive: false,
                       },
                       {
                         placeholder: "[impact window]",
-                        case_sensitive:false,
+                        case_sensitive: false,
                       },
                       {
                         placeholder: "[mitigation step]",
-                        case_sensitive:false,
+                        case_sensitive: false,
                       },
                       {
                         placeholder: "[verification result]",
-                        case_sensitive:false,
+                        case_sensitive: false,
                       },
                     ],
                     entry_point: "formatIncidentTimeline",
@@ -1691,7 +1710,8 @@ async function main() {
     {
       id: "pern-oe-level-1",
       title: "Getting Familiar with the Codebase",
-      subtitle: "Set up the development environment and make a minor brand UI change.",
+      subtitle:
+        "Set up the development environment and make a minor brand UI change.",
       order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
@@ -1731,7 +1751,7 @@ async function main() {
                 {
                   title: "Environment Variables",
                   content:
-                    "Sensitive configuration lives in .env files:\nDATABASE_URL=\"postgresql://user:pass@localhost:5432/urbanpottery\"\nPORT=5000\nJWT_SECRET=your-secret\n\nThe dotenv package loads these at runtime. Never commit .env — it is gitignored intentionally. The project's README lists every required variable.",
+                    'Sensitive configuration lives in .env files:\nDATABASE_URL="postgresql://user:pass@localhost:5432/urbanpottery"\nPORT=5000\nJWT_SECRET=your-secret\n\nThe dotenv package loads these at runtime. Never commit .env — it is gitignored intentionally. The project\'s README lists every required variable.',
                   order: 4,
                 },
                 {
@@ -1742,7 +1762,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: cd Navigation",
-                  content: "Practice navigating between the three project directories.",
+                  content:
+                    "Practice navigating between the three project directories.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "TERMINAL_CD" as const,
                   interactive_config: {
@@ -1789,17 +1810,20 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "Dependencies installed in root, client/, and server/ without errors",
+                  description:
+                    "Dependencies installed in root, client/, and server/ without errors",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Prisma migrations executed successfully (schema applied to PostgreSQL)",
+                  description:
+                    "Prisma migrations executed successfully (schema applied to PostgreSQL)",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "Both client (port 5173) and server (port 5000) start without errors",
+                  description:
+                    "Both client (port 5173) and server (port 5000) start without errors",
                   is_required: true,
                   order: 3,
                 },
@@ -1828,7 +1852,7 @@ async function main() {
                 {
                   title: "JSX Text Nodes",
                   content:
-                    "In JSX, plain text inside tags is a text node:\n<span className=\"font-bold\">UrbanPottery</span>\n\nTo update the brand, find this span and change its content to the exact required string — case and spaces matter.",
+                    'In JSX, plain text inside tags is a text node:\n<span className="font-bold">UrbanPottery</span>\n\nTo update the brand, find this span and change its content to the exact required string — case and spaces matter.',
                   order: 3,
                 },
                 {
@@ -1839,17 +1863,26 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Update Heading Text",
-                  content: "Practice editing a JSX text node to match a target string.",
+                  content:
+                    "Practice editing a JSX text node to match a target string.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
-                    instructions: 'Change the returned string from "UrbanPottery" to "UrbanPottery Artisan Ceramics".',
+                    instructions:
+                      'Change the returned string from "UrbanPottery" to "UrbanPottery Artisan Ceramics".',
                     language: "tsx",
-                    starter_code: 'export function getBrandName() {\n  return "UrbanPottery";\n}\n',
-                    editable_regions: [{ placeholder: "UrbanPottery", case_sensitive:true }],
+                    starter_code:
+                      'export function getBrandName() {\n  return "UrbanPottery";\n}\n',
+                    editable_regions: [
+                      { placeholder: "UrbanPottery", case_sensitive: true },
+                    ],
                     entry_point: "getBrandName",
                     test_cases: [
-                      { input: [], expected: "UrbanPottery Artisan Ceramics", label: "exact brand string" },
+                      {
+                        input: [],
+                        expected: "UrbanPottery Artisan Ceramics",
+                        label: "exact brand string",
+                      },
                     ],
                   },
                   order: 5,
@@ -1885,12 +1918,14 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: 'Navbar brand text is exactly "UrbanPottery Artisan Ceramics"',
+                  description:
+                    'Navbar brand text is exactly "UrbanPottery Artisan Ceramics"',
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Brand renders correctly on desktop and mobile viewports",
+                  description:
+                    "Brand renders correctly on desktop and mobile viewports",
                   is_required: true,
                   order: 2,
                 },
@@ -1954,7 +1989,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Three-Bucket Classifier",
-                  content: "Practice writing a threshold classifier that returns one of three string values.",
+                  content:
+                    "Practice writing a threshold classifier that returns one of three string values.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -1963,10 +1999,16 @@ async function main() {
                     language: "javascript",
                     starter_code:
                       "export function getStockStatus(stock) {\n  // TODO\n}\n",
-                    editable_regions: [{ placeholder: "// TODO", case_sensitive:true }],
+                    editable_regions: [
+                      { placeholder: "// TODO", case_sensitive: true },
+                    ],
                     entry_point: "getStockStatus",
                     test_cases: [
-                      { input: [0], expected: "OUT_OF_STOCK", label: "zero stock" },
+                      {
+                        input: [0],
+                        expected: "OUT_OF_STOCK",
+                        label: "zero stock",
+                      },
                       { input: [3], expected: "LOW_STOCK", label: "low stock" },
                       { input: [10], expected: "IN_STOCK", label: "in stock" },
                     ],
@@ -2004,7 +2046,8 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "getStockStatus is exported from client/src/utils/formatters.ts",
+                  description:
+                    "getStockStatus is exported from client/src/utils/formatters.ts",
                   is_required: true,
                   order: 1,
                 },
@@ -2024,12 +2067,14 @@ async function main() {
                   order: 4,
                 },
                 {
-                  description: "Boundary values 0, 1, 5, 6 all return the correct bucket",
+                  description:
+                    "Boundary values 0, 1, 5, 6 all return the correct bucket",
                   is_required: true,
                   order: 5,
                 },
                 {
-                  description: "Function is pure — same input always returns same output",
+                  description:
+                    "Function is pure — same input always returns same output",
                   is_required: true,
                   order: 6,
                 },
@@ -2044,7 +2089,8 @@ async function main() {
             learning_sections: {
               create: [
                 {
-                  title: "Overview\nRefactoring Inline Checks and Adding a Filter Toggle",
+                  title:
+                    "Overview\nRefactoring Inline Checks and Adding a Filter Toggle",
                   content:
                     "This crash course covers replacing duplicated inline stock comparisons with the shared helper, and adding a new user-facing toggle that uses the same helper for filtering.",
                   order: 1,
@@ -2069,7 +2115,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Refactor a Stock Badge",
-                  content: "Practice replacing an inline stock check with a helper call.",
+                  content:
+                    "Practice replacing an inline stock check with a helper call.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -2079,10 +2126,20 @@ async function main() {
                     starter_code:
                       "function getStockStatus(stock) {\n  if (stock <= 0) return 'OUT_OF_STOCK';\n  if (stock <= 5) return 'LOW_STOCK';\n  return 'IN_STOCK';\n}\n\nexport function getBadgeLabel(stock) {\n  if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';\n}\n",
                     required_code_includes: ["getStockStatus(stock)"],
-                    editable_regions: [{ placeholder: "if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';", case_sensitive:false }],
+                    editable_regions: [
+                      {
+                        placeholder:
+                          "if (stock === 0) return 'Out of Stock'; // inline — refactor me\n  if (stock <= 5) return 'Low Stock';\n  return 'In Stock';",
+                        case_sensitive: false,
+                      },
+                    ],
                     entry_point: "getBadgeLabel",
                     test_cases: [
-                      { input: [0], expected: "Out of Stock", label: "zero stock" },
+                      {
+                        input: [0],
+                        expected: "Out of Stock",
+                        label: "zero stock",
+                      },
                       { input: [3], expected: "Low Stock", label: "low stock" },
                       { input: [10], expected: "In Stock", label: "in stock" },
                     ],
@@ -2120,27 +2177,32 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "ProductCard.tsx imports and uses getStockStatus instead of inline comparisons",
+                  description:
+                    "ProductCard.tsx imports and uses getStockStatus instead of inline comparisons",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Shop.tsx imports and uses getStockStatus for the out-of-stock filter",
+                  description:
+                    "Shop.tsx imports and uses getStockStatus for the out-of-stock filter",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "A 'Hide out-of-stock' toggle is visible on the Shop page",
+                  description:
+                    "A 'Hide out-of-stock' toggle is visible on the Shop page",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "Toggle filters OUT_OF_STOCK products from the grid when active",
+                  description:
+                    "Toggle filters OUT_OF_STOCK products from the grid when active",
                   is_required: true,
                   order: 4,
                 },
                 {
-                  description: "Existing search and category filters still work after refactor",
+                  description:
+                    "Existing search and category filters still work after refactor",
                   is_required: true,
                   order: 5,
                 },
@@ -2153,7 +2215,8 @@ async function main() {
     {
       id: "pern-oe-level-3",
       title: "Backend Debugging & Transactional Consistency",
-      subtitle: "Diagnose the cancel-flow stock leak and enforce atomic operations.",
+      subtitle:
+        "Diagnose the cancel-flow stock leak and enforce atomic operations.",
       order: 3,
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       level_description:
@@ -2198,7 +2261,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Spot the Missing Write",
-                  content: "Practice identifying missing writes in a two-step sequence.",
+                  content:
+                    "Practice identifying missing writes in a two-step sequence.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -2207,10 +2271,19 @@ async function main() {
                     language: "typescript",
                     starter_code:
                       "export async function cancelOrderFlow(orderId: string) {\n  const steps: string[] = [];\n  steps.push('SET status=CANCELLED');\n  // TODO: add missing step\n  return steps;\n}\n",
-                    editable_regions: [{ placeholder: "// TODO: add missing step", case_sensitive:false }],
+                    editable_regions: [
+                      {
+                        placeholder: "// TODO: add missing step",
+                        case_sensitive: false,
+                      },
+                    ],
                     entry_point: "cancelOrderFlow",
                     test_cases: [
-                      { input: ["order-1"], expected: ["SET status=CANCELLED", "RESTORE stock"], label: "both steps present" },
+                      {
+                        input: ["order-1"],
+                        expected: ["SET status=CANCELLED", "RESTORE stock"],
+                        label: "both steps present",
+                      },
                     ],
                   },
                   order: 5,
@@ -2246,22 +2319,26 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "server/src/controllers/order.controller.ts exists and exports cancelOrder",
+                  description:
+                    "server/src/controllers/order.controller.ts exists and exports cancelOrder",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "cancelOrder references cancelledAt (documents where the timestamp will live)",
+                  description:
+                    "cancelOrder references cancelledAt (documents where the timestamp will live)",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "schema.prisma Order model includes cancelledAt field",
+                  description:
+                    "schema.prisma Order model includes cancelledAt field",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "Problematic cancel path (no stock restore) is identified and documented",
+                  description:
+                    "Problematic cancel path (no stock restore) is identified and documented",
                   is_required: true,
                   order: 4,
                 },
@@ -2301,18 +2378,29 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Atomic Audit Write",
-                  content: "Practice building a two-step atomic transaction plan.",
+                  content:
+                    "Practice building a two-step atomic transaction plan.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
-                    instructions: "Return both required atomic steps as an array.",
+                    instructions:
+                      "Return both required atomic steps as an array.",
                     language: "typescript",
                     starter_code:
                       "export function buildCancelPlan(): string[] {\n  return [];\n}\n",
-                    editable_regions: [{ placeholder: "return [];", case_sensitive:false }],
+                    editable_regions: [
+                      { placeholder: "return [];", case_sensitive: false },
+                    ],
                     entry_point: "buildCancelPlan",
                     test_cases: [
-                      { input: [], expected: ["flip status + set cancelledAt", "restore stock"], label: "both cancel steps" },
+                      {
+                        input: [],
+                        expected: [
+                          "flip status + set cancelledAt",
+                          "restore stock",
+                        ],
+                        label: "both cancel steps",
+                      },
                     ],
                   },
                   order: 5,
@@ -2348,7 +2436,8 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "schema.prisma Order model has cancelledAt DateTime? field",
+                  description:
+                    "schema.prisma Order model has cancelledAt DateTime? field",
                   is_required: true,
                   order: 1,
                 },
@@ -2358,22 +2447,26 @@ async function main() {
                   order: 2,
                 },
                 {
-                  description: "cancelOrder sets cancelledAt: new Date() on the order",
+                  description:
+                    "cancelOrder sets cancelledAt: new Date() on the order",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "cancelOrder increments Product.stock for each OrderItem",
+                  description:
+                    "cancelOrder increments Product.stock for each OrderItem",
                   is_required: true,
                   order: 4,
                 },
                 {
-                  description: "cancelOrder only allows cancellation from PENDING or PROCESSING status",
+                  description:
+                    "cancelOrder only allows cancellation from PENDING or PROCESSING status",
                   is_required: true,
                   order: 5,
                 },
                 {
-                  description: "POST /api/orders checkout uses updateMany with stock gte guard",
+                  description:
+                    "POST /api/orders checkout uses updateMany with stock gte guard",
                   is_required: true,
                   order: 6,
                 },
@@ -2406,7 +2499,8 @@ async function main() {
             learning_sections: {
               create: [
                 {
-                  title: "Overview\nBuilding a Validation Endpoint + Client Service",
+                  title:
+                    "Overview\nBuilding a Validation Endpoint + Client Service",
                   content:
                     "This crash course covers adding a new Prisma model, a POST /api/coupons/validate endpoint, extending the order creation flow, and building the client service layer and UI.",
                   order: 1,
@@ -2447,17 +2541,72 @@ async function main() {
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
-                    instructions: "Return true only if all three conditions pass.",
+                    instructions:
+                      "Return true only if all three conditions pass.",
                     language: "javascript",
                     starter_code:
                       "export function isCouponValid(coupon, now) {\n  // isActive, not expired, has remaining uses\n}\n",
-                    editable_regions: [{ placeholder: "// isActive, not expired, has remaining uses", case_sensitive:false }],
+                    editable_regions: [
+                      {
+                        placeholder:
+                          "// isActive, not expired, has remaining uses",
+                        case_sensitive: false,
+                      },
+                    ],
                     entry_point: "isCouponValid",
                     test_cases: [
-                      { input: [{ isActive: true, expiresAt: new Date(9999, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: true, label: "valid coupon" },
-                      { input: [{ isActive: false, expiresAt: new Date(9999, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: false, label: "inactive coupon" },
-                      { input: [{ isActive: true, expiresAt: new Date(2000, 0, 1), usedCount: 0, maxUses: 10 }, new Date()], expected: false, label: "expired coupon" },
-                      { input: [{ isActive: true, expiresAt: new Date(9999, 0, 1), usedCount: 10, maxUses: 10 }, new Date()], expected: false, label: "exhausted coupon" },
+                      {
+                        input: [
+                          {
+                            isActive: true,
+                            expiresAt: new Date(9999, 0, 1),
+                            usedCount: 0,
+                            maxUses: 10,
+                          },
+                          new Date(),
+                        ],
+                        expected: true,
+                        label: "valid coupon",
+                      },
+                      {
+                        input: [
+                          {
+                            isActive: false,
+                            expiresAt: new Date(9999, 0, 1),
+                            usedCount: 0,
+                            maxUses: 10,
+                          },
+                          new Date(),
+                        ],
+                        expected: false,
+                        label: "inactive coupon",
+                      },
+                      {
+                        input: [
+                          {
+                            isActive: true,
+                            expiresAt: new Date(2000, 0, 1),
+                            usedCount: 0,
+                            maxUses: 10,
+                          },
+                          new Date(),
+                        ],
+                        expected: false,
+                        label: "expired coupon",
+                      },
+                      {
+                        input: [
+                          {
+                            isActive: true,
+                            expiresAt: new Date(9999, 0, 1),
+                            usedCount: 10,
+                            maxUses: 10,
+                          },
+                          new Date(),
+                        ],
+                        expected: false,
+                        label: "exhausted coupon",
+                      },
                     ],
                   },
                   order: 7,
@@ -2493,37 +2642,44 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "Coupon model exists in schema.prisma with all required fields",
+                  description:
+                    "Coupon model exists in schema.prisma with all required fields",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "server/src/controllers/coupon.controller.ts exports validateCoupon",
+                  description:
+                    "server/src/controllers/coupon.controller.ts exports validateCoupon",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "server/src/routes/coupons.ts registers POST /validate",
+                  description:
+                    "server/src/routes/coupons.ts registers POST /validate",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "POST /api/orders accepts optional couponCode and increments usedCount inside the transaction",
+                  description:
+                    "POST /api/orders accepts optional couponCode and increments usedCount inside the transaction",
                   is_required: true,
                   order: 4,
                 },
                 {
-                  description: "client/src/services/couponService.ts exports validateCoupon calling POST /api/coupons/validate",
+                  description:
+                    "client/src/services/couponService.ts exports validateCoupon calling POST /api/coupons/validate",
                   is_required: true,
                   order: 5,
                 },
                 {
-                  description: "Checkout.tsx renders a coupon input field and displays discounted total",
+                  description:
+                    "Checkout.tsx renders a coupon input field and displays discounted total",
                   is_required: true,
                   order: 6,
                 },
                 {
-                  description: "Invalid / expired / exhausted coupon states are shown in the UI",
+                  description:
+                    "Invalid / expired / exhausted coupon states are shown in the UI",
                   is_required: true,
                   order: 7,
                 },
@@ -2538,7 +2694,8 @@ async function main() {
             learning_sections: {
               create: [
                 {
-                  title: "Overview\nAtomic Counters, Expiry Guards, and Admin Observability",
+                  title:
+                    "Overview\nAtomic Counters, Expiry Guards, and Admin Observability",
                   content:
                     "This crash course covers enforcing usage limits atomically, adding an admin coupon list endpoint, and wiring the cancel flow to decrement usedCount.",
                   order: 1,
@@ -2579,14 +2736,26 @@ async function main() {
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
-                    instructions: "Return true only if usedCount is strictly less than maxUses.",
+                    instructions:
+                      "Return true only if usedCount is strictly less than maxUses.",
                     language: "javascript",
-                    starter_code: "export function canUseCoupon(usedCount, maxUses) {\n  // TODO\n}\n",
-                    editable_regions: [{ placeholder: "// TODO", case_sensitive:false }],
+                    starter_code:
+                      "export function canUseCoupon(usedCount, maxUses) {\n  // TODO\n}\n",
+                    editable_regions: [
+                      { placeholder: "// TODO", case_sensitive: false },
+                    ],
                     entry_point: "canUseCoupon",
                     test_cases: [
-                      { input: [0, 10], expected: true, label: "has remaining uses" },
-                      { input: [10, 10], expected: false, label: "exactly exhausted" },
+                      {
+                        input: [0, 10],
+                        expected: true,
+                        label: "has remaining uses",
+                      },
+                      {
+                        input: [10, 10],
+                        expected: false,
+                        label: "exactly exhausted",
+                      },
                       { input: [11, 10], expected: false, label: "over limit" },
                     ],
                   },
@@ -2623,12 +2792,14 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "coupon.controller.ts enforces usedCount < maxUses guard",
+                  description:
+                    "coupon.controller.ts enforces usedCount < maxUses guard",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "coupon.controller.ts enforces expiresAt > now check",
+                  description:
+                    "coupon.controller.ts enforces expiresAt > now check",
                   is_required: true,
                   order: 2,
                 },
@@ -2638,17 +2809,20 @@ async function main() {
                   order: 3,
                 },
                 {
-                  description: "GET /api/coupons admin route exists with usage stats",
+                  description:
+                    "GET /api/coupons admin route exists with usage stats",
                   is_required: true,
                   order: 4,
                 },
                 {
-                  description: "cancelOrder decrements usedCount atomically when a coupon was applied",
+                  description:
+                    "cancelOrder decrements usedCount atomically when a coupon was applied",
                   is_required: true,
                   order: 5,
                 },
                 {
-                  description: "Admin coupon panel shows code, remaining uses, and expiry",
+                  description:
+                    "Admin coupon panel shows code, remaining uses, and expiry",
                   is_required: true,
                   order: 6,
                 },
@@ -2712,19 +2886,32 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Revenue Filter",
-                  content: "Practice writing a revenue filter that trusts cancelledAt.",
+                  content:
+                    "Practice writing a revenue filter that trusts cancelledAt.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
-                    instructions: "Filter orders to only include those with cancelledAt === null.",
+                    instructions:
+                      "Filter orders to only include those with cancelledAt === null.",
                     language: "javascript",
                     starter_code:
                       "export function getRevenueOrders(orders) {\n  // TODO: return only non-cancelled orders\n}\n",
-                    editable_regions: [{ placeholder: "// TODO: return only non-cancelled orders", case_sensitive:false }],
+                    editable_regions: [
+                      {
+                        placeholder:
+                          "// TODO: return only non-cancelled orders",
+                        case_sensitive: false,
+                      },
+                    ],
                     entry_point: "getRevenueOrders",
                     test_cases: [
                       {
-                        input: [[{ total: 100, cancelledAt: null }, { total: 50, cancelledAt: new Date() }]],
+                        input: [
+                          [
+                            { total: 100, cancelledAt: null },
+                            { total: 50, cancelledAt: new Date() },
+                          ],
+                        ],
                         expected: [{ total: 100, cancelledAt: null }],
                         label: "excludes cancelled",
                       },
@@ -2768,17 +2955,20 @@ async function main() {
                   order: 1,
                 },
                 {
-                  description: "Stats WHERE clause uses cancelledAt: null (source-of-truth filter)",
+                  description:
+                    "Stats WHERE clause uses cancelledAt: null (source-of-truth filter)",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "Stale-status orders (cancelledAt set, status PENDING) are excluded from revenue",
+                  description:
+                    "Stale-status orders (cancelledAt set, status PENDING) are excluded from revenue",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "Active PENDING and DELIVERED orders (cancelledAt null) are included",
+                  description:
+                    "Active PENDING and DELIVERED orders (cancelledAt null) are included",
                   is_required: true,
                   order: 4,
                 },
@@ -2793,7 +2983,8 @@ async function main() {
             learning_sections: {
               create: [
                 {
-                  title: "Overview\nShared Utilities, Regression Tests, and Postmortems",
+                  title:
+                    "Overview\nShared Utilities, Regression Tests, and Postmortems",
                   content:
                     "This crash course covers extracting a Prisma where-clause builder into a reusable utility, writing regression tests, and producing a structured postmortem document.",
                   order: 1,
@@ -2834,13 +3025,14 @@ async function main() {
                     starter_code:
                       "export function formatTimeline() {\n  return [\n    '- Detection: [fill in]',\n    '- Impact Window: [fill in]',\n    '- Mitigation: [fill in]',\n    '- Verification: [fill in]',\n  ].join('\\n');\n}\n",
                     editable_regions: [
-                      { placeholder: "[fill in]", case_sensitive:false },
+                      { placeholder: "[fill in]", case_sensitive: false },
                     ],
                     entry_point: "formatTimeline",
                     test_cases: [
                       {
                         input: [],
-                        expected: "- Detection: Finance report showed inflated revenue\n- Impact Window: Unknown — since cancelledAt was added in L3\n- Mitigation: Added cancelledAt: null WHERE filter to stats query\n- Verification: Regression tests pass; finance confirmed correct totals",
+                        expected:
+                          "- Detection: Finance report showed inflated revenue\n- Impact Window: Unknown — since cancelledAt was added in L3\n- Mitigation: Added cancelledAt: null WHERE filter to stats query\n- Verification: Regression tests pass; finance confirmed correct totals",
                         label: "complete timeline",
                       },
                     ],
@@ -2878,32 +3070,38 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "server/src/utils/revenueUtils.ts exists and exports isRevenueEligibleOrder",
+                  description:
+                    "server/src/utils/revenueUtils.ts exists and exports isRevenueEligibleOrder",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "isRevenueEligibleOrder(order) returns false when cancelledAt is set",
+                  description:
+                    "isRevenueEligibleOrder(order) returns false when cancelledAt is set",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "isRevenueEligibleOrder returns false even when status is PENDING (stale-status case)",
+                  description:
+                    "isRevenueEligibleOrder returns false even when status is PENDING (stale-status case)",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "isRevenueEligibleOrder returns true for active orders (cancelledAt: null)",
+                  description:
+                    "isRevenueEligibleOrder returns true for active orders (cancelledAt: null)",
                   is_required: true,
                   order: 4,
                 },
                 {
-                  description: "server/POSTMORTEM_REVENUE.md exists with Symptom, Root Cause, Fix, and Prevention sections",
+                  description:
+                    "server/POSTMORTEM_REVENUE.md exists with Symptom, Root Cause, Fix, and Prevention sections",
                   is_required: true,
                   order: 5,
                 },
                 {
-                  description: "orders.ts stats endpoint references revenueUtils or uses cancelledAt: null consistently",
+                  description:
+                    "orders.ts stats endpoint references revenueUtils or uses cancelledAt: null consistently",
                   is_required: true,
                   order: 6,
                 },
@@ -2959,7 +3157,7 @@ async function main() {
                 {
                   title: "Environment Variables",
                   content:
-                    "Sensitive configuration lives in .env files:\nDATABASE_URL=\"postgresql://user:pass@localhost:5432/pos_system\"\nPORT=5000\nJWT_SECRET=your-secret\n\nThe dotenv package loads these at runtime. Never commit .env.",
+                    'Sensitive configuration lives in .env files:\nDATABASE_URL="postgresql://user:pass@localhost:5432/pos_system"\nPORT=5000\nJWT_SECRET=your-secret\n\nThe dotenv package loads these at runtime. Never commit .env.',
                   order: 4,
                 },
                 {
@@ -2970,7 +3168,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: cd Navigation",
-                  content: "Practice navigating between the three project directories.",
+                  content:
+                    "Practice navigating between the three project directories.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "TERMINAL_CD" as const,
                   interactive_config: {
@@ -3017,17 +3216,20 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "Dependencies installed in root, client/, and server/ without errors",
+                  description:
+                    "Dependencies installed in root, client/, and server/ without errors",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Prisma migrations applied successfully to PostgreSQL",
+                  description:
+                    "Prisma migrations applied successfully to PostgreSQL",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "Client (port 5173) and server (port 5000) start without errors",
+                  description:
+                    "Client (port 5173) and server (port 5000) start without errors",
                   is_required: true,
                   order: 3,
                 },
@@ -3056,7 +3258,7 @@ async function main() {
                 {
                   title: "JSX Text Nodes",
                   content:
-                    "In JSX, plain text inside tags is a text node:\n<span className=\"text-sm\">IPPO Solutions</span>\n\nUpdate the span text to the exact required string — case and spacing matter.",
+                    'In JSX, plain text inside tags is a text node:\n<span className="text-sm">IPPO Solutions</span>\n\nUpdate the span text to the exact required string — case and spacing matter.',
                   order: 3,
                 },
                 {
@@ -3067,7 +3269,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Update Heading Text",
-                  content: "Practice editing a JSX text node to match a target string.",
+                  content:
+                    "Practice editing a JSX text node to match a target string.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -3076,7 +3279,9 @@ async function main() {
                     language: "tsx",
                     starter_code:
                       'export function getBrandSubtitle() {\n  return "IPPO Solutions";\n}\n',
-                    editable_regions: [{ placeholder: "IPPO Solutions", case_sensitive:true }],
+                    editable_regions: [
+                      { placeholder: "IPPO Solutions", case_sensitive: true },
+                    ],
                     entry_point: "getBrandSubtitle",
                     test_cases: [
                       {
@@ -3119,12 +3324,14 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: 'Sidebar subtitle is exactly "IPPO Software Solutions"',
+                  description:
+                    'Sidebar subtitle is exactly "IPPO Software Solutions"',
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Subtitle renders correctly across sidebar states",
+                  description:
+                    "Subtitle renders correctly across sidebar states",
                   is_required: true,
                   order: 2,
                 },
@@ -3137,7 +3344,8 @@ async function main() {
     {
       id: "pern-pos-level-2",
       title: "Client-Side Exploration",
-      subtitle: "Build a per-product stock classifier and adopt it across POS + Inventory pages.",
+      subtitle:
+        "Build a per-product stock classifier and adopt it across POS + Inventory pages.",
       order: 2,
       deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       level_description:
@@ -3188,7 +3396,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Write the Classifier",
-                  content: "Implement getStockLevel and verify all three branches.",
+                  content:
+                    "Implement getStockLevel and verify all three branches.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -3197,17 +3406,42 @@ async function main() {
                     language: "javascript",
                     starter_code:
                       "export function getStockLevel(quantity, threshold) {\n  if (/* out-of-stock condition */) {\n    return 'OUT_OF_STOCK';\n  } else if (/* low-stock condition */) {\n    return 'LOW_STOCK';\n  } else {\n    return 'IN_STOCK';\n  }\n}\n",
-                    required_code_includes: ["quantity <= 0", "quantity <= threshold"],
+                    required_code_includes: [
+                      "quantity <= 0",
+                      "quantity <= threshold",
+                    ],
                     editable_regions: [
-                      { placeholder: "/* out-of-stock condition */", case_sensitive: true },
-                      { placeholder: "/* low-stock condition */", case_sensitive: true },
+                      {
+                        placeholder: "/* out-of-stock condition */",
+                        case_sensitive: true,
+                      },
+                      {
+                        placeholder: "/* low-stock condition */",
+                        case_sensitive: true,
+                      },
                     ],
                     entry_point: "getStockLevel",
                     test_cases: [
-                      { input: [0, 5], expected: "OUT_OF_STOCK", label: "zero quantity" },
-                      { input: [3, 5], expected: "LOW_STOCK", label: "below threshold" },
-                      { input: [5, 5], expected: "LOW_STOCK", label: "at threshold" },
-                      { input: [10, 5], expected: "IN_STOCK", label: "above threshold" },
+                      {
+                        input: [0, 5],
+                        expected: "OUT_OF_STOCK",
+                        label: "zero quantity",
+                      },
+                      {
+                        input: [3, 5],
+                        expected: "LOW_STOCK",
+                        label: "below threshold",
+                      },
+                      {
+                        input: [5, 5],
+                        expected: "LOW_STOCK",
+                        label: "at threshold",
+                      },
+                      {
+                        input: [10, 5],
+                        expected: "IN_STOCK",
+                        label: "above threshold",
+                      },
                     ],
                   },
                   order: 6,
@@ -3243,7 +3477,8 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "formatters.ts exists at client/src/utils/formatters.ts",
+                  description:
+                    "formatters.ts exists at client/src/utils/formatters.ts",
                   is_required: true,
                   order: 1,
                 },
@@ -3258,7 +3493,8 @@ async function main() {
                   order: 3,
                 },
                 {
-                  description: "Returns 'LOW_STOCK' when 0 < quantity <= threshold",
+                  description:
+                    "Returns 'LOW_STOCK' when 0 < quantity <= threshold",
                   is_required: true,
                   order: 4,
                 },
@@ -3292,7 +3528,7 @@ async function main() {
                 {
                   title: "Controlled Inputs in React",
                   content:
-                    "A controlled input binds its value to state:\nconst [hide, setHide] = useState(false);\n<input type=\"checkbox\" checked={hide} onChange={e => setHide(e.target.checked)} />\n\nThe filter then reads hide to decide whether to drop OUT_OF_STOCK items.",
+                    'A controlled input binds its value to state:\nconst [hide, setHide] = useState(false);\n<input type="checkbox" checked={hide} onChange={e => setHide(e.target.checked)} />\n\nThe filter then reads hide to decide whether to drop OUT_OF_STOCK items.',
                   order: 3,
                 },
                 {
@@ -3309,7 +3545,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Filter an Array",
-                  content: "Practice writing the filter predicate that the toggle drives.",
+                  content:
+                    "Practice writing the filter predicate that the toggle drives.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -3329,7 +3566,10 @@ async function main() {
                           ],
                           true,
                         ],
-                        expected: [{ stockLevel: "IN_STOCK" }, { stockLevel: "LOW_STOCK" }],
+                        expected: [
+                          { stockLevel: "IN_STOCK" },
+                          { stockLevel: "LOW_STOCK" },
+                        ],
                         label: "hides when toggle on",
                       },
                       {
@@ -3377,17 +3617,20 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "POSPage.tsx imports getStockLevel from formatters",
+                  description:
+                    "POSPage.tsx imports getStockLevel from formatters",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "InventoryPage.tsx imports getStockLevel from formatters",
+                  description:
+                    "InventoryPage.tsx imports getStockLevel from formatters",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "POSPage renders a 'Hide out-of-stock items' checkbox",
+                  description:
+                    "POSPage renders a 'Hide out-of-stock items' checkbox",
                   is_required: true,
                   order: 3,
                 },
@@ -3398,7 +3641,8 @@ async function main() {
                   order: 4,
                 },
                 {
-                  description: "OUT_OF_STOCK products are disabled (cannot be added to cart)",
+                  description:
+                    "OUT_OF_STOCK products are disabled (cannot be added to cart)",
                   is_required: true,
                   order: 5,
                 },
@@ -3411,7 +3655,8 @@ async function main() {
     {
       id: "pern-pos-level-3",
       title: "Backend: Introduce Void Flow + Concurrency Guard",
-      subtitle: "Diagnose the oversell race, then ship an atomic void endpoint and oversell-safe checkout.",
+      subtitle:
+        "Diagnose the oversell race, then ship an atomic void endpoint and oversell-safe checkout.",
       order: 3,
       deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
       level_description:
@@ -3462,7 +3707,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Spot the Race",
-                  content: "Identify the offending line in a simplified checkout.",
+                  content:
+                    "Identify the offending line in a simplified checkout.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -3535,7 +3781,8 @@ async function main() {
                   order: 2,
                 },
                 {
-                  description: "Tests assert that no POST /:id/void route is registered yet",
+                  description:
+                    "Tests assert that no POST /:id/void route is registered yet",
                   is_required: true,
                   order: 3,
                 },
@@ -3581,7 +3828,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Write the Guard",
-                  content: "Write the check that only allows voiding COMPLETED orders.",
+                  content:
+                    "Write the check that only allows voiding COMPLETED orders.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -3592,7 +3840,11 @@ async function main() {
                       "export function assertCanVoid(status: string) {\n  // TODO: throw if not COMPLETED\n  return true;\n}\n",
                     entry_point: "assertCanVoid",
                     test_cases: [
-                      { input: ["COMPLETED"], expected: true, label: "completed passes" },
+                      {
+                        input: ["COMPLETED"],
+                        expected: true,
+                        label: "completed passes",
+                      },
                     ],
                   },
                   order: 6,
@@ -3633,12 +3885,14 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "schema.prisma has OrderStatus enum with COMPLETED and VOIDED",
+                  description:
+                    "schema.prisma has OrderStatus enum with COMPLETED and VOIDED",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "schema.prisma Order model has voidedAt DateTime? field",
+                  description:
+                    "schema.prisma Order model has voidedAt DateTime? field",
                   is_required: true,
                   order: 2,
                 },
@@ -3655,7 +3909,8 @@ async function main() {
                   order: 4,
                 },
                 {
-                  description: "voidOrder stamps voidedAt = new Date() and flips status to VOIDED",
+                  description:
+                    "voidOrder stamps voidedAt = new Date() and flips status to VOIDED",
                   is_required: true,
                   order: 5,
                 },
@@ -3679,7 +3934,8 @@ async function main() {
     {
       id: "pern-pos-level-4",
       title: "Full-Stack Feature: Promo Codes",
-      subtitle: "Ship end-to-end validate-apply-redeem promo code flow with admin observability.",
+      subtitle:
+        "Ship end-to-end validate-apply-redeem promo code flow with admin observability.",
       order: 4,
       deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
       level_description:
@@ -3730,7 +3986,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Build the Discount Total",
-                  content: "Compute the final total given a subtotal and a discount percent.",
+                  content:
+                    "Compute the final total given a subtotal and a discount percent.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -3784,7 +4041,8 @@ async function main() {
             acceptance_criteria: {
               create: [
                 {
-                  description: "schema.prisma has PromoCode model with unique code field",
+                  description:
+                    "schema.prisma has PromoCode model with unique code field",
                   is_required: true,
                   order: 1,
                 },
@@ -3801,7 +4059,8 @@ async function main() {
                   order: 3,
                 },
                 {
-                  description: "Order transaction increments PromoCode.usedCount atomically",
+                  description:
+                    "Order transaction increments PromoCode.usedCount atomically",
                   is_required: true,
                   order: 4,
                 },
@@ -3859,7 +4118,8 @@ async function main() {
                 },
                 {
                   title: "Practice Lab: Remaining Uses",
-                  content: "Compute remainingUses without letting it go negative.",
+                  content:
+                    "Compute remainingUses without letting it go negative.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
@@ -3924,7 +4184,8 @@ async function main() {
                   order: 2,
                 },
                 {
-                  description: "voidOrder decrements PromoCode.usedCount when promoCodeId is set",
+                  description:
+                    "voidOrder decrements PromoCode.usedCount when promoCodeId is set",
                   is_required: true,
                   order: 3,
                 },
@@ -3934,7 +4195,8 @@ async function main() {
                   order: 4,
                 },
                 {
-                  description: "GET /api/promos returns remainingUses for each promo",
+                  description:
+                    "GET /api/promos returns remainingUses for each promo",
                   is_required: true,
                   order: 5,
                 },
@@ -3952,7 +4214,8 @@ async function main() {
     {
       id: "pern-pos-level-5",
       title: "The Production Struggle: Sales Revenue Bug",
-      subtitle: "Voided sales are inflating the Reports page — fix the source-of-truth predicate and centralize it.",
+      subtitle:
+        "Voided sales are inflating the Reports page — fix the source-of-truth predicate and centralize it.",
       order: 5,
       deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
       level_description:
@@ -3972,7 +4235,8 @@ async function main() {
             learning_sections: {
               create: [
                 {
-                  title: "Overview\nSource-of-Truth Timestamps for Financial Reporting",
+                  title:
+                    "Overview\nSource-of-Truth Timestamps for Financial Reporting",
                   content:
                     "This crash course teaches why timestamp columns (like voidedAt) are safer than mutable enums (like status) as the predicate for financial queries.",
                   order: 1,
@@ -4015,8 +4279,16 @@ async function main() {
                       "export function isRevenueEligibleOrder(order: { voidedAt: Date | null | undefined }) {\n  return true;\n}\n",
                     entry_point: "isRevenueEligibleOrder",
                     test_cases: [
-                      { input: [{ voidedAt: null }], expected: true, label: "never voided" },
-                      { input: [{ voidedAt: new Date() }], expected: false, label: "voided" },
+                      {
+                        input: [{ voidedAt: null }],
+                        expected: true,
+                        label: "never voided",
+                      },
+                      {
+                        input: [{ voidedAt: new Date() }],
+                        expected: false,
+                        label: "voided",
+                      },
                     ],
                   },
                   order: 6,
@@ -4063,7 +4335,8 @@ async function main() {
                   order: 2,
                 },
                 {
-                  description: "Normal completed order (voidedAt null) is still included",
+                  description:
+                    "Normal completed order (voidedAt null) is still included",
                   is_required: true,
                   order: 3,
                 },
@@ -4121,7 +4394,11 @@ async function main() {
                       "export function revenueWhereClause(extra: Record<string, unknown> = {}) {\n  return {};\n}\n",
                     entry_point: "revenueWhereClause",
                     test_cases: [
-                      { input: [], expected: { voidedAt: null }, label: "no extras" },
+                      {
+                        input: [],
+                        expected: { voidedAt: null },
+                        label: "no extras",
+                      },
                     ],
                   },
                   order: 6,
@@ -4163,7 +4440,8 @@ async function main() {
                   order: 1,
                 },
                 {
-                  description: "revenueWhereClause() returns { voidedAt: null }",
+                  description:
+                    "revenueWhereClause() returns { voidedAt: null }",
                   is_required: true,
                   order: 2,
                 },
@@ -4220,9 +4498,27 @@ async function main() {
     amateurCriteria: Prisma.InputJsonValue,
     proCriteria: Prisma.InputJsonValue,
   ): TierSeed[] => [
-    { tier: "ROOKIE",  description: rookieDesc,  criteria: rookieCriteria,  xp_reward: 100, coin_reward: 50  },
-    { tier: "AMATEUR", description: amateurDesc, criteria: amateurCriteria, xp_reward: 250, coin_reward: 100 },
-    { tier: "PRO",     description: proDesc,     criteria: proCriteria,     xp_reward: 600, coin_reward: 200 },
+    {
+      tier: "ROOKIE",
+      description: rookieDesc,
+      criteria: rookieCriteria,
+      xp_reward: 100,
+      coin_reward: 50,
+    },
+    {
+      tier: "AMATEUR",
+      description: amateurDesc,
+      criteria: amateurCriteria,
+      xp_reward: 250,
+      coin_reward: 100,
+    },
+    {
+      tier: "PRO",
+      description: proDesc,
+      criteria: proCriteria,
+      xp_reward: 600,
+      coin_reward: 200,
+    },
   ];
 
   const achievements: AchievementSeed[] = [
@@ -4423,7 +4719,9 @@ async function main() {
         },
       },
     });
-    console.log(`✅ Created achievement: ${family.name} (${family.tiers.length} tier${family.tiers.length === 1 ? "" : "s"})`);
+    console.log(
+      `✅ Created achievement: ${family.name} (${family.tiers.length} tier${family.tiers.length === 1 ? "" : "s"})`,
+    );
   }
 
   console.log("\n🎉 Database seeded successfully!\n");

@@ -103,8 +103,8 @@
   $: if (isLockedMode()) {
     const values = extractEditableValues(code);
     if (!values) {
-      code = starterCode;
-      lastValidLockedCode = starterCode;
+      // Revert to last known-good state without overwriting it — preserves user progress
+      code = lastValidLockedCode || starterCode;
     } else {
       const normalized = composeFromEditableValues(values);
       if (code !== normalized) {

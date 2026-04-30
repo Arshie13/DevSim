@@ -16,8 +16,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
   console.log(`[TEST RUN] Received test run request for container: ${containerId}`);
 
   try {
-    const body = (await request.json()) as TestRunRequest & { testType?: 'task' | 'level' };
-    const { command, level, taskId, taskIds } = body;
+    const body = (await request.json()) as TestRunRequest & { testType?: 'task' | 'level'; taskInfos?: { taskId: string; hasClientTest: boolean; hasServerTest: boolean }[] };
+    const { command, level, taskId, taskIds, taskInfos } = body;
     const type = body.type ?? body.testType;
 
     if (!command || !level) {
@@ -44,14 +44,35 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
       const perTaskCommands = levelTaskIds.map((tid, idx) => {
         const taskNumber = idx + 1;
-        let taskCmd = command.replace(/^test:tasks:/, `test:task:client:`).replace(/:l(\d+)$/, `:l$1:t${taskNumber}`);
-        if (taskCmd === command) taskCmd = `test:task:l${level}:t${taskNumber}`;
+        const taskInfo = taskInfos?.find(t => t.taskId === tid);
+        const isClient = taskInfo?.hasClientTest ?? false;
+        const isServer = taskInfo?.hasServerTest ?? false;
+        let taskCmd: string;
+        if (isClient && isServer) {
+          taskCmd = `test:task:l${level}:t${taskNumber}`;
+        } else if (isServer) {
+          taskCmd = `test:task:server:l${level}:t${taskNumber}`;
+        } else if (isClient) {
+          taskCmd = `test:task:client:l${level}:t${taskNumber}`;
+        } else {
+          taskCmd = `test:task:l${level}:t${taskNumber}`;
+        }
         return buildNpmCommand(taskCmd, level, tid);
       });
 
       // Read ground-truth test names per task BEFORE running
       const groundTruthPerTask: string[][] = await Promise.all(
-        levelTaskIds.map((_, idx) => readTestNamesFromContainer(containerId, level, idx + 1, command))
+        levelTaskIds.map((tid, idx) => {
+          const taskInfo = taskInfos?.find(t => t.taskId === tid);
+          const isClient = taskInfo?.hasClientTest ?? false;
+          const isServer = taskInfo?.hasServerTest ?? false;
+          let taskCmd: string;
+          if (isClient && isServer) taskCmd = command;
+          else if (isServer) taskCmd = `test:task:server:l${level}:t${idx + 1}`;
+          else if (isClient) taskCmd = `test:task:client:l${level}:t${idx + 1}`;
+          else taskCmd = command;
+          return readTestNamesFromContainer(containerId, level, idx + 1, taskCmd);
+        })
       );
 
       let combinedOutput = '';

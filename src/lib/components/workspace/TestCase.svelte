@@ -271,6 +271,10 @@
 
     try {
       // Run grouped level tests
+      const taskInfos = taskIds.map(id => {
+        const task = tasks.find(t => t.id === id);
+        return { taskId: id, hasClientTest: task?.hasClientTest ?? false, hasServerTest: task?.hasServerTest ?? false };
+      });
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -279,6 +283,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
+          taskInfos,
           type: 'level'
         })
       });
@@ -381,6 +386,10 @@
     activeTestAbortController = abortController;
 
     try {
+      const taskInfos = taskIds.map(id => {
+        const task = tasks.find(t => t.id === id);
+        return { taskId: id, hasClientTest: task?.hasClientTest ?? false, hasServerTest: task?.hasServerTest ?? false };
+      });
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -389,6 +398,7 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
+          taskInfos,
           type: 'level'
         })
       });

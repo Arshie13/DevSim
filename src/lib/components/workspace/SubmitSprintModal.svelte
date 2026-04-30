@@ -484,6 +484,11 @@
       state = "testing";
       throwIfSubmissionCanceled();
 
+      const taskInfos = tasks.map((task) => ({
+        taskId: task.id,
+        hasClientTest: task.testType === "client" || task.testType === "both",
+        hasServerTest: task.testType === "server" || task.testType === "both",
+      }));
       const testRes = await fetch(
         `/api/docker/container/${containerId}/tests/run`,
         {
@@ -494,6 +499,7 @@
             command: `test:tasks:l${level}`,
             level,
             taskIds: tasks.map((task) => task.id),
+            taskInfos,
             type: "level",
             // Force tests to pass for demo purposes - user wants to see key takeaways
             forcePassed: true,
