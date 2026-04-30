@@ -76,7 +76,7 @@
   let previousMessageCount = 0;
   let userScrolling = false;
   let selectedAiModel = initialAiModel;
-
+ 
   let showQuickHint = false;
   let quickHintMessage = "";
   let quickHintLoading = false;
@@ -101,12 +101,6 @@
 
   // Track bubble history for session persistence (new)
   let bubbleHistory: BubbleHistoryItem[] = [];
-
-  const AI_MODELS = [
-    { label: "NVIDIA Nemotron 3 Nano 30B", value: "nvidia/nemotron-3-nano-30b-a3b:free" },
-    { label: "Gemma 3N E2B", value: "google/gemma-3n-e2b-it:free" },
-    { label: "Google Gemini 2.5 Flash", value: "google/gemini-2.5-flash:direct" },
-  ];
 
   // Reactive
   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
@@ -534,10 +528,6 @@
     const { scrollTop, scrollHeight, clientHeight } = chatContainer;
     userScrolling = isUserScrolling(scrollTop, scrollHeight, clientHeight, 50);
   }
-
-  function handleAiModelChange(value: string) {
-    selectedAiModel = value;
-  }
 </script>
 
 <!-- ─── SAZ Avatar toggle button ─── -->
@@ -655,9 +645,6 @@
   onCloseFilePicker={() => (showFilePicker = false)}
   onQuickHint={requestQuickHint}
   onSelectHistory={handleSelectHistoryItem}
-  aiModels={AI_MODELS}
-  aiModel={selectedAiModel}
-  onAiModelChange={handleAiModelChange}
 />
 
 <!-- ─── Quick Hint Cloud ───

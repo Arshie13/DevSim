@@ -83,9 +83,9 @@
             Continue Working →
           </button>
         {/if}
-        <button on:click={level === 5 ? () => goto('/postassessment') : handleDone}
+        <button on:click={level === 5 ? () => goto('/dashboard') : handleDone}
           class="btn-cyber btn-cyber-solid fade-up {advancingToNextLevel ? '[animation-delay:0.1s]' : ''} cursor-pointer !px-7 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] shadow-[0_0_16px_var(--accent-glow)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_0_26px_var(--accent-glow)]">
-          {level === 5 ? 'Take Post-Assessment' : 'Back to Dashboard'}
+          {level === 5 ? 'Back to Dashboard' : 'Back to Dashboard'}
         </button>
       </div>
     </div>

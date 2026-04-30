@@ -30,10 +30,6 @@
   export let showBubble: boolean = false;
   export let onSelectHistory: (item: BubbleHistoryItem) => void = () => {};
   export let onToggleHistory: () => void = () => {};
-  export let aiModels: Array<{ label: string; value: string }> = [];
-  export let aiModel: string = "meta-llama/llama-3.1-8b-instruct";
-  export let onAiModelChange: (value: string) => void = () => {};
-  
   // Props for SAZ avatar states (passed from parent)
   export let hasHint: boolean = false;
 
@@ -154,17 +150,6 @@
 
         <!-- Quick Hint Button -->
         <div class="px-3 py-2 bg-cyan-900/20 border-b border-cyan-500/20">
-          <label for="ai-model-select" class="mb-2 block text-[11px] text-cyan-300">AI Model</label>
-          <select
-            id="ai-model-select"
-            value={aiModel}
-            onchange={(e) => onAiModelChange((e.currentTarget as HTMLSelectElement).value)}
-            class="mb-2 w-full rounded-lg border border-cyan-500/30 bg-slate-900/70 px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-cyan-500"
-          >
-            {#each aiModels as model}
-              <option value={model.value}>{model.label}</option>
-            {/each}
-          </select>
           <button
             type="button"
             onclick={onQuickHint}
