@@ -943,8 +943,8 @@
   state === "error" ? "danger" : state === "testing" ? "warning" : "primary"
 ) as "primary" | "danger" | "warning" | "success";
 $: modalError = state === "error" ? submitError : "";
-$: hideActions = state === "loading";
-$: hideHeader = state === "loading";
+$: hideActions = state === "loading" || state === "testing";
+$: hideHeader = state === "loading" || state === "testing";
 $: showSuccess = state === "success" && hasViewedTakeaways;
 </script>
 

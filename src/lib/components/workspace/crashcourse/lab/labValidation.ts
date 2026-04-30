@@ -149,16 +149,27 @@ export async function evaluateFunctionLab(
     const failedCases: string[] = [];
 
     for (const testCase of testCases) {
+      const capturedLogs: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args: unknown[]) => {
+        capturedLogs.push(args.map(String).join(" "));
+      };
       try {
         const maybePromise = runnable(...testCase.input);
         const result =
           maybePromise instanceof Promise ? await maybePromise : maybePromise;
-        if (!deepEqual(result, testCase.expected)) {
+        console.log = originalLog;
+        const effectiveResult =
+          result === undefined && capturedLogs.length > 0
+            ? capturedLogs.join("\n")
+            : result;
+        if (!deepEqual(effectiveResult, testCase.expected)) {
           failedCases.push(
-            `${testCase.label} (expected: ${toDisplay(testCase.expected)}, received: ${toDisplay(result)})`,
+            `${testCase.label} (expected: ${toDisplay(testCase.expected)}, received: ${toDisplay(effectiveResult)})`,
           );
         }
       } catch (error) {
+        console.log = originalLog;
         const message = error instanceof Error ? error.message : "Unknown runtime error";
         failedCases.push(`${testCase.label} (runtime error: ${message})`);
       }
