@@ -121,7 +121,13 @@ export const POST: RequestHandler = async (event) => {
       newXp: result.updatedUser.xp,
       currentDay: result.daily.currentDay,
       claimedDays: result.daily.claimedDays,
+      canClaimToday: false,
       nextAvailableAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
+      cooldown: {
+        remainingMs: ONE_DAY_MS,
+        hours: 24,
+        minutes: 0,
+      },
     });
   } catch (err) {
     console.error('Error claiming daily reward:', err);
