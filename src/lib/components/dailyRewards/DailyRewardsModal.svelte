@@ -111,7 +111,10 @@
 
       // Update local state from server response
       currentDay = result.currentDay;
-      cooldownInfo = null; // Reset cooldown on successful claim
+      cooldownInfo = result.canClaimToday ? null : {
+        hours: result.cooldown?.hours ?? 0,
+        minutes: result.cooldown?.minutes ?? 0,
+      };
       rewards = REWARD_SCHEDULE.map((r, idx) => ({
         ...r,
         claimed: result.claimedDays.includes(idx),
@@ -170,7 +173,7 @@
             <h2 class="font-heading text-base font-bold uppercase tracking-[0.08em] text-obsidian-text-primary">Daily Login Rewards</h2>
             {#if cooldownInfo}
               <p class="mt-1 font-mono text-[0.65rem] text-cyber-warn">
-                Next reward available in {cooldownInfo}h {cooldownInfo.minutes}m
+                Next reward available in {cooldownInfo.hours}h {cooldownInfo.minutes}m
               </p>
             {:else}
               <p class="mt-1 font-mono text-[0.65rem] text-obsidian-text-muted">
