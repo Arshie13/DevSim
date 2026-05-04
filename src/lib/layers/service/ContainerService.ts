@@ -10,6 +10,7 @@ export interface CreateContainerParams {
   stacks: Array<{ stackName: string }>;
   scenarioId?: string;
   projectFolder?: string;
+  mode?: string;
 }
 
 export interface CreateContainerResult {
@@ -60,7 +61,7 @@ export class ContainerService {
    * Resolve which image/volume to use for a container.
    * Returns: { imageToUse, volumeMount, scenarioFolder }
    */
-  async resolveImageAndVolume(stackName: string, level: number, scenarioId?: string, projectFolder?: string) {
+  async resolveImageAndVolume(stackName: string, level: number, scenarioId?: string, projectFolder?: string, mode?: string) {
     const scenarioFolder = scenarioId ?? `scenario-${level}`;
     const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
 
@@ -69,9 +70,11 @@ export class ContainerService {
     let volumeMount: string | null = null;
 
     const imageBase = stackName.toLowerCase().replace(/[_ ]+/g, '-');
-    const customImageName = projectFolder
-      ? `devsim-project:${imageBase}-${scenarioFolder}-${projectFolder.toLowerCase().replace(/[_ ]+/g, '-')}`
-      : `devsim-project:${imageBase}-${scenarioFolder}`;
+    const customImageName = mode === 'tutorial'
+      ? `devsim-project-tutorial:${imageBase}-tutorial`
+      : projectFolder
+        ? `devsim-project:${imageBase}-${scenarioFolder}-${projectFolder.toLowerCase().replace(/[_ ]+/g, '-')}`
+        : `devsim-project:${imageBase}-${scenarioFolder}`;
 
     try {
       await docker.getImage(customImageName).inspect();
@@ -102,9 +105,9 @@ export class ContainerService {
    * Create a fresh workspace container with all necessary configuration.
    */
   async createContainer(params: CreateContainerParams): Promise<CreateContainerResult> {
-    const { userId, stackName, level, stacks, scenarioId, projectFolder } = params;
+    const { userId, stackName, level, stacks, scenarioId, projectFolder, mode } = params;
 
-    const resolved = await this.resolveImageAndVolume(stackName, level, scenarioId, projectFolder);
+    const resolved = await this.resolveImageAndVolume(stackName, level, scenarioId, projectFolder, mode);
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
 

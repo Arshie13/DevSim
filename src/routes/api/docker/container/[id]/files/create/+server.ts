@@ -55,14 +55,23 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     }
 
     if (isProtectedRootFilePath(path)) {
-      return json({ success: false, error: "This root file is protected and cannot be modified." }, { status: 403 });
+      return json(
+        {
+          success: false,
+          error: "This root file is protected and cannot be modified.",
+        },
+        { status: 403 },
+      );
     }
 
     const containerService = new ContainerService();
     const workspaceService = new WorkspaceService();
 
     // Find workspace for file change logging
-    const workspace = await workspaceService.findWorkspaceByContainerId(userId, containerId);
+    const workspace = await workspaceService.findWorkspaceByContainerId(
+      userId,
+      containerId,
+    );
 
     if (isDirectory) {
       await containerService.createDirectory(containerId, path);
@@ -73,11 +82,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     // Log the file change
     if (workspace) {
       try {
-        await workspaceService.createFileChanges(
-          userId,
-          workspace.id,
-          path,
-        );
+        await workspaceService.createFileChanges(workspace.id, path);
       } catch (logErr) {
         console.warn("Failed to log file change (non-critical):", logErr);
       }
@@ -88,4 +93,4 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     console.error("Error creating file:", error);
     return json({ success: false, error: String(error) });
   }
-}
+};
