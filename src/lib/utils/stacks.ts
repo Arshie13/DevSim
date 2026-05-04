@@ -53,13 +53,22 @@ export const STACK_ACRONYMS: StackAcronym[] = [
 import type { IContainerStack } from '$lib/types/IContainer';
 
 /** Returns an acronym label (e.g. "PERN — PostgreSQL, Express, React, Node.js")
- *  when the stack matches a known pattern, otherwise a comma-joined display name list. */
-export function parseStackName(stacks: IContainerStack[]): string {
+ *  when the stack matches a known pattern, otherwise a comma-joined display name list.
+ *  Each stack entry may be a compound slug like "react-express-postgresql-prisma",
+ *  which is split on "-" and each part is mapped individually. */
+export function parseStackName(stacks: Array<IContainerStack | { stack_name?: string; stackName?: string }>): string {
   if (!stacks?.length) return 'Unknown Stack';
-  const stackNames = stacks.map((s) => s.stackName);
-  const set = new Set(stackNames);
+  const rawNames = stacks
+    .map((s) => ('stackName' in s && s.stackName) || ('stack_name' in s && s.stack_name) || '')
+    .filter(Boolean) as string[];
+
+  // Split compound slugs (e.g. "react-express-postgresql-prisma" → ["react", "express", ...])
+  const slugs = [...new Set(rawNames.flatMap((name) => name.split('-').map((p) => p.trim().toLowerCase()).filter(Boolean)))];
+
+  if (!slugs.length) return 'Unknown Stack';
+  const set = new Set(slugs);
   for (const { test, label, full } of STACK_ACRONYMS) {
     if (test(set)) return `${label} — ${full}`;
   }
-  return stackNames.map((s) => TECH_NAME_MAP[s] ?? s).join(', ');
+  return slugs.map((s) => TECH_NAME_MAP[s] ?? s).join(', ');
 }

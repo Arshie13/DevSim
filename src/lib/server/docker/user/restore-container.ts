@@ -20,7 +20,7 @@ export async function restoreContainer(
 	req: RestoreContainerRequest
 ): Promise<RestoreContainerResult> {
 	// --- 1. Look up & validate the archived container record ---
-	const record = await prisma.container.findUnique({
+	const record = await prisma.workspace.findUnique({
 		where: { id: req.dbContainerId }
 	});
 
@@ -28,11 +28,11 @@ export async function restoreContainer(
 		throw new Error('Container record not found.');
 	}
 
-	if (record.userId !== req.userId) {
+	if (record.user_id !== req.userId) {
 		throw new Error('You do not own this container.');
 	}
 
-	if (!record.isArchived || !record.volumeName) {
+	if (!record.is_archived || !record.volume_name) {
 		throw new Error('Container is not archived — nothing to restore.');
 	}
 
@@ -52,10 +52,10 @@ export async function restoreContainer(
 
 	// --- 3. Create the new container WITHOUT a volume mount ---
 	// Get stacks from ContainerStack relation for the label
-	const containerStacks = await prisma.containerStack.findMany({
-		where: { containerId: req.dbContainerId }
+	const containerStacks = await prisma.workspace_stack.findMany({
+		where: { workspace_id: req.dbContainerId }
 	});
-	const stackNames = containerStacks.map(s => s.stackName);
+	const stackNames = containerStacks.map(s => s.stack_name);
 
 	// We intentionally do NOT bind the volume here. If we mount the volume directly
 	// into the running container, Docker will refuse to delete it (volume in use).
@@ -113,7 +113,7 @@ export async function restoreContainer(
 		Cmd: ['sh', '-c', 'sleep 60'],
 		name: `devsim-restore-helper-${helperSuffix}`,
 		HostConfig: {
-			Binds: [`${record.volumeName}:/data`]
+			Binds: [`${record.volume_name}:/data`]
 		}
 	});
 
@@ -137,12 +137,12 @@ export async function restoreContainer(
 	// --- 6. Update the SAME DB record + deduct coins atomically ---
 	// The Container.id never changes — only the Docker container ID, archive flag, and volume name.
 	await prisma.$transaction([
-		prisma.container.update({
+		prisma.workspace.update({
 			where: { id: req.dbContainerId },
 			data: {
-				containerId: newContainer.id, // new Docker container ID
-				isArchived: false,
-				volumeName: null,
+				container_id: newContainer.id, // new Docker container ID
+				is_archived: false,
+				volume_name: null,
 				status: 'created'
 			}
 		}),
@@ -156,7 +156,7 @@ export async function restoreContainer(
 	// The new container holds the data in its own writable layer; the volume is no
 	// longer referenced by any container and Docker will allow the removal.
 	try {
-		const vol = docker.getVolume(record.volumeName);
+		const vol = docker.getVolume(record.volume_name);
 		await vol.remove();
 	} catch (volErr) {
 		// Non-fatal: log but don't fail the restore — the container is already running.

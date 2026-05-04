@@ -7,146 +7,219 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum LearningSectionType {
+  PLAIN_TEXT
+  INTERACTIVE
+}
+
+enum LearningInteractiveMode {
+  TERMINAL_CD
+  CODE_EDITOR
+}
+
+enum achievement_tier_level {
+  ROOKIE
+  AMATEUR
+  PRO
+}
+
+model user {
   id           String  @id @default(uuid())
-  dailyLoginId String? @unique
+  daily_login_id String? @unique
   email        String  @unique
   name         String
   image        String?
   username     String  @unique
+  role         UserRole @default(USER)
 
   // Leveling System
   xp           Int      @default(0)
   coins        Int      @default(0)
   level        Int      @default(1)
-  ownedAvatars String[] @default([])
-
-  // Onboarding
-  hasCompletedOnboarding Boolean @default(false)
+  owned_avatars String[] @default([])
+  
+  // Tutorial
+  has_completed_tutorial Boolean @default(false)
 
   // Relations
-  dailyLogin   DailyLogin?       @relation
-  containers   Container[]
-  achievements UserAchievement[]
+  daily_login   daily_login?       @relation
+  workspaces   workspace[]
+  achievements user_achievement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  assessmentTopicScores assessment_topic_score[]
 }
 
-model Container {
+model workspace {
   id     String @id @default(cuid())
-  userId String
+  user_id String
   level  Int
   status String
 
-  containerId String
+  container_id String
 
   // Current progress tracking
-  currentScenarioId String
+  current_scenario_id String
 
-  startedAt DateTime  @default(now())
-  stoppedAt DateTime?
+  started_at DateTime  @default(now())
+  stopped_at DateTime?
 
-  // Archive fields — used when workspace is saved to a Docker volume before container deletion
-  volumeName String?
-  isArchived Boolean @default(false)
+  // Archive fields — used when workspace is saved to a Docker volume before workspace deletion
+  volume_name String?
+  is_archived Boolean @default(false)
 
   // Relations
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scenario Scenario @relation(fields: [currentScenarioId], references: [id])
+  user     user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  scenario scenario @relation(fields: [current_scenario_id], references: [id])
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  fileChanges     UserFileChanges[]
-  completedTasks  CompletedTask[]
-  containerStacks ContainerStack[]
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  file_changes     user_file_changes[]
+  completed_tasks  completed_task[]
+  workspace_stacks workspace_stack[]
 
-  @@index([userId])
+  @@index([user_id])
 }
 
-model Scenario {
+model scenario {
   id          String @id @default(cuid())
   name        String
   description String
   difficulty  String
 
+  // Learning structure
+  epics       epic[]
+
   // Relations
-  levels     Level[]
-  containers Container[]
+  levels     level[]
+  workspaces workspace[]
 }
 
-model Level {
+model epic {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  order       Int      @default(0)
+  scenario_id  String
+  scenario    scenario @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+
+  // Relations
+  levels level[]
+
+  @@index([scenario_id])
+}
+
+model level {
   id               String   @id @default(cuid())
   title            String
   subtitle         String
   order            Int      @default(0)
+  sprint_number     Int      @default(1) // Which sprint this level belongs to
   deadline         DateTime
-  levelDescription String
-  xpReward         Int
-  coinReward       Int
-  keyTakeaways     String
-  scenarioId       String
-  scenario         Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  level_description String
+  xp_reward         Int
+  coin_reward       Int
+  key_takeaways     String
+  // prerequisites    Json?    // JSON array of prerequisite level IDs
+
+  // Epic linking
+  epic_id String?
+  epic   epic? @relation(fields: [epic_id], references: [id], onDelete: SetNull)
+
+  scenario_id       String
+  scenario         scenario @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
 
   // Relations
-  tasks LevelTask[]
+  tasks level_task[]
 }
 
 // Tasks associated with a level
-model LevelTask {
+model level_task {
   id         String  @id @default(cuid())
-  levelId    String
-  taskName   String
-  userStory  String
+  level_id    String
+  task_name   String
+  user_story  String
   order      Int     @default(0)
-  isComplete Boolean @default(false)
-  testType   String   @default("none") 
+  is_complete Boolean @default(false)
+  test_type   String   @default("none")
 
-  level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
-  hints              Hint[]               @relation("TaskHints")
+  // Epic linking - optional, for sprint structure
+  epic_id String?
 
-  @@unique([levelId, taskName])
-  @@index([levelId])
+  level              level                @relation(fields: [level_id], references: [id], onDelete: Cascade)
+  acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
+  hints              hint[]               @relation("TaskHints")
+  learning_sections   learning_section[]
+
+  @@unique([level_id, task_name])
+  @@index([level_id])
+}
+
+model learning_section {
+  id                String                   @id @default(cuid())
+  task_id            String
+  title             String
+  content           String
+  order             Int                      @default(0)
+  section_type       LearningSectionType      @default(PLAIN_TEXT)
+  interactive_mode   LearningInteractiveMode?
+  interactive_config Json?
+
+  task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@index([task_id])
 }
 
 // Acceptance criteria for tasks
-model AcceptanceCriteria {
+model acceptance_criteria {
   id          String  @id @default(cuid())
-  taskId      String
+  task_id      String
   description String
-  isRequired  Boolean @default(false)
+  is_required  Boolean @default(false)
   order       Int     @default(0)
 
   // Relations
-  task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskAcceptanceCriteria")
+  task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade, name: "TaskAcceptanceCriteria")
 
-  @@index([taskId])
+  @@index([task_id])
 }
 
 // Hints associated with a task
-model Hint {
+model hint {
   id      String @id @default(cuid())
-  taskId  String
+  task_id  String
   description String
-  order   Int    @default(0)
+  order       Int    @default(0)
 
   // Relations
-  task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskHints")
+  task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade, name: "TaskHints")
 
-  @@index([taskId])
+  // icon        String
+  // category    String
+
+  @@index([task_id])
 }
 
-model DailyLogin {
-  id     String   @id @default(cuid())
-  date   DateTime
-  streak Int      @default(0)
-  userId String   @unique
+model daily_login {
+  id            String   @id @default(cuid())
+  date          DateTime
+  streak        Int      @default(0)
+  user_id       String   @unique
+  claimedDays   Int[]    @default([])  // Indices 0-6 for days 1-7
+  currentDay    Int      @default(1)   // First unclaimed day number (1..8, where 8 = all claimed)
+  lastClaimedAt DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-model Achievement {
+model achievement {
   id          String @id @default(cuid())
   name        String
   description String
@@ -154,69 +227,124 @@ model Achievement {
   category    String
 
   // Requirements
-  criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
+  // criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
 
-  xpReward   Int @default(100)
-  coinReward Int @default(50)
+  xp_reward   Int @default(100)
+  coin_reward Int @default(50)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  userAchievements UserAchievement[]
+  user_achievements user_achievement[]
+  tiers            achievement_tier[]
 
   @@unique([name])
 }
 
-model UserAchievement {
-  id            String   @id @default(cuid())
-  userId        String
-  achievementId String
-  earnedAt      DateTime @default(now())
+model achievement_tier {
+  id             String               @id @default(cuid())
+  achievement_id String
+  tier           achievement_tier_level
+  description    String
+  icon           String?
+  criteria       Json
+  xp_reward      Int                  @default(100)
+  coin_reward    Int                  @default(50)
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  @@unique([userId, achievementId])
-  @@index([userId])
+  achievement achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+
+  @@unique([achievement_id, tier])
+  @@index([achievement_id])
+  @@map("achievement_tiers")
+}
+
+model user_achievement {
+  id             String               @id @default(cuid()) @map("id")
+  user_id        String               @map("user_id")
+  achievement_id String
+  tier           achievement_tier_level
+  description    String
+  icon           String?
+  criteria       Json
+  xp_reward      Int                  @default(100)
+  coin_reward    Int                  @default(50)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  achievement achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+
+  @@unique([achievement_id, tier], map: "user_achievement_achievement_id_tier_key")
+  @@index([achievement_id], map: "user_achievement_achievement_id_idx")
+  @@map("user_achievement_tiers")
+  users user[]
 }
 
 // File change tracking model
-model UserFileChanges {
+model user_file_changes {
   id          String   @id @default(cuid())
-  containerId String
-  filePath    String
+  workspace_id String
+  file_path    String
   action      String // "CREATE", "WRITE", "DELETE", "RENAME"
-  oldPath     String? // For rename operations - stores the original path
-  contentHash String? // Optional: hash of file content for change detection
+  old_path     String? // For rename operations - stores the original path
+  content_hash String? // Optional: hash of file content for change detection
   timestamp   DateTime @default(now())
 
   // Relations
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
-  @@index([containerId, timestamp])
+  @@index([workspace_id, timestamp])
 }
 
-// Completed tasks for a container
-model CompletedTask {
+// Completed tasks for a workspace
+model completed_task {
   id          String   @id @default(cuid())
-  containerId String
-  taskName    String
-  completedAt DateTime @default(now())
+  workspace_id String
+  task_name    String
+  completed_at DateTime @default(now())
 
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
-  @@unique([containerId, taskName])
-  @@index([containerId])
+  @@unique([workspace_id, task_name])
+  @@index([workspace_id])
 }
 
-// Stack choices for a container
-model ContainerStack {
+// Stack choices for a workspace
+model workspace_stack {
   id           String  @id @default(cuid())
-  containerId  String
-  stackName    String
-  stackVersion String?
+  workspace_id  String
+  stack_name    String
+  stack_version String?
 
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  workspace workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
-  @@index([containerId])
+  @@index([workspace_id])
 }
+
+model app_setting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+  type  String @default("boolean") // "boolean", "string", "number", "json"
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model assessment_topic_score {
+  id          String   @id
+  user_id      String
+  topic       String
+  pre_score    Int?
+  post_score   Int?
+  improvement Int?
+  assessed_at  DateTime @default(now())
+  user        user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, topic])
+  @@index([user_id])
+}
+

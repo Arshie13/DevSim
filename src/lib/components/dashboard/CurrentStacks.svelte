@@ -33,12 +33,13 @@
         <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} active container{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
-    <button
+    <a
+      href="/projects?view=current"
       class="tag-cyber tag-cyan flex items-center gap-1 hover:bg-obsidian-accent/15 transition-colors cursor-pointer"
     >
       See All
       <ChevronRight class="w-3 h-3" />
-    </button>
+    </a>
   </div>
 
     <!-- Stack Cards -->
@@ -64,7 +65,7 @@
                     </h4>
                     {#if container.scenario.name}
                       <p class="text-xs font-mono text-[var(--accent)] opacity-70 mt-0.5 truncate">
-                        {parseStackName(container.containerStacks)}
+                        {parseStackName(container.workspace_stacks ?? container.containerStacks ?? [])}
                       </p>
                     {/if}
                     <p class="text-xs font-mono text-[var(--text-muted)] mt-0.5">

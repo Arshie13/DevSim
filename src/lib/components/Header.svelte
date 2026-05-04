@@ -61,10 +61,10 @@
       
       <!-- User Avatar -->
       <div class="flex items-center gap-3">
-        <div class="text-right hidden sm:block">
-          <p class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{userData.fullName}</p>
-          <p class="text-xs font-mono text-obsidian-text-primary/50 uppercase tracking-wider">Developer</p>
-        </div>
+         <div class="text-right hidden sm:block">
+           <p class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{userData.name}</p>
+           <p class="text-xs font-mono text-obsidian-text-primary/50 uppercase tracking-wider">Developer</p>
+         </div>
         <ProfileDropDown {userData} />
       </div>
     </div>

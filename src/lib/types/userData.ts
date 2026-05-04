@@ -14,6 +14,6 @@ export interface UserData {
   level: number;
   ownedAvatars: string[];
 
-  // Onboarding
-  hasCompletedOnboarding: boolean;
+  // Tutorial
+  hasCompletedTutorial: boolean;
 }

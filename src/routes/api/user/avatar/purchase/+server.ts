@@ -39,7 +39,7 @@ export const POST: RequestHandler = async (event) => {
   // Fetch current user state
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { coins: true, ownedAvatars: true },
+    select: { coins: true, owned_avatars: true },
   });
 
   if (!dbUser) {
@@ -47,7 +47,7 @@ export const POST: RequestHandler = async (event) => {
   }
 
   // Check not already owned
-  if (dbUser.ownedAvatars.includes(avatarPath)) {
+  if (dbUser.owned_avatars.includes(avatarPath)) {
     throw error(409, "Avatar already owned");
   }
 
@@ -61,14 +61,14 @@ export const POST: RequestHandler = async (event) => {
     where: { id: session.user.id },
     data: {
       coins: { decrement: premiumAvatar.price },
-      ownedAvatars: { push: avatarPath },
+      owned_avatars: { push: avatarPath },
     },
-    select: { coins: true, ownedAvatars: true },
+    select: { coins: true, owned_avatars: true },
   });
 
   return json({
     success: true,
     newCoins: updated.coins,
-    ownedAvatars: updated.ownedAvatars,
+    ownedAvatars: updated.owned_avatars,
   });
 };

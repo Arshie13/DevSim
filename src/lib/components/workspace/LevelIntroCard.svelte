@@ -62,7 +62,23 @@
 
   $: greetingTitle = isFirstProjectCreation ? "Welcome to DevSim" : "Continue your Developer Journey!";
 
-  $: deploymentLabel = isFirstProjectCreation ? "Initialize First Workspace" : "Deploy Into Workspace";
+  $: isFirstLevelOnboarding = isFirstProjectCreation && levelNumber === 1;
+
+  $: deploymentLabel = (() => {
+    if (totalCount === 0) {
+      return isFirstLevelOnboarding ? "Initialize Workspace" : "Continue";
+    }
+
+    if (completedCount === 0) {
+      return isFirstLevelOnboarding ? "Initialize Workspace" : "Begin Mission";
+    }
+
+    if (completedCount < totalCount) {
+      return "Resume Mission";
+    }
+
+    return "Review Mission";
+  })();
 </script>
 
 {#if mounted}

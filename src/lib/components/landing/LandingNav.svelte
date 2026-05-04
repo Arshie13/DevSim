@@ -62,7 +62,7 @@
 
     <!-- CTA -->
     {#if !session}
-      <a href="/login" class="btn-cyber btn-cyber-solid flex-shrink-0">GET STARTED</a>
+      <a href="/pretest" class="btn-cyber btn-cyber-solid flex-shrink-0">GET STARTED</a>
     {:else}
       <a href="/dashboard" class="btn-cyber btn-cyber-solid flex-shrink-0">DASHBOARD →</a>
     {/if}

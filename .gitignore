@@ -29,3 +29,6 @@ vite.config.ts.timestamp-*
 
 # Docs
 /docs
+
+ROADMAP.md
+tsconfig.tsbuildinfo

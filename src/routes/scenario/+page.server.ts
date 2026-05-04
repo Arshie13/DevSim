@@ -3,9 +3,16 @@ import path from 'node:path';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
-import type { ScenarioMeta, StackSelection } from '$lib/types/techstack';
+import type { ScenarioMeta, StackSelection, EpicMeta } from '$lib/types/techstack';
 
 const BASE_DIR = path.resolve('submodules/projects/tech-stacks');
+
+interface EpicParseResult {
+  name: string;
+  description: string;
+  sprintNumber: number;
+  levelCount: number;
+}
 
 function parseProjectMd(content: string): { title: string; description: string } {
 	const lines = content.split('\n');
@@ -23,6 +30,56 @@ function parseProjectMd(content: string): { title: string; description: string }
 		.filter((p) => p && !p.startsWith('#') && !p.startsWith('---') && !p.startsWith('`'));
 	const description = paragraphs[0]?.replace(/\n/g, ' ') ?? '';
 	return { title, description };
+}
+
+function parseEpicsMd(content: string): EpicParseResult[] {
+	const epics: EpicParseResult[] = [];
+	const sprintRegex = /^##\s+Sprint\s+(\d+):\s+(.+)$/;
+	const objectiveRegex = /^\*\*Objective\*\*:\s*(.+)$/;
+	const durationRegex = /^\*\*Duration\*\*:\s*(.+)$/;
+	const levelsRegex = /^\*\*Levels\*\*:\s*(\d+)$/;
+
+	let currentEpic: Partial<EpicParseResult> = {};
+	let inSprint = false;
+
+	for (const line of content.split('\n')) {
+		const sprintMatch = line.match(sprintRegex);
+		if (sprintMatch) {
+			if (currentEpic.name && currentEpic.sprintNumber) {
+				epics.push({
+					name: currentEpic.name,
+					description: currentEpic.description || '',
+					sprintNumber: currentEpic.sprintNumber,
+					levelCount: currentEpic.levelCount || 1
+				});
+			}
+			currentEpic = { sprintNumber: parseInt(sprintMatch[1], 10), name: sprintMatch[2] };
+			inSprint = true;
+			continue;
+		}
+
+		if (inSprint) {
+			const objMatch = line.match(objectiveRegex);
+			if (objMatch) {
+				currentEpic.description = objMatch[1];
+			}
+			const lvlMatch = line.match(levelsRegex);
+			if (lvlMatch) {
+				currentEpic.levelCount = parseInt(lvlMatch[1], 10);
+			}
+		}
+	}
+
+	if (currentEpic.name && currentEpic.sprintNumber) {
+		epics.push({
+			name: currentEpic.name,
+			description: currentEpic.description || '',
+			sprintNumber: currentEpic.sprintNumber,
+			levelCount: currentEpic.levelCount || 1
+		});
+	}
+
+	return epics;
 }
 
 function parseLevelsMd(content: string): { levelCount: number; difficulty: string } {
@@ -54,12 +111,12 @@ export const load: PageServerLoad = async (event) => {
 
 	const dbUser = await prisma.user.findUnique({
 		where: { id: session.user.id },
-		select: { coins: true, image: true, hasCompletedOnboarding: true }
+		select: { coins: true, image: true, has_completed_tutorial: true }
 	});
 
 	const user = { ...session.user, image: dbUser?.image ?? session.user.image };
 	const userCoins = dbUser?.coins ?? 0;
-	const hasCompletedOnboarding = dbUser?.hasCompletedOnboarding ?? false;
+	const hasCompletedTutorial = dbUser?.has_completed_tutorial ?? false;
 
 	const stackParam = event.url.searchParams.get('stack') ?? '';
 	const selectionRaw = event.url.searchParams.get('selection') ?? '{}';
@@ -69,9 +126,13 @@ export const load: PageServerLoad = async (event) => {
 		stackName,
 		stackSummary: null as string | null,
 		selection: { frontend: null, backend: null, database: null, services: null } as StackSelection,
+		tutorialState: {
+			isNewUser: true,
+			hasCompletedTutorial: false,
+		},
 		user,
 		userCoins,
-		hasCompletedOnboarding
+		hasCompletedTutorial
 	});
 
 	// Strict validation: alphanumeric + hyphens only (prevents path traversal)
@@ -91,6 +152,11 @@ export const load: PageServerLoad = async (event) => {
 	} catch {
 		/* ignore malformed JSON */
 	}
+
+	const tutorialState = {
+		isNewUser: !hasCompletedTutorial,
+		hasCompletedTutorial,
+	};
 
 	try {
 		await fs.access(stackDir);
@@ -169,7 +235,38 @@ export const load: PageServerLoad = async (event) => {
 		}
 
 		const number = parseInt(dir.name.replace('scenario-', ''), 10);
-		scenarios.push({ id: dir.name, number, title, description, difficulty, levelCount, projectFolder, hasLevels });
+
+		// Look for preview images in scenario folder (at scenario level, not inside project folder)
+		let previewImages: string[] = [];
+		const previewDir = path.join(scenarioPath, 'previews');
+		try {
+			const files = await fs.readdir(previewDir);
+			previewImages = files
+				.filter(f => /\.(png|jpg|jpeg|svg|webp)$/i.test(f))
+				.sort()
+				.map(f => `/images/tech-stacks/${stackParam}/${dir.name}/previews/${f}`);
+		} catch {
+			// No preview images directory, continue without
+		}
+
+		// Look for epics.md in scenario directory
+		let epics: EpicMeta[] = [];
+		const epicsPath = path.join(scenarioPath, 'epics.md');
+		try {
+			const epicsContent = await fs.readFile(epicsPath, 'utf-8');
+			const parsedEpics = parseEpicsMd(epicsContent);
+			epics = parsedEpics.map((e, idx) => ({
+				id: `epic-${e.sprintNumber}`,
+				name: e.name,
+				description: e.description,
+				sprintNumber: e.sprintNumber,
+				levelCount: e.levelCount
+			}));
+		} catch {
+			// No epics.md, continue without
+		}
+
+		scenarios.push({ id: dir.name, number, title, description, difficulty, levelCount, projectFolder, hasLevels, previewImages, epics });
 	}
 
 	let stackSummary: string | null = null;
@@ -179,5 +276,14 @@ export const load: PageServerLoad = async (event) => {
 		/* summary.md is optional */
 	}
 
-	return { scenarios, stackName: stackParam, stackSummary, selection, user, userCoins, hasCompletedOnboarding };
+	return {
+		scenarios,
+		stackName: stackParam,
+		stackSummary,
+		selection,
+		tutorialState,
+		user,
+		userCoins,
+		hasCompletedTutorial
+	};
 };

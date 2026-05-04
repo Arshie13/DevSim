@@ -1,9 +1,7 @@
 <script lang="ts">
   import type { StackSelection } from "$types";
-  import { TECH_CATEGORIES } from "$mocks";
   import type { PageData } from "./$types";
   import Header from "$components/Header.svelte";
-  import CategorySection from "$components/stacks/CategorySection.svelte";
   import StackSummary from "$components/stacks/StackSummary.svelte";
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
@@ -20,16 +18,6 @@
   };
 
   let showInfoModal = false;
-
-  function handleCategorySelect(categoryId: string, optionId: string) {
-    selection = {
-      ...selection,
-      [categoryId]:
-        selection[categoryId as keyof StackSelection] === optionId
-          ? null
-          : optionId,
-    };
-  }
 
   function handleClearSelection(category: keyof StackSelection) {
     selection = {
@@ -107,7 +95,7 @@
 </script>
 
 <svelte:head>
-  <title>DevSim - Build Your Stack</title>
+  <title>DevSim - Choose Your Stack</title>
 </svelte:head>
 
 <div class="page-root">
@@ -119,16 +107,16 @@
   <div class="relative z-10">
     <Header userData={headerUserData} />
 
-    <main class="w-full max-w-[1200px] mx-auto px-4 py-5 pb-28 md:px-6 lg:px-8 lg:py-8 lg:pb-32">
+    <main class="w-full max-w-[1200px] mx-auto px-4 pt-4 pb-28 md:px-6 lg:px-8 lg:pt-5 lg:pb-32">
       <!-- Page Header with Gamification -->
-      <div class="mb-6 lg:mb-8 flex items-start justify-between">
+      <div class="mb-4 lg:mb-6 flex items-start justify-between">
         <div class="flex items-center gap-4">
           <div class="relative">
             <div
-              class="w-12 h-12 flex items-center justify-center"
+              class="w-8 h-8 flex items-center justify-center"
               style="background:#12192a; border:1px solid rgba(7,165,201,0.25); border-radius:4px;"
             >
-              <Layers class="w-6 h-6" style="color:#07a5c9;" />
+              <Layers class="w-4 h-4" style="color:#07a5c9;" />
             </div>
             <!-- Corner accents -->
             <div
@@ -142,39 +130,18 @@
           </div>
           <div>
             <h1 class="page-title flex items-center gap-2">
-              Build Your Stack
+              Choose Your Stack
               <Sparkles class="w-5 h-5" style="color:#ffb400;" />
             </h1>
-            <p class="page-subtitle mt-1.5">
-              Mix and match technologies — select only what you want to practice
+            <p class="page-subtitle">
+              Select your loadout. Launch your simulation. Earn Coins & XP.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Popular Combos -->
+      <!-- Stack Loadouts -->
       <PopularCombos onSelectCombo={handleQuickSelect} {selection} />
-
-      <!-- Divider -->
-      <div class="relative my-8">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full" style="border-top: 1px solid rgba(7,165,201,0.12);"></div>
-        </div>
-        <div class="relative flex justify-center">
-          <span class="divider-label">Or build your own</span>
-        </div>
-      </div>
-
-      <!-- Technology Categories -->
-      <div class="space-y-6">
-        {#each TECH_CATEGORIES as category (category.id)}
-          <CategorySection
-            {category}
-            selectedId={selection[category.id as keyof StackSelection]}
-            onSelect={(optionId) => handleCategorySelect(category.id, optionId)}
-          />
-        {/each}
-      </div>
     </main>
 
     <!-- Bottom Summary Bar -->
@@ -248,7 +215,7 @@
   /* Page heading — Orbitron */
   .page-title {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.75rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: #d0d7dd;
     letter-spacing: 0.04em;
@@ -257,18 +224,8 @@
   /* Subtitle — Rajdhani */
   .page-subtitle {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.1rem;
+    font-size: 0.78rem;
     color: rgba(208, 215, 221, 0.55);
   }
 
-  /* Divider label — Share Tech Mono */
-  .divider-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: rgba(208, 215, 221, 0.30);
-    background: #0a0e1a;
-    padding: 0 1.25rem;
-  }
 </style>
