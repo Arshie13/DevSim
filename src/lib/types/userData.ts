@@ -6,6 +6,7 @@ export interface UserData {
   fullName?: string;
   username?: string;
   givenName?: string;
+  profileShareId?: string;
   avatar: string;
 
   // Leveling System

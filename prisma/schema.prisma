@@ -35,6 +35,7 @@ model user {
   name         String
   image        String?
   username     String  @unique
+  profile_share_id String  @unique @default(dbgenerated("substr(md5(random()::text || clock_timestamp()::text), 1, 12)"))
   role         UserRole @default(USER)
 
   // Leveling System
