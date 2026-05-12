@@ -19,7 +19,7 @@ export const triviaQuestions: TriviaQuestion[] = [
       'Optimizing code for performance'
     ],
     correctAnswer: 1,
-    explanation: 'Hoisting is JavaScript\'s behavior of processing declarations before execution. Variables declared with var are partially hoisted, while let/const are hoisted but not initialized (temporal dead zone).'
+    explanation: 'Hoisting is JavaScript\'s behavior of processing declarations before execution. Variables declared with var are hoisted and initialized with undefined; let/const are hoisted but not initialized (temporal dead zone).'
   },
   {
     id: 'js-2',
@@ -141,27 +141,26 @@ export const triviaQuestions: TriviaQuestion[] = [
   {
     id: 'db-2',
     category: 'database',
-    question: 'What is the difference between SQL and NoSQL databases?',
+    question: 'What is the main difference between relational and document-based databases?',
     options: [
-      'SQL is faster than NoSQL',
-      'SQL uses structured tables with schemas; NoSQL uses flexible document/key-value/graph formats',
-      'NoSQL doesn\'t support relationships',
-      'SQL is only for small databases'
+      'Relational databases are always faster than document databases',
+      'Relational databases store data in structured tables with predefined schemas; document databases store data in flexible, schema-less documents (like JSON)',
+      'Document databases can only be used for small applications'
     ],
     correctAnswer: 1,
-    explanation: 'SQL databases use structured tables with predefined schemas and SQL for queries. NoSQL databases offer flexible schemas, better horizontal scaling, and are better for unstructured data.'
+    explanation: 'Relational databases organize data into tables with strict, predefined schemas and use SQL for queries. Document-based databases (like MongoDB) store data in flexible JSON-like documents, allowing different structures within the same collection, which is great for evolving or unstructured data.'
   },
   {
     id: 'db-3',
     category: 'database',
-    question: 'What is an ORM?',
+    question: 'What does ORM stand for?',
     options: [
-      'Object-Relational Mapping - a technique to interact with databases using object-oriented code',
       'Online Resource Manager',
       'Object Render Mode',
+      'Object-Relational Mapping',
       'Operational Replication Method'
     ],
-    correctAnswer: 0,
+    correctAnswer: 2,
     explanation: 'ORM (Object-Relational Mapping) allows developers to interact with databases using object-oriented code instead of raw SQL. Examples: Prisma, TypeORM, Sequelize.'
   },
   {
