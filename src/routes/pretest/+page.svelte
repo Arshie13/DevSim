@@ -10,7 +10,17 @@
     { id: 5, question: "How much do you know about integrating frontend and backend systems?" },
     { id: 6, question: "How familiar are you with building and consuming APIs?" },
     { id: 7, question: "How comfortable are you with terminal/command line operations?" },
-    { id: 8, question: "What's your understanding of web security and best practices?" }
+    { id: 8, question: "What's your understanding of coding best practices?" }
+  ];
+
+  // Foundational tutorial videos — the basics a user should learn before retrying.
+  const summaryVideos = [
+    { id: 1, title: "HTML Basics for Beginners", description: "A hands-on HTML tutorial that walks through tags, structure, and building your first page", url: "https://www.youtube.com/watch?v=FQdaUv95mR8" },
+    { id: 2, title: "CSS Basics for Beginners", description: "A beginner-friendly CSS intro that talks about selectors, properties, and styling explained casually", url: "https://www.youtube.com/watch?v=j6nOnIT-T1o" },
+    { id: 3, title: "JavaScript Basics for Beginners", description: "A beginner course covering JS fundamentals end-to-end", url: "https://www.youtube.com/watch?v=voLJ3CmaM1s" },
+    { id: 4, title: "Databases Basics for Beginners", description: "A database tutorial video teaching about queries, joins, and managing relational databases from scratch", url: "https://www.youtube.com/watch?v=5OdVJbNCSso" },
+    { id: 5, title: "API Basics for Beginners", description: "Learn what an API is and how it works.", url: "https://www.youtube.com/watch?v=ByGJQzlzxQg" },
+    { id: 6, title: "Coding Best Practices for Beginners", description: "An overview of clean code habits such as naming, structure, and writing maintainable code", url: "https://www.youtube.com/watch?v=7dGfe8eJDSU" }
   ];
 
   const scaleOptions = [
@@ -235,38 +245,21 @@
             </p>
 
             <div class="text-left mb-10">
-              <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-4">VIDEO TUTORIALS</h3>
+              <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-4">BASICS TO LEARN FIRST</h3>
+              <p class="text-[var(--text-muted)] text-sm mb-4">Start with these foundational tutorials before retaking the quiz.</p>
               <div class="space-y-4">
-                <a href="https://www.youtube.com/watch?v=zJSY8tbf_ys" target="_blank" rel="noopener noreferrer"
-                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
-                  <div class="flex items-start gap-3">
-                    <span class="text-[var(--accent)] text-xl">▶</span>
-                    <div>
-                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">Full Stack Web Development</h4>
-                      <p class="text-[var(--text-muted)] text-sm">Complete guide to modern web development stacks</p>
+                {#each summaryVideos as video}
+                  <a href={video.url} target="_blank" rel="noopener noreferrer"
+                     class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
+                    <div class="flex items-start gap-3">
+                      <span class="text-[var(--accent)] text-xl">▶</span>
+                      <div class="flex-1">
+                        <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)] mb-1">{video.title}</h4>
+                        <p class="text-[var(--text-muted)] text-sm">{video.description}</p>
+                      </div>
                     </div>
-                  </div>
-                </a>
-                <a href="https://www.youtube.com/watch?v=7H_QH9nipNs" target="_blank" rel="noopener noreferrer"
-                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
-                  <div class="flex items-start gap-3">
-                    <span class="text-[var(--accent)] text-xl">▶</span>
-                    <div>
-                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">MERN Stack Tutorial</h4>
-                      <p class="text-[var(--text-muted)] text-sm">MongoDB, Express, React, Node.js integration</p>
-                    </div>
-                  </div>
-                </a>
-                <a href="https://www.youtube.com/watch?v=2jqok-WgelI" target="_blank" rel="noopener noreferrer"
-                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
-                  <div class="flex items-start gap-3">
-                    <span class="text-[var(--accent)] text-xl">▶</span>
-                    <div>
-                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">PERN Stack Development</h4>
-                      <p class="text-[var(--text-muted)] text-sm">PostgreSQL, Express, React, Node.js stack guide</p>
-                    </div>
-                  </div>
-                </a>
+                  </a>
+                {/each}
               </div>
             </div>
 
@@ -359,8 +352,22 @@
 </div>
 
 <style>
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    border: 0;
+  }
+
   .bg-grid-cyber {
-    background-image: 
+    background-image:
       linear-gradient(rgba(7, 165, 201, 0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(7, 165, 201, 0.03) 1px, transparent 1px);
     background-size: 50px 50px;
