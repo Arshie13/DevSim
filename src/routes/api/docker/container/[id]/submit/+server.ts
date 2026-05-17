@@ -23,10 +23,12 @@ interface SubmitRequest {
   advanceLevel?: boolean; // If true, will advance level when all tasks complete
 }
 
-// Helper to get level by order
-async function getLevelByOrder(order: number) {
+// Helper to get level by order, scoped to the container's scenario.
+// Multiple scenarios share level orders (1..5), so the scenario must be
+// part of the lookup — otherwise this resolves to the wrong scenario's level.
+async function getLevelByOrder(order: number, scenarioId: string) {
   return prisma.level.findFirst({
-    where: { order },
+    where: { order, scenarioId },
     orderBy: { order: 'asc' },
     include: {
       tasks: {
@@ -36,9 +38,10 @@ async function getLevelByOrder(order: number) {
   });
 }
 
-// Helper to get the highest level order in the database
-async function getHighestLevelOrder(): Promise<number> {
+// Helper to get the highest level order for a scenario.
+async function getHighestLevelOrder(scenarioId: string): Promise<number> {
   const highestLevel = await prisma.level.findFirst({
+    where: { scenarioId },
     orderBy: { order: 'desc' },
     select: { order: true }
   });
@@ -77,10 +80,11 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		}
 
 		const currentLevel = record.level;
+		const scenarioId = record.currentScenarioId;
 
 
-		// --- Get level info by order ---
-		const levelInfo = await getLevelByOrder(currentLevel);
+		// --- Get level info by order (scoped to the container's scenario) ---
+		const levelInfo = await getLevelByOrder(currentLevel, scenarioId);
 		if (!levelInfo) {
 			return error(404, 'Level not found.');
 		}
@@ -128,7 +132,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			nextLevel = currentLevel + 1;
 
 			// Get the highest level order to determine if this is the last level
-			const highestLevelOrder = await getHighestLevelOrder();
+			const highestLevelOrder = await getHighestLevelOrder(scenarioId);
 			const isLastLevel = currentLevel >= highestLevelOrder;
 
 			if (isLastLevel) {

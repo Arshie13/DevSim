@@ -13,8 +13,10 @@ interface CreateContainerRequest {
     database?: string;
     services?: string;
   };
-  /** e.g. "scenario-1" — the scenario folder name */
+  /** Stack-namespaced scenario id matching the seed (e.g. "react-express-postgres-prisma-scenario-1"). */
   scenarioId?: string;
+  /** Raw scenario folder name on disk (e.g. "scenario-1"). Used for volume/image naming. */
+  scenarioFolder?: string;
   /** e.g. "LIBRARY_MANAGEMENT" — the project subfolder to mount as /workspace */
   projectFolder?: string;
   /** Human-readable scenario title from project.md, e.g. "BookWise - Library Management System" */
@@ -47,7 +49,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     }
 
     const req: CreateContainerRequest = await request.json()
-    const { stackName, level, stacks, scenarioId, projectFolder } = req;
+    const { stackName, level, stacks, scenarioId, scenarioFolder, projectFolder } = req;
 
     // Look up the Scenario by name to get its database ID for currentScenarioId
     let currentScenarioId: string | null = null;
@@ -170,13 +172,14 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
     async function createFreshContainer() {
       // Use the scenario folder name (e.g. "scenario-2") so each scenario gets its own
-      // volume/bind-mount. Falling back to `scenario-${level}` keeps older containers working.
-      const scenarioFolder = scenarioId ?? `scenario-${level}`;
+      // volume/bind-mount. Falling back to scenarioId (legacy callers sent the folder name
+      // there) and then to `scenario-${level}` keeps older containers working.
+      const folder = scenarioFolder ?? scenarioId ?? `scenario-${level}`;
       // Generate volume name: {stack-name}-{scenario-folder}
-      const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
+      const volumeName = `${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${folder}`;
 
       // Generate custom image name based on stack and scenario
-      let customImageName = `devsim-project:${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${scenarioFolder}`;
+      let customImageName = `devsim-project:${stackName.toLowerCase().replace(/[_ ]+/g, '-')}-${folder}`;
       
       // If projectFolder is provided (e.g., LIBRARY_MANAGEMENT), add it to the image name
       if (req.projectFolder) {

@@ -800,9 +800,14 @@
         keyTakeaways.length
       );
 
-      // Fetch key takeaways from database for the current level
+      // Fetch key takeaways from database for the current level.
+      // Pass dbContainerId so the API can scope by the container's scenario
+      // (multiple scenarios share level orders 1..5).
       try {
-        const takeawayRes = await fetch(`/api/level/${level}/key-takeaways`);
+        const takeawayUrl = dbContainerId
+          ? `/api/level/${level}/key-takeaways?containerId=${encodeURIComponent(dbContainerId)}`
+          : `/api/level/${level}/key-takeaways`;
+        const takeawayRes = await fetch(takeawayUrl);
         if (takeawayRes.ok) {
           const takeawayData = await takeawayRes.json();
           if (takeawayData.success && takeawayData.keyTakeaways) {

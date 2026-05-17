@@ -73,6 +73,7 @@
           level: 1,
           stacks: selection,
           scenarioId: activeScenario.id,
+          scenarioFolder: activeScenario.folder,
           projectFolder: activeScenario.projectFolder,
           scenarioTitle: activeScenario.title,
         }),

@@ -76,8 +76,10 @@ export interface FinishedStack {
 export type StackStatus = FinishedStack
 
 export interface ScenarioMeta {
-  /** e.g., "scenario-1" */
+  /** Stack-namespaced id matching the seed (e.g. "react-express-postgres-prisma-scenario-1"). */
   id: string;
+  /** Raw scenario folder name on disk (e.g. "scenario-1"). Used for volume/image naming. */
+  folder: string;
   /** e.g., 1 */
   number: number;
   /** Human-readable title, e.g., "POS System" */

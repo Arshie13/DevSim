@@ -979,7 +979,10 @@
       });
 
       // Keep local level in sync even if navigation data resolves slightly later.
-      currentLevel = (data.level || targetLevel);
+      // The `data` prop is pushed in on Svelte's next update tick, so right after
+      // `goto()` it can still hold the pre-advance level — never let that stale
+      // read drag currentLevel back below the server-confirmed target level.
+      currentLevel = Math.max(data.level ?? 0, targetLevel);
     }
   }
 

@@ -2,22 +2,38 @@
  * GET /api/level/[level]/key-takeaways
  *
  * Returns the key takeaways for a specific level from the database.
+ * Pass ?containerId=<dockerContainerId> to scope the lookup to the container's
+ * current scenario — required when multiple scenarios share the same level order.
+ * Matches the Docker-container-id pattern used by /submit and /archive.
  */
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, url }) => {
   const levelOrder = parseInt(params.level);
 
   if (isNaN(levelOrder)) {
     return json({ success: false, error: 'Invalid level number' }, { status: 400 });
   }
 
+  const dockerContainerId = url.searchParams.get('containerId');
+
   try {
+    let scenarioId: string | undefined;
+    if (dockerContainerId) {
+      const container = await prisma.container.findFirst({
+        where: { containerId: dockerContainerId },
+        select: { currentScenarioId: true }
+      });
+      scenarioId = container?.currentScenarioId ?? undefined;
+    }
+
     const level = await prisma.level.findFirst({
-      where: { order: levelOrder },
+      where: scenarioId
+        ? { order: levelOrder, scenarioId }
+        : { order: levelOrder },
       select: {
         keyTakeaways: true,
         title: true

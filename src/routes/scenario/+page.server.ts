@@ -169,7 +169,10 @@ export const load: PageServerLoad = async (event) => {
 		}
 
 		const number = parseInt(dir.name.replace('scenario-', ''), 10);
-		scenarios.push({ id: dir.name, number, title, description, difficulty, levelCount, projectFolder, hasLevels });
+		// Namespace the scenario id by stack to avoid collisions between different stacks
+		// that both contain a "scenario-1" folder. Must match the seed's Scenario.id format.
+		const id = `${stackParam}-${dir.name}`;
+		scenarios.push({ id, folder: dir.name, number, title, description, difficulty, levelCount, projectFolder, hasLevels });
 	}
 
 	let stackSummary: string | null = null;
