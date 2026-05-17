@@ -878,22 +878,28 @@ async function main() {
             taskName: "Environment Setup",
             testType: "client",
             userStory:
-              "As a developer, I want to set up the development environment so that I can start working on the project.",
+              "As a developer, I want to install dependencies and configure environment variables so that the library app runs locally.",
             hints: {
               create: [
                 {
-                  description: "Install dependencies using npm install",
+                  description:
+                    "Open a terminal in the project root and run `npm install`; wait for it to finish with no errors.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create .env.local file with required environment variables",
+                    "Create a file named `.env.local` in the project root and add exactly two lines: `NEXT_PUBLIC_APP_NAME=SM Tech Library` and `NEXT_PUBLIC_API_URL=http://localhost:3000/api`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Start the development server and verify it loads",
+                    "Run `npm run dev` and open http://localhost:3000 in your browser to confirm the app loads without errors.",
                   order: 3,
+                },
+                {
+                  description:
+                    "In `src/app/layout.tsx`, set the page `title` from `process.env.NEXT_PUBLIC_APP_NAME` so the browser tab reads 'SM Tech Library'.",
+                  order: 4,
                 },
               ],
             },
@@ -901,17 +907,19 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "App runs without errors on npm run dev",
+                  description: "App runs without errors on `npm run dev`",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: ".env.local file is properly configured",
+                  description:
+                    "`.env.local` defines NEXT_PUBLIC_APP_NAME=SM Tech Library and NEXT_PUBLIC_API_URL=http://localhost:3000/api",
                   isRequired: true,
                   order: 2,
                 },
                 {
-                  description: "Development server starts successfully",
+                  description:
+                    "Client dependencies are installed (node_modules present)",
                   isRequired: true,
                   order: 3,
                 },
@@ -919,25 +927,31 @@ async function main() {
             },
           },
           {
-            taskName: "Update UI Text",
+            taskName: "Fix the Library Name Mismatches",
             testType: "client",
             userStory:
-              "As a user, I want to see the correct library name and page titles so that I know which system I'm using.",
+              "As a user, I want every page to show the correct library name so that I know which system I am using.",
             hints: {
               create: [
                 {
                   description:
-                    "Update layout.tsx to use NEXT_PUBLIC_APP_NAME for page title",
+                    "On the auth pages `src/app/login/page.tsx` and `src/app/signup/page.tsx`, find the text 'Sign Up' and change it to 'Register' — check both the button label and any link.",
                   order: 1,
                 },
                 {
-                  description: "Change 'Sign Up' to 'Register' on auth pages",
+                  description:
+                    "Several pages still show the placeholder 'BookWise Library'. Open `src/app/dashboard/page.tsx`, `src/app/login/page.tsx`, `src/app/signup/page.tsx`, and `src/app/returns/page.tsx` and change every header to read exactly 'SM Tech Library'.",
                   order: 2,
                 },
                 {
                   description:
-                    "Update dashboard header to display 'BookStop Public Library'",
+                    "Make sure the browser tab title in `src/app/layout.tsx` also reads 'SM Tech Library' — sourcing it from `NEXT_PUBLIC_APP_NAME` satisfies this.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Run the dev server and click through each page in the browser to confirm no 'BookWise Library' or 'Sign Up' text is left.",
+                  order: 4,
                 },
               ],
             },
@@ -945,17 +959,20 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Page title reflects the environment variable",
+                  description:
+                    "'Register' replaces 'Sign Up' on the login and signup pages",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "Updated text appears correctly in the UI",
+                  description:
+                    "Every page header reads 'SM Tech Library' — no 'BookWise Library' placeholder remains",
                   isRequired: true,
                   order: 2,
                 },
                 {
-                  description: "Dashboard header shows correct library name",
+                  description:
+                    "The browser tab title reflects NEXT_PUBLIC_APP_NAME",
                   isRequired: true,
                   order: 3,
                 },
@@ -984,19 +1001,22 @@ async function main() {
             taskName: "Fix Status Badge Colors",
             testType: "client",
             userStory:
-              "As a user, I want to see distinct colors for different book statuses so that I can quickly identify book availability.",
+              "As a user, I want each book status to have a distinct color so that I can tell availability at a glance.",
             hints: {
               create: [
                 {
-                  description: "Ensure 'available' status shows green color",
+                  description:
+                    "The badge color bug lives in `src/app/dashboard/page.tsx` — the status-to-color logic currently gives 'borrowed' the same color as 'available'.",
                   order: 1,
                 },
                 {
-                  description: "Ensure 'borrowed' status shows blue color",
+                  description:
+                    "Give each status its own color: `available` green, `borrowed` blue, `overdue` red. Reuse the Tailwind `bg-*-100` / `text-*-800` pairs the existing badges already use.",
                   order: 2,
                 },
                 {
-                  description: "Ensure 'overdue' status shows red color",
+                  description:
+                    "Render the dashboard and confirm the three statuses in the books table are now visually distinct.",
                   order: 3,
                 },
               ],
@@ -1005,12 +1025,13 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Each status has a distinct color",
+                  description:
+                    "`available` badges are green, `borrowed` blue, `overdue` red",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "Colors match the status type correctly",
+                  description: "Each status has a visually distinct color",
                   isRequired: true,
                   order: 2,
                 },
@@ -1018,24 +1039,25 @@ async function main() {
             },
           },
           {
-            taskName: "Refactor Book Filtering",
+            taskName: "Refactor & Extract Component",
             testType: "client",
             userStory:
-              "As a developer, I want to use useMemo for book filtering so that the application performs better and the code is more maintainable.",
+              "As a developer, I want book filtering memoized and rows extracted into a component so that the dashboard stays consistent and maintainable.",
             hints: {
               create: [
                 {
                   description:
-                    "Create a single useMemo hook for book filtering",
+                    "Replace the separate `.filter()` calls in `src/app/dashboard/page.tsx` with a single `useMemo` returning `{ availableBooks, borrowedBooks, overdueBooks }`.",
                   order: 1,
                 },
                 {
                   description:
-                    "Return an object with availableBooks, borrowedBooks, and overdueBooks",
+                    "Create `src/components/BookRow.tsx` — move the table-row JSX there and have it accept a `book` prop (a default or named export both work).",
                   order: 2,
                 },
                 {
-                  description: "Create and use a BookRow component",
+                  description:
+                    "Update the dashboard to render every book through the new `BookRow` component.",
                   order: 3,
                 },
               ],
@@ -1044,17 +1066,19 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "useMemo is used for book filtering",
+                  description:
+                    "A single `useMemo` derives availableBooks / borrowedBooks / overdueBooks",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "BookRow component exists and works correctly",
+                  description:
+                    "`BookRow` exists in src/components/BookRow.tsx and renders the book's title, author, ISBN, and status",
                   isRequired: true,
                   order: 2,
                 },
                 {
-                  description: "Dashboard uses the new component",
+                  description: "The dashboard renders every book through BookRow",
                   isRequired: true,
                   order: 3,
                 },
@@ -1080,25 +1104,25 @@ async function main() {
       tasks: {
         create: [
           {
-            taskName: "Add Search & Borrow Features",
+            taskName: "Search & Borrow Features",
             testType: "client",
             userStory:
-              "As a user, I want to search for books and borrow available books so that I can find and reserve books easily.",
+              "As a user, I want to search the catalog and borrow available books so that I can find and reserve books easily.",
             hints: {
               create: [
                 {
                   description:
-                    "Add search input that filters books by title or author",
+                    "Add a controlled search input above the books table that filters by title or author, case-insensitively; show 'No books found' when nothing matches.",
                   order: 1,
                 },
                 {
                   description:
-                    "Show 'No books found' when search yields no results",
+                    "Give each available book a 'Borrow' button that opens a modal collecting borrower name, email, and a due date auto-calculated to 14 days out.",
                   order: 2,
                 },
                 {
                   description:
-                    "Add Borrow button that opens a modal with borrower details",
+                    "On confirm, move the book to `borrowed` status and store the borrower details.",
                   order: 3,
                 },
               ],
@@ -1107,36 +1131,46 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Search filters books in real-time",
+                  description:
+                    "Search filters books in real time by title and author",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "Borrow modal works and updates the UI",
+                  description:
+                    "'No books found' shows when the search has no matches",
                   isRequired: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "The borrow modal captures borrower details and updates the book to `borrowed`",
+                  isRequired: true,
+                  order: 3,
                 },
               ],
             },
           },
           {
-            taskName: "Create Returns Page",
+            taskName: "Returns Page",
             testType: "client",
             userStory:
-              "As a librarian, I want to process book returns so that I can update the system when books are returned.",
+              "As a librarian, I want a returns page so that I can process book returns and keep records in sync.",
             hints: {
               create: [
                 {
                   description:
-                    "Create returns page with borrowed books table",
+                    "Create `src/app/returns/page.tsx` listing every currently borrowed book in a table with a 'Return' action per row.",
                   order: 1,
                 },
                 {
-                  description: "Add Return button to process returns",
+                  description:
+                    "Returning a book should confirm first, then set the book back to `available`, clear borrower info, and mark the matching borrow record `returned`.",
                   order: 2,
                 },
                 {
-                  description: "Update borrow record status to 'returned'",
+                  description:
+                    "Link the returns page from the dashboard navigation.",
                   order: 3,
                 },
               ],
@@ -1145,14 +1179,22 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Returns page processes returns correctly",
+                  description:
+                    "The returns page lists all borrowed books with a Return button each",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "Borrow records are updated on return",
+                  description:
+                    "Returning confirms, then sets the book to `available` and clears borrower info",
                   isRequired: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "The matching borrow record is updated to `returned`",
+                  isRequired: true,
+                  order: 3,
                 },
               ],
             },
@@ -1176,24 +1218,21 @@ async function main() {
       tasks: {
         create: [
           {
-            taskName: "Add Validation & Date Handling",
+            taskName: "Validation & Date Calculation",
             testType: "client",
             userStory:
-              "As a user, I want proper validation and date handling so that the system prevents invalid operations.",
+              "As a user, I want overdue books blocked from borrowing and due dates handled correctly so that bad state never enters the system.",
             hints: {
               create: [
                 {
-                  description: "Prevent borrowing of overdue books",
+                  description:
+                    "Overdue books should never be borrowable — decide how to surface that in the dashboard.",
                   order: 1,
                 },
                 {
                   description:
-                    "Auto-calculate due date to 14 days from current date",
+                    "Borrowers should not pick a due date by hand; derive it deterministically and store it in a sortable, comparable format.",
                   order: 2,
-                },
-                {
-                  description: "Format due date as YYYY-MM-DD",
-                  order: 3,
                 },
               ],
             },
@@ -1201,37 +1240,41 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Overdue books cannot be borrowed",
+                  description:
+                    "Overdue books cannot be borrowed (no Borrow button)",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "Due date auto-calculates correctly",
+                  description: "Available books still expose a Borrow button",
                   isRequired: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "Due dates auto-calculate to 14 days out and are stored as YYYY-MM-DD",
+                  isRequired: true,
+                  order: 3,
                 },
               ],
             },
           },
           {
-            taskName: "Add Confirmation & Persistence",
+            taskName: "Confirmation & Persistence",
             testType: "client",
             userStory:
-              "As a user, I want confirmation dialogs and data persistence so that I don't lose data accidentally.",
+              "As a user, I want confirmation prompts and durable data so that I never lose state to an accidental click or a refresh.",
             hints: {
               create: [
                 {
                   description:
-                    "Add confirmation dialogs before borrowing and returning",
+                    "Destructive actions — borrow and return — should ask for confirmation before they commit.",
                   order: 1,
                 },
                 {
-                  description: "Persist all data to localStorage",
+                  description:
+                    "The app's data should survive a page refresh; build one reusable hook that owns the hydrate-and-persist pattern instead of wiring `localStorage` into each component.",
                   order: 2,
-                },
-                {
-                  description: "Create useLocalStorage hook",
-                  order: 3,
                 },
               ],
             },
@@ -1239,14 +1282,22 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Confirmation dialogs appear before actions",
+                  description:
+                    "Confirmation dialogs appear before borrowing and returning",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "Data persists across page refreshes",
+                  description:
+                    "A useLocalStorage hook in src/hooks/useLocalStorage.ts reads, writes, and hydrates values",
                   isRequired: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "Books, borrow records, and librarian persist across refreshes",
+                  isRequired: true,
+                  order: 3,
                 },
               ],
             },
@@ -1273,21 +1324,18 @@ async function main() {
             taskName: "Fix Overdue Bug & Build Report",
             testType: "client",
             userStory:
-              "As a client, I want overdue statuses to be accurate so that library operations run smoothly.",
+              "As a client, I want overdue status to stay accurate and a report I can act on so that library operations run smoothly.",
             hints: {
               create: [
                 {
                   description:
-                    "Investigate and fix the overdue status bug",
+                    "Books still flagged overdue after being returned: the return path updates one status but not the other — trace the return flow and find the field left stale.",
                   order: 1,
                 },
                 {
-                  description: "Create overdue report page",
+                  description:
+                    "Make the fix observable — a standalone overdue report page listing each overdue book, its borrower, days overdue, and a way to resolve it directly.",
                   order: 2,
-                },
-                {
-                  description: "Add 'Mark as Returned' functionality",
-                  order: 3,
                 },
               ],
             },
@@ -1295,37 +1343,42 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Overdue status calculation is fixed",
+                  description:
+                    "Returning a book clears overdue status on both the book and its borrow record",
                   isRequired: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Overdue report page displays accurate information",
+                    "src/app/overdue/page.tsx lists each overdue book with title, author, borrower name/email, and days overdue",
                   isRequired: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "A 'Mark as Returned' action resolves a book straight from the report",
+                  isRequired: true,
+                  order: 3,
                 },
               ],
             },
           },
           {
-            taskName: "Create Utilities & Documentation",
+            taskName: "Utilities & Documentation",
             testType: "client",
             userStory:
-              "As a developer, I want reusable date utilities and documentation so that the codebase is maintainable.",
+              "As a developer, I want shared date utilities and real documentation so that the next developer can maintain the codebase.",
             hints: {
               create: [
                 {
-                  description: "Create date utility functions",
+                  description:
+                    "Every page reinvents date math — centralize it in one module so the overdue fix lives in a single place.",
                   order: 1,
                 },
                 {
-                  description: "Update documentation with usage examples",
+                  description:
+                    "Leave the project documented: what the date utilities do, how to verify overdue behavior, and the reasoning behind the bug fix.",
                   order: 2,
-                },
-                {
-                  description: "Add code comments explaining the fix",
-                  order: 3,
                 },
               ],
             },
@@ -1333,14 +1386,22 @@ async function main() {
             acceptanceCriteria: {
               create: [
                 {
-                  description: "Date utilities handle all date operations",
+                  description:
+                    "src/lib/dateUtils.ts exports formatDate ('Jan 15, 2026', '' for invalid input) and isOverdue (boolean, safe on invalid input)",
                   isRequired: true,
                   order: 1,
                 },
                 {
-                  description: "Documentation is updated with examples",
+                  description:
+                    "README.md documents the project's features and how to test overdue functionality",
                   isRequired: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "Source files carry comments explaining the overdue logic",
+                  isRequired: true,
+                  order: 3,
                 },
               ],
             },
@@ -1372,18 +1433,23 @@ async function main() {
               create: [
                 {
                   description:
-                    "Run `npm install` at the project root and inside the `client/` folder.",
+                    "Open a terminal in the `client/` folder and run `npm install`; wait for it to finish with no errors.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create `client/.env.local` with NEXT_PUBLIC_APP_NAME, NEXT_PUBLIC_SUPPORT_PHONE, and NEXT_PUBLIC_SUPPORT_EMAIL.",
+                    "Create the file `client/.env.local` and add exactly these three lines: `NEXT_PUBLIC_APP_NAME=City Hall Support`, `NEXT_PUBLIC_SUPPORT_PHONE=(555) 123-4567`, `NEXT_PUBLIC_SUPPORT_EMAIL=support@cityhall.gov`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Replace hard-coded phone/email in `src/app/page.tsx` and `src/app/support/page.tsx` with the env values.",
+                    "Run `npm run dev` and open http://localhost:3000 to confirm the app loads.",
                   order: 3,
+                },
+                {
+                  description:
+                    "In the home page footer (`src/app/page.tsx`) and the support page (`src/app/support/page.tsx`), replace the hard-coded phone number and email with `process.env.NEXT_PUBLIC_SUPPORT_PHONE` and `process.env.NEXT_PUBLIC_SUPPORT_EMAIL`.",
+                  order: 4,
                 },
               ],
             },
@@ -1419,17 +1485,17 @@ async function main() {
               create: [
                 {
                   description:
-                    "Change the agent login button label from 'Sign In' to 'Login' in `src/app/agent/login/page.tsx`.",
+                    "In `src/app/agent/login/page.tsx`, find the login button label 'Sign In' and change it to exactly 'Login'.",
                   order: 1,
                 },
                 {
                   description:
-                    "Change the support page logout label from 'Return to menu' to 'Logout' in `src/app/support/page.tsx`.",
+                    "In `src/app/support/page.tsx`, find the logout button label 'Return to menu' and change it to exactly 'Logout'.",
                   order: 2,
                 },
                 {
                   description:
-                    "Render the home page heading from `NEXT_PUBLIC_APP_NAME` in `src/app/page.tsx`.",
+                    "In `src/app/page.tsx`, replace the hard-coded 'City Hall Support' heading with the value of `NEXT_PUBLIC_APP_NAME`.",
                   order: 3,
                 },
               ],
@@ -1482,23 +1548,18 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/lib/intentMatcher.ts` with a keyword map for the permits, taxes, trash, utilities, parking, and hours intents.",
+                    "Create `src/lib/intentMatcher.ts` with a keyword map for the six intents (permits, taxes, trash, utilities, parking, hours) — the levels.md table lists each intent's keywords.",
                   order: 1,
                 },
                 {
                   description:
-                    "Export `matchIntent(input)` that scores keyword hits (case-insensitive substring matches), returns the highest-scoring intent, and returns `{ intent: 'fallback', score: 0 }` when nothing matches.",
+                    "Export `matchIntent(input)` that counts case-insensitive keyword hits per intent and returns the highest scorer, falling back to `{ intent: 'fallback', score: 0 }` when nothing matches.",
                   order: 2,
                 },
                 {
                   description:
-                    "Export `getAssistantReply(input)` returning a helpful reply per intent; the fallback reply must offer to connect the citizen to a human agent.",
+                    "Export `getAssistantReply(input)` returning a per-intent reply (the fallback must offer a human agent), then swap the inline `getAIResponse` in `src/app/support/page.tsx` for it.",
                   order: 3,
-                },
-                {
-                  description:
-                    "Replace the inline `getAIResponse` logic in the support page chat flow (`src/app/support/page.tsx`) with `getAssistantReply`.",
-                  order: 4,
                 },
               ],
             },
@@ -1535,17 +1596,17 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/lib/quickReplies.ts` exporting `quickReplies`, a non-empty array of `{ id, label, text }` snippets (e.g. a greeting, a holding line, a closing).",
+                    "Create `src/lib/quickReplies.ts` exporting `quickReplies` — a non-empty array of `{ id, label, text }` snippets.",
                   order: 1,
                 },
                 {
                   description:
-                    "On the agent dashboard (`src/app/agent/page.tsx`), render one quick-reply button per snippet directly above the message input, labelled with `snippet.label`.",
+                    "On the agent dashboard (`src/app/agent/page.tsx`), render one button per snippet above the message input, labelled `snippet.label`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Clicking a snippet appends its `text` to the current message input without erasing text the agent has already typed.",
+                    "Clicking a snippet should append its `text` to the input — don't overwrite text the agent already typed.",
                   order: 3,
                 },
               ],
@@ -1601,23 +1662,18 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/lib/priority.ts` exporting `getPriorityScore(conversation)`: a resolved conversation always scores 0; otherwise score = statusWeight (40 waiting / 10 active) + unreadCount * 10 + ageBonus.",
+                    "Create `src/lib/priority.ts` with `getPriorityScore(conversation)` — resolved conversations score 0; otherwise combine a status weight, an unread-count bonus, and a capped age bonus (levels.md has the exact formula).",
                   order: 1,
                 },
                 {
                   description:
-                    "Compute `ageBonus` as `Math.min(Math.floor(hoursSinceCreated), 12)` so old conversations cannot dominate the queue forever.",
+                    "Add `getPriorityLevel(conversation)` that buckets the score into low / normal / high / urgent tiers.",
                   order: 2,
                 },
                 {
                   description:
-                    "Export `getPriorityLevel(conversation)` mapping the score to a tier: urgent >= 70, high >= 35, normal >= 10, otherwise low.",
+                    "In `src/app/agent/page.tsx`, sort the conversation list by score (highest first) and show each row's tier.",
                   order: 3,
-                },
-                {
-                  description:
-                    "In `src/app/agent/page.tsx`, sort the conversation list by priority score (highest first) and surface each row's priority level.",
-                  order: 4,
                 },
               ],
             },
@@ -1654,23 +1710,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/lib/sla.ts` exporting `hasAgentReplied(conversation)` — true when at least one message has `role === 'agent'`.",
+                    "Create `src/lib/sla.ts` with `hasAgentReplied(conversation)` and `getServiceState(conversation)` returning resolved / awaiting-first-reply / in-progress.",
                   order: 1,
                 },
                 {
                   description:
-                    "Export `getServiceState(conversation)` returning 'resolved' when status is resolved, 'awaiting-first-reply' when no agent message exists, otherwise 'in-progress'.",
+                    "On the agent dashboard, badge every `awaiting-first-reply` conversation and add a header count of them.",
                   order: 2,
-                },
-                {
-                  description:
-                    "On the agent dashboard, show an 'Awaiting first reply' badge on every conversation whose service state is awaiting-first-reply.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "Add a header stat with the count of conversations awaiting a first reply.",
-                  order: 4,
                 },
               ],
             },
@@ -1725,23 +1771,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/lib/queue.ts` exporting `estimateWaitMinutes(position, avgHandleMinutes = 4)` that returns `position * avgHandleMinutes` and never goes negative.",
+                    "Build a `src/lib/queue.ts` module that turns a queue position into an estimated wait, plus a formatter that produces human copy and degrades safely on invalid input.",
                   order: 1,
                 },
                 {
                   description:
-                    "Export `formatWait(minutes)`: '< 1' -> 'less than a minute', '< 60' -> 'about N minutes', '>= 60' -> 'over an hour', invalid input -> ''.",
+                    "Wire it into the 'Connect with an Agent' flow on the support page so the citizen sees a live position and estimate that updates as the queue advances.",
                   order: 2,
-                },
-                {
-                  description:
-                    "In `src/app/support/page.tsx`, when the 'Connect with an Agent' form is submitted, show the citizen's queue position and a line of the form `Estimated wait: <formatWait(...)>`.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "As the queue advances, the displayed position and estimate must update.",
-                  order: 4,
                 },
               ],
             },
@@ -1778,18 +1814,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "In `src/app/agent/page.tsx`, add a global `keydown` handler (registered in `useEffect`, with cleanup) so ArrowDown / ArrowUp move the selected conversation to the next / previous row in the visible list.",
+                    "Let agents drive the dashboard from the keyboard: arrow keys move the conversation selection, a modifier+Enter sends, Escape clears the input.",
                   order: 1,
                 },
                 {
                   description:
-                    "Inside the message input, Ctrl+Enter (or Cmd+Enter) sends the current message.",
+                    "Think about scope — list navigation is global, send/clear belong to the message input — and clean up any listeners you register.",
                   order: 2,
-                },
-                {
-                  description:
-                    "Inside the message input, Escape clears the message input.",
-                  order: 3,
                 },
               ],
             },
@@ -1844,23 +1875,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "Bug A: in `src/app/agent/page.tsx`, when `agentStatus` is 'offline', disable the message input and its send button.",
+                    "An offline agent can still send replies — the status selector is cosmetic because nothing reads `agentStatus`. Make offline actually gate replying, with the exact notice copy from the issue report.",
                   order: 1,
                 },
                 {
                   description:
-                    "Bug A: while offline, show an inline notice reading exactly 'You are offline — set your status to Online to reply.'; returning to Online (or Away) re-enables replying and removes the notice.",
+                    "The unread badge never clears. Reset it where the data actually lives so the Level 3 priority sort and SLA badges recompute correctly — a detached copy will quietly break them.",
                   order: 2,
-                },
-                {
-                  description:
-                    "Bug B: when the agent opens a conversation, set that conversation's `unreadCount` to 0.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "Bug B: reset the count on the `conversations` array itself (not a detached copy) so the Level 3 priority score recomputes and the sorted list and SLA badges stay consistent; other conversations' counts must be untouched.",
-                  order: 4,
                 },
               ],
             },
@@ -1897,23 +1918,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/lib/transcript.ts` exporting `formatTranscript(conversation)`: a header line with the customer's full name, then one `[HH:MM] Role: content` line per message.",
+                    "Ship a `formatTranscript` that produces a readable plain-text transcript and never throws — even on a conversation with no messages — then expose it as an export action on the dashboard.",
                   order: 1,
                 },
                 {
                   description:
-                    "`formatTranscript` must return a string for any input, including a conversation with no messages — it must never throw.",
+                    "Replace the create-next-app README with real documentation: what the project is, how to run it, the demo credentials, and the routes.",
                   order: 2,
-                },
-                {
-                  description:
-                    "Add an 'Export Transcript' button on the agent dashboard that builds the transcript for the selected conversation with `formatTranscript`.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "Replace the create-next-app boilerplate README with project overview, demo credentials, dev workflow, and the route list.",
-                  order: 4,
                 },
               ],
             },
@@ -1968,17 +1979,17 @@ async function main() {
               create: [
                 {
                   description:
-                    "Run `npm install` and `npm run dev` inside `client/`, then open http://localhost:3000 to confirm the app loads.",
+                    "In the `client/` folder, run `npm install`, then `npm run dev`, and open http://localhost:3000 to confirm the portal loads.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create a plain TypeScript config module at `src/lib/portalConfig.ts` (not env vars) exporting `SCHOOL_NAME = 'Riverside University'`, `SCHOOL_TAGLINE = 'Learn. Grow. Graduate.'`, and `PORTAL_ACCENT = 'blue'`.",
+                    "Create `src/lib/portalConfig.ts` and export exactly three constants: `export const SCHOOL_NAME = 'Riverside University'`, `export const SCHOOL_TAGLINE = 'Learn. Grow. Graduate.'`, and `export const PORTAL_ACCENT = 'blue'`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Replace the hard-coded 'Student Portal' brand label in the dashboard header (`src/app/dashboard/layout.tsx`) with the imported `SCHOOL_NAME`.",
+                    "In `src/app/dashboard/layout.tsx`, import `SCHOOL_NAME` and use it in place of the hard-coded 'Student Portal' brand label in the header.",
                   order: 3,
                 },
               ],
@@ -2015,17 +2026,17 @@ async function main() {
               create: [
                 {
                   description:
-                    "On the login page (`src/app/login/page.tsx`), swap the `GraduationCap` icon for the `School` icon from `lucide-react`.",
+                    "In `src/app/login/page.tsx`, replace the `GraduationCap` icon import and its usage with the `School` icon from `lucide-react`.",
                   order: 1,
                 },
                 {
                   description:
-                    "Render the login page heading from `SCHOOL_NAME` instead of the hard-coded 'Student Portal'.",
+                    "On that same login page, render the portal heading from `SCHOOL_NAME` (imported from your new config module) instead of the hard-coded 'Student Portal'.",
                   order: 2,
                 },
                 {
                   description:
-                    "In `src/app/dashboard/page.tsx`, add a third line under the program/year welcome text that renders `SCHOOL_TAGLINE` in a small, muted style (`text-sm text-gray-500`).",
+                    "In `src/app/dashboard/page.tsx`, add a third line under the program/year welcome text that renders `SCHOOL_TAGLINE` with the exact classes `text-sm text-gray-500`.",
                   order: 3,
                 },
               ],
@@ -2081,17 +2092,17 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/components/InfoTooltip.tsx` accepting `label` and `children`; wrap `children` in a `<span class=\"relative inline-block group\">`.",
+                    "Create `src/components/InfoTooltip.tsx` taking `label` and `children`; wrap the children in a `relative inline-block group` span.",
                   order: 1,
                 },
                 {
                   description:
-                    "Render the label in a sibling `<span role=\"tooltip\">` hidden by default (`opacity-0 pointer-events-none`) and shown on `group-hover` (`group-hover:opacity-100`), positioned above the trigger (`absolute bottom-full mb-2`).",
+                    "Render `label` in a sibling `role=\"tooltip\"` span that is hidden by default and revealed on `group-hover` — keep it in the DOM, just visually hidden.",
                   order: 2,
                 },
                 {
                   description:
-                    "In `src/app/dashboard/standing/page.tsx`, wrap each status badge from `getStatusBadge` in an `InfoTooltip`: good -> 'Good Standing: cumulative GPA at or above 3.0.', warning -> 'Warning: GPA between 2.0 and 2.99 — improve next term.', probation -> 'Probation: GPA below 2.0 — meet your advisor.'",
+                    "In `src/app/dashboard/standing/page.tsx`, wrap each `getStatusBadge` badge in an `InfoTooltip` with the good / warning / probation label text given in levels.md.",
                   order: 3,
                 },
               ],
@@ -2129,17 +2140,17 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/components/SemesterGroup.tsx` accepting `title`, `defaultOpen = false`, and `children`; hold an internal `useState` for `open`.",
+                    "Create `src/components/SemesterGroup.tsx` taking `title`, `defaultOpen = false`, and `children`, holding its own `open` state.",
                   order: 1,
                 },
                 {
                   description:
-                    "Render a `<button aria-expanded={open}>` labelled by `title` with a `ChevronRight` rotated 90 degrees when open; conditionally render the body when `open` is true.",
+                    "Render a `<button aria-expanded={open}>` labelled by `title` with a chevron that rotates when open; render the body only while open.",
                   order: 2,
                 },
                 {
                   description:
-                    "In `src/app/dashboard/grades/page.tsx`, inside the All Semesters tab, group rows by `${semester} — ${academicYear}` and render one `SemesterGroup` per group; the first group is `defaultOpen`.",
+                    "In `src/app/dashboard/grades/page.tsx`, group the All Semesters rows by `semester + academicYear` and render one `SemesterGroup` each — the first `defaultOpen`.",
                   order: 3,
                 },
               ],
@@ -2195,23 +2206,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "In `src/lib/mockData.ts`, export `computeGPABySemester(gradeList)` returning `SemesterGPA[]` ({ semester, academicYear, gpa, units }), grouping grades by `(semester, academicYear)`.",
+                    "In `src/lib/mockData.ts`, add `computeGPABySemester(gradeList)` returning one units-weighted `SemesterGPA` per `(semester, academicYear)`, sorted chronologically (levels.md has the letter-grade points map).",
                   order: 1,
                 },
                 {
                   description:
-                    "Use the points map A=4.0, A-=3.7, B+=3.3, B=3.0, B-=2.7, C+=2.3, C=2.0, C-=1.7, D+=1.3, D=1.0, F=0.0; each `gpa` is units-weighted and rounded to 2 decimals.",
+                    "On the standing page, add a 'GPA by Semester' card below Degree Progress — one row per entry with the term, the 2-decimal GPA, and a proportional bar.",
                   order: 2,
-                },
-                {
-                  description:
-                    "Sort results chronologically — older `academicYear` first, then 1st Semester before 2nd Semester.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "In `src/app/dashboard/standing/page.tsx`, add a 'GPA by Semester' card below Degree Progress with one row per entry: `${semester} ${academicYear}`, the 2-decimal GPA, and a bar filling `(gpa / 4.0) * 100%` (`bg-blue-600`).",
-                  order: 4,
                 },
               ],
             },
@@ -2248,23 +2249,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/components/ui/progress.tsx` exporting `Progress({ value, max = 100, className })`.",
+                    "Create `src/components/ui/progress.tsx` exporting `Progress({ value, max = 100, className })` — an outer `role=\"progressbar\"` with the aria-value attributes and a clamped inner fill div.",
                   order: 1,
                 },
                 {
                   description:
-                    "Outer `<div role=\"progressbar\" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>` with an inner fill div whose width is `(value / max) * 100%`; clamp values outside `[0, max]` so the bar never overflows.",
+                    "Swap the hand-rolled bar in the standing page's Degree Progress card for `<Progress>`, and add a Degree Progress card to the dashboard that uses it too.",
                   order: 2,
-                },
-                {
-                  description:
-                    "Replace the hand-rolled progress bar in the Degree Progress card on the standing page with `<Progress value={earnedCredits} max={totalCredits} />`.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "On `src/app/dashboard/page.tsx`, add a 'Degree Progress' card under the Tuition Summary card showing `<Progress>` plus the percentage label.",
-                  order: 4,
                 },
               ],
             },
@@ -2319,23 +2310,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "Create `src/app/dashboard/courses/[courseCode]/page.tsx` as a client component receiving `{ params: { courseCode: string } }`; decode the `courseCode` param.",
+                    "Add a dynamic course-detail route under `src/app/dashboard/courses/` that decodes its `courseCode` param, looks up the matching grade and schedule entry, and renders the course's details — or a 'Course not found' fallback that links back to grades.",
                   order: 1,
                 },
                 {
                   description:
-                    "Look up the matching `Grade` (most recent if multiple) and `ScheduleItem`; render a card with course code, name, grade in a `<Badge>`, units, semester, academic year, day/time/room, and professor.",
+                    "Give every grades-table row a 'View Details' link into that route, URL-encoding the course code.",
                   order: 2,
-                },
-                {
-                  description:
-                    "If no grade match exists, render 'Course not found' and a link back to `/dashboard/grades`.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "On `src/app/dashboard/grades/page.tsx`, add an Actions column to both tab tables with a `<Link>` reading 'View Details' to `/dashboard/courses/${encodeURIComponent(courseCode)}`.",
-                  order: 4,
                 },
               ],
             },
@@ -2372,23 +2353,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "Build `src/components/ui/modal.tsx` exporting `Modal({ open, onClose, children })`: returns null when closed; when open renders a fixed overlay with `role=\"dialog\"` and `aria-modal=\"true\"`; clicking the overlay (not the inner panel) calls `onClose`.",
+                    "Build a reusable `Modal` primitive that only renders when open, exposes `role=\"dialog\"` / `aria-modal`, and closes on overlay (not panel) click.",
                   order: 1,
                 },
                 {
                   description:
-                    "Build `src/components/RequestDocumentDialog.tsx` using `Modal` to walk three internally-managed steps.",
+                    "Use it for a `RequestDocumentDialog` that walks three steps — choose type, enter purpose, confirm — with the button gating from levels.md and a generated `REQ-XXXXXX` reference; trigger it from a button on the dashboard.",
                   order: 2,
-                },
-                {
-                  description:
-                    "Step 1 — radios for Transcript / Enrollment Certificate / Good Moral Certificate, with Next disabled until a type is chosen. Step 2 — a purpose `<textarea>`, a Back button, and a Submit disabled until the textarea has >= 10 characters.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "Step 3 — show 'Request submitted!', the chosen type, the purpose, and a generated `REQ-XXXXXX` reference (six uppercase alphanumerics), plus a Done button. Add a `Request Document` button near the top of `src/app/dashboard/page.tsx` that opens the dialog.",
-                  order: 4,
                 },
               ],
             },
@@ -2443,23 +2414,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "In `src/lib/mockData.ts`, export `computeCurrentSemesterUnits(gradeList)` summing `units` for grades whose `(semester, academicYear)` matches `currentStanding`.",
+                    "'Total Units' and 'Earned Credits' are frozen because they read hard-coded fields. Derive them instead — two pure helpers in `mockData.ts`, one for current-semester units, one for passing (non-F) credits.",
                   order: 1,
                 },
                 {
                   description:
-                    "Export `computeEarnedCredits(gradeList)` summing `units` for every grade that is not `F` (passing grades only).",
+                    "Replace every read of the frozen `currentStanding` fields on the standing and dashboard pages with the computed values — including the credits-needed and completion-rate math.",
                   order: 2,
-                },
-                {
-                  description:
-                    "In `src/app/dashboard/standing/page.tsx`, replace every read of `currentStanding.totalUnits` with `computeCurrentSemesterUnits(grades)` and `currentStanding.earnedCredits` with `computeEarnedCredits(grades)`; the `creditsNeeded` and `completionRate` math must use the computed earned credits.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "In `src/app/dashboard/page.tsx`, replace `currentStanding.totalUnits` in the Total Units stat with `computeCurrentSemesterUnits(grades)` and use `computeEarnedCredits(grades)` for the Academic Standing card.",
-                  order: 4,
                 },
               ],
             },
@@ -2496,23 +2457,13 @@ async function main() {
               create: [
                 {
                   description:
-                    "In `src/app/dashboard/layout.tsx`, add a 'Skip to main content' link as the first focusable element, pointing to `#main-content`, `sr-only` by default and `focus:not-sr-only` on focus; give `<main>` `id=\"main-content\"` and `tabIndex={-1}`.",
+                    "Work the accessibility audit in `src/app/dashboard/layout.tsx`: a skip link as the first focusable element, a focusable `#main-content` main landmark, a labelled navigation landmark, and `aria-current` on the active sidebar item.",
                   order: 1,
                 },
                 {
                   description:
-                    "Add `role=\"navigation\"` and `aria-label=\"Primary\"` to the sidebar `<nav>`, and set `aria-current=\"page\"` on the active sidebar item when `pathname === item.href`.",
+                    "Give every icon-only button an accessible name, and make sure the header is a banner landmark that exposes the school name to screen readers.",
                   order: 2,
-                },
-                {
-                  description:
-                    "Add `aria-label=\"Toggle sidebar\"` to the menu button and `aria-label=\"Sign out\"` to the logout button.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "Give the `<header>` `role=\"banner\"` and add an `<h1 class=\"sr-only\">` carrying the current school name (visible brand text stays as-is).",
-                  order: 4,
                 },
               ],
             },
