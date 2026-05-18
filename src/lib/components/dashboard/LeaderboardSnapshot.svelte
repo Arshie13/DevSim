@@ -80,13 +80,14 @@
 
   <!-- View Full Leaderboard Button -->
   <div class="px-2 pb-2">
-    <button 
-      class="btn-cyber btn-cyber-outline w-full !py-2 group"
+    <a
+      href="/leaderboards"
+      class="btn-cyber btn-cyber-outline w-full !py-2 group inline-flex items-center justify-center gap-1"
     >
       <span class="text-[10px] group-hover:text-obsidian-bg transition-colors">
         View Full Leaderboard
       </span>
       <ChevronRight class="w-2.5 h-2.5 inline-block group-hover:translate-x-0.5 transition-all" />
-    </button>
+    </a>
   </div>
 </div>
