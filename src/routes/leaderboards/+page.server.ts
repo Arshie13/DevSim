@@ -30,7 +30,7 @@ export const load: PageServerLoad = async (event) => {
       rank: idx + 1,
       username: u.username ?? u.name ?? "",
       name: u.name ?? undefined,
-      avatar: u.owned_avatars[0] || u.image || "",
+      avatar: u.image || u.owned_avatars[0] || "",
       xp: u.xp,
       level: u.level,
       isCurrentUser: u.id === session.user!.id,
@@ -60,7 +60,7 @@ export const load: PageServerLoad = async (event) => {
           rank: higherCount + 1,
           username: me.username ?? me.name ?? "",
           name: me.name ?? undefined,
-          avatar: me.owned_avatars[0] || me.image || "",
+          avatar: me.image || me.owned_avatars[0] || "",
           xp: me.xp,
           level: me.level,
           isCurrentUser: true,
@@ -79,10 +79,10 @@ export const load: PageServerLoad = async (event) => {
       user: {
         ...session.user,
         avatar:
-          dbUser?.owned_avatars[0] ||
           dbUser?.image ||
-          session.user.avatar ||
-          session.user.image,
+          dbUser?.owned_avatars[0] ||
+          session.user.image ||
+          session.user.avatar,
       },
       userCoins: dbUser?.coins ?? 0,
     };

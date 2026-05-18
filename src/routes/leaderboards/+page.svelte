@@ -4,6 +4,7 @@
   import { elasticOut, backOut } from "svelte/easing";
   import Header from "$lib/components/Header.svelte";
   import type { LeaderboardEntry, UserData } from "$types";
+  import { computeLevel } from "$lib/utils/level";
 
   export let data: {
     entries: LeaderboardEntry[];
@@ -129,10 +130,11 @@
             <!-- #2 Silver -->
             {#if topThree[1]}
               {@const entry = topThree[1]}
+              {@const levelInfo = computeLevel(entry.xp)}
               <div class="flex-1 max-w-[280px]">
                 <div
-                  class="card-cyber border rounded-card overflow-hidden relative group hover:-translate-y-2 transition-all duration-500 {getRankBorder(2)}"
-                  style="background: linear-gradient(180deg, rgba(192,192,192,0.08) 0%, var(--bg-light) 100%);"
+                  class="card-cyber border rounded-card relative group hover:-translate-y-2 transition-all duration-500 {getRankBorder(2)}"
+                  style="overflow: visible; background: linear-gradient(180deg, rgba(192,192,192,0.08) 0%, var(--bg-light) 100%);"
                   in:fly={{ y: 40, delay: 300, duration: 600, easing: elasticOut }}
                 >
                   <!-- Rank Crown -->
@@ -162,8 +164,11 @@
                     <div class="text-center mb-4">
                       <p class="text-base font-heading font-bold text-[var(--text-primary)] truncate">
                         {entry.name ?? entry.username}
+                        {#if entry.isCurrentUser}
+                          <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
+                        {/if}
                       </p>
-                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-1">Level {entry.level}</p>
+                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-1">Level {levelInfo.level}</p>
                     </div>
 
                     <!-- XP Display -->
@@ -175,9 +180,9 @@
 
                     <!-- XP Progress Bar -->
                     <div class="xp-track mb-2">
-                      <div class="xp-fill" style="width: {(entry.xp % 1000) / 10}%; background: linear-gradient(90deg, #c0c0c0, #e8e8e8); box-shadow: 0 0 8px rgba(192,192,192,0.4);"></div>
+                      <div class="xp-fill" style="width: {Math.min((levelInfo.xpIntoLevel / levelInfo.xpForLevel) * 100, 100)}%; background: linear-gradient(90deg, #c0c0c0, #e8e8e8); box-shadow: 0 0 8px rgba(192,192,192,0.4);"></div>
                     </div>
-                    <p class="text-[10px] font-label text-[var(--text-muted)] text-center uppercase tracking-wider">{entry.xp % 1000}/1000 to next level</p>
+                    <p class="text-[10px] font-label text-[var(--text-muted)] text-center uppercase tracking-wider">{levelInfo.xpIntoLevel}/{levelInfo.xpForLevel} to next level</p>
                   </div>
 
                   <!-- Podium Base -->
@@ -189,10 +194,11 @@
             <!-- #1 Gold (Center, Elevated) -->
             {#if topThree[0]}
               {@const entry = topThree[0]}
+              {@const levelInfo = computeLevel(entry.xp)}
               <div class="flex-1 max-w-[300px] -mt-8">
                 <div
-                  class="card-cyber border rounded-card overflow-hidden relative group hover:-translate-y-3 transition-all duration-500 {getRankBorder(1)}"
-                  style="background: linear-gradient(180deg, rgba(255,215,0,0.12) 0%, var(--bg-light) 100%);"
+                  class="card-cyber border rounded-card relative group hover:-translate-y-3 transition-all duration-500 {getRankBorder(1)}"
+                  style="overflow: visible; background: linear-gradient(180deg, rgba(255,215,0,0.12) 0%, var(--bg-light) 100%);"
                   in:scale={{ delay: 400, duration: 600, easing: elasticOut }}
                 >
                   <!-- Glow Effect -->
@@ -229,8 +235,11 @@
                     <div class="text-center mb-5">
                       <p class="text-lg font-heading font-bold text-[#ffd700] truncate">
                         {entry.name ?? entry.username}
+                        {#if entry.isCurrentUser}
+                          <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
+                        {/if}
                       </p>
-                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-1">Level {entry.level} · Elite Developer</p>
+                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-1">Level {levelInfo.level}</p>
                     </div>
 
                     <!-- XP Display -->
@@ -242,9 +251,9 @@
 
                     <!-- XP Progress Bar -->
                     <div class="xp-track mb-2">
-                      <div class="xp-fill" style="width: {(entry.xp % 1000) / 10}%; background: linear-gradient(90deg, #ffd700, #ffed4e); box-shadow: 0 0 12px rgba(255,215,0,0.5);"></div>
+                      <div class="xp-fill" style="width: {Math.min((levelInfo.xpIntoLevel / levelInfo.xpForLevel) * 100, 100)}%; background: linear-gradient(90deg, #ffd700, #ffed4e); box-shadow: 0 0 12px rgba(255,215,0,0.5);"></div>
                     </div>
-                    <p class="text-[10px] font-label text-[var(--text-muted)] text-center uppercase tracking-wider">{entry.xp % 1000}/1000 to next level</p>
+                    <p class="text-[10px] font-label text-[var(--text-muted)] text-center uppercase tracking-wider">{levelInfo.xpIntoLevel}/{levelInfo.xpForLevel} to next level</p>
                   </div>
 
                   <!-- Podium Base -->
@@ -256,10 +265,11 @@
             <!-- #3 Bronze -->
             {#if topThree[2]}
               {@const entry = topThree[2]}
+              {@const levelInfo = computeLevel(entry.xp)}
               <div class="flex-1 max-w-[280px]">
                 <div
-                  class="card-cyber border rounded-card overflow-hidden relative group hover:-translate-y-2 transition-all duration-500 {getRankBorder(3)}"
-                  style="background: linear-gradient(180deg, rgba(205,127,50,0.08) 0%, var(--bg-light) 100%);"
+                  class="card-cyber border rounded-card relative group hover:-translate-y-2 transition-all duration-500 {getRankBorder(3)}"
+                  style="overflow: visible; background: linear-gradient(180deg, rgba(205,127,50,0.08) 0%, var(--bg-light) 100%);"
                   in:fly={{ y: 40, delay: 500, duration: 600, easing: elasticOut }}
                 >
                   <!-- Rank Badge -->
@@ -289,8 +299,11 @@
                     <div class="text-center mb-4">
                       <p class="text-base font-heading font-bold text-[var(--text-primary)] truncate">
                         {entry.name ?? entry.username}
+                        {#if entry.isCurrentUser}
+                          <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
+                        {/if}
                       </p>
-                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-1">Level {entry.level}</p>
+                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-1">Level {levelInfo.level}</p>
                     </div>
 
                     <!-- XP Display -->
@@ -302,9 +315,9 @@
 
                     <!-- XP Progress Bar -->
                     <div class="xp-track mb-2">
-                      <div class="xp-fill" style="width: {(entry.xp % 1000) / 10}%; background: linear-gradient(90deg, #cd7f32, #e8a862); box-shadow: 0 0 8px rgba(205,127,50,0.4);"></div>
+                      <div class="xp-fill" style="width: {Math.min((levelInfo.xpIntoLevel / levelInfo.xpForLevel) * 100, 100)}%; background: linear-gradient(90deg, #cd7f32, #e8a862); box-shadow: 0 0 8px rgba(205,127,50,0.4);"></div>
                     </div>
-                    <p class="text-[10px] font-label text-[var(--text-muted)] text-center uppercase tracking-wider">{entry.xp % 1000}/1000 to next level</p>
+                    <p class="text-[10px] font-label text-[var(--text-muted)] text-center uppercase tracking-wider">{levelInfo.xpIntoLevel}/{levelInfo.xpForLevel} to next level</p>
                   </div>
 
                   <!-- Podium Base -->
@@ -328,6 +341,7 @@
           <div class="card-cyber border rounded-card overflow-hidden" style="border-color: var(--card-border);">
             <div class="p-3 space-y-2">
               {#each restOfList as entry, index (entry.rank)}
+                {@const levelInfo = computeLevel(entry.xp)}
                 <div
                   class="flex items-center gap-4 px-5 py-3.5 rounded-card border transition-all duration-300 hover:translate-x-2 hover:bg-[var(--accent-dim)]/50 {entry.isCurrentUser ? 'bg-[var(--accent-dim)] border-[var(--accent)]/40 shadow-[0_0_15px_rgba(7,165,201,0.2)]' : 'border-transparent hover:border-[var(--accent)]/20'}"
                   in:fly={{ y: 20, delay: 700 + (index * 50), duration: 400, easing: elasticOut }}
@@ -360,10 +374,10 @@
                       {/if}
                     </p>
                     <div class="flex items-center gap-3 mt-1">
-                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider">Level {entry.level}</p>
+                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider">Level {levelInfo.level}</p>
                       <!-- XP Progress Bar (Mini) -->
                       <div class="flex-1 max-w-[120px] xp-track">
-                        <div class="xp-fill" style="width: {(entry.xp % 1000) / 10}%;"></div>
+                        <div class="xp-fill" style="width: {Math.min((levelInfo.xpIntoLevel / levelInfo.xpForLevel) * 100, 100)}%;"></div>
                       </div>
                     </div>
                   </div>
@@ -382,6 +396,7 @@
 
             <!-- Current User (outside top 10) -->
             {#if data.currentUserEntry && !data.entries.find(e => e.isCurrentUser)}
+              {@const levelInfo = computeLevel(data.currentUserEntry.xp)}
               <div class="px-3 pb-3 pt-2 border-t border-[var(--card-border)]" in:fade={{ delay: 400, duration: 400 }}>
                 <p class="text-[10px] font-label text-[var(--text-muted)] uppercase tracking-widest mb-2 px-2 flex items-center gap-2">
                   <TrendingUp size={12} />
@@ -407,9 +422,9 @@
                       <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                     </p>
                     <div class="flex items-center gap-3 mt-1">
-                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider">Level {data.currentUserEntry.level}</p>
+                      <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider">Level {levelInfo.level}</p>
                       <div class="flex-1 max-w-[120px] xp-track">
-                        <div class="xp-fill" style="width: {(data.currentUserEntry.xp % 1000) / 10}%;"></div>
+                        <div class="xp-fill" style="width: {Math.min((levelInfo.xpIntoLevel / levelInfo.xpForLevel) * 100, 100)}%;"></div>
                       </div>
                     </div>
                   </div>

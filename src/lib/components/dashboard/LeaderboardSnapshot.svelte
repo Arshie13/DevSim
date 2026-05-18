@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Trophy, Crown, Medal, ChevronRight, Zap } from "lucide-svelte";
   import type { LeaderboardEntry } from "$types";
+  import { computeLevel } from "$lib/utils/level";
 
   export let entries: LeaderboardEntry[];
 
@@ -49,6 +50,7 @@
   <div class="p-2 space-y-1.5">
     {#each entries as entry}
       {@const rankInfo = getRankIcon(entry.rank)}
+      {@const levelInfo = computeLevel(entry.xp)}
       <div 
         class="flex items-center gap-2.5 px-3 py-2 rounded-card border transition-all duration-300 hover:translate-x-1 {entry.isCurrentUser ? 'bg-[var(--accent-dim)] border-[var(--accent)]/40 shadow-[0_0_10px_rgba(7,165,201,0.15)]' : getRankBorder(entry.rank) + ' hover:border-[var(--accent)]/20'}"
       >
@@ -84,9 +86,9 @@
             {/if}
           </p>
           <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-[10px] font-label text-[var(--text-muted)]">Lvl {entry.level}</span>
+            <span class="text-[10px] font-label text-[var(--text-muted)]">Lvl {levelInfo.level}</span>
             <div class="flex-1 max-w-[60px] xp-track">
-              <div class="xp-fill" style="width: {(entry.xp % 1000) / 10}%;"></div>
+              <div class="xp-fill" style="width: {Math.min((levelInfo.xpIntoLevel / levelInfo.xpForLevel) * 100, 100)}%;"></div>
             </div>
           </div>
         </div>
