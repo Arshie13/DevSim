@@ -5,7 +5,7 @@
   const questions = [
     { id: 1, question: "How familiar are you with HTML and CSS for creating web page layouts?" },
     { id: 2, question: "What's your experience level with JavaScript for web interactivity?" },
-    { id: 3, question: "How comfortable are you with backend development using Node.js/Express?" },
+    { id: 3, question: "How comfortable are you with development using Next.js and Postgres?" },
     { id: 4, question: "What's your familiarity with databases and data management?" },
     { id: 5, question: "How much do you know about integrating frontend and backend systems?" },
     { id: 6, question: "How familiar are you with building and consuming APIs?" },
@@ -21,6 +21,15 @@
     { id: 4, title: "Databases Basics for Beginners", description: "A database tutorial video teaching about queries, joins, and managing relational databases from scratch", url: "https://www.youtube.com/watch?v=5OdVJbNCSso" },
     { id: 5, title: "API Basics for Beginners", description: "Learn what an API is and how it works.", url: "https://www.youtube.com/watch?v=ByGJQzlzxQg" },
     { id: 6, title: "Coding Best Practices for Beginners", description: "An overview of clean code habits such as naming, structure, and writing maintainable code", url: "https://www.youtube.com/watch?v=7dGfe8eJDSU" }
+  ];
+
+  // Official docs for the technologies used across the simulator stacks.
+  const referenceDocs = [
+    { id: 1, title: "MDN Web Docs", description: "HTML, CSS, and JavaScript fundamentals — the basics the quiz covers", url: "https://developer.mozilla.org/" },
+    { id: 2, title: "Next.js Docs", description: "Official documentation for Next.js — used in 3 of 5 simulator stacks", url: "https://nextjs.org/docs" },
+    { id: 3, title: "React Docs", description: "Official React documentation — underpins Next.js and the React stack", url: "https://react.dev/" },
+    { id: 4, title: "PostgreSQL Docs", description: "Official documentation for PostgreSQL — used in 3 of 5 simulator stacks", url: "https://www.postgresql.org/docs/" },
+    { id: 5, title: "Prisma Docs", description: "Official documentation for the Prisma ORM — used in 2 of 5 simulator stacks", url: "https://www.prisma.io/docs" }
   ];
 
   const scaleOptions = [
@@ -266,36 +275,18 @@
             <div class="text-left mb-10">
               <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-4">DOCUMENTATION & REFERENCE</h3>
               <div class="space-y-4">
-                <a href="https://developer.mozilla.org/" target="_blank" rel="noopener noreferrer"
-                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
-                  <div class="flex items-start gap-3">
-                    <span class="text-[var(--accent)] text-xl">📖</span>
-                    <div>
-                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">MDN Web Docs</h4>
-                      <p class="text-[var(--text-muted)] text-sm">Comprehensive documentation for HTML, CSS, JavaScript</p>
+                {#each referenceDocs as doc}
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                     class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
+                    <div class="flex items-start gap-3">
+                      <span class="text-[var(--accent)] text-xl">📖</span>
+                      <div>
+                        <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">{doc.title}</h4>
+                        <p class="text-[var(--text-muted)] text-sm">{doc.description}</p>
+                      </div>
                     </div>
-                  </div>
-                </a>
-                <a href="https://nodejs.org/docs/" target="_blank" rel="noopener noreferrer"
-                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
-                  <div class="flex items-start gap-3">
-                    <span class="text-[var(--accent)] text-xl">📖</span>
-                    <div>
-                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">Node.js Docs</h4>
-                      <p class="text-[var(--text-muted)] text-sm">Official documentation for Node.js runtime</p>
-                    </div>
-                  </div>
-                </a>
-                <a href="https://expressjs.com/" target="_blank" rel="noopener noreferrer"
-                   class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
-                  <div class="flex items-start gap-3">
-                    <span class="text-[var(--accent)] text-xl">📖</span>
-                    <div>
-                      <h4 class="font-mono text-sm font-semibold text-[var(--text-primary)]">Express.js Docs</h4>
-                      <p class="text-[var(--text-muted)] text-sm">Official guide for Express web framework</p>
-                    </div>
-                  </div>
-                </a>
+                  </a>
+                {/each}
               </div>
             </div>
 
