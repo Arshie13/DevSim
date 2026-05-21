@@ -15,16 +15,29 @@ export interface DashboardTourStep {
   preferSide?: 'auto' | 'top' | 'bottom' | 'left' | 'right';
   /** If true, applies an extra pulse glow to the target element during this step. */
   highlightTarget?: boolean;
+  /** If true, the tour will request the stats drawer to open before measuring. */
+  openDrawer?: boolean;
+  /** If true, the tour will request the stats drawer to close before measuring. */
+  closeDrawer?: boolean;
 }
 
 export const DASHBOARD_TOUR_STEPS: DashboardTourStep[] = [
   {
-    id: 'dashboard-welcome',
-    title: 'Welcome to Your Hub',
+    id: 'dashboard-header',
+    title: 'Navigation Bar',
     description:
-      'This is your command center. Track progress, manage sprints, and level up your developer skills.',
-    target: 'dashboard-welcome',
+      'Your command center. Access stats, check your coins, and manage your profile from here.',
+    target: 'dashboard-header',
     preferSide: 'bottom',
+  },
+  {
+    id: 'dashboard-stats-drawer',
+    title: 'Stats & Activity',
+    description:
+      'View your performance overview, weekly activity, leaderboard position, and recent achievements.',
+    target: 'dashboard-stats-drawer',
+    preferSide: 'left',
+    openDrawer: true,
   },
   {
     id: 'dashboard-kpis',
@@ -33,6 +46,7 @@ export const DASHBOARD_TOUR_STEPS: DashboardTourStep[] = [
       'KPIs show completed stacks, total XP, day streaks, and achievements at a glance.',
     target: 'dashboard-kpis',
     preferSide: 'bottom',
+    closeDrawer: true,
   },
   {
     id: 'dashboard-current-stacks',

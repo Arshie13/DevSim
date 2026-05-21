@@ -9,7 +9,7 @@
   /** Which step to start on (zero-based). */
   export let startStep: number = 0;
 
-  const dispatch = createEventDispatcher<{ complete: void; skip: void }>();
+  const dispatch = createEventDispatcher<{ complete: void; skip: void; openDrawer: void; closeDrawer: void }>();
   const ACCENT = '#07a5c9';
 
   // ── State ──
@@ -118,6 +118,41 @@
   /** Measure the target element and compute spotlight + callout positions. */
   async function positionForStep(idx: number) {
     const step = DASHBOARD_TOUR_STEPS[idx];
+
+    // ── Simultaneous drawer + spotlight transitions ──
+    if (step.openDrawer) {
+      // Start opening drawer AND immediately position spotlight at its final location
+      dispatch('openDrawer');
+
+      // Drawer is fixed top-0 right-0, max-w-2xl (672px). Compute final rect.
+      const drawerWidth = Math.min(window.innerWidth, 672);
+      const drawerRect = {
+        top: 0,
+        left: window.innerWidth - drawerWidth,
+        right: window.innerWidth,
+        bottom: window.innerHeight,
+        width: drawerWidth,
+        height: window.innerHeight,
+      } as DOMRect;
+      resolvePlacement(drawerRect, step.preferSide);
+
+      // Wait one tick for the drawer element to enter the DOM, then apply highlight
+      await tick();
+      if (step.highlightTarget) {
+        const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`);
+        if (el) applyHighlight(el);
+      } else {
+        clearHighlight();
+      }
+      return;
+    }
+
+    if (step.closeDrawer) {
+      // Start closing drawer AND immediately move spotlight to next target
+      dispatch('closeDrawer');
+    }
+
+    // Normal measurement
     const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`);
 
     if (!el) {

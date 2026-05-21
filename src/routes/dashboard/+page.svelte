@@ -83,7 +83,7 @@
 
     function onWelcomeHighlightStack() {
       tourMode = 'highlight';
-      tourStartStep = 4; // index of dashboard-start-stack-btn step
+      tourStartStep = 5; // index of dashboard-start-stack-btn step (last of 6)
       onboardingPhase = 'tour';
     }
 
@@ -158,7 +158,7 @@
   <main class="relative z-10 py-6">
     <div class="max-w-[1200px] mx-auto px-6">
     <!-- Top Section: Welcome + New Stack Button -->
-    <div class="flex items-center justify-between mb-4 lg:mb-6" data-tour="dashboard-welcome">
+    <div class="flex items-center justify-between mb-4 lg:mb-6">
       <div>
         <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
           {#if shouldShowOnboarding}
@@ -251,6 +251,8 @@
           allowSkip={true}
           on:complete={onTourComplete}
           on:skip={onTourSkip}
+          on:openDrawer={() => { isStatsDrawerOpen = true; }}
+          on:closeDrawer={() => { isStatsDrawerOpen = false; }}
         />
      {/if}
    {/if}

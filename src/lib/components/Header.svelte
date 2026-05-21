@@ -20,7 +20,7 @@
 
 </script>
 
-<header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50">
+<header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50" data-tour="dashboard-header">
   <div class="w-full max-w-[1200px] px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between mx-auto">
     <!-- Logo -->
     <div class="flex items-center gap-3">

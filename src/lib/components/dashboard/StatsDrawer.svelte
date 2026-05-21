@@ -45,6 +45,7 @@
   <!-- Drawer -->
   <div
     class="fixed top-0 right-0 h-full w-full max-w-2xl bg-obsidian-bg border-l border-obsidian-accent/20 z-50 shadow-[-10px_0_50px_rgba(0,0,0,0.5),0_0_40px_rgba(7,165,201,0.08)]"
+    data-tour="dashboard-stats-drawer"
     transition:fly={{ x: 500, duration: 300 }}
   >
     <!-- Header -->
