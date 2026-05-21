@@ -16,4 +16,7 @@ export interface UserData {
 
   // Tutorial
   hasCompletedTutorial: boolean;
+
+  // Dashboard onboarding
+  hasSeenDashboardOnboarding?: boolean;
 }

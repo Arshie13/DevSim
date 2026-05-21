@@ -46,6 +46,9 @@ model user {
   // Tutorial
   has_completed_tutorial Boolean @default(false)
 
+  // Dashboard onboarding
+  has_seen_dashboard_onboarding Boolean @default(false)
+
   // Relations
   daily_login   daily_login?       @relation
   workspaces   workspace[]
