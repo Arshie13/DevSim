@@ -72,29 +72,4 @@ export const actions: Actions = {
       return fail(500, { message: 'Failed to reset Docker containers. Check server logs.' });
     }
   },
-
-  forceNewSeason: async ({ locals }) => {
-    const session = await locals.auth();
-    
-    if (!session?.user) {
-      throw redirect(303, '/login');
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    });
-
-    if (!dbUser || dbUser.role !== 'ADMIN') {
-      throw redirect(303, '/');
-    }
-
-    try {
-      const newSeason = await seasonService.forceStartNewSeason();
-      return { success: true, season: newSeason };
-    } catch (error) {
-      console.error('Error creating new season:', error);
-      return fail(500, { message: 'Failed to start new season' });
-    }
-  }
 };

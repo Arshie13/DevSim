@@ -1,7 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
-import { XPEventService } from '$lib/layers/service/XPEventService';
 
 const REWARD_SCHEDULE = [
   { day: 1, coins: 50,  xp: 10 },
@@ -101,18 +100,6 @@ export const POST: RequestHandler = async (event) => {
 
       return { daily, updatedUser, reward };
     });
-
-   // Award seasonal XP for daily login (Learner's Pass)
-   try {
-     const xpService = new XPEventService();
-     await xpService.awardXP({
-       userId,
-       amount: 25,
-       source: 'daily_login'
-     });
-   } catch (err) {
-     console.error('Failed to award pass XP for daily login:', err);
-   }
 
     return Response.json({
       success: true,

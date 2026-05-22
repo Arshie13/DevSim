@@ -1,6 +1,5 @@
 import { UserDataAccess } from '../data-access/UserDataAccess';
 import { ContainerService } from './ContainerService';
-import { AIHelpLimitService } from './AIHelpLimitService';
 
 const QUICK_HINT_COST = 100;
 const CHAT_HINT_COST = 200;
@@ -34,7 +33,6 @@ export class HintService {
   constructor(
     private readonly userDataAccess = new UserDataAccess(),
     private readonly containerService = new ContainerService(),
-    private readonly aiHelpLimitService = new AIHelpLimitService()
   ) {}
 
   async processHint(request: HintRequest): Promise<HintResult> {
@@ -98,17 +96,6 @@ export class HintService {
        };
      }
 
-      // Check AI help availability (credits first, then daily limit)
-      const consumeResult = await this.aiHelpLimitService.consumeHelp(userId);
-      if (!consumeResult.consumed) {
-        return {
-          success: false,
-          error: `Daily AI help limit reached (${consumeResult.dailyRemaining}/${consumeResult.limit}). Your limit will reset at midnight UTC.`,
-          coinsRemaining: userResult.coins,
-          aiHelpsRemaining: { today: 0, total: consumeResult.limit }
-        };
-      }
-
       // Deduct coins
       const deductResult = await this.userDataAccess.deductCoins(userId, totalCost);
       if (!deductResult.success) {
@@ -117,7 +104,6 @@ export class HintService {
         return { success: false, error: 'Failed to deduct coins' };
       }
       const newCoinBalance = deductResult.coins;
-    const originalCoinBalance = userResult.coins;
 
     try {
       // Get file contents if needed
@@ -140,11 +126,7 @@ export class HintService {
          success: true,
          hint: hint.trim(),
          coinsSpent: totalCost,
-         coinsRemaining: newCoinBalance,
-         aiHelpsRemaining: {
-           today: consumeResult.dailyRemaining,
-           total: consumeResult.limit
-         }
+         coinsRemaining: newCoinBalance
        };
     } catch (error) {
       // Refund coins on error

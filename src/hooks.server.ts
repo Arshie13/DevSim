@@ -1,14 +1,7 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { handle as authHandle } from './auth';
 import type { Handle } from '@sveltejs/kit';
-import { startSeasonCron } from '$lib/server/cron/season';
 import { cleanupRatelimiter } from '$lib/server/ratelimit';
-
-// Start season management cron job (runs in both dev and prod)
-// Disable with SEASON_CRON_ENABLED=false
-if (process.env.NODE_ENV !== 'test' && process.env.SEASON_CRON_ENABLED !== 'false') {
-  startSeasonCron();
-}
 
 // Start rate limiter cleanup (removes expired rate limit entries)
 if (process.env.NODE_ENV !== 'test') {
