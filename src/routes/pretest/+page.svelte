@@ -5,7 +5,7 @@
   const questions = [
     { id: 1, question: "How familiar are you with HTML and CSS for creating web page layouts?" },
     { id: 2, question: "What's your experience level with JavaScript for web interactivity?" },
-    { id: 3, question: "How comfortable are you with development using Next.js and Postgres?" },
+    { id: 3, question: "How comfortable are you with development using stack combos like Next.js and Postgres?" },
     { id: 4, question: "What's your familiarity with databases and data management?" },
     { id: 5, question: "How much do you know about integrating frontend and backend systems?" },
     { id: 6, question: "How familiar are you with building and consuming APIs?" },
