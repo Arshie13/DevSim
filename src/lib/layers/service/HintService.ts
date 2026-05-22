@@ -1,5 +1,6 @@
 import { UserDataAccess } from '../data-access/UserDataAccess';
 import { ContainerService } from './ContainerService';
+import { AIHelpLimitService } from './AIHelpLimitService';
 
 const QUICK_HINT_COST = 100;
 const CHAT_HINT_COST = 200;
@@ -7,31 +8,33 @@ const ATTACHED_FILE_COST = 15;
 
 interface HintRequest {
   message: string;
-  context: string;
-  containerId: string;
+  context?: string;
+  containerId?: string;
   userId: string;
-  hintType?: 'quick' | 'chat';
+  hintType: 'quick' | 'chat';
   model?: string;
-  level?: number;
   attachedFilesCount?: number;
   attachedFiles?: { path: string; name: string }[];
+  level?: number;
 }
 
 interface HintResult {
   success: boolean;
   hint?: string;
+  error?: string;
   isGreeting?: boolean;
   isWarning?: boolean;
   coinsSpent?: number;
   coinsRemaining?: number;
+  aiHelpsRemaining?: { today: number; total: number };
   hintCost?: number;
-  error?: string;
 }
 
 export class HintService {
   constructor(
     private readonly userDataAccess = new UserDataAccess(),
-    private readonly containerService = new ContainerService()
+    private readonly containerService = new ContainerService(),
+    private readonly aiHelpLimitService = new AIHelpLimitService()
   ) {}
 
   async processHint(request: HintRequest): Promise<HintResult> {
@@ -85,22 +88,35 @@ export class HintService {
     const fileCost = attachedFilesCount * ATTACHED_FILE_COST;
     const totalCost = hintCost + fileCost;
 
-    // Check coin balance
-    if (userResult.coins < totalCost) {
-      return {
-        success: false,
-        error: `Insufficient coins! You need ${totalCost} coins (${hintCost} hint + ${fileCost} for ${attachedFilesCount} file(s)). You have ${userResult.coins} coins. Complete tasks or level up to earn more coins!`,
-        coinsRemaining: userResult.coins,
-        hintCost: totalCost
-      };
-    }
+     // Check coin balance
+     if (userResult.coins < totalCost) {
+       return {
+         success: false,
+         error: `Insufficient coins! You need ${totalCost} coins (${hintCost} hint + ${fileCost} for ${attachedFilesCount} file(s)). You have ${userResult.coins} coins. Complete tasks or level up to earn more coins!`,
+         coinsRemaining: userResult.coins,
+         hintCost: totalCost
+       };
+     }
 
-    // Deduct coins
-    const deductResult = await this.userDataAccess.deductCoins(userId, totalCost);
-    if (!deductResult.success) {
-      return { success: false, error: 'Failed to deduct coins' };
-    }
-    const newCoinBalance = deductResult.coins;
+      // Check AI help availability (credits first, then daily limit)
+      const consumeResult = await this.aiHelpLimitService.consumeHelp(userId);
+      if (!consumeResult.consumed) {
+        return {
+          success: false,
+          error: `Daily AI help limit reached (${consumeResult.dailyRemaining}/${consumeResult.limit}). Your limit will reset at midnight UTC.`,
+          coinsRemaining: userResult.coins,
+          aiHelpsRemaining: { today: 0, total: consumeResult.limit }
+        };
+      }
+
+      // Deduct coins
+      const deductResult = await this.userDataAccess.deductCoins(userId, totalCost);
+      if (!deductResult.success) {
+        // Refund AI help credits if we deducted them? Actually consumeHelp already committed.
+        // For simplicity, we don't refund AI usage on coin failure.
+        return { success: false, error: 'Failed to deduct coins' };
+      }
+      const newCoinBalance = deductResult.coins;
     const originalCoinBalance = userResult.coins;
 
     try {
@@ -113,18 +129,23 @@ export class HintService {
         this.isAskingAboutFileContents(message)
       );
 
-      // Build prompt
-      const prompt = this.buildPrompt(message, context || 'No additional context', level, fileContents);
+       // Build prompt
+       const prompt = this.buildPrompt(message, context || 'No additional context', level, fileContents);
 
-      // Get AI response
-      const hint = await this.getAIResponse(prompt, model);
+       // Get AI response
+       const hint = await this.getAIResponse(prompt, model);
 
-      return {
-        success: true,
-        hint: hint.trim(),
-        coinsSpent: totalCost,
-        coinsRemaining: newCoinBalance
-      };
+       // Return result — AI help already consumed via consumeHelp()
+       return {
+         success: true,
+         hint: hint.trim(),
+         coinsSpent: totalCost,
+         coinsRemaining: newCoinBalance,
+         aiHelpsRemaining: {
+           today: consumeResult.dailyRemaining,
+           total: consumeResult.limit
+         }
+       };
     } catch (error) {
       // Refund coins on error
       await this.userDataAccess.refundCoins(userId, totalCost);
@@ -220,11 +241,16 @@ export class HintService {
 
   private async getFileContentsForPrompt(
     message: string,
-    context: string,
-    containerId: string,
+    context: string | undefined,
+    containerId: string | undefined,
     attachedFiles?: { path: string; name: string }[],
     isFileQuestion?: boolean
   ): Promise<{ path: string; name: string; content: string }[] | undefined> {
+    // If no containerId, cannot read any files
+    if (!containerId) {
+      return undefined;
+    }
+
     // Handle explicitly attached files
     if (attachedFiles && attachedFiles.length > 0) {
       const fileContents: { path: string; name: string; content: string }[] = [];

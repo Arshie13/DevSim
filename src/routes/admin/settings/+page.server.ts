@@ -19,11 +19,9 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   // Fetch settings
-  const [masteryEnabled] = await Promise.all([
-    prisma.app_setting.findUnique({
-      where: { key: 'mastery_checkpoint_enabled' }
-    })
-  ]);
+  const masteryEnabled = await prisma.app_setting.findUnique({
+    where: { key: 'mastery_checkpoint_enabled' }
+  });
 
   const settings = {
     mastery_checkpoint_enabled: masteryEnabled 
@@ -72,6 +70,31 @@ export const actions: Actions = {
     } catch (error) {
       console.error('Error resetting Docker containers:', error);
       return fail(500, { message: 'Failed to reset Docker containers. Check server logs.' });
+    }
+  },
+
+  forceNewSeason: async ({ locals }) => {
+    const session = await locals.auth();
+    
+    if (!session?.user) {
+      throw redirect(303, '/login');
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    if (!dbUser || dbUser.role !== 'ADMIN') {
+      throw redirect(303, '/');
+    }
+
+    try {
+      const newSeason = await seasonService.forceStartNewSeason();
+      return { success: true, season: newSeason };
+    } catch (error) {
+      console.error('Error creating new season:', error);
+      return fail(500, { message: 'Failed to start new season' });
     }
   }
 };

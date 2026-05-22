@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
-  import {
-    aiChatHistory,
-    aiCoins,
-    aiSelectedFile,
-    aiFileTree,
-    aiFileContents,
-  } from "$lib/stores/ai";
+   import { onDestroy, onMount } from "svelte";
+   import {
+     aiChatHistory,
+     aiCoins,
+     aiHelpsRemaining,
+     aiSelectedFile,
+     aiFileTree,
+     aiFileContents,
+   } from "$lib/stores/ai";
   import {
     isAskingForCode,
     getCodeWarningMessage,
@@ -16,28 +17,29 @@
   import { type ITask } from "$lib/types";
   import ThoughtBubble from "./ThoughtBubble.svelte";
   import FloatingModal from "./FloatingModal.svelte";
-  // Helpers from aiHelpHelpers
-  import {
-    chunkHintMessage,
-    calculateTotalCost,
-    areAllTasksCompleted,
-    filterSourceFiles,
-    createBubbleHistoryItem,
-    attachFileToList,
-    removeFileFromList,
-    clearAllAttachedFiles,
-    isUserScrolling,
-    getHintMessage,
-    navigateHintChunk,
-    showBubbleFromHistory,
-    resetBubbleState,
-    shouldAutoClose,
-    addToHintsShown,
-    createAiMessage,
-    createUserMessage,
-    type BubbleHistoryItem,
-    type BubbleState,
-  } from "$lib/utils/aiHelpHelpers";
+   import {
+     chunkHintMessage,
+     calculateTotalCost,
+     areAllTasksCompleted,
+     filterSourceFiles,
+     createBubbleHistoryItem,
+     attachFileToList,
+     removeFileFromList,
+     clearAllAttachedFiles,
+     isUserScrolling,
+     getHintMessage,
+     navigateHintChunk,
+     showBubbleFromHistory,
+     resetBubbleState,
+     shouldAutoClose,
+     addToHintsShown,
+     createAiMessage,
+     createUserMessage,
+     type BubbleHistoryItem,
+     type BubbleState,
+     fetchAiUsage,
+     updateAiHelpsRemaining
+   } from "$lib/utils/aiHelpHelpers";
   // Constants from aiHelpConstants
   import {
     MAX_ATTACHED_FILES,
@@ -52,19 +54,20 @@
     sendBubbleChatMessage,
   } from "$lib/utils/aiHelpApi";
 
-  // Props
-  export let scenario: string = "";
-  export let tasks: ITask[] = [];
-  export let containerId: string = "";
-  export let userId: string = "";
-  export let projectName: string = "DevSim Project";
-  export let level: number = 1;
-  export let mode: "chat" | "quick" = "quick";
-  export let initialSelectedFile: string = "";
-  export let initialFileTree: string[] = [];
-  export let initialFileContents: Record<string, string> = {};
-  export let initialCoins: number = 1000;
-  export let initialAiModel: string = "nvidia/nemotron-3-nano-30b-a3b:free";
+   // Props
+   export let scenario: string = "";
+   export let tasks: ITask[] = [];
+   export let containerId: string = "";
+   export let userId: string = "";
+   export let projectName: string = "DevSim Project";
+   export let level: number = 1;
+   export let mode: "chat" | "quick" = "quick";
+   export let initialSelectedFile: string = "";
+   export let initialFileTree: string[] = [];
+   export let initialFileContents: Record<string, string> = {};
+   export let initialCoins: number = 1000;
+   export let initialAiHelps: { today: number; total: number } = { today: 5, total: 5 };
+   export let initialAiModel: string = "nvidia/nemotron-3-nano-30b-a3b:free";
 
   // State
   let showFloatingModal = false;
@@ -108,28 +111,30 @@
     { label: "Google Gemini 2.5 Flash", value: "google/gemini-2.5-flash:direct" },
   ];
 
-  // Reactive
-  $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
-  $: canAttachMore = attachedFiles.length < MAX_ATTACHED_FILES;
-  $: currentSelectedFile = initialSelectedFile || $aiSelectedFile;
-  $: currentFileTree =
-    initialFileTree.length > 0 ? initialFileTree : $aiFileTree;
-  $: currentFileContents =
-    Object.keys(initialFileContents).length > 0
-      ? initialFileContents
-      : $aiFileContents;
-  $: currentCoins =
-    $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
-  $: totalCost = calculateTotalCost(mode, attachedFiles.length);
-  $: allTasksCompleted = areAllTasksCompleted(tasks);
-  $: hasChatAiMessage = $aiChatHistory && $aiChatHistory.some((msg: any) => msg.role === 'ai');
+   // Reactive
+   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
+   $: canAttachMore = attachedFiles.length < MAX_ATTACHED_FILES;
+   $: currentSelectedFile = initialSelectedFile || $aiSelectedFile;
+   $: currentFileTree =
+     initialFileTree.length > 0 ? initialFileTree : $aiFileTree;
+   $: currentFileContents =
+     Object.keys(initialFileContents).length > 0
+       ? initialFileContents
+       : $aiFileContents;
+   $: currentCoins =
+     $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
+   $: currentAiHelps = $aiHelpsRemaining;
+   $: totalCost = calculateTotalCost(mode, attachedFiles.length);
+   $: allTasksCompleted = areAllTasksCompleted(tasks);
+   $: hasChatAiMessage = $aiChatHistory && $aiChatHistory.some((msg: any) => msg.role === 'ai');
 
-  // Initialize stores
-  $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
-  $: if (initialFileTree.length > 0) aiFileTree.set(initialFileTree);
-  $: if (Object.keys(initialFileContents).length > 0)
-    aiFileContents.set(initialFileContents);
-  $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
+   // Initialize stores
+   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
+   $: if (initialFileTree.length > 0) aiFileTree.set(initialFileTree);
+   $: if (Object.keys(initialFileContents).length > 0)
+     aiFileContents.set(initialFileContents);
+   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
+   $: if (initialAiHelps) aiHelpsRemaining.set(initialAiHelps);
 
   // Auto-scroll chat
   $: {
@@ -224,6 +229,11 @@
     if (sazSummonTimer) clearTimeout(sazSummonTimer);
   });
 
+  // Fetch AI usage on component mount
+  onMount(async () => {
+    await updateAiHelpsRemaining();
+  });
+
   async function generateContext() {
     return generateContextHelper(
       scenario,
@@ -269,9 +279,11 @@
         selectedAiModel
       );
       
-      if (result.success && result.coinsRemaining !== undefined) {
-        initialCoins = result.coinsRemaining;
-      }
+       if (result.success && result.coinsRemaining !== undefined) {
+         initialCoins = result.coinsRemaining;
+         // Refresh AI help remaining count
+         await updateAiHelpsRemaining();
+       }
     } catch (error) {
       console.error("[AI Help] Error:", error);
       aiChatHistory.update((msgs) => [
@@ -324,20 +336,22 @@
       userId,
       level,
       generateContext,
-      // onSuccess
-      (hint: string, coinsRemaining?: number) => {
-        const finalHint = hint || "No hint available. Please try again or ask a specific question.";
-        quickHintMessage = finalHint;
-        hintHistory = [...hintHistory, finalHint];
-        const historyItem = createBubbleHistoryItem(finalHint, false);
-        bubbleHistory = [...bubbleHistory, historyItem];
-        hintChunks = chunkHintMessage(finalHint);
-        currentHintChunk = 0;
-        if (coinsRemaining !== undefined) {
-          aiCoins.set(coinsRemaining);
-          initialCoins = coinsRemaining;
-        }
-      },
+       onSuccess
+       (hint: string, coinsRemaining?: number) => {
+         const finalHint = hint || "No hint available. Please try again or ask a specific question.";
+         quickHintMessage = finalHint;
+         hintHistory = [...hintHistory, finalHint];
+         const historyItem = createBubbleHistoryItem(finalHint, false);
+         bubbleHistory = [...bubbleHistory, historyItem];
+         hintChunks = chunkHintMessage(finalHint);
+         currentHintChunk = 0;
+         if (coinsRemaining !== undefined) {
+           aiCoins.set(coinsRemaining);
+           initialCoins = coinsRemaining;
+         }
+         // Refresh AI help remaining count
+         updateAiHelpsRemaining();
+       },
       // onError
       (error: string) => {
         quickHintMessage = error;
@@ -404,19 +418,21 @@
       currentCoins,
       totalCost,
       generateContext,
-      // onSuccess
-      (hint: string, coinsRemaining?: number) => {
-        bubbleChatMessage = hint;
-        hintHistory = [...hintHistory, hint];
-        const historyItem = createBubbleHistoryItem(hint, true);
-        bubbleHistory = [...bubbleHistory, historyItem];
-        hintChunks = chunkHintMessage(hint);
-        currentHintChunk = 0;
-        if (coinsRemaining !== undefined) {
-          aiCoins.set(coinsRemaining);
-          initialCoins = coinsRemaining;
-        }
-      },
+       onSuccess
+       (hint: string, coinsRemaining?: number) => {
+         bubbleChatMessage = hint;
+         hintHistory = [...hintHistory, hint];
+         const historyItem = createBubbleHistoryItem(hint, true);
+         bubbleHistory = [...bubbleHistory, historyItem];
+         hintChunks = chunkHintMessage(hint);
+         currentHintChunk = 0;
+         if (coinsRemaining !== undefined) {
+           aiCoins.set(coinsRemaining);
+           initialCoins = coinsRemaining;
+         }
+         // Refresh AI help remaining count
+         updateAiHelpsRemaining();
+       },
       // onError
       (error: string) => {
         bubbleChatMessage = error;
@@ -638,12 +654,13 @@
   history={bubbleHistory}
   {userMessage}
   {isLoading}
-  hasHint={!!(bubbleChatMessage || quickHintMessage || hasChatAiMessage)}
-  {currentCoins}
-  {totalCost}
-  {canAttachMore}
-  {attachedFiles}
-  fileTree={filteredFileTree}
+   hasHint={!!(bubbleChatMessage || quickHintMessage || hasChatAiMessage)}
+   {currentCoins}
+   {totalCost}
+   {currentAiHelps}
+   {canAttachMore}
+   {attachedFiles}
+   fileTree={filteredFileTree}
   {showFilePicker}
   onClose={closeFloatingModal}
   onSend={sendMessage}
@@ -673,19 +690,20 @@
     <div
       style="position: fixed; bottom: 160px; right: 75px; pointer-events: auto;"
     >
-      <ThoughtBubble
-        quickHintMessage={bubbleChatMessage || quickHintMessage}
-        quickHintLoading={bubbleChatLoading || quickHintLoading}
-        {hintChunks}
-        {currentHintChunk}
-        {initialCoins}
-        {QUICK_HINT_COST}
-        showChatButton={useBubbleMode}
-        on:hide={hideBubble}
-        on:close={requestCloseWithConfirmation}
-        on:prev={prevHintChunk}
-        on:next={nextHintChunk}
-      />
+       <ThoughtBubble
+         quickHintMessage={bubbleChatMessage || quickHintMessage}
+         quickHintLoading={bubbleChatLoading || quickHintLoading}
+         {hintChunks}
+         {currentHintChunk}
+         {initialCoins}
+         {QUICK_HINT_COST}
+         {currentAiHelps}
+         showChatButton={useBubbleMode}
+         on:hide={hideBubble}
+         on:close={requestCloseWithConfirmation}
+         on:prev={prevHintChunk}
+         on:next={nextHintChunk}
+       />
     </div>
   </div>
 {/if}

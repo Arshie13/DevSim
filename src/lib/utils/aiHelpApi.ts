@@ -1,7 +1,7 @@
 // AI Help API Helper Functions
-import { get } from 'svelte/store';
+import { get, set } from 'svelte/store';
 import type { ITask } from "$lib/types";
-import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
+import { aiChatHistory, aiCoins, aiHelpsRemaining, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
 import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage } from "$lib/ai";
 import type { ChatMessage } from "$lib/stores/ai";
 import {
@@ -281,15 +281,18 @@ export async function sendChatMessage(
       }),
     });
 
-    const data = await response.json();
+   const data = await response.json();
 
-    if (data.success) {
-      aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
-      if (data.coinsRemaining !== undefined) {
-        aiCoins.set(data.coinsRemaining);
-      }
-      return { success: true, coinsRemaining: data.coinsRemaining };
-    } else {
+   if (data.success) {
+     aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
+     if (data.coinsRemaining !== undefined) {
+       aiCoins.set(data.coinsRemaining);
+     }
+     if (data.aiHelpsRemaining) {
+       aiHelpsRemaining.set(data.aiHelpsRemaining);
+     }
+     return { success: true, coinsRemaining: data.coinsRemaining };
+   } else {
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: getApiErrorMessage(data.error) }]);
       return { success: false, error: data.error };
     }
@@ -330,17 +333,20 @@ export async function requestQuickHintBubble(
       }),
     });
 
-    const data = await response.json();
+   const data = await response.json();
 
-    if (data.success) {
-      if (data.coinsRemaining !== undefined) {
-        aiCoins.set(data.coinsRemaining);
-      }
-      if (onSuccess) {
-        onSuccess(data.hint, data.coinsRemaining);
-      }
-      return { success: true, hint: data.hint, coinsRemaining: data.coinsRemaining };
-    } else {
+   if (data.success) {
+     if (data.coinsRemaining !== undefined) {
+       aiCoins.set(data.coinsRemaining);
+     }
+     if (data.aiHelpsRemaining) {
+       aiHelpsRemaining.set(data.aiHelpsRemaining);
+     }
+     if (onSuccess) {
+       onSuccess(data.hint, data.coinsRemaining);
+     }
+     return { success: true, hint: data.hint, coinsRemaining: data.coinsRemaining };
+   } else {
       const errorMsg = getApiErrorMessage(data.error);
       if (onError) {
         onError(errorMsg);
@@ -423,18 +429,21 @@ export async function sendBubbleChatMessage(
       }),
     });
 
-    const data = await response.json();
+   const data = await response.json();
 
-    if (data.success) {
-      aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
-      if (data.coinsRemaining !== undefined) {
-        aiCoins.set(data.coinsRemaining);
-      }
-      if (onSuccess) {
-        onSuccess(data.hint, data.coinsRemaining);
-      }
-      return { success: true, coinsRemaining: data.coinsRemaining };
-    } else {
+   if (data.success) {
+     aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
+     if (data.coinsRemaining !== undefined) {
+       aiCoins.set(data.coinsRemaining);
+     }
+     if (data.aiHelpsRemaining) {
+       aiHelpsRemaining.set(data.aiHelpsRemaining);
+     }
+     if (onSuccess) {
+       onSuccess(data.hint, data.coinsRemaining);
+     }
+     return { success: true, coinsRemaining: data.coinsRemaining };
+   } else {
       const errorMsg = getApiErrorMessage(data.error);
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: errorMsg }]);
       if (onError) {
@@ -450,6 +459,33 @@ export async function sendBubbleChatMessage(
       onError(errorMsg);
     }
     return { success: false, error: String(error) };
+  }
+}
+
+/**
+ * Fetch AI help usage (remaining daily helps)
+ */
+export async function fetchAiUsage(): Promise<{ remaining: { today: number; total: number }; isPremium: boolean; limit: number; used: number } | null> {
+  try {
+    const response = await fetch('/api/ai/usage');
+    if (!response.ok) {
+      console.warn('Failed to fetch AI usage:', response.status);
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching AI usage:', error);
+    return null;
+  }
+}
+
+/**
+ * Update AI helps remaining store
+ */
+export async function updateAiHelpsRemaining(): Promise<void> {
+  const usage = await fetchAiUsage();
+  if (usage) {
+    set(aiHelpsRemaining, { today: usage.remaining.today, total: usage.remaining.total });
   }
 }
 

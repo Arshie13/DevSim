@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
+import { XPEventService } from '$lib/layers/service/XPEventService';
 
-// Reward schedule matching frontend
 const REWARD_SCHEDULE = [
   { day: 1, coins: 50,  xp: 10 },
   { day: 2, coins: 75,  xp: 20 },
@@ -23,7 +23,6 @@ export const POST: RequestHandler = async (event) => {
 
   const userId = session.user.id;
 
-  // Parse body: { dayIndex: number } (0-based index)
   const body = await event.request.json().catch(() => null);
   const dayIndex = body?.dayIndex;
 
@@ -31,12 +30,10 @@ export const POST: RequestHandler = async (event) => {
     throw error(400, 'Invalid day index');
   }
 
-  const dayNumber = dayIndex + 1; // Convert to 1-based for display
+  const dayNumber = dayIndex + 1;
 
   try {
-    // Use a transaction to ensure atomic update
     const result = await prisma.$transaction(async (tx) => {
-      // Find or create daily_login record
       let daily = await tx.daily_login.findUnique({
         where: { user_id: userId }
       });
@@ -44,7 +41,6 @@ export const POST: RequestHandler = async (event) => {
       const now = new Date();
 
       if (!daily) {
-        // First-time claim: no previous record, allow immediately
         daily = await tx.daily_login.create({
           data: {
             user_id: userId,
@@ -56,7 +52,6 @@ export const POST: RequestHandler = async (event) => {
           }
         });
       } else {
-        // ── Time-based validation: at least 24h since last claim ──
         if (daily.lastClaimedAt) {
           const timeSinceLast = now.getTime() - daily.lastClaimedAt.getTime();
           if (timeSinceLast < ONE_DAY_MS) {
@@ -67,17 +62,14 @@ export const POST: RequestHandler = async (event) => {
           }
         }
 
-        // ── Sequential validation: must claim in order ──
         if (dayIndex >= daily.currentDay) {
           throw error(400, 'Reward not yet available — claim previous days first');
         }
 
-        // ── Duplicate claim check ──
         if (daily.claimedDays.includes(dayIndex)) {
           throw error(400, 'Reward already claimed');
         }
 
-        // ── Update state ──
         const newClaimed = [...daily.claimedDays, dayIndex];
         const nextCurrentDay = Math.max(daily.currentDay, dayIndex + 2);
         const newStreak = daily.streak + 1;
@@ -93,13 +85,11 @@ export const POST: RequestHandler = async (event) => {
         });
       }
 
-      // Get reward amounts
       const reward = REWARD_SCHEDULE[dayIndex];
       if (!reward) {
         throw error(500, 'Invalid reward schedule');
       }
 
-      // Update user coins and XP in same transaction
       const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
@@ -111,6 +101,18 @@ export const POST: RequestHandler = async (event) => {
 
       return { daily, updatedUser, reward };
     });
+
+   // Award seasonal XP for daily login (Learner's Pass)
+   try {
+     const xpService = new XPEventService();
+     await xpService.awardXP({
+       userId,
+       amount: 25,
+       source: 'daily_login'
+     });
+   } catch (err) {
+     console.error('Failed to award pass XP for daily login:', err);
+   }
 
     return Response.json({
       success: true,
@@ -131,7 +133,6 @@ export const POST: RequestHandler = async (event) => {
     });
   } catch (err) {
     console.error('Error claiming daily reward:', err);
-    // Propagate specific errors with proper status
     if (err instanceof Error && err.message.includes('Please wait')) {
       throw error(429, err.message);
     }

@@ -5,8 +5,9 @@ import { LevelDataAccess } from "../data-access/LevelDataAccess";
 import { TasksDataAccess } from "../data-access/TasksDataAccess";
 import { FileChangesDataAccess } from "../data-access/FileChangesDataAccess";
 import { ScenarioDataAccess } from "../data-access/ScenarioDataAccess";
+import { XPEventService } from "./XPEventService";
 import { saveUserContainer } from "$lib/server/docker/user/save-user-container";
-import { type CreateWorkspaceRequest } from "$lib/contracts/request/CreateWorkspaceRequest";
+import type { CreateWorkspaceRequest } from "$lib/contracts/request/CreateWorkspaceRequest";
 import type { StackSelection } from "$lib/types";
 import { CloudflaredWrapper } from "$lib/wrapper/cloudflared";
 import * as crypto from "crypto";
@@ -46,6 +47,7 @@ export class WorkspaceService {
     private readonly tasks = new TasksDataAccess(),
     private readonly fileChanges = new FileChangesDataAccess(),
     private readonly scenario = new ScenarioDataAccess(),
+    private readonly xpEvent = new XPEventService(),
   ) {}
 
   async createOrReuseWorkspace(params: CreateWorkspaceRequest) {
@@ -420,6 +422,17 @@ export class WorkspaceService {
               false,
             ),
           ]);
+
+           // Award seasonal XP for scenario completion (Learner's Pass)
+           try {
+             await this.xpEvent.awardXP({
+               userId,
+               amount: 100,
+               source: 'scenario_completion'
+             });
+           } catch (err) {
+             console.error('Failed to award pass XP for scenario completion:', err);
+           }
 
           return {
             success: true,
