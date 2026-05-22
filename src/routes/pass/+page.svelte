@@ -1,315 +1,383 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { Code, Coins, ChartBar, Sparkles, Zap, Crown, ArrowLeft } from 'lucide-svelte';
-  
-  import type { PageData } from './$types';
-  import { 
-    passData, 
-    passLoading, 
-    passError, 
-    daysRemaining, 
-    aiHelpsRemainingPass, 
-    hasPremium,
-    currentSeasonXp,
-    currentFreeLevel,
-    unclaimedRewardsCount
-  } from '$lib/stores/passStore';
-  import ProgressBar from '$lib/components/ProgressBar.svelte';
-  import CountdownTimer from '$lib/components/CountdownTimer.svelte';
-  import RewardCard from '$lib/components/RewardCard.svelte';
-  import UpgradeBanner from '$lib/components/UpgradeBanner.svelte';
-  import ClaimButton from '$lib/components/ClaimButton.svelte';
-  import { goto } from '$app/navigation';
-  
-  export let data: PageData;
-  
-  // Initialize store with server data
-  $: $passData = data.passData;
-  $: $passLoading = false;
-  $: daysRemaining.set(data.daysRemaining);
-  $: aiHelpsRemainingPass.set(data.aiHelpsRemaining);
-  
-  let selectedTrack: 'free' | 'premium' = 'free';
-  let claimingRewardId: string | null = null;
-  
-  // Redirect logic if premium is requested
-  onMount(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get('action');
-    if (action === 'purchase' && !$hasPremium) {
-      // Could open purchase modal or navigate
-      // For now, we'll show the banner
-    }
-  });
-  
-  // Handle reward claim
-  async function handleClaimReward(rewardId: string, passType: 'FREE' | 'PREMIUM') {
-    claimingRewardId = rewardId;
-    try {
-      const response = await fetch('/api/pass/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewardId, passType })
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to claim reward');
-      }
-      
-      // Optimistically update store
-      const track = passType === 'FREE' ? 'free' : 'premium';
-      passData.update(current => {
-        if (!current) return current;
-        return {
-          ...current,
-          availableRewards: {
-            free: current.availableRewards.free.map(r =>
-              r.id === rewardId ? { ...r, claimed: true } : r
-            ),
-            premium: current.availableRewards.premium.map(r =>
-              r.id === rewardId ? { ...r, claimed: true } : r
-            )
-          }
-        };
-      });
-      
-    } catch (error) {
-      console.error('Claim error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to claim reward');
-    } finally {
-      claimingRewardId = null;
-    }
-  }
-  
-  // Handle premium upgrade click
-  async function handleUpgrade() {
-    try {
-      const response = await fetch('/api/pass/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to initiate purchase');
-      }
-      
-      const data = await response.json();
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    } catch (error) {
-      console.error('Purchase error:', error);
-      alert('Failed to start purchase: ' + (error instanceof Error ? error.message : String(error)));
-    }
-  }
-  
-  // Toggle between free/premium track view (mobile friendly)
-  function toggleTrack(track: 'free' | 'premium') {
-    selectedTrack = track;
-  }
+	import { rewards } from "./rewards";
+	import { goto } from "$app/navigation";
+
+	const currentLevel = 29;
+	const currentXP = 42;
+	const maxXP = 100;
+
+	const getIcon = (type: string) => {
+		switch (type) {
+			case "coins":
+				return "💎";
+			case "help":
+				return "⚡";
+			case "avatar":
+				return "🧑";
+			case "badge":
+				return "⭐";
+			default:
+				return "🎁";
+		}
+	};
+
+	function handleUpgradeMembership() {
+		goto("/pass/payment")
+	}
+
 </script>
 
-<svelte:head>
-  <title>Learner's Pass — DevSim</title>
-</svelte:head>
+<div class="battle-pass">
+	<!-- HEADER -->
+	<div class="top-bar">
+		<div class="level-badge">
+			<div class="badge-inner">
+				{currentLevel}
+			</div>
+		</div>
 
-{#if $passLoading}
-  <div class="flex items-center justify-center min-h-screen">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-obsidian-accent"></div>
-  </div>
-{:else if $passError}
-  <div class="flex flex-col items-center justify-center min-h-screen text-cyber-alert">
-    <p class="text-lg font-orbitron">Error loading pass data</p>
-    <p class="text-sm text-obsidian-text-muted">{$passError}</p>
-  </div>
-{:else if $passData && data.season}
-  <div class="max-w-6xl mx-auto px-4 py-8 md:px-8 lg:px-12">
-    
-     <!-- Back to Dashboard Button -->
-     <div class="mb-6">
-        <button
-          on:click={() => goto('/dashboard')}
-          class="btn-cyber btn-cyber-outline group flex items-center gap-2 !px-4 !py-2.5"
-        >
-          <ArrowLeft class="w-4 h-4 text-cyber-cyan transition-transform group-hover:-translate-x-1" />
-          <span class="text-sm font-orbitron font-semibold text-cyber-cyan">Back to Dashboard</span>
-        </button>
-      </div>
-    
-    <!-- Header Section -->
-    <div class="mb-8">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-        <div>
-          <div class="flex items-center gap-3 mb-2">
-            <div class="relative">
-              <div class="bg-gradient-to-br from-obsidian-accent to-cyber-bright p-3 rounded-xl shadow-accent-glow">
-                <Crown class="w-6 h-6 text-obsidian-bg" />
-              </div>
-            </div>
-            <div>
-              <h1 class="text-3xl md:text-4xl font-orbitron font-bold text-obsidian-text-muted tracking-tight">
-                Learner's Pass
-              </h1>
-              <p class="text-obsidian-text-primary/70 text-sm">
-                {data.season.name}
-              </p>
-            </div>
-          </div>
-          
-          <!-- Season timer -->
-          <div class="ml-12">
-            <CountdownTimer endDate={data.season.endDate} showIcon={true} compact={false} />
-          </div>
-        </div>
-        
-        <!-- Quick stats -->
-        <div class="flex items-center gap-4">
-          <div class="bg-obsidian-surface border border-obsidian-accent/20 rounded-lg px-4 py-2">
-            <p class="text-xs text-obsidian-text-muted uppercase tracking-wider mb-1">Season XP</p>
-            <p class="text-xl font-orbitron font-bold text-cyber-bright">
-              {$currentSeasonXp.toLocaleString()}
-            </p>
-          </div>
-          
-          <div class="bg-obsidian-surface border border-obsidian-accent/20 rounded-lg px-4 py-2">
-            <p class="text-xs text-obsidian-text-muted uppercase tracking-wider mb-1">Level</p>
-            <p class="text-xl font-orbitron font-bold text-obsidian-accent">
-              {$currentFreeLevel}
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- XP Progress Bar -->
-      <div class="bg-obsidian-surface border border-obsidian-accent/20 rounded-xl p-6 mb-8">
-        <ProgressBar 
-          currentXp={$currentSeasonXp}
-          xpToNextLevel={$passData.progression.levelInfo.xpToNext}
-          level={$currentFreeLevel}
-          size="lg"
-          animated={true}
-        />
-      </div>
-    </div>
-    
-    <!-- Premium Banner (if not premium) -->
-    {#if !$hasPremium}
-      <div class="mb-8">
-        <UpgradeBanner 
-          isPremium={false}
-          onUpgrade={handleUpgrade}
-        />
-      </div>
-    {/if}
-    
-    <!-- AI Helps Remaining -->
-    <div class="mb-8 bg-obsidian-surface border border-obsidian-accent/20 rounded-xl p-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <Sparkles class="w-5 h-5 text-obsidian-accent" />
-          <div>
-            <p class="text-sm font-orbitron text-obsidian-text-primary">AI Help Credits</p>
-            <p class="text-xs text-obsidian-text-muted">
-              Remaining today: <span class="font-bold text-cyber-bright">{$aiHelpsRemainingPass.today}</span> / {$aiHelpsRemainingPass.total}
-            </p>
-          </div>
-        </div>
-        
-        {#if $hasPremium}
-          <div class="text-xs font-mono text-cyber-success bg-cyber-success/10 px-3 py-1.5 rounded-full border border-cyber-success/30">
-            Premium Active
-          </div>
-        {/if}
-      </div>
-    </div>
-    
-    <!-- Track Selector -->
-    <div class="flex gap-4 mb-6 border-b border-obsidian-accent/20 pb-2">
-      <button
-        on:click={() => toggleTrack('free')}
-        class="relative px-6 py-2 text-sm font-orbitron font-semibold transition-all
-          {selectedTrack === 'free' 
-            ? 'text-cyber-bright' 
-            : 'text-obsidian-text-muted hover:text-obsidian-text-primary'}"
-      >
-        Free Track
-        {#if selectedTrack === 'free'}
-          <div class="absolute bottom-[-2px] left-0 right-0 h-0.5 bg-gradient-to-r from-cyber-bright to-obsidian-accent rounded-full"></div>
-        {/if}
-      </button>
-      
-      <button
-        on:click={() => toggleTrack('premium')}
-        class="relative px-6 py-2 text-sm font-orbitron font-semibold transition-all flex items-center gap-2
-          {selectedTrack === 'premium' 
-            ? 'text-cyber-warn' 
-            : 'text-obsidian-text-muted hover:text-obsidian-text-primary'}"
-      >
-        <Crown class="w-4 h-4" />
-        Premium Track
-        {#if selectedTrack === 'premium'}
-          <div class="absolute bottom-[-2px] left-0 right-0 h-0.5 bg-gradient-to-r from-cyber-warn to-cyber-bright rounded-full"></div>
-        {/if}
-      </button>
-    </div>
-    
-    <!-- Rewards Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 mb-12">
-       {#if selectedTrack === 'free'}
-         {#each $passData.availableRewards.free as reward (reward.id)}
-           <RewardCard 
-             {reward}
-             isPremium={false}
-             onClaim={(id) => handleClaimReward(id, 'FREE')}
-           />
-         {/each}
-       {:else}
-         {#each $passData.availableRewards.premium as reward (reward.id)}
-           <RewardCard 
-             {reward}
-             isPremium={true}
-             onClaim={(id) => handleClaimReward(id, 'PREMIUM')}
-           />
-         {/each}
-       {/if}
-    </div>
-    
-    <!-- Current Progress Summary -->
-    <div class="bg-obsidian-surface/50 border border-obsidian-accent/10 rounded-xl p-6">
-      <h3 class="text-lg font-orbitron font-bold text-obsidian-text-primary mb-4">Season Progress</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="p-4 rounded-lg bg-obsidian-bg-light/30">
-          <p class="text-xs text-obsidian-text-muted uppercase mb-1">Free Track</p>
-          <p class="text-2xl font-bold text-cyber-bright">Level {$passData.progression.freeTrackLevel} / 20</p>
-          <p class="text-sm text-obsidian-text-primary mt-1">
-            {($currentFreeLevel >= 20) ? 'Max level reached!' : `${$passData.progression.levelInfo.xpToNext} XP to next level`}
-          </p>
-        </div>
-        
-        <div class="p-4 rounded-lg bg-obsidian-bg-light/30">
-          <p class="text-xs text-obsidian-text-muted uppercase mb-1">Premium Track</p>
-          <p class="text-2xl font-bold text-cyber-warn">
-            {$passData.progression.premiumTrackLevel || 0} / 20
-          </p>
-          <p class="text-sm text-obsidian-text-primary mt-1">
-            {(! $hasPremium) ? 'Purchase premium to unlock' : $passData.progression.premiumTrackLevel ? 'Active progression' : 'Not started'}
-          </p>
-        </div>
-        
-        <div class="p-4 rounded-lg bg-obsidian-bg-light/30">
-          <p class="text-xs text-obsidian-text-muted uppercase mb-1">Unclaimed Rewards</p>
-          <p class="text-2xl font-bold text-obsidian-accent">
-            {$unclaimedRewardsCount.free + $unclaimedRewardsCount.premium}
-          </p>
-          <p class="text-sm text-obsidian-text-primary mt-1">
-            Free: {$unclaimedRewardsCount.free} | Premium: {$unclaimedRewardsCount.premium}
-          </p>
-        </div>
-      </div>
-    </div>
-    
-   </div>
- {/if}
+		<div class="season-panel">
+			<div class="season-header">
+				<h1>MARCH</h1>
+
+				<div class="xp-text">
+					{currentXP}/{maxXP}
+				</div>
+			</div>
+
+			<div class="progress-track">
+				<div
+					class="progress-fill"
+					style={`width: ${(currentXP / maxXP) * 100}%`}
+				></div>
+			</div>
+		</div>
+
+		<button class="upgrade-icon"> + </button>
+	</div>
+
+	<!-- REWARDS -->
+	<div class="reward-wrapper">
+		<!-- TRACK SIDEBAR -->
+		<div class="track-sidebar">
+			<div class="track free">✦</div>
+
+			<div class="track premium">👑</div>
+		</div>
+
+		<!-- REWARD GRID -->
+		<div class="reward-grid">
+			{#each rewards as reward}
+				<div class="reward-column">
+					<div class="level-header">
+						LV.{reward.level}
+					</div>
+
+					<!-- FREE -->
+					<div class="reward-card free-card">
+						<div class="reward-icon">
+							{getIcon(reward.free.type)}
+						</div>
+
+						<div class="reward-value">
+							{reward.free.value}
+						</div>
+					</div>
+
+					<!-- PREMIUM -->
+					<div class="reward-card premium-card">
+						<div class="lock">🔒</div>
+
+						<div class="reward-icon">
+							{getIcon(reward.premium.type)}
+						</div>
+
+						<div class="reward-value">
+							{reward.premium.value}
+						</div>
+					</div>
+				</div>
+			{/each}
+		</div>
+	</div>
+
+	<!-- BUTTON -->
+	<div class="upgrade-section">
+		<button class="upgrade-button" on:click={handleUpgradeMembership}> Upgrade Membership — ₱299 </button>
+	</div>
+
+	<!-- CURRENCY -->
+	<div class="currency">
+		💎 100
+		<span class="old-price">749</span>
+	</div>
+</div>
+
+<style>
+	:global(body) {
+		margin: 0;
+		background: #050816;
+		font-family: Inter, system-ui, sans-serif;
+		color: #e2e8f0;
+	}
+
+	.battle-pass {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	/* TOP */
+
+	.top-bar {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.level-badge {
+		width: 90px;
+		height: 90px;
+		flex-shrink: 0;
+		border-radius: 24px;
+		background: linear-gradient(180deg, #1c2740, #0a1023);
+		border: 2px solid rgba(0, 191, 255, 0.4);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 0 20px rgba(0, 191, 255, 0.15);
+	}
+
+	.badge-inner {
+		width: 62px;
+		height: 62px;
+		border-radius: 999px;
+		background: linear-gradient(180deg, #00d2ff, #0077ff);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.8rem;
+		font-weight: 800;
+		color: white;
+	}
+
+	.season-panel {
+		flex: 1;
+		padding: 1rem 1.5rem;
+		border-radius: 18px;
+		background: linear-gradient(180deg, #30374d, #23293d);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	.season-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: 2.5rem;
+		font-weight: 800;
+		color: #dbeafe;
+		letter-spacing: 0.08em;
+	}
+
+	.xp-text {
+		font-size: 1.2rem;
+		font-weight: 700;
+		color: #7dd3fc;
+	}
+
+	.progress-track {
+		height: 10px;
+		margin-top: 1rem;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.08);
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
+		border-radius: inherit;
+		background: linear-gradient(90deg, #00d2ff, #0077ff);
+		box-shadow: 0 0 12px rgba(0, 191, 255, 0.5);
+	}
+
+	.upgrade-icon {
+		width: 72px;
+		height: 72px;
+		border-radius: 18px;
+		border: none;
+		background: linear-gradient(180deg, #0b1220, #050816);
+		border: 1px solid rgba(0, 191, 255, 0.25);
+		color: #00d2ff;
+		font-size: 2rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	/* REWARDS */
+
+	.reward-wrapper {
+		display: flex;
+		gap: 1rem;
+		margin-top: 2rem;
+	}
+
+	.track-sidebar {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.track {
+		width: 90px;
+		height: 120px;
+		border-radius: 18px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 2rem;
+		font-weight: 800;
+	}
+
+	.track.free {
+		background: linear-gradient(180deg, #6573ba, #44507f);
+		color: #dbeafe;
+	}
+
+	.track.premium {
+		background: linear-gradient(180deg, #16a8cc, #0c6b85);
+		color: white;
+	}
+
+	.reward-grid {
+		display: flex;
+		gap: 0.75rem;
+		overflow-x: auto;
+		padding-bottom: 0.5rem;
+		flex: 1;
+	}
+
+	.reward-column {
+		min-width: 170px;
+	}
+
+	.level-header {
+		text-align: center;
+		padding: 0.65rem;
+		background: #111827;
+		border-top-left-radius: 12px;
+		border-top-right-radius: 12px;
+		font-weight: 700;
+		color: #cbd5e1;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-bottom: none;
+	}
+
+	.reward-card {
+		position: relative;
+		height: 130px;
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		backdrop-filter: blur(10px);
+	}
+
+	.reward-card + .reward-card {
+		margin-top: 0.4rem;
+		border-radius: 12px;
+	}
+
+	.free-card {
+		background: #103452;
+	}
+
+	.premium-card {
+		background: #16a8cc;
+		color: #00131d;
+		font-weight: 700;
+	}
+
+	.reward-icon {
+		font-size: 2rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.reward-value {
+		font-size: 0.95rem;
+		line-height: 1.25;
+		font-weight: 700;
+	}
+
+	.lock {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		font-size: 0.8rem;
+	}
+
+	/* BOTTOM */
+
+	.upgrade-section {
+		display: flex;
+		justify-content: center;
+		margin-top: 2rem;
+	}
+
+	.upgrade-button {
+		padding: 1rem 3rem;
+		border: none;
+		border-radius: 999px;
+		font-size: 1.2rem;
+		font-weight: 800;
+		cursor: pointer;
+		color: #00131d;
+		background: linear-gradient(180deg, #00d2ff, #0ea5e9);
+		box-shadow: 0 10px 30px rgba(0, 191, 255, 0.25);
+	}
+
+	.currency {
+		margin-top: 1rem;
+		font-size: 1.3rem;
+		font-weight: 700;
+		color: #7dd3fc;
+	}
+
+	.old-price {
+		margin-left: 0.5rem;
+		color: rgba(255, 255, 255, 0.4);
+		text-decoration: line-through;
+	}
+
+	/* MOBILE */
+
+	@media (max-width: 768px) {
+		.top-bar {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.reward-wrapper {
+			flex-direction: column;
+		}
+
+		.track-sidebar {
+			flex-direction: row;
+		}
+
+		.track {
+			width: 100%;
+			height: 70px;
+		}
+
+		h1 {
+			font-size: 2rem;
+		}
+	}
+</style>
