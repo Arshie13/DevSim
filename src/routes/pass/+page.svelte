@@ -1,383 +1,238 @@
 <script lang="ts">
-	import { rewards } from "./rewards";
-	import { goto } from "$app/navigation";
+  import { rewards } from "./rewards";
+  import { goto } from "$app/navigation";
+  import { ArrowRight, Crown, Gift, Lock, Check } from "lucide-svelte";
+  import type { PageData } from "./$types";
 
-	const currentLevel = 29;
-	const currentXP = 42;
-	const maxXP = 100;
+  export let data: PageData;
 
-	const getIcon = (type: string) => {
-		switch (type) {
-			case "coins":
-				return "💎";
-			case "help":
-				return "⚡";
-			case "avatar":
-				return "🧑";
-			case "badge":
-				return "⭐";
-			default:
-				return "🎁";
-		}
-	};
+  $: enrollment = data.enrollment;
+  $: claimedDays = data.claimedDays || [];
+  $: currentLevel = enrollment?.currentDay || 1;
 
-	function handleUpgradeMembership() {
-		goto("/pass/payment")
-	}
+  function getStatusColor(): string {
+    if (!enrollment) return "text-orange-400";
+    if (enrollment.status === "COMPLETED") return "text-green-400";
+    if (enrollment.status === "EXPIRED") return "text-red-400";
+    return "text-cyber-cyan";
+  }
 
+  function getStatusBadge(): string {
+    if (!enrollment) return "NOT ENROLLED";
+    if (enrollment.status === "COMPLETED") return "COMPLETED";
+    if (enrollment.status === "EXPIRED") return "EXPIRED";
+    return "ACTIVE";
+  }
+
+  function handleClaim(dayNumber: number = enrollment?.currentDay || 1) {
+    fetch("/api/user/learner-pass/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dayNumber }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          window.location.reload();
+        }
+      })
+      .catch(console.error);
+  }
+
+  function handleUpgradeMembership() {
+    goto("/pass/payment");
+  }
+
+  function handleGoBack() {
+    goto("/dashboard");
+  }
 </script>
 
-<div class="battle-pass">
-	<!-- HEADER -->
-	<div class="top-bar">
-		<div class="level-badge">
-			<div class="badge-inner">
-				{currentLevel}
-			</div>
-		</div>
+<svelte:head>
+  <title>Learner Pass | DevSim</title>
+</svelte:head>
 
-		<div class="season-panel">
-			<div class="season-header">
-				<h1>MARCH</h1>
+<div class="min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber">
+  <!-- Header Section -->
+  <div class="relative z-10 border-b border-cyan-500/10 backdrop-blur-sm">
+    <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button
+          on:click={handleGoBack}
+          class="p-2 hover:bg-cyber-cyan/10 rounded-lg transition-colors text-obsidian-text-muted hover:text-cyber-cyan"
+        >
+          <ArrowRight class="w-5 h-5 rotate-180" />
+        </button>
+        <div>
+          <h1 class="text-2xl font-orbitron font-bold text-obsidian-text-primary">LEARNER PASS</h1>
+          <p class="text-xs font-rajdhani text-obsidian-text-muted">Unlock exclusive rewards daily</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-				<div class="xp-text">
-					{currentXP}/{maxXP}
-				</div>
-			</div>
+  <!-- Main Content -->
+  <main class="relative z-10 py-8">
+    <div class="max-w-[1400px] mx-auto px-6">
+      <!-- Status Section -->
+      {#if enrollment}
+        <div class="mb-8 p-6 rounded-card border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 backdrop-blur">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-orbitron font-semibold text-obsidian-text-primary mb-2">Your Progress</h2>
+              <div class="flex gap-6">
+                <div class="flex flex-col">
+                  <span class="text-3xl font-orbitron font-bold text-cyber-cyan">{enrollment.currentDay}</span>
+                  <span class="text-xs font-rajdhani text-obsidian-text-muted">/ 30 Days</span>
+                </div>
+                <div class="h-12 w-px bg-cyan-500/20"></div>
+                <div class="flex flex-col">
+                  <span class="text-2xl font-orbitron font-bold text-rose-500">🔥 {enrollment.streak}</span>
+                  <span class="text-xs font-rajdhani text-obsidian-text-muted">Day Streak</span>
+                </div>
+                <div class="h-12 w-px bg-cyan-500/20"></div>
+                <div class="flex flex-col">
+                  <span class="text-2xl font-orbitron font-bold text-green-400">✓ {enrollment.totalClaimedDays}</span>
+                  <span class="text-xs font-rajdhani text-obsidian-text-muted">Claimed</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span
+                class="inline-block px-4 py-2 rounded-full text-sm font-orbitron font-semibold {getStatusColor()} border border-current/30 bg-current/5"
+              >
+                {getStatusBadge()}
+              </span>
+            </div>
+          </div>
 
-			<div class="progress-track">
-				<div
-					class="progress-fill"
-					style={`width: ${(currentXP / maxXP) * 100}%`}
-				></div>
-			</div>
-		</div>
+          <!-- Progress Bar -->
+          <div class="mt-6 bg-obsidian-bg/40 rounded-full h-2 overflow-hidden border border-cyan-500/10">
+            <div
+              class="h-full bg-gradient-to-r from-cyber-cyan to-blue-600 transition-all duration-500"
+              style="width: {(enrollment.currentDay / 30) * 100}%"
+            ></div>
+          </div>
+        </div>
+      {:else}
+        <div class="mb-8 p-6 rounded-card border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 backdrop-blur">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-orbitron font-semibold text-obsidian-text-primary mb-2">Free Rewards Available</h2>
+              <p class="text-sm font-rajdhani text-obsidian-text-muted">Claim daily free rewards every day. Unlock premium rewards by enrolling in the Learner Pass.</p>
+            </div>
+            <button
+              on:click={handleUpgradeMembership}
+              class="btn-cyber btn-cyber-solid inline-flex items-center gap-2 !px-6 !py-2 whitespace-nowrap"
+            >
+              <Crown class="w-4 h-4" />
+              <span class="font-orbitron text-sm">Get Pass</span>
+            </button>
+          </div>
+        </div>
+      {/if}
 
-		<button class="upgrade-icon"> + </button>
-	</div>
+      <!-- Rewards Grid -->
+      <div class="mb-8">
+        <h2 class="text-lg font-orbitron font-semibold text-obsidian-text-primary mb-6">Daily Rewards</h2>
 
-	<!-- REWARDS -->
-	<div class="reward-wrapper">
-		<!-- TRACK SIDEBAR -->
-		<div class="track-sidebar">
-			<div class="track free">✦</div>
+        <!-- Track Labels -->
+        <div class="flex gap-6 mb-4 px-4">
+          <div class="flex items-center gap-2 text-xs font-rajdhani text-obsidian-text-muted">
+            <div class="w-4 h-4 rounded border border-cyan-500/30 bg-cyan-500/5"></div>
+            Free Rewards
+          </div>
+          <div class="flex items-center gap-2 text-xs font-rajdhani text-obsidian-text-muted">
+            <Crown class="w-4 h-4 text-amber-400" />
+            Premium Rewards
+          </div>
+        </div>
 
-			<div class="track premium">👑</div>
-		</div>
+        <!-- Rewards Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {#each rewards as reward (reward.level)}
+            <div class="group">
+              <!-- Level Header -->
+              <div class="text-center mb-2 px-2">
+                <span class="text-xs font-orbitron font-bold text-obsidian-text-muted">DAY {reward.level}</span>
+              </div>
 
-		<!-- REWARD GRID -->
-		<div class="reward-grid">
-			{#each rewards as reward}
-				<div class="reward-column">
-					<div class="level-header">
-						LV.{reward.level}
-					</div>
+              <!-- Free Reward Card - Always Claimable -->
+              <div
+                class="relative bg-gradient-to-br from-blue-600/10 to-cyan-600/5 rounded-card border border-blue-500/20 hover:border-blue-500/40 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-blue-500/10 min-h-[100px] flex flex-col items-center justify-center"
+              >
+                <div class="text-2xl mb-2">💎</div>
+                <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
+                  {reward.free.value}
+                </div>
 
-					<!-- FREE -->
-					<div class="reward-card free-card">
-						<div class="reward-icon">
-							{getIcon(reward.free.type)}
-						</div>
+                {#if claimedDays.includes(reward.level)}
+                  <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
+                    <Check class="w-3 h-3 text-green-400" />
+                  </div>
+                {:else}
+                  <button
+                    on:click={() => handleClaim(reward.level)}
+                    class="text-[0.65rem] px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
+                  >
+                    Claim
+                  </button>
+                {/if}
+              </div>
 
-						<div class="reward-value">
-							{reward.free.value}
-						</div>
-					</div>
+              <!-- Premium Reward Card - Only with Pass -->
+              <div
+                class="relative bg-gradient-to-br from-amber-500/15 to-orange-500/10 rounded-card border border-amber-500/30 hover:border-amber-500/50 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-amber-500/10 min-h-[100px] flex flex-col items-center justify-center mt-2"
+              >
+                <div class="text-2xl mb-2">👑</div>
+                <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
+                  {reward.premium.value}
+                </div>
 
-					<!-- PREMIUM -->
-					<div class="reward-card premium-card">
-						<div class="lock">🔒</div>
+                {#if claimedDays.includes(reward.level)}
+                  <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
+                    <Check class="w-3 h-3 text-green-400" />
+                  </div>
+                {:else if enrollment && reward.level === enrollment.currentDay}
+                  <button
+                    on:click={() => handleClaim(reward.level)}
+                    class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors"
+                  >
+                    Claim
+                  </button>
+                {:else if enrollment && reward.level > enrollment.currentDay}
+                  <div class="text-lg opacity-50">
+                    <Lock class="w-3 h-3" />
+                  </div>
+                {:else}
+                  <button
+                    on:click={handleUpgradeMembership}
+                    class="text-[0.6rem] px-2 py-1 rounded bg-amber-600/50 hover:bg-amber-600 text-white font-semibold transition-colors"
+                  >
+                    Upgrade
+                  </button>
+                {/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
 
-						<div class="reward-icon">
-							{getIcon(reward.premium.type)}
-						</div>
+      <!-- Completion Banner -->
+      {#if enrollment && enrollment.status === "COMPLETED"}
+        <div class="p-6 rounded-card border border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5 text-center">
+          <h3 class="text-2xl font-orbitron font-bold text-green-400 mb-2">🎉 Pass Completed!</h3>
+          <p class="text-sm font-rajdhani text-obsidian-text-muted">You've claimed all 30 days and unlocked all rewards.</p>
+        </div>
+      {/if}
+    </div>
+  </main>
 
-						<div class="reward-value">
-							{reward.premium.value}
-						</div>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</div>
-
-	<!-- BUTTON -->
-	<div class="upgrade-section">
-		<button class="upgrade-button" on:click={handleUpgradeMembership}> Upgrade Membership — ₱299 </button>
-	</div>
-
-	<!-- CURRENCY -->
-	<div class="currency">
-		💎 100
-		<span class="old-price">749</span>
-	</div>
+  <!-- Ambient Background Effects -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <!-- Cyan glow -->
+    <div class="absolute top-1/3 -right-40 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(7,165,201,0.1);"></div>
+    <!-- Purple glow -->
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(168,85,247,0.08);"></div>
+  </div>
 </div>
-
-<style>
-	:global(body) {
-		margin: 0;
-		background: #050816;
-		font-family: Inter, system-ui, sans-serif;
-		color: #e2e8f0;
-	}
-
-	.battle-pass {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem;
-	}
-
-	/* TOP */
-
-	.top-bar {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.level-badge {
-		width: 90px;
-		height: 90px;
-		flex-shrink: 0;
-		border-radius: 24px;
-		background: linear-gradient(180deg, #1c2740, #0a1023);
-		border: 2px solid rgba(0, 191, 255, 0.4);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 0 20px rgba(0, 191, 255, 0.15);
-	}
-
-	.badge-inner {
-		width: 62px;
-		height: 62px;
-		border-radius: 999px;
-		background: linear-gradient(180deg, #00d2ff, #0077ff);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 1.8rem;
-		font-weight: 800;
-		color: white;
-	}
-
-	.season-panel {
-		flex: 1;
-		padding: 1rem 1.5rem;
-		border-radius: 18px;
-		background: linear-gradient(180deg, #30374d, #23293d);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-	}
-
-	.season-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	h1 {
-		margin: 0;
-		font-size: 2.5rem;
-		font-weight: 800;
-		color: #dbeafe;
-		letter-spacing: 0.08em;
-	}
-
-	.xp-text {
-		font-size: 1.2rem;
-		font-weight: 700;
-		color: #7dd3fc;
-	}
-
-	.progress-track {
-		height: 10px;
-		margin-top: 1rem;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.08);
-		overflow: hidden;
-	}
-
-	.progress-fill {
-		height: 100%;
-		border-radius: inherit;
-		background: linear-gradient(90deg, #00d2ff, #0077ff);
-		box-shadow: 0 0 12px rgba(0, 191, 255, 0.5);
-	}
-
-	.upgrade-icon {
-		width: 72px;
-		height: 72px;
-		border-radius: 18px;
-		border: none;
-		background: linear-gradient(180deg, #0b1220, #050816);
-		border: 1px solid rgba(0, 191, 255, 0.25);
-		color: #00d2ff;
-		font-size: 2rem;
-		font-weight: 700;
-		cursor: pointer;
-	}
-
-	/* REWARDS */
-
-	.reward-wrapper {
-		display: flex;
-		gap: 1rem;
-		margin-top: 2rem;
-	}
-
-	.track-sidebar {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.track {
-		width: 90px;
-		height: 120px;
-		border-radius: 18px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 2rem;
-		font-weight: 800;
-	}
-
-	.track.free {
-		background: linear-gradient(180deg, #6573ba, #44507f);
-		color: #dbeafe;
-	}
-
-	.track.premium {
-		background: linear-gradient(180deg, #16a8cc, #0c6b85);
-		color: white;
-	}
-
-	.reward-grid {
-		display: flex;
-		gap: 0.75rem;
-		overflow-x: auto;
-		padding-bottom: 0.5rem;
-		flex: 1;
-	}
-
-	.reward-column {
-		min-width: 170px;
-	}
-
-	.level-header {
-		text-align: center;
-		padding: 0.65rem;
-		background: #111827;
-		border-top-left-radius: 12px;
-		border-top-right-radius: 12px;
-		font-weight: 700;
-		color: #cbd5e1;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-bottom: none;
-	}
-
-	.reward-card {
-		position: relative;
-		height: 130px;
-		padding: 1rem;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		text-align: center;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		backdrop-filter: blur(10px);
-	}
-
-	.reward-card + .reward-card {
-		margin-top: 0.4rem;
-		border-radius: 12px;
-	}
-
-	.free-card {
-		background: #103452;
-	}
-
-	.premium-card {
-		background: #16a8cc;
-		color: #00131d;
-		font-weight: 700;
-	}
-
-	.reward-icon {
-		font-size: 2rem;
-		margin-bottom: 0.75rem;
-	}
-
-	.reward-value {
-		font-size: 0.95rem;
-		line-height: 1.25;
-		font-weight: 700;
-	}
-
-	.lock {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		font-size: 0.8rem;
-	}
-
-	/* BOTTOM */
-
-	.upgrade-section {
-		display: flex;
-		justify-content: center;
-		margin-top: 2rem;
-	}
-
-	.upgrade-button {
-		padding: 1rem 3rem;
-		border: none;
-		border-radius: 999px;
-		font-size: 1.2rem;
-		font-weight: 800;
-		cursor: pointer;
-		color: #00131d;
-		background: linear-gradient(180deg, #00d2ff, #0ea5e9);
-		box-shadow: 0 10px 30px rgba(0, 191, 255, 0.25);
-	}
-
-	.currency {
-		margin-top: 1rem;
-		font-size: 1.3rem;
-		font-weight: 700;
-		color: #7dd3fc;
-	}
-
-	.old-price {
-		margin-left: 0.5rem;
-		color: rgba(255, 255, 255, 0.4);
-		text-decoration: line-through;
-	}
-
-	/* MOBILE */
-
-	@media (max-width: 768px) {
-		.top-bar {
-			flex-direction: column;
-			align-items: stretch;
-		}
-
-		.reward-wrapper {
-			flex-direction: column;
-		}
-
-		.track-sidebar {
-			flex-direction: row;
-		}
-
-		.track {
-			width: 100%;
-			height: 70px;
-		}
-
-		h1 {
-			font-size: 2rem;
-		}
-	}
-</style>

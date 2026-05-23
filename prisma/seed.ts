@@ -33,6 +33,8 @@ async function main() {
   console.log("🌱 Starting database seed...\n");
 
    // Clear existing data
+   await prisma.achievement_tier.deleteMany();
+   await prisma.achievement.deleteMany();
    await prisma.completed_task.deleteMany();
    await prisma.workspace_stack.deleteMany();
    await prisma.user_file_changes.deleteMany();
@@ -59,33 +61,64 @@ async function main() {
     console.log(`✅ Created level: ${level.title}`);
   }
 
-   // Insert achievements + tiers
-   console.log("\n🏅 Creating achievements...\n");
-   for (const family of achievements) {
-     await prisma.achievement.create({
-       data: {
-         name: family.name,
-         description: family.description,
-         icon: family.icon,
-         category: family.category,
-         tiers: {
-           create: family.tiers.map((t) => ({
-             tier: t.tier,
-             description: t.description,
-             criteria: t.criteria,
-             xp_reward: t.xp_reward,
-             coin_reward: t.coin_reward,
-           })),
-         },
-       },
-     });
-     console.log(`✅ Created achievement: ${family.name} (${family.tiers.length} tier${family.tiers.length === 1 ? "" : "s"})`);
-   }
+// Insert achievements + tiers
+    console.log("\n🏅 Creating achievements...\n");
+    for (const family of achievements) {
+      await prisma.achievement.upsert({
+        where: { name: family.name },
+        update: {
+          description: family.description,
+          icon: family.icon,
+          category: family.category,
+        },
+        create: {
+          name: family.name,
+          description: family.description,
+          icon: family.icon,
+          category: family.category,
+          tiers: {
+            create: family.tiers.map((t) => ({
+              tier: t.tier,
+              description: t.description,
+              criteria: t.criteria,
+              xp_reward: t.xp_reward,
+              coin_reward: t.coin_reward,
+            })),
+          },
+        },
+      });
+      console.log(`✅ Created achievement: ${family.name} (${family.tiers.length} tier${family.tiers.length === 1 ? "" : "s"})`);
+    }
    
   // Summary
   console.log("📊 Summary:");
   console.log(`   Levels: ${levels.length}`);
   console.log(`   Scenarios: ${scenarios.length}`);
+
+  // Seed learner pass rewards (30 days)
+  console.log("\n🎁 Creating learner pass rewards...\n");
+  const learnerPassRewards = [];
+  for (let day = 1; day <= 30; day++) {
+    const coins = Math.min(100 + day * 20, 1000);
+    const xp = Math.min(10 + day * 3, 150);
+    learnerPassRewards.push({
+      day_number: day,
+      coins_reward: coins,
+      xp_reward: xp,
+      unlock_project_ids: [],
+      is_active: true,
+    });
+  }
+
+  for (const reward of learnerPassRewards) {
+    await prisma.learner_pass_reward.upsert({
+      where: { day_number: reward.day_number },
+      update: reward,
+      create: reward,
+    });
+    console.log(`✅ Day ${reward.day_number}: ${reward.coins_reward} coins, ${reward.xp_reward} XP`);
+  }
+
   console.log("\n📋 Difficulty breakdown:");
   const difficultyCount = scenarios.reduce(
     (acc, s) => {

@@ -41,6 +41,9 @@ model user {
   seasonProgressions     user_season_progression[]
   workspaces             workspace[]
   achievements           user_achievement[]        @relation("userTouser_achievement")
+  learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
+  learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")
+  userProjectAccess      user_project_access[]     @relation("userProjectAccess")
 }
 
 model workspace {
@@ -49,8 +52,8 @@ model workspace {
   level               Int
   status              String
   container_id        String
-  current_scenario_id String
   volume_name         String?
+  current_scenario_id String
   is_archived         Boolean             @default(false)
   created_at          DateTime            @default(now())
   started_at          DateTime            @default(now())
@@ -61,7 +64,7 @@ model workspace {
   scenario            scenario            @relation(fields: [current_scenario_id], references: [id])
   user                user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
   workspace_stacks    workspace_stack[]
-
+  
   @@index([user_id])
 }
 
@@ -83,7 +86,7 @@ model epic {
   scenario_id String
   scenario    scenario @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
   levels      level[]
-
+  
   @@index([scenario_id])
 }
 
@@ -103,6 +106,8 @@ model level {
   epic              epic?        @relation(fields: [epic_id], references: [id])
   scenario          scenario     @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
   tasks             level_task[]
+  
+  @@index([id])
 }
 
 model level_task {
@@ -118,7 +123,7 @@ model level_task {
   hints               hint[]                @relation("TaskHints")
   learning_sections   learning_section[]
   level               level                 @relation(fields: [level_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([level_id, task_name])
   @@index([level_id])
 }
@@ -133,7 +138,7 @@ model learning_section {
   interactive_mode   LearningInteractiveMode?
   interactive_config Json?
   task               level_task               @relation(fields: [task_id], references: [id], onDelete: Cascade)
-
+  
   @@index([task_id])
 }
 
@@ -144,7 +149,7 @@ model acceptance_criteria {
   is_required Boolean    @default(false)
   order       Int        @default(0)
   task        level_task @relation("TaskAcceptanceCriteria", fields: [task_id], references: [id], onDelete: Cascade)
-
+  
   @@index([task_id])
 }
 
@@ -154,7 +159,7 @@ model hint {
   description String
   order       Int        @default(0)
   task        level_task @relation("TaskHints", fields: [task_id], references: [id], onDelete: Cascade)
-
+  
   @@index([task_id])
 }
 
@@ -195,7 +200,7 @@ model achievement_tier {
   created_at     DateTime               @default(now())
   updated_at     DateTime               @updatedAt
   achievement    achievement            @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([achievement_id, tier])
   @@index([achievement_id])
   @@map("achievement_tiers")
@@ -215,7 +220,7 @@ model user_achievement {
   updated_at     DateTime               @updatedAt
   achievement    achievement            @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
   users          user[]                 @relation("userTouser_achievement")
-
+  
   @@unique([achievement_id, tier], map: "user_achievement_achievement_id_tier_key")
   @@index([achievement_id], map: "user_achievement_achievement_id_idx")
   @@map("user_achievement_tiers")
@@ -230,7 +235,7 @@ model user_file_changes {
   content_hash String?
   timestamp    DateTime  @default(now())
   workspace    workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-
+  
   @@index([workspace_id, timestamp])
 }
 
@@ -240,7 +245,7 @@ model completed_task {
   task_name    String
   completed_at DateTime  @default(now())
   workspace    workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([workspace_id, task_name])
   @@index([workspace_id])
 }
@@ -251,7 +256,7 @@ model workspace_stack {
   stack_name    String
   stack_version String?
   workspace     workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-
+  
   @@index([workspace_id])
 }
 
@@ -273,7 +278,7 @@ model assessment_topic_score {
   improvement Int?
   assessed_at DateTime @default(now())
   user        user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([user_id, topic])
   @@index([user_id])
 }
@@ -281,7 +286,6 @@ model assessment_topic_score {
 model season {
   id               String                    @id @default(cuid())
   name             String
-  slug             String                    @unique
   description      String?
   startDate        DateTime
   endDate          DateTime
@@ -293,7 +297,7 @@ model season {
   passes           user_premium_pass[]
   seasonRewards    user_reward_claim[]
   user_progression user_season_progression[]
-
+  
   @@index([isActive])
   @@index([startDate, endDate])
 }
@@ -309,7 +313,7 @@ model user_premium_pass {
   paymentProvider String?
   season          season   @relation(fields: [season_id], references: [id], onDelete: Cascade)
   user            user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([user_id, season_id])
   @@index([user_id])
   @@index([expiresAt])
@@ -327,7 +331,7 @@ model pass_reward_track {
   season      season              @relation(fields: [season_id], references: [id], onDelete: Cascade)
   claimLogs   reward_claim_log[]
   claims      user_reward_claim[]
-
+  
   @@unique([season_id, passType, level])
   @@index([season_id])
   @@index([xpRequired])
@@ -343,7 +347,7 @@ model user_season_progression {
   totalXp      Int?
   season       season @relation(fields: [season_id], references: [id], onDelete: Cascade)
   user         user   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([user_id, season_id])
   @@index([user_id])
 }
@@ -357,7 +361,7 @@ model user_reward_claim {
   reward    pass_reward_track @relation(fields: [reward_id], references: [id])
   season    season            @relation(fields: [season_id], references: [id], onDelete: Cascade)
   user      user              @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([user_id, reward_id])
   @@index([user_id])
   @@index([season_id])
@@ -369,7 +373,7 @@ model ai_help_daily_usage {
   date    DateTime @default(now())
   count   Int      @default(0)
   user    user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([user_id, date])
   @@index([user_id, date])
 }
@@ -382,7 +386,7 @@ model pass_xp_log {
   metadata  Json?
   createdAt DateTime @default(now())
   user      user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  
   @@index([user_id])
   @@index([createdAt])
   @@index([user_id, createdAt])
@@ -398,12 +402,77 @@ model reward_claim_log {
   createdAt DateTime          @default(now())
   reward    pass_reward_track @relation(fields: [reward_id], references: [id])
   user      user              @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([user_id, reward_id])
   @@index([user_id])
   @@index([reward_id])
   @@index([season_id])
   @@index([createdAt])
+}
+
+// Learner Pass System Models
+model learner_pass_enrollment {
+  id              String   @id @default(cuid())
+  user_id         String
+  status          String   // ACTIVE, COMPLETED, EXPIRED, CANCELED
+  started_at      DateTime?
+  expires_at      DateTime?
+  current_day     Int      @default(1)
+  streak          Int      @default(0)
+  last_claimed_at DateTime?
+  total_claimed_days Int   @default(0)
+  payment_id      String?
+  payment_provider String  @default("stripe")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  user            user     @relation("learnerPassEnrollments", fields: [user_id], references: [id], onDelete: Cascade)
+  claims          learner_pass_day_claim[] @relation("learnerPassEnrollmentClaims")
+
+  @@index([user_id])
+  @@index([status])
+  @@index([expires_at])
+  @@index([payment_id])
+}
+
+model learner_pass_day_claim {
+  id        String   @id @default(cuid())
+  enrollment_id String?
+  user_id     String
+  day_number  Int    // 1..30
+  claimed_at  DateTime @default(now())
+
+  @@unique([user_id, day_number])
+  @@index([user_id, claimed_at])
+  @@index([enrollment_id])
+  user        user     @relation("learnerPassDayClaims", fields: [user_id], references: [id], onDelete: Cascade)
+  enrollment  learner_pass_enrollment? @relation("learnerPassEnrollmentClaims", fields: [enrollment_id], references: [id])
+}
+
+model learner_pass_reward {
+  id              String   @id @default(cuid())
+  day_number      Int      @unique // 1..30
+  coins_reward    Int
+  xp_reward       Int
+  unlock_project_ids String[] // scenario_id array
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model user_project_access {
+  id            String   @id @default(cuid())
+  user_id       String
+  project_id    String   // scenario_id
+  source        String   // LEARNER_PASS, PURCHASE, ADMIN_GRANT
+  source_ref_id String   // e.g., enrollment id
+  granted_at    DateTime @default(now())
+  expires_at    DateTime? // nullable; null = permanent unlock
+
+  @@unique([user_id, project_id, source])
+  @@index([user_id])
+  @@index([project_id])
+  @@index([source])
+  user          user     @relation("userProjectAccess", fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
