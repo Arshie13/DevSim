@@ -32,9 +32,10 @@ CREATE TABLE "learner_pass_enrollment" (
 -- CreateTable
 CREATE TABLE "learner_pass_day_claim" (
     "id" TEXT NOT NULL,
-    "enrollment_id" TEXT NOT NULL,
+    "enrollment_id" TEXT,
     "user_id" TEXT NOT NULL,
     "day_number" INTEGER NOT NULL,
+    "claim_type" TEXT NOT NULL DEFAULT 'FREE',
     "claimed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "learner_pass_day_claim_pkey" PRIMARY KEY ("id")
@@ -86,6 +87,9 @@ CREATE INDEX "learner_pass_day_claim_user_id_claimed_at_idx" ON "learner_pass_da
 CREATE INDEX "learner_pass_day_claim_enrollment_id_idx" ON "learner_pass_day_claim"("enrollment_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "learner_pass_day_claim_user_id_day_number_claim_type_key" ON "learner_pass_day_claim"("user_id", "day_number", "claim_type");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "learner_pass_day_claim_enrollment_id_day_number_key" ON "learner_pass_day_claim"("enrollment_id", "day_number");
 
 -- CreateIndex
@@ -113,7 +117,7 @@ ALTER TABLE "learner_pass_enrollment" ADD CONSTRAINT "learner_pass_enrollment_us
 ALTER TABLE "learner_pass_day_claim" ADD CONSTRAINT "learner_pass_day_claim_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "learner_pass_day_claim" ADD CONSTRAINT "learner_pass_day_claim_enrollment_id_fkey" FOREIGN KEY ("enrollment_id") REFERENCES "learner_pass_enrollment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "learner_pass_day_claim" ADD CONSTRAINT "learner_pass_day_claim_enrollment_id_fkey" FOREIGN KEY ("enrollment_id") REFERENCES "learner_pass_enrollment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_project_access" ADD CONSTRAINT "user_project_access_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

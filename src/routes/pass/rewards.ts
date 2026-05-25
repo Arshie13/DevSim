@@ -1,4 +1,4 @@
-type Reward = {
+export type Reward = {
   level: number;
   free: {
     type: "coins" | "help" | "badge";

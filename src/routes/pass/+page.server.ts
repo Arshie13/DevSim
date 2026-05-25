@@ -23,12 +23,10 @@ export const load: PageServerLoad = async (event) => {
     orderBy: { day_number: "asc" },
   });
 
-  const claimedDays = enrollment
-    ? await prisma.learner_pass_day_claim.findMany({
-        where: { enrollment_id: enrollment.id },
-        select: { day_number: true },
-      })
-    : [];
+  const claimedDays = await prisma.learner_pass_day_claim.findMany({
+    where: { user_id: userId },
+    select: { day_number: true, claim_type: true },
+  });
 
   return {
     enrollment: enrollment
@@ -37,10 +35,12 @@ export const load: PageServerLoad = async (event) => {
           currentDay: enrollment.current_day,
           streak: enrollment.streak,
           totalClaimedDays: enrollment.total_claimed_days,
+          lastClaimedAt: enrollment.last_claimed_at?.toISOString() ?? null,
           expiresAt: enrollment.expires_at?.toISOString(),
         }
       : null,
     rewards,
-    claimedDays: claimedDays.map((d) => d.day_number),
+    freeClaimedDays: claimedDays.filter(d => d.claim_type === "FREE").map((d) => d.day_number),
+    premiumClaimedDays: claimedDays.filter(d => d.claim_type === "PREMIUM").map((d) => d.day_number),
   };
 };

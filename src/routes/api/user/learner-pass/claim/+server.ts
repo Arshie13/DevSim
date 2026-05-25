@@ -1,6 +1,6 @@
-import { error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import prisma from "$lib/server/client";
+import { error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import prisma from '$lib/server/client';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -8,22 +8,22 @@ export const POST: RequestHandler = async (event) => {
   const session = await event.locals.auth();
 
   if (!session?.user?.id) {
-    throw error(401, "Unauthorized");
+    throw error(401, 'Unauthorized');
   }
 
   const userId = session.user.id;
   const body = await event.request.json().catch(() => null);
   const dayNumber = body?.dayNumber;
 
-  if (typeof dayNumber !== "number" || dayNumber < 1 || dayNumber > 30) {
-    throw error(400, "Invalid day number");
+  if (typeof dayNumber !== 'number' || dayNumber < 1 || dayNumber > 30) {
+    throw error(400, 'Invalid day number');
   }
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       const enrollment = await tx.learner_pass_enrollment.findFirst({
-        where: { user_id: userId, status: "ACTIVE" },
-        orderBy: { created_at: "desc" },
+        where: { user_id: userId, status: 'ACTIVE' },
+        orderBy: { created_at: 'desc' },
       });
 
       // Get the reward for this day
@@ -32,19 +32,22 @@ export const POST: RequestHandler = async (event) => {
       });
 
       if (!reward) {
-        throw error(500, "Reward not configured");
+        throw error(500, 'Reward not configured');
       }
 
-      // Check if user already claimed this day
+      const claimType = enrollment ? 'PREMIUM' : 'FREE';
+
+      // Check if user already claimed this specific type for this day
       const existingClaim = await tx.learner_pass_day_claim.findFirst({
         where: {
           user_id: userId,
           day_number: dayNumber,
+          claim_type: claimType
         },
       });
 
       if (existingClaim) {
-        throw error(409, "Day already claimed");
+        throw error(409, `${claimType} reward already claimed for this day`);
       }
 
       const now = new Date();
@@ -57,6 +60,7 @@ export const POST: RequestHandler = async (event) => {
             day_number: dayNumber,
             claimed_at: now,
             enrollment_id: null,
+            claim_type: 'FREE',
           },
         });
 
@@ -82,24 +86,13 @@ export const POST: RequestHandler = async (event) => {
       if (enrollment.expires_at && now > enrollment.expires_at) {
         await tx.learner_pass_enrollment.update({
           where: { id: enrollment.id },
-          data: { status: "EXPIRED" },
+          data: { status: 'EXPIRED' },
         });
-        throw error(410, "Pass has expired");
+        throw error(410, 'Pass has expired');
       }
 
       if (dayNumber !== enrollment.current_day) {
-        throw error(400, "Can only claim the current day");
-      }
-
-      const existingEnrollmentClaim = await tx.learner_pass_day_claim.findFirst({
-        where: {
-          enrollment_id: enrollment.id,
-          day_number: dayNumber,
-        },
-      });
-
-      if (existingEnrollmentClaim) {
-        throw error(409, "Day already claimed");
+        throw error(400, 'Can only claim the current day');
       }
 
       if (enrollment.last_claimed_at) {
@@ -107,7 +100,7 @@ export const POST: RequestHandler = async (event) => {
         const today = new Date();
 
         if (lastClaimDate.toDateString() === today.toDateString()) {
-          throw error(429, "Already claimed today");
+          throw error(429, 'Already claimed today');
         }
       }
 
@@ -117,6 +110,7 @@ export const POST: RequestHandler = async (event) => {
           user_id: userId,
           day_number: dayNumber,
           claimed_at: now,
+          claim_type: 'PREMIUM',
         },
       });
 
@@ -140,7 +134,7 @@ export const POST: RequestHandler = async (event) => {
 
       let newStatus = enrollment.status;
       if (dayNumber >= 30) {
-        newStatus = "COMPLETED";
+        newStatus = 'COMPLETED';
       }
 
       const updatedEnrollment = await tx.learner_pass_enrollment.update({
@@ -161,7 +155,7 @@ export const POST: RequestHandler = async (event) => {
             where: {
               user_id: userId,
               project_id: projectId,
-              source: "LEARNER_PASS",
+              source: 'LEARNER_PASS',
             },
           });
 
@@ -170,7 +164,7 @@ export const POST: RequestHandler = async (event) => {
               data: {
                 user_id: userId,
                 project_id: projectId,
-                source: "LEARNER_PASS",
+                source: 'LEARNER_PASS',
                 source_ref_id: enrollment.id,
                 granted_at: now,
               },
@@ -192,6 +186,7 @@ export const POST: RequestHandler = async (event) => {
     return Response.json({
       success: true,
       day: dayNumber,
+      claimType: result.claim.claim_type,
       reward: {
         coins: result.reward.coins_reward,
         xp: result.reward.xp_reward,
@@ -202,16 +197,16 @@ export const POST: RequestHandler = async (event) => {
       streak: result.updatedEnrollment?.streak || 0,
       totalClaimedDays: result.updatedEnrollment?.total_claimed_days || 0,
       currentDay: result.updatedEnrollment?.current_day || dayNumber,
-      status: result.updatedEnrollment?.status || "NO_PASS",
+      status: result.updatedEnrollment?.status || 'NO_PASS',
       nextAvailableAt: new Date(
         new Date().getTime() + ONE_DAY_MS,
       ).toISOString(),
     });
   } catch (err) {
-    if (err && typeof err === "object" && "status" in err) {
+    if (err && typeof err === 'object' && 'status' in err) {
       throw err;
     }
-    console.error("Claim error:", err);
-    throw error(500, "Failed to claim reward");
+    console.error('Claim error:', err);
+    throw error(500, 'Failed to claim reward');
   }
 };

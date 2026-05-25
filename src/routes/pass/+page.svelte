@@ -1,14 +1,38 @@
 <script lang="ts">
   import { rewards } from "./rewards";
   import { goto } from "$app/navigation";
-  import { ArrowRight, Crown, Gift, Lock, Check } from "lucide-svelte";
+  import { ArrowRight, Crown, Lock, Check, Loader2 } from "lucide-svelte";
   import type { PageData } from "./$types";
+  import { type Reward } from "./rewards";
+  import { onMount } from "svelte";
 
   export let data: PageData;
 
-  $: enrollment = data.enrollment;
-  $: claimedDays = data.claimedDays || [];
+  let enrollment = data.enrollment;
+  let freeClaimedDays = data.freeClaimedDays || [];
+  let premiumClaimedDays = data.premiumClaimedDays || [];
+  let nextAvailableAt: string | null = null;
+  let isClaiming = false;
+
   $: currentLevel = enrollment?.currentDay || 1;
+  $: timeUntilNext = nextAvailableAt ? getTimeUntilNext(nextAvailableAt) : "";
+  $: isWaitingForNext = nextAvailableAt && currentTime && new Date(nextAvailableAt) > currentTime;
+
+  function getTimeUntilNext(isoDate: string): string {
+    const target = new Date(isoDate);
+    const diff = target.getTime() - currentTime.getTime();
+
+    if (diff <= 0) return "";
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m ${seconds}s`;
+  }
 
   function getStatusColor(): string {
     if (!enrollment) return "text-orange-400";
@@ -24,7 +48,30 @@
     return "ACTIVE";
   }
 
+  function isClaimable(reward: Reward, type: 'FREE' | 'PREMIUM') {
+    if (type === 'FREE' && (freeClaimedDays.includes(reward.level) || premiumClaimedDays.includes(reward.level))) return false;
+    if (type === 'PREMIUM' && premiumClaimedDays.includes(reward.level)) return false;
+    
+    if (reward.level !== currentLevel) return false;
+
+    if (!enrollment) {
+      return type === 'FREE' && reward.level === 1;
+    }
+
+    if (enrollment.status !== "ACTIVE") return false;
+
+    if (!enrollment.lastClaimedAt) return true;
+
+    const lastClaimDate = new Date(enrollment.lastClaimedAt).toDateString();
+    const today = new Date().toDateString();
+
+    return lastClaimDate !== today;
+  }
+
   function handleClaim(dayNumber: number = enrollment?.currentDay || 1) {
+    if (isClaiming) return;
+    isClaiming = true;
+
     fetch("/api/user/learner-pass/claim", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -33,10 +80,29 @@
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          window.location.reload();
+          if (data.claimType === "PREMIUM") {
+            premiumClaimedDays = [...premiumClaimedDays, dayNumber];
+          } else {
+            freeClaimedDays = [...freeClaimedDays, dayNumber];
+          }
+
+          if (enrollment && data.claimType === "PREMIUM") {
+            enrollment = {
+              ...enrollment,
+              currentDay: data.currentDay,
+              streak: data.streak,
+              totalClaimedDays: data.totalClaimedDays,
+              status: data.status,
+            };
+          }
+          nextAvailableAt = data.nextAvailableAt;
+          startTimer();
         }
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => {
+        isClaiming = false;
+      });
   }
 
   function handleUpgradeMembership() {
@@ -46,6 +112,23 @@
   function handleGoBack() {
     goto("/dashboard");
   }
+
+  let timerInterval: ReturnType<typeof setInterval> | null = null;
+  let currentTime = new Date();
+
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      currentTime = new Date();
+    }, 1000);
+  }
+
+  onMount(() => {
+    startTimer();
+    return () => {
+      if (timerInterval) clearInterval(timerInterval);
+    };
+  });
 </script>
 
 <svelte:head>
@@ -158,52 +241,70 @@
               </div>
 
               <!-- Free Reward Card - Always Claimable -->
-              <div
-                class="relative bg-gradient-to-br from-blue-600/10 to-cyan-600/5 rounded-card border border-blue-500/20 hover:border-blue-500/40 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-blue-500/10 min-h-[100px] flex flex-col items-center justify-center"
-              >
+              <div class="relative bg-gradient-to-br from-blue-600/10 to-cyan-600/5 rounded-card border border-blue-500/20 hover:border-blue-500/40 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-blue-500/10 min-h-[100px] flex flex-col items-center justify-center">
                 <div class="text-2xl mb-2">💎</div>
                 <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
                   {reward.free.value}
                 </div>
 
-                {#if claimedDays.includes(reward.level)}
+                {#if freeClaimedDays.includes(reward.level) || premiumClaimedDays.includes(reward.level)}
                   <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
                     <Check class="w-3 h-3 text-green-400" />
                   </div>
-                {:else}
+                  <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
+                {:else if isWaitingForNext && reward.level === currentLevel}
+                  <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
+                    {timeUntilNext}
+                  </span>
+                {:else if isClaimable(reward, 'FREE')}
                   <button
                     on:click={() => handleClaim(reward.level)}
-                    class="text-[0.65rem] px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
+                    disabled={isClaiming}
+                    class="text-[0.65rem] px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
+                    {#if isClaiming && reward.level === currentLevel}
+                      <Loader2 class="w-3 h-3 animate-spin" />
+                    {/if}
                     Claim
                   </button>
+                {:else}
+                  <div class="text-lg opacity-50">
+                    <Lock class="w-3 h-3" />
+                  </div>
                 {/if}
               </div>
 
               <!-- Premium Reward Card - Only with Pass -->
-              <div
-                class="relative bg-gradient-to-br from-amber-500/15 to-orange-500/10 rounded-card border border-amber-500/30 hover:border-amber-500/50 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-amber-500/10 min-h-[100px] flex flex-col items-center justify-center mt-2"
-              >
+              <div class="relative bg-gradient-to-br from-amber-500/15 to-orange-500/10 rounded-card border border-amber-500/30 hover:border-amber-500/50 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-amber-500/10 min-h-[100px] flex flex-col items-center justify-center mt-2">
                 <div class="text-2xl mb-2">👑</div>
                 <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
                   {reward.premium.value}
                 </div>
 
-                {#if claimedDays.includes(reward.level)}
+                {#if premiumClaimedDays.includes(reward.level)}
                   <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
                     <Check class="w-3 h-3 text-green-400" />
                   </div>
-                {:else if enrollment && reward.level === enrollment.currentDay}
+                  <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
+                {:else if enrollment && isClaimable(reward, 'PREMIUM')}
                   <button
                     on:click={() => handleClaim(reward.level)}
-                    class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors"
+                    disabled={isClaiming}
+                    class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
+                    {#if isClaiming && reward.level === currentLevel}
+                      <Loader2 class="w-3 h-3 animate-spin" />
+                    {/if}
                     Claim
                   </button>
                 {:else if enrollment && reward.level > enrollment.currentDay}
                   <div class="text-lg opacity-50">
                     <Lock class="w-3 h-3" />
                   </div>
+                {:else if isWaitingForNext && enrollment && reward.level === currentLevel}
+                  <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
+                    {timeUntilNext}
+                  </span>
                 {:else}
                   <button
                     on:click={handleUpgradeMembership}

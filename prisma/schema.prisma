@@ -435,13 +435,14 @@ model learner_pass_enrollment {
 }
 
 model learner_pass_day_claim {
-  id        String   @id @default(cuid())
+  id          String   @id @default(cuid())
   enrollment_id String?
   user_id     String
   day_number  Int    // 1..30
+  claim_type  String? @default("FREE") // FREE or PREMIUM
   claimed_at  DateTime @default(now())
 
-  @@unique([user_id, day_number])
+  @@unique([user_id, day_number, claim_type])
   @@index([user_id, claimed_at])
   @@index([enrollment_id])
   user        user     @relation("learnerPassDayClaims", fields: [user_id], references: [id], onDelete: Cascade)
