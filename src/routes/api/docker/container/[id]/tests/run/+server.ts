@@ -42,11 +42,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
       const levelConfig = getLevelConfig(level);
       const levelTaskIds = taskIds && taskIds.length > 0 ? taskIds : (levelConfig?.tasks.map((t) => t.taskId) ?? []);
 
-      const perTaskCommands = levelTaskIds.map((tid, idx) => {
+    const perTaskCommands = levelTaskIds.map((tid, idx) => {
         const taskNumber = idx + 1;
         let taskCmd = command.replace(/^test:tasks:/, `test:task:client:`).replace(/:l(\d+)$/, `:l$1:t${taskNumber}`);
         if (taskCmd === command) taskCmd = `test:task:l${level}:t${taskNumber}`;
-        return buildNpmCommand(taskCmd, level, tid);
+        return buildPnpmCommand(taskCmd, level, tid);
       });
 
       // Read ground-truth test names per task BEFORE running
@@ -112,8 +112,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     // ── Single-task run ───────────────────────────────────────────────────────
-    const npmCommand = buildNpmCommand(command, level, taskId);
-    console.log(`[TEST RUN] Executing: ${npmCommand}`);
+    const pnpmCommand = buildPnpmCommand(command, level, taskId);
+    console.log(`[TEST RUN] Executing: ${pnpmCommand}`);
 
     const taskNumMatch = command.match(/:t(\d+)$/);
     const singleTaskNum = taskNumMatch ? parseInt(taskNumMatch[1], 10) : 1;
@@ -121,7 +121,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     // Read ground-truth names BEFORE running
     const groundTruth = await readTestNamesFromContainer(containerId, level, singleTaskNum, command);
 
-    const { output, exitCode, error } = await executeTestInContainer(containerId, npmCommand);
+    const { output, exitCode, error } = await executeTestInContainer(containerId, pnpmCommand);
     const duration = Date.now() - startTime;
     console.log(`[TEST RUN] Completed in ${duration}ms with exit code: ${exitCode}`);
 
@@ -394,19 +394,20 @@ function buildTutorialDemoPassResponse(
   };
 }
 
-function buildNpmCommand(command: string, level: number, taskId?: string): string {
+function buildPnpmCommand(command: string, level: number, taskId?: string): string {
   const commandMap: Record<string, string> = {
-    [`test:task:client:l${level}:t1`]: `npm run test:task:client:l${level}:t1`,
-    [`test:task:client:l${level}:t2`]: `npm run test:task:client:l${level}:t2`,
-    [`test:task:server:l${level}:t1`]: `npm run test:task:server:l${level}:t1`,
-    [`test:task:server:l${level}:t2`]: `npm run test:task:server:l${level}:t2`,
-    [`test:task:l${level}:t1`]: `npm run test:task:l${level}:t1`,
-    [`test:task:l${level}:t2`]: `npm run test:task:l${level}:t2`,
-    [`test:tasks:l${level}`]: `npm run test:tasks:l${level}`
+    [`test:task:client:l${level}:t1`]: `pnpm run test:task:client:l${level}:t1`,
+    [`test:task:client:l${level}:t2`]: `pnpm run test:task:client:l${level}:t2`,
+    [`test:task:server:l${level}:t1`]: `pnpm run test:task:server:l${level}:t1`,
+    [`test:task:server:l${level}:t2`]: `pnpm run test:task:server:l${level}:t2`,
+    [`test:task:l${level}:t1`]: `pnpm run test:task:l${level}:t1`,
+    [`test:task:l${level}:t2`]: `pnpm run test:task:l${level}:t2`,
+    [`test:tasks:l${level}`]: `pnpm run test:tasks:l${level}`
   };
   if (commandMap[command]) return commandMap[command];
-  if (command.startsWith('npm ')) return command;
-  return `npm run ${command}`;
+  if (command.startsWith('pnpm ')) return command;
+  if (command.startsWith('npm ')) return command.replace('npm ', 'pnpm ');
+  return `pnpm run ${command}`;
 }
 
 async function executeTestInContainer(containerId: string, command: string): Promise<{ output: string; exitCode: number; error?: string }> {
@@ -447,11 +448,11 @@ async function bootstrapWorkspaceDependencies(containerId: string, workspaceDir:
   const wantsServer = command.includes(':server:') || command.includes('server');
   const steps: string[] = [
     `cd ${shellEscape(workspaceDir)}`,
-    'if [ -f package.json ]; then npm install --include=dev --no-audit --no-fund; fi',
-    'npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event --no-audit --no-fund'
+    'if [ -f package.json ]; then pnpm install; fi',
+    'pnpm add -D @testing-library/react @testing-library/jest-dom @testing-library/user-event'
   ];
-  if (wantsClient || (!wantsClient && !wantsServer)) steps.push('if [ -f client/package.json ]; then cd client && npm install --include=dev --no-audit --no-fund && cd ..; fi');
-  if (wantsServer || (!wantsClient && !wantsServer)) steps.push('if [ -f server/package.json ]; then cd server && npm install --include=dev --no-audit --no-fund && cd ..; fi');
+  if (wantsClient || (!wantsClient && !wantsServer)) steps.push('if [ -f client/package.json ]; then cd client && pnpm install && cd ..; fi');
+  if (wantsServer || (!wantsClient && !wantsServer)) steps.push('if [ -f server/package.json ]; then cd server && pnpm install && cd ..; fi');
   return runShellCommandInContainer(containerId, steps.join(' && '), 8 * 60 * 1000);
 }
 

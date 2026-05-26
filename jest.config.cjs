@@ -5,7 +5,9 @@ module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: ['**/*.test.ts'],
   moduleNameMapper: {
-    '^$lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^\\$lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^\\$prismaclient$': '<rootDir>/prisma/src/generated/prisma/client',
+    '^@sveltejs/kit$': '<rootDir>/node_modules/@sveltejs/kit/svelte-kit.js',
   },
   collectCoverageFrom: [
     'src/**/*.ts',
