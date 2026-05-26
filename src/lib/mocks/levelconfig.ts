@@ -19,11 +19,11 @@ export const LEVEL_1_CONFIG: LevelConfig = {
   ],
   scenario: `You've just joined StudentHub as a backend developer! Your first sprint task is to set up the foundation for our course registration system. The team needs you to create the initial Next.js project with Prisma ORM and build your first API endpoint to fetch users.`,
   hints: [
-    'Use "npx create-next-app@latest" to initialize the project',
-    'Install Prisma with "npm install prisma @prisma/client"',
-    'Initialize Prisma with "npx prisma init"',
+    'Use "pnpm dlx create-next-app@latest" to initialize the project',
+    'Install Prisma with "pnpm add prisma @prisma/client"',
+    'Initialize Prisma with "pnpm dlx prisma init"',
     "Create your User model in schema.prisma",
-    'Generate Prisma Client with "npx prisma generate"',
+    'Generate Prisma Client with "pnpm dlx prisma generate"',
   ],
   starterFiles: {
     "package.json": {

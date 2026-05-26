@@ -17,9 +17,9 @@ console.log('PORT:', PORT);
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('Use HTTPS:', useHttps);
 
-// Docker client setup (inline since build doesn't include $lib)
+const isWindows = process.platform === 'win32';
 const docker = new Dockerode({
-  socketPath: process.env.DOCKER_HOST || '/var/run/docker.sock'
+  socketPath: isWindows ? '//./pipe/docker_engine' : '/var/run/docker.sock'
 });
 
 const app = express();

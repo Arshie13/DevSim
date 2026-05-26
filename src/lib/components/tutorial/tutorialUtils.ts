@@ -11,7 +11,7 @@ export function normalizeCommand(value: string): string {
 
 export function canonicalizeCommand(value: string): string {
   const normalized = normalizeCommand(value);
-  if (normalized === "npm i") return "npm install";
+  if (normalized === "pnpm i") return "pnpm install";
 
   if (normalized.startsWith("cd ")) {
     const rawPath = normalized.slice(3).trim();

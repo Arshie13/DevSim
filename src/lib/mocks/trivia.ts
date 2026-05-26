@@ -244,7 +244,7 @@ export const triviaQuestions: TriviaQuestion[] = [
   {
     id: 'gen-4',
     category: 'general',
-    question: 'What is the purpose of a package manager like npm or yarn?',
+    question: 'What is the purpose of a package manager like pnpm or yarn?',
     options: [
       'To write code faster',
       'To manage project dependencies and packages',
@@ -252,7 +252,7 @@ export const triviaQuestions: TriviaQuestion[] = [
       'To create databases'
     ],
     correctAnswer: 1,
-    explanation: 'Package managers like npm and yarn manage project dependencies, handle versioning, install packages from registries, and automate scripts in package.json.'
+    explanation: 'Package managers like pnpm and yarn manage project dependencies, handle versioning, install packages from registries, and automate scripts in package.json.'
   },
   {
     id: 'gen-5',

@@ -75,7 +75,7 @@ export const PUT: RequestHandler = async (event) => {
 
       const enrollment = await prisma.learner_pass_enrollment.create({
         data: {
-          user_id: metadata.userId,
+          user_id: metadata.userId!,
           status: "ACTIVE",
           started_at: now,
           expires_at: expiresAt,

@@ -161,7 +161,7 @@ Each user session runs in an isolated Docker container:
 - Node.js 18+
 - PostgreSQL database
 - Docker (for containerized development environments)
-- pnpm, npm, or yarn
+- pnpm or yarn
 
 ### Installation
 
@@ -173,7 +173,7 @@ cd devsim
 
 2. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 3. Set up environment variables:
@@ -183,26 +183,26 @@ cp .env.example .env
 
 4. Initialize the database:
 ```bash
-npm run db:generate
-npm run db:push
+pnpm run db:generate
+pnpm run db:push
 ```
 
 5. Start the development server:
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run db:generate` | Generate Prisma client |
-| `npm run db:push` | Push schema to database |
-| `npm run db:studio` | Open Prisma Studio |
-| `npm run docker:container-reset` | Reset all Docker containers (Warning! this will remove all existing docker containers even outside this project! Use with caution!)|
+| `pnpm run dev` | Start development server |
+| `pnpm run build` | Build for production |
+| `pnpm run preview` | Preview production build |
+| `pnpm run db:generate` | Generate Prisma client |
+| `pnpm run db:push` | Push schema to database |
+| `pnpm run db:studio` | Open Prisma Studio |
+| `pnpm run docker:container-reset` | Reset all Docker containers (Warning! this will remove all existing docker containers even outside this project! Use with caution!)|
 
 ## API Endpoints
 
