@@ -204,7 +204,7 @@
   let cameFromTutorial = $derived(page.url.searchParams.get("fromTutorial") === "1");
 
   // Track if this workspace came from first-project guided flow.
-  let hasEverBeenInTutorial = false;
+  let hasEverBeenInTutorial = $derived(cameFromTutorial);
 
   function handleLevelIntroClose() {
     levelIntroCardOpen = false;
@@ -257,9 +257,9 @@
   let taskIntroCardOpen: boolean = false;
   let levelIntroCardOpen: boolean = $state(false);
   let levelIntroCardShown: boolean = false;
-  let sazOnboardingOpen: boolean = false;
+  let sazOnboardingOpen: boolean = $state(false);
   let sazOnboardingShown: boolean = false;
-  let pendingSazOpen: boolean = false;
+  let pendingSazOpen: boolean = $state(false);
   let crashCourseOpen: boolean = $state(false);
   let levelIntroDismissed: boolean = $state(false);
   let activeCrashCourseTaskId: string = $state("");
@@ -1844,6 +1844,13 @@ $effect(() => {
     projectName: workspaceProjectName
   }}
   onClose={handleLevelIntroClose}
+/>
+
+<!-- Saz Onboarding Coach -->
+<SazOnboardingCoach
+  open={sazOnboardingOpen}
+  stackName={stack}
+  onClose={() => { sazOnboardingOpen = false; }}
 />
 
 <LearningContent
