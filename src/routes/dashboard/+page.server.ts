@@ -17,7 +17,7 @@ export const load: PageServerLoad = async (event) => {
     await Promise.all([
       getAllUserContainer(userData.id),
       getArchivedContainers(userData.id),
-      prisma.user.findUnique({ where: { id: userData.id }, select: { coins: true, image: true } }),
+      prisma.user.findUnique({ where: { id: userData.id }, select: { coins: true, image: true, has_seen_dashboard_onboarding: true } }),
       getUserKpis(userData.id),
       getWeeklyTaskStats(userData.id),
       getRecentActivity(userData.id, 8),
@@ -33,6 +33,7 @@ export const load: PageServerLoad = async (event) => {
       // Override session image with live DB value so avatar changes are
       // reflected immediately without requiring a re-login.
       image: dbUser?.image ?? userData.image,
+      hasSeenDashboardOnboarding: dbUser?.has_seen_dashboard_onboarding ?? false,
     },
     userContainerList,
     archivedStacks,

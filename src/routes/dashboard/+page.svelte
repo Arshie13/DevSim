@@ -9,6 +9,8 @@
   import FinishedStacks from "$components/dashboard/FinishedStacks.svelte";
   import StatsDrawer from "$components/dashboard/StatsDrawer.svelte";
   import DailyRewardsModal from "$lib/components/dailyRewards/DailyRewardsModal.svelte";
+  import DashboardWelcomeModal from "$components/onboarding/DashboardWelcomeModal.svelte";
+  import DashboardTour from "$components/onboarding/DashboardTour.svelte";
 
   interface DashboardProps {
     user: UserData;
@@ -38,12 +40,62 @@
      level: data.user.level,
      ownedAvatars: data.user.ownedAvatars,
      hasCompletedTutorial: data.user.hasCompletedTutorial,
+     hasSeenDashboardOnboarding: data.user.hasSeenDashboardOnboarding ?? false,
    };
 
    // Make headerUserData reactive to reward claims
    $: if (typeof headerUserData !== 'undefined') {
      // Initialized
    }
+
+    // ── Dashboard Onboarding State ──
+    type OnboardingPhase = 'welcome' | 'tour' | 'done';
+    let onboardingPhase: OnboardingPhase = 'done';
+    let tourMode: 'tour' | 'highlight' = 'tour';
+    let tourStartStep = 0;
+
+    $: shouldShowOnboarding = !data.user.hasSeenDashboardOnboarding && data.userContainerList.length === 0;
+
+    onMount(() => {
+      if (shouldShowOnboarding) {
+        onboardingPhase = 'welcome';
+      }
+    });
+
+    async function markOnboardingComplete() {
+      try {
+        await fetch('/api/user/dashboard-onboarding', { method: 'POST' });
+      } catch {
+        // Non-critical — ignore
+      }
+    }
+
+    function onWelcomeSkip() {
+      void markOnboardingComplete();
+      onboardingPhase = 'done';
+    }
+
+    function onWelcomeComplete() {
+      tourMode = 'tour';
+      tourStartStep = 0;
+      onboardingPhase = 'tour';
+    }
+
+    function onWelcomeHighlightStack() {
+      tourMode = 'highlight';
+      tourStartStep = 5; // index of dashboard-start-stack-btn step (last of 6)
+      onboardingPhase = 'tour';
+    }
+
+    function onTourComplete() {
+      void markOnboardingComplete();
+      onboardingPhase = 'done';
+    }
+
+    function onTourSkip() {
+      void markOnboardingComplete();
+      onboardingPhase = 'done';
+    }
 
   function formatCompact(n: number): string {
     return n < 1000 ? `${n}` : `${Math.floor(n / 100) / 10}K`;
@@ -109,10 +161,18 @@
     <div class="flex items-center justify-between mb-4 lg:mb-6">
       <div>
         <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
-          Welcome back, <span class="text-cyber-cyan">{headerUserData.name}</span>
+          {#if shouldShowOnboarding}
+            Welcome to DevSim, <span class="text-cyber-cyan">{headerUserData.name}</span>
+          {:else}
+            Welcome back, <span class="text-cyber-cyan">{headerUserData.name}</span>
+          {/if}
         </h2>
         <p class="text-sm font-rajdhani text-obsidian-text-primary/50 mt-1">
-          Ready to continue your developer journey? Your progress awaits.
+          {#if shouldShowOnboarding}
+            Your simulated development journey begins here.
+          {:else}
+            Ready to continue your developer journey? Your progress awaits.
+          {/if}
         </p>
       </div>
 
@@ -153,6 +213,7 @@
         <button
           on:click={navigateToStacks}
           class="btn-cyber btn-cyber-solid group flex items-center gap-3 !px-5 !py-3"
+          data-tour="dashboard-start-stack-btn"
         >
           <div class="w-10 h-10 rounded-card bg-obsidian-bg/30 flex items-center justify-center">
             <Plus class="w-5 h-5 text-white" />
@@ -167,14 +228,18 @@
     </div>
 
     <!-- KPIs Row -->
-    <div class="mb-5 lg:mb-8">
+    <div class="mb-5 lg:mb-8" data-tour="dashboard-kpis">
       <KPIs {kpis} />
     </div>
 
     <!-- Stacks Section - Side by Side -->
     <div class="grid grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
-      <CurrentStacks containers={data.userContainerList} currentStacks={data.archivedStacks} maxVisible={2} />
-      <FinishedStacks containers={data.archivedStacks} userCoins={data.userCoins} maxVisible={3} />
+      <div data-tour="dashboard-current-stacks">
+        <CurrentStacks containers={data.userContainerList} currentStacks={data.archivedStacks} maxVisible={2} />
+      </div>
+      <div data-tour="dashboard-finished-stacks">
+        <FinishedStacks containers={data.archivedStacks} userCoins={data.userCoins} maxVisible={3} />
+      </div>
     </div>
     </div><!-- end max-width wrapper -->
   </main>
@@ -184,6 +249,28 @@
      bind:isOpen={isDailyRewardsModalOpen}
      on:claim={handleRewardClaim}
    />
+
+   <!-- Dashboard Onboarding -->
+   {#if shouldShowOnboarding}
+     {#if onboardingPhase === 'welcome'}
+        <DashboardWelcomeModal
+          allowSkip={true}
+          on:skip={onWelcomeSkip}
+          on:complete={onWelcomeComplete}
+          on:highlightStack={onWelcomeHighlightStack}
+        />
+      {:else if onboardingPhase === 'tour'}
+        <DashboardTour
+          mode={tourMode}
+          startStep={tourStartStep}
+          allowSkip={true}
+          on:complete={onTourComplete}
+          on:skip={onTourSkip}
+          on:openDrawer={() => { isStatsDrawerOpen = true; }}
+          on:closeDrawer={() => { isStatsDrawerOpen = false; }}
+        />
+     {/if}
+   {/if}
 
    <!-- Ambient Background Effects -->
    <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
