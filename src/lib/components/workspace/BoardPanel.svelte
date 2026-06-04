@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff } from 'lucide-svelte';
+  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff, Lock } from 'lucide-svelte';
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
   import { type ITask, type IHints } from '$lib/types';
   import { toast } from '$lib/stores/toast';
@@ -11,6 +11,8 @@
 
   export let tasks: BoardTask[] = [];
   export let onTaskStatusChange: (taskId: string, status: KanbanStatus) => void = () => {};
+  export let crashCourseLockedTasks: Record<string, boolean> = {};
+  export let onTaskClickBlocked: (taskId: string) => void = () => {};
 
   // ── Hints toggle state ─────────────────────────────────────────────────────
   let showHints = false;
@@ -100,6 +102,12 @@
   function openTaskDetails(taskId: string) {
     const task = kanbanTasks.find((t) => t.id === taskId);
     if (!task) return;
+    
+    if (crashCourseLockedTasks[taskId]) {
+      onTaskClickBlocked(taskId);
+      return;
+    }
+    
     selectedTask = task;
     taskModalOpen = true;
   }
@@ -170,6 +178,13 @@
       return;
     }
 
+    if (crashCourseLockedTasks[draggingId] && column !== 'backlog') {
+      toast.warn('Complete the crash course for this task before moving it forward.');
+      draggingId = null;
+      dragOverColumn = null;
+      return;
+    }
+
     const canManuallyMoveToDone = task.taskType.toLowerCase() === 'none';
     const requiresOrderGate = column === 'in-progress' || column === 'in-review' || column === 'done';
 
@@ -185,7 +200,6 @@
       }
     }
 
-    // Test-backed tasks are locked once completed and cannot be moved out of Done.
     if (task.status === 'done' && !canManuallyMoveToDone && column !== 'done') {
       toast.info('This task is locked in Done because its tests have already passed.');
       draggingId = null;
@@ -359,7 +373,8 @@
                         ? 'border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.08)]'
                       : t.status === 'in-progress'
                         ? 'border-[rgba(255,180,0,0.2)] bg-[rgba(255,180,0,0.04)]'
-                        : 'border-[rgba(7,165,201,0.1)] bg-[#12192a]'}"
+                        : 'border-[rgba(7,165,201,0.1)] bg-[#12192a]'}
+                    {crashCourseLockedTasks[t.id] ? 'opacity-60 cursor-not-allowed border-[rgba(255,180,0,0.3)] bg-[rgba(255,180,0,0.04)]' : ''}"
                   role="button"
                   tabindex="0"
                   on:click={() => openTaskDetails(t.id)}
@@ -381,6 +396,9 @@
                   >
                     {t.text}
                   </span>
+                  {#if crashCourseLockedTasks[t.id]}
+                    <Lock class="w-3.5 h-3.5 text-[#FFB400] flex-shrink-0" />
+                  {/if}
                   <!-- Status label -->
                   <span
                     class="text-[0.6rem] uppercase tracking-wider px-2 py-0.5 rounded"
@@ -470,7 +488,7 @@
                     }
                   }}
                   class="group p-3 rounded border transition-all duration-150 select-none"
-                  style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
+                  style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : crashCourseLockedTasks[task.id] ? 'not-allowed' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : crashCourseLockedTasks[task.id] ? 'rgba(255,180,0,0.3)' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : crashCourseLockedTasks[task.id] ? 'rgba(255,180,0,0.04)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : crashCourseLockedTasks[task.id] ? 0.7 : 1};"
                   role="button"
                   tabindex="0"
                   aria-label="Drag Task {task.order}: {task.text}"
@@ -496,11 +514,14 @@
                     ></div>
                     <!-- Task text -->
                     <span
-                      class="text-[0.8rem] leading-snug"
+                      class="text-[0.8rem] leading-snug flex-1"
                       style="font-family: 'Exo 2', sans-serif; color: {task.status === 'done' ? '#8892a0' : '#d0d7dd'}; {task.status === 'done' ? 'text-decoration: line-through;' : ''}"
                     >
                       {task.text}
                     </span>
+                    {#if crashCourseLockedTasks[task.id]}
+                      <Lock class="w-3.5 h-3.5 text-[#FFB400] flex-shrink-0 mt-0.5" />
+                    {/if}
                   </div>
                 </div>
               {/each}
