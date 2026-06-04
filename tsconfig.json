@@ -13,6 +13,6 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"allowArbitraryExtensions": true,
-		"types": ["jest", "@types/jest"]
+		"types": ["node", "jest", "@types/jest"]
 	}
 }

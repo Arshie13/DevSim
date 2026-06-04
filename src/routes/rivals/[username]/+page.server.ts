@@ -66,7 +66,7 @@ export const load: PageServerLoad = async (event) => {
     // Header data for the current user
     user: {
       ...session.user,
-      avatar: currentUserDb?.owned_avatars[0] || currentUserDb?.image || session.user.avatar || session.user.image,
+      avatar: currentUserDb?.owned_avatars[0] || currentUserDb?.image || session.user.image,
     },
     userCoins: currentUserDb?.coins ?? 0
   };

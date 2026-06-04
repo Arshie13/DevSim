@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Loader2, Trash2, AlertTriangle } from "lucide-svelte";
+  import { Loader2, Trash2, AlertTriangle, Crown } from "lucide-svelte";
   import { enhance } from "$app/forms";
 
   type SettingKey = "mastery_checkpoint_enabled";
@@ -187,7 +187,72 @@
             {/if}
           </button>
         </form>
-      </div>
     </div>
-  </div>
+
+    <!-- Season Management -->
+    {#if data.currentSeason}
+      <div
+        class="rounded border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.72)] p-4"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <h2
+              class="flex items-center gap-2 [font-family:var(--font-heading)] text-lg text-[var(--accent)]"
+            >
+              <Crown class="h-5 w-5" />
+              Current Season
+            </h2>
+            <p class="mt-1 [font-family:var(--font-mono)] text-sm text-[var(--text-muted)]">
+              {data.currentSeason.name}
+            </p>
+            <p class="[font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">
+              Ends: {new Date(data.currentSeason.endDate).toLocaleDateString()}
+            </p>
+          </div>
+
+          <form
+            method="POST"
+            action="?/forceNewSeason"
+            use:enhance={() => {
+              isLoading = true;
+              return async ({ result, update }) => {
+                isLoading = false;
+                if (result.type === "success") {
+                  message = {
+                    type: "success",
+                    text: "New season started successfully!"
+                  };
+                  // Refresh page data to show new season
+                  update();
+                } else if (result.type === "failure") {
+                  message = {
+                    type: "error",
+                    text:
+                      (result.data?.message as string) ||
+                      "Failed to start new season",
+                  };
+                }
+                setTimeout(() => (message = null), 5000);
+              };
+            }}
+          >
+            <button
+              type="submit"
+              disabled={isLoading}
+              class="flex items-center gap-2 rounded bg-[rgba(7,165,201,0.1)] px-4 py-2 font-medium text-[var(--accent)] transition-colors hover:bg-[rgba(7,165,201,0.2)] focus:outline-none focus:ring-2 focus:ring-[rgba(7,165,201,0.5)] disabled:opacity-50"
+            >
+              {#if isLoading}
+                <Loader2 class="h-4 w-4 animate-spin" />
+                Starting...
+              {:else}
+                <Crown class="h-4 w-4" />
+                Start Next Season
+              {/if}
+            </button>
+          </form>
+        </div>
+      </div>
+    {/if}
+   </div>
+ </div>
 </div>

@@ -251,8 +251,6 @@ RUN rm -rf /workspace/node_modules /workspace/client/node_modules /workspace/ser
 
 RUN chown -R postgres:postgres /workspace
 RUN chmod -R 755 /workspace
-
-CMD ["/entrypoint.sh"]
 `.trim();
 
     fs.writeFileSync(tempDockerfile, dockerfileContent);

@@ -1,6 +1,12 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { handle as authHandle } from './auth';
 import type { Handle } from '@sveltejs/kit';
+import { cleanupRatelimiter } from '$lib/server/ratelimit';
+
+// Start rate limiter cleanup (removes expired rate limit entries)
+if (process.env.NODE_ENV !== 'test') {
+  cleanupRatelimiter(60_000); // cleanup every minute
+}
 
 // Custom middleware to extract username from subdomain
 const subdomainHandler: Handle = async ({ event, resolve }) => {
