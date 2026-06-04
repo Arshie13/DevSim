@@ -1,13 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import type { LandingStats } from "$types";
 
-  let { session }: { session: any } = $props();
+  let { session, stats }: { session: any; stats: LandingStats } = $props();
 
   const terminalLines = [
-    { text: "$ npm install", type: "cmd" },
+    { text: "$ pnpm install", type: "cmd" },
     { text: "added 847 packages in 4.2s", type: "out" },
     { text: "", type: "blank" },
-    { text: "$ npm run dev", type: "cmd" },
+    { text: "$ pnpm run dev", type: "cmd" },
     { text: "", type: "blank" },
     { text: "  ▲ Next.js 15.1.0", type: "out" },
     { text: "  - Local:   http://localhost:3000", type: "url" },
@@ -19,11 +20,12 @@
     { text: "  ◈ XP +250  ·  SPRINT COMPLETE", type: "xp" },
   ];
 
-  const stats = [
-    { value: "500+", label: "ACTIVE DEVS" },
-    { value: "12+",  label: "TECH STACKS" },
-    { value: "50+",  label: "SCENARIOS" },
-    { value: "4.9★", label: "USER RATING" },
+  // svelte-ignore state_referenced_locally
+  const displayStats = [
+    { value: stats.activeDevs, label: "ACTIVE DEVS" },
+    { value: stats.techStacks, label: "TECH STACKS" },
+    { value: stats.scenarios,  label: "SCENARIOS" },
+    { value: stats.rating,     label: "USER RATING" },
   ];
 
   let visibleLines = $state(0);
@@ -79,7 +81,7 @@
 
         <!-- CTAs -->
         <div class="flex flex-wrap gap-4 hero-reveal" style="animation-delay:360ms">
-          <a href={session ? "/dashboard" : "/login"} class="btn-cyber btn-cyber-solid group !text-sm !py-3 !px-8">
+          <a href={session ? "/dashboard" : "/pretest"} class="btn-cyber btn-cyber-solid group !text-sm !py-3 !px-8">
             START SIMULATION
             <span class="inline-block ml-2 group-hover:translate-x-1 transition-transform duration-200">→</span>
           </a>
@@ -91,7 +93,7 @@
         <!-- Stats strip -->
         <div class="mt-4 pt-8 border-t border-[rgba(7,165,201,0.10)] flex flex-wrap gap-8 hero-reveal"
           style="animation-delay:480ms">
-          {#each stats as s}
+          {#each displayStats as s}
             <div>
               <div class="font-heading text-[1.6rem] font-bold text-[var(--accent)]">{s.value}</div>
               <div class="font-label text-[0.6rem] tracking-widest text-[var(--text-muted)] mt-0.5">{s.label}</div>
@@ -139,7 +141,7 @@
                    line.type === 'url'     ? 'text-[var(--cyan-bright)]' :
                    line.type === 'xp'     ? 'text-[var(--warn)] font-bold' :
                                             'text-[var(--text-muted)]'}">
-                  {line.text || "\u00A0"}
+                  {line.text || " "}
                 </div>
               {/each}
               {#if visibleLines <= terminalLines.length}

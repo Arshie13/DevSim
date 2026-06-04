@@ -4,12 +4,13 @@
   import ActivityFeed from "./ActivityFeed.svelte";
   import WeeklyStats from "./WeeklyStats.svelte";
   import LeaderboardSnapshot from "./LeaderboardSnapshot.svelte";
-  import type { ActivityItem, WeeklyStats as WeeklyStatsType, LeaderboardEntry } from "$types";
+  import type { ActivityItem, WeeklyStats as WeeklyStatsType, LeaderboardEntry, AchievementFeedItem } from "$types";
 
   export let isOpen = false;
   export let activities: ActivityItem[];
   export let weeklyStats: WeeklyStatsType;
   export let leaderboard: LeaderboardEntry[];
+  export let achievementItems: AchievementFeedItem[] = [];
 
   function closeDrawer() {
     isOpen = false;
@@ -44,6 +45,7 @@
   <!-- Drawer -->
   <div
     class="fixed top-0 right-0 h-full w-full max-w-2xl bg-obsidian-bg border-l border-obsidian-accent/20 z-50 shadow-[-10px_0_50px_rgba(0,0,0,0.5),0_0_40px_rgba(7,165,201,0.08)]"
+    data-tour="dashboard-stats-drawer"
     transition:fly={{ x: 500, duration: 300 }}
   >
     <!-- Header -->
@@ -86,7 +88,7 @@
 
       <!-- Activity Feed -->
       <div class="pb-6">
-        <ActivityFeed {activities} />
+        <ActivityFeed {activities} {achievementItems} />
       </div>
     </div>
   </div>

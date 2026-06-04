@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { goto } from '$app/navigation';
   import AIScoreCard from '$lib/components/ui/AIScoreCard.svelte';
 
   type AIScoring = {
@@ -19,6 +20,7 @@
   };
   export let submitRewards = { xp: 0, coins: 0 };
   export const keyTakeaways: Array<{ taskId: string; taskName: string; takeaway: string }> = [];
+  export let level = 1;
 
   const dispatch = createEventDispatcher<{ done: void; continue: void }>();
   const handleDone = () => dispatch('done');
@@ -76,14 +78,14 @@
     <div class="rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.7)] px-3 py-3">
       <div class="flex flex-wrap justify-center gap-3">
         {#if advancingToNextLevel}
-          <button on:click={handleContinueWorking}
+          <button data-tour="finish-tutorial-continue-button" on:click={handleContinueWorking}
             class="btn-cyber fade-up cursor-pointer border border-[rgba(0,229,160,0.55)] bg-[rgba(0,229,160,0.12)] !px-5 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] text-[var(--success)] shadow-[0_0_16px_rgba(0,229,160,0.25)] transition-all duration-200 hover:-translate-y-[1px] hover:border-[rgba(0,229,160,0.8)] hover:bg-[rgba(0,229,160,0.2)]">
             Continue Working →
           </button>
         {/if}
-        <button on:click={handleDone}
+        <button on:click={level === 5 ? () => goto('/postassessment') : handleDone}
           class="btn-cyber btn-cyber-solid fade-up {advancingToNextLevel ? '[animation-delay:0.1s]' : ''} cursor-pointer !px-7 !py-2.5 [font-family:var(--font-heading)] !text-[0.78rem] font-bold uppercase tracking-[0.08em] shadow-[0_0_16px_var(--accent-glow)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_0_26px_var(--accent-glow)]">
-          Back to Dashboard
+          {level === 5 ? 'Take Post-Assessment' : 'Back to Dashboard'}
         </button>
       </div>
     </div>

@@ -323,7 +323,7 @@
     
     // Add task progress context - this is crucial for context awareness
     // NOTE: The API expects format: "Tasks (X/Y completed):" and "[√] task" or "[ ] task"
-    const completedCount = tasks ? tasks.filter(t => t.isCompleted).length : 0;
+    const completedCount = tasks ? tasks.filter(t => t.is_complete).length : 0;
     context += `Tasks (${completedCount}/${tasks ? tasks.length : 0} completed):\n`;
     
     console.log('[AI Helper] Tasks context:', tasks);
@@ -338,8 +338,8 @@
     } else {
       // List each task with its status - API expects [√] or [ ] format
       tasks.forEach((task) => {
-        const status = task.isCompleted ? "[√]" : "[ ]";
-        context += `${status} ${task.taskName}\n`;
+        const status = task.is_complete ? "[√]" : "[ ]";
+        context += `${status} ${task.task_name}\n`;
       });
     }
     
@@ -415,11 +415,6 @@
       // Generate context (now async to fetch file contents)
       const context = await generateContext();
       
-      // Clear attached files after generating context
-      // attachedFiles = [];
-
-      console.log("files count: ", filesCount);
-      
       const response = await fetch("/api/ai/hint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -492,14 +487,12 @@
 
     // Find the current incomplete task for a more specific hint
     const currentTask = tasks && tasks.length > 0 
-      ? tasks.find(t => !t.isCompleted) 
+      ? tasks.find(t => !t.is_complete) 
       : null;
 
     try {
       // Build context from current state
       const context = await generateContext();
-
-      console.log("context from generateContext:", context);
       
       // Clear attached files after requesting hint
       attachedFiles = [];
@@ -507,8 +500,8 @@
       // Concise hint message - keep it short for a brief AI response
       let hintMessage: string;
       if (currentTask) {
-        hintMessage = `Current task: "${currentTask.taskName}" (${tasks.filter(t => t.isCompleted).length}/${tasks.length} done). Give me a SHORT, specific hint - which file and exactly what to do?`;
-      } else if (tasks && tasks.length > 0 && tasks.every(t => t.isCompleted)) {
+        hintMessage = `Current task: "${currentTask.task_name}" (${tasks.filter(t => t.is_complete).length}/${tasks.length} done). Give me a SHORT, specific hint - which file and exactly what to do?`;
+      } else if (tasks && tasks.length > 0 && tasks.every(t => t.is_complete)) {
         hintMessage = `All tasks done! Quick congrats and ask if they need help with anything else.`;
       } else {
         hintMessage = `Give me a SHORT hint for my current sprint task. Which file should I work on and what specifically needs to be done?`;

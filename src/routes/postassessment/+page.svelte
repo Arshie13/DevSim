@@ -9,17 +9,14 @@
   let { data }: { data: PageData } = $props();
 
   const stackName: string = data?.stackName ?? 'react-express-postgres-prisma';
-  const completedTasks: string[] = data?.completedTasks ?? [];
   const scenarioLevels: { id: string; name: string; concepts: string[] }[] =
     data?.scenarioLevels ?? [];
-  const scenarioName: string | null = data?.scenarioName ?? null;
 
   // Pick config for this stack, fallback to default.
   // Saved stack_name uses the raw "postgresql" slug; config keys use "postgres".
   const configKey = stackName.replace(/\bpostgresql\b/g, 'postgres');
   const config = postAssessmentConfigs[configKey] || postAssessmentConfigs['default'];
   const questions = config.questions || [];
-  const title = config.title || 'Post Assessment';
 
   const scaleOptions = [
     { value: 1, label: "Not Confident" },

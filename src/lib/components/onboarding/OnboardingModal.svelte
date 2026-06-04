@@ -10,6 +10,8 @@
   export let scenario: string = '';
   /** The current level number. */
   export let level: number = 1;
+  /** Whether users can dismiss this intro modal. */
+  export let allowSkip: boolean = true;
 
   const dispatch = createEventDispatcher<{ complete: void; skip: void }>();
 
@@ -41,6 +43,7 @@
   }
 
   function skip() {
+    if (!allowSkip) return;
     visible = false;
     setTimeout(() => dispatch('skip'), 320);
   }
@@ -58,7 +61,7 @@
 <div
   class="om-backdrop"
   class:om-visible={visible}
-  on:click|self={skip}
+  on:click|self={allowSkip ? skip : undefined}
   role="presentation"
 >
   <!-- Modal box -->
@@ -73,7 +76,9 @@
     <div class="om-accent-bar" style="background:{content.accentColor};"></div>
 
     <!-- Close -->
-    <button class="om-close" on:click={skip} aria-label="Dismiss onboarding">✕</button>
+    {#if allowSkip}
+      <button class="om-close" on:click={skip} aria-label="Dismiss onboarding">✕</button>
+    {/if}
 
     <!-- Step dots -->
     <div class="om-dots" aria-hidden="true">
@@ -130,7 +135,7 @@
             <div class="om-tool">
               <span class="om-tool-icon" aria-hidden="true">💻</span>
               <strong>Terminal</strong>
-              <p>A real shell connected to your Docker container — run any npm command you need.</p>
+              <p>A real shell connected to your Docker container — run any pnpm command you need.</p>
             </div>
             <div class="om-tool">
               <span class="om-tool-icon" aria-hidden="true">🌐</span>
@@ -153,7 +158,7 @@
             Your goal: <strong style="color:{content.accentColor};">{content.successLabel}</strong>
           </p>
           <p class="om-subdesc">
-            A short tour of the workspace will start next. You can skip it anytime.
+            A short tour of the workspace will start next.
           </p>
         {/if}
 
@@ -178,7 +183,9 @@
       </button>
     </div>
 
-    <button class="om-btn-skip" on:click={skip}>Skip onboarding</button>
+    {#if allowSkip}
+      <button class="om-btn-skip" on:click={skip}>Skip tutorial</button>
+    {/if}
   </div>
 </div>
 

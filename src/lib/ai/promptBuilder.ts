@@ -19,8 +19,6 @@ export function buildPrompt(
 ): string {
   const progress = extractProgressFromContext(context);
 
-  console.log("------------------------test--------------------");
-
   const isHandHoldy = level <= 2;
 
   const handHoldingInstructions = isHandHoldy ? `

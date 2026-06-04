@@ -14,5 +14,8 @@ done
 
 echo "✅ PostgreSQL is ready!"
 
-# Keep the container alive
-exec tail -f /dev/null
+if [ $# -eq 0 ]; then
+  exec tail -f /dev/null
+else
+  exec "$@"
+fi

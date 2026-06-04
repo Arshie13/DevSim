@@ -16,6 +16,7 @@
  *   --force      Rebuild images even if they already exist
  *   --stack NAME Only build image for specific stack (e.g., --stack nestjs-postgres-prisma)
  *   --tag TAG    Custom tag prefix for images (default: devsim-project)
+ *   --tutorial-tag TAG Custom tag prefix for tutorial images (default: devsim-project-tutorial)
  */
 
 //TODO: use volume for shared node_modules for each project.
@@ -37,12 +38,14 @@ interface Args {
   force?: boolean;
   stack?: string;
   tag?: string;
+  tutorialTag?: string;
 }
 
 interface TechStack {
   name: string;
   scenarios: string[];
   projects: string[];
+  tutorialProjects: string[];
 }
 
 const TECH_STACKS_BASE_PATH = path.join(__dirname, "..", "submodules", "projects", "tech-stacks");
@@ -63,9 +66,31 @@ function parseArgs(): Args {
       args.stack = argv[i + 1];
       i++;
     }
+    if (arg === "--tutorial-tag" && argv[i + 1]) {
+      args.tutorialTag = argv[i + 1];
+      i++;
+    }
   }
 
   return args;
+}
+
+function isProjectDirectory(projectPath: string): boolean {
+  if (!fs.existsSync(projectPath) || !fs.statSync(projectPath).isDirectory()) {
+    return false;
+  }
+
+  const projectFiles = fs.readdirSync(projectPath);
+  const hasPackage = projectFiles.includes('package.json') || projectFiles.includes('package-lock.json');
+  const hasReadme = projectFiles.some((file) => /^readme(\..+)?$/i.test(file));
+  const hasClientServerDirs = ['client', 'server'].every((dirName) => {
+    const fullPath = path.join(projectPath, dirName);
+    return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
+  });
+
+  // A project folder must have either package metadata or a clear full-stack structure.
+  // This avoids treating wrapper folders (e.g. tutorial/) as standalone projects.
+  return hasPackage || (hasReadme && hasClientServerDirs);
 }
 
 function getTechStacks(): TechStack[] {
@@ -85,27 +110,15 @@ function getTechStacks(): TechStack[] {
     if (stat.isDirectory()) {
       const scenarioDirs = fs.readdirSync(stackPath).filter(scenarioName => {
         const scenarioPath = path.join(stackPath, scenarioName);
-        return fs.statSync(scenarioPath).isDirectory();
+        return fs.statSync(scenarioPath).isDirectory() && /^scenario-\d+$/i.test(scenarioName);
       });
 
       const projects: string[] = [];
       scenarioDirs.forEach(scenarioDir => {
         const scenarioPath = path.join(stackPath, scenarioDir);
-        const projectDirs = fs.readdirSync(scenarioPath).filter(projectName => {
-          const projectPath = path.join(scenarioPath, projectName);
-          if (!fs.statSync(projectPath).isDirectory()) {
-            return false;
-          }
-          
-          const projectFiles = fs.readdirSync(projectPath);
-          return projectFiles.some(file => {
-            if (file === 'package.json' || file === 'package-lock.json' || file === 'tsconfig.json' || file === 'src') {
-              return true;
-            }
-            const filePath = path.join(projectPath, file);
-            return fs.statSync(filePath).isDirectory();
-          });
-        });
+        const projectDirs = fs.readdirSync(scenarioPath).filter(projectName =>
+          isProjectDirectory(path.join(scenarioPath, projectName))
+        );
         
         projectDirs.forEach(projectDir => {
           // CHANGE 1: Store projects as posix-style paths (forward slashes) regardless of OS.
@@ -115,11 +128,40 @@ function getTechStacks(): TechStack[] {
           projects.push(`${scenarioDir}/${projectDir}`);
         });
       });
+
+      const tutorialProjects: string[] = [];
+      const tutorialBasePath = path.join(stackPath, 'tutorial');
+
+      if (fs.existsSync(tutorialBasePath) && fs.statSync(tutorialBasePath).isDirectory()) {
+        const directTutorialIsProject = isProjectDirectory(tutorialBasePath);
+        if (directTutorialIsProject) {
+          tutorialProjects.push('tutorial');
+        } else {
+          const tutorialProjectDirs = fs
+            .readdirSync(tutorialBasePath, { withFileTypes: true })
+            .filter((entry) => entry.isDirectory())
+            .map((entry) => entry.name)
+            .filter((projectName) => isProjectDirectory(path.join(tutorialBasePath, projectName)))
+            .sort((a, b) => {
+              const aPreferred = /to[-_ ]?do[-_ ]?list/i.test(a) ? 0 : 1;
+              const bPreferred = /to[-_ ]?do[-_ ]?list/i.test(b) ? 0 : 1;
+              return aPreferred - bPreferred;
+            });
+
+          // Build exactly one tutorial image per stack.
+          // If tutorial is wrapped by a subfolder (e.g. TO_DO_LIST), keep image name as "...-tutorial"
+          // but build from that project folder.
+          if (tutorialProjectDirs.length > 0) {
+            tutorialProjects.push(`tutorial/${tutorialProjectDirs[0]}`);
+          }
+        }
+      }
       
       stacks.push({
         name: stackDir,
         scenarios: scenarioDirs,
         projects,
+        tutorialProjects,
       });
     }
   }
@@ -156,20 +198,13 @@ async function buildProjectImage(
   imageName: string,
   dryRun: boolean
 ): Promise<boolean> {
-  // CHANGE 2: Split on '/' only (forward slash), since we now store project paths
-  // with forward slashes consistently in getTechStacks(). Previously split on /[\\/]/
-  // which was a workaround for the mixed separator issue — now it's avoided at the source.
-  const [scenarioDir, projectDir] = projectPath.split("/");
-
-  // CHANGE 3: Added a guard to catch undefined scenarioDir or projectDir early.
-  // If the split fails for any reason, we log a clear error instead of passing
-  // undefined into path.join() which throws a cryptic ERR_INVALID_ARG_TYPE.
-  if (!scenarioDir || !projectDir) {
-    console.error(`  ✗ Could not parse project path: "${projectPath}" (expected format: "scenario-X/PROJECT_NAME")`);
+  const projectPathSegments = projectPath.split("/").filter(Boolean);
+  if (projectPathSegments.length === 0) {
+    console.error(`  ✗ Could not parse project path: "${projectPath}"`);
     return false;
   }
 
-  const fullProjectPath = path.join(TECH_STACKS_BASE_PATH, stackName, scenarioDir, projectDir);
+  const fullProjectPath = path.join(TECH_STACKS_BASE_PATH, stackName, ...projectPathSegments);
 
   console.log(`\n--- ${stackName}/${projectPath} ---`);
   console.log(`  Image: ${imageName}`);
@@ -195,6 +230,10 @@ async function buildProjectImage(
   // We track the path so we can clean it up in the finally block.
   const dockerignorePath = path.join(fullProjectPath, ".dockerignore");
   const dockerignoreAlreadyExisted = fs.existsSync(dockerignorePath);
+  const originalDockerignoreContent = dockerignoreAlreadyExisted
+    ? fs.readFileSync(dockerignorePath, "utf-8")
+    : null;
+  let dockerignoreWasModified = false;
 
   try {
     const dockerfileContent = `
@@ -208,16 +247,15 @@ COPY --chown=postgres:postgres . /workspace/
 
 WORKDIR /workspace
 
+RUN rm -rf /workspace/node_modules /workspace/client/node_modules /workspace/server/node_modules
+
 RUN chown -R postgres:postgres /workspace
 RUN chmod -R 755 /workspace
-
-CMD ["/entrypoint.sh"]
 `.trim();
 
     fs.writeFileSync(tempDockerfile, dockerfileContent);
 
-    // CHANGE 4 (continued): Write .dockerignore only if one doesn't already exist,
-    // so we don't overwrite a custom .dockerignore the project author may have set up.
+    const nodeModulesEntries = ["node_modules", "**/node_modules"];
     if (!dockerignoreAlreadyExisted) {
       fs.writeFileSync(dockerignorePath, [
         "node_modules",
@@ -226,6 +264,16 @@ CMD ["/entrypoint.sh"]
         "*.log",
         ".env",
       ].join("\n"));
+    } else {
+      // Merge node_modules exclusion into existing .dockerignore without overwriting it.
+      // An existing .dockerignore may not exclude node_modules, which causes corrupted
+      // node_modules from the host to be copied into the image and break npm install at runtime.
+      const existingLines = originalDockerignoreContent!.split("\n").map((l) => l.trim());
+      const missingEntries = nodeModulesEntries.filter((e) => !existingLines.includes(e));
+      if (missingEntries.length > 0) {
+        fs.writeFileSync(dockerignorePath, originalDockerignoreContent + "\n" + missingEntries.join("\n"));
+        dockerignoreWasModified = true;
+      }
     }
 
     console.log("  Building image...");
@@ -243,10 +291,10 @@ CMD ["/entrypoint.sh"]
       fs.unlinkSync(tempDockerfile);
     }
 
-    // CHANGE 4 (continued): Only delete the .dockerignore if we created it.
-    // If the project already had one, leave it untouched.
     if (!dockerignoreAlreadyExisted && fs.existsSync(dockerignorePath)) {
       fs.unlinkSync(dockerignorePath);
+    } else if (dockerignoreWasModified && originalDockerignoreContent !== null) {
+      fs.writeFileSync(dockerignorePath, originalDockerignoreContent);
     }
   }
 }
@@ -254,6 +302,7 @@ CMD ["/entrypoint.sh"]
 async function main() {
   const args = parseArgs();
   const tagPrefix = args.tag || "devsim-project";
+  const tutorialTagPrefix = args.tutorialTag || "devsim-project-tutorial";
 
   console.log("\n=== DevSim Project Image Builder ===\n");
 
@@ -280,10 +329,16 @@ async function main() {
   
   let totalProjects = 0;
   for (const stack of filteredStacks) {
-    console.log(`  ${stack.name} (${stack.projects.length} project(s))`);
+    console.log(`  ${stack.name} (${stack.projects.length} project(s), ${stack.tutorialProjects.length} tutorial project(s))`);
     for (const project of stack.projects) {
       const imageName = getImageName(stack.name, project, tagPrefix);
       console.log(`    - ${project} → ${imageName}`);
+      totalProjects++;
+    }
+
+    for (const tutorialProject of stack.tutorialProjects) {
+      const tutorialImageName = getImageName(stack.name, 'tutorial', tutorialTagPrefix);
+      console.log(`    - ${tutorialProject} [tutorial] → ${tutorialImageName}`);
       totalProjects++;
     }
   }
@@ -317,6 +372,27 @@ async function main() {
 
       const result = await buildProjectImage(stack.name, project, imageName, false);
       if (result) {
+        success++;
+      } else {
+        failed++;
+      }
+    }
+
+    for (const tutorialProject of stack.tutorialProjects) {
+      const tutorialImageName = getImageName(stack.name, 'tutorial', tutorialTagPrefix);
+
+      if (!args.force) {
+        const exists = await imageExists(tutorialImageName);
+        if (exists) {
+          console.log(`\n--- ${stack.name}/${tutorialProject} [tutorial] ---`);
+          console.log(`  Status: Already exists (skipping)`);
+          skipped++;
+          continue;
+        }
+      }
+
+      const tutorialResult = await buildProjectImage(stack.name, tutorialProject, tutorialImageName, false);
+      if (tutorialResult) {
         success++;
       } else {
         failed++;

@@ -7,216 +7,509 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id           String  @id @default(uuid())
-  dailyLoginId String? @unique
-  email        String  @unique
-  name         String
-  image        String?
-  username     String  @unique
-
-  // Leveling System
-  xp           Int      @default(0)
-  coins        Int      @default(0)
-  level        Int      @default(1)
-  ownedAvatars String[] @default([])
-
-  // Onboarding
-  hasCompletedOnboarding Boolean @default(false)
-
-  // Relations
-  dailyLogin   DailyLogin?       @relation
-  containers   Container[]
-  achievements UserAchievement[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model user {
+  id                     String                    @id @default(uuid())
+  daily_login_id         String?                   @unique
+  email                  String                    @unique
+  name                   String
+  image                  String?
+  username               String                    @unique
+  xp                     Int                       @default(0)
+  coins                  Int                       @default(0)
+  level                  Int                       @default(1)
+  owned_avatars          String[]                  @default([])
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  role                   UserRole                  @default(USER)
+  has_completed_tutorial Boolean                   @default(false)
+  // Dashboard onboarding
+  has_seen_dashboard_onboarding Boolean @default(false)
+  badges                 String[]                  @default([])
+  borders                String[]                  @default([])
+  currentSeasonId        String?
+  dailyAiHelpUsed        Int                       @default(0)
+  premiumPassExpiresAt   DateTime?
+  titles                 String[]                  @default([])
+  aiHelpCredits          Int                       @default(0)
+  xpBoostExpiresAt       DateTime?
+  xpBoostPercent         Int                       @default(0)
+  aiHelpUsage            ai_help_daily_usage[]
+  assessmentTopicScores  assessment_topic_score[]
+  daily_login            daily_login?
+  xpLogs                 pass_xp_log[]
+  rewardClaimLogs        reward_claim_log[]
+  premiumPasses          user_premium_pass[]
+  rewardClaims           user_reward_claim[]
+  seasonProgressions     user_season_progression[]
+  workspaces             workspace[]
+  achievements           user_achievement[]        @relation("userTouser_achievement")
+  learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
+  learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")
+  userProjectAccess      user_project_access[]     @relation("userProjectAccess")
 }
 
-model Container {
-  id     String @id @default(cuid())
-  userId String
-  level  Int
-  status String
-
-  containerId String
-
-  // Current progress tracking
-  currentScenarioId String
-
-  startedAt DateTime  @default(now())
-  stoppedAt DateTime?
-
-  // Archive fields — used when workspace is saved to a Docker volume before container deletion
-  volumeName String?
-  isArchived Boolean @default(false)
-
-  // Relations
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scenario Scenario @relation(fields: [currentScenarioId], references: [id])
-
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  fileChanges     UserFileChanges[]
-  completedTasks  CompletedTask[]
-  containerStacks ContainerStack[]
-
-  @@index([userId])
+model workspace {
+  id                  String              @id @default(cuid())
+  user_id             String
+  level               Int
+  status              String
+  container_id        String
+  volume_name         String?
+  current_scenario_id String
+  is_archived         Boolean             @default(false)
+  created_at          DateTime            @default(now())
+  started_at          DateTime            @default(now())
+  stopped_at          DateTime?
+  updated_at          DateTime            @updatedAt
+  completed_tasks     completed_task[]
+  file_changes        user_file_changes[]
+  scenario            scenario            @relation(fields: [current_scenario_id], references: [id])
+  user                user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  workspace_stacks    workspace_stack[]
+  
+  @@index([user_id])
 }
 
-model Scenario {
-  id          String @id @default(cuid())
+model scenario {
+  id          String      @id @default(cuid())
   name        String
   description String
   difficulty  String
-
-  // Relations
-  levels     Level[]
-  containers Container[]
+  epics       epic[]
+  levels      level[]
+  workspaces  workspace[]
 }
 
-model Level {
-  id               String   @id @default(cuid())
-  title            String
-  subtitle         String
-  order            Int      @default(0)
-  deadline         DateTime
-  levelDescription String
-  xpReward         Int
-  coinReward       Int
-  keyTakeaways     String
-  scenarioId       String
-  scenario         Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
-
-  // Relations
-  tasks LevelTask[]
-}
-
-// Tasks associated with a level
-model LevelTask {
-  id         String  @id @default(cuid())
-  levelId    String
-  taskName   String
-  userStory  String
-  order      Int     @default(0)
-  isComplete Boolean @default(false)
-  testType   String   @default("none") 
-
-  level              Level                @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  acceptanceCriteria AcceptanceCriteria[] @relation("TaskAcceptanceCriteria")
-  hints              Hint[]               @relation("TaskHints")
-
-  @@unique([levelId, taskName])
-  @@index([levelId])
-}
-
-// Acceptance criteria for tasks
-model AcceptanceCriteria {
-  id          String  @id @default(cuid())
-  taskId      String
-  description String
-  isRequired  Boolean @default(false)
-  order       Int     @default(0)
-
-  // Relations
-  task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskAcceptanceCriteria")
-
-  @@index([taskId])
-}
-
-// Hints associated with a task
-model Hint {
-  id      String @id @default(cuid())
-  taskId  String
-  description String
-  order   Int    @default(0)
-
-  // Relations
-  task LevelTask @relation(fields: [taskId], references: [id], onDelete: Cascade, name: "TaskHints")
-
-  @@index([taskId])
-}
-
-model DailyLogin {
-  id     String   @id @default(cuid())
-  date   DateTime
-  streak Int      @default(0)
-  userId String   @unique
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Achievement {
-  id          String @id @default(cuid())
+model epic {
+  id          String   @id @default(cuid())
   name        String
   description String
-  icon        String
-  category    String
+  order       Int      @default(0)
+  scenario_id String
+  scenario    scenario @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+  levels      level[]
+  
+  @@index([scenario_id])
+}
 
-  // Requirements
-  criteria Json // { "type": "task_complete", "count": 5 } or sumn idk
+model level {
+  id                String       @id @default(cuid())
+  title             String
+  subtitle          String
+  order             Int          @default(0)
+  sprint_number     Int          @default(1)
+  deadline          DateTime
+  level_description String
+  xp_reward         Int
+  coin_reward       Int
+  key_takeaways     String
+  epic_id           String?
+  scenario_id       String
+  epic              epic?        @relation(fields: [epic_id], references: [id])
+  scenario          scenario     @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+  tasks             level_task[]
+  
+  @@index([id])
+}
 
-  xpReward   Int @default(100)
-  coinReward Int @default(50)
+model level_task {
+  id                  String                @id @default(cuid())
+  level_id            String
+  task_name           String
+  user_story          String
+  order               Int                   @default(0)
+  is_complete         Boolean               @default(false)
+  test_type           String                @default("none")
+  epic_id             String?
+  acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
+  hints               hint[]                @relation("TaskHints")
+  learning_sections   learning_section[]
+  level               level                 @relation(fields: [level_id], references: [id], onDelete: Cascade)
+  
+  @@unique([level_id, task_name])
+  @@index([level_id])
+}
 
+model learning_section {
+  id                 String                   @id @default(cuid())
+  task_id            String
+  title              String
+  content            String
+  order              Int                      @default(0)
+  section_type       LearningSectionType      @default(PLAIN_TEXT)
+  interactive_mode   LearningInteractiveMode?
+  interactive_config Json?
+  task               level_task               @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  
+  @@index([task_id])
+}
+
+model acceptance_criteria {
+  id          String     @id @default(cuid())
+  task_id     String
+  description String
+  is_required Boolean    @default(false)
+  order       Int        @default(0)
+  task        level_task @relation("TaskAcceptanceCriteria", fields: [task_id], references: [id], onDelete: Cascade)
+  
+  @@index([task_id])
+}
+
+model hint {
+  id          String     @id @default(cuid())
+  task_id     String
+  description String
+  order       Int        @default(0)
+  task        level_task @relation("TaskHints", fields: [task_id], references: [id], onDelete: Cascade)
+  
+  @@index([task_id])
+}
+
+model daily_login {
+  id            String    @id @default(cuid())
+  date          DateTime
+  streak        Int       @default(0)
+  user_id       String    @unique
+  claimedDays   Int[]     @default([])
+  currentDay    Int       @default(1)
+  lastClaimedAt DateTime?
+  user          user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model achievement {
+  id                String             @id @default(cuid())
+  name              String             @unique
+  description       String
+  icon              String
+  category          String
+  xp_reward         Int                @default(100)
+  coin_reward       Int                @default(50)
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
+  tiers             achievement_tier[]
+  user_achievements user_achievement[]
+}
+
+model achievement_tier {
+  id             String                 @id @default(cuid())
+  achievement_id String
+  tier           achievement_tier_level
+  description    String
+  icon           String?
+  criteria       Json
+  xp_reward      Int                    @default(100)
+  coin_reward    Int                    @default(50)
+  created_at     DateTime               @default(now())
+  updated_at     DateTime               @updatedAt
+  achievement    achievement            @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+  
+  @@unique([achievement_id, tier])
+  @@index([achievement_id])
+  @@map("achievement_tiers")
+}
+
+model user_achievement {
+  id             String                 @id @default(cuid()) @map("id")
+  user_id        String                 @map("user_id")
+  achievement_id String
+  tier           achievement_tier_level
+  description    String
+  icon           String?
+  criteria       Json
+  xp_reward      Int                    @default(100)
+  coin_reward    Int                    @default(50)
+  created_at     DateTime               @default(now())
+  updated_at     DateTime               @updatedAt
+  achievement    achievement            @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+  users          user[]                 @relation("userTouser_achievement")
+  
+  @@unique([achievement_id, tier], map: "user_achievement_achievement_id_tier_key")
+  @@index([achievement_id], map: "user_achievement_achievement_id_idx")
+  @@map("user_achievement_tiers")
+}
+
+model user_file_changes {
+  id           String    @id @default(cuid())
+  workspace_id String
+  file_path    String
+  action       String
+  old_path     String?
+  content_hash String?
+  timestamp    DateTime  @default(now())
+  workspace    workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  
+  @@index([workspace_id, timestamp])
+}
+
+model completed_task {
+  id           String    @id @default(cuid())
+  workspace_id String
+  task_name    String
+  completed_at DateTime  @default(now())
+  workspace    workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  
+  @@unique([workspace_id, task_name])
+  @@index([workspace_id])
+}
+
+model workspace_stack {
+  id            String    @id @default(cuid())
+  workspace_id  String
+  stack_name    String
+  stack_version String?
+  workspace     workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  
+  @@index([workspace_id])
+}
+
+model app_setting {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  value      String
+  type       String   @default("boolean")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model assessment_topic_score {
+  id          String   @id
+  user_id     String
+  topic       String
+  pre_score   Int?
+  post_score  Int?
+  improvement Int?
+  assessed_at DateTime @default(now())
+  user        user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, topic])
+  @@index([user_id])
+}
+
+model season {
+  id               String                    @id @default(cuid())
+  name             String
+  description      String?
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean                   @default(false)
+  xpReset          Boolean                   @default(false)
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  tracks           pass_reward_track[]
+  passes           user_premium_pass[]
+  seasonRewards    user_reward_claim[]
+  user_progression user_season_progression[]
+  
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+model user_premium_pass {
+  id              String   @id @default(cuid())
+  user_id         String
+  season_id       String
+  purchasedAt     DateTime @default(now())
+  expiresAt       DateTime
+  isActive        Boolean  @default(true)
+  paymentId       String?
+  paymentProvider String?
+  season          season   @relation(fields: [season_id], references: [id], onDelete: Cascade)
+  user            user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, season_id])
+  @@index([user_id])
+  @@index([expiresAt])
+}
+
+model pass_reward_track {
+  id          String              @id @default(cuid())
+  season_id   String
+  passType    PassType
+  level       Int
+  rewardType  RewardType
+  rewardValue Json?
+  xpRequired  Int
+  isClaimable Boolean             @default(true)
+  season      season              @relation(fields: [season_id], references: [id], onDelete: Cascade)
+  claimLogs   reward_claim_log[]
+  claims      user_reward_claim[]
+  
+  @@unique([season_id, passType, level])
+  @@index([season_id])
+  @@index([xpRequired])
+}
+
+model user_season_progression {
+  id           String @id @default(cuid())
+  user_id      String
+  season_id    String
+  currentLevel Int    @default(1)
+  premiumLevel Int?   @default(0)
+  seasonXp     Int    @default(0)
+  totalXp      Int?
+  season       season @relation(fields: [season_id], references: [id], onDelete: Cascade)
+  user         user   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, season_id])
+  @@index([user_id])
+}
+
+model user_reward_claim {
+  id        String            @id @default(cuid())
+  user_id   String
+  reward_id String
+  season_id String
+  claimedAt DateTime          @default(now())
+  reward    pass_reward_track @relation(fields: [reward_id], references: [id])
+  season    season            @relation(fields: [season_id], references: [id], onDelete: Cascade)
+  user      user              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, reward_id])
+  @@index([user_id])
+  @@index([season_id])
+}
+
+model ai_help_daily_usage {
+  id      String   @id @default(cuid())
+  user_id String
+  date    DateTime @default(now())
+  count   Int      @default(0)
+  user    user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, date])
+  @@index([user_id, date])
+}
+
+model pass_xp_log {
+  id        String   @id @default(cuid())
+  user_id   String
+  amount    Int
+  source    String
+  metadata  Json?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userAchievements UserAchievement[]
-
-  @@unique([name])
+  user      user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([user_id])
+  @@index([createdAt])
+  @@index([user_id, createdAt])
 }
 
-model UserAchievement {
+model reward_claim_log {
+  id        String            @id @default(cuid())
+  user_id   String
+  reward_id String
+  season_id String
+  success   Boolean           @default(true)
+  error     String?
+  createdAt DateTime          @default(now())
+  reward    pass_reward_track @relation(fields: [reward_id], references: [id])
+  user      user              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, reward_id])
+  @@index([user_id])
+  @@index([reward_id])
+  @@index([season_id])
+  @@index([createdAt])
+}
+
+// Learner Pass System Models
+model learner_pass_enrollment {
+  id              String   @id @default(cuid())
+  user_id         String
+  status          String   // ACTIVE, COMPLETED, EXPIRED, CANCELED
+  started_at      DateTime?
+  expires_at      DateTime?
+  current_day     Int      @default(1)
+  streak          Int      @default(0)
+  last_claimed_at DateTime?
+  total_claimed_days Int   @default(0)
+  payment_id      String?
+  payment_provider String  @default("stripe")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  user            user     @relation("learnerPassEnrollments", fields: [user_id], references: [id], onDelete: Cascade)
+  claims          learner_pass_day_claim[] @relation("learnerPassEnrollmentClaims")
+
+  @@index([user_id])
+  @@index([status])
+  @@index([expires_at])
+  @@index([payment_id])
+}
+
+model learner_pass_day_claim {
+  id          String   @id @default(cuid())
+  enrollment_id String?
+  user_id     String
+  day_number  Int    // 1..30
+  claim_type  String? @default("FREE") // FREE or PREMIUM
+  claimed_at  DateTime @default(now())
+
+  @@unique([user_id, day_number, claim_type])
+  @@index([user_id, claimed_at])
+  @@index([enrollment_id])
+  user        user     @relation("learnerPassDayClaims", fields: [user_id], references: [id], onDelete: Cascade)
+  enrollment  learner_pass_enrollment? @relation("learnerPassEnrollmentClaims", fields: [enrollment_id], references: [id])
+}
+
+model learner_pass_reward {
+  id              String   @id @default(cuid())
+  day_number      Int      @unique // 1..30
+  coins_reward    Int
+  xp_reward       Int
+  unlock_project_ids String[] // scenario_id array
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model user_project_access {
   id            String   @id @default(cuid())
-  userId        String
-  achievementId String
-  earnedAt      DateTime @default(now())
+  user_id       String
+  project_id    String   // scenario_id
+  source        String   // LEARNER_PASS, PURCHASE, ADMIN_GRANT
+  source_ref_id String   // e.g., enrollment id
+  granted_at    DateTime @default(now())
+  expires_at    DateTime? // nullable; null = permanent unlock
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, achievementId])
-  @@index([userId])
+  @@unique([user_id, project_id, source])
+  @@index([user_id])
+  @@index([project_id])
+  @@index([source])
+  user          user     @relation("userProjectAccess", fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-// File change tracking model
-model UserFileChanges {
-  id          String   @id @default(cuid())
-  containerId String
-  filePath    String
-  action      String // "CREATE", "WRITE", "DELETE", "RENAME"
-  oldPath     String? // For rename operations - stores the original path
-  contentHash String? // Optional: hash of file content for change detection
-  timestamp   DateTime @default(now())
-
-  // Relations
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
-
-  @@index([containerId, timestamp])
+enum UserRole {
+  USER
+  ADMIN
 }
 
-// Completed tasks for a container
-model CompletedTask {
-  id          String   @id @default(cuid())
-  containerId String
-  taskName    String
-  completedAt DateTime @default(now())
-
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
-
-  @@unique([containerId, taskName])
-  @@index([containerId])
+enum LearningSectionType {
+  PLAIN_TEXT
+  INTERACTIVE
 }
 
-// Stack choices for a container
-model ContainerStack {
-  id           String  @id @default(cuid())
-  containerId  String
-  stackName    String
-  stackVersion String?
+enum LearningInteractiveMode {
+  TERMINAL_CD
+  CODE_EDITOR
+}
 
-  container Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+enum achievement_tier_level {
+  ROOKIE
+  AMATEUR
+  PRO
+}
 
-  @@index([containerId])
+enum PassType {
+  FREE
+  PREMIUM
+}
+
+enum RewardType {
+  COINS
+  XP_BOOST
+  AI_HELP_CREDITS
+  AVATAR
+  TITLE
+  BORDER
+  BADGE
 }

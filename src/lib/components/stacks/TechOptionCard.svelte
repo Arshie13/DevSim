@@ -22,7 +22,7 @@
       {/if}
     </div>
 
-    <div class="flex items-center gap-2.5">
+    <div class="flex items-start gap-2.5">
       <!-- Icon container -->
       <div class="icon-box flex-shrink-0 text-base w-9 h-9 flex items-center justify-center">
         {option.icon}
@@ -32,6 +32,14 @@
       <div class="flex-1 min-w-0">
         <h4 class="card-name truncate">{option.name}</h4>
         <p class="card-desc mt-0.5 line-clamp-2">{option.description}</p>
+        
+        {#if option.finalProjectDescription}
+          <div class="final-project-badge mt-2">
+            <span class="badge-icon">🎯</span>
+            <span class="badge-text">What you'll build</span>
+            <p class="badge-desc">{option.finalProjectDescription}</p>
+          </div>
+        {/if}
       </div>
     </div>
   </div>
@@ -129,5 +137,31 @@
     font-size: 0.85rem;
     color: rgba(208, 215, 221, 0.55);
     line-height: 1.35;
+  }
+
+  .final-project-badge {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 180, 0, 0.08);
+    border: 1px solid rgba(255, 180, 0, 0.15);
+    border-radius: 4px;
+  }
+  .badge-icon {
+    font-size: 0.75rem;
+  }
+  .badge-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ffb400;
+    margin-left: 0.25rem;
+  }
+  .badge-desc {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    color: rgba(208, 215, 221, 0.70);
+    margin-top: 0.25rem;
+    line-height: 1.3;
   }
 </style>
