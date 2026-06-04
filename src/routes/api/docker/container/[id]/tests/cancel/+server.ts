@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
 
-// Best-effort test cancel: kill common npm/vitest/jest test commands inside the container.
+// Best-effort test cancel: kill common pnpm/vitest/jest test commands inside the container.
 export const POST: RequestHandler = async ({ params }) => {
   const containerId = params.id;
 
@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ params }) => {
       Cmd: [
         'sh',
         '-c',
-        "pkill -f 'npm run test' || true; pkill -f 'vitest' || true; pkill -f 'jest' || true; pkill -f 'node .*test' || true"
+        "pkill -f 'pnpm run test' || true; pkill -f 'npm run test' || true; pkill -f 'vitest' || true; pkill -f 'jest' || true; pkill -f 'node .*test' || true"
       ],
       AttachStdout: false,
       AttachStderr: false,

@@ -11,13 +11,15 @@
     goto("/dashboard");
   }
 
+  function navigateToMarketplace() {
+    goto("/marketplace/coins");
+  }
+
   function handleStatsClick() {
     if (onOpenStats) {
       onOpenStats();
     }
   }
-
-
 </script>
 
 <header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50" data-tour="dashboard-header">
@@ -54,10 +56,13 @@
       {/if}
       
       <!-- Coins -->
-      <div class="flex items-center gap-2 bg-obsidian-surface/80 border border-cyber-warn/30 px-4 py-2 rounded-card shadow-[0_0_12px_rgba(255,180,0,0.1)]">
-        <Coins class="w-4 h-4 text-cyber-warn" />
+      <button 
+        on:click={navigateToMarketplace}
+        class="flex items-center gap-2 bg-obsidian-surface/80 border border-cyber-warn/30 px-4 py-2 rounded-card shadow-[0_0_12px_rgba(255,180,0,0.1)] hover:bg-cyber-warn/10 transition-all duration-300 group"
+      >
+        <Coins class="w-4 h-4 text-cyber-warn group-hover:scale-110 transition-transform" />
         <span class="font-orbitron font-semibold text-cyber-warn text-sm">{userData.coins?.toLocaleString()}</span>
-      </div>
+      </button>
       
       <!-- User Avatar -->
       <div class="flex items-center gap-3">

@@ -12,7 +12,7 @@ export const levels = [
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (npm/pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
+      "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
     scenario_id: "scenario-1",
     tasks: {
       create: [
@@ -44,13 +44,13 @@ export const levels = [
               {
                 title: "Package Management 101",
                 content:
-                  "When you start a project, no dependencies are installed yet. You need to run npm install (or pnpm install) in each folder that has a package.json.\n\nWhy separate installs? Each folder is its own isolated module. The client uses React libraries, the server uses Express libraries — they don't share the same node_modules.",
+                  "When you start a project, no dependencies are installed yet. You need to run pnpm install (or ppnpm install) in each folder that has a package.json.\n\nWhy separate installs? Each folder is its own isolated module. The client uses React libraries, the server uses Express libraries — they don't share the same node_modules.",
                 order: 4,
               },
               {
                 title: "Change Directory (cd) Basics",
                 content:
-                  "In development, you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server before running installs or scripts.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running a command, because npm install and npm run commands affect the folder you are currently in.",
+                  "In development, you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server before running installs or scripts.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running a command, because pnpm install and pnpm run commands affect the folder you are currently in.",
                 order: 5,
               },
               {
@@ -87,7 +87,7 @@ export const levels = [
               {
                 title: "Prisma Migrations",
                 content:
-                  "A migration is a recorded change to your database schema (tables, columns, relationships). When you run npx prisma migrate dev, Prisma reads your schema.prisma file, compares it with the current state of the database, and then generates and executes the necessary SQL to synchronize them. This process ensures that every developer's database remains consistent and follows the same structure.",
+                  "A migration is a recorded change to your database schema (tables, columns, relationships). When you run pnpm dlx prisma migrate dev, Prisma reads your schema.prisma file, compares it with the current state of the database, and then generates and executes the necessary SQL to synchronize them. This process ensures that every developer's database remains consistent and follows the same structure.",
                 order: 9,
               },
               {
@@ -1626,7 +1626,7 @@ export const levels = [
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "A PERN stack project requires separate npm install runs in the root, client/, and server/ directories. Prisma migrations keep the PostgreSQL schema in sync with your code. Environment variables (DATABASE_URL, PORT) are read by dotenv and must never be committed. React layout components like Navbar are the single place to update global brand text — change it once and it updates everywhere.",
+      "A PERN stack project requires separate pnpm install runs in the root, client/, and server/ directories. Prisma migrations keep the PostgreSQL schema in sync with your code. Environment variables (DATABASE_URL, PORT) are read by dotenv and must never be committed. React layout components like Navbar are the single place to update global brand text — change it once and it updates everywhere.",
     scenario_id: "scenario-2",
     tasks: {
       create: [
@@ -1652,7 +1652,7 @@ export const levels = [
               {
                 title: "Three Package Roots",
                 content:
-                  "This project has three separate package.json files:\nroot/          ← shared scripts (test runner, concurrently)\n├── client/    ← React + Vite + Tailwind\n└── server/    ← Express + Prisma\n\nRun npm install in each directory independently.",
+                  "This project has three separate package.json files:\nroot/          ← shared scripts (test runner, concurrently)\n├── client/    ← React + Vite + Tailwind\n└── server/    ← Express + Prisma\n\nRun pnpm install in each directory independently.",
                 order: 3,
               },
               {
@@ -1664,7 +1664,7 @@ export const levels = [
               {
                 title: "Prisma Migrations",
                 content:
-                  "After installing dependencies, run:\nnpx prisma migrate dev --name init\n\nThis reads server/prisma/schema.prisma, creates SQL, and applies it to PostgreSQL. Run prisma generate afterward (or it runs automatically) to regenerate the type-safe client.",
+                  "After installing dependencies, run:\npnpm dlx prisma migrate dev --name init\n\nThis reads server/prisma/schema.prisma, creates SQL, and applies it to PostgreSQL. Run prisma generate afterward (or it runs automatically) to regenerate the type-safe client.",
                 order: 5,
               },
               {
@@ -1697,7 +1697,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "There are three directories that each contain a package.json — you must run npm install in all three (root, client/, server/).",
+                  "There are three directories that each contain a package.json — you must run pnpm install in all three (root, client/, server/).",
                 order: 1,
               },
               {
@@ -1707,7 +1707,7 @@ export const levels = [
               },
               {
                 description:
-                  "After installing server dependencies, run `npx prisma migrate dev` inside the server/ directory to apply the schema.",
+                  "After installing server dependencies, run `pnpm dlx prisma migrate dev` inside the server/ directory to apply the schema.",
                 order: 3,
               },
             ],
@@ -2211,7 +2211,7 @@ export const levels = [
               {
                 title: "Prisma Schema Migration",
                 content:
-                  "Add to the Order model in schema.prisma:\ncancelledAt  DateTime?\n\nThen run:\nnpx prisma migrate dev --name add-cancelled-at\n\nThe ? makes it nullable — existing orders keep cancelledAt: null. Only cancelled orders get a timestamp.",
+                  "Add to the Order model in schema.prisma:\ncancelledAt  DateTime?\n\nThen run:\npnpm dlx prisma migrate dev --name add-cancelled-at\n\nThe ? makes it nullable — existing orders keep cancelledAt: null. Only cancelled orders get a timestamp.",
                 order: 2,
               },
               {
@@ -2401,7 +2401,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Add the Coupon model to server/prisma/schema.prisma with all six required fields, then run `npx prisma migrate dev` from the server directory.",
+                  "Add the Coupon model to server/prisma/schema.prisma with all six required fields, then run `pnpm dlx prisma migrate dev` from the server directory.",
                 order: 1,
               },
               {
@@ -2854,7 +2854,7 @@ export const levels = [
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "A PERN POS project needs npm install in root, client/, and server/. Prisma migrations keep Postgres aligned with schema.prisma. React layout components (Sidebar) are the single source of truth for brand text — update them once and every page reflects the change.",
+      "A PERN POS project needs pnpm install in root, client/, and server/. Prisma migrations keep Postgres aligned with schema.prisma. React layout components (Sidebar) are the single source of truth for brand text — update them once and every page reflects the change.",
     scenario_id: "scenario-3",
     tasks: {
       create: [
@@ -2880,7 +2880,7 @@ export const levels = [
               {
                 title: "Three Package Roots",
                 content:
-                  "This project has three separate package.json files:\nroot/          ← monorepo orchestrator + test scripts\n├── client/    ← React + Vite + Tailwind\n└── server/    ← Express + Prisma\n\nRun npm install in each directory independently.",
+                  "This project has three separate package.json files:\nroot/          ← monorepo orchestrator + test scripts\n├── client/    ← React + Vite + Tailwind\n└── server/    ← Express + Prisma\n\nRun pnpm install in each directory independently.",
                 order: 3,
               },
               {
@@ -2892,7 +2892,7 @@ export const levels = [
               {
                 title: "Prisma Migrations",
                 content:
-                  "After installing server dependencies, run:\nnpx prisma migrate dev --name init\n\nThis reads server/prisma/schema.prisma, creates SQL, and applies it. Prisma generate then regenerates the type-safe client.",
+                  "After installing server dependencies, run:\npnpm dlx prisma migrate dev --name init\n\nThis reads server/prisma/schema.prisma, creates SQL, and applies it. Prisma generate then regenerates the type-safe client.",
                 order: 5,
               },
               {
@@ -2925,7 +2925,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Run npm install in all three directories (root, client/, server/) — each has its own package.json.",
+                  "Run pnpm install in all three directories (root, client/, server/) — each has its own package.json.",
                 order: 1,
               },
               {
@@ -2935,7 +2935,7 @@ export const levels = [
               },
               {
                 description:
-                  "Run `npx prisma migrate dev` inside server/ to apply the schema to your Postgres database.",
+                  "Run `pnpm dlx prisma migrate dev` inside server/ to apply the schema to your Postgres database.",
                 order: 3,
               },
             ],

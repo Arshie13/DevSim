@@ -5,14 +5,14 @@ export async function getLeaderboard(limit = 5, currentUserId?: string): Promise
   const users = await prisma.user.findMany({
     orderBy: { xp: "desc" },
     take: limit,
-    select: { id: true, username: true, name: true, image: true, xp: true, level: true },
+    select: { id: true, username: true, name: true, image: true, owned_avatars: true, xp: true, level: true },
   });
 
   return users.map((u, idx) => ({
     rank: idx + 1,
     username: u.username ?? u.name,
     name: u.name,
-    avatar: u.image ?? "🧑‍💻",
+    avatar: u.image || u.owned_avatars[0] || "🧑‍💻",
     xp: u.xp,
     level: u.level,
     isCurrentUser: u.id === currentUserId,

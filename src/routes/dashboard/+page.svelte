@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import type { IContainer, UserData, KPIData, WeeklyStats, ActivityItem, LeaderboardEntry, UserKpis, AchievementFeedItem } from "$types";
-  import { Plus, ArrowRight, Gift } from "lucide-svelte";
+  import { Plus, ArrowRight, Gift, Key } from "lucide-svelte";
   import Header from "$components/Header.svelte";
   import KPIs from "$components/dashboard/KPIs.svelte";
   import CurrentStacks from "$components/dashboard/CurrentStacks.svelte";
@@ -192,6 +192,21 @@
           <div class="text-left">
             <p class="text-[0.65rem] font-orbitron font-semibold text-cyber-cyan uppercase tracking-wider">Daily Rewards</p>
           </div>
+        </button>
+
+        <!-- Pass Button -->
+        <button
+          on:click={() => goto("/pass")}
+          class="btn-cyber btn-cyber-solid group flex items-center gap-3 !px-5 !py-3"
+        >
+          <div class="w-10 h-10 rounded-card bg-obsidian-bg/30 flex items-center justify-center">
+            <Key class="w-5 h-5 text-white" />
+          </div>
+          <div class="text-left">
+            <p class="text-sm font-orbitron font-semibold text-obsidian-bg">My Pass</p>
+            <p class="text-[0.6rem] font-mono text-obsidian-bg/70 normal-case tracking-normal">Access your benefits</p>
+          </div>
+          <ArrowRight class="w-4 h-4 text-obsidian-bg group-hover:translate-x-1 transition-transform ml-2" />
         </button>
 
         <!-- Start New Stack Button -->
