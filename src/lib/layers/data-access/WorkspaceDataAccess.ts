@@ -27,20 +27,6 @@ function mapWorkspace(row: WorkspaceRow & { workspace_stacks?: WorkspaceStackRow
 export type WorkspaceWithStacks = ReturnType<typeof mapWorkspace>;
 
 export class WorkspaceDataAccess {
-  async findUserById(userId: string) {
-    return prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true }
-    });
-  }
-
-  async findScenarioById(scenarioId: string) {
-    return prisma.scenario.findFirst({
-      where: { id: scenarioId },
-      select: { id: true }
-    });
-  }
-
   async findActiveWorkspace(userId: string, level: number) {
     const row = await prisma.workspace.findFirst({
       where: {
@@ -110,17 +96,6 @@ export class WorkspaceDataAccess {
         stopped_at: new Date()
       }
     });
-  }
-
-  // TODO: move this to FileChangesDataAccess class
-  async clearUserFileChanges(workspaceId: string) {
-    const res = await prisma.user_file_changes.deleteMany({
-      where: {
-        workspace_id: workspaceId
-      }
-    })
-
-    return { success: true, data: res }
   }
 
   async stopWorkspace(workspaceId: string) {

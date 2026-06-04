@@ -296,7 +296,7 @@
           level,
           summary: data.summary || { total: 0, passed: 0, failed: 0, duration: 0 },
           taskResults: data.taskResults || [],
-          command: `npm run test:tasks:l${level}`,
+          command: `pnpm run test:tasks:l${level}`,
           output: data.output
         };
 
@@ -410,7 +410,7 @@
         level,
         summary: data.summary || { total: 0, passed: 0, failed: 0, duration: 0 },
         taskResults: data.taskResults || [],
-        command: `npm run test:tasks:l${level}`,
+        command: `pnpm run test:tasks:l${level}`,
         output: data.output
       };
 

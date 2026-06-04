@@ -8,13 +8,16 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, '/login');
   }
 
-  // Check if user has completed pretest
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { pretest_score: true },
+  // Check if user has any pretest scores in the database
+  const pretestScores = await prisma.assessment_topic_score.findMany({
+    where: {
+      user_id: session.user.id,
+      pre_score: { not: null },
+    },
+    take: 1,
   });
 
-  const hasCompletedPretest = user?.pretest_score != null;
+  const hasCompletedPretest = pretestScores.length > 0;
 
   // Redirect based on pretest completion status
   if (hasCompletedPretest) {

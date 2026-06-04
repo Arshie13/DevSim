@@ -399,7 +399,7 @@
           const listRes = await fetch(
             `/api/docker/container/${containerId}/files/logs`,
             {
-              method: "POST",
+              method: "GET",
               headers: { "Content-Type": "application/json" },
               signal,
               body: JSON.stringify({}),
@@ -760,6 +760,7 @@
             signal,
             body: JSON.stringify({
               taskId: task.taskName,
+              // taskId: task.task_name,
               advanceLevel: isLastTask,
             }),
           },

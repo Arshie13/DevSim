@@ -7,7 +7,7 @@ const DEFAULT_XP_REWARD = 100;
 const DEFAULT_COIN_REWARD = 50;
 
 interface SubmitRequest {
-  taskId: string;
+  taskName: string;
   advanceLevel?: boolean; // If true, will advance level when all tasks complete
 }
 
@@ -21,15 +21,15 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 	try {
 		const body: SubmitRequest = await request.json();
-		const { taskId, advanceLevel } = body
+		const { taskName, advanceLevel } = body
 
-		if (!taskId) {
-			return error(400, 'Missing taskId');
+		if (!taskName) {
+			return error(400, 'Missing taskName');
 		}
 
 		const workspaceService = new WorkspaceService();
 		const result = await workspaceService.submitWork({
-			taskId,
+			taskName,
 			containerId: params.id,
 			userId: session.user.id,
 			advanceLevel

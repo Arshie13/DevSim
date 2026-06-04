@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getAllAppSettings } from '$lib/server/app-settings';
+import { AdminSettingsService } from '$lib/layers/service/AdminSettingsService';
 
 export const GET: RequestHandler = async ({ locals }) => {
   const session = await locals.auth();
@@ -9,6 +9,8 @@ export const GET: RequestHandler = async ({ locals }) => {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const settings = await getAllAppSettings();
-  return json(settings);
+  const adminSettingsService = new AdminSettingsService();
+
+  const allAppSettings = await adminSettingsService.getAllAppSettings();
+  return json(allAppSettings);
 };

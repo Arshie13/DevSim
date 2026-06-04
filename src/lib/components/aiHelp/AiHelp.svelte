@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import {
     aiChatHistory,
     aiCoins,
+    aiHelpsRemaining,
     aiSelectedFile,
     aiFileTree,
     aiFileContents,
@@ -16,7 +17,6 @@
   import { type ITask } from "$lib/types";
   import ThoughtBubble from "./ThoughtBubble.svelte";
   import FloatingModal from "./FloatingModal.svelte";
-  // Helpers from aiHelpHelpers
   import {
     chunkHintMessage,
     calculateTotalCost,
@@ -38,6 +38,7 @@
     type BubbleHistoryItem,
     type BubbleState,
   } from "$lib/utils/aiHelpHelpers";
+  import { updateAIHelpsRemaining } from "$lib/stores/passStore";
   // Constants from aiHelpConstants
   import {
     MAX_ATTACHED_FILES,
@@ -64,6 +65,10 @@
   export let initialFileTree: string[] = [];
   export let initialFileContents: Record<string, string> = {};
   export let initialCoins: number = 1000;
+  export let initialAiHelps: { today: number; total: number } = {
+    today: 5,
+    total: 5,
+  };
   export let initialAiModel: string = "nvidia/nemotron-3-nano-30b-a3b:free";
 
   // State
@@ -90,7 +95,7 @@
   let showSazWave = false;
   let sazWaveTimer: ReturnType<typeof setTimeout> | null = null;
   let sazSummonTimer: ReturnType<typeof setTimeout> | null = null;
-  
+
   // Track if we should use bubble mode for chat responses
   let useBubbleMode = false;
   let bubbleChatMessage = "";
@@ -101,6 +106,18 @@
 
   // Track bubble history for session persistence (new)
   let bubbleHistory: BubbleHistoryItem[] = [];
+
+  const AI_MODELS = [
+    {
+      label: "NVIDIA Nemotron 3 Nano 30B",
+      value: "nvidia/nemotron-3-nano-30b-a3b:free",
+    },
+    { label: "Gemma 3N E2B", value: "google/gemma-3n-e2b-it:free" },
+    {
+      label: "Google Gemini 2.5 Flash",
+      value: "google/gemini-2.5-flash:direct",
+    },
+  ];
 
   // Reactive
   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
@@ -114,9 +131,11 @@
       : $aiFileContents;
   $: currentCoins =
     $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
+  $: currentAiHelps = $aiHelpsRemaining;
   $: totalCost = calculateTotalCost(mode, attachedFiles.length);
   $: allTasksCompleted = areAllTasksCompleted(tasks);
-  $: hasChatAiMessage = $aiChatHistory && $aiChatHistory.some((msg: any) => msg.role === 'ai');
+  $: hasChatAiMessage =
+    $aiChatHistory && $aiChatHistory.some((msg: any) => msg.role === "ai");
 
   // Initialize stores
   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
@@ -124,6 +143,7 @@
   $: if (Object.keys(initialFileContents).length > 0)
     aiFileContents.set(initialFileContents);
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
+  $: if (initialAiHelps) aiHelpsRemaining.set(initialAiHelps);
 
   // Auto-scroll chat
   $: {
@@ -155,7 +175,7 @@
   //     showFloatingModal = false;
   //   }, 3000);
   // }
-  
+
   // Ensure FloatingModal is disabled when ThoughtBubble is active
   $: if (showQuickHint && !isBubbleHidden) {
     showFloatingModal = false;
@@ -218,6 +238,11 @@
     if (sazSummonTimer) clearTimeout(sazSummonTimer);
   });
 
+  // Fetch AI usage on component mount
+  onMount(async () => {
+    await updateAIHelpsRemaining(5, 5);
+  });
+
   async function generateContext() {
     return generateContextHelper(
       scenario,
@@ -234,16 +259,24 @@
 
   async function sendMessage() {
     // Use API function for validation
-    const validation = validateMessage(userMessage, isLoading, currentCoins, totalCost);
+    const validation = validateMessage(
+      userMessage,
+      isLoading,
+      currentCoins,
+      totalCost,
+    );
     if (!validation.valid) return;
-    
+
     const message = userMessage.trim();
     userMessage = "";
 
     const filesToInclude = [...attachedFiles];
     aiChatHistory.update((msgs) => [
       ...msgs,
-      createUserMessage(message, filesToInclude.length > 0 ? filesToInclude : undefined),
+      createUserMessage(
+        message,
+        filesToInclude.length > 0 ? filesToInclude : undefined,
+      ),
     ]);
     clearAttachedFiles();
     isLoading = true;
@@ -260,11 +293,13 @@
         currentCoins,
         totalCost,
         generateContext,
-        selectedAiModel
+        selectedAiModel,
       );
-      
+
       if (result.success && result.coinsRemaining !== undefined) {
         initialCoins = result.coinsRemaining;
+        // Refresh AI help remaining count
+        await updateAIHelpsRemaining(5, 5);
       }
     } catch (error) {
       console.error("[AI Help] Error:", error);
@@ -280,9 +315,11 @@
 
   async function requestQuickHint() {
     if (isLoading || !containerId || !userId) {
-      const errorMsg = !containerId ? "Container not available. Please start a workspace first." :
-                     !userId ? "Please log in to use AI hints." :
-                     "AI hints are currently loading.";
+      const errorMsg = !containerId
+        ? "Container not available. Please start a workspace first."
+        : !userId
+          ? "Please log in to use AI hints."
+          : "AI hints are currently loading.";
       quickHintMessage = errorMsg;
       showFloatingModal = false;
       showQuickHint = true;
@@ -318,9 +355,11 @@
       userId,
       level,
       generateContext,
-      // onSuccess
+      //  onSuccess
       (hint: string, coinsRemaining?: number) => {
-        const finalHint = hint || "No hint available. Please try again or ask a specific question.";
+        const finalHint =
+          hint ||
+          "No hint available. Please try again or ask a specific question.";
         quickHintMessage = finalHint;
         hintHistory = [...hintHistory, finalHint];
         const historyItem = createBubbleHistoryItem(finalHint, false);
@@ -331,6 +370,8 @@
           aiCoins.set(coinsRemaining);
           initialCoins = coinsRemaining;
         }
+        // Refresh AI help remaining count
+        updateAIHelpsRemaining(5, 5);
       },
       // onError
       (error: string) => {
@@ -339,7 +380,7 @@
         hintChunks = chunkHintMessage(error);
         currentHintChunk = 0;
       },
-      selectedAiModel
+      selectedAiModel,
     );
 
     quickHintLoading = false;
@@ -398,7 +439,7 @@
       currentCoins,
       totalCost,
       generateContext,
-      // onSuccess
+      //  onSuccess
       (hint: string, coinsRemaining?: number) => {
         bubbleChatMessage = hint;
         hintHistory = [...hintHistory, hint];
@@ -410,6 +451,8 @@
           aiCoins.set(coinsRemaining);
           initialCoins = coinsRemaining;
         }
+        // Refresh AI help remaining count
+        updateAIHelpsRemaining(5, 5);
       },
       // onError
       (error: string) => {
@@ -420,14 +463,18 @@
         hintChunks = chunkHintMessage(error);
         currentHintChunk = 0;
       },
-      selectedAiModel
+      selectedAiModel,
     );
 
     bubbleChatLoading = false;
   }
 
   function attachFile(filePath: string) {
-    attachedFiles = attachFileToList(attachedFiles, filePath, MAX_ATTACHED_FILES);
+    attachedFiles = attachFileToList(
+      attachedFiles,
+      filePath,
+      MAX_ATTACHED_FILES,
+    );
     showFilePicker = false;
   }
 
@@ -448,7 +495,6 @@
     }
   }
 
-
   // Quick hint handlers
   function hideBubble() {
     isBubbleHidden = true;
@@ -457,10 +503,10 @@
     isBubbleHidden = false;
   }
   function prevHintChunk() {
-    currentHintChunk = navigateHintChunk('prev', currentHintChunk, hintChunks);
+    currentHintChunk = navigateHintChunk("prev", currentHintChunk, hintChunks);
   }
   function nextHintChunk() {
-    currentHintChunk = navigateHintChunk('next', currentHintChunk, hintChunks);
+    currentHintChunk = navigateHintChunk("next", currentHintChunk, hintChunks);
   }
 
   // Handle selecting a history item from the floating modal
@@ -494,7 +540,7 @@
   function closeQuickHintWithCheck() {
     // Use helper to add message to hints shown
     hintsShown = addToHintsShown(hintsShown, quickHintMessage);
-    
+
     // Use helper to check if should auto-close
     if (shouldAutoClose(allTasksCompleted, hintsShown)) {
       // Use helper to reset bubble state
@@ -510,7 +556,7 @@
       bubbleChatMessage = resetState.bubbleChatMessage || "";
       return;
     }
-    
+
     // Use helper to reset bubble state
     const resetState = resetBubbleState();
     showQuickHint = resetState.showQuickHint || false;
@@ -536,7 +582,9 @@
     <button
       data-tour="ai-toggle"
       onclick={toggleFloatingModal}
-      class="w-28 h-28 transition-transform duration-200 {isSummoningSaz ? 'scale-105' : 'hover:scale-110 active:scale-[1.03]'}"
+      class="w-28 h-28 transition-transform duration-200 {isSummoningSaz
+        ? 'scale-105'
+        : 'hover:scale-110 active:scale-[1.03]'}"
       style="appearance:none;-webkit-appearance:none;background:transparent;padding:0;border:none;border-radius:0;box-shadow:none;outline:none;"
       aria-label="Open AI Assistant"
     >
@@ -576,7 +624,6 @@
     >
       💤
     </button>
-
   </div>
 {:else}
   <button
@@ -585,8 +632,12 @@
     class="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-cyan-300/40 bg-[linear-gradient(135deg,rgba(8,27,40,0.95),rgba(10,57,80,0.95))] px-4 py-2.5 text-cyan-100 shadow-[0_10px_24px_rgba(4,20,30,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-200 hover:text-white hover:shadow-[0_14px_28px_rgba(6,182,212,0.25)] active:translate-y-0"
     aria-label="Show SAZ"
   >
-    <span class="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-300"></span>
-    <span class="[font-family:var(--font-heading)] text-xs uppercase tracking-[0.08em]">Summon Saz</span>
+    <span class="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-300"
+    ></span>
+    <span
+      class="[font-family:var(--font-heading)] text-xs uppercase tracking-[0.08em]"
+      >Summon Saz</span
+    >
   </button>
 {/if}
 
@@ -653,10 +704,7 @@
      right: 220px shifts the cloud left so it doesn't overlap the right panel.
      bottom: 148px clears the 112px avatar + 36px gap. -->
 {#if !isSazHidden && showQuickHint && !isBubbleHidden}
-  <div
-    class="fixed inset-0 z-50"
-    style="pointer-events: none;"
-  >
+  <div class="fixed inset-0 z-50" style="pointer-events: none;">
     <div
       style="position: fixed; bottom: 160px; right: 75px; pointer-events: auto;"
     >

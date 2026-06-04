@@ -548,7 +548,7 @@ const questions = [
                 </div>
               </div>
 
-              {#if pretestScore != null}
+              {#if getPreAverage() > 0}
                 <div class="mb-6 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)]">
                   <div class="flex items-center justify-center gap-4">
                     <span class="text-zinc-400">Pre: {getPreAverage().toFixed(1)}</span>
@@ -588,7 +588,7 @@ const questions = [
               {#if getTotalSelections() > 0}
                 <div class="mb-8 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)] text-left">
                   <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-3">
-                    CONCEPTS YOU'VE COMPLETED
+                    CONCEPTS YOU'VE MASTERED
                   </h3>
                   <div class="flex flex-wrap gap-2">
                     {#each topics as topic}
@@ -653,7 +653,7 @@ const questions = [
 
               <div class="flex justify-center">
                 <button onclick={() => { showSuccess = true; return false; }} class="btn-cyber btn-cyber-solid !px-10">
-                  CONTINUE TO RATING SCREEN →
+                  CONTINUE TO SUCCESS →
                 </button>
               </div>
             </div>

@@ -1,36 +1,32 @@
-import prisma from '$lib/server/client';
-import { WorkspaceDataAccess } from './WorkspaceDataAccess';
+import { readFile } from '$lib/server/docker/user/read-file';
 
 export class FileDataAccess {
-  private workspace = new WorkspaceDataAccess();
-
-  async findWorkspaceByContainerId(userId: string, containerId: string) {
-    return this.workspace.findWorkspaceByContainerId(userId, containerId);
-  }
-
-  async createFileChange(params: {
-    workspaceId: string;
-    userId: string;
-    filePath: string;
-    action: 'CREATE' | 'UPDATE' | 'DELETE';
-    content?: string;
-  }) {
-    const { workspaceId, filePath, action, content } = params;
-
-    return prisma.user_file_changes.create({
-      data: {
-        workspace_id: workspaceId,
-        file_path: filePath,
-        action,
-        content_hash: content || null
+  async readFileContent(filePath: string, containerId: string): Promise<{ content: string; error?: never } | { error: string; content?: never }> {
+    try {
+      const fullPath = `/workspace/${filePath}`;
+      const result = await readFile(fullPath, containerId);
+      if (result.error) {
+        return { error: result.error };
       }
-    });
+      return { content: result.content };
+    } catch (error) {
+      console.error('Error reading file:', error);
+      return { error: String(error) };
+    }
   }
 
-  async getWorkspaceByContainerId(containerId: string) {
-    return prisma.workspace.findFirst({
-      where: { container_id: containerId },
-      select: { id: true, user_id: true }
-    });
+  async listContainerFiles(containerId: string): Promise<{ success: boolean; files?: string[]; error?: string }> {
+    try {
+      const response = await fetch(`/api/docker/container/${containerId}/files/list`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching file list:', error);
+      return { success: false, error: String(error) };
+    }
   }
 }

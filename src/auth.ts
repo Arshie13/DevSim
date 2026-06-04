@@ -18,11 +18,14 @@ function randomDefaultAvatarPath(): string {
  * Check if user has completed pretest by looking for pretest_score on user
  */
 async function hasCompletedPretest(userId: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { pretest_score: true },
+  const pretestScores = await prisma.assessment_topic_score.findMany({
+    where: {
+      user_id: userId,
+      pre_score: { not: null },
+    },
+    take: 1,
   });
-  return user?.pretest_score != null;
+  return pretestScores.length > 0;
 }
 
 export const { handle } = SvelteKitAuth({

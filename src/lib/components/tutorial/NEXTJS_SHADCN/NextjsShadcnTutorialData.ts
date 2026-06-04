@@ -20,21 +20,21 @@ function buildShadcnTaskOne(): ITask {
       order: 1,
       taskId,
       content:
-        "Start by initializing shadcn: `npx shadcn@latest init`. Accept all default prompts — this creates components.json and wires up the CLI for the project.",
+        "Start by initializing shadcn: `pnpm dlx shadcn@latest init`. Accept all default prompts — this creates components.json and wires up the CLI for the project.",
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "Once init completes, add the Separator component with `npx shadcn@latest add separator`. shadcn copies the source file directly into src/components/ui/separator.tsx — no npm package needed.",
+        "Once init completes, add the Separator component with `pnpm dlx shadcn@latest add separator`. shadcn copies the source file directly into src/components/ui/separator.tsx — no pnpm package needed.",
     },
     {
       id: `${taskId}-hint-3`,
       order: 3,
       taskId,
       content:
-        "After shadcn setup, run `npm install` to install remaining project dependencies, then `npm run dev` to start the dev server. Look for 'Ready in' in the terminal to confirm startup.",
+        "After shadcn setup, run `pnpm install` to install remaining project dependencies, then `pnpm run dev` to start the dev server. Look for 'Ready in' in the terminal to confirm startup.",
     },
   ];
 
@@ -44,21 +44,21 @@ function buildShadcnTaskOne(): ITask {
       taskId,
       order: 1,
       isRequired: true,
-      description: "Ran `npx shadcn@latest init` — components.json present in the project root",
+      description: "Ran `pnpm dlx shadcn@latest init` — components.json present in the project root",
     },
     {
       id: `${taskId}-ac-2`,
       taskId,
       order: 2,
       isRequired: true,
-      description: "Ran `npx shadcn@latest add separator` — src/components/ui/separator.tsx exists",
+      description: "Ran `pnpm dlx shadcn@latest add separator` — src/components/ui/separator.tsx exists",
     },
     {
       id: `${taskId}-ac-3`,
       taskId,
       order: 3,
       isRequired: true,
-      description: "Dependencies installed without errors (npm install)",
+      description: "Dependencies installed without errors (pnpm install)",
     },
     {
       id: `${taskId}-ac-4`,
@@ -236,10 +236,10 @@ export const STEPS: TutorialStep[] = [
     id: "shadcn-init",
     title: "Initialize shadcn",
     instruction:
-      "Run `npx shadcn@latest init` to initialize shadcn in the project. This creates components.json and configures the CLI for this codebase. When prompted, accept the defaults.",
-    hint: "Run: npx shadcn@latest init",
+      "Run `pnpm dlx shadcn@latest init` to initialize shadcn in the project. This creates components.json and configures the CLI for this codebase. When prompted, accept the defaults.",
+    hint: "Run: pnpm dlx shadcn@latest init",
     switchTab: "terminal",
-    command: "npx shadcn@latest init",
+    command: "pnpm dlx shadcn@latest init",
     requireCommand: true,
     waitForCompletion: false,
     target: "terminal-panel",
@@ -262,9 +262,9 @@ export const STEPS: TutorialStep[] = [
     title: "Add the Separator Component",
     instruction:
       "Now add a specific component with the shadcn CLI. This creates src/components/ui/separator.tsx — shadcn copies the source directly into your project so you can customize it freely.",
-    hint: "Run: npx shadcn@latest add separator",
+    hint: "Run: pnpm dlx shadcn@latest add separator",
     switchTab: "terminal",
-    command: "npx shadcn@latest add separator",
+    command: "pnpm dlx shadcn@latest add separator",
     requireCommand: true,
     waitForCompletion: false,
     target: "terminal-panel",
@@ -283,14 +283,14 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 3: npm install + dev server ─────────────────────────────────────
+  // ── Phase 3: pnpm install + dev server ─────────────────────────────────────
   {
     id: "terminal-install",
     title: "Install Dependencies",
     instruction: "Install all project dependencies from the root folder.",
-    hint: "Run: npm install",
+    hint: "Run: pnpm install",
     switchTab: "terminal",
-    command: "npm install",
+    command: "pnpm install",
     requireCommand: true,
     target: "terminal-panel",
     preferSide: "left",
@@ -300,8 +300,8 @@ export const STEPS: TutorialStep[] = [
     title: "Start Development Server",
     instruction:
       "Start the Next.js app in development mode. The step advances automatically once the server is ready.",
-    hint: "Run: npm run dev",
-    command: "npm run dev",
+    hint: "Run: pnpm run dev",
+    command: "pnpm run dev",
     requireCommand: true,
     waitForTerminalOutput: ["localhost:3000", "Ready in"],
     target: "terminal-panel",
@@ -504,9 +504,9 @@ export const STEPS: TutorialStep[] = [
     title: "Enter Mastery Reflection",
     instruction:
       "Type a short reflection on what you learned. Use the Copy button below to paste the example into the field.",
-    hint: 'Example: "I initialized shadcn with `npx shadcn@latest init`, added the Separator component via `npx shadcn@latest add separator`, then ran npm install and npm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload."',
+    hint: 'Example: "I initialized shadcn with `pnpm dlx shadcn@latest init`, added the Separator component via `pnpm dlx shadcn@latest add separator`, then ran pnpm install and pnpm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload."',
     copyText:
-      "I initialized shadcn with `npx shadcn@latest init`, added the Separator component via `npx shadcn@latest add separator`, then ran npm install and npm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload.",
+      "I initialized shadcn with `pnpm dlx shadcn@latest init`, added the Separator component via `pnpm dlx shadcn@latest add separator`, then ran pnpm install and pnpm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload.",
     target: "mastery-reflection-input",
     confirmLabel: "Next",
     requireTargetClick: false,

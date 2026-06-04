@@ -5,11 +5,11 @@ import prisma from "$lib/server/client";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
-
-  if (!session?.user) {
+  
+  if (!session?.user || !session.user.id) {
     throw redirect(303, "/");
   }
-
+  
   const userId = session.user.id;
 
   const [allContainers, archivedStacks, dbUser] = await Promise.all([
@@ -21,7 +21,7 @@ export const load: PageServerLoad = async (event) => {
     }),
   ]);
 
-  const currentContainers = allContainers.filter((c) => !c.isArchived);
+  const currentContainers = allContainers.filter((c) => !c.is_archived);
 
   return {
     user: {
