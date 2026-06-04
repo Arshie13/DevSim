@@ -2,31 +2,21 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
+  import { postAssessmentConfigs } from "$lib/data/postassessmentConfigs";
+  import type { PageData } from "./$types";
 
-  let { concepts = [], stackName = 'react-express-postgres-prisma', completedTasks = [] } = $props();
-  
-  interface Concept {
-    id: string;
-    concept: string;
-    category: string;
-  }
+  // SvelteKit passes the load() return value as a single `data` prop.
+  let { data }: { data: PageData } = $props();
 
-const questions = [
-  { id: 1, question: "How would you rate your current skills in HTML and CSS for creating web page layouts?" },
-  { id: 2, question: "How well can you now use JavaScript to add interactivity to web pages?" },
-  { id: 3, question: "How much do you know now about backend development concepts such as servers, routing, and middleware?" },
-  { id: 4, question: "How well do you understand databases and how data is stored and retrieved in web applications?" },
-  { id: 5, question: "How capable are you now in making frontend and backend systems work together?" },
-  { id: 6, question: "How strong is your understanding of APIs (Application Programming Interface) and how they are used to exchange data between systems?" },
-  { id: 7, question: "How comfortable are you now using the terminal or command line to run commands and manage files?" }
-];
-  const topicKeys = [
-    "env_setup", "package_managers",
-    "utility_functions", "pure_functions",
-    "backend_debugging", "express_controllers",
-    "reservation_queues", "concurrent_requests",
-    "production_debugging", "root_causes"
-  ];
+  const stackName: string = data?.stackName ?? 'react-express-postgres-prisma';
+  const scenarioLevels: { id: string; name: string; concepts: string[] }[] =
+    data?.scenarioLevels ?? [];
+
+  // Pick config for this stack, fallback to default.
+  // Saved stack_name uses the raw "postgresql" slug; config keys use "postgres".
+  const configKey = stackName.replace(/\bpostgresql\b/g, 'postgres');
+  const config = postAssessmentConfigs[configKey] || postAssessmentConfigs['default'];
+  const questions = config.questions || [];
 
   const scaleOptions = [
     { value: 1, label: "Not Confident" },
@@ -36,25 +26,17 @@ const questions = [
     { value: 5, label: "Very Confident" }
   ];
 
-  const fallbackConcepts: Concept[] = [
-    { id: "fallback-1", concept: "Full-stack development", category: "General" },
-    { id: "fallback-2", concept: "API development", category: "General" },
-    { id: "fallback-3", concept: "Database design", category: "General" },
-    { id: "fallback-4", concept: "Error handling", category: "General" },
-    { id: "fallback-5", concept: "Code organization", category: "General" }
-  ];
-  let availableConcepts = $state<Concept[]>(concepts.length > 0 ? concepts : fallbackConcepts);
-
-  let conceptsByCategory = $derived.by((): Record<string, Concept[]> => {
-    const grouped: Record<string, Concept[]> = {};
-    for (const concept of availableConcepts) {
-      if (!grouped[concept.category]) {
-        grouped[concept.category] = [];
-      }
-      grouped[concept.category].push(concept);
-    }
-    return grouped;
-  });
+  // Topics come from the user's actual scenario (level title + task names as chips).
+  // Falls back to the stack config, then to a generic hardcoded set.
+  const topics = (scenarioLevels && scenarioLevels.length > 0)
+    ? scenarioLevels
+    : (config.topics || [
+        { id: "level1", name: "Level 1: Environment Setup", concepts: ["Package managers (pnpm/npm)", "Environment variables & .env", "Prisma migrations", "Running multiple services locally", "Monorepo architecture"] },
+        { id: "level2", name: "Level 2: Utility Functions", concepts: ["Creating reusable utility functions", "Pure functions with predictable outputs", "Centralizing business logic", "Reducing code duplication", "Importing utilities in frontend/backend"] },
+        { id: "level3", name: "Level 3: Backend Debugging", concepts: ["Tracing Express controller logic", "Debugging Prisma queries", "Documenting bugs with test cases", "Identifying root causes vs symptoms", "Reading backend logs"] },
+        { id: "level4", name: "Level 4: Reservation Queue", concepts: ["Queue-based reservation systems", "Handling concurrent requests", "Database transactions (Prisma $transaction)", "Fair resource allocation", "Queue position tracking"] },
+        { id: "level5", name: "Level 5: Production Debugging", concepts: ["Debugging production issues", "Understanding table relationships", "Datetime & timezone issues", "Validating report accuracy", "Tracing data flow end-to-end"] }
+      ]);
 
   let currentQuestion = $state(0);
   let selectedAnswer = $state<number | null>(null);
@@ -70,14 +52,6 @@ const questions = [
   let submittingReflection = $state(false);
   let reflectionByTopic = $state<Record<string, Set<string>>>({});
   let reflectionText = $state<Record<string, string>>({});
-
-  const topics = [
-    { id: "level1", name: "Level 1: Environment Setup", concepts: ["Package managers (pnpm/npm)", "Environment variables & .env", "Prisma migrations", "Running multiple services locally", "Monorepo architecture"] },
-    { id: "level2", name: "Level 2: Utility Functions", concepts: ["Creating reusable utility functions", "Pure functions with predictable outputs", "Centralizing business logic", "Reducing code duplication", "Importing utilities in frontend/backend"] },
-    { id: "level3", name: "Level 3: Backend Debugging", concepts: ["Tracing Express controller logic", "Debugging Prisma queries", "Documenting bugs with test cases", "Identifying root causes vs symptoms", "Reading backend logs"] },
-    { id: "level4", name: "Level 4: Reservation Queue", concepts: ["Queue-based reservation systems", "Handling concurrent requests", "Database transactions (Prisma $transaction)", "Fair resource allocation", "Queue position tracking"] },
-    { id: "level5", name: "Level 5: Production Debugging", concepts: ["Debugging production issues", "Understanding table relationships", "Datetime & timezone issues", "Validating report accuracy", "Tracing data flow end-to-end"] }
-  ];
 
   $effect(() => {
     if (Object.keys(reflectionByTopic).length === 0) {
@@ -216,11 +190,20 @@ const questions = [
     showResult = true;
     processingResults = true;
     
-    const topicScores: Record<string, number> = {};
+    // Average each question's confidence answer into its shared skill bucket
+    // so pre/post improvement lines up on the same keys.
+    const bucketTotals: Record<string, { sum: number; count: number }> = {};
     for (let i = 0; i < questions.length; i++) {
-      if (answers[i]) {
-        topicScores[topicKeys[i]] = answers[i];
-      }
+      const ans = answers[i];
+      if (!ans) continue;
+      const bucket = questions[i].bucket ?? `question_${questions[i].id}`;
+      const acc = bucketTotals[bucket] ?? (bucketTotals[bucket] = { sum: 0, count: 0 });
+      acc.sum += ans;
+      acc.count += 1;
+    }
+    const topicScores: Record<string, number> = {};
+    for (const [bucket, { sum, count }] of Object.entries(bucketTotals)) {
+      topicScores[bucket] = Math.round(sum / count);
     }
     
     const allReflections: { topic: string; concepts: string[]; explanation: string }[] = [];
@@ -445,7 +428,7 @@ const questions = [
 
           <div class="mb-8">
             <h2 class="font-heading text-xl md:text-2xl font-bold text-[var(--text-primary)] mb-2">
-              {questions[currentQuestion].question}
+              {questions[currentQuestion]?.text ?? ''}
             </h2>
             <p class="text-[var(--text-muted)] text-sm mb-6">Rate your confidence from 1 (not confident) to 5 (very confident)</p>
             

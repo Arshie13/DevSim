@@ -12,9 +12,10 @@
   export let history: BubbleHistoryItem[] = [];
   export let userMessage: string = "";
   export let isLoading: boolean = false;
-  export let currentCoins: number = 0;
-  export let totalCost: number = 0;
-  export let canAttachMore: boolean = false;
+   export let currentCoins: number = 0;
+   export let totalCost: number = 0;
+   export let aiHelps: { today: number; total: number } = { today: 5, total: 5 };
+   export let canAttachMore: boolean = false;
   export let attachedFiles: { path: string; name: string }[] = [];
   export let fileTree: string[] = [];
   export let showFilePicker: boolean = false;
@@ -243,16 +244,22 @@
           <p class="text-[10px] leading-relaxed text-gray-400">Use specific prompts with files, errors, and goals. Vague prompts can increase hallucinations.</p>
         </div>
 
-        <!-- Cost Display -->
-        <div class="px-3 py-1.5 border-t border-slate-700/50 flex items-center justify-between text-xs">
-          <div class="flex items-center gap-1 text-gray-400">
-            <Coins class="w-3 h-3 text-yellow-500" />
-            <span>Cost: <span class="text-yellow-500 font-medium">{totalCost}</span></span>
-          </div>
-          <div class="text-gray-400">
-            Balance: <span class="text-green-400 font-medium">{currentCoins}</span>
-          </div>
-        </div>
+         <!-- Cost Display -->
+         <div class="px-3 py-1.5 border-t border-slate-700/50 flex items-center justify-between text-xs">
+           <div class="flex items-center gap-1 text-gray-400">
+             <Coins class="w-3 h-3 text-yellow-500" />
+             <span>Cost: <span class="text-yellow-500 font-medium">{totalCost}</span></span>
+           </div>
+           <div class="flex items-center gap-3 text-gray-400">
+             <div class="flex items-center gap-1">
+               <span class="text-cyan-500">💡</span>
+               <span>Helps: <span class="text-cyan-400 font-medium">{aiHelps.today}</span> / {aiHelps.total}</span>
+             </div>
+             <div>
+               Coins: <span class="text-green-400 font-medium">{currentCoins}</span>
+             </div>
+           </div>
+         </div>
 
         <!-- Attached Files -->
         {#if attachedFiles && attachedFiles.length > 0}

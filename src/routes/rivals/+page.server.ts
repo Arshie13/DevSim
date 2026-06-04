@@ -68,7 +68,6 @@ export const load: PageServerLoad = async (event) => {
         avatar:
           dbUser?.owned_avatars[0] ||
           dbUser?.image ||
-          session.user.avatar ||
           session.user.image,
       },
       userCoins: dbUser?.coins ?? 0,

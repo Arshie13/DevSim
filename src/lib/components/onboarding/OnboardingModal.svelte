@@ -135,7 +135,7 @@
             <div class="om-tool">
               <span class="om-tool-icon" aria-hidden="true">💻</span>
               <strong>Terminal</strong>
-              <p>A real shell connected to your Docker container — run any npm command you need.</p>
+              <p>A real shell connected to your Docker container — run any pnpm command you need.</p>
             </div>
             <div class="om-tool">
               <span class="om-tool-icon" aria-hidden="true">🌐</span>

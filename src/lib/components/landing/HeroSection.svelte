@@ -5,10 +5,10 @@
   let { session, stats }: { session: any; stats: LandingStats } = $props();
 
   const terminalLines = [
-    { text: "$ npm install", type: "cmd" },
+    { text: "$ pnpm install", type: "cmd" },
     { text: "added 847 packages in 4.2s", type: "out" },
     { text: "", type: "blank" },
-    { text: "$ npm run dev", type: "cmd" },
+    { text: "$ pnpm run dev", type: "cmd" },
     { text: "", type: "blank" },
     { text: "  ▲ Next.js 15.1.0", type: "out" },
     { text: "  - Local:   http://localhost:3000", type: "url" },

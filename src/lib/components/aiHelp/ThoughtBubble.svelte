@@ -8,10 +8,11 @@
   export let quickHintLoading: boolean = false;
   export let hintChunks: string[] = [];
   export let currentHintChunk: number = 0;
-  export let initialCoins: number = 1000;
-  export let QUICK_HINT_COST: number = 100;
-  export let CHAT_MESSAGE_COST: number = 200;
-  export let showChatButton: boolean = false;
+   export let initialCoins: number = 1000;
+   export let QUICK_HINT_COST: number = 100;
+   export let CHAT_MESSAGE_COST: number = 200;
+   export let showChatButton: boolean = false;
+   export let aiHelps: { today: number; total: number } = { today: 5, total: 5 };
 
   // Determine which cost to display based on chat mode
   $: displayedCost = showChatButton ? CHAT_MESSAGE_COST : QUICK_HINT_COST;
@@ -356,14 +357,17 @@
             </div>
           {/if}
 
-          <!-- Coins footer -->
-          <div style="
-            display:flex;justify-content:space-between;
-            padding-top:6px;border-top:1px solid #3f3f46;margin-top:6px;flex-shrink:0;
-          ">
-            <span style="font-size:11px;color:#6b7280;">💰 -{displayedCost} coins</span>
-            <span style="font-size:11px;color:#6b7280;">Remaining: {initialCoins}</span>
-          </div>
+           <!-- Coins & AI helps footer -->
+           <div style="
+             display:flex;justify-content:space-between;
+             padding-top:6px;border-top:1px solid #3f3f46;margin-top:6px;flex-shrink:0;
+           ">
+             <div class="flex items-center gap-3">
+               <span style="font-size:11px;color:#6b7280;">💰 -{displayedCost} coins</span>
+               <span style="font-size:11px;color:#6b7280;">💡 {aiHelps.today}/{aiHelps.total}</span>
+             </div>
+             <span style="font-size:11px;color:#6b7280;">Coins: {initialCoins}</span>
+           </div>
 
           <!-- AI reminder -->
           <p style="font-size:10px;color:#9ca3af;margin:3px 0 0;line-height:1.3;text-align:center;flex-shrink:0;">{activeReminder}</p>
