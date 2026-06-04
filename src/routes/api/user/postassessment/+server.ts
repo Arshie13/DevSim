@@ -176,6 +176,41 @@ Only respond with valid JSON.`;
   }
 }
 
+// Persist post-assessment confidence scores, computing improvement against the
+// stored pre-assessment score for each topic. Keyed by the same semantic topic
+// keys the pre-test uses (e.g. `prisma_schema`), so pre/post line up per topic.
+async function savePostScores(userId: string, scores: Record<string, unknown>) {
+  const topics = Object.keys(scores).filter((t) => typeof scores[t] === "number");
+  if (topics.length === 0) return;
+
+  // Pull existing rows so we can compute improvement against pre_score.
+  const existing = await prisma.assessment_topic_score.findMany({
+    where: { user_id: userId, topic: { in: topics } },
+  });
+  const preByTopic = new Map(existing.map((r) => [r.topic, r.pre_score]));
+
+  await Promise.all(
+    topics.map((topic) => {
+      const postScore = Math.round(scores[topic] as number);
+      const preScore = preByTopic.get(topic) ?? null;
+      const improvement = preScore != null ? postScore - preScore : null;
+
+      return prisma.assessment_topic_score.upsert({
+        where: { user_id_topic: { user_id: userId, topic } },
+        update: { post_score: postScore, improvement, assessed_at: new Date() },
+        create: {
+          id: `${userId}_${topic}_post`,
+          user_id: userId,
+          topic,
+          post_score: postScore,
+          improvement,
+          assessed_at: new Date(),
+        },
+      });
+    })
+  );
+}
+
 export const GET: RequestHandler = async (event) => {
   // Get the authenticated user from session
   const session = await event.locals.auth();
@@ -210,9 +245,20 @@ export const GET: RequestHandler = async (event) => {
 export const POST: RequestHandler = async (event) => {
   const body = await event.request.json();
   const { scores, reflections, preScores } = body;
-  
+
   console.log("Post-assessment submitted:", { scores, reflections, preScores });
-  
+
+  // Persist the confidence scores for the signed-in user. Wrapped so a DB
+  // failure never blocks the assessment result from being returned.
+  const session = await event.locals.auth();
+  if (session?.user?.id && scores && typeof scores === "object") {
+    try {
+      await savePostScores(session.user.id, scores as Record<string, unknown>);
+    } catch (err) {
+      console.error("Failed to save post-assessment scores:", err);
+    }
+  }
+
   // Grade reflections using AI if explanations are provided
   let aiGrading = null;
   const reflectionsWithExplanations = reflections?.filter((r: ReflectionData) => r.explanation && r.explanation.length > 0);
