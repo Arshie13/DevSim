@@ -10,6 +10,7 @@
   import FriendsSection      from "$components/profile/FriendsSection.svelte";
   import EditProfile         from "$components/profile/EditProfile.svelte";
   import AchievementSnapshot from "$components/achivements/AchievementSnapshot.svelte";
+  import { goto }            from "$app/navigation";
   import { toast }           from "$lib/stores/toast";
 
   export let data: PageData;
@@ -71,8 +72,12 @@
     { label: "Achievements",    value: String(metrics.achievementsCount), icon: Award,                   color: "#00e5a0", bg: "rgba(0,229,160,0.12)"  },
   ];
 
-  function backToDashboard() {
-    history.back();
+  function handleBack() {
+    if (window.history.length > 1) {
+      history.back();
+    } else {
+      goto('/dashboard');
+    }
   }
 </script>
 
@@ -85,7 +90,7 @@
   <!-- Back button bar -->
   <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-3 md:px-6 lg:px-8">
     <button
-      on:click={backToDashboard}
+      on:click={handleBack}
       class="btn-cyber btn-cyber-secondary inline-flex items-center gap-2 !py-2 !px-4"
     >
       <ArrowLeft class="w-4 h-4" />

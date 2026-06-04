@@ -16,6 +16,7 @@
   import MetricsSection from "$components/profile/MetricsSection.svelte";
   import FriendsSection from "$components/profile/FriendsSection.svelte";
   import AchievementSnapshot from "$components/achivements/AchievementSnapshot.svelte";
+  import { goto }            from "$app/navigation";
 
   export let data: PageData;
 
@@ -69,8 +70,12 @@
     },
   ];
 
-  function handleBack() {
-    window.history.back();
+ function handleBack() {
+    if (window.history.length > 1) {
+      history.back();
+    } else {
+      goto('/dashboard');
+    }
   }
 
   $: headerUserData = {
