@@ -25,10 +25,10 @@ export const load: PageServerLoad = async (event) => {
   const dbId = event.params.containerId;
   const userId = session.user.id;
 
-  const container = await prisma.container.findFirst({
-    where: { id: dbId, userId },
+  const container = await prisma.workspace.findFirst({
+    where: { id: dbId, user_id: userId },
     include: {
-      containerStacks: true,
+      workspace_stacks: true,
       scenario: {
         include: {
           levels: {
@@ -38,7 +38,10 @@ export const load: PageServerLoad = async (event) => {
                 orderBy: { order: "asc" },
                 include: {
                   hints: true,
-                  acceptanceCriteria: true
+                  acceptance_criteria: true,
+                  learning_sections: {
+                    orderBy: { order: "asc" }
+                  }
                 }
               }
             }
@@ -48,16 +51,55 @@ export const load: PageServerLoad = async (event) => {
     }
   });
 
+  if (container?.status === 'tutorial') {
+    throw redirect(303, `/tutorial/${container.id}`);
+  }
+
+  const scenario = await prisma.scenario.findFirst({
+    where: {
+      id: container?.scenario.id
+    }
+  });
+
+  const workspaceStacks = await prisma.workspace_stack.findMany({
+    where: {
+      workspace_id: container?.id
+    }
+  });
+
+  const level = await prisma.level.findFirst({
+    where: {
+      scenario_id: scenario?.id,
+      order: container?.level
+    }
+  });
+
   // Get completed tasks from the CompletedTask table
   // id might be wrong
-  const completedTaskRecords = await prisma.completedTask.findMany({
-    where: { containerId: container?.id },
-    select: { taskName: true }
+  const completedTaskRecords = await prisma.completed_task.findMany({
+    where: { workspace_id: container?.id },
+    select: { id: true, task_name: true }
   });
-  const completedTaskNames = completedTaskRecords.map(r => r.taskName);
+  const completedTaskNames = completedTaskRecords.map(r => r.task_name);
 
   // Extract level tasks - try record.scenario first, fallback to direct level query
-  let currentLevel = container?.scenario?.levels?.find(l => l.order === container.level);
+  let currentLevel = container?.scenario.levels?.find(l => l.order === container.level);
+
+  let currentLevelV2 = await prisma.level.findMany({
+    where: {
+      scenario_id: scenario?.id,
+      order: container?.level
+    },
+    include: {
+      tasks: {
+        include: {
+          hints: true,
+          learning_sections: true,
+          acceptance_criteria: true
+        }
+      },
+    }
+  });
   
   // If scenario is null (currentScenarioId not set), fallback to querying Level directly
   if (!currentLevel && container?.level) {
@@ -68,7 +110,10 @@ export const load: PageServerLoad = async (event) => {
           orderBy: { order: "asc" },
           include: {
             hints: true,
-            acceptanceCriteria: true
+            acceptance_criteria: true,
+            learning_sections: {
+              orderBy: { order: "asc" }
+            }
           }
         }
       }
@@ -77,22 +122,39 @@ export const load: PageServerLoad = async (event) => {
       currentLevel = fallbackLevel;
     }
   }
-  
-  const levelTasks = currentLevel?.tasks?.map(t => t.taskName) || [];
+   
+   const levelTasks = currentLevel?.tasks?.map(t => ({
+    taskName: t.task_name,
+    order: t.order,
+  })) || [];
 
-  console.log("container:", container);
+   // Fetch app settings
+   const masterySetting = await prisma.app_setting.findUnique({
+     where: { key: 'mastery_checkpoint_enabled' }
+   });
+   const masteryCheckpointEnabled = masterySetting ? masterySetting.value === 'true' : true;
 
-  return {
-    user: session.user,
-    userId: user?.id || "",
-    userCoins: user?.coins || 0,
-    // The actual Docker container ID — used by the client for all Docker API calls
-    dockerContainerId: container?.containerId ?? null,
-    // Level info for tasks
-    level: container?.level || 1,
-    completedTasks: completedTaskNames,
-    levelTasks: levelTasks,
-    container: container,
-    hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
-  };
-};
+   return {
+     user: session.user,
+     userId: user?.id || "",
+     userCoins: user?.coins || 0,
+     // The actual Docker container ID — used by the client for all Docker API calls
+     dockerContainerId: container?.container_id ?? null,
+     // Level info for tasks
+     level: container?.level || 1,
+     completedTasks: completedTaskNames,
+     currentLevel: currentLevelV2,
+     levelTasks: levelTasks,
+     container: container,
+     workspaceStacks: workspaceStacks.map((stack) => ({
+      id: stack.id,
+      workspaceId: stack.workspace_id,
+      stackName: stack.stack_name,
+      stackVersion: stack.stack_version,
+     })),
+     scenario,
+     scenarioLevels: level,
+     hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
+     masteryCheckpointEnabled
+   };
+ };

@@ -72,15 +72,15 @@ export async function getAllLevelTakeaways(level: number): Promise<Array<{ taskI
   try {
     const levelData = await prisma.level.findFirst({
       where: { order: level },
-      select: { keyTakeaways: true, title: true }
+      select: { key_takeaways: true, title: true }
     });
 
-    if (levelData?.keyTakeaways) {
+    if (levelData?.key_takeaways) {
       // Return the level's key takeaways as a single entry
       return [{
         taskId: 'level',
         taskName: levelData.title,
-        takeaway: levelData.keyTakeaways
+        takeaway: levelData.key_takeaways
       }];
     }
   } catch (e) {

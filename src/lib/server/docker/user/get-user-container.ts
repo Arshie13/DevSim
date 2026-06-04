@@ -52,13 +52,13 @@ const TECH_ICON_MAP: Record<string, string> = {
 };
 
 export async function getAllUserContainer(userId: string) {
-  const userContainers = await prisma.container.findMany({
+  const userContainers = await prisma.workspace.findMany({
     where: {
-      userId: userId
+      user_id: userId
     },
     include: {
       scenario: true,
-      containerStacks: true,
+      workspace_stacks: true,
     }
   });
 
@@ -66,31 +66,31 @@ export async function getAllUserContainer(userId: string) {
 }
 
 export async function getUserContainer(data: GetUserContainerRequest) {
-  const userContainers = await prisma.container.findUnique({
+  const userContainers = await prisma.workspace.findUnique({
     where: {
       id: data.id,
       AND: [
-        { userId: data.userId },
-        { containerId: data.containerId }
+        { user_id: data.userId },
+        { container_id: data.containerId }
       ]
     }
   });
 
-  return userContainers
+  return userContainers;
 }
 
 export async function getArchivedContainers(userId: string) {
-  return prisma.container.findMany({
+  return prisma.workspace.findMany({
     where: {
-      userId,
-      isArchived: true,
+      user_id: userId,
+      is_archived: true,
     },
     orderBy: {
-      updatedAt: 'desc',
+      updated_at: 'desc',
     },
     include: {
       scenario: true,
-      containerStacks: true
+      workspace_stacks: true
     }
   });
 

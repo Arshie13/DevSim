@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ params }) => {
     const level = await prisma.level.findFirst({
       where: { order: levelOrder },
       select: {
-        keyTakeaways: true,
+        key_takeaways: true,
         title: true
       }
     });
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     return json({
       success: true,
-      keyTakeaways: level.keyTakeaways,
+      keyTakeaways: level.key_takeaways,
       levelTitle: level.title
     });
   } catch (error) {

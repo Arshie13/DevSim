@@ -4,6 +4,10 @@ export interface TechOption {
   icon: string;
   description: string;
   color: string;
+  /** Array of URLs to preview screenshots showcasing different pages/views of completed project */
+  previewImages?: string[];
+  /** Brief description of what learners will build */
+  finalProjectDescription?: string;
 }
 
 export interface TechCategory {
@@ -17,6 +21,8 @@ export interface TechCategory {
 export interface StackSelection {
   id?: string;
   name?: string;
+  stackType?: 'fullstack' | 'backend' | 'frontend';
+  comingSoon?: boolean;
   frontend: string | null;
   backend: string | null;
   database: string | null;
@@ -92,4 +98,16 @@ export interface ScenarioMeta {
   projectFolder: string;
   /** Whether a non-empty levels.md exists */
   hasLevels: boolean;
+  /** Array of preview image URLs showcasing different pages of the finished project */
+  previewImages?: string[];
+  /** Epic data for sprint structure */
+  epics?: EpicMeta[];
+}
+
+export interface EpicMeta {
+  id: string;
+  name: string;
+  description: string;
+  sprintNumber: number;
+  levelCount: number;
 }

@@ -71,8 +71,8 @@ export const GET: RequestHandler = async ({ locals, params }) => {
       });
     }
 
-    const username = session.user.username ?
-      session.user.username.toLowerCase().replace(/[^a-z0-9-]/g, '-') :
+    const username = session.user.name ?
+      session.user.name.toLowerCase().replace(/[^a-z0-9-]/g, '-') :
       session.user.id // questionable fallback, but should always have username or id
 
     const cloudflared = new CloudflaredWrapper();
@@ -80,8 +80,6 @@ export const GET: RequestHandler = async ({ locals, params }) => {
     const hostname = `${username}.devsim.dev`;
 
     let previewUrl = await cloudflared.getExistingRoute(hostname);
-
-    console.log("preview url from ports server: ", hostname);
 
     if (!previewUrl) {
       return json({

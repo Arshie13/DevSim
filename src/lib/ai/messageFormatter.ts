@@ -140,7 +140,7 @@ export function buildProgressHintResponse(context: string): string {
     response += "💡 **Hint:** Look at the task description and check the files in your project. ";
 
     const taskText = nextTask.toLowerCase();
-    if (taskText.includes('install') || taskText.includes('npm') || taskText.includes('package')) {
+    if (taskText.includes('install') || taskText.includes('pnpm') || taskText.includes('package')) {
       response += "You may need to run some installation commands in the terminal.";
     } else if (taskText.includes('create') || taskText.includes('add') || taskText.includes('file')) {
       response += "Try creating or modifying files in the explorer.";

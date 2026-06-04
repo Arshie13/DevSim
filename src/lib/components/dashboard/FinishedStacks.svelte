@@ -108,12 +108,13 @@
         <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''} mastered</p>
       </div>
     </div>
-    <button
+    <a
+      href="/projects?view=finished"
       class="tag-cyber tag-warn flex items-center gap-1 hover:bg-cyber-warn/15 transition-colors cursor-pointer"
     >
       See All
       <ChevronRight class="w-3 h-3" />
-    </button>
+    </a>
   </div>
 
   <!-- Completed Stack Cards -->

@@ -72,6 +72,7 @@
 				<div class="flex items-center gap-3">
 					<button
 						type="button"
+						data-tour="board-task-modal-close"
 						on:click={closeModal}
 						class="rounded-[2px] border border-[rgba(7,165,201,0.3)] px-2 py-1 text-[0.68rem] uppercase tracking-[0.1em] text-[var(--accent)] transition-all duration-200 hover:bg-[var(--accent-dim)] hover:text-[var(--cyan-bright)] [font-family:var(--font-mono)]"
 						aria-label="Close task details"

@@ -4,6 +4,8 @@
 
   /** Accent color inherited from the stack content. */
   export let accentColor: string = '#07a5c9';
+  /** Whether users can end the tour early. */
+  export let allowSkip: boolean = true;
   /**
    * Called by the tour when a step requires a specific workspace tab to be
    * visible (e.g. 'editor'). Parent should switch the active tab.
@@ -242,7 +244,9 @@
         <h3 class="wt-title">{step.title}</h3>
         <p class="wt-desc">{step.description}</p>
         <div class="wt-actions">
-          <button class="wt-btn-skip" on:click={complete}>End Tour</button>
+          {#if allowSkip}
+            <button class="wt-btn-skip" on:click={complete}>End Tour</button>
+          {/if}
           <button
             class="wt-btn-next"
             on:click={next}

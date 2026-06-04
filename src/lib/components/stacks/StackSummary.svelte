@@ -93,9 +93,11 @@
     selectedCount === 4 ? 2.0 :
     selectedCount === 3 ? 1.5 :
     selectedCount === 2 ? 1.25 : 1.0;
+
 </script>
 
 <div class="summary-bar">
+
   <div class="w-full max-w-[1200px] px-4 flex items-center justify-between mx-auto gap-4">
 
     <!-- Stack preview -->
@@ -353,4 +355,5 @@
     border: 1px solid rgba(208, 215, 221, 0.10);
     cursor: not-allowed;
   }
+
 </style>

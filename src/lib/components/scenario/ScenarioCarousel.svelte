@@ -7,12 +7,9 @@
   export let scenarios: ScenarioMeta[];
   export let isLoading: boolean = false;
   export let activeIndex: number = 0;
-  /** Bound to the parent — user can toggle via the card checkbox. */
-  export let withOnboarding: boolean = false;
 
   const dispatch = createEventDispatcher<{
     launchSprint: void;
-    requestSkipConfirm: void;
   }>();
 
   let isTransitioning = false;
@@ -125,10 +122,8 @@
         transform={getCardTransform(dist)}
         {diffColor}
         {isLoading}
-        bind:withOnboarding
         on:launchSprint={() => dispatch('launchSprint')}
         on:select={() => goTo(i)}
-        on:requestSkipConfirm={() => dispatch('requestSkipConfirm')}
       />
     {/each}
 
@@ -162,7 +157,7 @@
     perspective: 1200px;
     perspective-origin: 50% 40%;
     position: relative;
-    height: 360px;
+    height: 440px;
     margin: 16px 0 12px;
   }
 
@@ -211,6 +206,6 @@
 
   /* ── Responsive ──────────────────────────────────────────────── */
   @media (max-width: 700px) {
-    .carousel-scene { height: 300px; }
+    .carousel-scene { height: 420px; }
   }
 </style>

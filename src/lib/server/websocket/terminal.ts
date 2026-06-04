@@ -36,6 +36,8 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
   wss.on('connection', async (ws: WebSocket, request: http.IncomingMessage) => {
     const url = new URL(request.url || '', `http://localhost:${PORT}`);
     const containerId = url.searchParams.get('containerId');
+    const initialCols = parseInt(url.searchParams.get('cols') || '80', 10);
+    const initialRows = parseInt(url.searchParams.get('rows') || '24', 10);
 
     if (!containerId) {
       ws.close(1008, 'Missing containerId parameter');
@@ -73,6 +75,9 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
         Tty: true,
       });
 
+      // Set PTY dimensions immediately so interactive CLIs (e.g. shadcn init) get correct size
+      await exec.resize({ h: initialRows, w: initialCols }).catch(() => {});
+
       // Store connection for cleanup
       activeConnections.set(connectionKey, {
         ws,
@@ -84,8 +89,15 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
       execStream.write('cd /workspace && clear\r\n');
       execStream.write('\x1b[1;32m$ \x1b[0m');
 
-      // Forward browser → container
+      // Forward browser → container (handle resize messages separately)
       ws.on('message', (data: Buffer) => {
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg.type === 'resize' && typeof msg.cols === 'number' && typeof msg.rows === 'number') {
+            exec.resize({ h: msg.rows, w: msg.cols }).catch(() => {});
+            return;
+          }
+        } catch { /* not JSON — treat as raw terminal input */ }
         if (execStream?.writable) {
           execStream.write(data);
         }

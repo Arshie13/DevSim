@@ -1,5 +1,7 @@
 import type { TechCategory, TechOption, StackSelection } from "$types";
 
+const DEFAULT_PREVIEW_IMAGES = ["/images/DevSim.svg"];
+
 // Mix-and-match technology options
 export const FRONTEND_OPTIONS: TechOption[] = [
   {
@@ -8,6 +10,8 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     icon: "⚛️",
     description: "A JavaScript library for building user interfaces",
     color: "from-cyan-500 to-blue-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build interactive user interfaces, single-page applications, and component-based UI systems",
   },
   {
     id: "nextjs",
@@ -15,6 +19,8 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     icon: "▲",
     description: "The React framework for production",
     color: "from-zinc-700 to-zinc-900",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Create full-stack web applications with server-side rendering, API routes, and optimized routing",
   },
   {
     id: "vue",
@@ -22,6 +28,8 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     icon: "💚",
     description: "The progressive JavaScript framework",
     color: "from-emerald-500 to-green-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build reactive single-page applications with Vue's intuitive composition API and templates",
   },
   {
     id: "svelte",
@@ -29,6 +37,8 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     icon: "🔥",
     description: "Cybernetically enhanced web apps",
     color: "from-orange-500 to-red-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Create high-performance web apps with Svelte's compiler-based approach and reactive stores",
   },
   {
     id: "angular",
@@ -36,6 +46,8 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     icon: "🅰️",
     description: "Platform for building mobile and desktop apps",
     color: "from-red-500 to-pink-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build enterprise-scale applications with TypeScript, dependency injection, and modular architecture",
   },
 ];
 
@@ -46,6 +58,8 @@ export const BACKEND_OPTIONS: TechOption[] = [
     icon: "🚂",
     description: "Fast, unopinionated web framework for Node.js",
     color: "from-zinc-600 to-zinc-800",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build RESTful APIs and server-side applications with Node.js and Express middleware",
   },
   {
     id: "fastify",
@@ -53,6 +67,8 @@ export const BACKEND_OPTIONS: TechOption[] = [
     icon: "⚡",
     description: "Fast and low overhead web framework",
     color: "from-zinc-500 to-zinc-700",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Create high-performance web services with Fastify's schema-based approach and low overhead",
   },
   {
     id: "nestjs",
@@ -60,6 +76,8 @@ export const BACKEND_OPTIONS: TechOption[] = [
     icon: "🐈",
     description: "Progressive Node.js framework",
     color: "from-red-600 to-pink-700",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build scalable, testable enterprise applications with NestJS's modular architecture",
   },
   {
     id: "django",
@@ -67,6 +85,8 @@ export const BACKEND_OPTIONS: TechOption[] = [
     icon: "🐍",
     description: "High-level Python web framework",
     color: "from-green-700 to-emerald-800",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Create full-stack Python web applications with Django's batteries-included approach",
   },
   {
     id: "flask",
@@ -74,6 +94,8 @@ export const BACKEND_OPTIONS: TechOption[] = [
     icon: "🧪",
     description: "Lightweight WSGI web application framework",
     color: "from-zinc-600 to-zinc-800",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build lightweight Python APIs and web applications with Flask's flexible micro-framework",
   },
 ];
 
@@ -84,6 +106,8 @@ export const DATABASE_OPTIONS: TechOption[] = [
     icon: "🐘",
     description: "Advanced open-source relational database",
     color: "from-blue-600 to-indigo-700",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Design and manage relational data with PostgreSQL's advanced features and SQL capabilities",
   },
   {
     id: "mongodb",
@@ -91,6 +115,8 @@ export const DATABASE_OPTIONS: TechOption[] = [
     icon: "🍃",
     description: "Document-oriented NoSQL database",
     color: "from-green-600 to-emerald-700",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Store and query flexible JSON-like documents with MongoDB's document model",
   },
   {
     id: "mysql",
@@ -98,6 +124,8 @@ export const DATABASE_OPTIONS: TechOption[] = [
     icon: "🐬",
     description: "World's most popular open source database",
     color: "from-orange-500 to-amber-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build reliable relational database solutions with MySQL's widely-used architecture",
   },
   {
     id: "sqlite",
@@ -105,6 +133,8 @@ export const DATABASE_OPTIONS: TechOption[] = [
     icon: "📦",
     description: "Self-contained SQL database engine",
     color: "from-sky-500 to-blue-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Create lightweight, embedded database solutions with SQLite's serverless architecture",
   },
   {
     id: "redis",
@@ -112,6 +142,8 @@ export const DATABASE_OPTIONS: TechOption[] = [
     icon: "🔴",
     description: "In-memory data structure store",
     color: "from-red-600 to-rose-700",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Implement caching, session storage, and real-time data with Redis in-memory structures",
   },
 ];
 
@@ -122,6 +154,8 @@ export const SERVICES_OPTIONS: TechOption[] = [
     icon: "◮",
     description: "Next-generation Node.js and TypeScript ORM",
     color: "from-indigo-600 to-purple-700",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Type-safely query and manage your database with Prisma's modern ORM approach",
   },
   {
     id: "firebase",
@@ -129,6 +163,8 @@ export const SERVICES_OPTIONS: TechOption[] = [
     icon: "🔥",
     description: "Google's app development platform",
     color: "from-amber-500 to-orange-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build serverless applications with Firebase's authentication, database, and cloud functions",
   },
   {
     id: "supabase",
@@ -136,6 +172,8 @@ export const SERVICES_OPTIONS: TechOption[] = [
     icon: "⚡",
     description: "Open source Firebase alternative",
     color: "from-emerald-500 to-green-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Create open-source backend solutions with Supabase's PostgreSQL, auth, and real-time features",
   },
   {
     id: "docker",
@@ -143,6 +181,8 @@ export const SERVICES_OPTIONS: TechOption[] = [
     icon: "🐳",
     description: "Containerization platform",
     color: "from-blue-500 to-cyan-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Package and deploy applications in portable Docker containers",
   },
   {
     id: "graphql",
@@ -150,6 +190,8 @@ export const SERVICES_OPTIONS: TechOption[] = [
     icon: "◈",
     description: "Query language for your API",
     color: "from-pink-500 to-fuchsia-600",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build flexible, type-safe APIs with GraphQL's query language and schema definition",
   },
   {
     id: "shadcn-ui",
@@ -157,6 +199,8 @@ export const SERVICES_OPTIONS: TechOption[] = [
     icon: "🎨",
     description: "Beautifully designed component library for React",
     color: "from-zinc-600 to-zinc-800",
+    previewImages: DEFAULT_PREVIEW_IMAGES,
+    finalProjectDescription: "Build accessible, beautiful React UIs with shadcn/ui's copy-paste component library",
   },
 ];
 
@@ -196,22 +240,25 @@ export const POPULAR_COMBOS: StackSelection[] = [
   {
     id: "pern",
     name: "PERN Stack",
+    stackType: "fullstack",
     frontend: "react",
     backend: "express",
     database: "postgresql",
     services: "prisma",
   },
   {
-    id: "next-supabase",
-    name: "Next.js + Supabase",
+    id: "nextjs-postgres-prisma",
+    name: "Next.js + PostgreSQL + Prisma",
+    stackType: "fullstack",
     frontend: "nextjs",
     backend: null,
     database: "postgresql",
-    services: "supabase",
+    services: "prisma",
   },
   {
     id: "nestjs-postgres-prisma",
-    name: "NestJS + PostgreSQL",
+    name: "NestJS + PostgreSQL + Prisma",
+    stackType: "backend",
     frontend: null,
     backend: "nestjs",
     database: "postgresql",
@@ -220,9 +267,20 @@ export const POPULAR_COMBOS: StackSelection[] = [
   {
     id: "nextjs-shadcn-ui",
     name: "Next.js + shadcn/ui",
+    stackType: "frontend",
     frontend: "nextjs",
     backend: null,
     database: null,
     services: "shadcn-ui",
+  },
+  {
+    id: "mern",
+    name: "MERN Stack",
+    stackType: "fullstack",
+    comingSoon: true,
+    frontend: "react",
+    backend: "express",
+    database: "mongodb",
+    services: null,
   },
 ];

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   
-  // Pre-test self-assessment questions about web development stack integration knowledge
   const questions = [
     { id: 1, question: "How familiar are you with HTML and CSS for creating web page layouts?" },
     { id: 2, question: "What's your experience level with JavaScript for web interactivity?" },
@@ -57,7 +56,6 @@
     if (selectedAnswer !== null) {
       answers[currentQuestion] = selectedAnswer;
     }
-    
     if (currentQuestion < questions.length - 1) {
       currentQuestion++;
       selectedAnswer = answers[currentQuestion] !== undefined ? answers[currentQuestion] : null;
@@ -106,15 +104,47 @@
     return "New to web development? No worries! We'll guide you from the basics.";
   }
   
-  function proceedToLogin() {
+  async function proceedToDashboard() {
+    const avgScore = getAverageScore();
+    const skillLevel = getSkillLevel();
+    
+    const scores: Record<string, number> = {};
+    const topicLabels = [
+      "HTML/CSS Layout",
+      "JavaScript Interactivity", 
+      "Node.js/Express",
+      "Database Management",
+      "Frontend-Backend Integration",
+      "API Development",
+      "Command Line Operations",
+      "Web Security"
+    ];
+    
+    answers.forEach((score, index) => {
+      if (topicLabels[index]) {
+        scores[topicLabels[index]] = score;
+      }
+    });
+    
+    try {
+      const response = await fetch('/api/user/pretest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scores, skillLevel, averageScore: avgScore })
+      });
+      if (!response.ok) console.error('Failed to save pretest scores');
+    } catch (error) {
+      console.error('Error saving pretest scores:', error);
+    }
+    
     const result = {
-      score: getAverageScore(),
-      skillLevel: getSkillLevel(),
+      score: avgScore,
+      skillLevel,
       completed: true,
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('pretest_result', JSON.stringify(result));
-    goto('/login');
+    goto('/dashboard');
   }
   
   function retakeQuiz() {
@@ -150,11 +180,8 @@
               <span class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)]">
                 QUESTION {currentQuestion + 1} OF {questions.length}
               </span>
-              <span class="font-mono text-[var(--accent)] text-sm">
-                {Math.round(((currentQuestion + 1) / questions.length) * 100)}%
-              </span>
             </div>
-            <div class="h-1 bg-[var(--bg-light)] rounded-full overflow-hidden">
+            <div class="h-1 bg-[var(--bg-light)] overflow-hidden">
               <div 
                 class="h-full transition-all duration-300"
                 style="width: {((currentQuestion + 1) / questions.length) * 100}%; background: var(--accent);"
@@ -166,35 +193,23 @@
             <h2 class="font-heading text-xl md:text-2xl font-bold text-[var(--text-primary)] mb-2">
               {questions[currentQuestion].question}
             </h2>
-            <p class="text-[var(--text-muted)] text-sm mb-6">Drag to rate your experience from 1 (no experience) to 5 (advanced)</p>
+            <p class="text-[var(--text-muted)] text-sm mb-6">Select your experience level</p>
             
-            <div class="relative">
-              <input
-                type="range"
-                min="1"
-                max="5"
-                step="1"
-                bind:value={selectedAnswer}
-                oninput={() => { if (selectedAnswer !== null) selectAnswer(selectedAnswer); }}
-                class="w-full h-3 bg-[var(--bg-light)] rounded-lg appearance-none cursor-pointer"
-                style="accent-color: var(--accent);"
-              />
-              <div class="flex justify-between mt-3">
-                {#each scaleOptions as option}
-                  <div class="text-center">
-                    <div class="w-14 h-14 rounded-full border-2 flex items-center justify-center font-mono text-lg font-bold transition-all duration-200
+            <div class="flex justify-between mt-3">
+              {#each scaleOptions as option}
+                <div class="text-center">
+                  <div 
+                    class="w-14 h-14 rounded-full border-2 flex items-center justify-center font-mono text-lg font-bold transition-all duration-200 cursor-pointer
                       {selectedAnswer === option.value 
                         ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]' 
-                        : 'border-[var(--card-border)] text-[var(--text-muted)]'}"
-                      onclick={() => selectAnswer(option.value)}
-                      style="cursor: pointer;"
-                    >
-                      {option.value}
-                    </div>
-                    <div class="text-xs mt-2 text-[var(--text-muted)] font-medium leading-tight">{option.label}</div>
+                        : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--accent)]'}"
+                    onclick={() => selectAnswer(option.value)}
+                  >
+                    {option.value}
                   </div>
-                {/each}
-              </div>
+                  <div class="text-xs mt-2 text-[var(--text-muted)] font-medium leading-tight">{option.label}</div>
+                </div>
+              {/each}
             </div>
           </div>
 
@@ -207,23 +222,23 @@
               ← PREV
             </button>
             
-            {#if currentQuestion === questions.length - 1}
-              <button 
-                onclick={submitQuiz}
-                disabled={selectedAnswer === null}
-                class="btn-cyber btn-cyber-solid !px-8 {selectedAnswer === null ? 'opacity-50 cursor-not-allowed' : ''}"
-              >
-                SUBMIT QUIZ
-              </button>
-            {:else}
-              <button 
-                onclick={nextQuestion}
-                disabled={selectedAnswer === null}
-                class="btn-cyber btn-cyber-solid !px-8 {selectedAnswer === null ? 'opacity-50 cursor-not-allowed' : ''}"
-              >
-                NEXT →
-              </button>
-            {/if}
+            {#if currentQuestion < questions.length - 1}
+               <button 
+                 onclick={nextQuestion}
+                 disabled={selectedAnswer === null}
+                 class="btn-cyber btn-cyber-solid !px-8 {selectedAnswer === null ? 'opacity-50 cursor-not-allowed' : ''}"
+               >
+                 NEXT →
+               </button>
+             {:else}
+               <button 
+                 onclick={submitQuiz}
+                 disabled={selectedAnswer === null}
+                 class="btn-cyber btn-cyber-solid !px-8 {selectedAnswer === null ? 'opacity-50 cursor-not-allowed' : ''}"
+               >
+                 SUBMIT QUIZ
+               </button>
+             {/if}
           </div>
         </div>
 
@@ -250,7 +265,7 @@
             </h2>
 
             <p class="text-[var(--text-muted)] mb-10 max-w-lg mx-auto leading-relaxed font-body">
-              Your score indicates you need to strengthen your web development fundamentals. Here are resources to help you improve:
+              Your score indicates you need to strengthen your web development fundamentals. We suggest before proceeding with the game, you read the following resources:
             </p>
 
             <div class="text-left mb-10">
@@ -294,8 +309,8 @@
               <button onclick={retakeQuiz} class="btn-cyber w-full py-3">
                 RETRY QUIZ NOW
               </button>
-              <button onclick={proceedToLogin} class="bg-[var(--accent)] text-[var(--bg)] py-3 px-8 rounded-lg font-bold w-full hover:opacity-90">
-                CONTINUE TO LOGIN
+              <button onclick={proceedToDashboard} class="bg-[var(--accent)] text-[var(--bg)] py-3 px-8 rounded-lg font-bold w-full hover:opacity-90">
+                CONTINUE TO DASHBOARD
               </button>
             </div>
           </div>
@@ -331,8 +346,8 @@
               <button onclick={retakeQuiz} class="btn-cyber !px-8">
                 RETAKE QUIZ
               </button>
-              <button onclick={proceedToLogin} class="btn-cyber btn-cyber-solid !px-10">
-                CONTINUE TO SIGN IN →
+              <button onclick={proceedToDashboard} class="btn-cyber btn-cyber-solid !px-10">
+                ENTER DASHBOARD →
               </button>
             </div>
           </div>

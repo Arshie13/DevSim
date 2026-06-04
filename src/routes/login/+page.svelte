@@ -1,26 +1,5 @@
 <script lang="ts">
     import { signIn } from '@auth/sveltekit/client';
-    import { onMount } from 'svelte';
-    
-    interface PretestResult {
-        score: number;
-        skillLevel: string;
-        completed: boolean;
-        timestamp: string;
-    }
-    
-    let pretestResult = $state<PretestResult | null>(null);
-    
-    onMount(() => {
-        const stored = localStorage.getItem('pretest_result');
-        if (stored) {
-            try {
-                pretestResult = JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to parse pretest result', e);
-            }
-        }
-    });
 </script>
 
 <section
@@ -62,23 +41,9 @@
 				<p class="text-zinc-400">Sign up to start your learning journey!</p>
 			</div>
 
-			{#if pretestResult}
-				<div class="mb-6 p-4 rounded-lg bg-slate-800/50 border border-zinc-700/50">
-					<div class="text-center mb-2">
-						<span class="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Skill Assessment</span>
-					</div>
-					<div class="flex items-center justify-center gap-4 mb-2">
-						<span class="text-2xl font-bold text-white">{pretestResult.score}/8</span>
-						<span class="text-sm text-zinc-400">→</span>
-						<span class="text-lg font-semibold text-cyan-400">{pretestResult.skillLevel}</span>
-					</div>
-					<p class="text-xs text-zinc-500 text-center">Completed on {new Date(pretestResult.timestamp).toLocaleDateString()}</p>
-				</div>
-			{/if}
-
 			<div class="mt-6">
 				<button
-					onclick={() => signIn("google", { redirectTo: "/dashboard" })}
+					onclick={() => signIn("google", { redirectTo: "/auth" })}
 					type="button"
 					class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-lg font-semibold shadow-lg shadow-blue-500/25 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/30"
 				>
