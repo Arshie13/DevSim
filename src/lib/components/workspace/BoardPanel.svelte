@@ -554,5 +554,6 @@
     hints={selectedTask?.hints ?? []}
     status={selectedTask?.status ?? 'backlog'}
     onClose={closeTaskDetails}
+    isLocked={crashCourseLockedTasks[selectedTask?.id] ?? false}
   />
 </div>

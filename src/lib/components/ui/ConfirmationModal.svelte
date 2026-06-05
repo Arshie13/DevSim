@@ -92,6 +92,11 @@
     open = false;
   }
 
+  function handleClose() {
+    if (isLoading) return;
+    open = false;
+  }
+
   function handleConfirm() {
     dispatch('confirm');
   }
@@ -137,6 +142,12 @@
         <!-- Header -->
         {#if !hideHeader && title}
           <div class="cm-header">
+            <button type="button" class="cm-close-btn" on:click={handleClose} aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
             {#if icon}
               <span class="cm-icon {iconGlowClass[iconVariant]}" aria-hidden="true">{icon}</span>
             {/if}
@@ -280,6 +291,24 @@
   .cm-header {
     text-align: center;
     margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .cm-close-btn {
+    position: absolute;
+    top: -0.5rem;
+    right: -0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #8892a0);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+  }
+  .cm-close-btn:hover {
+    color: var(--text-primary, #d0d7dd);
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .cm-icon {

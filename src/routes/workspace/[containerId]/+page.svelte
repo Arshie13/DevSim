@@ -177,6 +177,15 @@
 
   let tasks = $derived(computeTasks());
 
+  // Recompute crash course locks whenever tasks or completion state changes
+  $effect(() => {
+    if (!tasks.length) return;
+    // Read crashCourseCompletedByTask and tasks to create dependencies
+    const _completionState = crashCourseCompletedByTask;
+    const _tasksState = tasks;
+    computeCrashCourseLocks();
+  });
+
   let levelHints = $derived(
     currentLevelRecord?.tasks?.flatMap(
       (task: ITask) => task.hints ?? [],
@@ -272,6 +281,7 @@
   let crashCoursePromptTaskNumber: number = $state(1);
   let crashCoursePromptTaskId: string = "";
   let crashCourseStorageLoadedKey: string = "";
+  let crashCourseAutoOpenedForTaskId: string = "";
 
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
@@ -559,6 +569,33 @@
     }
   }
 
+  function computeCrashCourseLocks() {
+    if (!tasks.length) return;
+    const updatedLocks: Record<string, boolean> = {};
+    const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
+
+    for (const task of orderedTasks) {
+      const hasCrashCourse = (task.learningSections?.length ?? 0) > 0;
+      if (!hasCrashCourse) {
+        updatedLocks[task.id] = false;
+        continue;
+      }
+
+      if (crashCourseCompletedByTask[task.id]) {
+        // Crashcourse done, but still lock if earlier tasks are incomplete
+        const earlierTasksIncomplete = orderedTasks
+          .filter((t) => t.order < task.order)
+          .some((t) => t.boardStatus !== "done");
+        updatedLocks[task.id] = earlierTasksIncomplete;
+      } else {
+        // Crashcourse not done = always locked
+        updatedLocks[task.id] = true;
+      }
+    }
+
+    crashCourseLockedTasks = updatedLocks;
+  }
+
   function persistCrashCourseCompletedState(levelNumber: number) {
     if (!browser || !getStableProgressContainerId()) return;
     localStorage.setItem(
@@ -669,7 +706,9 @@
         crashCourseStorageLoadedKey = key;
         crashCourseSeenByTask = loadCrashCourseSeenState(currentLevel);
         crashCourseCompletedByTask = loadCrashCourseCompletedState(currentLevel);
+        computeCrashCourseLocks();
         crashCourseOpen = false;
+        crashCourseAutoOpenedForTaskId = "";
         activeCrashCourseTaskId = "";
         levelIntroDismissed = false;
         pendingPostTestIntro = false;
@@ -694,15 +733,17 @@ $effect(() => {
     !crashCourseCloseDonePromptOpen
   ) {
     const nextTask = getNextCrashCourseTask();
-    if (nextTask && !crashCourseCompletedByTask[nextTask.id] && !crashCourseLockedTasks[nextTask.id]) {
+    if (nextTask && !crashCourseCompletedByTask[nextTask.id] && crashCourseAutoOpenedForTaskId !== nextTask.id) {
       const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
       const taskIndex = orderedTasks.findIndex(t => t.id === nextTask.id);
       
+      // Check if any previous task is not done (not just crashcourse tasks)
       const hasPreviousIncomplete = taskIndex > 0 && orderedTasks
         .slice(0, taskIndex)
-        .some(t => (t.learningSections?.length ?? 0) > 0 && !crashCourseCompletedByTask[t.id]);
+        .some(t => t.boardStatus !== "done");
       
       if (!hasPreviousIncomplete) {
+        crashCourseAutoOpenedForTaskId = nextTask.id;
         openCrashCourseForTask(nextTask.id);
       }
     }
@@ -1064,19 +1105,6 @@ $effect(() => {
     const closedTaskId = activeCrashCourseTaskId;
     markCrashCourseSeen(closedTaskId);
     
-    if (closedTaskId && !crashCourseCompletedByTask[closedTaskId]) {
-      const closedTask = tasks.find(t => t.id === closedTaskId);
-      const closedTaskOrder = closedTask?.order ?? 0;
-      
-      const updatedLocks = { ...crashCourseLockedTasks };
-      tasks.forEach(task => {
-        if (task.order >= closedTaskOrder) {
-          updatedLocks[task.id] = true;
-        }
-      });
-      crashCourseLockedTasks = updatedLocks;
-    }
-    
     crashCourseOpen = false;
     activeCrashCourseTaskId = "";
     openBoardKanbanView();
@@ -1104,11 +1132,6 @@ $effect(() => {
         ...crashCourseCompletedByTask,
         [completedTaskId]: true,
       };
-      
-      const updatedLocks = { ...crashCourseLockedTasks };
-      updatedLocks[completedTaskId] = false;
-      
-      crashCourseLockedTasks = updatedLocks;
       persistCrashCourseCompletedState(currentLevel);
     }
     crashCourseOpen = false;
