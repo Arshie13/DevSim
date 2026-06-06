@@ -4,6 +4,7 @@ import prisma from "$lib/server/client";
 import fs from "fs";
 import path from "path";
 import { reflectionConcepts } from "$lib/data/reflectionConcepts";
+import { resolveConfigKey, selectStackForConfig } from "$lib/data/postassessmentConfigs";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -49,16 +50,15 @@ export const load: PageServerLoad = async (event) => {
   // Get completed task names
   const completedTaskNames = latestContainer.completed_tasks.map(t => t.task_name);
 
-  // Resolve stack name. Prefer scenario.id (e.g. "nextjs-postgres-prisma-1"), which
-  // carries the proper hyphenated stack slug used by postAssessmentConfigs.
-  // Fall back to the workspace_stacks slug (e.g. "nextjs-postgresql-prisma") only if
-  // no scenario is linked.
+  // Resolve the stack for the post-assessment config. Prefer the scenario id when it
+  // carries a real stack slug (e.g. "nextjs-postgres-prisma-1"); otherwise fall back to
+  // the workspace_stacks slug (e.g. "react-express-postgresql-prisma"), which always
+  // reflects the stack the user actually chose. Generic ids like "scenario-1" don't map
+  // to a config, so they correctly fall through to the workspace stack rather than
+  // silently landing on the default screen.
   const scenarioId = latestContainer.scenario?.id ?? latestContainer.current_scenario_id ?? "";
-  const stackFromScenario = scenarioId.replace(/-\d+$/, "");
-  const stackName =
-    stackFromScenario ||
-    latestContainer.workspace_stacks[0]?.stack_name ||
-    "react-express-postgres-prisma";
+  const stackSlug = latestContainer.workspace_stacks[0]?.stack_name ?? "";
+  const stackName = selectStackForConfig([scenarioId, stackSlug]);
   
   // Try to read key takeaways from the actual stack folder for completed tasks
   // Map stack names to folder paths
@@ -73,8 +73,9 @@ export const load: PageServerLoad = async (event) => {
     "nextjs": "nextjs/scenario-1"
   };
   
-  // Saved stack_name uses the raw "postgresql" slug; folder-map keys use "postgres".
-  const folderKey = stackName.replace(/\bpostgresql\b/g, "postgres");
+  // Normalize to the folder-map key (handles "postgresql"→"postgres" and any trailing
+  // scenario number) using the same resolver as the config lookup.
+  const folderKey = resolveConfigKey(stackName);
   const stackFolder = stackFolderMap[folderKey] || "react-express-postgres-prisma/scenario-1/LIBRARY_MANAGEMENT";
   const basePath = path.join(process.cwd(), "submodules", "projects", "tech-stacks", stackFolder, "levels");
   

@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
-  import { postAssessmentConfigs } from "$lib/data/postassessmentConfigs";
+  import { getPostAssessmentConfig } from "$lib/data/postassessmentConfigs";
   import type { PageData } from "./$types";
 
   // SvelteKit passes the load() return value as a single `data` prop.
@@ -12,10 +12,9 @@
   const scenarioLevels: { id: string; name: string; concepts: string[] }[] =
     data?.scenarioLevels ?? [];
 
-  // Pick config for this stack, fallback to default.
-  // Saved stack_name uses the raw "postgresql" slug; config keys use "postgres".
-  const configKey = stackName.replace(/\bpostgresql\b/g, 'postgres');
-  const config = postAssessmentConfigs[configKey] || postAssessmentConfigs['default'];
+  // Pick config for this stack, falling back to default. Slug normalization
+  // (trailing scenario number + "postgresql"→"postgres") lives in getPostAssessmentConfig.
+  const config = getPostAssessmentConfig(stackName);
   const questions = config.questions || [];
 
   const scaleOptions = [
