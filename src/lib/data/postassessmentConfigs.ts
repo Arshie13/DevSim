@@ -1,16 +1,11 @@
 // src/lib/data/postassessmentConfigs.ts
 //
-// Each question carries a `bucket` — one of five shared skill keys used by BOTH
-// the pretest and every post-test so pre/post improvement lines up per topic:
-//
-//   frontend     UI work: HTML/CSS, JS, React, Next.js pages, Tailwind, shadcn
-//   backend      servers, routing, controllers, API routes, server actions, DI
-//   database     Prisma schemas/migrations, Postgres modeling
-//   integration  connecting frontend+backend, tracing data end-to-end
-//   tooling      terminal/CLI, local env, running the stack
-//
-// Multiple questions in a stack can share a bucket; their scores are averaged
-// into that bucket when stored (see postassessment +page.svelte / +server.ts).
+// NOTE: The post-assessment QUIZ no longer uses the per-stack `questions` below.
+// The quiz is now a single standardized set shared with the pre-assessment (see
+// $lib/data/assessmentTopics.ts) so every user answers the same questions and
+// pre/post scores compare directly. This file is retained for the per-stack
+// reflection `topics` (the "what did you learn in each level" section), which is
+// inherently scenario-specific. The `questions` arrays are kept for reference.
 
 export interface PostAssessmentQuestion {
   id: number;

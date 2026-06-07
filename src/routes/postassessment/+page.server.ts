@@ -38,13 +38,15 @@ export const load: PageServerLoad = async (event) => {
     }
   });
 
-  if (!latestContainer) {
-    // No container found - redirect to dashboard
-    return {
-      completedTasks: [],
-      stackName: "react-express-postgres-prisma",
-      concepts: []
-    };
+  // Gate: the post-assessment is only reachable after a user finishes the FINAL
+  // level (level 5) of the stack they played. `status` is set to "completed"
+  // exactly when the last level is submitted (WorkspaceService.submitWork →
+  // updateWorkspaceStatus(..., "completed", false)); archiving afterward flips
+  // is_archived but leaves status untouched, so it stays a reliable signal.
+  // No container, or any other status (created/tutorial/in-progress/stopped),
+  // means they haven't finished — so they can't reach this page by typing the URL.
+  if (!latestContainer || latestContainer.status !== "completed") {
+    throw redirect(303, "/dashboard");
   }
 
   // Get completed task names
@@ -146,9 +148,18 @@ export const load: PageServerLoad = async (event) => {
   // Shape the scenario's levels + tasks for the reflection UI. Each level
   // becomes a "topic"; concept chips come from the curated reflectionConcepts
   // list, falling back to the level's task names if the scenario isn't mapped.
+  //
+  // reflectionConcepts is keyed by "<stack>-<scenarioNumber>" (e.g.
+  // "react-express-postgres-prisma-1"), but a seeded scenario's id is a generic
+  // "scenario-N". Rebuild the key from the resolved stack + the scenario number so
+  // the curated per-level concepts actually resolve — otherwise every level silently
+  // fell back to raw task names and the curated list was dead code.
+  const scenarioNumber = scenarioId.match(/(\d+)\s*$/)?.[1] ?? "";
+  const reflectionKey = scenarioNumber ? `${stackName}-${scenarioNumber}` : "";
+
   const scenarioLevels = (latestContainer.scenario?.levels ?? []).map((lvl, idx) => {
     const order = lvl.order ?? idx + 1;
-    const curated = reflectionConcepts[scenarioId]?.[order - 1];
+    const curated = reflectionConcepts[reflectionKey]?.[order - 1];
     return {
       id: `level${order}`,
       name: `Level ${order}: ${lvl.title}`,

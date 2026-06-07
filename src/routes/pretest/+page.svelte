@@ -1,16 +1,10 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  
-  const questions = [
-    { id: 1, question: "How familiar are you with HTML and CSS for creating web page layouts?" },
-    { id: 2, question: "What's your experience level with JavaScript for web interactivity?" },
-    { id: 3, question: "How comfortable are you with development using stack combos like Next.js and Postgres?" },
-    { id: 4, question: "What's your familiarity with databases and data management?" },
-    { id: 5, question: "How much do you know about integrating frontend and backend systems?" },
-    { id: 6, question: "How familiar are you with building and consuming APIs?" },
-    { id: 7, question: "How comfortable are you with terminal/command line operations?" },
-    { id: 8, question: "What's your understanding of coding best practices?" }
-  ];
+  import { assessmentTopics, assessmentScaleOptions } from "$lib/data/assessmentTopics";
+
+  // Pre-assessment questions come from the shared topic list so the post-assessment
+  // mirrors them 1:1 and scores compare directly. See $lib/data/assessmentTopics.ts.
+  const questions = assessmentTopics.map((t, i) => ({ id: i + 1, question: t.preQuestion }));
 
   // Foundational tutorial videos — the basics a user should learn before retrying.
   const summaryVideos = [
@@ -31,14 +25,8 @@
     { id: 5, title: "Prisma Docs", description: "Official documentation for the Prisma ORM — used in 2 of 5 simulator stacks", url: "https://www.prisma.io/docs" }
   ];
 
-  const scaleOptions = [
-    { value: 1, label: "No Experience" },
-    { value: 2, label: "Beginner" },
-    { value: 3, label: "Some Experience" },
-    { value: 4, label: "Intermediate" },
-    { value: 5, label: "Advanced" }
-  ];
-  
+  const scaleOptions = assessmentScaleOptions;
+
   let currentQuestion = $state(0);
   let selectedAnswer = $state<number | null>(null);
   let answers = $state<number[]>([]);
@@ -109,17 +97,10 @@
     const skillLevel = getSkillLevel();
     
     const scores: Record<string, number> = {};
-    const topicLabels = [
-      "HTML/CSS Layout",
-      "JavaScript Interactivity", 
-      "Node.js/Express",
-      "Database Management",
-      "Frontend-Backend Integration",
-      "API Development",
-      "Command Line Operations",
-      "Web Security"
-    ];
-    
+    // Same labels the post-assessment uses; the API derives a stable key from each
+    // (see toTopicKey) so pre/post scores land on identical keys.
+    const topicLabels = assessmentTopics.map((t) => t.label);
+
     answers.forEach((score, index) => {
       if (topicLabels[index]) {
         scores[topicLabels[index]] = score;
