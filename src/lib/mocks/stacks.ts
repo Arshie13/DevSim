@@ -277,7 +277,6 @@ export const POPULAR_COMBOS: StackSelection[] = [
     id: "mern",
     name: "MERN Stack",
     stackType: "fullstack",
-    comingSoon: true,
     frontend: "react",
     backend: "express",
     database: "mongodb",
