@@ -5,7 +5,7 @@
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackPreviewPanel from "$components/stacks/StackPreviewPanel.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
-  import { Layers, Sparkles, ArrowLeft, Terminal } from "lucide-svelte";
+import { Layers, ArrowLeft } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import type { UserData } from "$types";
 
