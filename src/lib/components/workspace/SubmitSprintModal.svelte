@@ -7,6 +7,10 @@
   import SubmitSprintProgressContent from "$lib/components/workspace/SubmitSprintProgressContent.svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
   import KeyTakeawaysModal from "./KeyTakeawaysModal.svelte";
+  import {
+    notifyAchievementUnlocks,
+    type UnlockedAchievement,
+  } from "$lib/stores/achievementToast";
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -703,6 +707,9 @@
       let allLevelsComplete = false;
       let nextLevelFromSubmit: number | null = null;
 
+      // Achievements unlocked across this submission, deduped by tier.
+      const unlockedThisRun = new Map<string, UnlockedAchievement>();
+
       for (let i = 0; i < completedTasks.length; i++) {
         throwIfSubmissionCanceled();
         const task = completedTasks[i];
@@ -731,6 +738,12 @@
         // Collect rewards (last one will have the full reward)
         submitRewards = submitData.rewards;
 
+        // Collect any achievements unlocked by this task (deduped by tier).
+        for (const u of (submitData.newlyUnlocked ??
+          []) as UnlockedAchievement[]) {
+          unlockedThisRun.set(`${u.achievementId}:${u.tier}`, u);
+        }
+
         // Check if all levels are now complete
         allLevelsComplete = submitData.allLevelsComplete ?? false;
         nextLevelFromSubmit = submitData.nextLevel ?? null;
@@ -740,6 +753,9 @@
           break;
         }
       }
+
+      // Surface a toast for each achievement unlocked during this submission.
+      notifyAchievementUnlocks([...unlockedThisRun.values()]);
 
       // Step 2 - Archive container if all levels are complete
       // Must be called AFTER submit API sets status to 'completed'
