@@ -102,8 +102,7 @@
 
 <!-- ══ SUMMARY MODAL ══ -->
 {#if showSummaryModal}
-  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-  <div class="modal-overlay" on:click={handleCloseSummary}>
+  <div class="modal-overlay" role="button" tabindex="0" aria-label="Close stack summary" on:click={handleCloseSummary} on:keydown={(e) => e.key === 'Escape' && handleCloseSummary()}>
     <div class="modal-box" on:click|stopPropagation>
       <div class="modal-scanlines" aria-hidden="true"></div>
       <div class="modal-shimmer"></div>
