@@ -467,7 +467,7 @@
                   <Sparkles size={14} style="color:#ffb400;" />
                   <span>AI-Powered Insights</span>
                 </div>
-                <div class="ai-text">{@html aiDescription.replace(/\n/g, '<br>')}</div>
+                <div class="ai-text" style="white-space: pre-line">{aiDescription}</div>
               </div>
             {:else}
               <div class="ai-empty">
