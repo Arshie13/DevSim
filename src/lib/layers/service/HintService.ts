@@ -154,7 +154,10 @@ export class HintService {
         await this.userDataAccess.refundCoins(userId, totalCost);
       }
       console.error('Error generating hint:', error);
-      return { success: false, error: 'Failed to generate hint' };
+      // Surface the real reason (e.g. bad API key / unavailable models) instead
+      // of a generic message, so failures are diagnosable from the chat itself.
+      const reason = error instanceof Error ? error.message : 'Failed to generate hint';
+      return { success: false, error: reason };
     }
   }
 
@@ -463,9 +466,11 @@ Example of CORRECT answer (based on actual file content):
           'X-Title': 'DevSim AI Hints'
         },
         body: JSON.stringify({
+          // Enough headroom for multi-step, hand-holdy hints (level 1-2) without
+          // getting cut off mid-sentence. Matches the Gemini fallback budget.
           model,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 200,
+          max_tokens: 1000,
           temperature: 0.7,
           reasoning: { enabled: false }
         })
