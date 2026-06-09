@@ -125,10 +125,6 @@
         <div class="identity-text">
           <h3 class="identity-name">{selection.name || 'Custom Stack'}</h3>
           <div class="identity-meta">
-            <span class="xp-badge">
-              <Zap class="w-3 h-3" style="color: #ffb400;" />
-              <span>{xpMultiplier}x XP</span>
-            </span>
             <span class="layer-count">{selectedCount} LAYER{selectedCount !== 1 ? 'S' : ''}</span>
           </div>
         </div>
@@ -301,22 +297,6 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-  }
-  .xp-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-    padding: 0.1rem 0.4rem;
-    background: rgba(255, 180, 0, 0.10);
-    border: 1px solid rgba(255, 180, 0, 0.25);
-    border-radius: 2px;
-  }
-  .xp-badge span {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: #ffb400;
-    letter-spacing: 0.04em;
   }
   .layer-count {
     font-family: 'Share Tech Mono', monospace;

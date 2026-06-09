@@ -7,7 +7,7 @@
     DATABASE_OPTIONS,
     SERVICES_OPTIONS,
   } from "$mocks";
-  import { CircleCheck, Zap, CircuitBoard } from "lucide-svelte";
+  import { CircleCheck, CircuitBoard } from "lucide-svelte";
 
   export let onSelectCombo: (combo: StackSelection) => void;
   export let selection: StackSelection = { frontend: null, backend: null, database: null, services: null };
@@ -117,12 +117,8 @@
           {/each}
         </div>
 
-        <!-- Right: XP + selected badge -->
+        <!-- Right: selected badge -->
         <div class="row-right">
-          <div class="row-xp">
-            <Zap size={11} style="color: rgba(255,180,0,0.70);" />
-            <span>{layerCount === 4 ? '2.0x' : layerCount === 3 ? '1.5x' : '1.25x'} XP</span>
-          </div>
           {#if sel}
             <span class="row-sel">
               <CircleCheck size={10} />
@@ -309,16 +305,6 @@
     align-items: center;
     gap: 0.6rem;
     flex-shrink: 0;
-  }
-
-  .row-xp {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.05em;
-    color: #ffb400;
   }
 
   .row-sel {

@@ -5,7 +5,7 @@
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackPreviewPanel from "$components/stacks/StackPreviewPanel.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
-import { Layers, ArrowLeft } from "lucide-svelte";
+  import { Layers, ArrowLeft } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import type { UserData } from "$types";
 
@@ -27,6 +27,12 @@ import { Layers, ArrowLeft } from "lucide-svelte";
     };
   }
 
+  function handleViewAnalysis() {
+    if (previewSelection) {
+      showInfoModal = true;
+    }
+  }
+
   function handleSelectCombo(combo: StackSelection) {
     selection = {
       frontend: combo.frontend,
@@ -37,12 +43,6 @@ import { Layers, ArrowLeft } from "lucide-svelte";
       stackType: combo.stackType,
     };
     previewSelection = { ...selection };
-  }
-
-  function handleViewAnalysis() {
-    if (previewSelection) {
-      showInfoModal = true;
-    }
   }
 
   // Mapping of tech IDs to folder names
@@ -150,12 +150,6 @@ import { Layers, ArrowLeft } from "lucide-svelte";
               <h1 class="page-title-big">Choose Your Stack</h1>
               <div class="flex items-center gap-3 mt-1">
                 <p class="page-subtitle-big">Select your loadout. Launch your simulation.</p>
-                <span
-                  class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider"
-                  style="font-family: 'Share Tech Mono', monospace; background: rgba(7,165,201,0.08); border: 1px solid rgba(7,165,201,0.20); color: #07a5c9;"
-                >
-                  V2.0
-                </span>
                 <div
                   class="flex items-center gap-2 px-2.5 py-1 rounded"
                   style="background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.25);"
@@ -224,7 +218,6 @@ import { Layers, ArrowLeft } from "lucide-svelte";
     margin: 0;
     padding: 0;
     background-color: #0a0e1a;
-    overflow: hidden;
   }
 
   /* Full-page dark bg */
