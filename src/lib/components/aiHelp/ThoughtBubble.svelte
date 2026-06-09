@@ -12,7 +12,9 @@
    export let QUICK_HINT_COST: number = 100;
    export let CHAT_MESSAGE_COST: number = 200;
    export let showChatButton: boolean = false;
-   export let aiHelps: { today: number; total: number } = { today: 5, total: 5 };
+   export let aiHelps: number = 0;
+   // While the user has AI help credits, the hint costs no coins.
+   export let usesFreeHelp: boolean = false;
 
   // Determine which cost to display based on chat mode
   $: displayedCost = showChatButton ? CHAT_MESSAGE_COST : QUICK_HINT_COST;
@@ -363,8 +365,12 @@
              padding-top:6px;border-top:1px solid #3f3f46;margin-top:6px;flex-shrink:0;
            ">
              <div class="flex items-center gap-3">
-               <span style="font-size:11px;color:#6b7280;">💰 -{displayedCost} coins</span>
-               <span style="font-size:11px;color:#6b7280;">💡 {aiHelps.today}/{aiHelps.total}</span>
+               {#if usesFreeHelp}
+                 <span style="font-size:11px;color:#22d3ee;">💡 Free (1 help)</span>
+               {:else}
+                 <span style="font-size:11px;color:#6b7280;">💰 -{displayedCost} coins</span>
+               {/if}
+               <span style="font-size:11px;color:#6b7280;">💡 {aiHelps} helps</span>
              </div>
              <span style="font-size:11px;color:#6b7280;">Coins: {initialCoins}</span>
            </div>

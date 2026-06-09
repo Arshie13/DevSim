@@ -1,7 +1,7 @@
 // AI Help API Helper Functions
 import { get } from 'svelte/store';
 import type { ITask } from "$lib/types";
-import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
+import { aiChatHistory, aiCoins, aiHelpCredits, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
 import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage } from "$lib/ai";
 import type { ChatMessage } from "$lib/stores/ai";
 import {
@@ -288,6 +288,9 @@ export async function sendChatMessage(
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
       }
+      if (data.aiHelpsRemaining !== undefined) {
+        aiHelpCredits.set(data.aiHelpsRemaining);
+      }
       return { success: true, coinsRemaining: data.coinsRemaining };
     } else {
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: getApiErrorMessage(data.error) }]);
@@ -335,6 +338,9 @@ export async function requestQuickHintBubble(
     if (data.success) {
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
+      }
+      if (data.aiHelpsRemaining !== undefined) {
+        aiHelpCredits.set(data.aiHelpsRemaining);
       }
       if (onSuccess) {
         onSuccess(data.hint, data.coinsRemaining);
@@ -429,6 +435,9 @@ export async function sendBubbleChatMessage(
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
+      }
+      if (data.aiHelpsRemaining !== undefined) {
+        aiHelpCredits.set(data.aiHelpsRemaining);
       }
       if (onSuccess) {
         onSuccess(data.hint, data.coinsRemaining);

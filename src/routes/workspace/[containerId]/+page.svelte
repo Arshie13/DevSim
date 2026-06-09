@@ -37,6 +37,7 @@
   let { data}: { data: PageData } = $props();
 
   let userCoins = $derived(data.userCoins ?? 0);
+  let userAiHelps = $derived(data.userAiHelps ?? 0);
 
   let currentLevel = $derived(data.level || 1);
 
@@ -1826,6 +1827,7 @@ $effect(() => {
       {projectName}
       level={currentLevel}
       initialCoins={userCoins}
+      initialAiHelps={userAiHelps}
       bind:mode={aiPanelMode}
     />
   </div>

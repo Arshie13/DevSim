@@ -98,4 +98,19 @@ export class UserDataAccess {
       return { success: false, error };
     }
   }
+
+  /** Spend one AI help credit, returning the user's new credit balance. */
+  async consumeAiHelpCredit(userId: string): Promise<number> {
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { aiHelpCredits: { decrement: 1 } },
+        select: { aiHelpCredits: true }
+      });
+      return user.aiHelpCredits;
+    } catch (error) {
+      console.error('Error consuming AI help credit:', error);
+      throw error;
+    }
+  }
 }

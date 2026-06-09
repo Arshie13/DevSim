@@ -14,7 +14,7 @@
   export let isLoading: boolean = false;
    export let currentCoins: number = 0;
    export let totalCost: number = 0;
-   export let aiHelps: { today: number; total: number } = { today: 5, total: 5 };
+   export let aiHelps: number = 0;
    export let canAttachMore: boolean = false;
   export let attachedFiles: { path: string; name: string }[] = [];
   export let fileTree: string[] = [];
@@ -31,10 +31,9 @@
   export let showBubble: boolean = false;
   export let onSelectHistory: (item: BubbleHistoryItem) => void = () => {};
   export let onToggleHistory: () => void = () => {};
-  export let aiModels: Array<{ label: string; value: string }> = [];
-  export let aiModel: string = "meta-llama/llama-3.1-8b-instruct";
-  export let onAiModelChange: (value: string) => void = () => {};
-  
+  // While the user has free daily helps left, hints cost 0 coins.
+  export let usesFreeHelp: boolean = false;
+
   // Props for SAZ avatar states (passed from parent)
   export let hasHint: boolean = false;
 
@@ -155,17 +154,6 @@
 
         <!-- Quick Hint Button -->
         <div class="px-3 py-2 bg-cyan-900/20 border-b border-cyan-500/20">
-          <label for="ai-model-select" class="mb-2 block text-[11px] text-cyan-300">AI Model</label>
-          <select
-            id="ai-model-select"
-            value={aiModel}
-            onchange={(e) => onAiModelChange((e.currentTarget as HTMLSelectElement).value)}
-            class="mb-2 w-full rounded-lg border border-cyan-500/30 bg-slate-900/70 px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-cyan-500"
-          >
-            {#each aiModels as model}
-              <option value={model.value}>{model.label}</option>
-            {/each}
-          </select>
           <button
             type="button"
             onclick={onQuickHint}
@@ -173,7 +161,7 @@
           >
             <span>💡</span>
             <span class="font-medium">Quick Hint</span>
-            <span class="text-xs opacity-80">-{QUICK_HINT_COST}</span>
+            <span class="text-xs opacity-80">{usesFreeHelp ? "FREE" : `-${QUICK_HINT_COST}`}</span>
           </button>
         </div>
 
@@ -248,12 +236,16 @@
          <div class="px-3 py-1.5 border-t border-slate-700/50 flex items-center justify-between text-xs">
            <div class="flex items-center gap-1 text-gray-400">
              <Coins class="w-3 h-3 text-yellow-500" />
-             <span>Cost: <span class="text-yellow-500 font-medium">{totalCost}</span></span>
+             {#if usesFreeHelp}
+               <span>Cost: <span class="text-cyan-400 font-medium">Free</span> <span class="text-gray-500">(uses 1 help)</span></span>
+             {:else}
+               <span>Cost: <span class="text-yellow-500 font-medium">{totalCost}</span></span>
+             {/if}
            </div>
            <div class="flex items-center gap-3 text-gray-400">
              <div class="flex items-center gap-1">
                <span class="text-cyan-500">💡</span>
-               <span>Helps: <span class="text-cyan-400 font-medium">{aiHelps.today}</span> / {aiHelps.total}</span>
+               <span>Helps: <span class="text-cyan-400 font-medium">{aiHelps}</span></span>
              </div>
              <div>
                Coins: <span class="text-green-400 font-medium">{currentCoins}</span>

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy } from "svelte";
   import {
     aiChatHistory,
     aiCoins,
-    aiHelpsRemaining,
+    aiHelpCredits,
     aiSelectedFile,
     aiFileTree,
     aiFileContents,
@@ -38,7 +38,6 @@
     type BubbleHistoryItem,
     type BubbleState,
   } from "$lib/utils/aiHelpHelpers";
-  import { updateAIHelpsRemaining } from "$lib/stores/passStore";
   // Constants from aiHelpConstants
   import {
     MAX_ATTACHED_FILES,
@@ -65,10 +64,8 @@
   export let initialFileTree: string[] = [];
   export let initialFileContents: Record<string, string> = {};
   export let initialCoins: number = 1000;
-  export let initialAiHelps: { today: number; total: number } = {
-    today: 5,
-    total: 5,
-  };
+  // The user's available AI help credits, spent before coins are charged.
+  export let initialAiHelps: number = 0;
   export let initialAiModel: string = "nvidia/nemotron-3-nano-30b-a3b:free";
 
   // State
@@ -80,7 +77,7 @@
   let chatContainer: HTMLDivElement | undefined;
   let previousMessageCount = 0;
   let userScrolling = false;
-  let selectedAiModel = initialAiModel;
+  const selectedAiModel = initialAiModel;
 
   let showQuickHint = false;
   let quickHintMessage = "";
@@ -107,18 +104,6 @@
   // Track bubble history for session persistence (new)
   let bubbleHistory: BubbleHistoryItem[] = [];
 
-  const AI_MODELS = [
-    {
-      label: "NVIDIA Nemotron 3 Nano 30B",
-      value: "nvidia/nemotron-3-nano-30b-a3b:free",
-    },
-    { label: "Gemma 3N E2B", value: "google/gemma-3n-e2b-it:free" },
-    {
-      label: "Google Gemini 2.5 Flash",
-      value: "google/gemini-2.5-flash:direct",
-    },
-  ];
-
   // Reactive
   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
   $: canAttachMore = attachedFiles.length < MAX_ATTACHED_FILES;
@@ -131,8 +116,12 @@
       : $aiFileContents;
   $: currentCoins =
     $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
-  $: currentAiHelps = $aiHelpsRemaining;
+  $: currentAiHelps = $aiHelpCredits;
+  // Help credits are spent before coins — while any remain, hints cost 0 coins.
+  $: usesFreeHelp = currentAiHelps > 0;
   $: totalCost = calculateTotalCost(mode, attachedFiles.length);
+  // What the user actually pays in coins for the next hint (0 while free helps remain).
+  $: effectiveCost = usesFreeHelp ? 0 : totalCost;
   $: allTasksCompleted = areAllTasksCompleted(tasks);
   $: hasChatAiMessage =
     $aiChatHistory && $aiChatHistory.some((msg: any) => msg.role === "ai");
@@ -143,7 +132,7 @@
   $: if (Object.keys(initialFileContents).length > 0)
     aiFileContents.set(initialFileContents);
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
-  $: if (initialAiHelps) aiHelpsRemaining.set(initialAiHelps);
+  $: aiHelpCredits.set(initialAiHelps);
 
   // Auto-scroll chat
   $: {
@@ -238,11 +227,6 @@
     if (sazSummonTimer) clearTimeout(sazSummonTimer);
   });
 
-  // Fetch AI usage on component mount
-  onMount(async () => {
-    await updateAIHelpsRemaining(5, 5);
-  });
-
   async function generateContext() {
     return generateContextHelper(
       scenario,
@@ -258,12 +242,12 @@
   }
 
   async function sendMessage() {
-    // Use API function for validation
+    // Use API function for validation (free helps cover the cost, so check effectiveCost)
     const validation = validateMessage(
       userMessage,
       isLoading,
       currentCoins,
-      totalCost,
+      effectiveCost,
     );
     if (!validation.valid) return;
 
@@ -291,15 +275,13 @@
         mode,
         filesToInclude,
         currentCoins,
-        totalCost,
+        effectiveCost,
         generateContext,
         selectedAiModel,
       );
 
       if (result.success && result.coinsRemaining !== undefined) {
         initialCoins = result.coinsRemaining;
-        // Refresh AI help remaining count
-        await updateAIHelpsRemaining(5, 5);
       }
     } catch (error) {
       console.error("[AI Help] Error:", error);
@@ -328,8 +310,10 @@
       quickHintLoading = false; // Set loading to false so the message shows
       return;
     }
-    if (currentCoins < totalCost) {
-      quickHintMessage = getInsufficientCoinsMessage(totalCost, currentCoins);
+    // Free daily helps cover the quick hint. Only check coins once they run out.
+    // A quick hint always costs QUICK_HINT_COST (it sends no attached files).
+    if (!usesFreeHelp && currentCoins < QUICK_HINT_COST) {
+      quickHintMessage = getInsufficientCoinsMessage(QUICK_HINT_COST, currentCoins);
       showFloatingModal = false;
       showQuickHint = true;
       hintChunks = chunkHintMessage(quickHintMessage);
@@ -370,8 +354,6 @@
           aiCoins.set(coinsRemaining);
           initialCoins = coinsRemaining;
         }
-        // Refresh AI help remaining count
-        updateAIHelpsRemaining(5, 5);
       },
       // onError
       (error: string) => {
@@ -404,7 +386,8 @@
       currentHintChunk = 0;
       return;
     }
-    if (currentCoins < totalCost) {
+    // Free daily helps cover the chat message; only check coins once they run out.
+    if (!usesFreeHelp && currentCoins < totalCost) {
       bubbleChatMessage = getInsufficientCoinsMessage(totalCost, currentCoins);
       bubbleChatLoading = false;
       showQuickHint = true;
@@ -437,7 +420,7 @@
       mode,
       filesToSend,
       currentCoins,
-      totalCost,
+      effectiveCost,
       generateContext,
       //  onSuccess
       (hint: string, coinsRemaining?: number) => {
@@ -451,8 +434,6 @@
           aiCoins.set(coinsRemaining);
           initialCoins = coinsRemaining;
         }
-        // Refresh AI help remaining count
-        updateAIHelpsRemaining(5, 5);
       },
       // onError
       (error: string) => {
@@ -575,9 +556,6 @@
     userScrolling = isUserScrolling(scrollTop, scrollHeight, clientHeight, 50);
   }
 
-  function handleAiModelChange(value: string) {
-    selectedAiModel = value;
-  }
 </script>
 
 <!-- ─── SAZ Avatar toggle button ─── -->
@@ -686,6 +664,8 @@
   hasHint={!!(bubbleChatMessage || quickHintMessage || hasChatAiMessage)}
   {currentCoins}
   {totalCost}
+  aiHelps={currentAiHelps}
+  {usesFreeHelp}
   {canAttachMore}
   {attachedFiles}
   fileTree={filteredFileTree}
@@ -700,9 +680,6 @@
   onCloseFilePicker={() => (showFilePicker = false)}
   onQuickHint={requestQuickHint}
   onSelectHistory={handleSelectHistoryItem}
-  aiModels={AI_MODELS}
-  aiModel={selectedAiModel}
-  onAiModelChange={handleAiModelChange}
 />
 
 <!-- ─── Quick Hint Cloud ───
@@ -722,6 +699,8 @@
         {currentHintChunk}
         {initialCoins}
         {QUICK_HINT_COST}
+        aiHelps={currentAiHelps}
+        {usesFreeHelp}
         showChatButton={useBubbleMode}
         on:hide={hideBubble}
         on:close={requestCloseWithConfirmation}

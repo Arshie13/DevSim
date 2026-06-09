@@ -21,7 +21,8 @@ export const POST: RequestHandler = async ({ request }) => {
       isGreeting: result.isGreeting,
       isWarning: result.isWarning,
       coinsSpent: result.coinsSpent,
-      coinsRemaining: result.coinsRemaining
+      coinsRemaining: result.coinsRemaining,
+      aiHelpsRemaining: result.aiHelpsRemaining
     });
   } catch (error) {
     console.error('Error in hint endpoint:', error);

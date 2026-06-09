@@ -25,7 +25,7 @@ interface HintResult {
   isWarning?: boolean;
   coinsSpent?: number;
   coinsRemaining?: number;
-  aiHelpsRemaining?: { today: number; total: number };
+  aiHelpsRemaining?: number;
   hintCost?: number;
 }
 
@@ -86,24 +86,32 @@ export class HintService {
     const fileCost = attachedFilesCount * ATTACHED_FILE_COST;
     const totalCost = hintCost + fileCost;
 
-     // Check coin balance
-     if (userResult.coins < totalCost) {
-       return {
-         success: false,
-         error: `Insufficient coins! You need ${totalCost} coins (${hintCost} hint + ${fileCost} for ${attachedFilesCount} file(s)). You have ${userResult.coins} coins. Complete tasks or level up to earn more coins!`,
-         coinsRemaining: userResult.coins,
-         hintCost: totalCost
-       };
-     }
+    // Free AI help credits are spent before any coins are charged.
+    const helpCredits = userResult.user.aiHelpCredits ?? 0;
+    const useFreeHelp = helpCredits > 0;
 
-      // Deduct coins
+    let newCoinBalance = userResult.coins;
+    let coinsSpent = 0;
+
+    if (!useFreeHelp) {
+      // No help credits left — fall back to charging coins.
+      if (userResult.coins < totalCost) {
+        return {
+          success: false,
+          error: `Insufficient coins! You need ${totalCost} coins (${hintCost} hint + ${fileCost} for ${attachedFilesCount} file(s)). You have ${userResult.coins} coins. Complete tasks or level up to earn more coins!`,
+          coinsRemaining: userResult.coins,
+          hintCost: totalCost,
+          aiHelpsRemaining: 0
+        };
+      }
+
       const deductResult = await this.userDataAccess.deductCoins(userId, totalCost);
       if (!deductResult.success) {
-        // Refund AI help credits if we deducted them? Actually consumeHelp already committed.
-        // For simplicity, we don't refund AI usage on coin failure.
         return { success: false, error: 'Failed to deduct coins' };
       }
-      const newCoinBalance = deductResult.coins;
+      newCoinBalance = deductResult.coins ?? newCoinBalance;
+      coinsSpent = totalCost;
+    }
 
     try {
       // Get file contents if needed
@@ -121,16 +129,30 @@ export class HintService {
        // Get AI response
        const hint = await this.getAIResponse(prompt, model);
 
-       // Return result — AI help already consumed via consumeHelp()
+       // Spend one help credit only after a successful response.
+       // Don't let a usage-tracking failure discard a hint the user already received.
+       let creditsRemaining = helpCredits;
+       if (useFreeHelp) {
+         try {
+           creditsRemaining = await this.userDataAccess.consumeAiHelpCredit(userId);
+         } catch (e) {
+           console.error('Failed to record AI help credit usage:', e);
+           creditsRemaining = Math.max(0, helpCredits - 1);
+         }
+       }
+
        return {
          success: true,
          hint: hint.trim(),
-         coinsSpent: totalCost,
-         coinsRemaining: newCoinBalance
+         coinsSpent,
+         coinsRemaining: newCoinBalance,
+         aiHelpsRemaining: creditsRemaining
        };
     } catch (error) {
-      // Refund coins on error
-      await this.userDataAccess.refundCoins(userId, totalCost);
+      // Refund coins on error (only if any were charged)
+      if (coinsSpent > 0) {
+        await this.userDataAccess.refundCoins(userId, totalCost);
+      }
       console.error('Error generating hint:', error);
       return { success: false, error: 'Failed to generate hint' };
     }
