@@ -224,7 +224,7 @@
       pendingTerminalInits.set(id, async (el: HTMLDivElement) => {
         try {
           const inst = new TerminalInitializer();
-          await inst.initializeDockerTerminal(el, dockerContainerId);
+          await inst.initializeDockerTerminal(el, dockerContainerId, id);
           terminalSessions = terminalSessions.map((s) => (s.id === id ? { ...s, instance: inst } : s));
         } catch (err) {
           console.error("Terminal init error:", err);

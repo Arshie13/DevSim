@@ -3,54 +3,44 @@
 
   // ── Props ──────────────────────────────────────────────────────────────────
 
-  /** Controls visibility. Bind this to toggle the modal from the parent. */
-  export let open: boolean = false;
-
-  /** Decorative icon shown above the title (emoji or symbol). */
-  export let icon: string = '⟨/⟩';
-
-  export let iconVariant: 'accent' | 'danger' | 'warning' | 'success' = 'accent';
-
-  /** Modal heading — rendered in Orbitron. */
-  export let title: string = 'Are you sure?';
-  export let subtitle: string = '';
-
-  export let description: string = '';
-
-  /** Label for the confirm button. */
-  export let confirmLabel: string = 'Confirm';
-
-  /** Label for the cancel button. */
-  export let cancelLabel: string = 'Cancel';
-
-  export let variant: 'primary' | 'danger' | 'warning' | 'success' = 'primary';
-  export let isLoading: boolean = false;
-
-  /** Text shown next to the spinner while loading. */
-  export let loadingLabel: string = 'Loading…';
-  export let error: string = '';
-  export let showSuccess: boolean = false;
-
-  /**
-   * When true the Cancel + Confirm action row is hidden.
-   * Useful when the body slot already contains its own progress UI (e.g. LoadingSteps).
-   */
-  export let hideActions: boolean = false;
-
-  /**
-   * When true the modal header (icon/title/subtitle) is hidden.
-   * Useful when slot content already renders its own heading.
-   */
-  export let hideHeader: boolean = false;
-
-  /**
-   * When true, clicking the backdrop will close the modal.
-   * Set to false to prevent closing when clicking outside.
-   */
-  export let closeOnBackdropClick: boolean = true;
-
-  /** Optional data-tour attribute forwarded to the backdrop element for tutorial spotlight targeting. */
-  export let tourId: string | undefined = undefined;
+  let {
+    /** Controls visibility. Bind this to toggle the modal from the parent. */
+    open = $bindable(false),
+    /** Decorative icon shown above the title (emoji or symbol). */
+    icon = '⟨/⟩',
+    iconVariant = 'accent' as 'accent' | 'danger' | 'warning' | 'success',
+    /** Modal heading — rendered in Orbitron. */
+    title = 'Are you sure?',
+    subtitle = '',
+    description = '',
+    /** Label for the confirm button. */
+    confirmLabel = 'Confirm',
+    /** Label for the cancel button. */
+    cancelLabel = 'Cancel',
+    variant = 'primary' as 'primary' | 'danger' | 'warning' | 'success',
+    isLoading = false,
+    /** Text shown next to the spinner while loading. */
+    loadingLabel = 'Loading…',
+    error = '',
+    showSuccess = false,
+    /**
+     * When true the Cancel + Confirm action row is hidden.
+     * Useful when the body slot already contains its own progress UI (e.g. LoadingSteps).
+     */
+    hideActions = false,
+    /**
+     * When true the modal header (icon/title/subtitle) is hidden.
+     * Useful when slot content already renders its own heading.
+     */
+    hideHeader = false,
+    /**
+     * When true, clicking the backdrop will close the modal.
+     * Set to false to prevent closing when clicking outside.
+     */
+    closeOnBackdropClick = true,
+    /** Optional data-tour attribute forwarded to the backdrop element for tutorial spotlight targeting. */
+    tourId = undefined as string | undefined,
+  } = $props();
 
   // ── Events ─────────────────────────────────────────────────────────────────
 
@@ -63,26 +53,27 @@
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
-  const iconGlowClass: Record<typeof iconVariant, string> = {
+  const iconGlowClass: Record<string, string> = {
     accent:  'icon--accent',
     danger:  'icon--danger',
     warning: 'icon--warning',
     success: 'icon--success',
   };
 
-  const confirmBtnClass: Record<typeof variant, string> = {
+  const confirmBtnClass: Record<string, string> = {
     primary: 'cm-btn-confirm--primary',
     danger:  'cm-btn-confirm--danger',
     warning: 'cm-btn-confirm--warning',
     success: 'cm-btn-confirm--success',
   };
 
-  $: confirmButtonTour =
+  let confirmButtonTour = $derived(
     confirmLabel === 'Submit & Continue'
       ? 'submit-sprint-confirm-button'
       : confirmLabel === 'Proceed to Workspace'
         ? 'tutorial-proceed-button'
-        : undefined;
+        : undefined,
+  );
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -113,8 +104,8 @@
     aria-modal="true"
     aria-labelledby="cm-title"
     tabindex="-1"
-    on:click={handleBackdropClick}
-    on:keydown={handleKeydown}
+    onclick={handleBackdropClick}
+    onkeydown={handleKeydown}
     data-tour={tourId}
   >
     <div class="cm-card ds-scrollbar">
@@ -122,7 +113,6 @@
       <div class="cm-card-glow" aria-hidden="true"></div>
 
       {#if showSuccess}
-        <!-- ── SUCCESS STATE ──────────────────────────────────────────────── -->
         <slot name="success">
           <div class="cm-success-wrap">
             <div class="cm-success-burst" aria-hidden="true">✅</div>
@@ -132,9 +122,6 @@
         </slot>
 
       {:else}
-        <!-- ── CONFIRMATION STATE ─────────────────────────────────────────── -->
-
-        <!-- Header -->
         {#if !hideHeader && title}
           <div class="cm-header">
             {#if icon}
@@ -147,28 +134,24 @@
           </div>
         {/if}
 
-        <!-- Optional description -->
         {#if description}
           <p class="cm-description">{@html description}</p>
         {/if}
 
-        <!-- Slot: custom rich body (task lists, previews, cost breakdowns…) -->
         <slot />
 
-        <!-- Error banner -->
         {#if error}
           <div class="cm-error-box">
             <span>⚠ {error}</span>
           </div>
         {/if}
 
-        <!-- Action row -->
         {#if !hideActions}
           <div class="cm-action-row">
             <button
               type="button"
               class="cm-btn-cancel"
-              on:click={handleCancel}
+              onclick={handleCancel}
               disabled={isLoading}
             >
               {cancelLabel}
@@ -178,7 +161,7 @@
               type="button"
               data-tour={confirmButtonTour}
               class="cm-btn-confirm {confirmBtnClass[variant]}"
-              on:click={handleConfirm}
+              onclick={handleConfirm}
               disabled={isLoading}
             >
               {#if isLoading}
