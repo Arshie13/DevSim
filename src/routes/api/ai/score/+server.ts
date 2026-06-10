@@ -1,12 +1,37 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { ScoringService } from '$lib/layers/service/ScoringService';
+import prisma from '$lib/server/client';
 
 const scoringService = new ScoringService();
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json();
+
+    const aiScoringEnabled = await prisma.app_setting.findFirst({
+      where: {
+        key: "mastery_checkpoint_enabled"
+      },
+      select: {
+        value: true
+      }
+    });
+
+    if (aiScoringEnabled?.value) {
+      return json({
+        success: true,
+        stars: 3,
+        score: 100,
+        feedback: "AI scoring is bypassed.",
+        improvements: "No content detected since AI scoring is bypassed",
+        nextTime: "Prepare yourself",
+        masteryPassed: true,
+        masteryGaps: "None whatsoever",
+        error: null,
+        isRateLimited: false,
+      });
+    }
 
     const result = await scoringService.processScore(body);
 
