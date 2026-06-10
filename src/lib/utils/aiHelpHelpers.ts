@@ -201,14 +201,13 @@ export function filterSourceFiles(fileTree: string[], attachedFiles: { path: str
   ).slice(0, MAX_FILE_TREE_SHOW);
 }
 
-import { QUICK_HINT_COST, CHAT_HINT_COST, ATTACHED_FILE_COST } from "./aiHelpConstants";
+import { QUICK_HINT_CREDIT_COST, CHAT_HINT_CREDIT_COST } from "./aiHelpConstants";
 
 /**
- * Calculate total cost for hint
+ * AI help credit cost for a hint (attached files are free — credits are the only currency)
  */
-export function calculateTotalCost(mode: "chat" | "quick", attachedFilesLength: number): number {
-  const hintCost = mode === 'quick' ? QUICK_HINT_COST : CHAT_HINT_COST;
-  return hintCost + (attachedFilesLength * ATTACHED_FILE_COST);
+export function calculateCreditCost(mode: "chat" | "quick"): number {
+  return mode === 'quick' ? QUICK_HINT_CREDIT_COST : CHAT_HINT_CREDIT_COST;
 }
 
 /**

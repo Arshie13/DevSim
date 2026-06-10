@@ -7,11 +7,11 @@
     aiFileTree,
     aiFileContents,
   } from "$lib/stores/ai";
-  import { getInsufficientCoinsMessage, getErrorMessage } from "$lib/ai";
+  import { getInsufficientCreditsMessage, getErrorMessage } from "$lib/ai";
   import { type ITask } from "$lib/types";
   import FloatingModal from "./FloatingModal.svelte";
   import {
-    calculateTotalCost,
+    calculateCreditCost,
     filterSourceFiles,
     attachFileToList,
     removeFileFromList,
@@ -22,7 +22,8 @@
   } from "$lib/utils/aiHelpHelpers";
   import {
     MAX_ATTACHED_FILES,
-    QUICK_HINT_COST,
+    QUICK_HINT_CREDIT_COST,
+    COINS_PER_AI_HELP_CREDIT,
   } from "$lib/utils/aiHelpConstants";
   import {
     generateContext as generateContextHelper,
@@ -56,6 +57,14 @@
   let isLoading = false;
   const selectedAiModel = initialAiModel;
 
+  // A hint that costs more credits than the user has, waiting for them to
+  // approve the coins → credits exchange in the popup before it is sent.
+  let pendingConvert: {
+    kind: "chat" | "quick";
+    creditsShort: number;
+    coinsNeeded: number;
+  } | null = null;
+
   // Reactive
   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
   $: canAttachMore = attachedFiles.length < MAX_ATTACHED_FILES;
@@ -69,11 +78,11 @@
   $: currentCoins =
     $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
   $: currentAiHelps = $aiHelpCredits;
-  // Help credits are spent before coins — while any remain, hints cost 0 coins.
-  $: usesFreeHelp = currentAiHelps > 0;
-  $: totalCost = calculateTotalCost(mode, attachedFiles.length);
-  // What the user actually pays in coins for the next message (0 while helps remain).
-  $: effectiveCost = usesFreeHelp ? 0 : totalCost;
+  // AI help credits are the only currency (1 = quick hint, 2 = chat message).
+  // Any credits the user is short get covered by converting coins on the spot.
+  $: creditCost = calculateCreditCost(mode);
+  $: creditsShort = Math.max(0, creditCost - currentAiHelps);
+  $: coinsNeeded = creditsShort * COINS_PER_AI_HELP_CREDIT;
   $: hasAiMessage =
     $aiChatHistory && $aiChatHistory.some((msg) => msg.role === "ai");
 
@@ -103,6 +112,20 @@
   async function sendMessage() {
     const message = userMessage.trim();
     if (!message || isLoading) return;
+
+    // Out of credits but coins can cover it — ask before converting.
+    // (If coins can't cover it either, performSend surfaces the warning.)
+    if (creditsShort > 0 && coinsNeeded <= currentCoins) {
+      pendingConvert = { kind: "chat", creditsShort, coinsNeeded };
+      return;
+    }
+
+    await performSend();
+  }
+
+  async function performSend() {
+    const message = userMessage.trim();
+    if (!message || isLoading) return;
     userMessage = "";
 
     const filesToInclude = [...attachedFiles];
@@ -120,7 +143,7 @@
         mode,
         filesToInclude,
         currentCoins,
-        effectiveCost,
+        currentAiHelps,
         generateContext,
         selectedAiModel,
       );
@@ -156,18 +179,40 @@
       return;
     }
 
-    // A quick hint always costs QUICK_HINT_COST (it sends no attached files).
-    if (!usesFreeHelp && currentCoins < QUICK_HINT_COST) {
+    // A quick hint always costs 1 AI help credit; missing credits are covered
+    // by converting coins (100 coins per credit).
+    const quickCreditsShort = Math.max(0, QUICK_HINT_CREDIT_COST - currentAiHelps);
+    const quickCoinsNeeded = quickCreditsShort * COINS_PER_AI_HELP_CREDIT;
+    if (quickCoinsNeeded > currentCoins) {
       aiChatHistory.update((msgs) => [
         ...msgs,
         createAiMessage(
-          getInsufficientCoinsMessage(QUICK_HINT_COST, currentCoins),
+          getInsufficientCreditsMessage(
+            QUICK_HINT_CREDIT_COST,
+            currentAiHelps,
+            currentCoins,
+            COINS_PER_AI_HELP_CREDIT,
+          ),
           true,
         ),
       ]);
       return;
     }
 
+    // Out of credits but coins can cover it — ask before converting.
+    if (quickCreditsShort > 0) {
+      pendingConvert = {
+        kind: "quick",
+        creditsShort: quickCreditsShort,
+        coinsNeeded: quickCoinsNeeded,
+      };
+      return;
+    }
+
+    await performQuickHint();
+  }
+
+  async function performQuickHint() {
     aiChatHistory.update((msgs) => [
       ...msgs,
       createUserMessage("💡 Can I get a quick hint?"),
@@ -211,6 +256,23 @@
     }
   }
 
+  // User approved the coins → credits exchange — send the staged hint.
+  async function confirmConvert() {
+    const pending = pendingConvert;
+    pendingConvert = null;
+    if (!pending || isLoading) return;
+
+    if (pending.kind === "chat") {
+      await performSend();
+    } else {
+      await performQuickHint();
+    }
+  }
+
+  function cancelConvert() {
+    pendingConvert = null;
+  }
+
   function attachFile(filePath: string) {
     attachedFiles = attachFileToList(
       attachedFiles,
@@ -248,10 +310,8 @@
       {userMessage}
       {isLoading}
       hasHint={hasAiMessage}
-      {currentCoins}
-      {totalCost}
+      {creditCost}
       aiHelps={currentAiHelps}
-      {usesFreeHelp}
       {canAttachMore}
       {attachedFiles}
       fileTree={filteredFileTree}
@@ -265,6 +325,9 @@
       onAttachFile={attachFile}
       onCloseFilePicker={() => (showFilePicker = false)}
       onQuickHint={requestQuickHint}
+      convertPrompt={pendingConvert}
+      onConfirmConvert={confirmConvert}
+      onCancelConvert={cancelConvert}
     />
   </aside>
 {/if}

@@ -836,6 +836,7 @@ onSubmit: submitSprint,
       {projectName}
       level={tutorialLevel}
       initialCoins={data.userCoins}
+      initialAiHelps={data.userAiHelps}
       bind:mode={aiPanelMode}
     />
   </div>

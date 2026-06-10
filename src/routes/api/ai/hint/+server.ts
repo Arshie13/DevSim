@@ -11,7 +11,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await hintService.processHint(body);
 
     if (result.error) {
-      const status = result.error.includes('coins') ? 400 : 500;
+      const status = result.error.includes('coins') || result.error.includes('credit') ? 400 : 500;
       return json({ error: result.error, ...result }, { status });
     }
 
@@ -20,6 +20,7 @@ export const POST: RequestHandler = async ({ request }) => {
       hint: result.hint,
       isGreeting: result.isGreeting,
       isWarning: result.isWarning,
+      creditsSpent: result.creditsSpent,
       coinsSpent: result.coinsSpent,
       coinsRemaining: result.coinsRemaining,
       aiHelpsRemaining: result.aiHelpsRemaining

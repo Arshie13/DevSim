@@ -1,20 +1,21 @@
 <script lang="ts">
   import { tick } from "svelte";
-  import { X, Send, Coins, Paperclip } from "lucide-svelte";
+  import { X, Send, Paperclip } from "lucide-svelte";
   import ChatMessage from "./ChatMessage.svelte";
   import FilePicker from "./FilePicker.svelte";
   import { filterSourceFiles } from "$lib/utils/aiHelpHelpers";
-  import { QUICK_HINT_COST } from "$lib/utils/aiHelpConstants";
+  import {
+    QUICK_HINT_CREDIT_COST,
+    COINS_PER_AI_HELP_CREDIT,
+  } from "$lib/utils/aiHelpConstants";
   import type { ChatMessage as ChatMessageType } from "$lib/stores/ai";
 
   export let messages: ChatMessageType[] = [];
   export let userMessage: string = "";
   export let isLoading: boolean = false;
-  export let currentCoins: number = 0;
-  export let totalCost: number = 0;
+  // AI help credit cost of the next message (1 = quick hint, 2 = chat).
+  export let creditCost: number = 0;
   export let aiHelps: number = 0;
-  // While the user has free helps left, hints cost 0 coins.
-  export let usesFreeHelp: boolean = false;
   export let canAttachMore: boolean = false;
   export let attachedFiles: { path: string; name: string }[] = [];
   export let fileTree: string[] = [];
@@ -29,6 +30,15 @@
   export let onAttachFile: (path: string) => void = () => {};
   export let onCloseFilePicker: () => void = () => {};
   export let onQuickHint: () => void = () => {};
+  // A staged hint waiting for the user to approve converting coins into the
+  // missing credits (null = popup hidden).
+  export let convertPrompt: {
+    kind: "chat" | "quick";
+    creditsShort: number;
+    coinsNeeded: number;
+  } | null = null;
+  export let onConfirmConvert: () => void = () => {};
+  export let onCancelConvert: () => void = () => {};
 
   // Local state
   let localUserMessage: string = "";
@@ -85,7 +95,7 @@
 />
 
 <!-- Docked chat panel — fills its parent column. -->
-<div class="w-full h-full bg-[#0f172a] flex flex-col overflow-hidden">
+<div class="relative w-full h-full bg-[#0f172a] flex flex-col overflow-hidden">
         <!-- Header -->
         <div class="relative bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border-b border-cyan-500/20 px-4 py-3 flex-shrink-0">
           <div class="flex items-center justify-between">
@@ -129,7 +139,9 @@
           >
             <span>💡</span>
             <span class="font-medium">Quick Hint</span>
-            <span class="text-xs opacity-80">{usesFreeHelp ? "FREE" : `-${QUICK_HINT_COST}`}</span>
+            <span class="text-xs opacity-80">
+              -{QUICK_HINT_CREDIT_COST} credit{QUICK_HINT_CREDIT_COST === 1 ? "" : "s"}
+            </span>
           </button>
         </div>
 
@@ -170,21 +182,14 @@
           {/if}
         </div>
 
-        <!-- Cost / helps / coins -->
+        <!-- Cost / credits -->
         <div class="px-3 py-1.5 border-t border-slate-700/50 flex items-center justify-between text-xs flex-shrink-0">
           <div class="flex items-center gap-1 text-gray-400">
-            <Coins class="w-3 h-3 text-yellow-500" />
-            {#if usesFreeHelp}
-              <span>Cost: <span class="text-cyan-400 font-medium">Free</span> <span class="text-gray-500">(uses 1 help)</span></span>
-            {:else}
-              <span>Cost: <span class="text-yellow-500 font-medium">{totalCost}</span></span>
-            {/if}
+            <span>Cost: <span class="text-cyan-400 font-medium">{creditCost} credit{creditCost === 1 ? "" : "s"}</span></span>
           </div>
-          <div class="flex items-center gap-3 text-gray-400">
-            <div class="flex items-center gap-1">
-              <span class="text-cyan-500">💡</span>
-              <span>Helps: <span class="text-cyan-400 font-medium">{aiHelps}</span></span>
-            </div>
+          <div class="flex items-center gap-1 text-gray-400">
+            <span class="text-cyan-500">💡</span>
+            <span>Credits: <span class="text-cyan-400 font-medium">{aiHelps}</span></span>
           </div>
         </div>
 
@@ -244,6 +249,53 @@
             </button>
           </div>
         </div>
+
+        <!-- Coins → credits exchange confirmation popup -->
+        {#if convertPrompt}
+          {@const promptCost = convertPrompt.kind === "quick" ? QUICK_HINT_CREDIT_COST : creditCost}
+          <div class="absolute inset-0 z-20 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div
+              class="w-full max-w-[300px] bg-[#0f172a] border border-cyan-500/30 rounded-xl p-4 shadow-xl shadow-cyan-500/10"
+              role="alertdialog"
+              aria-labelledby="convert-prompt-title"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">💡</span>
+                <h3 id="convert-prompt-title" class="text-sm font-bold text-gray-100">Out of AI help credits</h3>
+              </div>
+
+              <p class="text-xs text-gray-400 leading-relaxed mb-3">
+                This {convertPrompt.kind === "quick" ? "quick hint" : "chat message"} costs
+                <span class="text-cyan-400 font-medium">{promptCost} credit{promptCost === 1 ? "" : "s"}</span>
+                and you have <span class="text-cyan-400 font-medium">{aiHelps}</span>.
+                Exchange
+                <span class="text-yellow-500 font-medium">{convertPrompt.coinsNeeded} coins</span>
+                for the missing {convertPrompt.creditsShort} credit{convertPrompt.creditsShort === 1 ? "" : "s"}?
+              </p>
+
+              <div class="text-[11px] text-gray-500 mb-3">
+                {COINS_PER_AI_HELP_CREDIT} coins = 1 credit
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  onclick={onCancelConvert}
+                  class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-600 text-gray-300 hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onclick={onConfirmConvert}
+                  class="flex-1 px-3 py-1.5 text-xs rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all"
+                >
+                  {convertPrompt.kind === "quick" ? "Exchange & Hint" : "Exchange & Send"}
+                </button>
+              </div>
+            </div>
+          </div>
+        {/if}
 </div>
 
 <FilePicker
