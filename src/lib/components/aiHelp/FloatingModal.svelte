@@ -185,9 +185,6 @@
               <span class="text-cyan-500">💡</span>
               <span>Helps: <span class="text-cyan-400 font-medium">{aiHelps}</span></span>
             </div>
-            <div>
-              Coins: <span class="text-green-400 font-medium">{currentCoins}</span>
-            </div>
           </div>
         </div>
 
