@@ -1,9 +1,10 @@
 import { UserDataAccess } from '../data-access/UserDataAccess';
 import { ContainerService } from './ContainerService';
-
-const QUICK_HINT_COST = 100;
-const CHAT_HINT_COST = 200;
-const ATTACHED_FILE_COST = 15;
+import {
+  QUICK_HINT_CREDIT_COST,
+  CHAT_HINT_CREDIT_COST,
+  COINS_PER_AI_HELP_CREDIT
+} from '$lib/utils/aiHelpConstants';
 
 interface HintRequest {
   message: string;
@@ -23,9 +24,10 @@ interface HintResult {
   error?: string;
   isGreeting?: boolean;
   isWarning?: boolean;
+  creditsSpent?: number;
   coinsSpent?: number;
   coinsRemaining?: number;
-  aiHelpsRemaining?: { today: number; total: number };
+  aiHelpsRemaining?: number;
   hintCost?: number;
 }
 
@@ -43,7 +45,6 @@ export class HintService {
       userId,
       hintType,
       model,
-      attachedFilesCount = 0,
       attachedFiles,
       level = 1
     } = request;
@@ -81,29 +82,37 @@ export class HintService {
       return { success: false, error: 'User not found. Please log in again.' };
     }
 
-    // Calculate costs
-    const hintCost = hintType === 'chat' ? CHAT_HINT_COST : QUICK_HINT_COST;
-    const fileCost = attachedFilesCount * ATTACHED_FILE_COST;
-    const totalCost = hintCost + fileCost;
+    // AI help credits are the only currency: 1 credit per quick hint, 2 per chat message.
+    const creditCost = hintType === 'chat' ? CHAT_HINT_CREDIT_COST : QUICK_HINT_CREDIT_COST;
+    const helpCredits = userResult.user.aiHelpCredits ?? 0;
+    const coinBalance = userResult.coins ?? 0;
 
-     // Check coin balance
-     if (userResult.coins < totalCost) {
-       return {
-         success: false,
-         error: `Insufficient coins! You need ${totalCost} coins (${hintCost} hint + ${fileCost} for ${attachedFilesCount} file(s)). You have ${userResult.coins} coins. Complete tasks or level up to earn more coins!`,
-         coinsRemaining: userResult.coins,
-         hintCost: totalCost
-       };
-     }
+    // Any credits the user is short are covered by converting coins on the spot.
+    const creditsToSpend = Math.min(helpCredits, creditCost);
+    const creditsShort = creditCost - creditsToSpend;
+    const coinsNeeded = creditsShort * COINS_PER_AI_HELP_CREDIT;
 
-      // Deduct coins
-      const deductResult = await this.userDataAccess.deductCoins(userId, totalCost);
+    if (coinsNeeded > coinBalance) {
+      return {
+        success: false,
+        error: `Not enough AI help credits! This ${hintType === 'chat' ? 'chat message' : 'quick hint'} costs ${creditCost} AI help credit${creditCost === 1 ? '' : 's'} and you have ${helpCredits}. Covering the missing ${creditsShort} credit${creditsShort === 1 ? '' : 's'} needs ${coinsNeeded} coins (${COINS_PER_AI_HELP_CREDIT} coins = 1 credit) but you only have ${coinBalance}. Complete tasks to earn coins or top up in the Coins Marketplace!`,
+        coinsRemaining: coinBalance,
+        hintCost: creditCost,
+        aiHelpsRemaining: helpCredits
+      };
+    }
+
+    let newCoinBalance = coinBalance;
+    let coinsSpent = 0;
+
+    if (coinsNeeded > 0) {
+      const deductResult = await this.userDataAccess.deductCoins(userId, coinsNeeded);
       if (!deductResult.success) {
-        // Refund AI help credits if we deducted them? Actually consumeHelp already committed.
-        // For simplicity, we don't refund AI usage on coin failure.
-        return { success: false, error: 'Failed to deduct coins' };
+        return { success: false, error: 'Failed to convert coins to AI help credits' };
       }
-      const newCoinBalance = deductResult.coins;
+      newCoinBalance = deductResult.coins ?? newCoinBalance;
+      coinsSpent = coinsNeeded;
+    }
 
     try {
       // Get file contents if needed
@@ -121,18 +130,36 @@ export class HintService {
        // Get AI response
        const hint = await this.getAIResponse(prompt, model);
 
-       // Return result — AI help already consumed via consumeHelp()
+       // Spend the help credits only after a successful response.
+       // Don't let a usage-tracking failure discard a hint the user already received.
+       let creditsRemaining = helpCredits;
+       if (creditsToSpend > 0) {
+         try {
+           creditsRemaining = await this.userDataAccess.consumeAiHelpCredits(userId, creditsToSpend);
+         } catch (e) {
+           console.error('Failed to record AI help credit usage:', e);
+           creditsRemaining = Math.max(0, helpCredits - creditsToSpend);
+         }
+       }
+
        return {
          success: true,
          hint: hint.trim(),
-         coinsSpent: totalCost,
-         coinsRemaining: newCoinBalance
+         creditsSpent: creditCost,
+         coinsSpent,
+         coinsRemaining: newCoinBalance,
+         aiHelpsRemaining: creditsRemaining
        };
     } catch (error) {
-      // Refund coins on error
-      await this.userDataAccess.refundCoins(userId, totalCost);
+      // Refund coins on error (only if any were charged)
+      if (coinsSpent > 0) {
+        await this.userDataAccess.refundCoins(userId, coinsSpent);
+      }
       console.error('Error generating hint:', error);
-      return { success: false, error: 'Failed to generate hint' };
+      // Surface the real reason (e.g. bad API key / unavailable models) instead
+      // of a generic message, so failures are diagnosable from the chat itself.
+      const reason = error instanceof Error ? error.message : 'Failed to generate hint';
+      return { success: false, error: reason };
     }
   }
 
@@ -441,9 +468,11 @@ Example of CORRECT answer (based on actual file content):
           'X-Title': 'DevSim AI Hints'
         },
         body: JSON.stringify({
+          // Enough headroom for multi-step, hand-holdy hints (level 1-2) without
+          // getting cut off mid-sentence. Matches the Gemini fallback budget.
           model,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 200,
+          max_tokens: 1000,
           temperature: 0.7,
           reasoning: { enabled: false }
         })

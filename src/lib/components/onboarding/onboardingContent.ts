@@ -223,8 +223,8 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'ai-toggle',
     title: 'AI Hints',
     description:
-      "Stuck on a task? Click this button to open AI-powered hints tailored to your current sprint.",
+      "Stuck on a task? Click this button to open the SAZ chat panel for AI-powered hints tailored to your current sprint.",
     target: 'ai-toggle',
-    preferSide: 'top',
+    preferSide: 'bottom',
   },
 ];

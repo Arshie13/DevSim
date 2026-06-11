@@ -415,9 +415,29 @@
     justify-content: flex-end;
   }
 
-  .trivia-submit,
+  .trivia-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #07a5c9;
+    background: rgba(7, 165, 201, 0.1);
+    border: 1px solid rgba(7, 165, 201, 0.5);
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    cursor: pointer;
+    transition: all 0.2s;
+  }
 
-  .trivia-submit:hover:not(:disabled),
+  .trivia-submit:hover:not(:disabled) {
+    border-color: rgba(7, 165, 201, 0.8);
+    background: rgba(7, 165, 201, 0.18);
+    box-shadow: 0 0 16px rgba(7, 165, 201, 0.25);
+  }
 
   .trivia-submit:disabled {
     opacity: 0.4;
