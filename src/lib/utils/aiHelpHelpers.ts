@@ -107,8 +107,52 @@ export function chunkHintMessage(message: string): string[] {
   if (currentChunk.trim()) {
     chunks.push(currentChunk.trim());
   }
-  
+
   return chunks.length > 0 ? chunks : [message];
+}
+
+/**
+ * Split a (long) AI message into readable parts WITHOUT breaking markdown.
+ *
+ * Fenced code blocks are kept whole, the rest is split on blank-line
+ * (paragraph/step) boundaries, and consecutive blocks are grouped until they
+ * reach ~targetLength. This lets the UI page through a long hint without ever
+ * cutting a code block or a step in half.
+ */
+export function splitMessageIntoParts(content: string, targetLength = 600): string[] {
+  if (!content || content.trim().length === 0) return [content];
+
+  // 1. Break the message into atomic blocks (code fences stay intact).
+  const blocks: string[] = [];
+  const fenceRegex = /```[\s\S]*?```/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = fenceRegex.exec(content)) !== null) {
+    const before = content.slice(lastIndex, match.index);
+    for (const para of before.split(/\n{2,}/)) {
+      if (para.trim()) blocks.push(para.trim());
+    }
+    blocks.push(match[0]); // the fenced code block, untouched
+    lastIndex = match.index + match[0].length;
+  }
+  for (const para of content.slice(lastIndex).split(/\n{2,}/)) {
+    if (para.trim()) blocks.push(para.trim());
+  }
+
+  // 2. Group blocks into parts, never splitting a block.
+  const parts: string[] = [];
+  let current = "";
+  for (const block of blocks) {
+    if (current && current.length + block.length + 2 > targetLength) {
+      parts.push(current.trim());
+      current = block;
+    } else {
+      current = current ? `${current}\n\n${block}` : block;
+    }
+  }
+  if (current.trim()) parts.push(current.trim());
+
+  return parts.length > 0 ? parts : [content.trim()];
 }
 
 /**
@@ -157,14 +201,13 @@ export function filterSourceFiles(fileTree: string[], attachedFiles: { path: str
   ).slice(0, MAX_FILE_TREE_SHOW);
 }
 
-import { QUICK_HINT_COST, CHAT_HINT_COST, ATTACHED_FILE_COST } from "./aiHelpConstants";
+import { QUICK_HINT_CREDIT_COST, CHAT_HINT_CREDIT_COST } from "./aiHelpConstants";
 
 /**
- * Calculate total cost for hint
+ * AI help credit cost for a hint (attached files are free — credits are the only currency)
  */
-export function calculateTotalCost(mode: "chat" | "quick", attachedFilesLength: number): number {
-  const hintCost = mode === 'quick' ? QUICK_HINT_COST : CHAT_HINT_COST;
-  return hintCost + (attachedFilesLength * ATTACHED_FILE_COST);
+export function calculateCreditCost(mode: "chat" | "quick"): number {
+  return mode === 'quick' ? QUICK_HINT_CREDIT_COST : CHAT_HINT_CREDIT_COST;
 }
 
 /**
