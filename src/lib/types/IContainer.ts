@@ -75,7 +75,8 @@ export interface IInteractiveConfig {
     entry_point?: string;
     test_cases?: Array<{
       input: unknown[];
-      expected: unknown;
+      expected?: unknown;
+      console_output?: string;
       label: string;
     }>;
     required_code_includes?: string[];

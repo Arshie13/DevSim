@@ -1,6 +1,6 @@
 export const scenarios = [
   {
-    id: "scenario-3",
+    id: "pern-pos-scenario-3",
     name: "IPPO POS System",
     description:
       "Build and debug a production-grade Point-of-Sale system for IPPO Software Solutions using React 18, Express, Prisma, and PostgreSQL. Progress from environment setup through cashier UI helpers, transactional inventory/void flows, a full-stack promo-code feature, and a critical revenue-reporting bug.",
@@ -21,7 +21,7 @@ export const levels = [
       coin_reward: 50,
       key_takeaways:
         "A PERN POS project needs npm install in root, client/, and server/. Prisma migrations keep Postgres aligned with schema.prisma. React layout components (Sidebar) are the single source of truth for brand text — update them once and every page reflects the change.",
-      scenario_id: "scenario-3",
+      scenario_id: "pern-pos-scenario-3",
       tasks: {
         create: [
           {
@@ -249,7 +249,7 @@ export const levels = [
       coin_reward: 125,
       key_takeaways:
         "Pure two-argument classifiers return richer information than booleans. Per-product thresholds let each SKU set its own LOW_STOCK boundary. Centralising the logic eliminates drift between the POS grid and the Inventory table, and a visible toggle proves the abstraction reaches the user.",
-      scenario_id: "scenario-3",
+      scenario_id: "pern-pos-scenario-3",
       tasks: {
         create: [
           {
@@ -560,7 +560,7 @@ export const levels = [
       coin_reward: 200,
       key_takeaways:
         "Read-then-write is unsafe under concurrency. Prisma's updateMany with a gte guard + a count check is the textbook atomic fix. Multi-table transactions (Order + OrderItem + Inventory) must share a single prisma.$transaction to guarantee rollback. Source-of-truth timestamps (voidedAt) are safer than mutable status fields.",
-      scenario_id: "scenario-3",
+      scenario_id: "pern-pos-scenario-3",
       tasks: {
         create: [
           {
@@ -839,7 +839,7 @@ export const levels = [
       coin_reward: 300,
       key_takeaways:
         "Validation endpoints can share business rules with transactional endpoints when both read the same source-of-truth row. Atomic counter updates with updateMany prevent two concurrent sales from consuming the same last slot. Admin observability panels make a feature operable from day one — cashiers and accountants shouldn't have to ask engineering what's happening.",
-      scenario_id: "scenario-3",
+      scenario_id: "pern-pos-scenario-3",
       tasks: {
         create: [
           {
@@ -1119,7 +1119,7 @@ export const levels = [
       coin_reward: 400,
       key_takeaways:
         "Timestamp columns are write-once when set inside a transaction — that makes them source-of-truth for historical questions. Status enums are mutable and unreliable for financial reporting. Centralizing a Prisma where-clause builder + writing a postmortem converts a one-time fix into durable institutional knowledge.",
-      scenario_id: "scenario-3",
+      scenario_id: "pern-pos-scenario-3",
       tasks: {
         create: [
           {

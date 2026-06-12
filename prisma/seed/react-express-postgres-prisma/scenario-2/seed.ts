@@ -1,6 +1,6 @@
 export const scenarios = [
   {
-    id: "scenario-2",
+    id: "pern-oe-scenario-2",
     name: "UrbanPottery Online Enterprise",
     description:
       "Build and debug a production-grade e-commerce platform for UrbanPottery ceramics using React 18, Express, Prisma, and PostgreSQL. Progress from environment setup through client helpers, backend transactions, full-stack features, and a critical revenue bug fix.",
@@ -22,7 +22,7 @@ export const levels = [
       coin_reward: 50,
       key_takeaways:
         "A PERN stack project requires separate npm install runs in the root, client/, and server/ directories. Prisma migrations keep the PostgreSQL schema in sync with your code. Environment variables (DATABASE_URL, PORT) are read by dotenv and must never be committed. React layout components like Navbar are the single place to update global brand text — change it once and it updates everywhere.",
-      scenario_id: "scenario-2",
+      scenario_id: "pern-oe-scenario-2",
       tasks: {
         create: [
           {
@@ -249,7 +249,7 @@ export const levels = [
       coin_reward: 125,
       key_takeaways:
         "Pure functions returning union types are more expressive than booleans when there are more than two meaningful states. Centralising threshold logic in a shared helper eliminates drift between components. A user-facing filter toggle driven by the helper proves the abstraction is working end-to-end.",
-      scenario_id: "scenario-2",
+      scenario_id: "pern-oe-scenario-2",
       tasks: {
         create: [
           {
@@ -527,7 +527,7 @@ export const levels = [
       coin_reward: 200,
       key_takeaways:
         "The current PATCH /status route only flips the status field — it never restores stock. Extracting a dedicated cancelOrder controller function wrapped in prisma.$transaction ensures both the status flip and stock restoration happen atomically. Adding a cancelledAt DateTime? column creates a tamper-proof source of truth used by Level 5's revenue fix.",
-      scenario_id: "scenario-2",
+      scenario_id: "pern-oe-scenario-2",
       tasks: {
         create: [
           {
@@ -790,7 +790,7 @@ export const levels = [
       coin_reward: 300,
       key_takeaways:
         "A full-stack feature requires coordinating a new Prisma model, a validation endpoint, a client service, and UI state in one coherent change. Atomic counter mutations (increment/decrement with guards) prevent race conditions where two users both consume the last available coupon slot.",
-      scenario_id: "scenario-2",
+      scenario_id: "pern-oe-scenario-2",
       tasks: {
         create: [
           {
@@ -1146,7 +1146,7 @@ export const levels = [
       coin_reward: 375,
       key_takeaways:
         "Source-of-truth timestamps (cancelledAt) are more reliable than mutable status fields for financial queries. A shared revenueUtils.ts prevents the same filter logic from being written differently in multiple report endpoints. A postmortem turns a production incident into institutional knowledge that prevents recurrence.",
-      scenario_id: "scenario-2",
+      scenario_id: "pern-oe-scenario-2",
       tasks: {
         create: [
           {
