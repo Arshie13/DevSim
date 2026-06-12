@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Scrollbar from '../ui/Scrollbar.svelte';
+	import { Lock } from 'lucide-svelte';
 
 	export let open = false;
 	export let title = '';
@@ -8,6 +9,7 @@
 	export let hints: { id: string; content: string; order: number }[] = [];
 	export let status: 'backlog' | 'in-progress' | 'in-review' | 'done' = 'backlog';
 	export let onClose: () => void = () => {};
+	export let isLocked = false;
 
 	let showHints = false;
 
@@ -57,6 +59,14 @@
 			on:click|stopPropagation
 			aria-label="Task details"
 		>
+			{#if isLocked}
+				<div class="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)] backdrop-blur-sm">
+					<div class="flex flex-col items-center gap-2 text-[#FFB400]">
+						<Lock class="w-8 h-8" />
+						<span class="text-sm font-medium">Complete the crash course to unlock</span>
+					</div>
+				</div>
+			{/if}
 			<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent"></div>
 
 			<header class="flex items-start justify-between gap-4 border-b border-[rgba(7,165,201,0.15)] px-5 py-4">

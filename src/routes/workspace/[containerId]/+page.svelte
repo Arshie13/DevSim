@@ -178,6 +178,15 @@
 
   let tasks = $derived(computeTasks());
 
+  // Recompute crash course locks whenever tasks or completion state changes
+  $effect(() => {
+    if (!tasks.length) return;
+    // Read crashCourseCompletedByTask and tasks to create dependencies
+    const _completionState = crashCourseCompletedByTask;
+    const _tasksState = tasks;
+    computeCrashCourseLocks();
+  });
+
   let levelHints = $derived(
     currentLevelRecord?.tasks?.flatMap(
       (task: ITask) => task.hints ?? [],
@@ -205,7 +214,7 @@
   let cameFromTutorial = $derived(page.url.searchParams.get("fromTutorial") === "1");
 
   // Track if this workspace came from first-project guided flow.
-  let hasEverBeenInTutorial = false;
+  let hasEverBeenInTutorial = $derived(cameFromTutorial);
 
   function handleLevelIntroClose() {
     levelIntroCardOpen = false;
@@ -260,20 +269,22 @@
   let taskIntroCardOpen: boolean = false;
   let levelIntroCardOpen: boolean = $state(false);
   let levelIntroCardShown: boolean = false;
-  let sazOnboardingOpen: boolean = false;
+  let sazOnboardingOpen: boolean = $state(false);
   let sazOnboardingShown: boolean = false;
-  let pendingSazOpen: boolean = false;
+  let pendingSazOpen: boolean = $state(false);
   let crashCourseOpen: boolean = $state(false);
   let levelIntroDismissed: boolean = $state(false);
   let activeCrashCourseTaskId: string = $state("");
   let crashCourseSeenByTask: Record<string, boolean> = {};
   let crashCourseCompletedByTask: Record<string, boolean> = $state({});
+  let crashCourseLockedTasks: Record<string, boolean> = $state({});
   let crashCourseCompletePromptOpen: boolean = $state(false);
   let crashCourseClosePromptOpen: boolean = $state(false);
   let crashCourseCloseDonePromptOpen: boolean = $state(false);
   let crashCoursePromptTaskNumber: number = $state(1);
   let crashCoursePromptTaskId: string = "";
   let crashCourseStorageLoadedKey: string = "";
+  let crashCourseAutoOpenedForTaskId: string = "";
 
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
@@ -561,6 +572,33 @@
     }
   }
 
+  function computeCrashCourseLocks() {
+    if (!tasks.length) return;
+    const updatedLocks: Record<string, boolean> = {};
+    const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
+
+    for (const task of orderedTasks) {
+      const hasCrashCourse = (task.learningSections?.length ?? 0) > 0;
+      if (!hasCrashCourse) {
+        updatedLocks[task.id] = false;
+        continue;
+      }
+
+      if (crashCourseCompletedByTask[task.id]) {
+        // Crashcourse done, but still lock if earlier tasks are incomplete
+        const earlierTasksIncomplete = orderedTasks
+          .filter((t) => t.order < task.order)
+          .some((t) => t.boardStatus !== "done");
+        updatedLocks[task.id] = earlierTasksIncomplete;
+      } else {
+        // Crashcourse not done = always locked
+        updatedLocks[task.id] = true;
+      }
+    }
+
+    crashCourseLockedTasks = updatedLocks;
+  }
+
   function persistCrashCourseCompletedState(levelNumber: number) {
     if (!browser || !getStableProgressContainerId()) return;
     localStorage.setItem(
@@ -649,6 +687,15 @@
 
   let hasCompletedCrashCourse = $derived(Object.values(crashCourseCompletedByTask).some(Boolean));
 
+  function isTaskCrashCourseLocked(taskId: string): boolean {
+    return crashCourseLockedTasks[taskId] === true;
+  }
+
+  function handleBlockedTaskClick(taskId: string) {
+    const task = tasks.find((t) => t.id === taskId);
+    toast.warn(`Complete the crash course for Task ${task?.order} before opening it.`);
+  }
+
   let effectiveLevelIntroDescription = $derived(pendingPostTestIntro && postTestCompletedTaskOrder && postTestNextTaskOrder
     ? `Task ${postTestCompletedTaskOrder} is now completed. You can now proceed to Task ${postTestNextTaskOrder}. Review the updated objectives, then continue implementation.`
     : (actualLevelConfig?.scenario ?? ''));
@@ -662,7 +709,9 @@
         crashCourseStorageLoadedKey = key;
         crashCourseSeenByTask = loadCrashCourseSeenState(currentLevel);
         crashCourseCompletedByTask = loadCrashCourseCompletedState(currentLevel);
+        computeCrashCourseLocks();
         crashCourseOpen = false;
+        crashCourseAutoOpenedForTaskId = "";
         activeCrashCourseTaskId = "";
         levelIntroDismissed = false;
         pendingPostTestIntro = false;
@@ -687,8 +736,19 @@ $effect(() => {
     !crashCourseCloseDonePromptOpen
   ) {
     const nextTask = getNextCrashCourseTask();
-    if (nextTask && !crashCourseCompletedByTask[nextTask.id]) {
-      openCrashCourseForTask(nextTask.id);
+    if (nextTask && !crashCourseCompletedByTask[nextTask.id] && crashCourseAutoOpenedForTaskId !== nextTask.id) {
+      const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
+      const taskIndex = orderedTasks.findIndex(t => t.id === nextTask.id);
+      
+      // Check if any previous task is not done (not just crashcourse tasks)
+      const hasPreviousIncomplete = taskIndex > 0 && orderedTasks
+        .slice(0, taskIndex)
+        .some(t => t.boardStatus !== "done");
+      
+      if (!hasPreviousIncomplete) {
+        crashCourseAutoOpenedForTaskId = nextTask.id;
+        openCrashCourseForTask(nextTask.id);
+      }
     }
   }
 });
@@ -1047,6 +1107,7 @@ $effect(() => {
   function handleCrashCourseClose() {
     const closedTaskId = activeCrashCourseTaskId;
     markCrashCourseSeen(closedTaskId);
+    
     crashCourseOpen = false;
     activeCrashCourseTaskId = "";
     openBoardKanbanView();
@@ -1080,7 +1141,6 @@ $effect(() => {
     activeCrashCourseTaskId = "";
     openBoardKanbanView();
     showCrashCourseMoveTaskMessage(completedTaskId, "completed");
-    // Guarantee trivia shows after the user confirms the completion prompt.
     pendingTriviaAfterCrashCourse = true;
   }
 
@@ -1699,6 +1759,8 @@ $effect(() => {
               scenario={actualLevelConfig.scenario}
               {tasks}
               onTaskStatusChange={handleTaskStatusChange}
+              crashCourseLockedTasks={crashCourseLockedTasks}
+              onTaskClickBlocked={handleBlockedTaskClick}
             />
           </div>
         {/if}
@@ -1849,6 +1911,13 @@ $effect(() => {
     projectName: workspaceProjectName
   }}
   onClose={handleLevelIntroClose}
+/>
+
+<!-- Saz Onboarding Coach -->
+<SazOnboardingCoach
+  open={sazOnboardingOpen}
+  stackName={stack}
+  onClose={() => { sazOnboardingOpen = false; }}
 />
 
 <LearningContent
