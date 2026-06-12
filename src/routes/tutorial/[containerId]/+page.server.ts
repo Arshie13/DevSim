@@ -15,7 +15,7 @@ export const load: PageServerLoad = async (event) => {
   const [dbUser, container] = await Promise.all([
     prisma.user.findUnique({
       where: { email: session.user.email! },
-      select: { id: true, coins: true, name: true, username: true },
+      select: { id: true, coins: true, name: true, username: true, aiHelpCredits: true },
     }),
     prisma.workspace.findFirst({
       where: { id: dbId, user_id: userId },
@@ -38,6 +38,7 @@ export const load: PageServerLoad = async (event) => {
     user: session.user,
     userId: dbUser?.id || '',
     userCoins: dbUser?.coins || 0,
+    userAiHelps: dbUser?.aiHelpCredits ?? 0,
     container: {
       ...container,
       containerId: container.container_id,

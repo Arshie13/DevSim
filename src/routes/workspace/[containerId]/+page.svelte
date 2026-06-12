@@ -37,6 +37,7 @@
   let { data}: { data: PageData } = $props();
 
   let userCoins = $derived(data.userCoins ?? 0);
+  let userAiHelps = $derived(data.userAiHelps ?? 0);
 
   let currentLevel = $derived(data.level || 1);
 
@@ -258,6 +259,8 @@
 
   let aiPanelOpen: boolean = false;
   let aiPanelMode: "chat" | "quick" = $state("chat");
+  // Docked AI Helper (SAZ) panel, toggled from the workspace tab bar.
+  let showAiHelper: boolean = $state(false);
   let isDownloading: boolean = $state(false);
 
   let backModalOpen: boolean = $state(false);
@@ -1714,6 +1717,8 @@ $effect(() => {
             if (!manualTask) return;
             openCrashCourseForTask(manualTask.id);
           }}
+          aiHelperActive={showAiHelper}
+          onToggleAiHelper={() => (showAiHelper = !showAiHelper)}
         />
       </div>
 
@@ -1773,6 +1778,23 @@ $effect(() => {
         onClose={closeTerminalSession}
       />
     {/if}
+
+    <!-- Right: AI Helper (SAZ) docked panel -->
+    <AiHelp
+      show={showAiHelper}
+      onClose={() => (showAiHelper = false)}
+      containerId={data.dockerContainerId!}
+      userId={data.userId}
+      scenario={actualLevelConfig.scenario}
+      {tasks}
+      initialFileTree={fileTree}
+      initialFileContents={fileContents}
+      {projectName}
+      level={currentLevel}
+      initialCoins={userCoins}
+      initialAiHelps={userAiHelps}
+      bind:mode={aiPanelMode}
+    />
   </div>
 
    <!-- Submit Sprint modal -->
@@ -1875,23 +1897,6 @@ $effect(() => {
 />
 
 
-<!-- Floating AI Help -->
-<div class="fixed inset-0 z-50 pointer-events-none">
-  <div class="pointer-events-auto">
-    <AiHelp
-      containerId={data.dockerContainerId!}
-      userId={data.userId}
-      scenario={actualLevelConfig.scenario}
-      {tasks}
-      initialFileTree={fileTree}
-      initialFileContents={fileContents}
-      {projectName}
-      level={currentLevel}
-      initialCoins={userCoins}
-      bind:mode={aiPanelMode}
-    />
-  </div>
-</div>
 
 <!-- Level Intro Card -->
 <LevelIntroCard

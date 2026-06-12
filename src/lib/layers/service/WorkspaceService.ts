@@ -11,6 +11,7 @@ import type { StackSelection } from "$lib/types";
 import { CloudflaredWrapper } from "$lib/wrapper/cloudflared";
 import * as crypto from "crypto";
 import prisma from "$lib/server/client";
+import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
 
 interface StartContainerForPreviewParams {
   containerId: string;
@@ -427,6 +428,7 @@ export class WorkspaceService {
             levelComplete,
             allLevelsComplete: true,
             nextLevel: null,
+            newlyUnlocked: await detectNewlyUnlockedAchievements(userId),
           };
         } else {
           await Promise.allSettled([
@@ -471,6 +473,7 @@ export class WorkspaceService {
           completed: completedTaskNames.length,
           total: levelTasks!.length,
         },
+        newlyUnlocked: await detectNewlyUnlockedAchievements(userId),
       };
     } catch (error) {
       console.log("[Service] Error submitting work: ", error);

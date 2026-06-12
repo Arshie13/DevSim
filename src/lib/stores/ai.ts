@@ -16,8 +16,8 @@ export const aiChatHistory: Writable<ChatMessage[]> = writable([]);
 // Store for coin count - persists across tab switches
 export const aiCoins: Writable<number> = writable(1000);
 
-// Store for AI help daily remaining count
-export const aiHelpsRemaining: Writable<{ today: number; total: number }> = writable({ today: 5, total: 5 });
+// Store for the user's remaining AI help credits (spent before coins)
+export const aiHelpCredits: Writable<number> = writable(0);
 
 // Store for selected file - persists across tab switches
 export const aiSelectedFile: Writable<string> = writable("");

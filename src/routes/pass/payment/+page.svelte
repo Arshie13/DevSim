@@ -9,6 +9,8 @@
     type StripeCardElement,
   } from "@stripe/stripe-js";
 
+  import PurchaseSuccessModal from "$components/ui/PurchaseSuccessModal.svelte";
+
   let stripe: Stripe | null = null;
   let elements: StripeElements | null = null;
   let cardElement: StripeCardElement | null = null;
@@ -16,6 +18,8 @@
   let isStripeLoading = false;
   let errorMessage = "";
   let stripeInitialized = false;
+  // Shows the success popup; closing it heads to the pass rewards page.
+  let purchaseComplete = false;
 
   onMount(async () => {
     isStripeLoading = true;
@@ -124,7 +128,7 @@
         body: JSON.stringify({ paymentIntentId: paymentIntent.id }),
       });
 
-      goto("/pass");
+      purchaseComplete = true;
     } catch (err: any) {
       console.error("Payment error:", err);
       errorMessage = err.message;
@@ -209,6 +213,19 @@
     </div>
   </section>
 </main>
+
+<!-- Purchase success popup — closing it heads to the pass rewards page -->
+<PurchaseSuccessModal
+  open={purchaseComplete}
+  title="PASS ACTIVATED"
+  closeLabel="View Rewards"
+  onClose={() => goto("/pass")}
+>
+  <p>
+    Your <span class="font-orbitron font-bold text-cyber-cyan">Learner Pass</span> is now active —
+    premium rewards are unlocked!
+  </p>
+</PurchaseSuccessModal>
 
 <style>
   .payment-shell {

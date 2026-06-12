@@ -5,6 +5,7 @@
   import { getStackKey } from './onboardingContent';
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
+  import { notifyAchievementUnlocks } from '$lib/stores/achievementToast';
 
   /** The tech stack label (e.g. "Next.js + Prisma"). */
   export let stack: string = '';
@@ -59,7 +60,11 @@
   // ── Mark completion in DB (non-critical) ──────────────────────────────────
   async function markOnboardingComplete() {
     try {
-      await fetch('/api/user/onboarding', { method: 'POST' });
+      const res = await fetch('/api/user/onboarding', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        notifyAchievementUnlocks(data.newlyUnlocked);
+      }
     } catch {
       // Non-critical — ignore
     }

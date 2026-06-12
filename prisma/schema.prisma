@@ -42,7 +42,7 @@ model user {
   rewardClaims           user_reward_claim[]
   seasonProgressions     user_season_progression[]
   workspaces             workspace[]
-  achievements           user_achievement[]        @relation("userTouser_achievement")
+  achievements           user_achievement[]
   learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
   learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")
   userProjectAccess      user_project_access[]     @relation("userProjectAccess")
@@ -221,10 +221,11 @@ model user_achievement {
   created_at     DateTime               @default(now())
   updated_at     DateTime               @updatedAt
   achievement    achievement            @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
-  users          user[]                 @relation("userTouser_achievement")
-  
-  @@unique([achievement_id, tier], map: "user_achievement_achievement_id_tier_key")
+  user           user                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, achievement_id, tier], map: "user_achievement_user_id_achievement_id_tier_key")
   @@index([achievement_id], map: "user_achievement_achievement_id_idx")
+  @@index([user_id], map: "user_achievement_user_id_idx")
   @@map("user_achievement_tiers")
 }
 
