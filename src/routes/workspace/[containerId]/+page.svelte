@@ -122,11 +122,6 @@
   let openTabs: FileTab[] = $state([]);
   let activeTabId: string = $state("");
   type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
-  type WorkspaceTask = TestableTask & {
-    boardStatus?: BoardTaskStatus;
-    learningSections?: ILearningSection[];
-    userStory?: string;
-  };
   let timeRemaining: number = $derived(4 * 60 * 60);
   let isRunning: boolean = $state(false);
   let monacoEditor: MonacoInitializer | null = null;
@@ -254,7 +249,6 @@
   let backModalOpen: boolean = $state(false);
   let isLeavingWorkspace: boolean = $state(false);
 
-  let taskIntroCardOpen: boolean = false;
   let levelIntroCardOpen: boolean = $state(false);
   let levelIntroCardShown: boolean = false;
   let sazOnboardingOpen: boolean = false;
@@ -1042,17 +1036,42 @@ $effect(() => {
   }
 
   function handleCrashCourseClose() {
-    const closedTaskId = activeCrashCourseTaskId;
-    markCrashCourseSeen(closedTaskId);
-    crashCourseOpen = false;
-    activeCrashCourseTaskId = "";
-    openBoardKanbanView();
-    if (closedTaskId && crashCourseCompletedByTask[closedTaskId]) {
-      showCrashCourseMoveTaskMessage(closedTaskId, "closed-done");
+    // const closedTaskId = activeCrashCourseTaskId;
+    // markCrashCourseSeen(closedTaskId);
+    // crashCourseOpen = false;
+    // activeCrashCourseTaskId = "";
+    // openBoardKanbanView();
+    // if (closedTaskId && crashCourseCompletedByTask[closedTaskId]) {
+    //   showCrashCourseMoveTaskMessage(closedTaskId, "closed-done");
+    //   return;
+    // }
+
+    // showCrashCourseMoveTaskMessage(closedTaskId, "closed");
+
+    // bit of a hacky patch but eh
+    const completedTaskId = activeCrashCourseTaskId;
+
+    if (completedTaskId && crashCourseCompletedByTask[completedTaskId]) {
+      crashCourseOpen = false;
+      activeCrashCourseTaskId = "";
+      openBoardKanbanView();
       return;
     }
 
-    showCrashCourseMoveTaskMessage(closedTaskId, "closed");
+    markCrashCourseSeen(completedTaskId);
+    if (completedTaskId) {
+      crashCourseCompletedByTask = {
+        ...crashCourseCompletedByTask,
+        [completedTaskId]: true,
+      };
+      persistCrashCourseCompletedState(currentLevel);
+    }
+    crashCourseOpen = false;
+    activeCrashCourseTaskId = "";
+    openBoardKanbanView();
+    showCrashCourseMoveTaskMessage(completedTaskId, "closed");
+    // Guarantee trivia shows after the user confirms the completion prompt.
+    pendingTriviaAfterCrashCourse = true;
   }
 
   function handleCrashCourseComplete() {

@@ -21,7 +21,7 @@
     tasks = [] as ILearningTask[],
     isCompleted = false,
     containerId = "",
-    onClose = () => {},
+    onClose,
     onComplete = () => {},
   } = $props();
 
