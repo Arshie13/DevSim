@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
+import { detectNewlyUnlockedAchievements } from '$lib/server/achievements/unlocks';
 
 const REWARD_SCHEDULE = [
   { day: 1, coins: 50,  xp: 10 },
@@ -101,6 +102,8 @@ export const POST: RequestHandler = async (event) => {
       return { daily, updatedUser, reward };
     });
 
+    const newlyUnlocked = await detectNewlyUnlockedAchievements(userId);
+
     return Response.json({
       success: true,
       day: dayNumber,
@@ -117,6 +120,7 @@ export const POST: RequestHandler = async (event) => {
         hours: 24,
         minutes: 0,
       },
+      newlyUnlocked,
     });
   } catch (err) {
     console.error('Error claiming daily reward:', err);

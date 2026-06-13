@@ -37,7 +37,7 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
       .map((t) => {
         const { current, target } = evaluateCriterion(t.criteria, snapshot);
         const ratio = target > 0 ? Math.min(1, current / target) : 0;
-        const unlocked = unlockedTiers.has(`${a.id}:${t.tier}`) || current >= target;
+        const unlocked = unlockedTiers.has(`${a.id}:${t.tier}`);
         return {
           id: t.id,
           tier: t.tier,
@@ -62,11 +62,11 @@ export async function getAchievementFeedItems(userId: string, limit = 5): Promis
     getAchievementsForUser(userId),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true, created_at: true },
+      select: { achievement_id: true, tier: true, created_at: true },
     }),
   ]);
 
-  const earnedAtMap = new Map(userAchievements.map((ua) => [ua.achievement_id, ua.created_at]));
+  const earnedAtMap = new Map(userAchievements.map((ua) => [`${ua.achievement_id}:${ua.tier}`, ua.created_at]));
 
   type Ranked = AchievementFeedItem & { _earnedAt: Date };
   const ranked: Ranked[] = [];
@@ -78,7 +78,7 @@ export async function getAchievementFeedItems(userId: string, limit = 5): Promis
     const lockedTiers = a.tiers.filter((t) => !t.unlocked);
     const isCompleted = lockedTiers.length === 0;
     const highestUnlocked = unlockedTiers[unlockedTiers.length - 1];
-    const earnedAt = earnedAtMap.get(a.id) ?? new Date(0);
+    const earnedAt = earnedAtMap.get(`${a.id}:${highestUnlocked.tier}`) ?? new Date(0);
 
     if (isCompleted) {
       ranked.push({
