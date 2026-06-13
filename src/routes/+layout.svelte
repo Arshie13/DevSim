@@ -7,13 +7,25 @@
   import { sessionInvalidated } from '$lib/stores/sessionInvalidated';
   import { signOut } from '@auth/sveltekit/client';
   import { onMount } from 'svelte';
-  import { beforeNavigate } from '$app/navigation';
+  import { beforeNavigate, goto } from '$app/navigation';
+  import { page } from '$app/stores';
 
   let { children, data } = $props();
 
   let showSessionExpired = $state(false);
   let lastCheckAt = 0;
   const CHECK_DEBOUNCE_MS = 2000;
+
+  // Flag used to prevent recursive session checks when we manually resume a cancelled navigation
+  let skipSessionCheck = false;
+
+  // Pages where the session modal should never appear
+  const PUBLIC_PATHS = ['/login'];
+
+  /** Check if the current page is a public (login/auth) page */
+  function isPublicPage(): boolean {
+    return PUBLIC_PATHS.some((p) => $page.url.pathname === p);
+  }
 
   sessionInvalidated.subscribe((v: boolean) => {
     showSessionExpired = v;
@@ -26,6 +38,8 @@
   });
 
   async function checkSession(force = false) {
+    // Skip all checks on public pages (login, auth callback)
+    if (isPublicPage()) return;
     if (showSessionExpired) return;
 
     const now = Date.now();
@@ -57,7 +71,7 @@
     // Only run in browser
     if (typeof window === 'undefined') return;
 
-    // 1. Immediate check on mount / refresh
+    // 1. Immediate check on mount / refresh (skip on public pages)
     checkSession(true);
 
     // 2. Patch fetch to intercept 401 errors globally on any API call
@@ -82,12 +96,30 @@
       return response;
     };
 
-    // 3. Check before every navigation
-    beforeNavigate(() => {
-      checkSession(true);
+    // 3. Intercept navigations: cancel them, run a session check, and only
+    // resume if the session is still valid. This prevents the server from
+    // redirecting the background to '/' while the modal is open.
+    beforeNavigate((navigation) => {
+      if (skipSessionCheck) return;
+      if (showSessionExpired) {
+        navigation.cancel();
+        return;
+      }
+
+      const targetUrl = navigation.to?.url;
+      if (!targetUrl) return;
+
+      navigation.cancel();
+      checkSession(true).then(() => {
+        if (!showSessionExpired) {
+          skipSessionCheck = true;
+          goto(targetUrl.toString());
+          skipSessionCheck = false;
+        }
+      });
     });
 
-    // 4. Check on any click to interactive elements (buttons, links, inputs, forms)
+    // 4. Check on any click to interactive elements (skip on public pages)
     let clickCheckTimeout: ReturnType<typeof setTimeout> | null = null;
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
@@ -100,7 +132,7 @@
     };
     document.addEventListener('click', handleClick);
 
-    // 5. Check immediately when tab becomes visible again
+    // 5. Check immediately when tab becomes visible again (skip on public pages)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkSession(true);
@@ -123,6 +155,6 @@
 {@render children()}
 <Toast />
 
-{#if showSessionExpired}
+{#if showSessionExpired && !isPublicPage()}
   <SessionExpiredModal open={true} on:confirm={handleSessionExpired} />
 {/if}
