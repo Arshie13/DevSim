@@ -5,42 +5,38 @@ import { PUBLIC_WS_URL } from "$env/static/public";
 // Get WebSocket URL for terminal connection
 // In production, set PUBLIC_WS_URL environment variable to the WebSocket server URL
 // e.g., PUBLIC_WS_URL=ws://localhost:3001
-function getTerminalWsUrl(containerId: string, sessionId: string): string {
-  const wsUrl = process.env.NODE_ENV === 'production' ? PUBLIC_WS_URL : 'ws://localhost:8080';
+function getTerminalWsUrl(containerId: string): string {
+  // Check for custom WebSocket URL (set in production)
+  // const wsUrl = (typeof window !== 'undefined' 
+  //   ? (window as string).ENV?.PUBLIC_WS_URL 
+  //   : null) || process.env.PUBLIC_WS_URL;
+
+  const wsUrl = process.env.NODE_ENV === 'production' ? PUBLIC_WS_URL : 'ws://localhost:8080'; // Default to localhost with Vite dev server port
   
   if (wsUrl) {
-    return `${wsUrl}/terminal?containerId=${containerId}&sessionId=${sessionId}`;
+    return `${wsUrl}/terminal?containerId=${containerId}`;
   }
   
   // Development: use same host
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/terminal?containerId=${containerId}&sessionId=${sessionId}`;
+  return `${protocol}//${window.location.host}/terminal?containerId=${containerId}`;
 }
-
-const MAX_RECONNECT_ATTEMPTS = 5;
-const INITIAL_RECONNECT_DELAY = 1000; // 1 second
-const MAX_RECONNECT_DELAY = 30000; // 30 seconds
 
 export class TerminalInitializer {
   private terminal: Terminal | null = null;
   private fitAddon: FitAddon | null = null;
   private socket: WebSocket | null = null;
   private containerId: string = "";
-  private sessionId: string = "";
   private dataListenerRegistered: boolean = false;
   private commandBuffer: string = "";
   private outputBuffer: string = "";
   private pendingCommandForCompletion: string | null = null;
   private waitingForFreshPrompt: boolean = false;
-  private intentionalClose: boolean = false;
-  private reconnectAttempts: number = 0;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
-  async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string, sessionId: string) {
+  async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string) {
     if (typeof window === "undefined") return;
 
     this.containerId = containerId;
-    this.sessionId = sessionId;
 
     try {
       const xtermPkg = await import("@xterm/xterm");
@@ -80,8 +76,7 @@ export class TerminalInitializer {
       this.fitAddon!.fit();
 
       // Connect to Socket
-      this.intentionalClose = false;
-      this.connectSocket(false);
+      this.connectSocket();
 
       window.addEventListener("resize", () => {
         this.fitAddon?.fit();
@@ -101,17 +96,14 @@ export class TerminalInitializer {
     this.socket.send(JSON.stringify({ type: "resize", cols: this.terminal.cols, rows: this.terminal.rows }));
   }
 
-  private connectSocket(isReconnect: boolean) {
+  private connectSocket() {
     const cols = this.terminal?.cols ?? 80;
     const rows = this.terminal?.rows ?? 24;
-    const wsUrl = `${getTerminalWsUrl(this.containerId, this.sessionId)}&cols=${cols}&rows=${rows}`;
+    const wsUrl = `${getTerminalWsUrl(this.containerId)}&cols=${cols}&rows=${rows}`;
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
-      this.reconnectAttempts = 0;
-      if (!isReconnect) {
-        this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
-      }
+      this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
       this.sendResize();
     };
 
@@ -129,14 +121,7 @@ export class TerminalInitializer {
     };
 
     this.socket.onclose = () => {
-      if (!this.intentionalClose) {
-        this.terminal?.writeln("\r\n\x1b[31m🔌 Terminal disconnected\x1b[0m");
-        this.scheduleReconnect();
-      }
-    };
-
-    this.socket.onerror = () => {
-      // onclose will fire after this
+      this.terminal?.writeln("\r\n\x1b[31m🔌 Terminal disconnected\x1b[0m");
     };
 
     // Only register the data listener once - don't add duplicate listeners on reconnect
@@ -151,31 +136,10 @@ export class TerminalInitializer {
     }
   }
 
-  private scheduleReconnect() {
-    if (this.intentionalClose) return;
-    if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      this.terminal?.writeln("\r\n\x1b[31m⚠️ Max reconnect attempts reached. Click Refresh to try again.\x1b[0m");
-      return;
-    }
-
-    const delay = Math.min(
-      INITIAL_RECONNECT_DELAY * Math.pow(2, this.reconnectAttempts),
-      MAX_RECONNECT_DELAY
-    );
-    this.reconnectAttempts++;
-
-    this.terminal?.writeln(`\r\n\x1b[1;33m⟳ Reconnecting in ${Math.round(delay / 1000)}s... (attempt ${this.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})\x1b[0m`);
-
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      if (this.intentionalClose) return;
-      this.connectSocket(true);
-    }, delay);
-  }
-
   private trackCommandInput(data: string) {
     if (typeof window === "undefined") return;
 
+    // Remove xterm control/escape sequences so only real typed text is evaluated.
     const sanitizedData = data
       .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "")
       .replace(/\[(?:200|201)~/g, "");
@@ -186,6 +150,7 @@ export class TerminalInitializer {
         if (command.length > 0) {
           if (!this.pendingCommandForCompletion) {
             this.pendingCommandForCompletion = command;
+            // Reset buffer so we only detect the next prompt produced after this command.
             this.outputBuffer = "";
             this.waitingForFreshPrompt = true;
             window.dispatchEvent(
@@ -194,6 +159,8 @@ export class TerminalInitializer {
               }),
             );
           }
+          // If there is already a pending command, this Enter is likely interactive input
+          // for the running process (e.g., prisma migration name prompt), so we ignore it.
         }
         this.commandBuffer = "";
         continue;
@@ -224,6 +191,7 @@ export class TerminalInitializer {
     const clean = this.stripAnsi(chunk);
     this.outputBuffer = `${this.outputBuffer}${clean}`.slice(-1200);
 
+    // Prompt format in the tutorial shell is similar to: /workspace #
     const promptDetected = /(^|\n)[^\n]*\s#\s*$/.test(this.outputBuffer);
     if (!promptDetected) return;
 
@@ -240,18 +208,18 @@ export class TerminalInitializer {
   reconnect() {
     if (!this.containerId || !this.terminal) return;
     
-    this.intentionalClose = false;
-    this.cancelReconnect();
-
+    // Close existing socket
     if (this.socket) {
       this.socket.close();
       this.socket = null;
     }
     
+    // Clear terminal and show reconnecting message
     this.terminal.clear();
     this.terminal.writeln("\x1b[1;33mReconnecting terminal...\x1b[0m");
     
-    this.connectSocket(false);
+    // Reconnect - this will reuse the existing onData listener
+    this.connectSocket();
   }
 
   write(data: string) {
@@ -263,8 +231,6 @@ export class TerminalInitializer {
   }
 
   dispose() {
-    this.intentionalClose = true;
-    this.cancelReconnect();
     if (this.socket) {
       this.socket.close();
       this.socket = null;
@@ -276,13 +242,5 @@ export class TerminalInitializer {
     this.outputBuffer = "";
     this.pendingCommandForCompletion = null;
     this.waitingForFreshPrompt = false;
-  }
-
-  private cancelReconnect() {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-    this.reconnectAttempts = 0;
   }
 }

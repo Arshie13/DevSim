@@ -15,6 +15,7 @@ export {
   getMessageClasses,
   getIconClasses,
   getInsufficientCoinsMessage,
+  getInsufficientCreditsMessage,
   getErrorMessage,
   getApiErrorMessage,
   buildGreetingResponse,

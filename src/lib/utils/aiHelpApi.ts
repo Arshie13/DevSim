@@ -1,8 +1,8 @@
 // AI Help API Helper Functions
 import { get } from 'svelte/store';
 import type { ITask } from "$lib/types";
-import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
-import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage } from "$lib/ai";
+import { aiChatHistory, aiCoins, aiHelpCredits, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
+import { isAskingForCode, getCodeWarningMessage, getInsufficientCreditsMessage, getErrorMessage, getApiErrorMessage } from "$lib/ai";
 import type { ChatMessage } from "$lib/stores/ai";
 import {
   MAX_ATTACHED_FILES,
@@ -11,6 +11,9 @@ import {
   MAX_FILES_TO_LIST,
   MAX_FILES_TO_READ,
   MAX_MESSAGE_LENGTH,
+  QUICK_HINT_CREDIT_COST,
+  CHAT_HINT_CREDIT_COST,
+  COINS_PER_AI_HELP_CREDIT,
   SOURCE_EXTENSIONS
 } from "./aiHelpConstants";
 
@@ -236,7 +239,7 @@ export async function sendChatMessage(
   mode: "chat" | "quick",
   attachedFiles: { path: string; name: string }[],
   currentCoins: number,
-  totalCost: number,
+  currentCredits: number,
   generateContextFn: () => Promise<string>,
   model?: string
 ): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
@@ -249,11 +252,14 @@ export async function sendChatMessage(
     return { success: false };
   }
 
-  if (currentCoins < totalCost) {
+  // Credits are the currency; any shortfall is covered by converting coins.
+  const creditCost = mode === 'quick' ? QUICK_HINT_CREDIT_COST : CHAT_HINT_CREDIT_COST;
+  const creditsShort = Math.max(0, creditCost - currentCredits);
+  if (creditsShort * COINS_PER_AI_HELP_CREDIT > currentCoins) {
     aiChatHistory.update(msgs => [
       ...msgs,
       { role: "user", content: message },
-      { role: "ai", content: getInsufficientCoinsMessage(totalCost, currentCoins), isWarning: true },
+      { role: "ai", content: getInsufficientCreditsMessage(creditCost, currentCredits, currentCoins, COINS_PER_AI_HELP_CREDIT), isWarning: true },
     ]);
     return { success: false };
   }
@@ -287,6 +293,9 @@ export async function sendChatMessage(
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
+      }
+      if (data.aiHelpsRemaining !== undefined) {
+        aiHelpCredits.set(data.aiHelpsRemaining);
       }
       return { success: true, coinsRemaining: data.coinsRemaining };
     } else {
@@ -336,6 +345,9 @@ export async function requestQuickHintBubble(
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
       }
+      if (data.aiHelpsRemaining !== undefined) {
+        aiHelpCredits.set(data.aiHelpsRemaining);
+      }
       if (onSuccess) {
         onSuccess(data.hint, data.coinsRemaining);
       }
@@ -368,7 +380,7 @@ export async function sendBubbleChatMessage(
   mode: "chat" | "quick",
   attachedFiles: { path: string; name: string }[],
   currentCoins: number,
-  totalCost: number,
+  currentCredits: number,
   generateContextFn: () => Promise<string>,
   onSuccess?: (hint: string, coinsRemaining?: number) => void,
   onError?: (error: string) => void,
@@ -387,8 +399,10 @@ export async function sendBubbleChatMessage(
     return { success: false };
   }
 
-  if (currentCoins < totalCost) {
-    const errorMsg = getInsufficientCoinsMessage(totalCost, currentCoins);
+  const creditCost = mode === 'quick' ? QUICK_HINT_CREDIT_COST : CHAT_HINT_CREDIT_COST;
+  const creditsShort = Math.max(0, creditCost - currentCredits);
+  if (creditsShort * COINS_PER_AI_HELP_CREDIT > currentCoins) {
+    const errorMsg = getInsufficientCreditsMessage(creditCost, currentCredits, currentCoins, COINS_PER_AI_HELP_CREDIT);
     aiChatHistory.update(msgs => [
       ...msgs,
       { role: "user", content: message },
@@ -429,6 +443,9 @@ export async function sendBubbleChatMessage(
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: data.hint }]);
       if (data.coinsRemaining !== undefined) {
         aiCoins.set(data.coinsRemaining);
+      }
+      if (data.aiHelpsRemaining !== undefined) {
+        aiHelpCredits.set(data.aiHelpsRemaining);
       }
       if (onSuccess) {
         onSuccess(data.hint, data.coinsRemaining);

@@ -12,7 +12,7 @@ export const load: PageServerLoad = async (event) => {
   // Get user data including coins and username
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true, coins: true, name: true, username: true },
+    select: { id: true, coins: true, name: true, username: true, aiHelpCredits: true },
   });
 
   // Validate that username from subdomain matches the user's actual username
@@ -134,10 +134,14 @@ export const load: PageServerLoad = async (event) => {
    });
    const masteryCheckpointEnabled = masterySetting ? masterySetting.value === 'true' : true;
 
+   // AI help credits — these are spent before coins are charged.
+   const userAiHelps = user?.aiHelpCredits ?? 0;
+
    return {
      user: session.user,
      userId: user?.id || "",
      userCoins: user?.coins || 0,
+     userAiHelps,
      // The actual Docker container ID — used by the client for all Docker API calls
      dockerContainerId: container?.container_id ?? null,
      // Level info for tasks

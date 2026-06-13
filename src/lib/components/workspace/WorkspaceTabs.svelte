@@ -11,6 +11,9 @@
   export let showCrashCourseButton: boolean = false;
   export let onOpenCrashCourse: () => void = () => {};
   export let crashCourseCompleted: boolean = false;
+  /** AI Helper (SAZ) panel toggle. */
+  export let onToggleAiHelper: () => void = () => {};
+  export let aiHelperActive: boolean = false;
 
   const LEFT_TABS = [
     { id: "editor" as const, icon: FileCode, label: "Editor" },
@@ -47,8 +50,8 @@
     {/each}
   </div>
 
-  {#if showCrashCourseButton}
-    <div class="ml-auto flex items-center px-3 py-1.5">
+  <div class="ml-auto flex items-center gap-2 px-3 py-1.5">
+    {#if showCrashCourseButton}
       <button
         type="button"
         class="px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)] transition-colors whitespace-nowrap inline-flex items-center gap-2"
@@ -64,6 +67,22 @@
           </span>
         {/if}
       </button>
-    </div>
-  {/if}
+    {/if}
+
+    <!-- AI Helper (SAZ) toggle -->
+    <button
+      data-tour="ai-toggle"
+      type="button"
+      on:click={onToggleAiHelper}
+      title="Open AI Helper (SAZ)"
+      class="px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2
+        {aiHelperActive
+          ? 'border-[rgba(7,165,201,0.55)] bg-[rgba(7,165,201,0.2)] text-[#caf3ff]'
+          : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"
+      style="font-family: 'Space Mono', monospace;"
+    >
+      <img src="/images/saz.png" alt="" class="w-4 h-4 rounded-full object-cover" />
+      AI Helper
+    </button>
+  </div>
 </div>

@@ -98,4 +98,48 @@ export class UserDataAccess {
       return { success: false, error };
     }
   }
+
+  /** Spend AI help credits, returning the user's new credit balance. */
+  async consumeAiHelpCredits(userId: string, count: number): Promise<number> {
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { aiHelpCredits: { decrement: count } },
+        select: { aiHelpCredits: true }
+      });
+      return user.aiHelpCredits;
+    } catch (error) {
+      console.error('Error consuming AI help credits:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Convert coins into AI help credits in one atomic update.
+   * Charges nothing if the user can't afford the full coin cost.
+   */
+  async convertCoinsToAiHelpCredits(userId: string, credits: number, coinCost: number) {
+    try {
+      const result = await prisma.user.updateMany({
+        where: { id: userId, coins: { gte: coinCost } },
+        data: {
+          coins: { decrement: coinCost },
+          aiHelpCredits: { increment: credits }
+        }
+      });
+
+      if (result.count === 0) {
+        return { success: false, error: 'Insufficient coins' };
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { coins: true, aiHelpCredits: true }
+      });
+      return { success: true, coins: user?.coins ?? 0, aiHelpCredits: user?.aiHelpCredits ?? 0 };
+    } catch (error) {
+      console.error('Error converting coins to AI help credits:', error);
+      return { success: false, error: 'Failed to convert coins' };
+    }
+  }
 }

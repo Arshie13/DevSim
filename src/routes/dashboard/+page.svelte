@@ -48,6 +48,8 @@
      // Initialized
    }
 
+   $: firstName = data.user.givenName?.split(' ')[0] || data.user.name?.split(' ')[0] || 'Developer';
+
     // ── Dashboard Onboarding State ──
     type OnboardingPhase = 'welcome' | 'tour' | 'done';
     let onboardingPhase: OnboardingPhase = 'done';
@@ -162,9 +164,9 @@
       <div>
         <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
           {#if shouldShowOnboarding}
-            Welcome to DevSim, <span class="text-cyber-cyan">{headerUserData.name}</span>
+            Welcome to DevSim, <span class="text-cyber-cyan">{firstName}!</span>
           {:else}
-            Welcome back, <span class="text-cyber-cyan">{headerUserData.name}</span>
+            Welcome back, <span class="text-cyber-cyan">{firstName}!</span>
           {/if}
         </h2>
         <p class="text-sm font-rajdhani text-obsidian-text-primary/50 mt-1">

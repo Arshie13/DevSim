@@ -110,6 +110,8 @@
   const tutorialDifficulty = "Tutorial";
   let timeRemaining: number = 4 * 60 * 60;
   let aiPanelMode: "chat" | "quick" = "chat";
+  // Docked AI Helper (SAZ) panel, toggled from the workspace tab bar.
+  let showAiHelper: boolean = false;
 
   type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
   type WorkspaceTask = TestableTask & { boardStatus?: BoardTaskStatus };
@@ -765,7 +767,12 @@ onSubmit: submitSprint,
 
     <div class="flex-1 flex flex-col min-w-0" data-tour="editor-workspace">
       <div data-tour="workspace-tabs">
-        <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
+        <WorkspaceTabs
+          {activeTab}
+          onTabChange={handleTabChange}
+          aiHelperActive={showAiHelper}
+          onToggleAiHelper={() => (showAiHelper = !showAiHelper)}
+        />
       </div>
 
       <div class="flex-1 relative overflow-hidden">
@@ -815,6 +822,23 @@ onSubmit: submitSprint,
         onClose={closeTerminalSession}
       />
     {/if}
+
+    <!-- Right: AI Helper (SAZ) docked panel -->
+    <AiHelp
+      show={showAiHelper}
+      onClose={() => (showAiHelper = false)}
+      containerId={dockerContainerId}
+      userId={data.userId}
+      scenario={scenario}
+      {tasks}
+      initialFileTree={fileTree}
+      initialFileContents={fileContents}
+      {projectName}
+      level={tutorialLevel}
+      initialCoins={data.userCoins}
+      initialAiHelps={data.userAiHelps}
+      bind:mode={aiPanelMode}
+    />
   </div>
 
   <SubmitSprintModal
@@ -867,22 +891,6 @@ onSubmit: submitSprint,
 
 <WorkspaceSetupOverlay visible={tutorialCleanupLoading} />
 
-<div class="fixed inset-0 z-50 pointer-events-none">
-  <div class="pointer-events-auto">
-    <AiHelp
-      containerId={dockerContainerId}
-      userId={data.userId}
-      scenario={scenario}
-      {tasks}
-      initialFileTree={fileTree}
-      initialFileContents={fileContents}
-      {projectName}
-      level={tutorialLevel}
-      initialCoins={data.userCoins}
-      bind:mode={aiPanelMode}
-    />
-  </div>
-</div>
 
 <style>
   :global(body) {

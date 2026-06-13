@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Code, Coins, ChartBar } from "lucide-svelte";
+  import { Code, Coins, ChartBar, Plus } from "lucide-svelte";
   import type { UserData } from "$types";
   import { goto } from "$app/navigation";
   import ProfileDropDown from "$components/ProfileDropDown.svelte";
@@ -62,6 +62,12 @@
       >
         <Coins class="w-4 h-4 text-cyber-warn group-hover:scale-110 transition-transform" />
         <span class="font-orbitron font-semibold text-cyber-warn text-sm">{userData.coins?.toLocaleString()}</span>
+        <span
+          class="w-4 h-4 rounded-full bg-cyber-warn/15 border border-cyber-warn/40 flex items-center justify-center text-cyber-warn group-hover:bg-cyber-warn group-hover:text-obsidian-bg transition-colors"
+          aria-hidden="true"
+        >
+          <Plus class="w-3 h-3" />
+        </span>
       </button>
       
       <!-- User Avatar -->

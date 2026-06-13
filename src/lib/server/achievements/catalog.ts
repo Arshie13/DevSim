@@ -16,12 +16,14 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
     }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true },
+      select: { achievement_id: true, tier: true },
     }),
     getUserProgressSnapshot(userId),
   ]);
 
-  const unlockedFamilies = new Set(unlocked.map((u) => u.achievement_id));
+  // Keyed per tier (not per family) so persisting one tier doesn't mark the
+  // whole achievement's higher tiers as unlocked.
+  const unlockedTiers = new Set(unlocked.map((u) => `${u.achievement_id}:${u.tier}`));
 
   return achievements.map((a) => ({
     id: a.id,
@@ -35,7 +37,7 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
       .map((t) => {
         const { current, target } = evaluateCriterion(t.criteria, snapshot);
         const ratio = target > 0 ? Math.min(1, current / target) : 0;
-        const unlocked = unlockedFamilies.has(a.id) || current >= target;
+        const unlocked = unlockedTiers.has(`${a.id}:${t.tier}`) || current >= target;
         return {
           id: t.id,
           tier: t.tier,

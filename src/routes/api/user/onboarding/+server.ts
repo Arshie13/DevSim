@@ -1,6 +1,7 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
+import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
 
 /**
  * GET /api/user/onboarding
@@ -43,5 +44,9 @@ export const POST: RequestHandler = async (event) => {
     data: { has_completed_tutorial: true },
   });
 
-  return json({ success: true });
+  // Finishing the tutorial satisfies the "First Boot" achievement. Detect it
+  // here so the client can toast it — this flow never triggers a page load.
+  const newlyUnlocked = await detectNewlyUnlockedAchievements(session.user.id);
+
+  return json({ success: true, newlyUnlocked });
 };

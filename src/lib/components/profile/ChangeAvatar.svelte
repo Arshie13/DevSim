@@ -7,6 +7,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { X, Coins, Lock, CheckCircle } from "lucide-svelte";
+  import PurchaseSuccessModal from "$components/ui/PurchaseSuccessModal.svelte";
   import {
     DEFAULT_AVATARS,
     PREMIUM_AVATARS,
@@ -38,6 +39,8 @@
 
   // ── Purchase state ────────────────────────────────────────────────────────────
   let purchasingPath: string | null = null;
+  // The avatar just bought, shown in the success popup (null = popup hidden).
+  let purchasedAvatar: PremiumAvatarDefinition | null = null;
 
   // ── Confirmation modal ───────────────────────────────────────────────────────
   let confirmAvatar: PremiumAvatarDefinition | null = null;
@@ -87,6 +90,7 @@
       // Move to owned tab
       activeTab = "owned";
       pendingSelection = avatar.path;
+      purchasedAvatar = avatar;
     } catch (err) {
       console.error("Avatar purchase error:", err);
     } finally {
@@ -433,6 +437,20 @@
     </div>
   </div>
 {/if}
+
+<!-- ── Purchase success popup ────────────────────────────────────────────────── -->
+<PurchaseSuccessModal
+  open={purchasedAvatar !== null}
+  title="AVATAR UNLOCKED"
+  onClose={() => (purchasedAvatar = null)}
+>
+  {#if purchasedAvatar}
+    <p>
+      <span class="font-orbitron font-bold" style="color:{purchasedAvatar.color};">{purchasedAvatar.name}</span>
+      has been added to your collection!
+    </p>
+  {/if}
+</PurchaseSuccessModal>
 
 <style>
   .btn-cyber-secondary {

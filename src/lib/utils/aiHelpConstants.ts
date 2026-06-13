@@ -1,9 +1,11 @@
 // AI Help Constants
 
 export const MAX_ATTACHED_FILES = 3;
-export const QUICK_HINT_COST = 100;
-export const CHAT_HINT_COST = 200;
-export const ATTACHED_FILE_COST = 15;
+// AI help credits are the only currency the AI helper accepts.
+export const QUICK_HINT_CREDIT_COST = 1;
+export const CHAT_HINT_CREDIT_COST = 2;
+// When the user runs out of credits, coins are converted at this rate to cover the cost.
+export const COINS_PER_AI_HELP_CREDIT = 100;
 export const MAX_CHARS_PER_CHUNK = 250;
 export const MAX_FILE_TREE_SHOW = 200;
 export const MAX_FILES_TO_READ = 21;
