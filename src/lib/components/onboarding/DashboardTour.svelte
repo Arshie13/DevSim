@@ -184,12 +184,10 @@
 
   onDestroy(() => {
     clearHighlight();
-    // If component is destroyed while still visible (e.g. user clicked the
-    // highlighted button and page navigated away), dispatch complete so the
-    // parent can mark onboarding done.
-    if (visible) {
-      dispatch('complete');
-    }
+    // Always dispatch complete on destroy so the parent can mark onboarding
+    // done even if the tour unmounts before visible becomes true (race condition
+    // when user clicks the highlighted button immediately).
+    dispatch('complete');
   });
 
   // ── Actions ──
