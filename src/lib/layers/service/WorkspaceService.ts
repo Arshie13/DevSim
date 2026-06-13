@@ -12,6 +12,7 @@ import { CloudflaredWrapper } from "$lib/wrapper/cloudflared";
 import * as crypto from "crypto";
 import prisma from "$lib/server/client";
 import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
+import { resolveScenarioId } from "$lib/utils/scenario-mapping";
 
 interface StartContainerForPreviewParams {
   containerId: string;
@@ -60,8 +61,23 @@ export class WorkspaceService {
       mode,
     } = params;
 
-    const currentScenarioId = await this.getScenarioId(scenarioId);
+    const currentScenarioId = await this.getScenarioId(scenarioId, stackName);
     const workspaceStatus = mode === "tutorial" ? "tutorial" : "created";
+
+    // Validate user exists before creating any container
+    const user = await this.user.findUserById(userId);
+    if (!user) {
+      throw new Error(
+        `User '${userId}' not found in database. Your session may be stale — please sign out and sign in again.`,
+      );
+    }
+
+    // Validate scenario exists before creating any container
+    if (scenarioId && !currentScenarioId) {
+      throw new Error(
+        `Scenario '${scenarioId}' not found in database. The database may have been reseeded — please refresh the page and try again.`,
+      );
+    }
 
     // Convert stacks (frontend/backend/database/services) to array format
     const stacksArray: Array<{ stackName: string }> = [
@@ -162,10 +178,24 @@ export class WorkspaceService {
     };
   }
 
-  async getScenarioId(scenarioId?: string) {
+  async getScenarioId(scenarioId?: string, stackName?: string) {
     if (!scenarioId) return null;
-    const scenario = await this.scenario.findScenarioById(scenarioId);
-    return scenario?.id ?? null;
+
+    // 1. Try the id exactly as provided (handles already-correct DB ids).
+    const exact = await this.scenario.findScenarioById(scenarioId);
+    if (exact) return exact.id;
+
+    // 2. Fallback: map legacy folder-name ids (e.g. "scenario-1") to the
+    //    current seed’s real scenario ids.
+    const mapped = stackName
+      ? resolveScenarioId(stackName, scenarioId)
+      : scenarioId;
+    if (mapped !== scenarioId) {
+      const scenario = await this.scenario.findScenarioById(mapped);
+      return scenario?.id ?? null;
+    }
+
+    return null;
   }
 
   private stacksMatch(
