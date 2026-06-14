@@ -42,6 +42,10 @@ model user {
   rewardClaims           user_reward_claim[]
   seasonProgressions     user_season_progression[]
   workspaces             workspace[]
+  // Append-only task-completion log, kept on the user (not a separate table)
+  // since it's a per-user stat. Array of TaskActivityEntry; durable across the
+  // per-level completed_task wipe. See $lib/types/dashboard.
+  task_activity          Json                      @default("[]")
   achievements           user_achievement[]
   learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
   learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")

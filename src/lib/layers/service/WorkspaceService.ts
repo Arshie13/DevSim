@@ -384,7 +384,13 @@ export class WorkspaceService {
         currentCompletedTasks.completedTasks?.map((t) => t.taskName) ?? [];
 
       if (!completedTaskNames!.includes(taskName)) {
-        await this.tasks.createCompletedTask(workspaceRecord.id, taskName);
+        const recorded = await this.tasks.createCompletedTask(workspaceRecord.id, taskName, userId, currentLevel);
+        // Don't fail the whole submission over the activity log, but surface it —
+        // a silent failure here is why a completed task can stop showing up in
+        // the dashboard "Weekly Activity" chart with no error anywhere.
+        if (!recorded.success) {
+          console.error(`[Service] Failed to record completion for task "${taskName}":`, recorded.error);
+        }
         completedTaskNames.push(taskName);
       }
 
@@ -482,6 +488,55 @@ export class WorkspaceService {
         status: 500,
         error,
       };
+    }
+  }
+
+  // Records a single task completion the moment its test passes on the board,
+  // so the dashboard "Weekly Activity" reflects it immediately instead of only
+  // on a full Submit Sprint. Idempotent per (workspace, task): re-running a
+  // passing test won't double-count, and a later Submit Sprint reuses the same
+  // completed_task guard so it won't record the task a second time.
+  async recordTaskCompletion(params: {
+    containerId: string;
+    userId: string;
+    taskName: string;
+  }) {
+    try {
+      const { containerId, userId, taskName } = params;
+      const workspaceRecord = await this.workspace.findWorkspaceByContainerId(
+        userId,
+        containerId,
+      );
+
+      if (!workspaceRecord) {
+        return { success: false, status: 404, error: "Workspace not found" };
+      }
+
+      const current = await this.tasks.getCurrentCompletedTasks(
+        workspaceRecord.id,
+      );
+      if (
+        current.success &&
+        current.completedTasks?.some((t) => t.taskName === taskName)
+      ) {
+        return { success: true, status: 200, alreadyRecorded: true };
+      }
+
+      const recorded = await this.tasks.createCompletedTask(
+        workspaceRecord.id,
+        taskName,
+        userId,
+        workspaceRecord.level,
+      );
+
+      if (!recorded.success) {
+        return { success: false, status: 500, error: recorded.error };
+      }
+
+      return { success: true, status: 200, alreadyRecorded: false };
+    } catch (error) {
+      console.error("[Service] Error recording task completion:", error);
+      return { success: false, status: 500, error };
     }
   }
 

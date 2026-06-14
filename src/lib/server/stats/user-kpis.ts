@@ -1,5 +1,5 @@
 import prisma from "$lib/server/client";
-import type { UserKpis, ProfileMetricsData, WeeklyStats } from "$lib/types/dashboard";
+import type { UserKpis, ProfileMetricsData, WeeklyStats, TaskActivityEntry } from "$lib/types/dashboard";
 import { formatMemberSince } from "./format";
 import { getAchievementsForUser } from "$lib/server/achievements/catalog";
 
@@ -33,19 +33,16 @@ export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
   const priorStart = new Date(windowStart);
   priorStart.setDate(priorStart.getDate() - 7);
 
-  // Activity is measured by file-change events (CREATE/WRITE/DELETE/RENAME),
-  // logged to user_file_changes by the workspace editor endpoints. This updates
-  // continuously as the user edits — unlike task completions, which only land on
-  // submit. Scoped to the user via their workspaces.
-  const [recentChanges, priorCount] = await Promise.all([
-    prisma.user_file_changes.findMany({
-      where: { workspace: { user_id: userId }, timestamp: { gte: windowStart } },
-      select: { timestamp: true },
-    }),
-    prisma.user_file_changes.count({
-      where: { workspace: { user_id: userId }, timestamp: { gte: priorStart, lt: windowStart } },
-    }),
-  ]);
+  // Activity is measured by task completions, stored as a per-user JSON log on
+  // the user row (user.task_activity) — durable, unlike completed_task which is
+  // wiped on level advance. Bucket/compare both windows in app code.
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { task_activity: true },
+  });
+  const log: TaskActivityEntry[] = Array.isArray(user?.task_activity)
+    ? (user!.task_activity as unknown as TaskActivityEntry[])
+    : [];
 
   // Build 7-day buckets starting from 6 days ago to today
   const days: string[] = [];
@@ -56,8 +53,15 @@ export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
     days.push(d.toLocaleDateString("en-US", { weekday: "short" }));
   }
 
-  for (const { timestamp } of recentChanges) {
-    const day = new Date(timestamp);
+  let priorCount = 0;
+  for (const entry of log) {
+    const ts = new Date(entry.completed_at);
+    if (ts >= priorStart && ts < windowStart) {
+      priorCount++; // previous 7-day window, for growth comparison
+      continue;
+    }
+    if (ts < windowStart) continue; // older than both windows
+    const day = new Date(ts);
     day.setHours(0, 0, 0, 0);
     // Math.round absorbs DST offset drift between bucket boundaries.
     const idx = Math.round((day.getTime() - windowStart.getTime()) / (24 * 60 * 60 * 1000));

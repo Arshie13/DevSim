@@ -9,6 +9,15 @@ export interface ActivityItem {
   coins?: number;
 }
 
+// One task-completion event in the user's append-only activity log, stored as a
+// JSON array on the user row (user.task_activity) rather than a separate table.
+export interface TaskActivityEntry {
+  id: string;
+  task_name: string;
+  level: number;
+  completed_at: string; // ISO timestamp
+}
+
 export interface WeeklyStats {
   counts: number[];
   days: string[];

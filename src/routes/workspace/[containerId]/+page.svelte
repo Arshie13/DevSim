@@ -1238,11 +1238,27 @@ $effect(() => {
       showNextRegressionModal();
     }
 
-    const newlyCompletedOrders = tasks
-      .filter((task) => {
-        const prev = previousTasks.find((entry) => entry.id === task.id);
-        return task.isCompleted && !prev?.isCompleted;
-      })
+    const newlyCompletedTasks = tasks.filter((task) => {
+      const prev = previousTasks.find((entry) => entry.id === task.id);
+      return task.isCompleted && !prev?.isCompleted;
+    });
+
+    // Record each newly passed task on the server so it appears in the dashboard
+    // "Weekly Activity" right away — the board's passed state is otherwise only
+    // client-side (localStorage). Fire-and-forget; the endpoint dedups per task.
+    if (browser && containerId && newlyCompletedTasks.length > 0) {
+      for (const task of newlyCompletedTasks) {
+        void fetch(`/api/docker/container/${containerId}/tasks/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ taskName: task.taskName }),
+        }).catch((err) =>
+          console.error("Failed to record task completion:", err),
+        );
+      }
+    }
+
+    const newlyCompletedOrders = newlyCompletedTasks
       .map((task) => task.order)
       .sort((a, b) => a - b);
 
