@@ -16,7 +16,7 @@
       </div>
       <div>
         <h3 class="text-sm font-orbitron font-bold text-obsidian-text-muted">Weekly Activity</h3>
-        <p class="text-xs font-mono text-[var(--text-muted)]">Tasks completed this week</p>
+        <p class="text-xs font-mono text-[var(--text-muted)]">Files changed this week</p>
       </div>
     </div>
     <div class="tag-cyber tag-green flex items-center gap-1">

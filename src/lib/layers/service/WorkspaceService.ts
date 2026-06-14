@@ -384,7 +384,7 @@ export class WorkspaceService {
         currentCompletedTasks.completedTasks?.map((t) => t.taskName) ?? [];
 
       if (!completedTaskNames!.includes(taskName)) {
-        await this.tasks.createCompletedTask(workspaceRecord.id, taskName);
+        await this.tasks.createCompletedTask(workspaceRecord.id, taskName, userId, currentLevel);
         completedTaskNames.push(taskName);
       }
 

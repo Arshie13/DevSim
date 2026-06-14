@@ -1,14 +1,12 @@
 import prisma from "$lib/server/client";
-import type { ActivityItem } from "$lib/types/dashboard";
+import type { ActivityItem, TaskActivityEntry } from "$lib/types/dashboard";
 import { formatRelativeTime } from "./format";
 
 export async function getRecentActivity(userId: string, limit = 8): Promise<ActivityItem[]> {
-  const [tasks, achievements] = await Promise.all([
-    prisma.completed_task.findMany({
-      where: { workspace: { user_id: userId } },
-      include: { workspace: { select: { level: true } } },
-      orderBy: { completed_at: "desc" },
-      take: limit,
+  const [user, achievements] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { task_activity: true },
     }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
@@ -18,12 +16,20 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
     }),
   ]);
 
+  // Activity log lives on the user as a JSON array; sort newest-first in app code.
+  const log: TaskActivityEntry[] = Array.isArray(user?.task_activity)
+    ? (user!.task_activity as unknown as TaskActivityEntry[])
+    : [];
+  const tasks = [...log]
+    .sort((a, b) => b.completed_at.localeCompare(a.completed_at))
+    .slice(0, limit);
+
   const taskItems: ActivityItem[] = tasks.map((t) => ({
     id: t.id,
     type: "challenge" as const,
     title: t.task_name,
-    description: `Task completed in Level ${t.workspace.level}`,
-    timestamp: formatRelativeTime(t.completed_at),
+    description: `Task completed in Level ${t.level}`,
+    timestamp: formatRelativeTime(new Date(t.completed_at)),
     icon: "🐛",
   }));
 
