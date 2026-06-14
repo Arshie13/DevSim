@@ -63,16 +63,19 @@
     {#if showCrashCourseButton}
       <button
         type="button"
-        title="Open Crash Course"
-        class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)] transition-colors whitespace-nowrap inline-flex items-center gap-2"
+        title={crashCourseCompleted ? "Crash Course (completed)" : "Open Crash Course"}
+        class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2
+          {crashCourseCompleted
+            ? 'border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.1)] text-[#93f7a2] hover:bg-[rgba(126,231,135,0.18)]'
+            : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"
         style="font-family: 'Space Mono', monospace;"
         on:click={onOpenCrashCourse}
       >
         <GraduationCap class="w-4 h-4 flex-shrink-0" />
-        Open Crash Course
+        <span class="action-label">Open Crash Course</span>
         {#if crashCourseCompleted}
           <span
-            class="text-[0.56rem] px-1.5 py-0.5 rounded border border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.12)] text-[#93f7a2]"
+            class="action-badge text-[0.56rem] px-1.5 py-0.5 rounded border border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.12)] text-[#93f7a2]"
           >
             Done
           </span>
@@ -93,7 +96,7 @@
       style="font-family: 'Space Mono', monospace;"
     >
       <img src="/images/saz.png" alt="" class="w-4 h-4 rounded-full object-cover" />
-      AI Helper
+      <span class="action-label">AI Helper</span>
     </button>
   </div>
 </div>
@@ -111,6 +114,22 @@
   }
   .tabs-scroll::-webkit-scrollbar {
     display: none;
+  }
+
+  /* When the bar narrows (e.g. the terminal tab opens its manager panel),
+     collapse the action buttons to icons first. Their labels eat ~250px, so
+     dropping them keeps all four tabs — Board especially — visible instead of
+     being scrolled out of view behind the actions. Tooltips/colour still
+     convey each button's purpose and state. */
+  @container (max-width: 1000px) {
+    .action-label,
+    .action-badge {
+      display: none;
+    }
+    .action-btn {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
   }
 
   /* Compact mode: labels stay visible, padding and font shrink so

@@ -30,6 +30,7 @@
     sendChatMessage as apiSendChatMessage,
     requestQuickHintBubble,
   } from "$lib/utils/aiHelpApi";
+  import { onMount } from "svelte";
 
   // Props
   export let scenario: string = "";
@@ -56,6 +57,106 @@
   let userMessage = "";
   let isLoading = false;
   const selectedAiModel = initialAiModel;
+
+  // ── Resizable panel width ───────────────────────────────────────────
+  // The panel is docked on the right of the workspace; dragging its left
+  // edge widens or narrows it. The chosen width is remembered per browser.
+  const MIN_PANEL_WIDTH = 320;
+  const DEFAULT_PANEL_WIDTH = 380;
+  const PANEL_WIDTH_KEY = "aiHelpPanelWidth";
+  const RESIZE_STEP = 24;
+  let panelWidth = DEFAULT_PANEL_WIDTH;
+  let isResizing = false;
+
+  // Hard ceiling so the panel can't take over the screen.
+  const MAX_PANEL_WIDTH = 560;
+  // Room kept for everything to our left: the file sidebar, the editor/terminal,
+  // and (on the terminal tab) the terminal-manager panel docked beside us. This
+  // stops the chat from ever being pushed off-screen or crowding those panels.
+  const RESERVED_FOR_WORKSPACE = 480;
+  let asideEl: HTMLElement | null = null;
+
+  function maxPanelWidth(): number {
+    // Measure the row we actually live in when we can; fall back to the
+    // viewport before the panel has mounted.
+    const available =
+      asideEl?.parentElement?.clientWidth ??
+      (typeof window === "undefined" ? MAX_PANEL_WIDTH : window.innerWidth);
+    const fits = available - RESERVED_FOR_WORKSPACE;
+    return Math.max(MIN_PANEL_WIDTH, Math.min(MAX_PANEL_WIDTH, fits));
+  }
+
+  function clampWidth(width: number): number {
+    return Math.min(Math.max(width, MIN_PANEL_WIDTH), maxPanelWidth());
+  }
+
+  onMount(() => {
+    const saved = Number(localStorage.getItem(PANEL_WIDTH_KEY));
+    if (saved && !Number.isNaN(saved)) panelWidth = clampWidth(saved);
+  });
+
+  function persistWidth() {
+    try {
+      localStorage.setItem(PANEL_WIDTH_KEY, String(panelWidth));
+    } catch {
+      /* storage unavailable — keep the in-memory width */
+    }
+  }
+
+  function startResize(event: PointerEvent) {
+    event.preventDefault();
+    isResizing = true;
+    const startX = event.clientX;
+    const startWidth = panelWidth;
+
+    // Avoid selecting text / flickering cursors while dragging.
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+
+    function onMove(e: PointerEvent) {
+      // Dragging left (smaller clientX) widens the panel.
+      panelWidth = clampWidth(startWidth + (startX - e.clientX));
+    }
+
+    function onUp() {
+      isResizing = false;
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      persistWidth();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  function handleResizeKeydown(event: KeyboardEvent) {
+    if (event.key === "ArrowLeft") {
+      panelWidth = clampWidth(panelWidth + RESIZE_STEP);
+    } else if (event.key === "ArrowRight") {
+      panelWidth = clampWidth(panelWidth - RESIZE_STEP);
+    } else {
+      return;
+    }
+    event.preventDefault();
+    persistWidth();
+  }
+
+  // Re-clamp if the viewport shrinks below the current panel width.
+  function handleWindowResize() {
+    const clamped = clampWidth(panelWidth);
+    if (clamped !== panelWidth) panelWidth = clamped;
+  }
+
+  // When the panel opens, re-clamp once it has mounted so the width respects
+  // the room left for the sidebar / terminal-manager panel beside it.
+  $: if (show) {
+    requestAnimationFrame(() => {
+      const clamped = clampWidth(panelWidth);
+      if (clamped !== panelWidth) panelWidth = clamped;
+    });
+  }
 
   // A hint that costs more credits than the user has, waiting for them to
   // approve the coins → credits exchange in the popup before it is sent.
@@ -300,11 +401,30 @@
   }
 </script>
 
+<svelte:window on:resize={handleWindowResize} />
+
 <!-- ─── Docked AI Helper panel (toggled from the workspace tab bar) ─── -->
 {#if show}
   <aside
-    class="w-[380px] max-w-[85vw] flex-shrink-0 border-l border-[rgba(7,165,201,0.18)] flex flex-col overflow-hidden"
+    bind:this={asideEl}
+    class="relative flex-shrink-0 border-l border-[rgba(7,165,201,0.18)] flex flex-col overflow-hidden"
+    style="width: {panelWidth}px; max-width: min(calc(100vw - {RESERVED_FOR_WORKSPACE}px), {MAX_PANEL_WIDTH}px);"
   >
+    <!-- Drag handle: resize the panel by dragging its left edge. -->
+    <div
+      class="absolute left-0 top-0 z-30 h-full w-1.5 -translate-x-1/2 cursor-col-resize transition-colors hover:bg-cyan-500/40 {isResizing
+        ? 'bg-cyan-500/50'
+        : ''}"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize AI assistant panel"
+      aria-valuenow={panelWidth}
+      tabindex="0"
+      title="Drag to resize"
+      onpointerdown={startResize}
+      onkeydown={handleResizeKeydown}
+    ></div>
+
     <FloatingModal
       messages={$aiChatHistory}
       {userMessage}
