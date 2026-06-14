@@ -42,7 +42,6 @@ model user {
   rewardClaims           user_reward_claim[]
   seasonProgressions     user_season_progression[]
   workspaces             workspace[]
-  task_activity          Json                      @default("[]")
   achievements           user_achievement[]
   learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
   learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")

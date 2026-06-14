@@ -1,6 +1,4 @@
-import { randomUUID } from 'node:crypto';
 import prisma from '$lib/server/client';
-import type { TaskActivityEntry } from '$lib/types/dashboard';
 
 export class TasksDataAccess {
   async getCurrentCompletedTasks(workspaceId: string) {
@@ -34,34 +32,13 @@ export class TasksDataAccess {
     }
   }
 
-  async createCompletedTask(workspaceId: string, taskId: string, userId: string, level: number) {
+  async createCompletedTask(workspaceId: string, taskId: string) {
     try {
       await prisma.completed_task.create({
         data: {
           workspace_id: workspaceId,
           task_name: taskId
         }
-      });
-
-      // Append-only activity log stored on the user — survives
-      // deleteCompletedTasks, which wipes completed_task rows on every level
-      // advance. Read-modify-write the JSON array (fine at per-user task scale).
-      const u = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { task_activity: true }
-      });
-      const log: TaskActivityEntry[] = Array.isArray(u?.task_activity)
-        ? (u!.task_activity as unknown as TaskActivityEntry[])
-        : [];
-      log.push({
-        id: randomUUID(),
-        task_name: taskId,
-        level,
-        completed_at: new Date().toISOString()
-      });
-      await prisma.user.update({
-        where: { id: userId },
-        data: { task_activity: log as never }
       });
 
       return { success: true }
