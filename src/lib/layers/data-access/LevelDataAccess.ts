@@ -29,17 +29,20 @@ export class LevelDataAccess {
     return null;
   }
 
-  async getLevelByOrder(level: number) {
+  async getLevelByOrder(level: number, scenarioId?: string) {
     try {
       const data = await prisma.level.findFirst({
-        where: { order: level },
+        where: {
+          order: level,
+          ...(scenarioId ? { scenario_id: scenarioId } : {}),
+        },
         include: {
           tasks: {
             orderBy: { order: 'asc' }
           }
         }
       });
-  
+
       return {
         id: data?.id,
         title: data?.title,
