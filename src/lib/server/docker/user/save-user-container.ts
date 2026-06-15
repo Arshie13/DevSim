@@ -88,11 +88,22 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
     return { dbContainerId: created.id };
   } catch (err) {
     console.log('Error in saveUserContainer:', err);
-    // P2003 = foreign key constraint — the userId doesn't exist in the User table.
-    // This happens when a session is stale after a DB reset. Tell the caller clearly.
+    // P2003 = foreign key constraint failed.
+    // Determine which field caused the FK violation for an accurate error message.
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
+      const fieldName = (err.meta as { field_name?: string })?.field_name ?? '';
+      if (fieldName.includes('user_id')) {
+        throw new Error(
+          `User '${data.userId}' not found in database. Your session may be stale — please sign out and sign in again.`
+        );
+      }
+      if (fieldName.includes('current_scenario_id')) {
+        throw new Error(
+          `Scenario '${data.currentScenarioId}' not found in database. The database may have been reseeded — please refresh the page and try again.`
+        );
+      }
       throw new Error(
-        `User '${data.userId}' not found in database. Your session may be stale — please sign out and sign in again.`
+        `Foreign key constraint failed on field '${fieldName}'. Please sign out and sign in again.`
       );
     }
     throw err;

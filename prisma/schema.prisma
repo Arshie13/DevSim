@@ -22,6 +22,7 @@ model user {
   updatedAt              DateTime                  @updatedAt
   role                   UserRole                  @default(USER)
   has_completed_tutorial Boolean                   @default(false)
+  trivia_correct_count   Int                       @default(0)
   // Dashboard onboarding
   has_seen_dashboard_onboarding Boolean @default(false)
   badges                 String[]                  @default([])

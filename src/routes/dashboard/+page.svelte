@@ -84,6 +84,7 @@
     }
 
     function onWelcomeHighlightStack() {
+      void markOnboardingComplete();
       tourMode = 'highlight';
       tourStartStep = 5; // index of dashboard-start-stack-btn step (last of 6)
       onboardingPhase = 'tour';

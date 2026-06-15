@@ -84,6 +84,19 @@ export async function detectNewlyUnlockedAchievements(
       data: rows as never,
       skipDuplicates: true,
     });
+
+    const totalXp = rows.reduce((sum, r) => sum + r.xp_reward, 0);
+    const totalCoins = rows.reduce((sum, r) => sum + r.coin_reward, 0);
+
+    if (totalXp > 0 || totalCoins > 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          xp: { increment: totalXp },
+          coins: { increment: totalCoins },
+        },
+      });
+    }
   }
 
   return newlyUnlocked;
