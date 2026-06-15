@@ -129,7 +129,6 @@
     userStory?: string;
   };
   let timeRemaining: number = $derived(4 * 60 * 60);
-  let isRunning: boolean = $state(false);
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = $state("");
   let editorValue: string = "";
@@ -979,18 +978,6 @@ $effect(() => {
     }
   }
 
-  function runDevServer() {
-    if (!containerId || isRunning) return;
-    isRunning = true;
-    activeTab = "terminal";
-    activeTerminalSession?.instance?.write("npm install && npm run dev\r");
-  }
-
-  function stopDevServer() {
-    activeTerminalSession?.instance?.write("\x03");
-    isRunning = false;
-  }
-
   function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
     if (status === "in-progress" || status === "in-review" || status === "done") {
       const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
@@ -1602,12 +1589,8 @@ $effect(() => {
       stack: actualLevelConfig.stack,
       difficulty,
       timeRemaining,
-      isRunning,
       isDownloading,
       onBack: handleBack,
-      onRun: runDevServer,
-      onStop: stopDevServer,
-      onDemo: () => handleTabChange("preview"),
       onSubmit: handleSubmitSprint,
       onDownload: handleDownload,
     }}
