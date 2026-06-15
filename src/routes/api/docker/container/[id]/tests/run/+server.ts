@@ -42,10 +42,21 @@ export const POST: RequestHandler = async ({ params, request }) => {
       const levelConfig = getLevelConfig(level);
       const levelTaskIds = taskIds && taskIds.length > 0 ? taskIds : (levelConfig?.tasks.map((t) => t.taskId) ?? []);
 
+    const taskTestTypes = (body.taskTestTypes ?? []) as Array<{ taskId: string; testType: string; order: number }>;
+    const testTypeById = new Map(taskTestTypes.map(t => [t.taskId, t.testType]));
+
     const perTaskCommands = levelTaskIds.map((tid, idx) => {
         const taskNumber = idx + 1;
-        let taskCmd = command.replace(/^test:tasks:/, `test:task:client:`).replace(/:l(\d+)$/, `:l$1:t${taskNumber}`);
-        if (taskCmd === command) taskCmd = `test:task:l${level}:t${taskNumber}`;
+        const testType = testTypeById.get(tid);
+        let prefix: string;
+        if (testType === 'client') {
+          prefix = 'test:task:client';
+        } else if (testType === 'server') {
+          prefix = 'test:task:server';
+        } else {
+          prefix = 'test:task';
+        }
+        const taskCmd = `${prefix}:l${level}:t${taskNumber}`;
         return buildPnpmCommand(taskCmd, level, tid);
       });
 
