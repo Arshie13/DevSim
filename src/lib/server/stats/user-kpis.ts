@@ -1,5 +1,5 @@
 import prisma from "$lib/server/client";
-import type { UserKpis, ProfileMetricsData, WeeklyStats, TaskActivityEntry } from "$lib/types/dashboard";
+import type { UserKpis, ProfileMetricsData, WeeklyStats } from "$lib/types/dashboard";
 import { formatMemberSince } from "./format";
 import { getAchievementsForUser } from "$lib/server/achievements/catalog";
 
@@ -33,16 +33,13 @@ export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
   const priorStart = new Date(windowStart);
   priorStart.setDate(priorStart.getDate() - 7);
 
-  // Activity is measured by task completions, stored as a per-user JSON log on
-  // the user row (user.task_activity) — durable, unlike completed_task which is
-  // wiped on level advance. Bucket/compare both windows in app code.
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { task_activity: true },
+  // Activity is measured by task completions, sourced from the durable
+  // task_activity table by completed_at. Unlike completed_task this isn't wiped
+  // on level advance, so the chart reflects the user's full history.
+  const rows = await prisma.task_activity.findMany({
+    where: { user_id: userId, completed_at: { gte: priorStart } },
+    select: { completed_at: true },
   });
-  const log: TaskActivityEntry[] = Array.isArray(user?.task_activity)
-    ? (user!.task_activity as unknown as TaskActivityEntry[])
-    : [];
 
   // Build 7-day buckets starting from 6 days ago to today
   const days: string[] = [];
@@ -54,8 +51,8 @@ export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
   }
 
   let priorCount = 0;
-  for (const entry of log) {
-    const ts = new Date(entry.completed_at);
+  for (const row of rows) {
+    const ts = new Date(row.completed_at);
     if (ts >= priorStart && ts < windowStart) {
       priorCount++; // previous 7-day window, for growth comparison
       continue;
@@ -96,13 +93,14 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
     thisWeekCount,
     priorWeekCount,
   ] = await Promise.all([
-    prisma.completed_task.count({ where: { workspace: { user_id: userId } } }),
+    // Durable counts from task_activity (survive the per-level completed_task wipe).
+    prisma.task_activity.count({ where: { user_id: userId } }),
     prisma.user_file_changes.count({ where: { workspace: { user_id: userId } } }),
     getAchievementsForUser(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true, coins: true, createdAt: true } }),
     prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
-    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completed_at: { gte: sevenDaysAgo } } }),
-    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+    prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: sevenDaysAgo } } }),
+    prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
   ]);
 
   const achievementsCount = allAchievements.filter((a) =>

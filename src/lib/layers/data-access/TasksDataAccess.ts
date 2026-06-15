@@ -1,6 +1,4 @@
-import { randomUUID } from 'node:crypto';
 import prisma from '$lib/server/client';
-import type { TaskActivityEntry } from '$lib/types/dashboard';
 
 export class TasksDataAccess {
   async getCurrentCompletedTasks(workspaceId: string) {
@@ -35,44 +33,37 @@ export class TasksDataAccess {
   }
 
   async createCompletedTask(workspaceId: string, taskId: string, userId: string, level: number) {
+    // Board state — idempotent per (workspace, task) so re-running a passing
+    // test doesn't trip the @@unique([workspace_id, task_name]) constraint.
     try {
-      await prisma.completed_task.create({
-        data: {
-          workspace_id: workspaceId,
-          task_name: taskId
-        }
+      await prisma.completed_task.upsert({
+        where: {
+          workspace_id_task_name: { workspace_id: workspaceId, task_name: taskId }
+        },
+        create: { workspace_id: workspaceId, task_name: taskId },
+        update: {}
       });
     } catch (error) {
       console.error('Error creating completed_task row:', error);
       return { success: false, error };
     }
 
-    // Append-only activity log stored on the user — survives
-    // deleteCompletedTasks, which wipes completed_task rows on every level
-    // advance. Read-modify-write the JSON array (fine at per-user task scale).
-    // Isolated in its own try/catch so a failure here is reported distinctly
-    // instead of being masked by (or masking) the completed_task write above —
-    // this log is what drives the dashboard "Weekly Activity" chart.
+    // Durable activity log in its own table — survives deleteCompletedTasks,
+    // which wipes completed_task rows on every level advance. Isolated in its
+    // own try/catch so a failure here is reported distinctly instead of being
+    // masked by (or masking) the completed_task write above. Backs the dashboard
+    // weekly chart, activity feed, and lifetime tasks-completed stat.
     try {
-      const u = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { task_activity: true }
+      const existing = await prisma.task_activity.findFirst({
+        where: { user_id: userId, task_name: taskId }
       });
-      const log: TaskActivityEntry[] = Array.isArray(u?.task_activity)
-        ? (u!.task_activity as unknown as TaskActivityEntry[])
-        : [];
-      log.push({
-        id: randomUUID(),
-        task_name: taskId,
-        level,
-        completed_at: new Date().toISOString()
-      });
-      await prisma.user.update({
-        where: { id: userId },
-        data: { task_activity: log as never }
-      });
+      if (!existing) {
+        await prisma.task_activity.create({
+          data: { user_id: userId, task_name: taskId, level }
+        });
+      }
     } catch (error) {
-      console.error('Error appending task_activity (weekly activity will not update):', error);
+      console.error('Error recording task_activity (weekly activity will not update):', error);
       return { success: false, activityLogged: false, error };
     }
 

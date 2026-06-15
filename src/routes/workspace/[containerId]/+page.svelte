@@ -1043,7 +1043,7 @@ $effect(() => {
     if (!containerId || isRunning) return;
     isRunning = true;
     activeTab = "terminal";
-    activeTerminalSession?.instance?.write("npm install && npm run dev\r");
+    activeTerminalSession?.instance?.write("pnpm install && pnpm run dev\r");
   }
 
   function stopDevServer() {
@@ -1243,11 +1243,19 @@ $effect(() => {
       return task.isCompleted && !prev?.isCompleted;
     });
 
-    // Record each newly passed task on the server so it appears in the dashboard
-    // "Weekly Activity" right away — the board's passed state is otherwise only
-    // client-side (localStorage). Fire-and-forget; the endpoint dedups per task.
-    if (browser && containerId && newlyCompletedTasks.length > 0) {
-      for (const task of newlyCompletedTasks) {
+    // Record every task whose test newly passed so the dashboard "Weekly
+    // Activity" increments — independent of the board's ordering lock (a passed
+    // test counts even when earlier tasks aren't done yet). Fire-and-forget; the
+    // endpoint dedups per task, so re-running a passing test is a no-op.
+    const newlyPassedTasks = tasks.filter((task, index) => {
+      const taskResult =
+        byTaskId.get(task.id) ?? byTaskId.get(String(getTaskNumber(task, index)));
+      const prev = previousTasks.find((entry) => entry.id === task.id);
+      return taskResult?.passed === true && !prev?.isCompleted;
+    });
+
+    if (browser && containerId && newlyPassedTasks.length > 0) {
+      for (const task of newlyPassedTasks) {
         void fetch(`/api/docker/container/${containerId}/tasks/complete`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

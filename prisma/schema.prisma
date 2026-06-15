@@ -42,10 +42,10 @@ model user {
   rewardClaims           user_reward_claim[]
   seasonProgressions     user_season_progression[]
   workspaces             workspace[]
-  // Append-only task-completion log, kept on the user (not a separate table)
-  // since it's a per-user stat. Array of TaskActivityEntry; durable across the
-  // per-level completed_task wipe. See $lib/types/dashboard.
-  task_activity          Json                      @default("[]")
+  // Durable, append-only log of task completions, normalized into its own
+  // table (task_activity). Survives the per-level completed_task wipe, so it
+  // backs the dashboard weekly chart, activity feed, and lifetime task count.
+  task_activity          task_activity[]
   achievements           user_achievement[]
   learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
   learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")
@@ -255,6 +255,21 @@ model completed_task {
 
   @@unique([workspace_id, task_name])
   @@index([workspace_id])
+}
+
+// Durable, append-only log of every task a user completes. Unlike
+// completed_task (per-workspace, wiped on level advance) this persists, so it's
+// the source of truth for the dashboard weekly chart, activity feed, and the
+// lifetime tasks-completed stat.
+model task_activity {
+  id           String   @id @default(cuid())
+  user_id      String
+  task_name    String
+  level        Int
+  completed_at DateTime @default(now())
+  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, completed_at])
 }
 
 model workspace_stack {
