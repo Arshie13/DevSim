@@ -20,7 +20,7 @@
   let pendingNavigationUrl: string | null = null;
 
   // Pages where the session modal should never appear
-  const PUBLIC_PATHS = ['/login'];
+  const PUBLIC_PATHS = ['/', '/login'];
 
   /** Check if the current page is a public (login/auth) page */
   function isPublicPage(): boolean {
@@ -71,6 +71,7 @@
   // resume if the session is still valid. This prevents the server from
   // redirecting the background to '/' while the modal is open.
   beforeNavigate((navigation) => {
+    if (isPublicPage()) return;
     if (showSessionExpired) {
       navigation.cancel();
       return;
