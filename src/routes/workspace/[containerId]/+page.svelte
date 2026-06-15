@@ -338,14 +338,22 @@
       triviaCorrectCount += 1;
       userCoins += TRIVIA_COIN_REWARD;
       toast.success(`+${TRIVIA_COIN_REWARD} coins!`);
-      
-      // Persist coins to database
+
+      // Persist correct answer to database and check achievements
       try {
-        await fetch(`/api/user/coins/add?amount=${TRIVIA_COIN_REWARD}`, {
-          method: 'POST'
+        const res = await fetch('/api/user/trivia/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correct: true })
         });
+        const data = await res.json();
+        if (data?.newlyUnlocked?.length) {
+          for (const a of data.newlyUnlocked) {
+            toast.success(`Achievement unlocked: ${a.name} (${a.tier})!`, 5000);
+          }
+        }
       } catch (err) {
-        console.error('Failed to save coins:', err);
+        console.error('Failed to save trivia answer:', err);
       }
     }
     saveTriviaStats();

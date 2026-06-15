@@ -12,6 +12,7 @@
     Trophy,
   } from "lucide-svelte";
   import type { UserData } from "$types";
+  import { toast } from "$lib/stores/toast";
 
   export let user: UserData;
   export let memberSince: string = "";
@@ -23,6 +24,20 @@
   $: isSvgPath = Boolean(user.image && user.image.startsWith("/"));
 
   const dispatch = createEventDispatcher<{ editProfile: void }>();
+
+  async function shareProfile() {
+    if (!user.username) {
+      toast.error("Set a username to share your profile");
+      return;
+    }
+    const url = `${window.location.origin}/rivals/${user.username}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Profile link copied to clipboard");
+    } catch {
+      toast.error("Failed to copy profile link");
+    }
+  }
 </script>
 
 <section
@@ -124,15 +139,18 @@
 
     <!-- ── Actions ──────────────────────────────────────────────────────── -->
     <div class="shrink-0 px-5 py-4 flex flex-col gap-2">
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid gap-2" class:grid-cols-2={isOwnProfile}>
+        {#if isOwnProfile}
+          <button
+            on:click={() => dispatch("editProfile")}
+            class="btn-cyber btn-cyber-outline flex items-center justify-center gap-1.5 text-xs"
+          >
+            <Pencil class="w-3.5 h-3.5" />
+            Edit
+          </button>
+        {/if}
         <button
-          on:click={() => dispatch("editProfile")}
-          class="btn-cyber btn-cyber-outline flex items-center justify-center gap-1.5 text-xs"
-        >
-          <Pencil class="w-3.5 h-3.5" />
-          Edit
-        </button>
-        <button
+          on:click={shareProfile}
           class="btn-cyber btn-cyber-secondary flex items-center justify-center gap-1.5 text-xs !py-2 !px-3"
         >
           <LinkIcon class="w-3 h-3" />
