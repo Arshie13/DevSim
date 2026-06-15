@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { onMount } from "svelte";
   import type { IContainer, UserData, KPIData, WeeklyStats, ActivityItem, LeaderboardEntry, UserKpis, AchievementFeedItem } from "$types";
   import { Plus, ArrowRight, Gift, Key } from "lucide-svelte";
@@ -113,6 +113,11 @@
 
   function openStatsDrawer() {
     isStatsDrawerOpen = true;
+    // Re-run the dashboard load so the drawer shows current data (weekly
+    // activity, leaderboard, …) without a page refresh. invalidateAll re-runs
+    // unconditionally, so it works even right after a code change; the chart
+    // updates reactively when fresh data arrives.
+    void invalidateAll();
   }
 
   function navigateToStacks() {

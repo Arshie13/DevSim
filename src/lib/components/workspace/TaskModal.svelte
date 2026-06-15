@@ -69,7 +69,7 @@
 			{/if}
 			<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent"></div>
 
-			<header class="flex items-start justify-between gap-4 border-b border-[rgba(7,165,201,0.15)] px-5 py-4">
+			<header class="relative z-20 flex items-start justify-between gap-4 border-b border-[rgba(7,165,201,0.15)] px-5 py-4">
 				<div class="min-w-0">
 					<span class={`rounded-[2px] border px-2 py-1 text-[0.62rem] uppercase tracking-[0.12em] [font-family:var(--font-mono)] ${statusClasses}`}>
 						{statusLabel}

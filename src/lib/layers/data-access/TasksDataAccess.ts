@@ -32,20 +32,42 @@ export class TasksDataAccess {
     }
   }
 
-  async createCompletedTask(workspaceId: string, taskId: string) {
+  async createCompletedTask(workspaceId: string, taskId: string, userId: string, level: number) {
+    // Board state — idempotent per (workspace, task) so re-running a passing
+    // test doesn't trip the @@unique([workspace_id, task_name]) constraint.
     try {
-      await prisma.completed_task.create({
-        data: {
-          workspace_id: workspaceId,
-          task_name: taskId
-        }
+      await prisma.completed_task.upsert({
+        where: {
+          workspace_id_task_name: { workspace_id: workspaceId, task_name: taskId }
+        },
+        create: { workspace_id: workspaceId, task_name: taskId },
+        update: {}
       });
-
-      return { success: true }
     } catch (error) {
-      console.error('Error creating completed task:', error);
-      return { success: false, error: error }
+      console.error('Error creating completed_task row:', error);
+      return { success: false, error };
     }
+
+    // Durable activity log in its own table — survives deleteCompletedTasks,
+    // which wipes completed_task rows on every level advance. Isolated in its
+    // own try/catch so a failure here is reported distinctly instead of being
+    // masked by (or masking) the completed_task write above. Backs the dashboard
+    // weekly chart, activity feed, and lifetime tasks-completed stat.
+    try {
+      const existing = await prisma.task_activity.findFirst({
+        where: { user_id: userId, task_name: taskId }
+      });
+      if (!existing) {
+        await prisma.task_activity.create({
+          data: { user_id: userId, task_name: taskId, level }
+        });
+      }
+    } catch (error) {
+      console.error('Error recording task_activity (weekly activity will not update):', error);
+      return { success: false, activityLogged: false, error };
+    }
+
+    return { success: true };
   }
 
   async deleteCompletedTasks(workspaceId: string) {

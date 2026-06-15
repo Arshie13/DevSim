@@ -421,8 +421,8 @@
     if (isRunning) return;
     isRunning = true;
     activeTab = "terminal";
-    activeTerminalSession?.instance?.write("npm install\r");
-    activeTerminalSession?.instance?.write("npm run dev\r");
+    activeTerminalSession?.instance?.write("pnpm install\r");
+    activeTerminalSession?.instance?.write("pnpm run dev\r");
   }
 
   function stopDevServer() {
