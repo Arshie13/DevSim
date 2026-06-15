@@ -17,7 +17,7 @@
   const CHECK_DEBOUNCE_MS = 2000;
 
   // Flag used to prevent recursive session checks when we manually resume a cancelled navigation
-  let skipSessionCheck = false;
+  let pendingNavigationUrl: string | null = null;
 
   // Pages where the session modal should never appear
   const PUBLIC_PATHS = ['/login'];
@@ -67,6 +67,33 @@
     signOut({ callbackUrl: '/login' });
   }
 
+  // 3. Intercept navigations: cancel them, run a session check, and only
+  // resume if the session is still valid. This prevents the server from
+  // redirecting the background to '/' while the modal is open.
+  beforeNavigate((navigation) => {
+    if (showSessionExpired) {
+      navigation.cancel();
+      return;
+    }
+
+    const targetUrl = navigation.to?.url;
+    if (!targetUrl) return;
+
+    // Allow our own resumed goto() to proceed
+    if (targetUrl.toString() === pendingNavigationUrl) {
+      pendingNavigationUrl = null;
+      return;
+    }
+
+    navigation.cancel();
+    checkSession(true).then(() => {
+      if (!showSessionExpired) {
+        pendingNavigationUrl = targetUrl.toString();
+        goto(targetUrl.toString());
+      }
+    });
+  });
+
   onMount(() => {
     // Only run in browser
     if (typeof window === 'undefined') return;
@@ -96,54 +123,8 @@
       return response;
     };
 
-    // 3. Intercept navigations: cancel them, run a session check, and only
-    // resume if the session is still valid. This prevents the server from
-    // redirecting the background to '/' while the modal is open.
-    beforeNavigate((navigation) => {
-      if (skipSessionCheck) return;
-      if (showSessionExpired) {
-        navigation.cancel();
-        return;
-      }
-
-      const targetUrl = navigation.to?.url;
-      if (!targetUrl) return;
-
-      navigation.cancel();
-      checkSession(true).then(() => {
-        if (!showSessionExpired) {
-          skipSessionCheck = true;
-          goto(targetUrl.toString());
-          skipSessionCheck = false;
-        }
-      });
-    });
-
-    // 4. Check on any click to interactive elements (skip on public pages)
-    let clickCheckTimeout: ReturnType<typeof setTimeout> | null = null;
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target?.closest('button, a, input, textarea, select, [role="button"], form, [data-interactive]')) {
-        if (clickCheckTimeout) clearTimeout(clickCheckTimeout);
-        clickCheckTimeout = setTimeout(() => {
-          checkSession();
-        }, 0);
-      }
-    };
-    document.addEventListener('click', handleClick);
-
-    // 5. Check immediately when tab becomes visible again (skip on public pages)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkSession(true);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       window.fetch = originalFetch;
-      document.removeEventListener('click', handleClick);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   });
 </script>
