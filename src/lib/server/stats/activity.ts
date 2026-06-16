@@ -4,9 +4,11 @@ import { formatRelativeTime } from "./format";
 
 export async function getRecentActivity(userId: string, limit = 8): Promise<ActivityItem[]> {
   const [tasks, achievements] = await Promise.all([
-    prisma.completed_task.findMany({
-      where: { workspace: { user_id: userId } },
-      include: { workspace: { select: { level: true } } },
+    // Recent task completions, newest-first, from the durable task_activity
+    // table (not wiped on level advance, so the feed keeps full history).
+    prisma.task_activity.findMany({
+      where: { user_id: userId },
+      select: { id: true, task_name: true, level: true, completed_at: true },
       orderBy: { completed_at: "desc" },
       take: limit,
     }),
@@ -22,8 +24,8 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
     id: t.id,
     type: "challenge" as const,
     title: t.task_name,
-    description: `Task completed in Level ${t.workspace.level}`,
-    timestamp: formatRelativeTime(t.completed_at),
+    description: `Task completed in Level ${t.level}`,
+    timestamp: formatRelativeTime(new Date(t.completed_at)),
     icon: "🐛",
   }));
 

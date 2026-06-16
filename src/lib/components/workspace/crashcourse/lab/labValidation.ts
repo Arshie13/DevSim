@@ -126,6 +126,25 @@ function sanitizeCodeForRunner(code: string): string {
     .replace(/([A-Za-z_$][\w$]*)\s*:\s*[A-Za-z_$][\w<>,\s\[\]\|&?.]*/g, "$1");
 }
 
+async function runWithConsoleCapture(
+  fn: () => unknown | Promise<unknown>,
+): Promise<{ result: unknown; output: string }> {
+  const originalLog = console.log;
+  const logs: string[] = [];
+  console.log = (...args: unknown[]) => {
+    logs.push(
+      args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" "),
+    );
+  };
+  try {
+    const maybePromise = fn();
+    const result = maybePromise instanceof Promise ? await maybePromise : maybePromise;
+    return { result, output: logs.join("\n") };
+  } finally {
+    console.log = originalLog;
+  }
+}
+
 export async function evaluateFunctionLab(
   interactiveCode: string,
   entryPoint: string,
@@ -150,12 +169,25 @@ export async function evaluateFunctionLab(
 
     for (const testCase of testCases) {
       try {
-        const maybePromise = runnable(...testCase.input);
-        const result =
-          maybePromise instanceof Promise ? await maybePromise : maybePromise;
-        if (!deepEqual(result, testCase.expected)) {
+        const { result, output } = await runWithConsoleCapture(() =>
+          runnable(...testCase.input),
+        );
+
+        if (
+          testCase.expected !== undefined &&
+          !deepEqual(result, testCase.expected)
+        ) {
           failedCases.push(
             `${testCase.label} (expected: ${toDisplay(testCase.expected)}, received: ${toDisplay(result)})`,
+          );
+        }
+
+        if (
+          testCase.console_output !== undefined &&
+          output !== testCase.console_output
+        ) {
+          failedCases.push(
+            `${testCase.label} (expected output: ${toDisplay(testCase.console_output)}, received output: ${toDisplay(output)})`,
           );
         }
       } catch (error) {

@@ -18,8 +18,11 @@
 
   export let data: ProjectsData;
 
-  $: viewParam = ($page.url.searchParams.get("view") ?? "current") as "current" | "finished";
-  $: view = viewParam === "finished" ? "finished" : "current";
+  let view: "current" | "finished" = "current";
+  $: {
+    const param = $page.url.searchParams.get("view");
+    view = param === "finished" ? "finished" : "current";
+  }
 
   $: headerUserData = {
     id: data.user.id,
