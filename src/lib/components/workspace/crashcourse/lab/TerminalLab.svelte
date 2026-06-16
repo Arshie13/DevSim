@@ -80,12 +80,25 @@
   .terminal-input-row input {
     min-width: 0;
     width: 100%;
-    background: rgba(0, 0, 0, 0.38);
-    border: 1px solid rgba(136, 146, 160, 0.38);
-    color: #d7f5ff;
+    background: rgba(125, 214, 236, 0.2);
+    border: 1px solid rgba(143, 227, 246, 0.9);
+    border-radius: 3px;
+    color: #f3fdff;
+    caret-color: #aef3ff;
     padding: 0.34rem 0.45rem;
     font-family: inherit;
     font-size: 0.72rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .terminal-input-row input::placeholder {
+    color: rgba(214, 240, 248, 0.6);
+  }
+
+  .terminal-input-row input:focus {
+    outline: none;
+    background: rgba(150, 224, 244, 0.32);
+    border-color: #d4f7ff;
   }
 
   .terminal-input-row button {
