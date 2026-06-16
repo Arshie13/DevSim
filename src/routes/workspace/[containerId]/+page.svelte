@@ -1008,7 +1008,7 @@ $effect(() => {
       pendingTerminalInits.set(id, async (el: HTMLDivElement) => {
         try {
           const inst = new TerminalInitializer();
-          await inst.initializeDockerTerminal(el, containerId);
+          await inst.initializeDockerTerminal(el, containerId, id);
           terminalSessions = terminalSessions.map((s) =>
             s.id === id ? { ...s, instance: inst } : s,
           );
