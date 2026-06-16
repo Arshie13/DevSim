@@ -48,7 +48,7 @@
   // Mapping of tech IDs to folder names
   const techIdToFolderName: Record<string, string> = {
     postgresql: "postgres",
-    mongodb: "mongo",
+    mongodb: "mongodb",
     mysql: "mysql",
     sqlite: "sqlite",
     redis: "redis",
