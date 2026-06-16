@@ -67,7 +67,6 @@
           : "none";
 
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
-  let isRunning = false;
   let isDownloading = false;
   let isBooting = true;
   let bootStep = 0;
@@ -417,19 +416,6 @@
     activeTerminalSession?.instance?.reconnect();
   }
 
-  function runDevServer() {
-    if (isRunning) return;
-    isRunning = true;
-    activeTab = "terminal";
-    activeTerminalSession?.instance?.write("pnpm install\r");
-    activeTerminalSession?.instance?.write("pnpm run dev\r");
-  }
-
-  function stopDevServer() {
-    activeTerminalSession?.instance?.write("\x03");
-    isRunning = false;
-  }
-
   function handleDownload() {
     toast.info("Download is disabled in tutorial mode.");
   }
@@ -725,13 +711,9 @@
       stack,
       difficulty: tutorialDifficulty,
       timeRemaining,
-      isRunning,
       isDownloading,
       onBack: handleBack,
-      onRun: runDevServer,
-      onStop: stopDevServer,
-      onDemo: () => handleTabChange("preview"),
-onSubmit: submitSprint,
+      onSubmit: submitSprint,
       onDownload: handleDownload,
     }}
   >
