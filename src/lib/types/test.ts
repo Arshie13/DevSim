@@ -46,6 +46,7 @@
     taskOrder?: number;
   taskIds?: string[];
   type: 'task' | 'level';
+  taskTestTypes?: Array<{ taskId: string; testType: string; order: number }>;
 }
 
 export interface TestRunResponse {

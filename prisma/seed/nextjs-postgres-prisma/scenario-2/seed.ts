@@ -27,7 +27,7 @@ export const levels = [
       create: [
         {
           task_name: "Prepare Development Environment",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a developer, I want to install the member portal locally and connect it to my own PostgreSQL database so that I can start working on tasks.",
           learning_sections: {
@@ -110,7 +110,7 @@ export const levels = [
         },
         {
           task_name: "Add Member Name and Short Date Helpers",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a member, I want my name and dates to render consistently on the portal so that the header and membership card always look right regardless of whether middle parts are missing.",
           learning_sections: {
@@ -242,7 +242,7 @@ export const levels = [
       create: [
         {
           task_name: "Membership Status Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a member, I want the server to authoritatively report whether my membership is active, expired, or otherwise inactive so that every screen agrees on the badge.",
           learning_sections: {
@@ -324,7 +324,7 @@ export const levels = [
         },
         {
           task_name: "Days Until Expiry Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a member, I want the server to tell me how many days are left on my membership so that I can decide when to renew.",
           learning_sections: {
@@ -431,7 +431,7 @@ export const levels = [
       create: [
         {
           task_name: "Class Spots Indicator Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a member, I want each class card to show how many spots are left and a 'Class Full' badge when none remain so that I don't waste time tapping a class I can't join.",
           hints: {
@@ -479,7 +479,7 @@ export const levels = [
         },
         {
           task_name: "Booking Button Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a member, I want the Book button to say why it's disabled (\"Already booked\" or \"Class full\") so that I know whether to wait or pick a different class.",
           hints: {
@@ -552,7 +552,7 @@ export const levels = [
       create: [
         {
           task_name: "Bookings By Class List Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a studio manager, I want a per-class list of booking counts so that I can spot which sessions are growing and which are stagnant.",
           hints: {
@@ -600,7 +600,7 @@ export const levels = [
         },
         {
           task_name: "Attendance By Month Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a studio manager, I want a server-side attendance-per-month aggregation so that the dashboard reflects the true database state without trusting client-side bucketing.",
           hints: {
@@ -673,7 +673,7 @@ export const levels = [
       create: [
         {
           task_name: "Member Stats Card Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a member, I want a card showing my total bookings, attended count, attendance rate, and favourite class so that I can see how I'm using my membership.",
           hints: {
@@ -721,7 +721,7 @@ export const levels = [
         },
         {
           task_name: "Active Members Ranking Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As an owner, I want a server-side leaderboard of every member ordered by attendance so that the dashboard surfaces both the most engaged and the least active without trusting client-side joins.",
           hints: {

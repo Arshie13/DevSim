@@ -256,6 +256,11 @@
     activeTestAbortController = abortController;
 
     try {
+      // Build task test type metadata for the backend to pick the right script prefix
+      const taskTestTypes = tasks
+        .filter((task) => taskIds.includes(task.id))
+        .map((task) => ({ taskId: task.id, testType: task.testType ?? 'none', order: task.order }));
+
       // Run grouped level tests
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
@@ -265,7 +270,8 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          type: 'level'
+          type: 'level',
+          taskTestTypes
         })
       });
 
@@ -366,6 +372,11 @@
     const abortController = new AbortController();
     activeTestAbortController = abortController;
 
+    // Build task test type metadata for the backend to pick the right script prefix
+    const taskTestTypes = tasks
+      .filter((task) => taskIds.includes(task.id))
+      .map((task) => ({ taskId: task.id, testType: task.testType ?? 'none', order: task.order }));
+
     try {
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
@@ -375,7 +386,8 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          type: 'level'
+          type: 'level',
+          taskTestTypes
         })
       });
 

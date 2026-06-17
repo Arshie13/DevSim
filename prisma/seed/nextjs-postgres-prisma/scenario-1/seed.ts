@@ -27,7 +27,7 @@ export const levels = [
       create: [
         {
           task_name: "Prepare Development Environment",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a developer, I want to install the POS project locally and connect it to my own PostgreSQL database so that I can start working on tasks.",
           learning_sections: {
@@ -116,7 +116,7 @@ export const levels = [
         },
         {
           task_name: "Add Peso Formatting Helper",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a cashier, I want every price on the POS and Inventory screens formatted consistently in pesos so that I can scan amounts without second-guessing.",
           learning_sections: {
@@ -247,7 +247,7 @@ export const levels = [
       create: [
         {
           task_name: "Stock Status Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As an inventory manager, I want the server to classify each product as OUT_OF_STOCK, LOW_STOCK, or IN_STOCK so that every screen agrees on the badge without trusting client-side math.",
           learning_sections: {
@@ -362,7 +362,7 @@ export const levels = [
         },
         {
           task_name: "Cart Totals Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a cashier, I want the subtotal, discount, and total to be computed on the server using DB prices so that the client cannot underbill the customer by tampering with prices.",
           learning_sections: {
@@ -469,7 +469,7 @@ export const levels = [
       create: [
         {
           task_name: "Checkout Errors Banner Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a cashier, I want a banner that either confirms the cart is ready or lists every problem at once so that I can fix them before the customer waits.",
           hints: {
@@ -517,7 +517,7 @@ export const levels = [
         },
         {
           task_name: "Order Summary Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a cashier, I want the order summary to show the customer name, every line, the total, and (when applied) the coupon discount so that the receipt and the cart agree before I confirm the sale.",
           hints: {
@@ -590,7 +590,7 @@ export const levels = [
       create: [
         {
           task_name: "Coupon Input Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a cashier, I want the coupon input to ignore stray whitespace and case so that the lookup matches whether the customer typed \"save10\" or \"  SAVE 10  \".",
           hints: {
@@ -644,7 +644,7 @@ export const levels = [
         },
         {
           task_name: "Best Coupon Selector Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want the POS to automatically apply whichever valid coupon gives me the biggest discount so that I don't have to remember which code stacks best.",
           hints: {
@@ -717,7 +717,7 @@ export const levels = [
       create: [
         {
           task_name: "Sales Summary Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As an owner, I want one card showing total revenue, total discount, order count, and average order value so that I can see daily performance at a glance.",
           hints: {
@@ -771,7 +771,7 @@ export const levels = [
         },
         {
           task_name: "Top Selling Products Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As an owner, I want a server-side ranking of the best-selling products so that the leaderboard reflects the true database state without trusting client-side aggregation.",
           hints: {

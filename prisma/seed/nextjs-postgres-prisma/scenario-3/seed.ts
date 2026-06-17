@@ -27,7 +27,7 @@ export const levels = [
       create: [
         {
           task_name: "Prepare Development Environment",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a developer, I want to install the dashboard locally and point it at my own PostgreSQL database so that I can start working on tasks.",
           learning_sections: {
@@ -110,7 +110,7 @@ export const levels = [
         },
         {
           task_name: "Add Hour and Currency Helpers",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a manager, I want every hour and dollar column on the dashboard to render the same way so that the numbers I read line up cleanly down the column.",
           learning_sections: {
@@ -242,7 +242,7 @@ export const levels = [
       create: [
         {
           task_name: "Employee Status Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a manager, I want the server to authoritatively report whether each employee is clocked in, clocked out, or off so that the dashboard never disagrees with the timesheet.",
           learning_sections: {
@@ -324,7 +324,7 @@ export const levels = [
         },
         {
           task_name: "Sum Hours Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a manager, I want the server to sum each employee's completed shifts so that 'hours this week' always reflects what the timesheet table actually contains.",
           learning_sections: {
@@ -431,7 +431,7 @@ export const levels = [
       create: [
         {
           task_name: "Time-Off Request Form Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As an employee, I want a request form that rejects backward dates and non-positive hours so that I can't accidentally submit a malformed request to HR.",
           hints: {
@@ -485,7 +485,7 @@ export const levels = [
         },
         {
           task_name: "Time-Off Balance Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As an employee, I want a panel that shows my used, pending, and remaining time-off hours so that I can plan the rest of the year without phoning HR.",
           hints: {
@@ -558,7 +558,7 @@ export const levels = [
       create: [
         {
           task_name: "Hours Breakdown Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a payroll clerk, I want a row that visibly splits each employee's hours into regular and overtime so that I can audit the threshold at a glance.",
           hints: {
@@ -612,7 +612,7 @@ export const levels = [
         },
         {
           task_name: "Gross Pay Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a payroll clerk, I want the server to compute gross pay using the employee's stored hourly rate so that the dashboard can't accidentally pay a different rate than the database says.",
           hints: {
@@ -685,7 +685,7 @@ export const levels = [
       create: [
         {
           task_name: "Payroll Summary Component",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a manager, I want one summary card showing total regular, overtime, total hours, total gross, and average gross so that I can sign off the payroll period at a glance.",
           hints: {
@@ -733,7 +733,7 @@ export const levels = [
         },
         {
           task_name: "Department Report Server Action",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a manager, I want a server-side per-department report (headcount, total hours, total gross) so that I can compare departments at a glance without trusting client-side joins.",
           hints: {
