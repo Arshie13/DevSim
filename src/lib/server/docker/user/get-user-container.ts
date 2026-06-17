@@ -80,7 +80,7 @@ export async function getUserContainer(data: GetUserContainerRequest) {
 }
 
 export async function getArchivedContainers(userId: string) {
-  return prisma.workspace.findMany({
+  const rows = await prisma.workspace.findMany({
     where: {
       user_id: userId,
       is_archived: true,
@@ -93,6 +93,22 @@ export async function getArchivedContainers(userId: string) {
       workspace_stacks: true
     }
   });
+
+  // The finished-stack UI (dashboard FinishedStacks + projects FinishedStacksList /
+  // ProjectCard) reads camelCase IContainer fields, but Prisma returns snake_case
+  // columns. Without these aliases `isArchived`/`volumeName` are undefined, so a
+  // freshly archived stack shows "Not restorable" and its stacks render as
+  // "Unknown Stack". Spread keeps the snake_case originals intact.
+  return rows.map((row) => ({
+    ...row,
+    containerId: row.container_id,
+    isArchived: row.is_archived,
+    volumeName: row.volume_name,
+    containerStacks: row.workspace_stacks,
+    stoppedAt: row.stopped_at,
+    updatedAt: row.updated_at,
+    createdAt: row.created_at,
+  }));
 
   // return containers.map((container) => {
   //   const stackNames = container.containerStacks.map(s => s.stackName);

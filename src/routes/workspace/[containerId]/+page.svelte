@@ -1816,6 +1816,7 @@ $effect(() => {
    <SubmitSprintModal
      bind:this={submitSprintModal}
      dbContainerId={containerId}
+     dbWorkspaceId={page.params.containerId}
      {containerId}
      {tasks}
      level={currentLevel}
