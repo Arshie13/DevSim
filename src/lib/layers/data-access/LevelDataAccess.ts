@@ -36,14 +36,17 @@ export class LevelDataAccess {
       // its task names), which breaks the "all tasks completed" check on submit
       // and leaves the final level stuck out of "completed" status.
       const data = await prisma.level.findFirst({
-        where: scenarioId ? { order: level, scenario_id: scenarioId } : { order: level },
+        where: {
+          order: level,
+          ...(scenarioId ? { scenario_id: scenarioId } : {}),
+        },
         include: {
           tasks: {
             orderBy: { order: 'asc' }
           }
         }
       });
-  
+
       return {
         id: data?.id,
         title: data?.title,

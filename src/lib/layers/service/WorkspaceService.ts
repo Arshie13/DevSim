@@ -387,6 +387,7 @@ export class WorkspaceService {
       }
 
       const currentLevel = workspaceRecord.level;
+      const scenarioId = workspaceRecord.currentScenarioId;
 
       const levelInfo = await this.level.getLevelByOrder(
         currentLevel,

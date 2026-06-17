@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount, untrack } from "svelte";
+  import { onMount, untrack, tick } from "svelte";
   import { type PageData } from "./$types";
   import { browser } from "$app/environment";
   import { page } from "$app/state";
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { MonacoInitializer } from "$client/MonacoInitializer";
   // Components
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
@@ -1430,29 +1430,33 @@ $effect(() => {
   }
 
   async function handleSubmitted(
-    event: CustomEvent<{ advanceToNextLevel: boolean; nextLevel?: number | null }>,
+    event?: CustomEvent<{ advanceToNextLevel: boolean; nextLevel?: number | null }>,
+    detail?: { advanceToNextLevel: boolean; nextLevel?: number | null },
   ) {
-    const { advanceToNextLevel, nextLevel } = event.detail;
+    const payload = detail ?? event?.detail;
+    if (!payload) {
+      console.error('[handleSubmitted] No payload received');
+      return;
+    }
+    console.log('[handleSubmitted] Received payload:', payload);
+    const { advanceToNextLevel, nextLevel } = payload;
 
     if (advanceToNextLevel) {
-      const targetLevel =
-        typeof nextLevel === "number" && nextLevel > 0
-          ? nextLevel
-          : currentLevel + 1;
+      const targetLevel = typeof nextLevel === 'number' && nextLevel > 0 ? nextLevel : currentLevel + 1;
+      console.log('[handleSubmitted] Advancing to level:', targetLevel, 'current level before:', currentLevel);
 
-      // Immediately switch local UI state to the next level.
-      currentLevel = targetLevel;
+      // Reset intro card state for the next level.
       levelIntroCardOpen = false;
       levelIntroCardShown = false;
       levelIntroDismissed = false;
 
       localStorage.setItem('showTaskIntroCard', 'true');
-      
-      await goto(`?reload=${Date.now()}`, {
-        invalidateAll: true,
-        replaceState: true,
-        noScroll: true,
-      });
+
+      // Re-fetch workspace data so derived state (level, tasks, etc.) updates.
+      // This is a reactive navigation call — no full page reload.
+      await invalidateAll();
+    } else {
+      console.log('[handleSubmitted] advanceToNextLevel is false, not advancing');
     }
   }
 
@@ -1825,8 +1829,9 @@ $effect(() => {
      levelCoinReward={currentLevelRecord?.coinReward ?? 0}
      {fileContents}
      existingFiles={fileTree}
-     masteryCheckpointEnabled={data.masteryCheckpointEnabled}
-     on:submitted={handleSubmitted}
+      masteryCheckpointEnabled={data.masteryCheckpointEnabled}
+      onSubmitted={(detail) => handleSubmitted(undefined, detail)}
+      on:submitted={handleSubmitted}
    />
 
   <!-- Back confirmation modal -->

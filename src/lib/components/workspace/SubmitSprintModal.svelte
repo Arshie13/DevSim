@@ -28,6 +28,7 @@
   export let levelCoinReward: number = 0;
   export let tutorialMode: boolean = false;
   export let masteryCheckpointEnabled: boolean = true;
+  export let onSubmitted: ((data: { xp: number; coins: number; advanceToNextLevel: boolean; nextLevel: number | null }) => void) | undefined = undefined;
 
   // -- State --------------------------------------------------------------------
   type ModalState = "confirm" | "testing" | "loading" | "success" | "error";
@@ -485,6 +486,13 @@
       state = "testing";
       throwIfSubmissionCanceled();
 
+      const taskIds = tasks.map((task) => task.id);
+      const taskTestTypes = tasks.map((task) => ({
+        taskId: task.id,
+        testType: (task as { testType?: string }).testType ?? 'none',
+        order: (task as { order?: number }).order ?? 1,
+      }));
+
       const testRes = await fetch(
         `/api/docker/container/${containerId}/tests/run`,
         {
@@ -494,8 +502,9 @@
           body: JSON.stringify({
             command: `test:tasks:l${level}`,
             level,
-            taskIds: tasks.map((task) => task.id),
+            taskIds,
             type: "level",
+            taskTestTypes,
             // Force tests to pass for demo purposes - user wants to see key takeaways
             forcePassed: true,
           }),
@@ -883,12 +892,16 @@
     // Close modal and let parent reload the page
     showModal = false;
     state = "confirm";
-    // Dispatch event to notify parent to reload
-    dispatch("submitted", {
+    const payload = {
       ...submitRewards,
       advanceToNextLevel: advancingToNextLevel,
       nextLevel: submittedNextLevel,
-    });
+    };
+    console.log('[SubmitSprintModal] handleContinueWorking called, payload:', payload);
+    // Call callback prop directly (more reliable in Svelte 5)
+    onSubmitted?.(payload);
+    // Also dispatch legacy event as fallback
+    dispatch("submitted", payload);
   }
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
@@ -925,6 +938,7 @@
   $: hideActions = state === "loading" || state === "testing";
   $: hideHeader = state === "loading" || state === "testing";
   $: showSuccess = state === "success" && hasViewedTakeaways;
+  $: disableBackdropClose = state === "loading" || state === "testing" || state === "success";
 </script>
 
 <!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
@@ -942,6 +956,7 @@
   {hideHeader}
   {showSuccess}
   error={modalError}
+  closeOnBackdropClick={!disableBackdropClose}
   on:confirm={handleConfirm}
   on:cancel={close}
 >
