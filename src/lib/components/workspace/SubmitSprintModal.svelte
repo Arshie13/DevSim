@@ -17,6 +17,7 @@
   export let containerId: string; // Docker container ID for file operations
   export let tasks: ITask[];
   export let level: number = 1;
+  export let scenarioId: string | null = null;
   export let fileContents: Record<string, string> = {};
   export let existingFiles: string[] = [];
   export let levelXpReward: number = 0;
@@ -810,9 +811,14 @@
         keyTakeaways.length
       );
 
-      // Fetch key takeaways from database for the current level
+      // Fetch key takeaways from database for the current level.
+      // scenarioId scopes the lookup so we don't surface another stack's
+      // takeaways (level `order` is shared across every scenario).
       try {
-        const takeawayRes = await fetch(`/api/level/${level}/key-takeaways`);
+        const takeawayUrl = scenarioId
+          ? `/api/level/${level}/key-takeaways?scenarioId=${encodeURIComponent(scenarioId)}`
+          : `/api/level/${level}/key-takeaways`;
+        const takeawayRes = await fetch(takeawayUrl);
         if (takeawayRes.ok) {
           const takeawayData = await takeawayRes.json();
           if (takeawayData.success && takeawayData.keyTakeaways) {

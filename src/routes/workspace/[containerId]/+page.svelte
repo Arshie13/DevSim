@@ -1819,6 +1819,7 @@ $effect(() => {
      {containerId}
      {tasks}
      level={currentLevel}
+     scenarioId={workspaceScenario?.id ?? null}
      levelXpReward={currentLevelRecord?.xpReward ?? 0}
      levelCoinReward={currentLevelRecord?.coinReward ?? 0}
      {fileContents}
