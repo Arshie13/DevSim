@@ -106,19 +106,6 @@
     </div>
   </div>
 
-  <!-- Centre: countdown -->
-  <div
-    class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-1.5 bg-[#12192a] border border-[rgba(7,165,201,0.15)]"
-    style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 12px rgba(7,165,201,0.06);"
-  >
-    <Clock class="w-4 h-4 flex-shrink-0" style="color:{timeColor};" />
-    <span
-      class="text-base font-bold tracking-widest"
-      style="color:{timeColor};font-family:'Share Tech Mono',monospace;"
-      >{formatTime(timeRemaining)}</span
-    >
-  </div>
-
   <!-- Right section -->
   <div class="flex items-center gap-2">
     <div class="flex items-center gap-2" data-tour="workspace-action-buttons">
