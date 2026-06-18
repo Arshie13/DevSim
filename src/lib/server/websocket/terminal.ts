@@ -7,22 +7,53 @@ import type { Duplex } from 'stream';
 // Server configuration
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
-interface TerminalConnection {
-  ws: WebSocket;
+interface TerminalSession {
+  ws: WebSocket | null;
   containerId: string;
+  sessionId: string;
   execStream: Duplex;
+  exec: Dockerode.Exec;
+  graceTimer: ReturnType<typeof setTimeout> | null;
 }
 
-const activeConnections: Map<string, TerminalConnection> = new Map();
+const SESSION_GRACE_MS = 30 * 60 * 1000; // 30 minutes
+const sessions: Map<string, TerminalSession> = new Map();
+
+function detachWs(ws: WebSocket | null, execStream: Duplex) {
+  if (ws) {
+    ws.removeAllListeners('message');
+    ws.removeAllListeners('close');
+  }
+  execStream.removeAllListeners('data');
+}
+
+function attachWs(ws: WebSocket, execStream: Duplex, resizeExec: (dims: { h: number; w: number }) => Promise<void>) {
+  ws.on('message', (data: Buffer) => {
+    try {
+      const msg = JSON.parse(data.toString());
+      if (msg.type === 'resize' && typeof msg.cols === 'number' && typeof msg.rows === 'number') {
+        resizeExec({ h: msg.rows, w: msg.cols }).catch(() => {});
+        return;
+      }
+    } catch { /* not JSON — treat as raw terminal input */ }
+    if (execStream?.writable) {
+      execStream.write(data);
+    }
+  });
+
+  execStream.on('data', (chunk: Buffer) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(chunk);
+    }
+  });
+}
 
 export function createTerminalWSServer(server: http.Server): WebSocketServer {
   const wss = new WebSocketServer({ noServer: true });
 
-  // Handle upgrade requests
   server.on('upgrade', (request, socket, head) => {
     const url = new URL(request.url || '', `http://localhost:${PORT}`);
     
-    // Only handle /terminal path
     if (url.pathname === '/terminal' || request.url?.startsWith('/terminal')) {
       wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit('connection', ws, request);
@@ -32,10 +63,10 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
     }
   });
 
-  // Handle connections
   wss.on('connection', async (ws: WebSocket, request: http.IncomingMessage) => {
     const url = new URL(request.url || '', `http://localhost:${PORT}`);
     const containerId = url.searchParams.get('containerId');
+    const sessionId = url.searchParams.get('sessionId') || 'default';
     const initialCols = parseInt(url.searchParams.get('cols') || '80', 10);
     const initialRows = parseInt(url.searchParams.get('rows') || '24', 10);
 
@@ -44,15 +75,70 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
       return;
     }
 
-    console.log(`🔌 Terminal connected to container: ${containerId}`);
+    const sessionKey = `${containerId}-${sessionId}`;
+    console.log(`🔌 Terminal connected: ${sessionKey}`);
 
     let execStream: any = null;
-    const connectionKey = `${containerId}-${Date.now()}`;
+    let exec: Dockerode.Exec | null = null;
 
     try {
+      const existing = sessions.get(sessionKey);
+      if (existing) {
+        console.log(`♻️  Reattaching to existing session: ${sessionKey}`);
+        clearTimeout(existing.graceTimer as ReturnType<typeof setTimeout>);
+        existing.graceTimer = null;
+
+        detachWs(existing.ws, existing.execStream);
+        if (existing.ws?.readyState === WebSocket.OPEN || existing.ws?.readyState === WebSocket.CONNECTING) {
+          existing.ws.close();
+        }
+
+        execStream = existing.execStream;
+        existing.ws = ws;
+        attachWs(ws, execStream, (dims) => existing.exec.resize(dims).catch(() => {}));
+
+        try {
+          await existing.exec.resize({ h: initialRows, w: initialCols });
+        } catch {}
+
+        ws.send('\x1b[1;33m🔗 Reconnected to existing terminal session\x1b[0m\r\n');
+        existing.execStream.write('\x1b[1;32m$ \x1b[0m');
+
+        ws.on('close', () => {
+          console.log(`🔌 WebSocket disconnected (session kept alive): ${sessionKey}`);
+          detachWs(existing.ws, existing.execStream);
+          existing.ws = null;
+          existing.graceTimer = setTimeout(() => {
+            console.log(`⏰ Session grace period expired, cleaning up: ${sessionKey}`);
+            try {
+              if (existing.execStream?.writable) {
+                existing.execStream.write('exit\r\n');
+              }
+              setTimeout(() => {
+                try { existing.execStream?.destroy(); } catch {}
+              }, 500);
+            } catch {}
+            sessions.delete(sessionKey);
+          }, SESSION_GRACE_MS);
+        });
+
+        const cleanupExec = () => {
+          clearTimeout(existing.graceTimer as ReturnType<typeof setTimeout>);
+          try { execStream?.destroy(); } catch {}
+          if (ws.readyState === WebSocket.OPEN) ws.close();
+          sessions.delete(sessionKey);
+        };
+        execStream.on('end', cleanupExec);
+        execStream.on('error', (err: Error) => {
+          console.error('Exec stream error:', err);
+          cleanupExec();
+        });
+
+        return;
+      }
+
       const container = docker.getContainer(containerId);
 
-      // Verify container exists & is running
       const info = await container.inspect();
       if (info.State.Status !== 'running') {
         ws.send('\x1b[31m⚠️ Container is not running.\x1b[0m\r\n');
@@ -60,8 +146,7 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
         return;
       }
 
-      // Create interactive shell
-      const exec = await container.exec({
+      exec = await container.exec({
         Cmd: ['/bin/sh'],
         AttachStdin: true,
         AttachStdout: true,
@@ -75,69 +160,64 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
         Tty: true,
       });
 
-      // Set PTY dimensions immediately so interactive CLIs (e.g. shadcn init) get correct size
       await exec.resize({ h: initialRows, w: initialCols }).catch(() => {});
 
-      // Store connection for cleanup
-      activeConnections.set(connectionKey, {
-        ws,
-        containerId,
-        execStream,
-      });
-
-      // Send welcome message
       execStream.write('cd /workspace && clear\r\n');
       execStream.write('\x1b[1;32m$ \x1b[0m');
 
-      // Forward browser → container (handle resize messages separately)
-      ws.on('message', (data: Buffer) => {
-        try {
-          const msg = JSON.parse(data.toString());
-          if (msg.type === 'resize' && typeof msg.cols === 'number' && typeof msg.rows === 'number') {
-            exec.resize({ h: msg.rows, w: msg.cols }).catch(() => {});
-            return;
-          }
-        } catch { /* not JSON — treat as raw terminal input */ }
-        if (execStream?.writable) {
-          execStream.write(data);
-        }
-      });
+      const session: TerminalSession = {
+        ws,
+        containerId,
+        sessionId,
+        execStream,
+        exec,
+        graceTimer: null,
+      };
+      sessions.set(sessionKey, session);
 
-      // Forward container → browser
-      execStream.on('data', (chunk: Buffer) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(chunk);
-        }
-      });
+      attachWs(ws, execStream, (dims) => exec!.resize(dims).catch(() => {}));
 
-      // Cleanup function
-      const cleanup = () => {
-        activeConnections.delete(connectionKey);
+      const cleanupExisting = () => {
+        clearTimeout(session.graceTimer as ReturnType<typeof setTimeout>);
         try {
-          // Try graceful exit first
           if (execStream?.writable) {
             execStream.write('exit\r\n');
           }
-          // Give it a moment then force destroy
           setTimeout(() => {
-            try {
-              execStream?.destroy();
-            } catch { }
+            try { execStream?.destroy(); } catch {}
           }, 500);
-        } catch { }
+        } catch {}
         if (ws.readyState === WebSocket.OPEN) {
           ws.close();
         }
+        sessions.delete(sessionKey);
       };
 
-      ws.on('close', cleanup);
-      execStream.on('end', cleanup);
-      execStream.on('error', (err: Error) => {
-        console.error('Exec stream error:', err);
-        cleanup();
+      ws.on('close', () => {
+        console.log(`🔌 WebSocket disconnected (session kept alive): ${sessionKey}`);
+        detachWs(session.ws as WebSocket, session.execStream);
+        session.ws = null;
+        session.graceTimer = setTimeout(() => {
+          console.log(`⏰ Session grace period expired, cleaning up: ${sessionKey}`);
+          try {
+            if (session.execStream?.writable) {
+              session.execStream.write('exit\r\n');
+            }
+            setTimeout(() => {
+              try { session.execStream?.destroy(); } catch {}
+            }, 500);
+          } catch {}
+          sessions.delete(sessionKey);
+        }, SESSION_GRACE_MS);
       });
 
-      console.log(`✅ Terminal shell created for container: ${containerId}`);
+      execStream.on('end', cleanupExisting);
+      execStream.on('error', (err: Error) => {
+        console.error('Exec stream error:', err);
+        cleanupExisting();
+      });
+
+      console.log(`✅ Terminal shell created for: ${sessionKey}`);
 
     } catch (error: any) {
       console.error('Terminal setup failed:', error);
@@ -149,36 +229,34 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
   return wss;
 }
 
-// Graceful shutdown helper
 export function gracefulTerminalShutdown(wss: WebSocketServer, server: http.Server) {
   console.log('🛑 Shutting down Terminal WebSocket server...');
   
-  // Close all connections
-  activeConnections.forEach((conn, key) => {
+  sessions.forEach((session) => {
     try {
-      conn.execStream?.destroy();
-      conn.ws.close();
+      clearTimeout(session.graceTimer as ReturnType<typeof setTimeout>);
+      session.execStream?.destroy();
+      session.ws?.close();
     } catch { }
   });
-  activeConnections.clear();
+  sessions.clear();
 
   wss.close(() => {
     console.log('✅ Terminal WebSocket server closed');
   });
 }
 
-// Standalone mode (for development with pnpm ws:terminal)
 function gracefulShutdown(wss: WebSocketServer, server: http.Server) {
   console.log('🛑 Shutting down WebSocket server...');
   
-  // Close all connections
-  activeConnections.forEach((conn, key) => {
+  sessions.forEach((session) => {
     try {
-      conn.execStream?.destroy();
-      conn.ws.close();
+      clearTimeout(session.graceTimer as ReturnType<typeof setTimeout>);
+      session.execStream?.destroy();
+      session.ws?.close();
     } catch { }
   });
-  activeConnections.clear();
+  sessions.clear();
 
   wss.close(() => {
     server.close(() => {
@@ -187,14 +265,12 @@ function gracefulShutdown(wss: WebSocketServer, server: http.Server) {
     });
   });
 
-  // Force exit after 10 seconds
   setTimeout(() => {
     console.error('Forced exit after timeout');
     process.exit(1);
   }, 10000);
 }
 
-// Main function for standalone terminal server (development)
 async function main() {
   const server = http.createServer();
   const wss = createTerminalWSServer(server);
@@ -205,13 +281,11 @@ async function main() {
     console.log(`   Press Ctrl+C to stop`);
   });
 
-  // Handle errors
   server.on('error', (err) => {
     console.error('Server error:', err);
     process.exit(1);
   });
 
-  // Graceful shutdown
   process.on('SIGINT', () => gracefulShutdown(wss, server));
   process.on('SIGTERM', () => gracefulShutdown(wss, server));
 }

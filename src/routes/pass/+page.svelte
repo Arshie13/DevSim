@@ -68,14 +68,14 @@
     return lastClaimDate !== today;
   }
 
-  function handleClaim(dayNumber: number = enrollment?.currentDay || 1) {
+  function handleClaim(dayNumber: number = enrollment?.currentDay || 1, claimType: 'FREE' | 'PREMIUM' = 'FREE') {
     if (isClaiming) return;
     isClaiming = true;
 
     fetch("/api/user/learner-pass/claim", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dayNumber }),
+      body: JSON.stringify({ dayNumber, claimType }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -93,10 +93,11 @@
               streak: data.streak,
               totalClaimedDays: data.totalClaimedDays,
               status: data.status,
+              lastClaimedAt: new Date().toISOString(),
             };
+            nextAvailableAt = data.nextAvailableAt;
+            startTimer();
           }
-          nextAvailableAt = data.nextAvailableAt;
-          startTimer();
         }
       })
       .catch(console.error)
@@ -193,7 +194,7 @@
           <div class="mt-6 bg-obsidian-bg/40 rounded-full h-2 overflow-hidden border border-cyan-500/10">
             <div
               class="h-full bg-gradient-to-r from-cyber-cyan to-blue-600 transition-all duration-500"
-              style="width: {(enrollment.currentDay / 30) * 100}%"
+              style="width: {(enrollment.totalClaimedDays / 30) * 100}%"
             ></div>
           </div>
         </div>
@@ -258,7 +259,7 @@
                   </span>
                 {:else if isClaimable(reward, 'FREE')}
                   <button
-                    on:click={() => handleClaim(reward.level)}
+                    on:click={() => handleClaim(reward.level, 'FREE')}
                     disabled={isClaiming}
                     class="text-[0.65rem] px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
@@ -286,9 +287,13 @@
                     <Check class="w-3 h-3 text-green-400" />
                   </div>
                   <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
+                {:else if isWaitingForNext && enrollment && reward.level === currentLevel}
+                  <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
+                    {timeUntilNext}
+                  </span>
                 {:else if enrollment && isClaimable(reward, 'PREMIUM')}
                   <button
-                    on:click={() => handleClaim(reward.level)}
+                    on:click={() => handleClaim(reward.level, 'PREMIUM')}
                     disabled={isClaiming}
                     class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
@@ -301,10 +306,6 @@
                   <div class="text-lg opacity-50">
                     <Lock class="w-3 h-3" />
                   </div>
-                {:else if isWaitingForNext && enrollment && reward.level === currentLevel}
-                  <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
-                    {timeUntilNext}
-                  </span>
                 {:else}
                   <button
                     on:click={handleUpgradeMembership}

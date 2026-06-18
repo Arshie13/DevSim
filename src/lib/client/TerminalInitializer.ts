@@ -27,16 +27,18 @@ export class TerminalInitializer {
   private fitAddon: FitAddon | null = null;
   private socket: WebSocket | null = null;
   private containerId: string = "";
+  private sessionId: string = "default";
   private dataListenerRegistered: boolean = false;
   private commandBuffer: string = "";
   private outputBuffer: string = "";
   private pendingCommandForCompletion: string | null = null;
   private waitingForFreshPrompt: boolean = false;
 
-  async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string) {
+  async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string, sessionId?: string) {
     if (typeof window === "undefined") return;
 
     this.containerId = containerId;
+    if (sessionId) this.sessionId = sessionId;
 
     try {
       const xtermPkg = await import("@xterm/xterm");
@@ -99,7 +101,7 @@ export class TerminalInitializer {
   private connectSocket() {
     const cols = this.terminal?.cols ?? 80;
     const rows = this.terminal?.rows ?? 24;
-    const wsUrl = `${getTerminalWsUrl(this.containerId)}&cols=${cols}&rows=${rows}`;
+    const wsUrl = `${getTerminalWsUrl(this.containerId)}&sessionId=${encodeURIComponent(this.sessionId)}&cols=${cols}&rows=${rows}`;
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
@@ -242,5 +244,6 @@ export class TerminalInitializer {
     this.outputBuffer = "";
     this.pendingCommandForCompletion = null;
     this.waitingForFreshPrompt = false;
+    this.sessionId = "default";
   }
 }

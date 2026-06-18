@@ -50,19 +50,26 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
       );
     }
 
-    // --- Stop and remove the Docker container ---
-    const container = docker.getContainer(record.container_id);
-    try {
-      await container.stop({ t: 5 });
-    } catch {
-      /* container may already be stopped */
-    }
-    await container.remove();
+    // --- Background cleanup: Docker stop/remove can be slow (5-10s).
+    //     Chromium browsers fail slow localhost HTTPS requests with
+    //     ERR_NETWORK_CHANGED. Respond immediately, clean up in background.
+    const containerId = record.container_id;
+    const isTutorial = record.status === 'tutorial';
+    const recordId = record.id;
 
-    // Tutorial instances are disposable: remove DB record after Docker cleanup.
-    if (record.status === 'tutorial') {
-      await prisma.workspace.delete({ where: { id: record.id } });
-    }
+    const bgCleanup = async () => {
+      try {
+        const container = docker.getContainer(containerId);
+        try { await container.stop({ t: 5 }); } catch { /* already stopped */ }
+        await container.remove();
+        if (isTutorial) {
+          await prisma.workspace.delete({ where: { id: recordId } });
+        }
+      } catch (err) {
+        console.error('Background destroy error:', err);
+      }
+    };
+    bgCleanup();
 
     return json({ success: true });
   } catch (err) {
@@ -70,3 +77,4 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     return json({ success: false, error: String(err) }, { status: 500 });
   }
 };
+

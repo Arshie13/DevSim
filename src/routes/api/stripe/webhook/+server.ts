@@ -33,34 +33,32 @@ export const POST: RequestHandler = async (event) => {
 
     if (metadata?.product === "learner_pass_30d" && metadata?.userId) {
       try {
-        const existingEnrollment = await prisma.learner_pass_enrollment.findFirst({
-          where: { payment_id: paymentIntent.id },
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        await prisma.learner_pass_enrollment.create({
+          data: {
+            user_id: metadata.userId,
+            status: "ACTIVE",
+            started_at: now,
+            expires_at: expiresAt,
+            current_day: 1,
+            streak: 0,
+            total_claimed_days: 0,
+            payment_id: paymentIntent.id,
+            payment_provider: "stripe",
+          },
         });
 
-        if (existingEnrollment) {
+        console.log(`Learner pass activated for user ${metadata.userId}`);
+      } catch (err) {
+        // P2002 = unique constraint violation — duplicate, safe to ignore
+        if ((err as any)?.code === "P2002") {
           console.log(`Enrollment already exists for payment ${paymentIntent.id}`);
         } else {
-          const now = new Date();
-          const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-          await prisma.learner_pass_enrollment.create({
-            data: {
-              user_id: metadata.userId,
-              status: "ACTIVE",
-              started_at: now,
-              expires_at: expiresAt,
-              current_day: 1,
-              streak: 0,
-              total_claimed_days: 0,
-              payment_id: paymentIntent.id,
-              payment_provider: "stripe",
-            },
-          });
-
-          console.log(`Learner pass activated for user ${metadata.userId}`);
+          console.error("Failed to activate learner pass:", err);
+          return json({ error: "Failed to activate learner pass" }, { status: 500 });
         }
-      } catch (err) {
-        console.error("Failed to activate learner pass:", err);
       }
     }
   }

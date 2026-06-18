@@ -209,19 +209,24 @@ export class ScoringService {
   }
 
   private async fetchFileContents(containerId: string, filePaths: string[]): Promise<Record<string, string>> {
-    const contents: Record<string, string> = {};
-
-    for (const filePath of filePaths) {
-      try {
-        const result = await this.containerService.readFile(containerId, filePath);
-        if (result?.content) {
-          contents[filePath] = result.content;
+    const results = await Promise.all(
+      filePaths.map(async (filePath) => {
+        try {
+          const result = await this.containerService.readFile(containerId, filePath);
+          if (result?.content) {
+            return { path: filePath, content: result.content };
+          }
+        } catch (e) {
+          console.log('[ScoringService] Error reading file:', filePath, e);
         }
-      } catch (e) {
-        console.log('[ScoringService] Error reading file:', filePath, e);
-      }
-    }
+        return null;
+      })
+    );
 
+    const contents: Record<string, string> = {};
+    for (const r of results) {
+      if (r) contents[r.path] = r.content;
+    }
     return contents;
   }
 

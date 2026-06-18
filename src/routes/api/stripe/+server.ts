@@ -62,14 +62,15 @@ export const PUT: RequestHandler = async (event) => {
     const metadata = paymentIntent.metadata as { product?: string; userId?: string };
 
     if (metadata?.product === "learner_pass_30d" && metadata?.userId === session.user.id) {
-      const existingEnrollment = await prisma.learner_pass_enrollment.findFirst({
+      // Try webhook-created enrollment first.
+      const existing = await prisma.learner_pass_enrollment.findFirst({
         where: { payment_id: paymentIntentId },
       });
+      if (existing) return json({ success: true, enrollment: existing });
 
-      if (existingEnrollment) {
-        return json({ success: true, enrollment: existingEnrollment });
-      }
-
+      // Fallback: create enrollment directly.
+      // Unique constraint on payment_id prevents double-claim if webhook
+      // fires concurrently.
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 

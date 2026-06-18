@@ -63,6 +63,10 @@ async function main() {
   await prisma.achievement_tier.deleteMany();
   await prisma.user_achievement.deleteMany();
   await prisma.achievement.deleteMany();
+  await prisma.learner_pass_day_claim.deleteMany();
+  await prisma.learner_pass_enrollment.deleteMany();
+  await prisma.learner_pass_reward.deleteMany();
+  await prisma.user_project_access.deleteMany();
 
   console.log("🗑️  Cleared existing data\n");
 
@@ -357,12 +361,55 @@ async function main() {
     );
   }
 
+  // Insert learner pass rewards
+  console.log("\n🎁 Creating learner pass rewards...\n");
+
+  const learnerPassRewards: { day_number: number; coins_reward: number; xp_reward: number; unlock_project_ids: string[] }[] = [
+    { day_number: 1, coins_reward: 100, xp_reward: 50, unlock_project_ids: [] },
+    { day_number: 2, coins_reward: 400, xp_reward: 80, unlock_project_ids: [] },
+    { day_number: 3, coins_reward: 50, xp_reward: 100, unlock_project_ids: [] },
+    { day_number: 4, coins_reward: 200, xp_reward: 70, unlock_project_ids: [] },
+    { day_number: 5, coins_reward: 500, xp_reward: 90, unlock_project_ids: [] },
+    { day_number: 6, coins_reward: 300, xp_reward: 120, unlock_project_ids: [] },
+    { day_number: 7, coins_reward: 80, xp_reward: 150, unlock_project_ids: [] },
+    { day_number: 8, coins_reward: 350, xp_reward: 100, unlock_project_ids: [] },
+    { day_number: 9, coins_reward: 750, xp_reward: 110, unlock_project_ids: [] },
+    { day_number: 10, coins_reward: 200, xp_reward: 130, unlock_project_ids: [] },
+    { day_number: 11, coins_reward: 450, xp_reward: 80, unlock_project_ids: [] },
+    { day_number: 12, coins_reward: 1000, xp_reward: 100, unlock_project_ids: [] },
+    { day_number: 13, coins_reward: 500, xp_reward: 120, unlock_project_ids: [] },
+    { day_number: 14, coins_reward: 100, xp_reward: 160, unlock_project_ids: [] },
+    { day_number: 15, coins_reward: 150, xp_reward: 180, unlock_project_ids: [] },
+    { day_number: 16, coins_reward: 1500, xp_reward: 100, unlock_project_ids: [] },
+    { day_number: 17, coins_reward: 200, xp_reward: 200, unlock_project_ids: [] },
+    { day_number: 18, coins_reward: 700, xp_reward: 150, unlock_project_ids: [] },
+    { day_number: 19, coins_reward: 1800, xp_reward: 120, unlock_project_ids: [] },
+    { day_number: 20, coins_reward: 300, xp_reward: 250, unlock_project_ids: [] },
+    { day_number: 21, coins_reward: 900, xp_reward: 180, unlock_project_ids: [] },
+    { day_number: 22, coins_reward: 250, xp_reward: 150, unlock_project_ids: [] },
+    { day_number: 23, coins_reward: 1000, xp_reward: 200, unlock_project_ids: [] },
+    { day_number: 24, coins_reward: 2200, xp_reward: 150, unlock_project_ids: [] },
+    { day_number: 25, coins_reward: 300, xp_reward: 200, unlock_project_ids: [] },
+    { day_number: 26, coins_reward: 1200, xp_reward: 220, unlock_project_ids: [] },
+    { day_number: 27, coins_reward: 2500, xp_reward: 200, unlock_project_ids: [] },
+    { day_number: 28, coins_reward: 1400, xp_reward: 250, unlock_project_ids: [] },
+    { day_number: 29, coins_reward: 350, xp_reward: 300, unlock_project_ids: [] },
+    { day_number: 30, coins_reward: 500, xp_reward: 400, unlock_project_ids: [] },
+  ];
+
+  for (const reward of learnerPassRewards) {
+    await prisma.learner_pass_reward.create({ data: reward });
+  }
+
+  console.log("✅ Created 30 learner pass rewards\n");
+
   console.log("\n🎉 Database seeded successfully!\n");
 
   // Summary
   console.log("📊 Summary:");
   console.log(`   Levels: ${levels.length}`);
   console.log(`   Scenarios: ${scenarios.length}`);
+  console.log(`   Learner Pass Rewards: ${learnerPassRewards.length}`);
   console.log("\n📋 Difficulty breakdown:");
   const difficultyCount = scenarios.reduce(
     (acc, s) => {
