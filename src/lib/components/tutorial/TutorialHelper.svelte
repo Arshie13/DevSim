@@ -309,6 +309,13 @@
     if (id?.startsWith("impacted-layer-") && !layerClicks.includes(id)) layerClicks = [...layerClicks, id];
   }
 
+  function handleReflectionInput(e: Event) {
+    const target = e.target as HTMLElement;
+    if (target?.getAttribute("data-tour") === "mastery-reflection-input") {
+      reflectionInteracted = true;
+    }
+  }
+
   function handleWindowResize() { if (browser && pointerReady) void positionPointerForStep(); }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -330,12 +337,14 @@
       ["devsim-tutorial-proceed-failed", () => { proceedLoading = false; }],
     ]);
     window.addEventListener("change", handleImpactedLayerChange, true);
+    window.addEventListener("input", handleReflectionInput, true);
   });
 
   onDestroy(() => {
     if (!browser) return;
     removeListeners?.();
     window.removeEventListener("change", handleImpactedLayerChange, true);
+    window.removeEventListener("input", handleReflectionInput, true);
     stopTerminalOutputPoll();
     window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
   });
