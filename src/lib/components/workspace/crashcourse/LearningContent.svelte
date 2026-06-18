@@ -16,43 +16,47 @@
   } from "$lib/components/workspace/crashcourse/lab/labValidation";
   import type { ILearningSection, ILearningTask } from "$lib/types";
 
-  export let open: boolean = false;
-  export let tasks: ILearningTask[] = [];
-  export let isCompleted: boolean = false;
-  export let containerId: string = "";
-  export let onClose: () => void = () => {};
-  export let onComplete: () => void = () => {};
+  let {
+    open = false,
+    tasks = [] as ILearningTask[],
+    isCompleted = false,
+    containerId = "",
+    onClose,
+    onComplete = () => {},
+  } = $props();
 
-  $: LAB_PROGRESS_STORAGE_KEY = containerId
-    ? `devsim-crashcourse-lab-progress-v1:${containerId}`
-    : "devsim-crashcourse-lab-progress-v1";
+  let LAB_PROGRESS_STORAGE_KEY = $derived(
+    containerId
+      ? `devsim-crashcourse-lab-progress-v1:${containerId}`
+      : "devsim-crashcourse-lab-progress-v1",
+  );
 
-  let taskIndex = 0;
-  let sectionIndex = 0;
-  let sectionFingerprint = "";
+  let taskIndex = $state(0);
+  let sectionIndex = $state(0);
+  let sectionFingerprint = $state("");
 
-  let typedMessage = "";
-  let typingIndex = 0;
+  let typedMessage = $state("");
+  let typingIndex = $state(0);
   let typingInterval: ReturnType<typeof setInterval> | null = null;
-  let completedTypedSections: Set<string> = new Set();
-  let interactiveFingerprint = "";
+  let completedTypedSections: Set<string> = $state(new Set());
+  let interactiveFingerprint = $state("");
 
-  let cdCurrentPath = "/";
-  let cdInput = "";
-  let cdHistory: string[] = [];
-  let terminalCommands: string[] = [];
-  let terminalFeedback = "";
-  let terminalPracticePassed = false;
+  let cdCurrentPath = $state("/");
+  let cdInput = $state("");
+  let cdHistory: string[] = $state([]);
+  let terminalCommands: string[] = $state([]);
+  let terminalFeedback = $state("");
+  let terminalPracticePassed = $state(false);
 
-  let interactiveCode = "";
-  let codeFeedback = "";
-  let codePracticePassed = false;
-  let isLabModalOpen = false;
-  let isLabCongratsOpen = false;
-  let labCongratsMessage = "";
-  let sectionLockFeedback = "";
-  let completedInteractiveSections: Set<string> = new Set();
-  let hasLoadedLabProgress = false;
+  let interactiveCode = $state("");
+  let codeFeedback = $state("");
+  let codePracticePassed = $state(false);
+  let isLabModalOpen = $state(false);
+  let isLabCongratsOpen = $state(false);
+  let labCongratsMessage = $state("");
+  let sectionLockFeedback = $state("");
+  let completedInteractiveSections: Set<string> = $state(new Set());
+  let hasLoadedLabProgress = $state(false);
 
   function getSectionTypingKey(taskId: string, sectionId: string): string {
     return `${taskId}:${sectionId}`;
@@ -80,11 +84,13 @@
     }, 12);
   }
 
-  $: learningTasks = [...tasks]
-    .filter((task) => (task.learningSections?.length ?? 0) > 0)
-    .sort((a, b) => a.order - b.order);
+  let learningTasks = $derived(
+    [...tasks]
+      .filter((task) => (task.learningSections?.length ?? 0) > 0)
+      .sort((a, b) => a.order - b.order),
+  );
 
-  $: {
+  $effect(() => {
     const nextFingerprint = learningTasks
       .map((task) => `${task.id}:${task.learningSections.length}`)
       .join("|");
@@ -94,22 +100,25 @@
       sectionIndex = 0;
       completedTypedSections = new Set();
     }
-  }
+  });
 
-  $: if (open && taskIndex >= learningTasks.length) {
-    taskIndex = 0;
-  }
+  $effect(() => {
+    if (open && taskIndex >= learningTasks.length) {
+      taskIndex = 0;
+    }
+  });
 
-  $: activeTask = learningTasks[taskIndex] ?? null;
-  $: activeSections = activeTask?.learningSections ?? [];
+  let activeTask = $derived(learningTasks[taskIndex] ?? null);
+  let activeSections = $derived(activeTask?.learningSections ?? []);
 
-  $: if (sectionIndex >= activeSections.length) {
-    sectionIndex = 0;
-  }
+  $effect(() => {
+    if (sectionIndex >= activeSections.length) {
+      sectionIndex = 0;
+    }
+  });
 
-  $: activeSection =
-    activeSections[sectionIndex] ??
-    {
+  let activeSection = $derived(
+    activeSections[sectionIndex] ?? {
       id: "fallback",
       title: "Overview",
       content: "No content available.",
@@ -118,11 +127,16 @@
       sectionType: "PLAIN_TEXT",
       interactiveMode: null,
       interactiveConfig: null,
-    };
+    },
+  );
 
-  $: activeSectionTypingKey = getSectionTypingKey(activeSection.taskId, activeSection.id);
-  $: isInteractiveSection = activeSection.sectionType === "INTERACTIVE";
-  $: activeInteractivePassed = completedInteractiveSections.has(activeSectionTypingKey);
+  let activeSectionTypingKey = $derived(
+    getSectionTypingKey(activeSection.taskId, activeSection.id),
+  );
+  let isInteractiveSection = $derived(activeSection.sectionType === "INTERACTIVE");
+  let activeInteractivePassed = $derived(
+    completedInteractiveSections.has(activeSectionTypingKey),
+  );
 
   function loadLabProgress(): Set<string> {
     if (!browser) return new Set();
@@ -350,46 +364,55 @@
     );
   }
 
-  $: {
+  let _loadedForContainer = $state("");
+
+  $effect(() => {
     const nextInteractiveFingerprint = `${activeSection.id}:${activeSection.interactiveMode ?? ""}`;
     if (isInteractiveSection && open && nextInteractiveFingerprint !== interactiveFingerprint) {
       interactiveFingerprint = nextInteractiveFingerprint;
       resetInteractiveState(activeSection);
     }
-  }
+  });
 
-  let _loadedForContainer = "";
-  $: if (browser && (containerId !== _loadedForContainer)) {
-    _loadedForContainer = containerId;
-    hasLoadedLabProgress = false;
-  }
-
-  $: if (browser && !hasLoadedLabProgress) {
-    completedInteractiveSections = loadLabProgress();
-    hasLoadedLabProgress = true;
-  }
-
-  $: if (browser && hasLoadedLabProgress) {
-    persistLabProgress(completedInteractiveSections);
-  }
-
-  $: if (open) {
-    if (isInteractiveSection) {
-      clearTyping();
-      typedMessage = activeSection.content;
-    } else if (isCompleted) {
-      clearTyping();
-      typedMessage = activeSection.content;
-    } else if (completedTypedSections.has(activeSectionTypingKey)) {
-      clearTyping();
-      typedMessage = activeSection.content;
-    } else {
-      startTyping(activeSection.content, activeSectionTypingKey);
+  $effect(() => {
+    if (browser && containerId !== _loadedForContainer) {
+      _loadedForContainer = containerId;
+      hasLoadedLabProgress = false;
     }
-  } else {
-    clearTyping();
-    typedMessage = "";
-  }
+  });
+
+  $effect(() => {
+    if (browser && !hasLoadedLabProgress) {
+      completedInteractiveSections = loadLabProgress();
+      hasLoadedLabProgress = true;
+    }
+  });
+
+  $effect(() => {
+    if (browser && hasLoadedLabProgress) {
+      persistLabProgress(completedInteractiveSections);
+    }
+  });
+
+  $effect(() => {
+    if (open) {
+      if (isInteractiveSection) {
+        clearTyping();
+        typedMessage = activeSection.content;
+      } else if (isCompleted) {
+        clearTyping();
+        typedMessage = activeSection.content;
+      } else if (completedTypedSections.has(activeSectionTypingKey)) {
+        clearTyping();
+        typedMessage = activeSection.content;
+      } else {
+        startTyping(activeSection.content, activeSectionTypingKey);
+      }
+    } else {
+      clearTyping();
+      typedMessage = "";
+    }
+  });
 
   onDestroy(() => {
     clearTyping();
@@ -487,17 +510,17 @@
           <button
             type="button"
             class="nav-btn"
-            on:click={goBackSection}
+            onclick={goBackSection}
             disabled={taskIndex === 0 && sectionIndex === 0}
           >
             <ChevronLeft size={14} strokeWidth={2.1} aria-hidden="true" />
             <span>Back</span>
           </button>
-          <button type="button" class="nav-btn" on:click={closeCourse}>
+          <button type="button" class="nav-btn" onclick={closeCourse}>
             <X size={14} strokeWidth={2.1} aria-hidden="true" />
             <span>Close</span>
           </button>
-          <button type="button" class="nav-btn primary" on:click={goNextSection}>
+          <button type="button" class="nav-btn primary" onclick={goNextSection}>
             {#if taskIndex === learningTasks.length - 1 && sectionIndex === activeSections.length - 1}
               <CheckCircle2 size={14} strokeWidth={2.1} aria-hidden="true" />
               <span>{isCompleted ? "Close Finished Crash Course" : "Mark Crash Course Done"}</span>

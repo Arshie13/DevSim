@@ -14,6 +14,7 @@ export const POST: RequestHandler = async (event) => {
   const userId = session.user.id;
   const body = await event.request.json().catch(() => null);
   const dayNumber = body?.dayNumber;
+  const clientClaimType: string | undefined = body?.claimType;
 
   if (typeof dayNumber !== 'number' || dayNumber < 1 || dayNumber > 30) {
     throw error(400, 'Invalid day number');
@@ -35,7 +36,8 @@ export const POST: RequestHandler = async (event) => {
         throw error(500, 'Reward not configured');
       }
 
-      const claimType = enrollment ? 'PREMIUM' : 'FREE';
+      // Client sends which track; fallback for backward compat
+      const claimType = clientClaimType === 'FREE' ? 'FREE' : (enrollment ? 'PREMIUM' : 'FREE');
 
       // Check if user already claimed this specific type for this day
       const existingClaim = await tx.learner_pass_day_claim.findFirst({
@@ -52,14 +54,14 @@ export const POST: RequestHandler = async (event) => {
 
       const now = new Date();
 
-      // If user has no enrollment, allow free reward claim
-      if (!enrollment) {
+      // --- FREE claim path (no enrollment, or free track while enrolled) ---
+      if (claimType === 'FREE') {
         const claim = await tx.learner_pass_day_claim.create({
           data: {
             user_id: userId,
             day_number: dayNumber,
             claimed_at: now,
-            enrollment_id: null,
+            enrollment_id: enrollment?.id ?? null,
             claim_type: 'FREE',
           },
         });
@@ -82,7 +84,11 @@ export const POST: RequestHandler = async (event) => {
         };
       }
 
-      // User has enrollment - check pass status
+      // --- PREMIUM claim path (requires active enrollment) ---
+      if (!enrollment) {
+        throw error(400, 'No active learner pass');
+      }
+
       if (enrollment.expires_at && now > enrollment.expires_at) {
         await tx.learner_pass_enrollment.update({
           where: { id: enrollment.id },

@@ -444,7 +444,7 @@ model learner_pass_enrollment {
   streak          Int      @default(0)
   last_claimed_at DateTime?
   total_claimed_days Int   @default(0)
-  payment_id      String?
+  payment_id      String?  @unique
   payment_provider String  @default("stripe")
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
