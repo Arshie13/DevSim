@@ -63,6 +63,7 @@
 
 {#if open}
   <div
+    data-tour="test-selection-modal"
     class="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-4 backdrop-blur-[6px]"
     role="dialog"
     aria-modal="true"
@@ -168,6 +169,7 @@
                 </div>
                 {#if hasTest}
                   <button
+                    data-tour={task.order === 1 || idx === 0 ? 'test-task-one-run-button' : task.order === 2 || idx === 1 ? 'test-task-two-run-button' : undefined}
                     class="flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(7,165,201,0.08)] p-0 text-[var(--accent)] transition-all duration-150 ease-in-out hover:-translate-y-[1px] hover:border-[rgba(7,165,201,0.35)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_14px_var(--accent-glow)] disabled:cursor-not-allowed disabled:opacity-50"
                     on:click={() => runSingleTask(task)}
                     disabled={loading || isRunning}

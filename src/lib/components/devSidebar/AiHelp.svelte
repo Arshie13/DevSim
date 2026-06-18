@@ -415,11 +415,6 @@
       // Generate context (now async to fetch file contents)
       const context = await generateContext();
       
-      // Clear attached files after generating context
-      // attachedFiles = [];
-
-      console.log("files count: ", filesCount);
-      
       const response = await fetch("/api/ai/hint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -498,8 +493,6 @@
     try {
       // Build context from current state
       const context = await generateContext();
-
-      console.log("context from generateContext:", context);
       
       // Clear attached files after requesting hint
       attachedFiles = [];

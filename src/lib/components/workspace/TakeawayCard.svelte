@@ -13,7 +13,6 @@
   export let currentIndex: number = 0;
   export let displayedText: string = '';
   export let isTyping = false;
-  export let cardHeight: number = 0;
   export let onPrev: () => void = () => {};
   export let onNext: () => void = () => {};
   export let onClose: () => void = () => {};

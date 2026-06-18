@@ -1,14 +1,18 @@
 <script lang="ts">
-  import { Code, Coins, ChartBar } from "lucide-svelte";
+  import { Code, Coins, ChartBar, Plus } from "lucide-svelte";
   import type { UserData } from "$types";
   import { goto } from "$app/navigation";
   import ProfileDropDown from "$components/ProfileDropDown.svelte";
 
-  export let userData: UserData;
+  export let userData: Partial<UserData>;
   export let onOpenStats: (() => void) | undefined = undefined;
 
   function navigateToDashboard() {
     goto("/dashboard");
+  }
+
+  function navigateToMarketplace() {
+    goto("/marketplace/coins");
   }
 
   function handleStatsClick() {
@@ -16,11 +20,9 @@
       onOpenStats();
     }
   }
-
-
 </script>
 
-<header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50">
+<header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50" data-tour="dashboard-header">
   <div class="w-full max-w-[1200px] px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between mx-auto">
     <!-- Logo -->
     <div class="flex items-center gap-3">
@@ -54,17 +56,26 @@
       {/if}
       
       <!-- Coins -->
-      <div class="flex items-center gap-2 bg-obsidian-surface/80 border border-cyber-warn/30 px-4 py-2 rounded-card shadow-[0_0_12px_rgba(255,180,0,0.1)]">
-        <Coins class="w-4 h-4 text-cyber-warn" />
-        <span class="font-orbitron font-semibold text-cyber-warn text-sm">{userData.coins.toLocaleString()}</span>
-      </div>
+      <button 
+        on:click={navigateToMarketplace}
+        class="flex items-center gap-2 bg-obsidian-surface/80 border border-cyber-warn/30 px-4 py-2 rounded-card shadow-[0_0_12px_rgba(255,180,0,0.1)] hover:bg-cyber-warn/10 transition-all duration-300 group"
+      >
+        <Coins class="w-4 h-4 text-cyber-warn group-hover:scale-110 transition-transform" />
+        <span class="font-orbitron font-semibold text-cyber-warn text-sm">{userData.coins?.toLocaleString()}</span>
+        <span
+          class="w-4 h-4 rounded-full bg-cyber-warn/15 border border-cyber-warn/40 flex items-center justify-center text-cyber-warn group-hover:bg-cyber-warn group-hover:text-obsidian-bg transition-colors"
+          aria-hidden="true"
+        >
+          <Plus class="w-3 h-3" />
+        </span>
+      </button>
       
       <!-- User Avatar -->
       <div class="flex items-center gap-3">
-        <div class="text-right hidden sm:block">
-          <p class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{userData.fullName}</p>
-          <p class="text-xs font-mono text-obsidian-text-primary/50 uppercase tracking-wider">Developer</p>
-        </div>
+         <div class="text-right hidden sm:block">
+           <p class="text-sm font-orbitron font-semibold text-obsidian-text-muted">{userData.name}</p>
+           <p class="text-xs font-mono text-obsidian-text-primary/50 uppercase tracking-wider">Developer</p>
+         </div>
         <ProfileDropDown {userData} />
       </div>
     </div>

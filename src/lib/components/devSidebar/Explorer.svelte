@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { tick } from "svelte";
+  import { onDestroy, onMount, tick } from "svelte";
   import {
     ChevronRight,
     ChevronDown,
@@ -33,6 +33,7 @@
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
 
   let expandedFolders: Set<string> = new Set();
+  let hasInitializedRootFolder = false;
 
   // Build tree from flat file paths
   function buildFileTree(paths: string[], dirs: string[]): TreeNode {
@@ -112,10 +113,30 @@
   // Reactive tree
   $: treeRoot = buildFileTree(fileTree, directories);
 
-  // Expand root by default when tree changes
-  $: if (treeRoot && !expandedFolders.has("")) {
+  // Expand root once on first load; allow tutorial to collapse it later.
+  $: if (treeRoot && !hasInitializedRootFolder) {
     expandedFolders = new Set([""]);
+    hasInitializedRootFolder = true;
   }
+
+  function collapseRootFolder() {
+    expandedFolders = new Set(expandedFolders);
+    expandedFolders.delete("");
+  }
+
+  function handleTourCollapseRootFolder() {
+    collapseRootFolder();
+  }
+
+  onMount(() => {
+    if (typeof window === 'undefined') return;
+    window.addEventListener('devsim-tour-collapse-root-folder', handleTourCollapseRootFolder as EventListener);
+  });
+
+  onDestroy(() => {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('devsim-tour-collapse-root-folder', handleTourCollapseRootFolder as EventListener);
+  });
 
   function toggleFolder(path: string) {
     expandedFolders = new Set(expandedFolders);
@@ -408,9 +429,11 @@
           {@render renderTree(node.children, depth + 1)}
         {/if}
       {:else}
+        {@const isReadmeFile = /^readme(\..+)?$/i.test(node.name)}
         <button
           on:click={() => handleSelectFile(node.path)}
           on:contextmenu={(e) => handleContextMenu(e, node)}
+          data-tour={isReadmeFile ? 'tutorial-readme-file' : undefined}
           class="w-full text-left py-1 pr-2 flex items-center gap-1 text-[13px] transition-all {selectedFile === node.path
             ? 'bg-[#07a5c9]/15 text-white'
             : 'hover:bg-[#2d3446]/40 text-[#d0d7dd]/80'}"
@@ -427,6 +450,7 @@
   <button
     on:click={() => toggleFolder('')}
     on:contextmenu={(e) => handleContextMenu(e, treeRoot)}
+    data-tour="tutorial-workspace-root-toggle"
     class="w-full text-left py-1.5 px-2 flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#d0d7dd]/70 hover:bg-[#2d3446]/40 transition-all"
   >
     {#if expandedFolders.has('')}
@@ -434,7 +458,7 @@
     {:else}
       <ChevronRight class="w-3.5 h-3.5 flex-shrink-0" />
     {/if}
-    <span class="truncate">{projectName}</span>
+    <span class="truncate" data-tour="tutorial-workspace-root-label">{projectName}</span>
   </button>
   {#if expandedFolders.has('')}
     {@render renderTree(treeRoot.children, 1)}

@@ -1,6 +1,7 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
+import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
 
 /**
  * GET /api/user/onboarding
@@ -16,19 +17,19 @@ export const GET: RequestHandler = async (event) => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { hasCompletedOnboarding: true },
+    select: { has_completed_tutorial: true },
   });
 
   if (!user) {
     throw error(404, "User not found");
   }
 
-  return json({ completed: user.hasCompletedOnboarding });
+  return json({ completed: user.has_completed_tutorial });
 };
 
 /**
  * POST /api/user/onboarding
- * Marks the onboarding as completed for the authenticated user.
+ * Marks the tutorial as completed for the authenticated user.
  * Idempotent — safe to call multiple times.
  */
 export const POST: RequestHandler = async (event) => {
@@ -40,8 +41,12 @@ export const POST: RequestHandler = async (event) => {
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { hasCompletedOnboarding: true },
+    data: { has_completed_tutorial: true },
   });
 
-  return json({ success: true });
+  // Finishing the tutorial satisfies the "First Boot" achievement. Detect it
+  // here so the client can toast it — this flow never triggers a page load.
+  const newlyUnlocked = await detectNewlyUnlockedAchievements(session.user.id);
+
+  return json({ success: true, newlyUnlocked });
 };

@@ -122,10 +122,11 @@ export const finishedStacks: FinishedStack[] = [
 ];
 
 export const weeklyStats = {
-  codingHours: [2.5, 3.2, 1.8, 4.1, 3.5, 2.2, 3.8],
+  counts: [2, 3, 1, 4, 3, 2, 3],
   days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  totalHours: 21.1,
-  avgPerDay: 3.0,
+  total: 18,
+  avgPerDay: 2.6,
+  growthLabel: "+12%",
 };
 
 export const recentActivity: ActivityItem[] = [

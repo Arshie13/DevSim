@@ -1,0 +1,22 @@
+export type TutorialStep = {
+  id: string;
+  title: string;
+  instruction: string;
+  hint: string;
+  target?: string;
+  spotlightTarget?: string;
+  targets?: string[];
+  requiredFileContains?: string;
+  switchTab?: 'editor' | 'terminal' | 'preview' | 'board';
+  boardSubTab?: 'scenario' | 'board';
+  lockBoardTaskModalToTaskOrder?: number;
+  command?: string;
+  requireCommand?: boolean;
+  waitForCompletion?: boolean;
+  waitForTerminalOutput?: string[];
+  preferSide?: 'auto' | 'top' | 'bottom' | 'left' | 'right';
+  action?: 'runTests' | 'submitSprint';
+  confirmLabel?: string;
+  requireTargetClick?: boolean;
+  copyText?: string;
+};

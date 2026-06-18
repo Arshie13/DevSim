@@ -31,6 +31,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, passed: false, summary: { total: 0, passed: 0, failed: 0, duration: 0 }, results: [], output: '', message: 'Container not found or not running' } as TestRunResponse, { status: 404 });
     }
 
+    if (containerInfo.mode === 'tutorial') {
+      return json(buildTutorialDemoPassResponse(body));
+    }
+
     const startTime = Date.now();
 
     // ── Level run ─────────────────────────────────────────────────────────────
@@ -38,11 +42,22 @@ export const POST: RequestHandler = async ({ params, request }) => {
       const levelConfig = getLevelConfig(level);
       const levelTaskIds = taskIds && taskIds.length > 0 ? taskIds : (levelConfig?.tasks.map((t) => t.taskId) ?? []);
 
-      const perTaskCommands = levelTaskIds.map((tid, idx) => {
+    const taskTestTypes = (body.taskTestTypes ?? []) as Array<{ taskId: string; testType: string; order: number }>;
+    const testTypeById = new Map(taskTestTypes.map(t => [t.taskId, t.testType]));
+
+    const perTaskCommands = levelTaskIds.map((tid, idx) => {
         const taskNumber = idx + 1;
-        let taskCmd = command.replace(/^test:tasks:/, `test:task:client:`).replace(/:l(\d+)$/, `:l$1:t${taskNumber}`);
-        if (taskCmd === command) taskCmd = `test:task:l${level}:t${taskNumber}`;
-        return buildNpmCommand(taskCmd, level, tid);
+        const testType = testTypeById.get(tid);
+        let prefix: string;
+        if (testType === 'client') {
+          prefix = 'test:task:client';
+        } else if (testType === 'server') {
+          prefix = 'test:task:server';
+        } else {
+          prefix = 'test:task';
+        }
+        const taskCmd = `${prefix}:l${level}:t${taskNumber}`;
+        return buildPnpmCommand(taskCmd, level, tid);
       });
 
       // Read ground-truth test names per task BEFORE running
@@ -108,8 +123,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     // ── Single-task run ───────────────────────────────────────────────────────
-    const npmCommand = buildNpmCommand(command, level, taskId);
-    console.log(`[TEST RUN] Executing: ${npmCommand}`);
+    const pnpmCommand = buildPnpmCommand(command, level, taskId);
+    console.log(`[TEST RUN] Executing: ${pnpmCommand}`);
 
     const taskNumMatch = command.match(/:t(\d+)$/);
     const singleTaskNum = taskNumMatch ? parseInt(taskNumMatch[1], 10) : 1;
@@ -117,7 +132,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     // Read ground-truth names BEFORE running
     const groundTruth = await readTestNamesFromContainer(containerId, level, singleTaskNum, command);
 
-    const { output, exitCode, error } = await executeTestInContainer(containerId, npmCommand);
+    const { output, exitCode, error } = await executeTestInContainer(containerId, pnpmCommand);
     const duration = Date.now() - startTime;
     console.log(`[TEST RUN] Completed in ${duration}ms with exit code: ${exitCode}`);
 
@@ -314,26 +329,96 @@ function isGroundTruthNameFailed(normalizedGroundTruthName: string, failedNames:
 // Docker helpers
 // ---------------------------------------------------------------------------
 
-async function getContainerInfo(containerId: string): Promise<{ id: string; state: string; projectFolder?: string } | null> {
+async function getContainerInfo(containerId: string): Promise<{ id: string; state: string; projectFolder?: string; mode?: string } | null> {
   try {
     const containerInfo = await docker.getContainer(containerId).inspect();
-    return { id: containerInfo.Id, state: containerInfo.State.Status, projectFolder: containerInfo.Config?.Labels?.['devsim.projectFolder'] };
+    return {
+      id: containerInfo.Id,
+      state: containerInfo.State.Status,
+      projectFolder: containerInfo.Config?.Labels?.['devsim.projectFolder'],
+      mode: containerInfo.Config?.Labels?.['devsim.mode']
+    };
   } catch { return null; }
 }
 
-function buildNpmCommand(command: string, level: number, taskId?: string): string {
+function buildTutorialDemoPassResponse(
+  body: TestRunRequest & { testType?: 'task' | 'level' }
+): TestRunResponse {
+  const type = body.type ?? body.testType;
+  const taskId = body.taskId;
+  const taskIds = body.taskIds ?? [];
+  const duration = 300;
+
+  if (type === 'task' && taskId) {
+    const results: TestResult[] = [
+      {
+        testId: `demo-${taskId}-1`,
+        testName: 'Tutorial demo check',
+        passed: true,
+        message: 'Passed (tutorial demo mode)'
+      }
+    ];
+
+    return {
+      success: true,
+      passed: true,
+      summary: { total: 1, passed: 1, failed: 0, duration },
+      results,
+      output: 'Tutorial demo mode: tests are forced to pass.',
+      taskResults: [
+        {
+          taskId,
+          taskName: `Task ${taskId}`,
+          passed: true,
+          results,
+          errors: []
+        }
+      ]
+    };
+  }
+
+  const safeTaskIds = taskIds.length > 0 ? taskIds : ['task-1'];
+  const taskResults: TaskTestResult[] = safeTaskIds.map((id, index) => ({
+    taskId: id,
+    taskName: `Task ${index + 1}`,
+    passed: true,
+    results: [
+      {
+        testId: `demo-${id}-1`,
+        testName: 'Tutorial demo check',
+        passed: true,
+        message: 'Passed (tutorial demo mode)'
+      }
+    ],
+    errors: []
+  }));
+
+  const allResults = taskResults.flatMap((tr) => tr.results);
+
+  return {
+    success: true,
+    passed: true,
+    summary: { total: allResults.length, passed: allResults.length, failed: 0, duration },
+    results: allResults,
+    output: 'Tutorial demo mode: tests are forced to pass.',
+    taskResults
+  };
+}
+
+function buildPnpmCommand(command: string, level: number, taskId?: string): string {
   const commandMap: Record<string, string> = {
-    [`test:task:client:l${level}:t1`]: `npm run test:task:client:l${level}:t1`,
-    [`test:task:client:l${level}:t2`]: `npm run test:task:client:l${level}:t2`,
-    [`test:task:server:l${level}:t1`]: `npm run test:task:server:l${level}:t1`,
-    [`test:task:server:l${level}:t2`]: `npm run test:task:server:l${level}:t2`,
-    [`test:task:l${level}:t1`]: `npm run test:task:l${level}:t1`,
-    [`test:task:l${level}:t2`]: `npm run test:task:l${level}:t2`,
-    [`test:tasks:l${level}`]: `npm run test:tasks:l${level}`
+    [`test:task:client:l${level}:t1`]: `pnpm run test:task:client:l${level}:t1`,
+    [`test:task:client:l${level}:t2`]: `pnpm run test:task:client:l${level}:t2`,
+    [`test:task:server:l${level}:t1`]: `pnpm run test:task:server:l${level}:t1`,
+    [`test:task:server:l${level}:t2`]: `pnpm run test:task:server:l${level}:t2`,
+    [`test:task:l${level}:t1`]: `pnpm run test:task:l${level}:t1`,
+    [`test:task:l${level}:t2`]: `pnpm run test:task:l${level}:t2`,
+    [`test:tasks:l${level}`]: `pnpm run test:tasks:l${level}`
   };
   if (commandMap[command]) return commandMap[command];
-  if (command.startsWith('npm ')) return command;
-  return `npm run ${command}`;
+  if (command.startsWith('pnpm ')) return command;
+  if (command.startsWith('npm ')) return command.replace('npm ', 'pnpm ');
+  return `pnpm run ${command}`;
 }
 
 async function executeTestInContainer(containerId: string, command: string): Promise<{ output: string; exitCode: number; error?: string }> {
@@ -374,11 +459,11 @@ async function bootstrapWorkspaceDependencies(containerId: string, workspaceDir:
   const wantsServer = command.includes(':server:') || command.includes('server');
   const steps: string[] = [
     `cd ${shellEscape(workspaceDir)}`,
-    'if [ -f package.json ]; then npm install --include=dev --no-audit --no-fund; fi',
-    'npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event --no-audit --no-fund'
+    'if [ -f package.json ]; then pnpm install; fi',
+    'pnpm add -D @testing-library/react @testing-library/jest-dom @testing-library/user-event'
   ];
-  if (wantsClient || (!wantsClient && !wantsServer)) steps.push('if [ -f client/package.json ]; then cd client && npm install --include=dev --no-audit --no-fund && cd ..; fi');
-  if (wantsServer || (!wantsClient && !wantsServer)) steps.push('if [ -f server/package.json ]; then cd server && npm install --include=dev --no-audit --no-fund && cd ..; fi');
+  if (wantsClient || (!wantsClient && !wantsServer)) steps.push('if [ -f client/package.json ]; then cd client && pnpm install && cd ..; fi');
+  if (wantsServer || (!wantsClient && !wantsServer)) steps.push('if [ -f server/package.json ]; then cd server && pnpm install && cd ..; fi');
   return runShellCommandInContainer(containerId, steps.join(' && '), 8 * 60 * 1000);
 }
 

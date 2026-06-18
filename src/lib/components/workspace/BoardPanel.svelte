@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff } from 'lucide-svelte';
+  import { FileText, LayoutDashboard, GripVertical, Lightbulb, LightbulbOff, Lock } from 'lucide-svelte';
   import TaskModal from '$lib/components/workspace/TaskModal.svelte';
   import { type ITask, type IHints } from '$lib/types';
   import { toast } from '$lib/stores/toast';
@@ -11,6 +11,8 @@
 
   export let tasks: BoardTask[] = [];
   export let onTaskStatusChange: (taskId: string, status: KanbanStatus) => void = () => {};
+  export let crashCourseLockedTasks: Record<string, boolean> = {};
+  export let onTaskClickBlocked: (taskId: string) => void = () => {};
 
   // ── Hints toggle state ─────────────────────────────────────────────────────
   let showHints = false;
@@ -20,6 +22,7 @@
   interface KanbanTask {
     id: string;
     text: string;
+    order: number;
     status: KanbanStatus;
     taskType: string;
     userStory: string;
@@ -42,6 +45,7 @@
     kanbanTasks = incoming.map((t) => ({
       id: t.id,
       text: t.taskName,
+      order: t.order,
       status: getInitialStatus(t),
       taskType: t.testType,
       userStory: ((t as ITask & { userStory?: string }).userStory ?? '').trim(),
@@ -56,6 +60,20 @@
         .map((h) => ({ id: h.id, content: (h as any).description ?? h.content, order: h.order }))
         .filter(Boolean),
     }));
+  }
+
+  function getBlockingTask(targetTask: KanbanTask): KanbanTask | null {
+    const ordered = [...kanbanTasks].sort((a, b) => a.order - b.order);
+    const targetIndex = ordered.findIndex((task) => task.id === targetTask.id);
+    if (targetIndex <= 0) return null;
+
+    for (let i = 0; i < targetIndex; i += 1) {
+      if (ordered[i].status !== 'done') {
+        return ordered[i];
+      }
+    }
+
+    return null;
   }
 
   $: {
@@ -84,6 +102,12 @@
   function openTaskDetails(taskId: string) {
     const task = kanbanTasks.find((t) => t.id === taskId);
     if (!task) return;
+    
+    if (crashCourseLockedTasks[taskId]) {
+      onTaskClickBlocked(taskId);
+      return;
+    }
+    
     selectedTask = task;
     taskModalOpen = true;
   }
@@ -154,9 +178,28 @@
       return;
     }
 
-    const canManuallyMoveToDone = task.taskType.toLowerCase() === 'none';
+    if (crashCourseLockedTasks[draggingId] && column !== 'backlog') {
+      toast.warn('Complete the crash course for this task before moving it forward.');
+      draggingId = null;
+      dragOverColumn = null;
+      return;
+    }
 
-    // Test-backed tasks are locked once completed and cannot be moved out of Done.
+    const canManuallyMoveToDone = task.taskType.toLowerCase() === 'none';
+    const requiresOrderGate = column === 'in-progress' || column === 'in-review' || column === 'done';
+
+    if (requiresOrderGate) {
+      const blockingTask = getBlockingTask(task);
+      if (blockingTask) {
+        toast.warn(
+          `Finish Task ${blockingTask.order} first before moving Task ${task.order} to ${column.replace('-', ' ')}.`,
+        );
+        draggingId = null;
+        dragOverColumn = null;
+        return;
+      }
+    }
+
     if (task.status === 'done' && !canManuallyMoveToDone && column !== 'done') {
       toast.info('This task is locked in Done because its tests have already passed.');
       draggingId = null;
@@ -191,6 +234,7 @@
   // ── Derived ───────────────────────────────────────────────────────────────
   $: doneCount = kanbanTasks.filter((t) => t.status === 'done').length;
   $: progress = kanbanTasks.length > 0 ? (doneCount / kanbanTasks.length) * 100 : 0;
+
 </script>
 
 <div class="flex flex-col h-full bg-[#0a0e1a] overflow-hidden" data-tour="board-panel">
@@ -329,7 +373,8 @@
                         ? 'border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.08)]'
                       : t.status === 'in-progress'
                         ? 'border-[rgba(255,180,0,0.2)] bg-[rgba(255,180,0,0.04)]'
-                        : 'border-[rgba(7,165,201,0.1)] bg-[#12192a]'}"
+                        : 'border-[rgba(7,165,201,0.1)] bg-[#12192a]'}
+                    {crashCourseLockedTasks[t.id] ? 'opacity-60 cursor-not-allowed border-[rgba(255,180,0,0.3)] bg-[rgba(255,180,0,0.04)]' : ''}"
                   role="button"
                   tabindex="0"
                   on:click={() => openTaskDetails(t.id)}
@@ -351,6 +396,9 @@
                   >
                     {t.text}
                   </span>
+                  {#if crashCourseLockedTasks[t.id]}
+                    <Lock class="w-3.5 h-3.5 text-[#FFB400] flex-shrink-0" />
+                  {/if}
                   <!-- Status label -->
                   <span
                     class="text-[0.6rem] uppercase tracking-wider px-2 py-0.5 rounded"
@@ -428,7 +476,7 @@
               {#each kanbanTasks.filter((t) => t.status === col.id) as task, taskIndex (task.id)}
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y-no-static-element-interactions -->
                 <div
-                  data-tour={taskIndex === 0 ? 'board-task-ticket' : undefined}
+                  data-tour={task.order === 1 ? 'board-task-ticket' : task.order === 2 ? 'board-task-ticket-2' : undefined}
                   draggable={!(task.status === 'done' && task.taskType.toLowerCase() !== 'none')}
                   on:dragstart={(e) => handleDragStart(e, task.id)}
                   on:dragend={handleDragEnd}
@@ -440,11 +488,19 @@
                     }
                   }}
                   class="group p-3 rounded border transition-all duration-150 select-none"
-                  style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : 1};"
+                  style="cursor: {task.status === 'done' && task.taskType.toLowerCase() !== 'none' ? 'default' : crashCourseLockedTasks[task.id] ? 'not-allowed' : 'grab'}; border-color: {draggingId === task.id ? col.color + '66' : crashCourseLockedTasks[task.id] ? 'rgba(255,180,0,0.3)' : 'rgba(7,165,201,0.15)'}; background: {draggingId === task.id ? 'rgba(7,165,201,0.06)' : crashCourseLockedTasks[task.id] ? 'rgba(255,180,0,0.04)' : '#0a0e1a'}; opacity: {draggingId === task.id ? 0.45 : crashCourseLockedTasks[task.id] ? 0.7 : 1};"
                   role="button"
                   tabindex="0"
-                  aria-label="Drag task: {task.text}"
+                  aria-label="Drag Task {task.order}: {task.text}"
                 >
+                  <div class="mb-2 flex justify-start">
+                    <span
+                      class="text-[0.58rem] uppercase tracking-wider px-1 py-0.5 rounded"
+                      style="font-family: 'Space Mono', monospace; color: {col.color}; background: {col.bg}; border: 1px solid {col.color}44;"
+                    >
+                      Task {task.order}
+                    </span>
+                  </div>
                   <div class="flex items-start gap-2">
                     <!-- Drag handle -->
                     <GripVertical
@@ -458,11 +514,14 @@
                     ></div>
                     <!-- Task text -->
                     <span
-                      class="text-[0.8rem] leading-snug"
+                      class="text-[0.8rem] leading-snug flex-1"
                       style="font-family: 'Exo 2', sans-serif; color: {task.status === 'done' ? '#8892a0' : '#d0d7dd'}; {task.status === 'done' ? 'text-decoration: line-through;' : ''}"
                     >
                       {task.text}
                     </span>
+                    {#if crashCourseLockedTasks[task.id]}
+                      <Lock class="w-3.5 h-3.5 text-[#FFB400] flex-shrink-0 mt-0.5" />
+                    {/if}
                   </div>
                 </div>
               {/each}
@@ -495,5 +554,6 @@
     hints={selectedTask?.hints ?? []}
     status={selectedTask?.status ?? 'backlog'}
     onClose={closeTaskDetails}
+    isLocked={selectedTask?.id != null ? crashCourseLockedTasks[selectedTask.id] ?? false : false}
   />
 </div>

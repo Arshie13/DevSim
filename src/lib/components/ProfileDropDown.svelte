@@ -1,10 +1,10 @@
 <script lang="ts">
   import { signOut } from "@auth/sveltekit/client";
   import { goto } from "$app/navigation";
-  import { User, Settings, LogOut, ChevronDown, Award, LayoutDashboard } from "lucide-svelte";
+  import { User, Settings, LogOut, ChevronDown, Award, LayoutDashboard, Users } from "lucide-svelte";
   import type { UserData } from "$types";
 
-  export let userData: UserData;
+  export let userData: Partial<UserData>;
 
   let open = false;
 
@@ -105,6 +105,14 @@
         >
           <Award class="w-4 h-4 text-obsidian-accent/70" />
           My Stacks
+        </button>
+
+        <button
+          on:click={() => navigateTo("/rivals")}
+          class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-rajdhani text-obsidian-text-primary/80 hover:text-obsidian-accent hover:bg-obsidian-accent/5 transition-all"
+        >
+          <Users class="w-4 h-4 text-obsidian-accent/70" />
+          Developer Rivals
         </button>
 
         <button

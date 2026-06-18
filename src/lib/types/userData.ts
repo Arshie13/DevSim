@@ -3,7 +3,10 @@ export interface UserData {
   email: string;
   name: string;
   image?: string;
+  fullName?: string;
   username?: string;
+  givenName?: string;
+  avatar: string;
 
   // Leveling System
   xp: number;
@@ -11,6 +14,9 @@ export interface UserData {
   level: number;
   ownedAvatars: string[];
 
-  // Onboarding
-  hasCompletedOnboarding: boolean;
+  // Tutorial
+  hasCompletedTutorial: boolean;
+
+  // Dashboard onboarding
+  hasSeenDashboardOnboarding?: boolean;
 }

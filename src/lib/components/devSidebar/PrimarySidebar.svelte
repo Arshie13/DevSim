@@ -24,6 +24,7 @@
 </script>
 
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
   import {
     FolderOpen,
     Search as SearchIcon,
@@ -119,17 +120,33 @@
       document.body.classList.remove("sidebar-resizing");
     }
   }
+
+  function handleOpenExplorerPanel() {
+    activeSidebarPanel = 'files';
+    isOpen = true;
+  }
+
+  onMount(() => {
+    if (typeof window === 'undefined') return;
+    window.addEventListener('devsim-tour-open-explorer-panel', handleOpenExplorerPanel as EventListener);
+  });
+
+  onDestroy(() => {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('devsim-tour-open-explorer-panel', handleOpenExplorerPanel as EventListener);
+  });
 </script>
 
 <svelte:window on:mousemove={handleResizeMove} on:mouseup={stopResizing} />
 
-<div class="flex h-full flex-shrink-0" data-tour="sidebar">
+<div class="flex h-full flex-shrink-0" data-tour="tutorial-dev-sidebar">
   <!-- Activity Bar -->
   <div
     class="w-12 bg-[#0a0e1a] border-r border-[rgba(7,165,201,0.1)] flex flex-col items-center py-2 gap-1 flex-shrink-0"
   >
     {#each activityItems as item}
       <button
+        data-tour={item.panel === 'search' ? 'tutorial-search-button' : undefined}
         on:click={() => setPanel(item.panel)}
         title="{item.title}{activeSidebarPanel === item.panel && isOpen ? ' (click to close)' : ''}"
         class="relative w-10 h-10 flex items-center justify-center transition-all

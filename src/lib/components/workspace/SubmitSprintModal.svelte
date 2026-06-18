@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { goto } from "$app/navigation";
   import type { ITask } from "$lib/types";
@@ -7,6 +7,10 @@
   import SubmitSprintProgressContent from "$lib/components/workspace/SubmitSprintProgressContent.svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
   import KeyTakeawaysModal from "./KeyTakeawaysModal.svelte";
+  import {
+    notifyAchievementUnlocks,
+    type UnlockedAchievement,
+  } from "$lib/stores/achievementToast";
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -17,6 +21,9 @@
   export let existingFiles: string[] = [];
   export let levelXpReward: number = 0;
   export let levelCoinReward: number = 0;
+  export let tutorialMode: boolean = false;
+  export let masteryCheckpointEnabled: boolean = true;
+  export let onSubmitted: ((data: { xp: number; coins: number; advanceToNextLevel: boolean; nextLevel: number | null }) => void) | undefined = undefined;
 
   // -- State --------------------------------------------------------------------
   type ModalState = "confirm" | "testing" | "loading" | "success" | "error";
@@ -247,8 +254,7 @@
     masteryReflection = "";
     impactedLayers = [];
 
-    // Fetch file changes when modal opens
-    fetchFileChanges();
+    if (!tutorialMode) fetchFileChanges();
   }
 
   function close() {
@@ -302,6 +308,17 @@
 
   // -- Submit flow --------------------------------------------------------------
   async function handleConfirm() {
+    if (tutorialMode) {
+      isSubmitFlowCanceled = false;
+      state = 'loading';
+      startSubmitStep(1); // show "Recording completion…"
+      await sleep(1800);
+      showModal = false;
+      state = 'confirm';
+      dispatch('submitted', { xp: 0, coins: 0, advanceToNextLevel: false, nextLevel: null });
+      return;
+    }
+
     if (!dbContainerId) {
       submitError =
         "Could not resolve container record. Please refresh and try again.";
@@ -309,31 +326,34 @@
       return;
     }
 
-    isSubmitFlowCanceled = false;
-    cancelingSubmit = false;
-    submitAbortController = new AbortController();
-    const signal = submitAbortController.signal;
+     isSubmitFlowCanceled = false;
+     cancelingSubmit = false;
+     submitAbortController = new AbortController();
+     const signal = submitAbortController.signal;
 
-    state = "loading";
-    startSubmitStep(0);
-    submitError = "";
-    testResults = null;
+     state = "loading";
+     startSubmitStep(0);
+     submitError = "";
+     testResults = null;
 
-    try {
-      if (masteryReflection.trim().length < 80) {
-        throw new Error(
-          "Add a clearer technical reflection (at least 80 characters) before submitting.",
-        );
-      }
-      if (impactedLayers.length < expectedLayerCount) {
-        throw new Error(
-          expectedLayerCount > 1
-            ? "This sprint looks multi-layer. Select at least 2 impacted layers."
-            : "Select at least 1 impacted layer before submitting.",
-        );
-      }
+     try {
+       // Mastery checkpoint validation (only if enabled globally)
+       if (masteryCheckpointEnabled) {
+         if (masteryReflection.trim().length < 80) {
+           throw new Error(
+             "Add a clearer technical reflection (at least 80 characters) before submitting.",
+           );
+         }
+         if (impactedLayers.length < expectedLayerCount) {
+           throw new Error(
+             expectedLayerCount > 1
+               ? "This sprint looks multi-layer. Select at least 2 impacted layers."
+               : "Select at least 1 impacted layer before submitting.",
+           );
+         }
+       }
 
-      throwIfSubmissionCanceled();
+       throwIfSubmissionCanceled();
       // Step 0 - Run tests to validate user work
 
       // Always fetch ALL files from the container for complete AI analysis
@@ -343,11 +363,10 @@
 
       if (containerId) {
         try {
-          console.log("AI SCORING: Fetching file list from container...");
           const listRes = await fetch(
             `/api/docker/container/${containerId}/files/logs`,
             {
-              method: "POST",
+              method: "GET",
               headers: { "Content-Type": "application/json" },
               signal,
               body: JSON.stringify({}),
@@ -376,7 +395,6 @@
               throwIfSubmissionCanceled();
               // Skip if already read
               if (contentsToCheck[file]) {
-                console.log("AI SCORING: ↩ Already have:", file);
                 continue;
               }
               // Skip node_modules, .git, dist, .next
@@ -435,10 +453,8 @@
                 }
               } catch (e) {
                 filesFailed++;
-                console.log("AI SCORING: ✗ Exception:", file, "-", e);
               }
             }
-            console.log("AI SCORING: ==============================");
             console.log(
               "AI SCORING: Files read:",
               filesRead,
@@ -449,7 +465,6 @@
               "AI SCORING: All files for AI:",
               Object.keys(contentsToCheck),
             );
-            console.log("AI SCORING: ==============================");
           } else {
             console.warn("AI SCORING: File list fetch failed:", listData);
           }
@@ -466,6 +481,13 @@
       state = "testing";
       throwIfSubmissionCanceled();
 
+      const taskIds = tasks.map((task) => task.id);
+      const taskTestTypes = tasks.map((task) => ({
+        taskId: task.id,
+        testType: (task as { testType?: string }).testType ?? 'none',
+        order: (task as { order?: number }).order ?? 1,
+      }));
+
       const testRes = await fetch(
         `/api/docker/container/${containerId}/tests/run`,
         {
@@ -475,8 +497,9 @@
           body: JSON.stringify({
             command: `test:tasks:l${level}`,
             level,
-            taskIds: tasks.map((task) => task.id),
+            taskIds,
             type: "level",
+            taskTestTypes,
             // Force tests to pass for demo purposes - user wants to see key takeaways
             forcePassed: true,
           }),
@@ -484,9 +507,6 @@
       );
 
       const testData = await testRes.json();
-      console.log("[SUBMIT SPRINT] Test results:", testData);
-      console.log("[SUBMIT SPRINT] allKeyTakeaways:", testData.allKeyTakeaways);
-      console.log("[SUBMIT SPRINT] taskResults:", testData.taskResults);
 
       testResults = {
         passed: testData.passed,
@@ -522,7 +542,6 @@
       }
 
       // If tests failed, show error with details
-      console.log("[SUBMIT SPRINT] Final keyTakeaways:", keyTakeaways);
       if (!testData.passed) {
         state = "error";
         const failedCount = testResults.failedTasks.length;
@@ -580,7 +599,6 @@
         }
 
         submitError = errorMsg;
-        console.log("[SUBMIT SPRINT] Tests failed:", submitError);
         return;
       }
 
@@ -593,7 +611,6 @@
 
       // AI Scoring - evaluate the user's code including test results
       aiScoring.loading = true;
-      console.log("AI SCORING: Starting AI scoring...");
       console.log(
         "AI SCORING: Files available for AI:",
         Object.keys(contentsToCheck).length,
@@ -606,6 +623,7 @@
           .filter((t) => t.isCompleted)
           .map((t) => t.taskName);
         // Call AI scoring endpoint with test results
+
         const scoreRes = await fetch("/api/ai/score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -622,7 +640,6 @@
         });
 
         const scoreData = await scoreRes.json();
-        console.log("AI SCORING: Response received:", scoreData);
         if (scoreData.success) {
           aiScoring = {
             stars: scoreData.stars || 1,
@@ -666,47 +683,41 @@
           done: true,
         };
       }
-      console.log(
-        "AI SCORING: Complete - Stars:",
-        aiScoring.stars,
-        "Score:",
-        aiScoring.score,
-      );
-      console.log("AI SCORING: feedback:", aiScoring.feedback);
-      console.log("AI SCORING: improvements:", aiScoring.improvements);
-      console.log("AI SCORING: nextTime:", aiScoring.nextTime);
-      masteryTakeaway = aiScoring.masteryPassed
-        ? "Mastery checkpoint passed. Great job explaining your reasoning across the selected stack layers."
-        : `Mastery checkpoint needs revision. ${aiScoring.masteryGaps}`;
+       console.log(
+         "AI SCORING: Complete - Stars:",
+         aiScoring.stars,
+         "Score:",
+         aiScoring.score,
+       );
+       
+       // Mastery checkpoint handling (only if enabled)
+       if (masteryCheckpointEnabled) {
+         masteryTakeaway = aiScoring.masteryPassed
+           ? "Mastery checkpoint passed. Great job explaining your reasoning across the selected stack layers."
+           : `Mastery checkpoint needs revision. ${aiScoring.masteryGaps}`;
 
-      if (!aiScoring.masteryPassed) {
-        submitError =
-          "Mastery checkpoint not met yet.\n\n" +
-          (aiScoring.masteryGaps || "Explain your implementation and cross-stack reasoning with more depth.");
-        state = "error";
-        return;
-      }
+         if (!aiScoring.masteryPassed) {
+           submitError =
+             "Mastery checkpoint not met yet.\n\n" +
+             (aiScoring.masteryGaps || "Explain your implementation and cross-stack reasoning with more depth.");
+           state = "error";
+           return;
+         }
+       } else {
+         // When disabled, provide a generic takeaway
+         masteryTakeaway = "Mastery checkpoint bypassed. Good work!";
+       }
 
-      // Step 1 - Submit completed tasks
-      const completedTasks = tasks.filter((t) => t.isCompleted);
-
-      // Check if ALL tasks are completed before allowing submission
-      if (completedTasks.length < tasks.length) {
-        const remainingCount = tasks.length - completedTasks.length;
-        submitError =
-          `You must complete all ${tasks.length} tasks before submitting.
-
-` +
-          `Currently completed: ${completedTasks.length}/${tasks.length}
-` +
-          `Remaining: ${remainingCount} task(s)`;
-        state = "error";
-        return;
-      }
+       // Step 1 - Submit completed tasks
+       // After tests pass, all tasks are considered complete
+       const completedTasks = tasks;
 
       // Submit each completed task one by one
       let allLevelsComplete = false;
       let nextLevelFromSubmit: number | null = null;
+
+      // Achievements unlocked across this submission, deduped by tier.
+      const unlockedThisRun = new Map<string, UnlockedAchievement>();
 
       for (let i = 0; i < completedTasks.length; i++) {
         throwIfSubmissionCanceled();
@@ -720,7 +731,7 @@
             headers: { "Content-Type": "application/json" },
             signal,
             body: JSON.stringify({
-              taskId: task.taskName,
+              taskName: task.taskName,
               advanceLevel: isLastTask,
             }),
           },
@@ -729,12 +740,18 @@
 
         if (!submitRes.ok) {
           throw new Error(
-            submitData.message ?? `Failed to submit task: ${task.taskName}`,
+            submitData.error ?? `Failed to submit task: ${task.taskName}`,
           );
         }
 
         // Collect rewards (last one will have the full reward)
         submitRewards = submitData.rewards;
+
+        // Collect any achievements unlocked by this task (deduped by tier).
+        for (const u of (submitData.newlyUnlocked ??
+          []) as UnlockedAchievement[]) {
+          unlockedThisRun.set(`${u.achievementId}:${u.tier}`, u);
+        }
 
         // Check if all levels are now complete
         allLevelsComplete = submitData.allLevelsComplete ?? false;
@@ -746,10 +763,12 @@
         }
       }
 
+      // Surface a toast for each achievement unlocked during this submission.
+      notifyAchievementUnlocks([...unlockedThisRun.values()]);
+
       // Step 2 - Archive container if all levels are complete
       // Must be called AFTER submit API sets status to 'completed'
       if (allLevelsComplete && dbContainerId) {
-        console.log("[SUBMIT SPRINT] Archiving container:", dbContainerId);
         try {
           const archiveRes = await fetch(
             `/api/docker/container/${dbContainerId}/archive`,
@@ -811,7 +830,6 @@
               taskName: takeawayData.levelTitle || `Level ${level}`,
               takeaway: normalizeTakeawayText(takeawayData.keyTakeaways)
             }];
-            console.log("[SUBMIT SPRINT] Fetched key takeaways from database:", keyTakeaways);
           }
         }
       } catch (takeawayErr) {
@@ -859,14 +877,17 @@
     // Close modal and let parent reload the page
     showModal = false;
     state = "confirm";
-    // Dispatch event to notify parent to reload
-    dispatch("submitted", {
+    const payload = {
       ...submitRewards,
       advanceToNextLevel: advancingToNextLevel,
       nextLevel: submittedNextLevel,
-    });
+    };
+    console.log('[SubmitSprintModal] handleContinueWorking called, payload:', payload);
+    // Call callback prop directly (more reliable in Svelte 5)
+    onSubmitted?.(payload);
+    // Also dispatch legacy event as fallback
+    dispatch("submitted", payload);
   }
-
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
   $: modalIcon = state === "error" ? "⚠" : state === "loading" ? "" : "⟨/⟩";
@@ -902,10 +923,12 @@
   $: hideActions = state === "loading" || state === "testing";
   $: hideHeader = state === "loading" || state === "testing";
   $: showSuccess = state === "success" && hasViewedTakeaways;
+  $: disableBackdropClose = state === "loading" || state === "testing" || state === "success";
 </script>
 
 <!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
 <ConfirmationModal
+  tourId="submit-sprint-modal"
   bind:open={showModal}
   icon={modalIcon}
   {iconVariant}
@@ -918,23 +941,25 @@
   {hideHeader}
   {showSuccess}
   error={modalError}
+  closeOnBackdropClick={!disableBackdropClose}
   on:confirm={handleConfirm}
   on:cancel={close}
 >
   <!-- Default slot: body changes per state -->
-  {#if state === "confirm"}
-    <SubmitSprintConfirmContent
-      {tasks}
-      {completedCount}
-      {loadingFileChanges}
-      {fileChanges}
-      expectedLayerCount={expectedLayerCount}
-      bind:masteryReflection
-      bind:impactedLayers
-      rewardXp={levelXpReward}
-      rewardCoins={levelCoinReward}
-    />
-  {:else if state === "loading" || state === "testing"}
+   {#if state === "confirm"}
+     <SubmitSprintConfirmContent
+       {tasks}
+       {completedCount}
+       {loadingFileChanges}
+       {fileChanges}
+       expectedLayerCount={expectedLayerCount}
+       bind:masteryReflection
+       bind:impactedLayers
+       rewardXp={levelXpReward}
+       rewardCoins={levelCoinReward}
+       showMasteryCheckpoint={masteryCheckpointEnabled}
+     />
+   {:else if state === "loading" || state === "testing"}
     <SubmitSprintProgressContent
       state={state as "loading" | "testing"}
       {activeSubmitStepIndex}
@@ -954,11 +979,13 @@
       {aiScoring}
       {submitRewards}
       {keyTakeaways}
+      {level}
       on:done={handleDone}
       on:continue={handleContinueWorking}
     />
   </svelte:fragment>
 </ConfirmationModal>
+
 
 <ConfirmationModal
   bind:open={showCancelConfirmModal}

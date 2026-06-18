@@ -1,56 +1,36 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
   import {
     aiChatHistory,
     aiCoins,
+    aiHelpCredits,
     aiSelectedFile,
     aiFileTree,
     aiFileContents,
   } from "$lib/stores/ai";
-  import {
-    isAskingForCode,
-    getCodeWarningMessage,
-    getInsufficientCoinsMessage,
-    getErrorMessage,
-  } from "$lib/ai";
+  import { getInsufficientCreditsMessage, getErrorMessage } from "$lib/ai";
   import { type ITask } from "$lib/types";
-  import ThoughtBubble from "./ThoughtBubble.svelte";
   import FloatingModal from "./FloatingModal.svelte";
-  // Helpers from aiHelpHelpers
   import {
-    chunkHintMessage,
-    calculateTotalCost,
-    areAllTasksCompleted,
+    calculateCreditCost,
     filterSourceFiles,
-    createBubbleHistoryItem,
     attachFileToList,
     removeFileFromList,
     clearAllAttachedFiles,
-    isUserScrolling,
     getHintMessage,
-    navigateHintChunk,
-    showBubbleFromHistory,
-    resetBubbleState,
-    shouldAutoClose,
-    addToHintsShown,
     createAiMessage,
     createUserMessage,
-    type BubbleHistoryItem,
-    type BubbleState,
   } from "$lib/utils/aiHelpHelpers";
-  // Constants from aiHelpConstants
   import {
     MAX_ATTACHED_FILES,
-    QUICK_HINT_COST,
+    QUICK_HINT_CREDIT_COST,
+    COINS_PER_AI_HELP_CREDIT,
   } from "$lib/utils/aiHelpConstants";
-  // API functions from aiHelpApi
   import {
     generateContext as generateContextHelper,
-    validateMessage,
     sendChatMessage as apiSendChatMessage,
     requestQuickHintBubble,
-    sendBubbleChatMessage,
   } from "$lib/utils/aiHelpApi";
+  import { onMount } from "svelte";
 
   // Props
   export let scenario: string = "";
@@ -59,54 +39,132 @@
   export let userId: string = "";
   export let projectName: string = "DevSim Project";
   export let level: number = 1;
-  export let mode: "chat" | "quick" = "quick";
+  export let mode: "chat" | "quick" = "chat";
   export let initialSelectedFile: string = "";
   export let initialFileTree: string[] = [];
   export let initialFileContents: Record<string, string> = {};
   export let initialCoins: number = 1000;
+  // The user's available AI help credits, spent before coins are charged.
+  export let initialAiHelps: number = 0;
   export let initialAiModel: string = "nvidia/nemotron-3-nano-30b-a3b:free";
+  // Whether the docked chat panel is open (controlled by the workspace tab button).
+  export let show: boolean = false;
+  export let onClose: () => void = () => {};
 
   // State
-  let showFloatingModal = false;
   let attachedFiles: { path: string; name: string }[] = [];
   let showFilePicker = false;
   let userMessage = "";
   let isLoading = false;
-  let chatContainer: HTMLDivElement | undefined;
-  let previousMessageCount = 0;
-  let userScrolling = false;
-  let selectedAiModel = initialAiModel;
+  const selectedAiModel = initialAiModel;
 
-  let showQuickHint = false;
-  let quickHintMessage = "";
-  let quickHintLoading = false;
-  let hintChunks: string[] = [];
-  let currentHintChunk = 0;
-  let hintsShown: string[] = [];
-  let isBubbleHidden = false;
-  let showCloseConfirmation = false;
-  let isSazHidden = false;
-  let isSummoningSaz = false;
-  let showSazWave = false;
-  let sazWaveTimer: ReturnType<typeof setTimeout> | null = null;
-  let sazSummonTimer: ReturnType<typeof setTimeout> | null = null;
-  
-  // Track if we should use bubble mode for chat responses
-  let useBubbleMode = false;
-  let bubbleChatMessage = "";
-  let bubbleChatLoading = false;
+  // ── Resizable panel width ───────────────────────────────────────────
+  // The panel is docked on the right of the workspace; dragging its left
+  // edge widens or narrows it. The chosen width is remembered per browser.
+  const MIN_PANEL_WIDTH = 320;
+  const DEFAULT_PANEL_WIDTH = 380;
+  const PANEL_WIDTH_KEY = "aiHelpPanelWidth";
+  const RESIZE_STEP = 24;
+  let panelWidth = DEFAULT_PANEL_WIDTH;
+  let isResizing = false;
 
-  // Track hint/chat history for bubble display
-  let hintHistory: string[] = [];
+  // Hard ceiling so the panel can't take over the screen.
+  const MAX_PANEL_WIDTH = 560;
+  // Room kept for everything to our left: the file sidebar, the editor/terminal,
+  // and (on the terminal tab) the terminal-manager panel docked beside us. This
+  // stops the chat from ever being pushed off-screen or crowding those panels.
+  const RESERVED_FOR_WORKSPACE = 480;
+  let asideEl: HTMLElement | null = null;
 
-  // Track bubble history for session persistence (new)
-  let bubbleHistory: BubbleHistoryItem[] = [];
+  function maxPanelWidth(): number {
+    // Measure the row we actually live in when we can; fall back to the
+    // viewport before the panel has mounted.
+    const available =
+      asideEl?.parentElement?.clientWidth ??
+      (typeof window === "undefined" ? MAX_PANEL_WIDTH : window.innerWidth);
+    const fits = available - RESERVED_FOR_WORKSPACE;
+    return Math.max(MIN_PANEL_WIDTH, Math.min(MAX_PANEL_WIDTH, fits));
+  }
 
-  const AI_MODELS = [
-    { label: "NVIDIA Nemotron 3 Nano 30B", value: "nvidia/nemotron-3-nano-30b-a3b:free" },
-    { label: "Gemma 3N E2B", value: "google/gemma-3n-e2b-it:free" },
-    { label: "Google Gemini 2.5 Flash", value: "google/gemini-2.5-flash:direct" },
-  ];
+  function clampWidth(width: number): number {
+    return Math.min(Math.max(width, MIN_PANEL_WIDTH), maxPanelWidth());
+  }
+
+  onMount(() => {
+    const saved = Number(localStorage.getItem(PANEL_WIDTH_KEY));
+    if (saved && !Number.isNaN(saved)) panelWidth = clampWidth(saved);
+  });
+
+  function persistWidth() {
+    try {
+      localStorage.setItem(PANEL_WIDTH_KEY, String(panelWidth));
+    } catch {
+      /* storage unavailable — keep the in-memory width */
+    }
+  }
+
+  function startResize(event: PointerEvent) {
+    event.preventDefault();
+    isResizing = true;
+    const startX = event.clientX;
+    const startWidth = panelWidth;
+
+    // Avoid selecting text / flickering cursors while dragging.
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+
+    function onMove(e: PointerEvent) {
+      // Dragging left (smaller clientX) widens the panel.
+      panelWidth = clampWidth(startWidth + (startX - e.clientX));
+    }
+
+    function onUp() {
+      isResizing = false;
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      persistWidth();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  function handleResizeKeydown(event: KeyboardEvent) {
+    if (event.key === "ArrowLeft") {
+      panelWidth = clampWidth(panelWidth + RESIZE_STEP);
+    } else if (event.key === "ArrowRight") {
+      panelWidth = clampWidth(panelWidth - RESIZE_STEP);
+    } else {
+      return;
+    }
+    event.preventDefault();
+    persistWidth();
+  }
+
+  // Re-clamp if the viewport shrinks below the current panel width.
+  function handleWindowResize() {
+    const clamped = clampWidth(panelWidth);
+    if (clamped !== panelWidth) panelWidth = clamped;
+  }
+
+  // When the panel opens, re-clamp once it has mounted so the width respects
+  // the room left for the sidebar / terminal-manager panel beside it.
+  $: if (show) {
+    requestAnimationFrame(() => {
+      const clamped = clampWidth(panelWidth);
+      if (clamped !== panelWidth) panelWidth = clamped;
+    });
+  }
+
+  // A hint that costs more credits than the user has, waiting for them to
+  // approve the coins → credits exchange in the popup before it is sent.
+  let pendingConvert: {
+    kind: "chat" | "quick";
+    creditsShort: number;
+    coinsNeeded: number;
+  } | null = null;
 
   // Reactive
   $: filteredFileTree = filterSourceFiles(initialFileTree, attachedFiles);
@@ -120,9 +178,14 @@
       : $aiFileContents;
   $: currentCoins =
     $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
-  $: totalCost = calculateTotalCost(mode, attachedFiles.length);
-  $: allTasksCompleted = areAllTasksCompleted(tasks);
-  $: hasChatAiMessage = $aiChatHistory && $aiChatHistory.some((msg: any) => msg.role === 'ai');
+  $: currentAiHelps = $aiHelpCredits;
+  // AI help credits are the only currency (1 = quick hint, 2 = chat message).
+  // Any credits the user is short get covered by converting coins on the spot.
+  $: creditCost = calculateCreditCost(mode);
+  $: creditsShort = Math.max(0, creditCost - currentAiHelps);
+  $: coinsNeeded = creditsShort * COINS_PER_AI_HELP_CREDIT;
+  $: hasAiMessage =
+    $aiChatHistory && $aiChatHistory.some((msg) => msg.role === "ai");
 
   // Initialize stores
   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
@@ -130,99 +193,7 @@
   $: if (Object.keys(initialFileContents).length > 0)
     aiFileContents.set(initialFileContents);
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
-
-  // Auto-scroll chat
-  $: {
-    const currentCount = $aiChatHistory.length;
-    if (
-      currentCount > previousMessageCount &&
-      !userScrolling &&
-      chatContainer
-    ) {
-      setTimeout(() => {
-        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-      }, 50);
-    }
-    previousMessageCount = currentCount;
-  }
-
-  // Auto-close when tasks completed - disabled for debugging
-  // $: if (allTasksCompleted && showQuickHint) {
-  //   setTimeout(() => {
-  //     showQuickHint = false;
-  //     isBubbleHidden = false;
-  //     showFloatingModal = false;
-  //   }, 2000);
-  // }
-  // $: if (hintsShown.length >= 5 && showQuickHint) {
-  //   setTimeout(() => {
-  //     showQuickHint = false;
-  //     isBubbleHidden = false;
-  //     showFloatingModal = false;
-  //   }, 3000);
-  // }
-  
-  // Ensure FloatingModal is disabled when ThoughtBubble is active
-  $: if (showQuickHint && !isBubbleHidden) {
-    showFloatingModal = false;
-  }
-
-  // Handlers
-  function toggleFloatingModal() {
-    if (showQuickHint) {
-      // When thought bubble is active, toggle its visibility
-      isBubbleHidden = !isBubbleHidden;
-    } else {
-      // When thought bubble is not active, toggle floating modal
-      showFloatingModal = !showFloatingModal;
-    }
-  }
-  function closeFloatingModal() {
-    showFloatingModal = false;
-  }
-
-  function hideSaz() {
-    if (sazWaveTimer) {
-      clearTimeout(sazWaveTimer);
-      sazWaveTimer = null;
-    }
-    if (sazSummonTimer) {
-      clearTimeout(sazSummonTimer);
-      sazSummonTimer = null;
-    }
-
-    isSazHidden = true;
-    isSummoningSaz = false;
-    showSazWave = false;
-    showFloatingModal = false;
-    showQuickHint = false;
-    isBubbleHidden = true;
-    showCloseConfirmation = false;
-  }
-
-  function showSazAssistant() {
-    isSazHidden = false;
-    isSummoningSaz = true;
-    showSazWave = true;
-
-    if (sazWaveTimer) clearTimeout(sazWaveTimer);
-    if (sazSummonTimer) clearTimeout(sazSummonTimer);
-
-    sazWaveTimer = setTimeout(() => {
-      showSazWave = false;
-      sazWaveTimer = null;
-    }, 700);
-
-    sazSummonTimer = setTimeout(() => {
-      isSummoningSaz = false;
-      sazSummonTimer = null;
-    }, 1250);
-  }
-
-  onDestroy(() => {
-    if (sazWaveTimer) clearTimeout(sazWaveTimer);
-    if (sazSummonTimer) clearTimeout(sazSummonTimer);
-  });
+  $: aiHelpCredits.set(initialAiHelps);
 
   async function generateContext() {
     return generateContextHelper(
@@ -238,24 +209,33 @@
     );
   }
 
+  // Send a typed chat message — the reply appears inline in the conversation.
   async function sendMessage() {
-    // Use API function for validation
-    const validation = validateMessage(userMessage, isLoading, currentCoins, totalCost);
-    if (!validation.valid) return;
-    
     const message = userMessage.trim();
+    if (!message || isLoading) return;
+
+    // Out of credits but coins can cover it — ask before converting.
+    // (If coins can't cover it either, performSend surfaces the warning.)
+    if (creditsShort > 0 && coinsNeeded <= currentCoins) {
+      pendingConvert = { kind: "chat", creditsShort, coinsNeeded };
+      return;
+    }
+
+    await performSend();
+  }
+
+  async function performSend() {
+    const message = userMessage.trim();
+    if (!message || isLoading) return;
     userMessage = "";
 
     const filesToInclude = [...attachedFiles];
-    aiChatHistory.update((msgs) => [
-      ...msgs,
-      createUserMessage(message, filesToInclude.length > 0 ? filesToInclude : undefined),
-    ]);
     clearAttachedFiles();
     isLoading = true;
 
     try {
-      // Use the modular API function
+      // apiSendChatMessage pushes the user message, the AI reply (or any
+      // warning) into aiChatHistory, and updates the coin/help stores.
       const result = await apiSendChatMessage(
         message,
         containerId,
@@ -264,11 +244,11 @@
         mode,
         filesToInclude,
         currentCoins,
-        totalCost,
+        currentAiHelps,
         generateContext,
-        selectedAiModel
+        selectedAiModel,
       );
-      
+
       if (result.success && result.coinsRemaining !== undefined) {
         initialCoins = result.coinsRemaining;
       }
@@ -280,160 +260,126 @@
       ]);
     } finally {
       isLoading = false;
-      clearAttachedFiles();
     }
   }
 
+  // Quick hint — also rendered inline as a chat exchange.
   async function requestQuickHint() {
-    if (isLoading || !containerId || !userId) {
-      const errorMsg = !containerId ? "Container not available. Please start a workspace first." :
-                     !userId ? "Please log in to use AI hints." :
-                     "AI hints are currently loading.";
-      quickHintMessage = errorMsg;
-      showFloatingModal = false;
-      showQuickHint = true;
-      hintChunks = chunkHintMessage(errorMsg);
-      currentHintChunk = 0;
-      quickHintLoading = false; // Set loading to false so the message shows
-      return;
-    }
-    if (currentCoins < totalCost) {
-      quickHintMessage = getInsufficientCoinsMessage(totalCost, currentCoins);
-      showFloatingModal = false;
-      showQuickHint = true;
-      hintChunks = chunkHintMessage(quickHintMessage);
-      currentHintChunk = 0;
-      quickHintLoading = false;
-      return;
-    }
-    quickHintLoading = true;
-    showFloatingModal = false;
-    showQuickHint = true;
-    quickHintMessage = "";
-    hintChunks = [];
-    currentHintChunk = 0;
-    attachedFiles = [];
+    if (isLoading) return;
 
-    // Use helper to build hint message based on tasks
+    if (!containerId || !userId) {
+      aiChatHistory.update((msgs) => [
+        ...msgs,
+        createAiMessage(
+          !containerId
+            ? "Container not available. Please start a workspace first."
+            : "Please log in to use AI hints.",
+          true,
+        ),
+      ]);
+      return;
+    }
+
+    // A quick hint always costs 1 AI help credit; missing credits are covered
+    // by converting coins (100 coins per credit).
+    const quickCreditsShort = Math.max(0, QUICK_HINT_CREDIT_COST - currentAiHelps);
+    const quickCoinsNeeded = quickCreditsShort * COINS_PER_AI_HELP_CREDIT;
+    if (quickCoinsNeeded > currentCoins) {
+      aiChatHistory.update((msgs) => [
+        ...msgs,
+        createAiMessage(
+          getInsufficientCreditsMessage(
+            QUICK_HINT_CREDIT_COST,
+            currentAiHelps,
+            currentCoins,
+            COINS_PER_AI_HELP_CREDIT,
+          ),
+          true,
+        ),
+      ]);
+      return;
+    }
+
+    // Out of credits but coins can cover it — ask before converting.
+    if (quickCreditsShort > 0) {
+      pendingConvert = {
+        kind: "quick",
+        creditsShort: quickCreditsShort,
+        coinsNeeded: quickCoinsNeeded,
+      };
+      return;
+    }
+
+    await performQuickHint();
+  }
+
+  async function performQuickHint() {
+    aiChatHistory.update((msgs) => [
+      ...msgs,
+      createUserMessage("💡 Can I get a quick hint?"),
+    ]);
+    isLoading = true;
+
     const { message: hintMessage } = getHintMessage(tasks);
 
-    // Use the modular API function
-    const result = await requestQuickHintBubble(
-      hintMessage,
-      containerId,
-      userId,
-      level,
-      generateContext,
-      // onSuccess
-      (hint: string, coinsRemaining?: number) => {
-        const finalHint = hint || "No hint available. Please try again or ask a specific question.";
-        quickHintMessage = finalHint;
-        hintHistory = [...hintHistory, finalHint];
-        const historyItem = createBubbleHistoryItem(finalHint, false);
-        bubbleHistory = [...bubbleHistory, historyItem];
-        hintChunks = chunkHintMessage(finalHint);
-        currentHintChunk = 0;
-        if (coinsRemaining !== undefined) {
-          aiCoins.set(coinsRemaining);
-          initialCoins = coinsRemaining;
-        }
-      },
-      // onError
-      (error: string) => {
-        quickHintMessage = error;
-        hintHistory = [...hintHistory, error];
-        hintChunks = chunkHintMessage(error);
-        currentHintChunk = 0;
-      },
-      selectedAiModel
-    );
-
-    quickHintLoading = false;
+    try {
+      await requestQuickHintBubble(
+        hintMessage,
+        containerId,
+        userId,
+        level,
+        generateContext,
+        // onSuccess
+        (hint: string, coinsRemaining?: number) => {
+          aiChatHistory.update((msgs) => [
+            ...msgs,
+            createAiMessage(
+              hint ||
+                "No hint available. Please try again or ask a specific question.",
+            ),
+          ]);
+          if (coinsRemaining !== undefined) {
+            aiCoins.set(coinsRemaining);
+            initialCoins = coinsRemaining;
+          }
+        },
+        // onError
+        (error: string) => {
+          aiChatHistory.update((msgs) => [
+            ...msgs,
+            createAiMessage(error, true),
+          ]);
+        },
+        selectedAiModel,
+      );
+    } finally {
+      isLoading = false;
+    }
   }
 
-  // Send chat message and show response in ThoughtBubble
-  async function sendChatMessage() {
-    if (!userMessage.trim() || isLoading) return;
-    const message = userMessage.trim();
-    userMessage = "";
+  // User approved the coins → credits exchange — send the staged hint.
+  async function confirmConvert() {
+    const pending = pendingConvert;
+    pendingConvert = null;
+    if (!pending || isLoading) return;
 
-    if (isAskingForCode(message)) {
-      // For code requests, show warning in bubble mode
-      bubbleChatMessage = getCodeWarningMessage();
-      bubbleChatLoading = false;
-      showQuickHint = true;
-      useBubbleMode = true;
-      isBubbleHidden = false;
-      showFloatingModal = false;
-      hintChunks = chunkHintMessage(bubbleChatMessage);
-      currentHintChunk = 0;
-      return;
+    if (pending.kind === "chat") {
+      await performSend();
+    } else {
+      await performQuickHint();
     }
-    if (currentCoins < totalCost) {
-      bubbleChatMessage = getInsufficientCoinsMessage(totalCost, currentCoins);
-      bubbleChatLoading = false;
-      showQuickHint = true;
-      useBubbleMode = true;
-      isBubbleHidden = false;
-      showFloatingModal = false;
-      hintChunks = chunkHintMessage(bubbleChatMessage);
-      currentHintChunk = 0;
-      return;
-    }
+  }
 
-    // Save attached files before clearing
-    const filesToSend = [...attachedFiles];
-    clearAttachedFiles();
-    bubbleChatLoading = true;
-    bubbleChatMessage = "";
-    showQuickHint = true;
-    useBubbleMode = true;
-    isBubbleHidden = false;
-    showFloatingModal = false;
-    hintChunks = [];
-    currentHintChunk = 0;
-
-    // Use the modular API function
-    const result = await sendBubbleChatMessage(
-      message,
-      containerId,
-      userId,
-      level,
-      mode,
-      filesToSend,
-      currentCoins,
-      totalCost,
-      generateContext,
-      // onSuccess
-      (hint: string, coinsRemaining?: number) => {
-        bubbleChatMessage = hint;
-        hintHistory = [...hintHistory, hint];
-        const historyItem = createBubbleHistoryItem(hint, true);
-        bubbleHistory = [...bubbleHistory, historyItem];
-        hintChunks = chunkHintMessage(hint);
-        currentHintChunk = 0;
-        if (coinsRemaining !== undefined) {
-          aiCoins.set(coinsRemaining);
-          initialCoins = coinsRemaining;
-        }
-      },
-      // onError
-      (error: string) => {
-        bubbleChatMessage = error;
-        hintHistory = [...hintHistory, error];
-        const errorItem = createBubbleHistoryItem(error, true);
-        bubbleHistory = [...bubbleHistory, errorItem];
-        hintChunks = chunkHintMessage(error);
-        currentHintChunk = 0;
-      },
-      selectedAiModel
-    );
-
-    bubbleChatLoading = false;
+  function cancelConvert() {
+    pendingConvert = null;
   }
 
   function attachFile(filePath: string) {
-    attachedFiles = attachFileToList(attachedFiles, filePath, MAX_ATTACHED_FILES);
+    attachedFiles = attachFileToList(
+      attachedFiles,
+      filePath,
+      MAX_ATTACHED_FILES,
+    );
     showFilePicker = false;
   }
 
@@ -450,298 +396,58 @@
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      sendChatMessage();
+      sendMessage();
     }
-  }
-
-
-  // Quick hint handlers
-  function hideBubble() {
-    isBubbleHidden = true;
-  }
-  function showBubble() {
-    isBubbleHidden = false;
-  }
-  function prevHintChunk() {
-    currentHintChunk = navigateHintChunk('prev', currentHintChunk, hintChunks);
-  }
-  function nextHintChunk() {
-    currentHintChunk = navigateHintChunk('next', currentHintChunk, hintChunks);
-  }
-
-  // Handle selecting a history item from the floating modal
-  function handleSelectHistoryItem(item: BubbleHistoryItem) {
-    // Use helper to show bubble from history
-    const bubbleState = showBubbleFromHistory(item);
-    bubbleChatMessage = bubbleState.bubbleChatMessage || "";
-    useBubbleMode = bubbleState.useBubbleMode || false;
-    showQuickHint = true;
-    isBubbleHidden = false;
-    showFloatingModal = false;
-    hintChunks = bubbleState.hintChunks || [];
-    currentHintChunk = 0;
-  }
-
-  function requestCloseWithConfirmation() {
-    if (allTasksCompleted || hintsShown.length >= 5) {
-      closeQuickHintWithCheck();
-      return;
-    }
-    showCloseConfirmation = true;
-  }
-  function confirmClose() {
-    showCloseConfirmation = false;
-    closeQuickHintWithCheck();
-  }
-  function cancelClose() {
-    showCloseConfirmation = false;
-  }
-
-  function closeQuickHintWithCheck() {
-    // Use helper to add message to hints shown
-    hintsShown = addToHintsShown(hintsShown, quickHintMessage);
-    
-    // Use helper to check if should auto-close
-    if (shouldAutoClose(allTasksCompleted, hintsShown)) {
-      // Use helper to reset bubble state
-      const resetState = resetBubbleState();
-      showQuickHint = resetState.showQuickHint || false;
-      quickHintMessage = "";
-      hintChunks = resetState.hintChunks || [];
-      currentHintChunk = 0;
-      hintsShown = [];
-      isBubbleHidden = false;
-      // Also reset chat bubble state from helper
-      useBubbleMode = resetState.useBubbleMode || false;
-      bubbleChatMessage = resetState.bubbleChatMessage || "";
-      return;
-    }
-    
-    // Use helper to reset bubble state
-    const resetState = resetBubbleState();
-    showQuickHint = resetState.showQuickHint || false;
-    quickHintMessage = "";
-    hintChunks = resetState.hintChunks || [];
-    currentHintChunk = 0;
-    isBubbleHidden = false;
-    // Also reset chat bubble state from helper
-    useBubbleMode = resetState.useBubbleMode || false;
-    bubbleChatMessage = resetState.bubbleChatMessage || "";
-  }
-
-  function handleScroll() {
-    if (!chatContainer) return;
-    const { scrollTop, scrollHeight, clientHeight } = chatContainer;
-    userScrolling = isUserScrolling(scrollTop, scrollHeight, clientHeight, 50);
-  }
-
-  function handleAiModelChange(value: string) {
-    selectedAiModel = value;
   }
 </script>
 
-<!-- ─── SAZ Avatar toggle button ─── -->
-{#if !isSazHidden}
-  <div class="group fixed bottom-6 right-6 z-40">
-    <button
-      data-tour="ai-toggle"
-      onclick={toggleFloatingModal}
-      class="w-28 h-28 transition-transform duration-200 {isSummoningSaz ? 'scale-105' : 'hover:scale-110 active:scale-[1.03]'}"
-      style="appearance:none;-webkit-appearance:none;background:transparent;padding:0;border:none;border-radius:0;box-shadow:none;outline:none;"
-      aria-label="Open AI Assistant"
-    >
-      {#if showSazWave}
-        <img
-          src="/images/saz-wave.png"
-          alt="SAZ Waving"
-          class="w-full h-full object-contain"
-        />
-      {:else if quickHintLoading || bubbleChatLoading}
-        <img
-          src="/images/saz_thinking.png"
-          alt="SAZ Thinking"
-          class="w-full h-full object-contain animate-pulse"
-        />
-      {:else if (showQuickHint && quickHintMessage) || (useBubbleMode && bubbleChatMessage)}
-        <img
-          src="/images/saz-lightbulb.png"
-          alt="SAZ Hint Ready"
-          class="w-full h-full object-contain"
-        />
-      {:else}
-        <img
-          src="/images/saz-full.png"
-          alt="SAZ"
-          class="w-full h-full object-contain"
-        />
-      {/if}
-    </button>
+<svelte:window on:resize={handleWindowResize} />
 
-    <button
-      type="button"
-      onclick={hideSaz}
-      aria-label="Put SAZ to sleep"
-      title="Put SAZ to sleep"
-      class="absolute -top-1 -right-1 grid h-8 w-8 place-items-center rounded-full border border-slate-300/25 bg-[rgba(12,20,36,0.92)] text-[13px] text-slate-200 shadow-[0_8px_18px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-200/45 hover:bg-[rgba(25,35,56,0.96)] hover:text-white"
-    >
-      💤
-    </button>
-
-  </div>
-{:else}
-  <button
-    type="button"
-    onclick={showSazAssistant}
-    class="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-cyan-300/40 bg-[linear-gradient(135deg,rgba(8,27,40,0.95),rgba(10,57,80,0.95))] px-4 py-2.5 text-cyan-100 shadow-[0_10px_24px_rgba(4,20,30,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-200 hover:text-white hover:shadow-[0_14px_28px_rgba(6,182,212,0.25)] active:translate-y-0"
-    aria-label="Show SAZ"
+<!-- ─── Docked AI Helper panel (toggled from the workspace tab bar) ─── -->
+{#if show}
+  <aside
+    bind:this={asideEl}
+    class="relative flex-shrink-0 border-l border-[rgba(7,165,201,0.18)] flex flex-col overflow-hidden"
+    style="width: {panelWidth}px; max-width: min(calc(100vw - {RESERVED_FOR_WORKSPACE}px), {MAX_PANEL_WIDTH}px);"
   >
-    <span class="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-300"></span>
-    <span class="[font-family:var(--font-heading)] text-xs uppercase tracking-[0.08em]">Summon Saz</span>
-  </button>
-{/if}
-
-<!-- ─── "Need help? Click Me!" bubble ───
-     Shown when modal is closed and no quick hint is active.
-     Sits at bottom:160px right:24px — same slot as the "Show hint" restore button. -->
-{#if !isSazHidden && !showFloatingModal && !showQuickHint}
-  <div class="fixed z-30 animate-pulse" style="bottom: 160px; right: 36px;">
-    <div class="relative">
-      <div
-        class="bg-[#0f172a] border-2 border-yellow-500/70 shadow-2xl px-5 py-3"
-        style="border-radius:30px;"
-      >
-        <div class="flex items-center gap-1 whitespace-nowrap">
-          <span class="text-yellow-400 text-lg">💡</span>
-          <span class="text-white font-medium text-sm"
-            >Need help? Click Me!</span
-          >
-        </div>
-      </div>
-      <!-- Downward pointer toward SAZ avatar -->
-      <div
-        class="absolute -bottom-[11px] right-8"
-        style="width: 0; height: 0; border-left: 11px solid transparent; border-right: 11px solid transparent; border-top: 11px solid rgba(234,179,8,0.7);"
-      ></div>
-      <div
-        class="absolute -bottom-[8px] right-[37px]"
-        style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #0f172a;"
-      ></div>
-    </div>
-  </div>
-{/if}
-
-<!-- ─── Main Chat Modal ─── -->
-<FloatingModal
-  show={showFloatingModal && !isSazHidden}
-  showBubble={showQuickHint}
-  messages={$aiChatHistory}
-  history={bubbleHistory}
-  {userMessage}
-  {isLoading}
-  hasHint={!!(bubbleChatMessage || quickHintMessage || hasChatAiMessage)}
-  {currentCoins}
-  {totalCost}
-  {canAttachMore}
-  {attachedFiles}
-  fileTree={filteredFileTree}
-  {showFilePicker}
-  onClose={closeFloatingModal}
-  onSend={sendMessage}
-  onMessageChange={(value) => (userMessage = value)}
-  onToggleFilePicker={toggleFilePicker}
-  onRemoveFile={removeAttachedFile}
-  onKeydown={handleKeydown}
-  onAttachFile={attachFile}
-  onCloseFilePicker={() => (showFilePicker = false)}
-  onQuickHint={requestQuickHint}
-  onSelectHistory={handleSelectHistoryItem}
-  aiModels={AI_MODELS}
-  aiModel={selectedAiModel}
-  onAiModelChange={handleAiModelChange}
-/>
-
-<!-- ─── Quick Hint Cloud ───
-     Cloud SVG is 460px wide. Positioned so the right thought-trail
-     circles sit above the SAZ avatar (fixed bottom-6 right-6 = 24px).
-     right: 220px shifts the cloud left so it doesn't overlap the right panel.
-     bottom: 148px clears the 112px avatar + 36px gap. -->
-{#if !isSazHidden && showQuickHint && !isBubbleHidden}
-  <div
-    class="fixed inset-0 z-50"
-    style="pointer-events: none;"
-  >
+    <!-- Drag handle: resize the panel by dragging its left edge. -->
     <div
-      style="position: fixed; bottom: 160px; right: 75px; pointer-events: auto;"
-    >
-      <ThoughtBubble
-        quickHintMessage={bubbleChatMessage || quickHintMessage}
-        quickHintLoading={bubbleChatLoading || quickHintLoading}
-        {hintChunks}
-        {currentHintChunk}
-        {initialCoins}
-        {QUICK_HINT_COST}
-        showChatButton={useBubbleMode}
-        on:hide={hideBubble}
-        on:close={requestCloseWithConfirmation}
-        on:prev={prevHintChunk}
-        on:next={nextHintChunk}
-      />
-    </div>
-  </div>
-{/if}
+      class="absolute left-0 top-0 z-30 h-full w-1.5 -translate-x-1/2 cursor-col-resize transition-colors hover:bg-cyan-500/40 {isResizing
+        ? 'bg-cyan-500/50'
+        : ''}"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize AI assistant panel"
+      aria-valuenow={panelWidth}
+      tabindex="0"
+      title="Drag to resize"
+      onpointerdown={startResize}
+      onkeydown={handleResizeKeydown}
+    ></div>
 
-<!-- ─── "Show hint" restore button ───
-     Replaces "Need Help?" at the exact same position when hint is minimised. -->
-{#if !isSazHidden && showQuickHint && isBubbleHidden}
-  <button
-    type="button"
-    onclick={showBubble}
-    onkeydown={(e) => e.key === "Enter" && showBubble()}
-    class="fixed z-30 bg-[#0f172a] border-2 border-cyan-400/60 shadow-2xl px-5 py-3 hover:scale-105 transition-transform flex items-center gap-2 animate-pulse"
-    style="bottom:160px;right:24px;border-radius:30px;box-shadow:0 0 15px rgba(6,182,212,0.4);"
-  >
-    <span style="font-size:16px;">💭</span>
-    <span class="text-sm text-gray-300 font-medium whitespace-nowrap"
-      >Show hint</span
-    >
-  </button>
-{/if}
-
-<!-- ─── Close confirmation modal ─── -->
-{#if showCloseConfirmation}
-  <div
-    class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
-    onclick={cancelClose}
-    onkeydown={(e) => {
-      if (e.key === "Escape") cancelClose();
-    }}
-    role="button"
-    tabindex="0"
-  >
-    <div
-      class="bg-[#1e293b] border border-zinc-700 rounded-xl p-6 max-w-sm w-full shadow-2xl"
-      onclick={(e) => e.stopPropagation()}
-      role="presentation"
-    >
-      <div class="text-center">
-        <h3 class="text-lg font-semibold text-gray-200 mb-2">Close Hint?</h3>
-        <p class="text-gray-400 text-sm mb-4">
-          Are you sure you want to close this hint? You'll lose your current
-          progress.
-        </p>
-        <div class="flex gap-2">
-          <button
-            onclick={cancelClose}
-            class="flex-1 bg-slate-700 hover:bg-slate-600 text-gray-200 px-4 py-2 rounded-lg transition-colors"
-            >Cancel</button
-          >
-          <button
-            onclick={confirmClose}
-            class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >Close</button
-          >
-        </div>
-      </div>
-    </div>
-  </div>
+    <FloatingModal
+      messages={$aiChatHistory}
+      {userMessage}
+      {isLoading}
+      hasHint={hasAiMessage}
+      {creditCost}
+      aiHelps={currentAiHelps}
+      {canAttachMore}
+      {attachedFiles}
+      fileTree={filteredFileTree}
+      {showFilePicker}
+      {onClose}
+      onSend={sendMessage}
+      onMessageChange={(value) => (userMessage = value)}
+      onToggleFilePicker={toggleFilePicker}
+      onRemoveFile={removeAttachedFile}
+      onKeydown={handleKeydown}
+      onAttachFile={attachFile}
+      onCloseFilePicker={() => (showFilePicker = false)}
+      onQuickHint={requestQuickHint}
+      convertPrompt={pendingConvert}
+      onConfirmConvert={confirmConvert}
+      onCancelConvert={cancelConvert}
+    />
+  </aside>
 {/if}

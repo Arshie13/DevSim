@@ -16,9 +16,29 @@
  */
 
 // @ts-ignore - Prisma client path
-import { PrismaClient } from "$prismaclient";
+import { PrismaClient, type Prisma } from "$prismaclient";
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
+
+import { levels as pernScenario1Levels, scenarios as pernScenario1Scenarios } from "./seed/react-express-postgres-prisma/scenario-1/seed";
+import { levels as pernScenario2Levels, scenarios as pernScenario2Scenarios } from "./seed/react-express-postgres-prisma/scenario-2/seed";
+import { levels as pernScenario3Levels, scenarios as pernScenario3Scenarios } from "./seed/react-express-postgres-prisma/scenario-3/seed";
+
+import { levels as mernScenario1Levels, scenarios as mernScenario1Scenarios } from "./seed/react-express-mongodb/scenario-1/seed";
+import { levels as mernScenario2Levels, scenarios as mernScenario2Scenarios } from "./seed/react-express-mongodb/scenario-2/seed";
+import { levels as mernScenario3Levels, scenarios as mernScenario3Scenarios } from "./seed/react-express-mongodb/scenario-3/seed";
+
+import { levels as nestjsScenario1Levels, scenarios as nestjsScenario1Scenarios } from "./seed/nestjs-postgres-prisma/scenario-1/seed";
+import { levels as nestjsScenario2Levels, scenarios as nestjsScenario2Scenarios } from "./seed/nestjs-postgres-prisma/scenario-2/seed";
+import { levels as nestjsScenario3Levels, scenarios as nestjsScenario3Scenarios } from "./seed/nestjs-postgres-prisma/scenario-3/seed";
+
+import { levels as nextjsScenario1Levels, scenarios as nextjsScenario1Scenarios } from "./seed/nextjs-postgres-prisma/scenario-1/seed";
+import { levels as nextjsScenario2Levels, scenarios as nextjsScenario2Scenarios } from "./seed/nextjs-postgres-prisma/scenario-2/seed";
+import { levels as nextjsScenario3Levels, scenarios as nextjsScenario3Scenarios } from "./seed/nextjs-postgres-prisma/scenario-3/seed";
+
+import { levels as nextjsShadcnScenario1Levels, scenarios as nextjsShadcnScenario1Scenarios } from "./seed/nextjs-shadcn-ui/scenario-1/seed";
+import { levels as nextjsShadcnScenario2Levels, scenarios as nextjsShadcnScenario2Scenarios } from "./seed/nextjs-shadcn-ui/scenario-2/seed";
+import { levels as nextjsShadcnScenario3Levels, scenarios as nextjsShadcnScenario3Scenarios } from "./seed/nextjs-shadcn-ui/scenario-3/seed";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL ?? "",
@@ -30,813 +50,271 @@ async function main() {
   console.log("🌱 Starting database seed...\n");
 
   // Clear existing data
-  await prisma.completedTask.deleteMany();
-  await prisma.containerStack.deleteMany();
-  await prisma.userFileChanges.deleteMany();
-  await prisma.container.deleteMany();
-  await prisma.acceptanceCriteria.deleteMany();
+  await prisma.completed_task.deleteMany();
+  await prisma.workspace_stack.deleteMany();
+  await prisma.user_file_changes.deleteMany();
+  await prisma.workspace.deleteMany();
+  await prisma.acceptance_criteria.deleteMany();
   await prisma.hint.deleteMany();
-  await prisma.levelTask.deleteMany();
+  await prisma.learning_section.deleteMany();
+  await prisma.level_task.deleteMany();
   await prisma.level.deleteMany();
   await prisma.scenario.deleteMany();
+  await prisma.achievement_tier.deleteMany();
+  await prisma.user_achievement.deleteMany();
+  await prisma.achievement.deleteMany();
 
   console.log("🗑️  Cleared existing data\n");
 
   // Define scenarios for each tech stack
   const scenarios = [
-    {
-      id: "scenario-1",
-      name: "BookWise Library Management System",
-      description:
-        "Build a full-featured web-based Library Management System to manage books, members, and borrowing workflows using React, Express, PostgreSQL, and Prisma.",
-      difficulty: "expert",
-    },
+    ...pernScenario1Scenarios,
+    ...pernScenario2Scenarios,
+    ...pernScenario3Scenarios,
+    ...mernScenario1Scenarios,
+    ...mernScenario2Scenarios,
+    ...mernScenario3Scenarios,
+    ...nestjsScenario1Scenarios,
+    ...nestjsScenario2Scenarios,
+    ...nestjsScenario3Scenarios,
+    ...nextjsScenario1Scenarios,
+    ...nextjsScenario2Scenarios,
+    ...nextjsScenario3Scenarios,
+    ...nextjsShadcnScenario1Scenarios,
+    ...nextjsShadcnScenario2Scenarios,
+    ...nextjsShadcnScenario3Scenarios,
   ];
 
   // Define levels with progressive difficulty
   const levels = [
+    ...pernScenario1Levels,
+    ...pernScenario2Levels,
+    ...pernScenario3Levels,
+    ...mernScenario1Levels,
+    ...mernScenario2Levels,
+    ...mernScenario3Levels,
+    ...nestjsScenario1Levels,
+    ...nestjsScenario2Levels,
+    ...nestjsScenario3Levels,
+    ...nextjsScenario1Levels,
+    ...nextjsScenario2Levels,
+    ...nextjsScenario3Levels,
+    ...nextjsShadcnScenario1Levels,
+    ...nextjsShadcnScenario2Levels,
+    ...nextjsShadcnScenario3Levels,
+  ];
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Achievements catalog — see docs/ACHIEVEMENTS_SPEC.md
+  // Each family has up to 3 tiers: ROOKIE / AMATEUR / PRO.
+  // ──────────────────────────────────────────────────────────────────────────
+  type TierSeed = {
+    tier: "ROOKIE" | "AMATEUR" | "PRO";
+    description: string;
+    criteria: Prisma.InputJsonValue;
+    xp_reward: number;
+    coin_reward: number;
+  };
+  type AchievementSeed = {
+    name: string;
+    description: string;
+    icon: string;
+    category: "progress" | "exploration" | "consistency" | "mastery";
+    tiers: TierSeed[];
+  };
+
+  const trio = (
+    rookieDesc: string,
+    amateurDesc: string,
+    proDesc: string,
+    rookieCriteria: Prisma.InputJsonValue,
+    amateurCriteria: Prisma.InputJsonValue,
+    proCriteria: Prisma.InputJsonValue,
+  ): TierSeed[] => [
     {
-      id: "level-1",
-      title: "Getting Familiar with the Codebase",
-      subtitle:
-        "Set up the development environment and make a minor UI change.",
-      order: 1,
-      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      levelDescription:
-        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in your local machine.",
-      xpReward: 100,
-      coinReward: 50,
-      keyTakeaways: "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (npm/pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
-      scenarioId: "scenario-1",
-      tasks: {
-        create: [
-          {
-            taskName: "Prepare Development Environment",
-            testType: "client", 
-            userStory:
-              "As a developer, I want to set up my development environment so that I can start working on the project.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Run package installation in the `root`, `client`, and `server` folders.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Use the README to gather information about the project setup.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Make sure to run Prisma migrations to set up the database.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 1,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "Dependencies installed for the root, client, and server without errors",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description: "Prisma migrations executed successfully",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description: "Both client and server running without errors",
-                  isRequired: true,
-                  order: 3,
-                },
-              ],
-            },
-          },
-          {
-            taskName: "Update Brand Subtitle",
-            testType: "client", // UI change only — client test
-            userStory:
-              "As a user, I want to see the updated brand subtitle on the website so that the interface reflects the library identity.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Check shared layout components under `client/src/components/layout`.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Run the client and quickly confirm both updates in the browser.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Test the change locally to ensure it displays correctly.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 2,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    'Header subtitle is exactly "BookWise Public Library"',
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description:
-                    "Subtitle renders correctly on desktop and mobile layouts",
-                  isRequired: true,
-                  order: 2,
-                },
-              ],
-            },
-          },
-        ],
-      },
+      tier: "ROOKIE",
+      description: rookieDesc,
+      criteria: rookieCriteria,
+      xp_reward: 100,
+      coin_reward: 50,
     },
     {
-      id: "level-2",
-      title: "Client-Side Exploration",
-      subtitle: "Investigate Client-Side Borrowing Logic and UI Helpers",
-      order: 2,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      levelDescription:
-        "Mission Briefing: Members report they cannot borrow books even when copies are available. Your task is to investigate the client-side availability logic and create a reusable helper function to ensure consistent borrow decisions across the React UI.",
-      xpReward: 25,
-      coinReward: 125,
-      keyTakeaways: "Pure functions in React applications that process Prisma query results from PostgreSQL are easier to test and debug. Centralizing business logic ensures consistent data handling across React components that consume Express API responses. This functional programming approach is essential for reliable React + Express + Prisma applications.\n\nClient-side utility functions in React ensure consistent logic when processing data from Express APIs powered by Prisma and PostgreSQL. When the same availability logic exists in multiple React components, shared utilities prevent inconsistencies and simplify maintenance. This approach ensures reliable data handling in React applications consuming Express + Prisma + PostgreSQL backends.",
-      scenarioId: "scenario-1",
-      tasks: {
-        create: [
-          {
-            taskName: "Add Borrow Availability Helper",
-            testType: "client",
-            userStory:
-              "As a developer, I want a reusable availability helper, So that borrow decisions stay correct and consistent.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Target the Contract - Expose a single function named `isBookAvailable` from `client/src/utils/helpers.ts`.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Verify the Boundary - Make sure the boundary at `0` is handled exactly as expected.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Keep It Reusable - Keep the function focused: copy count in, availability out.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 1,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "A helper is implemented and exported as `isBookAvailable` from `client/src/utils/helpers.ts`",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description:
-                    "The helper returns `false` when `availableCopies <= 0`",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description:
-                    "The helper returns `true` when `availableCopies > 0`",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description:
-                    "Borrow-availability decisions remain consistent for mixed copy counts (positive, zero, negative)",
-                  isRequired: true,
-                  order: 4,
-                },
-                {
-                  description:
-                    "Repeated calls with the same input return the same output",
-                  isRequired: true,
-                  order: 5,
-                },
-                {
-                  description:
-                    "Tests validate behavior and contract rather than enforcing one exact implementation style",
-                  isRequired: true,
-                  order: 6,
-                },
-              ],
-            },
-          },
-          {
-            taskName: "Reuse Availability Logic",
-            testType: "client", 
-            userStory:
-              "As a developer, I want BorrowRecords to use the shared availability helper, So that the logic stays consistent across views.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Choose Utility Location - Use the existing shared helper in `client/src/utils/helpers.ts`.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Keep Function Focused - Let the helper decide availability from copy count.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Update Call Sites - Replace inline checks with the helper where appropriate.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 2,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "`BorrowRecords.tsx` uses `isBookAvailable` from `client/src/utils/helpers.ts` for availability filtering",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description:
-                    "Inline availability checks in `BorrowRecords.tsx` are replaced by helper usage",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description:
-                    "Availability filtering follows helper output, even when helper logic changes",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description:
-                    "Validation is outcome-based and allows different coding styles, as long as requirements are met",
-                  isRequired: true,
-                  order: 4,
-                },
-                {
-                  description:
-                    "Borrow/Issue behavior remains correct after refactor",
-                  isRequired: true,
-                  order: 5,
-                },
-                {
-                  description:
-                    "Only books with available copies are selectable in Issue Book flow after refactor",
-                  isRequired: true,
-                  order: 6,
-                },
-                {
-                  description:
-                    "No regressions appear in related components using borrow flow",
-                  isRequired: true,
-                  order: 7,
-                },
-                {
-                  description:
-                    "Tests should verify behavior/contract, not enforce one exact line-by-line implementation",
-                  isRequired: true,
-                  order: 8,
-                },
-              ],
-            },
-          },
-        ],
-      },
+      tier: "AMATEUR",
+      description: amateurDesc,
+      criteria: amateurCriteria,
+      xp_reward: 250,
+      coin_reward: 100,
     },
     {
-      id: "level-3",
-      title: "Debugging and Stabilizing the Backend",
-      subtitle:
-        "Trace return-flow issues and enforce transactional consistency.",
-      order: 3,
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      levelDescription:
-        "Mission Briefing: Returning books occasionally causes negative available copy counts. Your mission is to debug the return flow, identify why the copy counts are going negative, and implement a fix to ensure the library's inventory stays accurate.",
-      xpReward: 40,
-      coinReward: 200,
-      keyTakeaways: "Prisma migrations synchronize your PostgreSQL database schema with your Express + React application code changes. They prevent schema drift between development, staging, and production environments, ensuring database consistency across the entire React + Express + Prisma stack. Migrations are essential for maintaining data integrity in production PostgreSQL databases.\n\nDatabase transactions in Prisma ensure atomic operations when updating related PostgreSQL records through Express APIs. They prevent partial updates that could leave your database inconsistent, which is critical for React applications handling financial and inventory data. Always wrap related database operations in transactions to maintain data integrity in Express + Prisma + PostgreSQL applications.",
-      scenarioId: "scenario-1",
-      tasks: {
-        create: [
-          {
-            taskName: "Diagnose Return Flow",
-            testType: "server", // borrow.controller.ts is server-side
-            userStory:
-              "As a backend developer, I want to trace the return flow in the server, So that I can identify why available copy counts can become invalid.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Start from Return Flow - Inspect `server/src/controllers/borrow.controller.ts` in `returnBook` and trace the full write path.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Verify Prisma Write Sequence - Check whether borrow record update and book copy update are split across separate Prisma calls.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Capture Root Cause Evidence - Reproduce the failure path where one write can succeed while another fails, then document the exact sequence and why it can leave inconsistent state.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 1,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "A reproducible case for negative stock is documented",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description:
-                    "Problematic backend logic path is identified with evidence",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description: "Backend controller/service flow is validated",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description: "Prisma query sequence is validated",
-                  isRequired: true,
-                  order: 4,
-                },
-              ],
-            },
-          },
-          {
-            taskName: "Enforce Transaction Safety",
-            testType: "server", // Prisma transactions are server-side
-            userStory:
-              "As a backend engineer, I want the borrow and return flows in `server/src/controllers/borrow.controller.ts` to run atomically, So that concurrent requests cannot corrupt `availableCopies` and partial writes are never persisted.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Prisma Transactions - Wrap related writes in `prisma.$transaction(...)` so return updates are all-or-nothing.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Guard Conditions - Protect inventory updates with a safe condition (for example, conditional update) so concurrent borrow requests cannot underflow stock.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Verify with Stress Cases - Focus on `server/src/controllers/borrow.controller.ts` and validate behavior with concurrent borrow requests and return-write failure scenarios.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 2,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "Return flow updates (`BorrowRecord` + `Book.availableCopies`) run in one Prisma transaction",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description:
-                    "If one write fails, no partial state is persisted",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description:
-                    "Concurrent borrow requests never reduce `availableCopies` below zero",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description:
-                    "Only valid borrow/return outcomes are committed under concurrent access",
-                  isRequired: true,
-                  order: 4,
-                },
-              ],
-            },
-          },
-        ],
-      },
+      tier: "PRO",
+      description: proDesc,
+      criteria: proCriteria,
+      xp_reward: 600,
+      coin_reward: 200,
+    },
+  ];
+
+  const achievements: AchievementSeed[] = [
+    // Progress ────────────────────────────────────────────────────────────
+    {
+      name: "Stack Master",
+      description: "Finish scenarios in a single stack",
+      icon: "🏆",
+      category: "progress",
+      tiers: trio(
+        "Finish 1 scenario in a single stack",
+        "Finish 2 scenarios in a single stack",
+        "Finish 3 scenarios in a single stack",
+        { type: "scenarios_in_stack", count: 1 },
+        { type: "scenarios_in_stack", count: 2 },
+        { type: "scenarios_in_stack", count: 3 },
+      ),
     },
     {
-      id: "level-4",
-      title: "Starting my Full-Stack Journey",
-      subtitle: "Implement Reservation Queue and Lifecycle Management",
-      order: 4,
-      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-      levelDescription:
-        "Mission Briefing: The Library is implementing a reservation system for popular books. Your task is to build a reservation feature that allows users to reserve a book when all copies are borrowed and receive notifications when the book becomes available.",
-      xpReward: 60,
-      coinReward: 300,
-      keyTakeaways: "Input validation and sanitization are critical for Express API security and PostgreSQL data integrity in React applications. They prevent malicious input from corrupting your database and protect against attacks. Always validate and sanitize user inputs in Express routes before they reach Prisma and PostgreSQL. This creates secure, reliable APIs that safely handle React frontend data submissions.\n\nProper error handling in Express APIs and React components creates better user experiences in full-stack applications. Clear error messages help users understand issues, while graceful error handling prevents React app crashes. Implement comprehensive error boundaries in React and meaningful error responses in Express routes. This ensures reliable, user-friendly React + Express + PostgreSQL + Prisma applications.",
-      scenarioId: "scenario-1",
-      tasks: {
-        create: [
-          {
-            taskName: "Reserve an Unavailable Book",
-            testType: "both", // client/src/services/libraryService.ts + server/src/controllers/reservation.controller.ts
-            userStory:
-              "As a library member, I want to reserve a book when all copies are borrowed, So that I can claim it when it becomes available.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Keep Reservation Eligibility Explicit - Reservation creation should pass only when book copies are `0`. Validate this on the server before insert.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Assign Queue Position Server-Side - Compute `queuePosition` in backend create flow so client stays presentation-only.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Return Display-Ready Queue Rows - Include `member` and `book` relation fields needed by UI in the queue response.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "Keep Task-1 Scope Strict - Task-1 is only reservation creation and queue visibility. Fulfillment and cancellation belong to task-2.",
-                  order: 4,
-                },
-              ],
-            },
-            order: 1,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "`POST /api/reservations` returns HTTP `201` with `{ success: true, data: Reservation }` for valid requests",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description: "Request body includes `bookId` and `memberId`",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description:
-                    "Reservation create is allowed only when target book has `availableCopies === 0`",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description:
-                    "Duplicate active reservation for the same member and book returns HTTP `400`",
-                  isRequired: true,
-                  order: 4,
-                },
-                {
-                  description:
-                    "Required implementation names are exact and case-sensitive: `createReservation` in `server/src/controllers/reservation.controller.ts`, `createReservation` in `client/src/services/libraryService.ts`, Route path is `/api/reservations` in `server/src/routes/reservation.routes.ts`",
-                  isRequired: true,
-                  order: 5,
-                },
-                {
-                  description:
-                    "`GET /api/reservations?bookId=<id>` returns HTTP `200` with `{ success: true, data: ReservationQueueRow[] }`",
-                  isRequired: true,
-                  order: 6,
-                },
-                {
-                  description:
-                    "Each queue row includes `id`, `bookId`, `memberId`, `queuePosition`, `status`, `createdAt`",
-                  isRequired: true,
-                  order: 7,
-                },
-                {
-                  description:
-                    "Each queue row includes display-ready relation data: `member.name` and `book.title`",
-                  isRequired: true,
-                  order: 8,
-                },
-                {
-                  description:
-                    "Queue response is ordered by `queuePosition` ascending",
-                  isRequired: true,
-                  order: 9,
-                },
-                {
-                  description:
-                    "`client/src/pages/Books.tsx` renders `Reserve Book` only when `availableCopies` is `0`",
-                  isRequired: true,
-                  order: 10,
-                },
-                {
-                  description:
-                    "Borrow action stays primary when `availableCopies` is greater than `0`",
-                  isRequired: true,
-                  order: 11,
-                },
-                {
-                  description:
-                    "Reserve action triggers `createReservation(...)` from `client/src/services/libraryService.ts`",
-                  isRequired: true,
-                  order: 12,
-                },
-                {
-                  description:
-                    "Reservation errors (book available, duplicate reservation, invalid member) are shown in UI",
-                  isRequired: true,
-                  order: 13,
-                },
-                {
-                  description:
-                    "After successful reservation, UI confirms queue position (for example: `You are #3 in line.`)",
-                  isRequired: true,
-                  order: 14,
-                },
-                {
-                  description:
-                    "Queue length and position display are based on backend response, not hard-coded client math",
-                  isRequired: true,
-                  order: 15,
-                },
-                {
-                  description:
-                    "Empty queue state for a book displays `No active reservations.`",
-                  isRequired: true,
-                  order: 16,
-                },
-              ],
-            },
-          },
-          {
-            taskName: "Fulfill and Manage Reservation Lifecycle",
-            testType: "both", // client reservation list + server return/cancel flow
-            userStory:
-              "As a librarian, I want reservation fulfillment and cancellation to update queue order automatically, So that members always see accurate reservation status and position.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Model the Reservation Lifecycle - Use explicit reservation states (`RESERVED`, `READY_FOR_PICKUP`, `CANCELLED`) and transition between them intentionally.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Keep Queue Mutations Transactional - Promotion and queue reindex should happen inside one transactional operation to avoid race conditions.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Centralize Queue Reindex Logic - Put queue position recalculation in one server helper so return flow and cancellation reuse the same behavior.",
-                  order: 3,
-                },
-                {
-                  description:
-                    "Use Backend as Source of Truth - Client should render reservation status and position from API responses rather than deriving them locally.",
-                  order: 4,
-                },
-              ],
-            },
-            order: 2,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "In `returnBook` flow, when a returned book has active reservations and stock becomes available, first queue entry is updated to `READY_FOR_PICKUP`",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description:
-                    "Queue progression updates happen in the same transactional boundary as return updates",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description:
-                    "Required implementation names are exact and case-sensitive: `returnBook` in `server/src/controllers/borrow.controller.ts`, `promoteNextReservation` in `server/src/controllers/reservation.controller.ts`",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description:
-                    "`DELETE /api/reservations/:id` (or equivalent cancel endpoint) marks reservation as `CANCELLED`",
-                  isRequired: true,
-                  order: 4,
-                },
-                {
-                  description:
-                    "Cancellation triggers queue reindex so remaining active reservations have continuous positions (`1..n`)",
-                  isRequired: true,
-                  order: 5,
-                },
-                {
-                  description:
-                    "Cancelling an already cancelled or fulfilled reservation returns HTTP `400`",
-                  isRequired: true,
-                  order: 6,
-                },
-                {
-                  description:
-                    "Required implementation names are exact and case-sensitive: `cancelReservation` in `server/src/controllers/reservation.controller.ts`, `cancelReservation` in `client/src/services/libraryService.ts`",
-                  isRequired: true,
-                  order: 7,
-                },
-                {
-                  description:
-                    "Client provides a reservation list view for the member showing `book.title`, `queuePosition`, and `status`",
-                  isRequired: true,
-                  order: 8,
-                },
-                {
-                  description:
-                    "Rows with `READY_FOR_PICKUP` are visually distinct from `RESERVED`",
-                  isRequired: true,
-                  order: 9,
-                },
-                {
-                  description: "Empty state displays `No reservations found.`",
-                  isRequired: true,
-                  order: 10,
-                },
-                {
-                  description:
-                    "On successful cancellation, UI confirms: `Reservation cancelled.`",
-                  isRequired: true,
-                  order: 11,
-                },
-                {
-                  description:
-                    "On queue updates, affected members see updated position values from backend response",
-                  isRequired: true,
-                  order: 12,
-                },
-                {
-                  description:
-                    "UI never computes lifecycle status from local assumptions; it uses server status output",
-                  isRequired: true,
-                  order: 13,
-                },
-              ],
-            },
-          },
-        ],
-      },
+      name: "Level Climber",
+      description: "Finish levels across your journey",
+      icon: "📈",
+      category: "progress",
+      tiers: trio(
+        "Complete 2 levels",
+        "Complete 10 levels",
+        "Complete 30 levels",
+        { type: "levels_completed", count: 2 },
+        { type: "levels_completed", count: 10 },
+        { type: "levels_completed", count: 30 },
+      ),
     },
     {
-      id: "level-5",
-      title: "The Production Struggle",
-      subtitle: "Investigate and fix a critical production issue.",
-      order: 5,
-      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-      levelDescription:
-        "Mission Briefing: Congratulations! The project is in production, but a critical issue has been reported by the client. Your mission is to investigate the problem, identify the root cause, and deliver a fix as soon as possible to maintain system reliability.",
-      xpReward: 75,
-      coinReward: 375,
-      keyTakeaways: "Pagination is essential for handling large datasets in React applications consuming Express APIs with PostgreSQL. It improves frontend performance and user experience by loading data incrementally instead of overwhelming the React UI with massive datasets. Implement proper pagination with clear navigation controls and loading states for scalable React + Express + PostgreSQL applications.\n\nAutomated testing is crucial for maintaining code quality in React + Express + Prisma + PostgreSQL applications. Tests ensure that React component changes, Express API modifications, and Prisma database operations work correctly together and prevent regressions. Always write tests for critical business logic and user interactions to maintain reliable full-stack applications.",
-      scenarioId: "scenario-1",
-      tasks: {
-        create: [
-          {
-            taskName: "Stabilize Overdue Report Classification",
-            testType: "server", // overdue report logic is in server borrow controller
-            userStory:
-              "As a developer, I want the overdue report to classify records by source-of-truth fields, So that client-visible overdue output remains correct even with stale status data.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Trust Source-of-Truth Fields - Use `returnedAt` and `dueDate` as primary decision fields instead of relying on status alone.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Guard Against Stale Status - Returned records may still carry `BORROWED` or `OVERDUE`; overdue output should still stay correct.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Use Deterministic UTC Fixtures - Use fixed UTC timestamps around midnight to make boundary behavior reproducible.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 1,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description:
-                    "`/api/borrow-records/overdue` excludes any record with `returnedAt != null` regardless of status value",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description:
-                    "`/api/borrow-records/overdue` includes past-due unreturned records",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description:
-                    "A stale-status discrepancy case is reproducible and covered by tests",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description:
-                    "A UTC midnight boundary case is covered by deterministic test data",
-                  isRequired: true,
-                  order: 4,
-                },
-              ],
-            },
-          },
-          {
-            taskName: "Deliver Permanent Fix and Documentation",
-            testType: "server", // overdue fix and utility is server-side
-            userStory:
-              "As a developer, I want to fix overdue mismatches and document the root cause, So that the client can trust overdue reports.",
-            hints: {
-              create: [
-                {
-                  description:
-                    "Add Regression Tests - Capture the original bug in tests before implementing the fix.",
-                  order: 1,
-                },
-                {
-                  description:
-                    "Centralize Date Logic - Keep overdue determination in one shared utility.",
-                  order: 2,
-                },
-                {
-                  description:
-                    "Write a Postmortem Note - Include symptom, root cause, fix, and prevention actions.",
-                  order: 3,
-                },
-              ],
-            },
-            order: 2,
-            acceptanceCriteria: {
-              create: [
-                {
-                  description: "Incorrect overdue markings are resolved",
-                  isRequired: true,
-                  order: 1,
-                },
-                {
-                  description: "Returned items are no longer listed overdue",
-                  isRequired: true,
-                  order: 2,
-                },
-                {
-                  description:
-                    "Overdue reports match source borrowing and return records",
-                  isRequired: true,
-                  order: 3,
-                },
-                {
-                  description: "Spot checks confirm data consistency",
-                  isRequired: true,
-                  order: 4,
-                },
-                {
-                  description: "Root cause is documented",
-                  isRequired: true,
-                  order: 5,
-                },
-                {
-                  description:
-                    "Fix approach and validation steps are documented",
-                  isRequired: true,
-                  order: 6,
-                },
-              ],
-            },
-          },
-        ],
-      },
+      name: "Task Slayer",
+      description: "Complete level tasks",
+      icon: "⚔️",
+      category: "progress",
+      tiers: trio(
+        "Complete 5 tasks",
+        "Complete 20 tasks",
+        "Complete 50 tasks",
+        { type: "tasks_completed", count: 5 },
+        { type: "tasks_completed", count: 20 },
+        { type: "tasks_completed", count: 50 },
+      ),
+    },
+    // Exploration ─────────────────────────────────────────────────────────
+    {
+      name: "Stack Explorer",
+      description: "Finish a scenario in multiple stacks",
+      icon: "🧭",
+      category: "exploration",
+      tiers: trio(
+        "Finish a scenario in 1 stack",
+        "Finish a scenario in 2 stacks",
+        "Finish a scenario in 3+ stacks",
+        { type: "distinct_stacks", count: 1 },
+        { type: "distinct_stacks", count: 2 },
+        { type: "distinct_stacks", count: 3 },
+      ),
+    },
+    {
+      name: "Scenario Nomad",
+      description: "Complete distinct scenarios",
+      icon: "🗺️",
+      category: "exploration",
+      tiers: trio(
+        "Complete 1 scenario",
+        "Complete 3 distinct scenarios",
+        "Complete 5 distinct scenarios",
+        { type: "scenarios_completed", count: 1 },
+        { type: "scenarios_completed", count: 3 },
+        { type: "scenarios_completed", count: 5 },
+      ),
+    },
+    // Consistency ─────────────────────────────────────────────────────────
+    {
+      name: "Daily Driver",
+      description: "Keep a login streak going",
+      icon: "🔥",
+      category: "consistency",
+      tiers: trio(
+        "Log in 5 days in a row",
+        "Log in 10 days in a row",
+        "Log in 20 days in a row",
+        { type: "login_streak", days: 5 },
+        { type: "login_streak", days: 10 },
+        { type: "login_streak", days: 20 },
+      ),
+    },
+    {
+      name: "Code Committer",
+      description: "Edit files in your workspace",
+      icon: "💾",
+      category: "consistency",
+      tiers: trio(
+        "Make 50 tracked file edits",
+        "Make 250 tracked file edits",
+        "Make 1000 tracked file edits",
+        { type: "file_edits", count: 50 },
+        { type: "file_edits", count: 250 },
+        { type: "file_edits", count: 1000 },
+      ),
+    },
+    // Mastery ─────────────────────────────────────────────────────────────
+    {
+      name: "XP Grinder",
+      description: "Accumulate total XP",
+      icon: "⚡",
+      category: "mastery",
+      tiers: trio(
+        "Reach 500 total XP",
+        "Reach 2,500 total XP",
+        "Reach 10,000 total XP",
+        { type: "xp_total", xp: 500 },
+        { type: "xp_total", xp: 2500 },
+        { type: "xp_total", xp: 10000 },
+      ),
+    },
+    {
+      name: "Coin Collector",
+      description: "Accumulate coins",
+      icon: "🪙",
+      category: "mastery",
+      tiers: trio(
+        "Hold 200 coins",
+        "Hold 1,000 coins",
+        "Hold 5,000 coins",
+        { type: "coins_earned", coins: 200 },
+        { type: "coins_earned", coins: 1000 },
+        { type: "coins_earned", coins: 5000 },
+      ),
+    },
+    // Trivia ──────────────────────────────────────────────────────────────
+    {
+      name: "Quiz Whiz",
+      description: "Answer trivia questions correctly",
+      icon: "🧠",
+      category: "mastery",
+      tiers: trio(
+        "Get your first trivia answer right",
+        "Answer 10 trivia questions correctly",
+        "Answer 25 trivia questions correctly",
+        { type: "trivia_correct", count: 1 },
+        { type: "trivia_correct", count: 10 },
+        { type: "trivia_correct", count: 25 },
+      ),
+    },
+    // Single-tier exception (First Boot) ──────────────────────────────────
+    {
+      name: "First Boot",
+      description: "Finish the onboarding tutorial",
+      icon: "🚀",
+      category: "progress",
+      tiers: [
+        {
+          tier: "ROOKIE",
+          description: "Finish the onboarding tutorial",
+          criteria: { type: "tutorial_completed" },
+          xp_reward: 100,
+          coin_reward: 50,
+        },
+      ],
     },
   ];
 
@@ -852,6 +330,31 @@ async function main() {
   for (const level of levels) {
     await prisma.level.create({ data: level });
     console.log(`✅ Created level: ${level.title}`);
+  }
+
+  // Insert achievements + tiers
+  console.log("\n🏅 Creating achievements...\n");
+  for (const family of achievements) {
+    await prisma.achievement.create({
+      data: {
+        name: family.name,
+        description: family.description,
+        icon: family.icon,
+        category: family.category,
+        tiers: {
+          create: family.tiers.map((t) => ({
+            tier: t.tier,
+            description: t.description,
+            criteria: t.criteria,
+            xp_reward: t.xp_reward,
+            coin_reward: t.coin_reward,
+          })),
+        },
+      },
+    });
+    console.log(
+      `✅ Created achievement: ${family.name} (${family.tiers.length} tier${family.tiers.length === 1 ? "" : "s"})`,
+    );
   }
 
   console.log("\n🎉 Database seeded successfully!\n");
@@ -881,3 +384,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

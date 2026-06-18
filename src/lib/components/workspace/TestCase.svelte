@@ -24,6 +24,7 @@
 
   const dispatch = createEventDispatcher<{
     testsComplete: { success: boolean; result: TestRunResult };
+    resultModalClosed: void;
   }>();
 
   function openTestModal() {
@@ -50,6 +51,7 @@
     }
 
     showResultModal = false;
+    dispatch('resultModalClosed');
   }
 
   function handleCancelConfirmDismiss() {
@@ -254,6 +256,11 @@
     activeTestAbortController = abortController;
 
     try {
+      // Build task test type metadata for the backend to pick the right script prefix
+      const taskTestTypes = tasks
+        .filter((task) => taskIds.includes(task.id))
+        .map((task) => ({ taskId: task.id, testType: task.testType ?? 'none', order: task.order }));
+
       // Run grouped level tests
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
@@ -263,7 +270,8 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          type: 'level'
+          type: 'level',
+          taskTestTypes
         })
       });
 
@@ -275,7 +283,7 @@
           level,
           summary: data.summary || { total: 0, passed: 0, failed: 0, duration: 0 },
           taskResults: data.taskResults || [],
-          command: `npm run test:tasks:l${level}`,
+          command: `pnpm run test:tasks:l${level}`,
           output: data.output
         };
 
@@ -364,6 +372,11 @@
     const abortController = new AbortController();
     activeTestAbortController = abortController;
 
+    // Build task test type metadata for the backend to pick the right script prefix
+    const taskTestTypes = tasks
+      .filter((task) => taskIds.includes(task.id))
+      .map((task) => ({ taskId: task.id, testType: task.testType ?? 'none', order: task.order }));
+
     try {
       const response = await fetch(`/api/docker/container/${containerId}/tests/run`, {
         method: 'POST',
@@ -373,7 +386,8 @@
           command: `test:tasks:l${level}`,
           level,
           taskIds,
-          type: 'level'
+          type: 'level',
+          taskTestTypes
         })
       });
 
@@ -384,7 +398,7 @@
         level,
         summary: data.summary || { total: 0, passed: 0, failed: 0, duration: 0 },
         taskResults: data.taskResults || [],
-        command: `npm run test:tasks:l${level}`,
+        command: `pnpm run test:tasks:l${level}`,
         output: data.output
       };
 
@@ -431,6 +445,7 @@
   // Public method to close result modal
   export function closeResults() {
     showResultModal = false;
+    dispatch('resultModalClosed');
   }
 
   // -- Derived ------------------------------------------------------------------
