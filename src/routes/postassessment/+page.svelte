@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
   import { getPostAssessmentConfig } from "$lib/data/postassessmentConfigs";
   import { assessmentTopics, assessmentScaleOptions, toTopicKey } from "$lib/data/assessmentTopics";
   import type { PageData } from "./$types";
@@ -47,7 +46,6 @@
   let answers = $state<number[]>([]);
   let showResult = $state(false);
   let showReflection = $state(false);
-  let showSuccess = $state(false);
   let aiGradingResult = $state<{ grades: Record<string, { score: number; feedback: string }>; overallScore: number; improvement: string } | null>(null);
   let contentWarning = $state(false);
   let warningMessage = $state("");
@@ -404,7 +402,7 @@
           </div>
         </div>
 
-      {:else if !showResult && !showSuccess}
+      {:else if !showResult}
         <div class="card-cyber p-8 relative">
           <div class="mb-8">
             <div class="flex justify-between items-center mb-3">
@@ -476,7 +474,7 @@
           </div>
         </div>
 
-      {:else if showResult && !showSuccess}
+      {:else if showResult}
         {#if processingResults || submittingReflection}
           <div class="card-cyber p-8 text-center relative">
             <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
@@ -628,25 +626,14 @@
               {/if}
 
               <div class="flex justify-center">
-                <button onclick={() => { showSuccess = true; return false; }} class="btn-cyber btn-cyber-solid !px-10">
-                  CONTINUE TO SUCCESS →
+                <button onclick={goToLevelComplete} class="btn-cyber btn-cyber-solid !px-10">
+                  BACK TO DASHBOARD →
                 </button>
               </div>
             </div>
           </div>
         {/if}
 
-      {:else if showSuccess}
-        <div class="card-cyber p-8 relative">
-          <SubmitSprintSuccessContent
-            advancingToNextLevel={false}
-            aiScoring={{ stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false }}
-            submitRewards={{ xp: 200, coins: 50 }}
-            keyTakeaways={[]}
-            level={5}
-            on:done={goToLevelComplete}
-          />
-        </div>
       {/if}
     </div>
   </main>

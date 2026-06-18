@@ -1820,9 +1820,11 @@ $effect(() => {
    <SubmitSprintModal
      bind:this={submitSprintModal}
      dbContainerId={containerId}
+     dbWorkspaceId={page.params.containerId}
      {containerId}
      {tasks}
      level={currentLevel}
+     scenarioId={workspaceScenario?.id ?? null}
      levelXpReward={currentLevelRecord?.xpReward ?? 0}
      levelCoinReward={currentLevelRecord?.coinReward ?? 0}
      {fileContents}

@@ -14,9 +14,14 @@
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
+  // Prisma workspace.id (cuid) — distinct from the Docker container id above.
+  // The /archive endpoint resolves the workspace by primary key, so it needs
+  // this, not the Docker id (which submit/file-changes use).
+  export let dbWorkspaceId: string | null = null;
   export let containerId: string; // Docker container ID for file operations
   export let tasks: ITask[];
   export let level: number = 1;
+  export let scenarioId: string | null = null;
   export let fileContents: Record<string, string> = {};
   export let existingFiles: string[] = [];
   export let levelXpReward: number = 0;
@@ -767,11 +772,16 @@
       notifyAchievementUnlocks([...unlockedThisRun.values()]);
 
       // Step 2 - Archive container if all levels are complete
-      // Must be called AFTER submit API sets status to 'completed'
-      if (allLevelsComplete && dbContainerId) {
+      // Must be called AFTER submit API sets status to 'completed'.
+      // The archive endpoint resolves the workspace by its Prisma id (cuid), so
+      // it must receive dbWorkspaceId — not the Docker container id. Passing the
+      // wrong one fails the lookup and leaves a finished container stuck in the
+      // "ongoing" list instead of moving it to "Finished".
+      const archiveWorkspaceId = dbWorkspaceId ?? dbContainerId;
+      if (allLevelsComplete && archiveWorkspaceId) {
         try {
           const archiveRes = await fetch(
-            `/api/docker/container/${dbContainerId}/archive`,
+            `/api/docker/container/${archiveWorkspaceId}/archive`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -819,9 +829,14 @@
         keyTakeaways.length
       );
 
-      // Fetch key takeaways from database for the current level
+      // Fetch key takeaways from database for the current level.
+      // scenarioId scopes the lookup so we don't surface another stack's
+      // takeaways (level `order` is shared across every scenario).
       try {
-        const takeawayRes = await fetch(`/api/level/${level}/key-takeaways`);
+        const takeawayUrl = scenarioId
+          ? `/api/level/${level}/key-takeaways?scenarioId=${encodeURIComponent(scenarioId)}`
+          : `/api/level/${level}/key-takeaways`;
+        const takeawayRes = await fetch(takeawayUrl);
         if (takeawayRes.ok) {
           const takeawayData = await takeawayRes.json();
           if (takeawayData.success && takeawayData.keyTakeaways) {

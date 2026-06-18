@@ -389,7 +389,10 @@ export class WorkspaceService {
       const currentLevel = workspaceRecord.level;
       const scenarioId = workspaceRecord.currentScenarioId;
 
-      const levelInfo = await this.level.getLevelByOrder(currentLevel, scenarioId);
+      const levelInfo = await this.level.getLevelByOrder(
+        currentLevel,
+        workspaceRecord.currentScenarioId,
+      );
 
       if (!levelInfo || levelInfo.error) {
         return {
@@ -441,7 +444,9 @@ export class WorkspaceService {
         levelComplete = true;
         nextLevel = currentLevel + 1;
 
-        const highestLevelOrder = await this.level.getHighestLevelOrder();
+        const highestLevelOrder = await this.level.getHighestLevelOrder(
+          workspaceRecord.currentScenarioId,
+        );
         const isLastLevel = currentLevel >= highestLevelOrder;
 
         if (isLastLevel) {
