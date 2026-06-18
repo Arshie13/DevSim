@@ -122,7 +122,8 @@ export class ContainerService {
         '5000/tcp': {},
         '3000/tcp': {},
         '5173/tcp': {},
-        '5432/tcp': {}
+        '5432/tcp': {},
+        '51212/tcp': {}
       },
       Env: [
         'POSTGRES_USER=devsim',
