@@ -9,7 +9,6 @@
   import { signOut } from '@auth/sveltekit/client';
   import { onMount } from 'svelte';
   import { beforeNavigate, goto } from '$app/navigation';
-  import { page } from '$app/stores';
 
   let { children, data } = $props();
 
@@ -25,7 +24,7 @@
 
   /** Check if the current page is a public (login/auth) page */
   function isPublicPage(): boolean {
-    return PUBLIC_PATHS.some((p) => $page.url.pathname === p);
+    return PUBLIC_PATHS.some((p) => page.url.pathname === p);
   }
 
   sessionInvalidated.subscribe((v: boolean) => {

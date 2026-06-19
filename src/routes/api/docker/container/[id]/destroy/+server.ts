@@ -63,7 +63,12 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
         try { await container.stop({ t: 5 }); } catch { /* already stopped */ }
         await container.remove();
         if (isTutorial) {
-          await prisma.workspace.delete({ where: { id: recordId } });
+          try {
+            await prisma.workspace.delete({ where: { id: recordId } });
+          } catch (err: any) {
+            // P2025 = record not found — already deleted by the create flow
+            if (err?.code !== 'P2025') throw err;
+          }
         }
       } catch (err) {
         console.error('Background destroy error:', err);

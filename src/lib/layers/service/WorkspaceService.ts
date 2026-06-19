@@ -92,11 +92,18 @@ export class WorkspaceService {
     // check if workspace already exists in DB
     const existing = await this.workspace.findActiveWorkspace(userId, level);
 
-    if (
+    // Tutorial workspaces are asynchronously destroyed (bgCleanup removes the
+    // Docker container in the background).  Reusing a tutorial container for a
+    // regular workspace races with the background destroy — the container would
+    // be removed from under the workspace page.  Skip the existing record and
+    // create a fresh container instead.
+    const existingIsReusable =
       existing &&
       existing.workspaceStacks &&
-      this.stacksMatch(existing.workspaceStacks, stacks)
-    ) {
+      this.stacksMatch(existing.workspaceStacks, stacks) &&
+      !(mode === "workspace" && existing.status === "tutorial");
+
+    if (existingIsReusable) {
       try {
         await this.container.ensureRunning(existing.containerId);
 
@@ -131,7 +138,8 @@ export class WorkspaceService {
         dockerMatch.Id,
       );
 
-      if (dbRecord) {
+      // Same guard as above: never reuse a tutorial container for a workspace.
+      if (dbRecord && !(mode === "workspace" && dbRecord.status === "tutorial")) {
         await this.container.ensureRunning(dockerMatch.Id);
 
         const { dbContainerId } = await saveUserContainer({
@@ -148,6 +156,34 @@ export class WorkspaceService {
           containerId: dockerMatch.Id,
           dbContainerId,
         };
+      }
+
+      if (dbRecord && mode === "workspace" && dbRecord.status === "tutorial") {
+        try {
+          await this.container.stopAndRemove(dockerMatch.Id);
+        } catch {
+          // container may already be gone (bgCleanup)
+        }
+        try {
+          await this.workspace.deleteWorkspace(dbRecord.id);
+        } catch {
+          // may already be deleted by bgCleanup
+        }
+      }
+    }
+
+    // If we're skipping a tutorial workspace, clean up its DB record
+    // so we don't end up with duplicate workspace records for the same level.
+    if (!existingIsReusable && existing) {
+      try {
+        await this.container.stopAndRemove(existing.containerId);
+      } catch {
+        // container may already be gone (bgCleanup)
+      }
+      try {
+        await this.workspace.deleteWorkspace(existing.id);
+      } catch {
+        // may already be deleted by bgCleanup
       }
     }
 
