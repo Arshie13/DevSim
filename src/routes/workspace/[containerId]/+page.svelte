@@ -128,7 +128,6 @@
     learningSections?: ILearningSection[];
     userStory?: string;
   };
-  let isRunning: boolean = $state(false);
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = $state("");
   let editorValue: string = "";
@@ -1673,8 +1672,6 @@ $effect(() => {
       title: actualLevelConfig.title,
       stack: actualLevelConfig.stack,
       difficulty,
-      timeRemaining,
-      isRunning,
       isDownloading,
       onBack: handleBack,
       onSubmit: handleSubmitSprint,

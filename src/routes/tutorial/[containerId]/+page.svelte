@@ -703,7 +703,6 @@
       title,
       stack,
       difficulty: tutorialDifficulty,
-      isRunning,
       isDownloading,
       onBack: handleBack,
       onSubmit: submitSprint,

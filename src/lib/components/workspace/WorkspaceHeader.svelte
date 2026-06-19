@@ -4,7 +4,6 @@
     title: string;
     stack: string;
     difficulty: string;
-    isRunning: boolean;
     isDownloading: boolean;
     onBack: () => void;
     onSubmit: () => void;
@@ -12,17 +11,15 @@
   }
 
   import {
-    Play,
-    Square,
-    Clock,
     ChevronLeft,
     Zap,
     Download,
+    MessageSquare,
   } from "lucide-svelte";
 
   // Satisfaction survey shown in the workspace header centre.
   // Only enabled in the workspace, not the tutorial.
-  const SATISFACTION_SURVEY_URL = "https://forms.gle/DLdpcNH3CavAj2WP7";
+  const SATISFACTION_SURVEY_URL = "https://forms.gle/F73Atv249AkYCnpL8";
   export let showSurvey = false;
 
   export let data: Props;
@@ -30,8 +27,6 @@
   let title: string;
   let stack: string;
   let difficulty: string;
-  let timeRemaining: number;
-  let isRunning: boolean;
   let isDownloading: boolean;
   let onBack: () => void;
   let onSubmit: () => void;
@@ -42,8 +37,6 @@
     title,
     stack,
     difficulty,
-    timeRemaining,
-    isRunning,
     isDownloading,
     onBack,
     onSubmit,
