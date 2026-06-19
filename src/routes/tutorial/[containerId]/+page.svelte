@@ -83,6 +83,7 @@
   let activeTabId = "";
   let editorValue = "";
   let previewUrl = "";
+  let studioUrl: string | null = null;
   let monacoEditor: MonacoInitializer | null = null;
 
   interface TermSession {
@@ -101,6 +102,7 @@
   let testCaseComponent: TestCase;
   let editorRef: HTMLDivElement;
   let iframeRef: HTMLIFrameElement;
+  let studioIframeRef: HTMLIFrameElement;
 
   const dbContainerId = data.container.id;
   const dockerContainerId = data.container.containerId;
@@ -410,6 +412,26 @@
           }
         }
       });
+
+    refreshStudio();
+  }
+
+  function refreshStudio() {
+    if (!dockerContainerId?.trim()) return;
+    fetch(`/api/docker/container/${dockerContainerId}/studio/preview`)
+      .then((res) => res.json())
+      .then((data: { success?: boolean; studioUrl?: string; error?: string }) => {
+        if (data.success && data.studioUrl) {
+          studioUrl = data.studioUrl;
+          if (studioIframeRef) studioIframeRef.src = data.studioUrl;
+        } else {
+          studioUrl = null;
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching studio preview:", err);
+        studioUrl = null;
+      });
   }
 
   function refreshTerminal() {
@@ -446,6 +468,7 @@
       }
 
       previewUrl = startPayload.previewUrl;
+      refreshStudio();
       bootStep = 1;
 
       await refreshFiles();
@@ -783,8 +806,10 @@
         <PreviewPanel
           visible={activeTab === "preview"}
           {previewUrl}
+          {studioUrl}
           onRefresh={refreshPreview}
           bind:iframeRef
+          bind:studioIframeRef
         />
 
         {#if activeTab === "board"}

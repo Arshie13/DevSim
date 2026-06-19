@@ -131,6 +131,7 @@
   let timeRemaining: number = $derived(4 * 60 * 60);
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = $state("");
+  let studioUrl: string | null = $state(null);
   let editorValue: string = "";
   let fileTree: string[] = $state([]);
   let directories: string[] = $state([]);
@@ -447,6 +448,7 @@
   let submitSprintModal: SubmitSprintModal;
   let editorRef = $state<HTMLDivElement | null>(null);
   let iframeRef = $state<HTMLIFrameElement | null>(null);
+  let studioIframeRef = $state<HTMLIFrameElement | null>(null);
   
   let testCaseComponent: TestCase;
 
@@ -831,6 +833,7 @@ $effect(() => {
       const startData = await response.json();
       if (!startData.success) throw new Error(startData.error);
       previewUrl = startData.previewUrl;
+      refreshStudio();
 
       await advanceBootStep(1);
       try {
@@ -1506,6 +1509,26 @@ $effect(() => {
           }
         }
       });
+
+    refreshStudio();
+  }
+
+  function refreshStudio() {
+    if (!containerId?.trim()) return;
+    fetch(`/api/docker/container/${containerId}/studio/preview`)
+      .then((res) => res.json())
+      .then((data: { success?: boolean; studioUrl?: string; error?: string }) => {
+        if (data.success && data.studioUrl) {
+          studioUrl = data.studioUrl;
+          if (studioIframeRef) studioIframeRef.src = data.studioUrl;
+        } else {
+          studioUrl = null;
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching studio preview:", err);
+        studioUrl = null;
+      });
   }
 
   function refreshTerminal() {
@@ -1768,8 +1791,10 @@ $effect(() => {
         <PreviewPanel
           visible={activeTab === "preview"}
           {previewUrl}
+          {studioUrl}
           onRefresh={refreshPreview}
           bind:iframeRef
+          bind:studioIframeRef
         />
 
         {#if activeTab === "board"}
