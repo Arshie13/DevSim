@@ -98,6 +98,21 @@ export class WorkspaceDataAccess {
     });
   }
 
+  async deleteWorkspace(workspaceId: string) {
+    try {
+      await prisma.workspace_stack.deleteMany({
+        where: { workspace_id: workspaceId }
+      });
+      await prisma.workspace.delete({
+        where: { id: workspaceId }
+      });
+      return { success: true };
+    } catch (err) {
+      console.error('Error deleting workspace:', err);
+      return { success: false, error: String(err) };
+    }
+  }
+
   async stopWorkspace(workspaceId: string) {
     try {
       await prisma.workspace.update({
