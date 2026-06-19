@@ -25,6 +25,8 @@
   import { getTutorialWorkspaceData as getPernTutorialData } from "$lib/components/tutorial/PERN/PERNTutorialData";
   import { NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA } from "$lib/components/tutorial/NESTJS_POSTGRES_PRISMA/NestjsPostgresPrismaTutorialData";
   import { NEXTJS_SHADCN_TUTORIAL_DATA } from "$lib/components/tutorial/NEXTJS_SHADCN/NextjsShadcnTutorialData";
+  import { getTutorialWorkspaceData as getMernTutorialData } from "$lib/components/tutorial/MERN/MERNTutorialData";
+  import { getTutorialWorkspaceData as getNextjsPostgresPrismaTutorialData } from "$lib/components/tutorial/NEXTJS_POSTGRES_PRISMA/NextjsPostgresPrismaTutorialData";
 
   import { toast } from "$lib/stores/toast";
   import type { FileListResponse } from "$lib/interface/Files";
@@ -54,17 +56,25 @@
     ? NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA
     : normalizedTutorialStack.includes("shadcn")
       ? NEXTJS_SHADCN_TUTORIAL_DATA
-      : getPernTutorialData(stack);
+      : /mern|mongo|react-express-mongodb/.test(normalizedTutorialStack)
+        ? getMernTutorialData(stack)
+        : /nextjs.*postgres.*prisma/.test(normalizedTutorialStack)
+          ? getNextjsPostgresPrismaTutorialData(stack)
+          : getPernTutorialData(stack);
   const title = tutorialData.scenarioTitle;
   const scenario = tutorialData.scenarioDescription;
-  const tutorialStackType: "pern" | "nestjs" | "shadcn" | "none" =
+  const tutorialStackType: "pern" | "nestjs" | "shadcn" | "mern" | "nextjs-postgres-prisma" | "none" =
     normalizedTutorialStack.includes("nest")
       ? "nestjs"
       : normalizedTutorialStack.includes("shadcn")
         ? "shadcn"
-        : /pern|react|express|postgres|prisma/.test(normalizedTutorialStack)
-          ? "pern"
-          : "none";
+        : /mern|mongo|react-express-mongodb/.test(normalizedTutorialStack)
+          ? "mern"
+          : /nextjs.*postgres.*prisma/.test(normalizedTutorialStack)
+            ? "nextjs-postgres-prisma"
+            : /pern|react|express|postgres|prisma/.test(normalizedTutorialStack)
+              ? "pern"
+              : "none";
 
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let isDownloading = false;

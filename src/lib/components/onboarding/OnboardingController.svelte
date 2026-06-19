@@ -2,6 +2,8 @@
   import PERNTutorial from '../tutorial/PERN/PERNTutorial.svelte';
   import NestjsPostgresPrismaTutorial from '../tutorial/NESTJS_POSTGRES_PRISMA/NestjsPostgresPrismaTutorial.svelte';
   import NextjsShadcnTutorial from '../tutorial/NEXTJS_SHADCN/NextjsShadcnTutorial.svelte';
+  import MERNTutorial from '../tutorial/MERN/MERNTutorial.svelte';
+  import NextjsPostgresPrismaTutorial from '../tutorial/NEXTJS_POSTGRES_PRISMA/NextjsPostgresPrismaTutorial.svelte';
   import { getStackKey } from './onboardingContent';
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
@@ -16,7 +18,7 @@
   /** Current level number. */
   export let level: number = 1;
   /** Which stack tutorial to run after workspace tour. */
-  export let stackTutorialType: 'auto' | 'pern' | 'nestjs' | 'shadcn' | 'none' = 'auto';
+  export let stackTutorialType: 'auto' | 'pern' | 'nestjs' | 'shadcn' | 'mern' | 'nextjs-postgres-prisma' | 'none' = 'auto';
   /** Allows dismissing tutorial intro/tour. Set false for mandatory tutorials. */
   export let allowSkip: boolean = true;
   /**
@@ -46,6 +48,8 @@
   $: isPernStack = stackKey === 'pern' || stackKey === 'react-express-postgres';
   $: isNestjsStack = stackKey === 'nestjs-postgres';
   $: isShadcnStack = stackKey === 'nextjs-shadcn';
+  $: isMernStack = stackKey === 'mern' || stackKey === 'react-express-mongodb';
+  $: isNextjsPostgresPrismaStack = stackKey === 'nextjs-postgres-prisma';
   $: resolvedStackTutorialType =
     stackTutorialType === 'auto'
       ? isPernStack
@@ -54,7 +58,11 @@
           ? 'nestjs'
           : isShadcnStack
             ? 'shadcn'
-            : 'none'
+            : isMernStack
+              ? 'mern'
+              : isNextjsPostgresPrismaStack
+                ? 'nextjs-postgres-prisma'
+                : 'none'
       : stackTutorialType;
 
   // ── Mark completion in DB (non-critical) ──────────────────────────────────
@@ -126,6 +134,28 @@
     />
   {:else if resolvedStackTutorialType === 'shadcn'}
     <NextjsShadcnTutorial
+      {title}
+      {scenario}
+      {level}
+      {allowSkip}
+      {onSwitchTab}
+      {onRunTests}
+      {onSubmitSprint}
+      on:complete={onStackTutorialComplete}
+    />
+  {:else if resolvedStackTutorialType === 'mern'}
+    <MERNTutorial
+      {title}
+      {scenario}
+      {level}
+      {allowSkip}
+      {onSwitchTab}
+      {onRunTests}
+      {onSubmitSprint}
+      on:complete={onStackTutorialComplete}
+    />
+  {:else if resolvedStackTutorialType === 'nextjs-postgres-prisma'}
+    <NextjsPostgresPrismaTutorial
       {title}
       {scenario}
       {level}
