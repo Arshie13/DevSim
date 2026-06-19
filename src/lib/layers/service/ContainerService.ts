@@ -148,7 +148,8 @@ export class ContainerService {
         'devsim.userId': userId,
         'devsim.stack': stackName,
         'devsim.level': level.toString(),
-        'devsim.projectFolder': projectFolder ?? ''
+        'devsim.projectFolder': projectFolder ?? '',
+        'devsim.mode': mode ?? 'workspace'
       }
     };
 
