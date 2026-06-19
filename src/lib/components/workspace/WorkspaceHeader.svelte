@@ -4,7 +4,6 @@
     title: string;
     stack: string;
     difficulty: string;
-    timeRemaining: number;
     isDownloading: boolean;
     onBack: () => void;
     onSubmit: () => void;
@@ -12,18 +11,22 @@
   }
 
   import {
-    Clock,
     ChevronLeft,
     Zap,
     Download,
+    MessageSquare,
   } from "lucide-svelte";
+
+  // Satisfaction survey shown in the workspace header centre.
+  // Only enabled in the workspace, not the tutorial.
+  const SATISFACTION_SURVEY_URL = "https://forms.gle/F73Atv249AkYCnpL8";
+  export let showSurvey = false;
 
   export let data: Props;
   let level: number;
   let title: string;
   let stack: string;
   let difficulty: string;
-  let timeRemaining: number;
   let isDownloading: boolean;
   let onBack: () => void;
   let onSubmit: () => void;
@@ -34,26 +37,12 @@
     title,
     stack,
     difficulty,
-    timeRemaining,
     isDownloading,
     onBack,
     onSubmit,
     onDownload,
   } = data);
 
-  function formatTime(seconds: number): string {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-
-  $: timeColor =
-    timeRemaining < 3600
-      ? "#ff3860"
-      : timeRemaining < 7200
-        ? "#ffb400"
-        : "#07a5c9";
   $: difficultyStyle =
     difficulty === "Hard"
       ? "color:#ff3860;border-color:rgba(255,56,96,0.3);background:rgba(255,56,96,0.06);"
@@ -106,18 +95,24 @@
     </div>
   </div>
 
-  <!-- Centre: countdown -->
-  <div
-    class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-1.5 bg-[#12192a] border border-[rgba(7,165,201,0.15)]"
-    style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 12px rgba(7,165,201,0.06);"
-  >
-    <Clock class="w-4 h-4 flex-shrink-0" style="color:{timeColor};" />
-    <span
-      class="text-base font-bold tracking-widest"
-      style="color:{timeColor};font-family:'Share Tech Mono',monospace;"
-      >{formatTime(timeRemaining)}</span
+  <!-- Centre: satisfaction survey (workspace only) -->
+  {#if showSurvey}
+    <a
+      href={SATISFACTION_SURVEY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-1.5 bg-[#12192a] border border-[rgba(7,165,201,0.15)] text-[#07a5c9] hover:bg-[rgba(7,165,201,0.08)] hover:border-[rgba(7,165,201,0.4)] hover:text-[#00f5ff] transition-all"
+      style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 12px rgba(7,165,201,0.06);"
+      title="Share your feedback in our satisfaction survey"
     >
-  </div>
+      <MessageSquare class="w-4 h-4 flex-shrink-0" />
+      <span
+        class="text-[0.8rem] font-bold uppercase tracking-widest"
+        style="font-family:'Orbitron',monospace;"
+        >Satisfaction Survey</span
+      >
+    </a>
+  {/if}
 
   <!-- Right section -->
   <div class="flex items-center gap-2">

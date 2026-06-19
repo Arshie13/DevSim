@@ -107,7 +107,6 @@
   const projectName = "tutorial-workspace";
   const tutorialLevel = 1;
   const tutorialDifficulty = "Tutorial";
-  let timeRemaining: number = 4 * 60 * 60;
   let aiPanelMode: "chat" | "quick" = "chat";
   // Docked AI Helper (SAZ) panel, toggled from the workspace tab bar.
   let showAiHelper: boolean = false;
@@ -665,11 +664,6 @@
   }
 
   onMount(() => {
-    const timer = setInterval(() => {
-      timeRemaining = timeRemaining > 0 ? timeRemaining - 1 : 0;
-      if (timeRemaining === 0) clearInterval(timer);
-    }, 1000);
-
     initTutorialWorkspace();
     window.addEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
 
@@ -679,7 +673,6 @@
     window.addEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
 
     return () => {
-      clearInterval(timer);
       stopPreviewPoll();
       window.removeEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
       window.removeEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
@@ -710,7 +703,6 @@
       title,
       stack,
       difficulty: tutorialDifficulty,
-      timeRemaining,
       isDownloading,
       onBack: handleBack,
       onSubmit: submitSprint,

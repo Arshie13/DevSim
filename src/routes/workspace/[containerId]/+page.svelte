@@ -128,7 +128,6 @@
     learningSections?: ILearningSection[];
     userStory?: string;
   };
-  let timeRemaining: number = $derived(4 * 60 * 60);
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = $state("");
   let editorValue: string = "";
@@ -249,12 +248,6 @@
     return () => clearTimeout(timer);
   }
 });
-
-  $effect(() => {
-    if (actualLevelConfig) {
-      timeRemaining = actualLevelConfig.deadline || 4 * 60 * 60;
-    }
-  })
 
   let aiPanelOpen: boolean = false;
   let aiPanelMode: "chat" | "quick" = $state("chat");
@@ -790,11 +783,6 @@ $effect(() => {
   }
 
   onMount(() => {
-    const timer = setInterval(() => {
-      timeRemaining = timeRemaining > 0 ? timeRemaining - 1 : 0;
-      if (timeRemaining === 0) clearInterval(timer);
-    }, 1000);
-
     initWorkspace();
     loadTriviaStats();
 
@@ -810,7 +798,6 @@ $effect(() => {
     }
 
     return () => {
-      clearInterval(timer);
       terminalSessions.forEach((s) => s.instance?.dispose());
       monacoEditor?.dispose();
     };
@@ -1679,12 +1666,12 @@ $effect(() => {
 >
   <!-- Header -->
   <WorkspaceHeader
+    showSurvey
     data={{
       level: currentLevel,
       title: actualLevelConfig.title,
       stack: actualLevelConfig.stack,
       difficulty,
-      timeRemaining,
       isDownloading,
       onBack: handleBack,
       onSubmit: handleSubmitSprint,
