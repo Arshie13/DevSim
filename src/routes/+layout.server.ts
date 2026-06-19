@@ -11,7 +11,11 @@ export const load: LayoutServerLoad = async (event) => {
   void event.url.pathname;
 
   let newlyUnlocked: Awaited<ReturnType<typeof detectNewlyUnlockedAchievements>> = [];
-  if (session?.user?.id) {
+  // Skip the public landing page (route '/'): achievement toasts belong inside
+  // the app, and detection *persists* the unlock, so running it here would
+  // consume the unlock and the toast would never reach the dashboard. Leaving it
+  // un-persisted lets the next in-app navigation detect and surface it.
+  if (session?.user?.id && event.route.id !== '/') {
     try {
       newlyUnlocked = await detectNewlyUnlockedAchievements(session.user.id);
     } catch (err) {
