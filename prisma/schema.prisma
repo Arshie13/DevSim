@@ -22,6 +22,7 @@ model user {
   updatedAt              DateTime                  @updatedAt
   role                   UserRole                  @default(USER)
   has_completed_tutorial Boolean                   @default(false)
+  trivia_correct_count   Int                       @default(0)
   // Dashboard onboarding
   has_seen_dashboard_onboarding Boolean @default(false)
   badges                 String[]                  @default([])
@@ -42,6 +43,10 @@ model user {
   rewardClaims           user_reward_claim[]
   seasonProgressions     user_season_progression[]
   workspaces             workspace[]
+  // Durable, append-only log of task completions, normalized into its own
+  // table (task_activity). Survives the per-level completed_task wipe, so it
+  // backs the dashboard weekly chart, activity feed, and lifetime task count.
+  task_activity          task_activity[]
   achievements           user_achievement[]
   learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
   learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")
@@ -248,9 +253,24 @@ model completed_task {
   task_name    String
   completed_at DateTime  @default(now())
   workspace    workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-  
+
   @@unique([workspace_id, task_name])
   @@index([workspace_id])
+}
+
+// Durable, append-only log of every task a user completes. Unlike
+// completed_task (per-workspace, wiped on level advance) this persists, so it's
+// the source of truth for the dashboard weekly chart, activity feed, and the
+// lifetime tasks-completed stat.
+model task_activity {
+  id           String   @id @default(cuid())
+  user_id      String
+  task_name    String
+  level        Int
+  completed_at DateTime @default(now())
+  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, completed_at])
 }
 
 model workspace_stack {
@@ -424,7 +444,7 @@ model learner_pass_enrollment {
   streak          Int      @default(0)
   last_claimed_at DateTime?
   total_claimed_days Int   @default(0)
-  payment_id      String?
+  payment_id      String?  @unique
   payment_provider String  @default("stripe")
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt

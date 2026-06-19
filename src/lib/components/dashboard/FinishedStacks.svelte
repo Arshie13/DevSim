@@ -140,11 +140,11 @@
                   </div>
                   <div>
                     <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">
-                      {container.scenario?.name ?? parseStackName(container.containerStacks)}
+                      {container.scenario?.name ?? parseStackName(container.workspace_stacks ?? container.containerStacks ?? [])}
                     </h4>
                     {#if container.scenario?.name}
                       <p class="text-xs font-mono text-cyber-warn opacity-70 mt-0.5 truncate">
-                        {parseStackName(container.containerStacks)}
+                        {parseStackName(container.workspace_stacks ?? container.containerStacks ?? [])}
                       </p>
                     {/if}
                     <p class="text-xs font-mono text-[var(--text-muted)] mt-0.5">
@@ -202,9 +202,9 @@
       <!-- Stack card -->
       <div class="flex items-center gap-3 bg-[#0a0e1a] border border-[rgba(7,165,201,0.12)] rounded-[4px] px-4 py-3">
         <div>
-          <p class="font-mono text-[0.85rem] font-semibold text-[#d0d7dd]">{paywallStack.scenario?.name ?? parseStackName(paywallStack.containerStacks)}</p>
+          <p class="font-mono text-[0.85rem] font-semibold text-[#d0d7dd]">{paywallStack.scenario?.name ?? parseStackName(paywallStack.workspace_stacks ?? paywallStack.containerStacks ?? [])}</p>
           {#if paywallStack.scenario?.name}
-            <p class="font-mono text-xs text-[#8892a0]">{parseStackName(paywallStack.containerStacks)}</p>
+            <p class="font-mono text-xs text-[#8892a0]">{parseStackName(paywallStack.workspace_stacks ?? paywallStack.containerStacks ?? [])}</p>
           {/if}
           <p class="font-mono text-xs text-[#8892a0] mt-0.5">Level {paywallStack.level}</p>
         </div>

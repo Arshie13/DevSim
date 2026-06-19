@@ -12,6 +12,7 @@ import { CloudflaredWrapper } from "$lib/wrapper/cloudflared";
 import * as crypto from "crypto";
 import prisma from "$lib/server/client";
 import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
+import { resolveScenarioId } from "$lib/utils/scenario-mapping";
 
 interface StartContainerForPreviewParams {
   containerId: string;
@@ -60,8 +61,23 @@ export class WorkspaceService {
       mode,
     } = params;
 
-    const currentScenarioId = await this.getScenarioId(scenarioId);
+    const currentScenarioId = await this.getScenarioId(scenarioId, stackName);
     const workspaceStatus = mode === "tutorial" ? "tutorial" : "created";
+
+    // Validate user exists before creating any container
+    const user = await this.user.findUserById(userId);
+    if (!user) {
+      throw new Error(
+        `User '${userId}' not found in database. Your session may be stale — please sign out and sign in again.`,
+      );
+    }
+
+    // Validate scenario exists before creating any container
+    if (scenarioId && !currentScenarioId) {
+      throw new Error(
+        `Scenario '${scenarioId}' not found in database. The database may have been reseeded — please refresh the page and try again.`,
+      );
+    }
 
     // Convert stacks (frontend/backend/database/services) to array format
     const stacksArray: Array<{ stackName: string }> = [
@@ -162,10 +178,24 @@ export class WorkspaceService {
     };
   }
 
-  async getScenarioId(scenarioId?: string) {
+  async getScenarioId(scenarioId?: string, stackName?: string) {
     if (!scenarioId) return null;
-    const scenario = await this.scenario.findScenarioById(scenarioId);
-    return scenario?.id ?? null;
+
+    // 1. Try the id exactly as provided (handles already-correct DB ids).
+    const exact = await this.scenario.findScenarioById(scenarioId);
+    if (exact) return exact.id;
+
+    // 2. Fallback: map legacy folder-name ids (e.g. "scenario-1") to the
+    //    current seed’s real scenario ids.
+    const mapped = stackName
+      ? resolveScenarioId(stackName, scenarioId)
+      : scenarioId;
+    if (mapped !== scenarioId) {
+      const scenario = await this.scenario.findScenarioById(mapped);
+      return scenario?.id ?? null;
+    }
+
+    return null;
   }
 
   private stacksMatch(
@@ -357,8 +387,12 @@ export class WorkspaceService {
       }
 
       const currentLevel = workspaceRecord.level;
+      const scenarioId = workspaceRecord.currentScenarioId;
 
-      const levelInfo = await this.level.getLevelByOrder(currentLevel);
+      const levelInfo = await this.level.getLevelByOrder(
+        currentLevel,
+        workspaceRecord.currentScenarioId,
+      );
 
       if (!levelInfo || levelInfo.error) {
         return {
@@ -384,7 +418,13 @@ export class WorkspaceService {
         currentCompletedTasks.completedTasks?.map((t) => t.taskName) ?? [];
 
       if (!completedTaskNames!.includes(taskName)) {
-        await this.tasks.createCompletedTask(workspaceRecord.id, taskName);
+        const recorded = await this.tasks.createCompletedTask(workspaceRecord.id, taskName, userId, currentLevel);
+        // Don't fail the whole submission over the activity log, but surface it —
+        // a silent failure here is why a completed task can stop showing up in
+        // the dashboard "Weekly Activity" chart with no error anywhere.
+        if (!recorded.success) {
+          console.error(`[Service] Failed to record completion for task "${taskName}":`, recorded.error);
+        }
         completedTaskNames.push(taskName);
       }
 
@@ -404,7 +444,9 @@ export class WorkspaceService {
         levelComplete = true;
         nextLevel = currentLevel + 1;
 
-        const highestLevelOrder = await this.level.getHighestLevelOrder();
+        const highestLevelOrder = await this.level.getHighestLevelOrder(
+          workspaceRecord.currentScenarioId,
+        );
         const isLastLevel = currentLevel >= highestLevelOrder;
 
         if (isLastLevel) {
@@ -482,6 +524,55 @@ export class WorkspaceService {
         status: 500,
         error,
       };
+    }
+  }
+
+  // Records a single task completion the moment its test passes on the board,
+  // so the dashboard "Weekly Activity" reflects it immediately instead of only
+  // on a full Submit Sprint. Idempotent per (workspace, task): re-running a
+  // passing test won't double-count, and a later Submit Sprint reuses the same
+  // completed_task guard so it won't record the task a second time.
+  async recordTaskCompletion(params: {
+    containerId: string;
+    userId: string;
+    taskName: string;
+  }) {
+    try {
+      const { containerId, userId, taskName } = params;
+      const workspaceRecord = await this.workspace.findWorkspaceByContainerId(
+        userId,
+        containerId,
+      );
+
+      if (!workspaceRecord) {
+        return { success: false, status: 404, error: "Workspace not found" };
+      }
+
+      const current = await this.tasks.getCurrentCompletedTasks(
+        workspaceRecord.id,
+      );
+      if (
+        current.success &&
+        current.completedTasks?.some((t) => t.taskName === taskName)
+      ) {
+        return { success: true, status: 200, alreadyRecorded: true };
+      }
+
+      const recorded = await this.tasks.createCompletedTask(
+        workspaceRecord.id,
+        taskName,
+        userId,
+        workspaceRecord.level,
+      );
+
+      if (!recorded.success) {
+        return { success: false, status: 500, error: recorded.error };
+      }
+
+      return { success: true, status: 200, alreadyRecorded: false };
+    } catch (error) {
+      console.error("[Service] Error recording task completion:", error);
+      return { success: false, status: 500, error };
     }
   }
 

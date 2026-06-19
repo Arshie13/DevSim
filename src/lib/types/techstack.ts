@@ -82,7 +82,7 @@ export interface FinishedStack {
 export type StackStatus = FinishedStack
 
 export interface ScenarioMeta {
-  /** e.g., "scenario-1" */
+  /** e.g., "pern-lb-scenario-1" */
   id: string;
   /** e.g., 1 */
   number: number;

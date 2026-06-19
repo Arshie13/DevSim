@@ -106,18 +106,19 @@
     <!-- LEFT COLUMN — Profile + Snapshot -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
       <!-- S1: Profile data -->
-      <div class="flex-[3] min-h-0">
+      <div class="shrink-0">
         <ProfileCard
           {user}
           {memberSince}
           {bio}
           {leaderboardRank}
+          isOwnProfile={true}
           on:editProfile={() => (editProfileOpen = true)}
         />
       </div>
 
       <!-- S2: Achievement snapshot -->
-      <div class="flex-[2] min-h-0">
+      <div class="flex-1 min-h-0">
         <AchievementSnapshot snapshots={data.topAchievements ?? []} />
       </div>
     </div>

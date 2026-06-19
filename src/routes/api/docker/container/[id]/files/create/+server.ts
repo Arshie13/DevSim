@@ -3,6 +3,7 @@ import type { RequestHandler } from "./$types";
 import { ContainerService } from "$lib/layers/service/ContainerService";
 import { WorkspaceService } from "$lib/layers/service/WorkspaceService";
 import { FileDataAccess } from "$lib/layers/data-access/FileDataAccess";
+import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
 
 const PROTECTED_PACKAGE_FILES = new Set([
   "package.json",
@@ -88,7 +89,9 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       }
     }
 
-    return json({ success: true });
+    const newlyUnlocked = await detectNewlyUnlockedAchievements(userId);
+
+    return json({ success: true, newlyUnlocked });
   } catch (error) {
     console.error("Error creating file:", error);
     return json({ success: false, error: String(error) });

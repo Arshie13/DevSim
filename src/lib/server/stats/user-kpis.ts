@@ -24,32 +24,44 @@ export async function getUserKpis(userId: string): Promise<UserKpis> {
 }
 
 export async function getWeeklyTaskStats(userId: string): Promise<WeeklyStats> {
-  const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+  // Calendar-day window: today plus the 6 previous days, bucketed by local
+  // date so bars line up with their weekday labels.
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const windowStart = new Date(startOfToday);
+  windowStart.setDate(windowStart.getDate() - 6);
+  const priorStart = new Date(windowStart);
+  priorStart.setDate(priorStart.getDate() - 7);
 
-  const [recentTasks, priorCount] = await Promise.all([
-    prisma.completed_task.findMany({
-      where: { workspace: { user_id: userId }, completed_at: { gte: sevenDaysAgo } },
-      select: { completed_at: true },
-    }),
-    prisma.completed_task.count({
-      where: { workspace: { user_id: userId }, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
-    }),
-  ]);
+  // Activity is measured by task completions, sourced from the durable
+  // task_activity table by completed_at. Unlike completed_task this isn't wiped
+  // on level advance, so the chart reflects the user's full history.
+  const rows = await prisma.task_activity.findMany({
+    where: { user_id: userId, completed_at: { gte: priorStart } },
+    select: { completed_at: true },
+  });
 
   // Build 7-day buckets starting from 6 days ago to today
   const days: string[] = [];
   const counts: number[] = Array(7).fill(0);
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(windowStart);
+    d.setDate(d.getDate() + i);
     days.push(d.toLocaleDateString("en-US", { weekday: "short" }));
   }
 
-  for (const { completed_at } of recentTasks) {
-    const daysAgo = Math.floor((now.getTime() - completed_at.getTime()) / (24 * 60 * 60 * 1000));
-    const idx = 6 - daysAgo;
+  let priorCount = 0;
+  for (const row of rows) {
+    const ts = new Date(row.completed_at);
+    if (ts >= priorStart && ts < windowStart) {
+      priorCount++; // previous 7-day window, for growth comparison
+      continue;
+    }
+    if (ts < windowStart) continue; // older than both windows
+    const day = new Date(ts);
+    day.setHours(0, 0, 0, 0);
+    // Math.round absorbs DST offset drift between bucket boundaries.
+    const idx = Math.round((day.getTime() - windowStart.getTime()) / (24 * 60 * 60 * 1000));
     if (idx >= 0 && idx < 7) counts[idx]++;
   }
 
@@ -81,13 +93,14 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
     thisWeekCount,
     priorWeekCount,
   ] = await Promise.all([
-    prisma.completed_task.count({ where: { workspace: { user_id: userId } } }),
+    // Durable counts from task_activity (survive the per-level completed_task wipe).
+    prisma.task_activity.count({ where: { user_id: userId } }),
     prisma.user_file_changes.count({ where: { workspace: { user_id: userId } } }),
     getAchievementsForUser(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true, coins: true, createdAt: true } }),
     prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
-    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completed_at: { gte: sevenDaysAgo } } }),
-    prisma.completed_task.count({ where: { workspace: { user_id: userId }, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+    prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: sevenDaysAgo } } }),
+    prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
   ]);
 
   const achievementsCount = allAchievements.filter((a) =>

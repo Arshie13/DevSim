@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Activity, Zap, Coins, ChevronRight, Award, Check } from "lucide-svelte";
-  import type { AchievementFeedItem } from "$types";
+  import type { AchievementFeedItem, ActivityItem } from "$types";
 
+  export const activities: ActivityItem[] = [];
   export let achievementItems: AchievementFeedItem[] = [];
 
   const TIER_COLOR: Record<string, string> = {

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
-  import { postAssessmentConfigs } from "$lib/data/postassessmentConfigs";
+  import { getPostAssessmentConfig } from "$lib/data/postassessmentConfigs";
+  import { assessmentTopics, assessmentScaleOptions, toTopicKey } from "$lib/data/assessmentTopics";
   import type { PageData } from "./$types";
 
   // SvelteKit passes the load() return value as a single `data` prop.
@@ -12,19 +12,22 @@
   const scenarioLevels: { id: string; name: string; concepts: string[] }[] =
     data?.scenarioLevels ?? [];
 
-  // Pick config for this stack, fallback to default.
-  // Saved stack_name uses the raw "postgresql" slug; config keys use "postgres".
-  const configKey = stackName.replace(/\bpostgresql\b/g, 'postgres');
-  const config = postAssessmentConfigs[configKey] || postAssessmentConfigs['default'];
-  const questions = config.questions || [];
+  // The confidence quiz is now a single standardized set that mirrors the
+  // pre-assessment 1:1 — every user answers the same questions regardless of
+  // stack, and each maps to the same topic key the pretest uses, so pre/post
+  // scores compare directly. (The reflection section below still uses the
+  // user's actual scenario levels.)
+  const questions = assessmentTopics.map((t, i) => ({
+    id: i + 1,
+    topicKey: toTopicKey(t.label),
+    text: t.postQuestion,
+  }));
 
-  const scaleOptions = [
-    { value: 1, label: "Not Confident" },
-    { value: 2, label: "Slightly Confident" },
-    { value: 3, label: "Somewhat Confident" },
-    { value: 4, label: "Confident" },
-    { value: 5, label: "Very Confident" }
-  ];
+  // Reflection topic fallback still uses the per-stack config when the user's
+  // actual scenario levels aren't available.
+  const config = getPostAssessmentConfig(stackName);
+
+  const scaleOptions = assessmentScaleOptions;
 
   // Topics come from the user's actual scenario (level title + task names as chips).
   // Falls back to the stack config, then to a generic hardcoded set.
@@ -43,7 +46,6 @@
   let answers = $state<number[]>([]);
   let showResult = $state(false);
   let showReflection = $state(false);
-  let showSuccess = $state(false);
   let aiGradingResult = $state<{ grades: Record<string, { score: number; feedback: string }>; overallScore: number; improvement: string } | null>(null);
   let contentWarning = $state(false);
   let warningMessage = $state("");
@@ -190,20 +192,13 @@
     showResult = true;
     processingResults = true;
     
-    // Average each question's confidence answer into its shared skill bucket
-    // so pre/post improvement lines up on the same keys.
-    const bucketTotals: Record<string, { sum: number; count: number }> = {};
+    // Each question maps 1:1 to a shared topic key (identical to the pre-assessment),
+    // so post scores land on the same keys and improvement is computed per topic.
+    const topicScores: Record<string, number> = {};
     for (let i = 0; i < questions.length; i++) {
       const ans = answers[i];
-      if (!ans) continue;
-      const bucket = questions[i].bucket ?? `question_${questions[i].id}`;
-      const acc = bucketTotals[bucket] ?? (bucketTotals[bucket] = { sum: 0, count: 0 });
-      acc.sum += ans;
-      acc.count += 1;
-    }
-    const topicScores: Record<string, number> = {};
-    for (const [bucket, { sum, count }] of Object.entries(bucketTotals)) {
-      topicScores[bucket] = Math.round(sum / count);
+      if (ans == null) continue;
+      topicScores[questions[i].topicKey] = ans;
     }
     
     const allReflections: { topic: string; concepts: string[]; explanation: string }[] = [];
@@ -407,7 +402,7 @@
           </div>
         </div>
 
-      {:else if !showResult && !showSuccess}
+      {:else if !showResult}
         <div class="card-cyber p-8 relative">
           <div class="mb-8">
             <div class="flex justify-between items-center mb-3">
@@ -430,7 +425,7 @@
             <h2 class="font-heading text-xl md:text-2xl font-bold text-[var(--text-primary)] mb-2">
               {questions[currentQuestion]?.text ?? ''}
             </h2>
-            <p class="text-[var(--text-muted)] text-sm mb-6">Rate your confidence from 1 (not confident) to 5 (very confident)</p>
+            <p class="text-[var(--text-muted)] text-sm mb-6">Select your experience level</p>
             
             <div class="flex justify-between mt-3">
               {#each scaleOptions as option}
@@ -479,7 +474,7 @@
           </div>
         </div>
 
-      {:else if showResult && !showSuccess}
+      {:else if showResult}
         {#if processingResults || submittingReflection}
           <div class="card-cyber p-8 text-center relative">
             <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
@@ -631,25 +626,14 @@
               {/if}
 
               <div class="flex justify-center">
-                <button onclick={() => { showSuccess = true; return false; }} class="btn-cyber btn-cyber-solid !px-10">
-                  CONTINUE TO SUCCESS →
+                <button onclick={goToLevelComplete} class="btn-cyber btn-cyber-solid !px-10">
+                  BACK TO DASHBOARD →
                 </button>
               </div>
             </div>
           </div>
         {/if}
 
-      {:else if showSuccess}
-        <div class="card-cyber p-8 relative">
-          <SubmitSprintSuccessContent
-            advancingToNextLevel={false}
-            aiScoring={{ stars: 1, score: 50, feedback: '', improvements: '', nextTime: '', loading: false, done: false }}
-            submitRewards={{ xp: 200, coins: 50 }}
-            keyTakeaways={[]}
-            level={5}
-            on:done={goToLevelComplete}
-          />
-        </div>
       {/if}
     </div>
   </main>

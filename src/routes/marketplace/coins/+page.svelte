@@ -1,9 +1,12 @@
 <script lang='ts'>
-  import { Coins, Sparkles, Zap, Trophy, Crown, ArrowRight, ShoppingCart, Loader2 } from 'lucide-svelte';
+  import { Coins, Sparkles, Zap, Trophy, Crown, ArrowRight, ShoppingCart, Loader2, Lightbulb } from 'lucide-svelte';
   import Header from '$components/Header.svelte';
+  import PurchaseSuccessModal from '$components/ui/PurchaseSuccessModal.svelte';
   import type { PageData } from './$types';
   import { fade, fly } from 'svelte/transition';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
+  import { COINS_PER_AI_HELP_CREDIT } from '$lib/utils/aiHelpConstants';
 
   export let data: PageData;
 
@@ -11,6 +14,17 @@
   let customAmount = 0;
   let selectedPackage: string | null = null;
   let userCoins = data.user.coins;
+
+  // AI help credit exchange (coins → credits)
+  let creditAmount = 1;
+  let userCredits = data.user.aiHelpCredits;
+  let isExchanging = false;
+  let exchangeError: string | null = null;
+  // A completed exchange shown in the success popup (null = popup hidden).
+  let exchangeResult: { credits: number; coinCost: number } | null = null;
+
+  $: exchangeCost = Math.max(0, Math.floor(creditAmount || 0)) * COINS_PER_AI_HELP_CREDIT;
+  $: canExchange = creditAmount >= 1 && exchangeCost <= userCoins;
 
   const coinPackages = [
     {
@@ -74,7 +88,7 @@
 </svelte:head>
 
 <div class='min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber pb-20'>
-  <Header userData={{ ...data.user, coins: userCoins }} />
+  <Header userData={{ ...data.user, coins: userCoins, image: data.user.image ?? undefined }} />
 
   <main class='relative z-10 py-12 px-6'>
     <div class='max-w-[1200px] mx-auto'>
@@ -184,6 +198,93 @@
         </div>
       </div>
 
+      <div
+        class='mt-8 bg-obsidian-bg-light/20 border border-cyber-cyan/15 rounded-card p-10 backdrop-blur-sm'
+        in:fade={{ delay: 700, duration: 800 }}
+      >
+        <div class='flex flex-col md:flex-row items-center justify-between gap-8'>
+          <div class='flex-1'>
+            <h3 class='text-2xl font-orbitron font-bold text-obsidian-text-muted mb-3 flex items-center gap-3'>
+              <Lightbulb class='w-6 h-6 text-cyber-cyan' />
+              AI HELP CREDITS
+            </h3>
+            <p class='text-base font-rajdhani text-obsidian-text-primary/60'>
+              The AI helper runs on credits — 1 credit per quick hint, 2 per chat message.
+              Exchange coins for credits here ({COINS_PER_AI_HELP_CREDIT} coins per credit), or let the helper
+              auto-convert your coins when you run out mid-session.
+            </p>
+            <p class='text-sm font-rajdhani text-cyber-cyan/80 mt-2'>
+              You have <span class='font-orbitron font-bold'>{userCredits}</span> credit{userCredits === 1 ? '' : 's'} and
+              <span class='font-orbitron font-bold text-cyber-warn'>{userCoins.toLocaleString()}</span> coins.
+            </p>
+            {#if exchangeError}
+              <p class='text-sm font-rajdhani text-red-400 mt-2'>{exchangeError}</p>
+            {/if}
+          </div>
+
+          <form
+            method='POST'
+            action='?/buyAiHelpCredits'
+            class='flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto'
+            use:enhance={() => {
+              isExchanging = true;
+              exchangeError = null;
+              exchangeResult = null;
+              return async ({ result }) => {
+                isExchanging = false;
+                if (result.type === 'success' && result.data) {
+                  userCoins = result.data.coins as number;
+                  userCredits = result.data.aiHelpCredits as number;
+                  exchangeResult = {
+                    credits: result.data.credits as number,
+                    coinCost: result.data.coinCost as number
+                  };
+                } else if (result.type === 'failure') {
+                  exchangeError = (result.data?.error as string) ?? 'Exchange failed. Please try again.';
+                } else {
+                  exchangeError = 'Exchange failed. Please try again.';
+                }
+              };
+            }}
+          >
+            <div class='relative w-full sm:w-48'>
+              <input
+                type='number'
+                name='credits'
+                bind:value={creditAmount}
+                placeholder='Credits'
+                class='w-full bg-obsidian-bg border border-obsidian-accent/30 focus:border-cyber-cyan/50 text-cyber-cyan font-orbitron px-4 py-4 rounded-card outline-none transition-colors'
+                min='1'
+              />
+              <div class='absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none'>
+                <Lightbulb class='w-4 h-4 text-cyber-cyan' />
+              </div>
+            </div>
+
+            <div class='text-right sm:text-left min-w-[120px]'>
+              <p class='text-[0.6rem] font-orbitron text-obsidian-text-primary/40 uppercase tracking-widest mb-1'>COIN COST</p>
+              <p class='text-xl font-orbitron font-bold text-cyber-warn flex items-center gap-2'>
+                <Coins class='w-4 h-4' />
+                {exchangeCost.toLocaleString()}
+              </p>
+            </div>
+
+            <button
+              type='submit'
+              disabled={isExchanging || !canExchange}
+              class='btn-cyber btn-cyber-solid w-full sm:w-auto !px-8 !py-4 flex items-center justify-center gap-3 group disabled:opacity-30 disabled:grayscale transition-all duration-300'
+            >
+              {#if isExchanging}
+                <Loader2 class='w-5 h-5 animate-spin' />
+              {:else}
+                <ArrowRight class='w-5 h-5 group-hover:scale-110 transition-transform' />
+              {/if}
+              <span class='font-orbitron font-bold uppercase tracking-wider'>Exchange</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
       <div class='mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-obsidian-accent/10 pt-12'>
         <div class='flex gap-4'>
           <div class='p-3 rounded-xl bg-obsidian-surface h-fit'>
@@ -220,6 +321,31 @@
     <div class='absolute top-1/4 -right-32 w-96 h-96 rounded-full blur-[150px]' style='background: rgba(255,180,0,0.05);'></div>
     <div class='absolute bottom-1/4 -left-32 w-96 h-96 rounded-full blur-[150px]' style='background: rgba(7,165,201,0.08);'></div>
   </div>
+
+  <!-- Exchange success popup -->
+  <PurchaseSuccessModal
+    open={exchangeResult !== null}
+    title='EXCHANGE COMPLETE'
+    onClose={() => (exchangeResult = null)}
+  >
+    {#if exchangeResult}
+      <p class='mb-4'>
+        Exchanged <span class='font-orbitron font-bold text-cyber-warn'>{exchangeResult.coinCost.toLocaleString()} coins</span>
+        for <span class='font-orbitron font-bold text-cyber-cyan'>{exchangeResult.credits} AI help credit{exchangeResult.credits === 1 ? '' : 's'}</span>!
+      </p>
+
+      <div class='flex items-center justify-center gap-6 text-sm'>
+        <span class='flex items-center gap-2 text-cyber-cyan'>
+          <Lightbulb class='w-4 h-4' />
+          <span class='font-orbitron font-bold'>{userCredits}</span> credit{userCredits === 1 ? '' : 's'}
+        </span>
+        <span class='flex items-center gap-2 text-cyber-warn'>
+          <Coins class='w-4 h-4' />
+          <span class='font-orbitron font-bold'>{userCoins.toLocaleString()}</span> coins
+        </span>
+      </div>
+    {/if}
+  </PurchaseSuccessModal>
 </div>
 
 <style>

@@ -14,15 +14,21 @@
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
+  // Prisma workspace.id (cuid) — distinct from the Docker container id above.
+  // The /archive endpoint resolves the workspace by primary key, so it needs
+  // this, not the Docker id (which submit/file-changes use).
+  export let dbWorkspaceId: string | null = null;
   export let containerId: string; // Docker container ID for file operations
   export let tasks: ITask[];
   export let level: number = 1;
+  export let scenarioId: string | null = null;
   export let fileContents: Record<string, string> = {};
   export let existingFiles: string[] = [];
   export let levelXpReward: number = 0;
   export let levelCoinReward: number = 0;
   export let tutorialMode: boolean = false;
   export let masteryCheckpointEnabled: boolean = true;
+  export let onSubmitted: ((data: { xp: number; coins: number; advanceToNextLevel: boolean; nextLevel: number | null }) => void) | undefined = undefined;
 
   // -- State --------------------------------------------------------------------
   type ModalState = "confirm" | "testing" | "loading" | "success" | "error";
@@ -480,6 +486,13 @@
       state = "testing";
       throwIfSubmissionCanceled();
 
+      const taskIds = tasks.map((task) => task.id);
+      const taskTestTypes = tasks.map((task) => ({
+        taskId: task.id,
+        testType: (task as { testType?: string }).testType ?? 'none',
+        order: (task as { order?: number }).order ?? 1,
+      }));
+
       const testRes = await fetch(
         `/api/docker/container/${containerId}/tests/run`,
         {
@@ -489,8 +502,9 @@
           body: JSON.stringify({
             command: `test:tasks:l${level}`,
             level,
-            taskIds: tasks.map((task) => task.id),
+            taskIds,
             type: "level",
+            taskTestTypes,
             // Force tests to pass for demo purposes - user wants to see key takeaways
             forcePassed: true,
           }),
@@ -758,11 +772,16 @@
       notifyAchievementUnlocks([...unlockedThisRun.values()]);
 
       // Step 2 - Archive container if all levels are complete
-      // Must be called AFTER submit API sets status to 'completed'
-      if (allLevelsComplete && dbContainerId) {
+      // Must be called AFTER submit API sets status to 'completed'.
+      // The archive endpoint resolves the workspace by its Prisma id (cuid), so
+      // it must receive dbWorkspaceId — not the Docker container id. Passing the
+      // wrong one fails the lookup and leaves a finished container stuck in the
+      // "ongoing" list instead of moving it to "Finished".
+      const archiveWorkspaceId = dbWorkspaceId ?? dbContainerId;
+      if (allLevelsComplete && archiveWorkspaceId) {
         try {
           const archiveRes = await fetch(
-            `/api/docker/container/${dbContainerId}/archive`,
+            `/api/docker/container/${archiveWorkspaceId}/archive`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -810,9 +829,14 @@
         keyTakeaways.length
       );
 
-      // Fetch key takeaways from database for the current level
+      // Fetch key takeaways from database for the current level.
+      // scenarioId scopes the lookup so we don't surface another stack's
+      // takeaways (level `order` is shared across every scenario).
       try {
-        const takeawayRes = await fetch(`/api/level/${level}/key-takeaways`);
+        const takeawayUrl = scenarioId
+          ? `/api/level/${level}/key-takeaways?scenarioId=${encodeURIComponent(scenarioId)}`
+          : `/api/level/${level}/key-takeaways`;
+        const takeawayRes = await fetch(takeawayUrl);
         if (takeawayRes.ok) {
           const takeawayData = await takeawayRes.json();
           if (takeawayData.success && takeawayData.keyTakeaways) {
@@ -868,12 +892,16 @@
     // Close modal and let parent reload the page
     showModal = false;
     state = "confirm";
-    // Dispatch event to notify parent to reload
-    dispatch("submitted", {
+    const payload = {
       ...submitRewards,
       advanceToNextLevel: advancingToNextLevel,
       nextLevel: submittedNextLevel,
-    });
+    };
+    console.log('[SubmitSprintModal] handleContinueWorking called, payload:', payload);
+    // Call callback prop directly (more reliable in Svelte 5)
+    onSubmitted?.(payload);
+    // Also dispatch legacy event as fallback
+    dispatch("submitted", payload);
   }
 
   // -- Derived props fed into ConfirmationModal ----------------------------------
@@ -910,6 +938,7 @@
   $: hideActions = state === "loading" || state === "testing";
   $: hideHeader = state === "loading" || state === "testing";
   $: showSuccess = state === "success" && hasViewedTakeaways;
+  $: disableBackdropClose = state === "loading" || state === "testing" || state === "success";
 </script>
 
 <!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
@@ -927,6 +956,7 @@
   {hideHeader}
   {showSuccess}
   error={modalError}
+  closeOnBackdropClick={!disableBackdropClose}
   on:confirm={handleConfirm}
   on:cancel={close}
 >

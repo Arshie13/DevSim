@@ -69,7 +69,9 @@
     startStepTimer();
 
     try {
-      const res = await fetch(`/api/docker/container/${target.containerId}/archive`, {
+      // The archive endpoint resolves the workspace by its Prisma id (cuid) —
+      // the same id used to open the workspace — not the Docker container id.
+      const res = await fetch(`/api/docker/container/${target.id}/archive`, {
         method: "POST",
       });
 

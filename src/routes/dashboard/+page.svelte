@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { onMount } from "svelte";
   import type { IContainer, UserData, KPIData, WeeklyStats, ActivityItem, LeaderboardEntry, UserKpis, AchievementFeedItem } from "$types";
   import { Plus, ArrowRight, Gift, Key } from "lucide-svelte";
@@ -48,6 +48,8 @@
      // Initialized
    }
 
+   $: firstName = data.user.givenName?.split(' ')[0] || data.user.name?.split(' ')[0] || 'Developer';
+
     // ── Dashboard Onboarding State ──
     type OnboardingPhase = 'welcome' | 'tour' | 'done';
     let onboardingPhase: OnboardingPhase = 'done';
@@ -82,6 +84,7 @@
     }
 
     function onWelcomeHighlightStack() {
+      void markOnboardingComplete();
       tourMode = 'highlight';
       tourStartStep = 5; // index of dashboard-start-stack-btn step (last of 6)
       onboardingPhase = 'tour';
@@ -110,6 +113,11 @@
 
   function openStatsDrawer() {
     isStatsDrawerOpen = true;
+    // Re-run the dashboard load so the drawer shows current data (weekly
+    // activity, leaderboard, …) without a page refresh. invalidateAll re-runs
+    // unconditionally, so it works even right after a code change; the chart
+    // updates reactively when fresh data arrives.
+    void invalidateAll();
   }
 
   function navigateToStacks() {
@@ -162,9 +170,9 @@
       <div>
         <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
           {#if shouldShowOnboarding}
-            Welcome to DevSim, <span class="text-cyber-cyan">{headerUserData.name}</span>
+            Welcome to DevSim, <span class="text-cyber-cyan">{firstName}!</span>
           {:else}
-            Welcome back, <span class="text-cyber-cyan">{headerUserData.name}</span>
+            Welcome back, <span class="text-cyber-cyan">{firstName}!</span>
           {/if}
         </h2>
         <p class="text-sm font-rajdhani text-obsidian-text-primary/50 mt-1">

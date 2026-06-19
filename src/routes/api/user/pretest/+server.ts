@@ -1,6 +1,7 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
+import { toTopicKey } from "$lib/data/assessmentTopics";
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   const session = await locals.auth();
@@ -21,8 +22,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     
     // Save each topic score to the database
     const scorePromises = Object.entries(scores).map(([topic, score]) => {
-      const topicKey = topic.toLowerCase().replace(/\s+/g, '_');
-      
+      const topicKey = toTopicKey(topic);
+
       return prisma.assessment_topic_score.upsert({
         where: {
           user_id_topic: {

@@ -35,6 +35,10 @@ server = createHttpsServer(httpsOptions, app);
 // Terminal WebSocket server
 const wss = new WebSocketServer({ noServer: true });
 
+// Persistent terminal sessions — survive WebSocket disconnects
+const SESSION_GRACE_MS = 30 * 60 * 1000; // 30 minutes before cleaning up an orphaned session
+const sessions = new Map();
+
 console.log('Setting up upgrade handler for /terminal');
 
 server.on('upgrade', (request, socket, head) => {
@@ -52,20 +56,118 @@ server.on('upgrade', (request, socket, head) => {
   }
 });
 
+function detachWsFromSession(ws, execStream) {
+  if (ws) {
+    ws.removeAllListeners('message');
+    ws.removeAllListeners('close');
+  }
+  if (execStream) {
+    execStream.removeAllListeners('data');
+  }
+}
+
+function attachWsToSession(ws, execStream, resizeExec) {
+  ws.on('message', (data) => {
+    try {
+      const msg = JSON.parse(data.toString());
+      if (msg.type === 'resize' && typeof msg.cols === 'number' && typeof msg.rows === 'number') {
+        resizeExec?.({ h: msg.rows, w: msg.cols }).catch(() => {});
+        return;
+      }
+    } catch { /* not JSON — treat as raw terminal input */ }
+    if (execStream?.writable) {
+      execStream.write(data);
+    }
+  });
+
+  execStream.on('data', (chunk) => {
+    if (ws.readyState === ws.OPEN) {
+      ws.send(chunk);
+    }
+  });
+}
+
 wss.on('connection', async (ws, request) => {
   const url = new URL(request.url || '', `http://localhost:${PORT}`);
   const containerId = url.searchParams.get('containerId');
+  const sessionId = url.searchParams.get('sessionId') || 'default';
+  const initialCols = parseInt(url.searchParams.get('cols') || '80', 10);
+  const initialRows = parseInt(url.searchParams.get('rows') || '24', 10);
 
   if (!containerId) {
     ws.close(1008, 'Missing containerId parameter');
     return;
   }
 
-  console.log(`🔌 Terminal connected to container: ${containerId}`);
+  const sessionKey = `${containerId}-${sessionId}`;
+  console.log(`🔌 Terminal connected: ${sessionKey}`);
 
   let execStream = null;
+  let exec = null;
 
   try {
+    // Check for existing persistent session
+    const existing = sessions.get(sessionKey);
+    if (existing) {
+      console.log(`♻️  Reattaching to existing session: ${sessionKey}`);
+      clearTimeout(existing.graceTimer);
+      existing.graceTimer = null;
+
+      // Detach old WS
+      detachWsFromSession(existing.ws, existing.execStream);
+      if (existing.ws && (existing.ws.readyState === existing.ws.OPEN || existing.ws.readyState === existing.ws.CONNECTING)) {
+        existing.ws.close();
+      }
+
+      // Attach new WS
+      execStream = existing.execStream;
+      existing.ws = ws;
+      attachWsToSession(ws, execStream, (dims) => existing.exec?.resize(dims).catch(() => {}));
+
+      // Resize to match new client dimensions
+      try {
+        await existing.exec?.resize({ h: initialRows, w: initialCols });
+      } catch {}
+
+      ws.send('\x1b[1;33m🔗 Reconnected to existing terminal session\x1b[0m\r\n');
+      existing.execStream.write('\x1b[1;32m$ \x1b[0m');
+
+      // Handle new WS close — only start grace timer, don't kill process
+      ws.on('close', () => {
+        console.log(`🔌 WebSocket disconnected (session kept alive): ${sessionKey}`);
+        detachWsFromSession(existing.ws, existing.execStream);
+        existing.ws = null;
+        existing.graceTimer = setTimeout(() => {
+          console.log(`⏰ Session grace period expired, cleaning up: ${sessionKey}`);
+          try {
+            if (existing.execStream?.writable) {
+              existing.execStream.write('exit\r\n');
+            }
+            setTimeout(() => {
+              try { existing.execStream?.destroy(); } catch {}
+            }, 500);
+          } catch {}
+          sessions.delete(sessionKey);
+        }, SESSION_GRACE_MS);
+      });
+
+      // Handle exec stream end/error — full cleanup (process actually died)
+      const cleanupExec = () => {
+        clearTimeout(existing.graceTimer);
+        try { execStream?.destroy(); } catch {}
+        if (ws.readyState === ws.OPEN) ws.close();
+        sessions.delete(sessionKey);
+      };
+      execStream.on('end', cleanupExec);
+      execStream.on('error', (err) => {
+        console.error('Exec stream error:', err);
+        cleanupExec();
+      });
+
+      return;
+    }
+
+    // No existing session — spawn a new shell
     const container = docker.getContainer(containerId);
     const info = await container.inspect();
     
@@ -75,7 +177,7 @@ wss.on('connection', async (ws, request) => {
       return;
     }
 
-    const exec = await container.exec({
+    exec = await container.exec({
       Cmd: ['/bin/sh'],
       AttachStdin: true,
       AttachStdout: true,
@@ -89,45 +191,65 @@ wss.on('connection', async (ws, request) => {
       Tty: true,
     });
 
+    await exec.resize({ h: initialRows, w: initialCols }).catch(() => {});
+
     execStream.write('cd /workspace && clear\r\n');
     execStream.write('\x1b[1;32m$ \x1b[0m');
 
-    ws.on('message', (data) => {
-      if (execStream?.writable) {
-        execStream.write(data);
-      }
-    });
+    // Store as persistent session
+    const session = {
+      ws,
+      execStream,
+      exec,
+      containerId,
+      sessionId,
+      graceTimer: null,
+    };
+    sessions.set(sessionKey, session);
 
-    execStream.on('data', (chunk) => {
-      if (ws.readyState === ws.OPEN) {
-        ws.send(chunk);
-      }
-    });
+    attachWsToSession(ws, execStream, (dims) => exec.resize(dims).catch(() => {}));
 
-    const cleanup = () => {
+    const cleanupExisting = () => {
+      clearTimeout(session.graceTimer);
       try {
         if (execStream?.writable) {
           execStream.write('exit\r\n');
         }
         setTimeout(() => {
-          try {
-            execStream?.destroy();
-          } catch { }
+          try { execStream?.destroy(); } catch {}
         }, 500);
-      } catch { }
+      } catch {}
       if (ws.readyState === ws.OPEN) {
         ws.close();
       }
+      sessions.delete(sessionKey);
     };
 
-    ws.on('close', cleanup);
-    execStream.on('end', cleanup);
-    execStream.on('error', (err) => {
-      console.error('Exec stream error:', err);
-      cleanup();
+    ws.on('close', () => {
+      console.log(`🔌 WebSocket disconnected (session kept alive): ${sessionKey}`);
+      detachWsFromSession(session.ws, session.execStream);
+      session.ws = null;
+      session.graceTimer = setTimeout(() => {
+        console.log(`⏰ Session grace period expired, cleaning up: ${sessionKey}`);
+        try {
+          if (session.execStream?.writable) {
+            session.execStream.write('exit\r\n');
+          }
+          setTimeout(() => {
+            try { session.execStream?.destroy(); } catch {}
+          }, 500);
+        } catch {}
+        sessions.delete(sessionKey);
+      }, SESSION_GRACE_MS);
     });
 
-    console.log(`✅ Terminal shell created for container: ${containerId}`);
+    execStream.on('end', cleanupExisting);
+    execStream.on('error', (err) => {
+      console.error('Exec stream error:', err);
+      cleanupExisting();
+    });
+
+    console.log(`✅ Terminal shell created for: ${sessionKey}`);
 
   } catch (error) {
     console.error('Terminal setup failed:', error);

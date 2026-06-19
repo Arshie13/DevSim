@@ -10,6 +10,7 @@
   } from '@stripe/stripe-js';
   import type { PageData } from './$types';
   import { Coins, ShieldCheck, Zap, Lock, CreditCard, ArrowLeft, Loader2 } from 'lucide-svelte';
+  import PurchaseSuccessModal from '$components/ui/PurchaseSuccessModal.svelte';
 
   export let data: PageData;
 
@@ -20,6 +21,8 @@
   let isStripeLoading = false;
   let errorMessage = '';
   let stripeInitialized = false;
+  // Shows the success popup; closing it returns the user to the dashboard.
+  let purchaseComplete = false;
 
   const product = data.product;
 
@@ -149,9 +152,8 @@
         throw new Error(finalizeData.error || 'Failed to finalize coin injection. Please contact support.');
       }
 
-      console.log('Checkout: Purchase Complete! Redirecting...');
-      alert(`Success! ${product.amount.toLocaleString()} coins have been added to your account.`);
-      goto('/dashboard');
+      console.log('Checkout: Purchase Complete!');
+      purchaseComplete = true;
     } catch (err: any) {
       console.error('Checkout: Payment loop error:', err);
       errorMessage = err.message || 'An unexpected error occurred during processing.';
@@ -304,6 +306,19 @@
     <div class='absolute top-1/4 -right-32 w-96 h-96 rounded-full blur-[150px]' style='background: rgba(7,165,201,0.08);'></div>
     <div class='absolute bottom-1/4 -left-32 w-96 h-96 rounded-full blur-[150px]' style='background: rgba(255,180,0,0.03);'></div>
   </div>
+
+  <!-- Purchase success popup — closing it heads back to the dashboard -->
+  <PurchaseSuccessModal
+    open={purchaseComplete}
+    title='PAYMENT COMPLETE'
+    closeLabel='Go to Dashboard'
+    onClose={() => goto('/dashboard')}
+  >
+    <p>
+      <span class='font-orbitron font-bold text-cyber-warn'>{product.amount.toLocaleString()} coins</span>
+      have been added to your account!
+    </p>
+  </PurchaseSuccessModal>
 </div>
 
 <style>

@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { FileCode, Shell, Globe, LayoutDashboard } from "lucide-svelte";
+  import {
+    FileCode,
+    Shell,
+    Globe,
+    LayoutDashboard,
+    GraduationCap,
+  } from "lucide-svelte";
 
   /** The currently active tab. */
   export let activeTab: "editor" | "terminal" | "preview" | "board";
@@ -11,6 +17,9 @@
   export let showCrashCourseButton: boolean = false;
   export let onOpenCrashCourse: () => void = () => {};
   export let crashCourseCompleted: boolean = false;
+  /** AI Helper (SAZ) panel toggle. */
+  export let onToggleAiHelper: () => void = () => {};
+  export let aiHelperActive: boolean = false;
 
   const LEFT_TABS = [
     { id: "editor" as const, icon: FileCode, label: "Editor" },
@@ -21,8 +30,10 @@
 </script>
 
 <!-- Per UIUX spec: active tab gets border-top accent + bg var(--bg) -->
-<div class="bg-[#0a0e1a] border-b border-[rgba(7,165,201,0.1)] flex items-end">
-  <div class="flex items-end min-w-0">
+<div
+  class="tabs-bar bg-[#0a0e1a] border-b border-[rgba(7,165,201,0.1)] flex items-end"
+>
+  <div class="tabs-scroll flex items-end min-w-0 overflow-x-auto">
     {#each LEFT_TABS as tab}
       <button
         data-tour={tab.id === "preview"
@@ -35,7 +46,8 @@
                 ? "workspace-tab-board"
                 : undefined}
         on:click={() => onTabChange(tab.id)}
-        class="relative px-5 py-2.5 flex items-center gap-2 text-[0.75rem] sm:text-[0.85rem] uppercase tracking-wider border-t-2 transition-all whitespace-nowrap
+        title={tab.label}
+        class="tab-btn relative px-5 py-2.5 flex items-center gap-2 text-[0.75rem] sm:text-[0.85rem] uppercase tracking-wider border-t-2 transition-all whitespace-nowrap flex-shrink-0
           {activeTab === tab.id
           ? 'border-[#07a5c9] text-[#07a5c9] bg-[#12192a]'
           : 'border-transparent text-[#8892a0] hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.04)]'}"
@@ -47,23 +59,97 @@
     {/each}
   </div>
 
-  {#if showCrashCourseButton}
-    <div class="ml-auto flex items-center px-3 py-1.5">
+  <div class="actions ml-auto flex items-center gap-2 px-3 py-1.5 flex-shrink-0">
+    {#if showCrashCourseButton}
       <button
         type="button"
-        class="px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)] transition-colors whitespace-nowrap inline-flex items-center gap-2"
+        title={crashCourseCompleted ? "Crash Course (completed)" : "Open Crash Course"}
+        class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2
+          {crashCourseCompleted
+            ? 'border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.1)] text-[#93f7a2] hover:bg-[rgba(126,231,135,0.18)]'
+            : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"
         style="font-family: 'Space Mono', monospace;"
         on:click={onOpenCrashCourse}
       >
-        Open Crash Course
+        <GraduationCap class="w-4 h-4 flex-shrink-0" />
+        <span class="action-label">Open Crash Course</span>
         {#if crashCourseCompleted}
           <span
-            class="text-[0.56rem] px-1.5 py-0.5 rounded border border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.12)] text-[#93f7a2]"
+            class="action-badge text-[0.56rem] px-1.5 py-0.5 rounded border border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.12)] text-[#93f7a2]"
           >
             Done
           </span>
         {/if}
       </button>
-    </div>
-  {/if}
+    {/if}
+
+    <!-- AI Helper (SAZ) toggle -->
+    <button
+      data-tour="ai-toggle"
+      type="button"
+      on:click={onToggleAiHelper}
+      title="Open AI Helper (SAZ)"
+      class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2
+        {aiHelperActive
+          ? 'border-[rgba(7,165,201,0.55)] bg-[rgba(7,165,201,0.2)] text-[#caf3ff]'
+          : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"
+      style="font-family: 'Space Mono', monospace;"
+    >
+      <img src="/images/saz.png" alt="" class="w-4 h-4 rounded-full object-cover" />
+      <span class="action-label">AI Helper</span>
+    </button>
+  </div>
 </div>
+
+<style>
+  /* Size queries against the tab bar itself, not the viewport, so the bar
+     adapts when docked side panels (AI Helper, terminal manager) shrink
+     the workspace. */
+  .tabs-bar {
+    container-type: inline-size;
+  }
+
+  .tabs-scroll {
+    scrollbar-width: none;
+  }
+  .tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* When the bar narrows (e.g. the terminal tab opens its manager panel),
+     collapse the action buttons to icons first. Their labels eat ~250px, so
+     dropping them keeps all four tabs — Board especially — visible instead of
+     being scrolled out of view behind the actions. Tooltips/colour still
+     convey each button's purpose and state. */
+  @container (max-width: 1000px) {
+    .action-label,
+    .action-badge {
+      display: none;
+    }
+    .action-btn {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+  }
+
+  /* Compact mode: labels stay visible, padding and font shrink so
+     everything still fits on one row. */
+  @container (max-width: 900px) {
+    .tab-btn {
+      padding-left: 0.625rem;
+      padding-right: 0.625rem;
+      gap: 0.375rem;
+      font-size: 0.7rem;
+    }
+    .actions {
+      gap: 0.375rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    .action-btn {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+      font-size: 0.62rem;
+    }
+  }
+</style>

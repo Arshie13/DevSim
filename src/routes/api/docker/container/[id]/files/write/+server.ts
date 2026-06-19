@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
 import { logFileChange } from '$lib/server/fileChangeLogger';
+import { detectNewlyUnlockedAchievements } from '$lib/server/achievements/unlocks';
 
 const PROTECTED_PACKAGE_FILES = new Set([
   'package.json',
@@ -75,7 +76,9 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       action: 'WRITE',
     });
 
-    return json({ success: true });
+    const newlyUnlocked = await detectNewlyUnlockedAchievements(userId);
+
+    return json({ success: true, newlyUnlocked });
   } catch (error) {
     console.error('Error writing file:', error);
     return json({ success: false, error: String(error) }, { status: 500 });

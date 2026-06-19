@@ -29,17 +29,24 @@ export class LevelDataAccess {
     return null;
   }
 
-  async getLevelByOrder(level: number) {
+  async getLevelByOrder(level: number, scenarioId?: string) {
     try {
+      // Level `order` repeats across scenarios, so scope by scenarioId when
+      // known. Without it findFirst can return a different stack's level (and
+      // its task names), which breaks the "all tasks completed" check on submit
+      // and leaves the final level stuck out of "completed" status.
       const data = await prisma.level.findFirst({
-        where: { order: level },
+        where: {
+          order: level,
+          ...(scenarioId ? { scenario_id: scenarioId } : {}),
+        },
         include: {
           tasks: {
             orderBy: { order: 'asc' }
           }
         }
       });
-  
+
       return {
         id: data?.id,
         title: data?.title,
@@ -74,8 +81,17 @@ export class LevelDataAccess {
 
   }
 
-  async getHighestLevelOrder(): Promise<number> {
+  /**
+   * Highest level `order` for a scenario. Level orders repeat across every
+   * scenario, so a scenarioId MUST be supplied to find the real last level of
+   * the stack the user is playing — without it this returns the global max
+   * across all scenarios, so a 5-level scenario never registers level 5 as the
+   * last level (which leaves the workspace stuck out of "completed" status and
+   * blocks the post-assessment).
+   */
+  async getHighestLevelOrder(scenarioId?: string): Promise<number> {
     const level = await prisma.level.findFirst({
+      where: scenarioId ? { scenario_id: scenarioId } : undefined,
       orderBy: { order: 'desc' },
       select: { order: true }
     });

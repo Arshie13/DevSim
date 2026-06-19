@@ -16,9 +16,16 @@
   import MetricsSection from "$components/profile/MetricsSection.svelte";
   import FriendsSection from "$components/profile/FriendsSection.svelte";
   import AchievementSnapshot from "$components/achivements/AchievementSnapshot.svelte";
-  import { goto }            from "$app/navigation";
+  import { goto, afterNavigate } from "$app/navigation";
 
   export let data: PageData;
+
+  // Hide the back button when the page was opened directly (e.g. a shared
+  // profile link) — there is no in-app history to return to.
+  let canGoBack = false;
+  afterNavigate(({ from }) => {
+    canGoBack = from !== null;
+  });
 
   // ── User state ────────────────────────────────────────────────────────────
   $: targetUser = data.targetUser as UserData;
@@ -94,15 +101,17 @@
   <Header userData={headerUserData} />
 
   <!-- Back button bar -->
-  <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-4 md:px-6 lg:px-8">
-    <button
-      on:click={handleBack}
-      class="btn-cyber btn-cyber-secondary inline-flex items-center gap-2 !py-2 !px-4"
-    >
-      <ArrowLeft class="w-4 h-4" />
-      <span>Back</span>
-    </button>
-  </div>
+  {#if canGoBack}
+    <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-4 md:px-6 lg:px-8">
+      <button
+        on:click={handleBack}
+        class="btn-cyber btn-cyber-secondary inline-flex items-center gap-2 !py-2 !px-4"
+      >
+        <ArrowLeft class="w-4 h-4" />
+        <span>Back</span>
+      </button>
+    </div>
+  {/if}
 
   <!-- ── Main asymmetric grid ─────────────────────────────────────────────── -->
   <main
@@ -112,7 +121,7 @@
     <!-- LEFT COLUMN — Profile + Snapshot -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
       <!-- S1: Profile data -->
-      <div class="flex-[3] min-h-0">
+      <div class="shrink-0">
         <ProfileCard
           user={targetUser}
           {memberSince}
@@ -123,7 +132,7 @@
       </div>
 
       <!-- S2: Achievement snapshot -->
-      <div class="flex-[2] min-h-0">
+      <div class="flex-1 min-h-0">
         <AchievementSnapshot snapshots={data.topAchievements ?? []} />
       </div>
     </div>

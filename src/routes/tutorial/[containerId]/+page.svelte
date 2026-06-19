@@ -67,7 +67,6 @@
           : "none";
 
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
-  let isRunning = false;
   let isDownloading = false;
   let isBooting = true;
   let bootStep = 0;
@@ -110,6 +109,8 @@
   const tutorialDifficulty = "Tutorial";
   let timeRemaining: number = 4 * 60 * 60;
   let aiPanelMode: "chat" | "quick" = "chat";
+  // Docked AI Helper (SAZ) panel, toggled from the workspace tab bar.
+  let showAiHelper: boolean = false;
 
   type BoardTaskStatus = "backlog" | "in-progress" | "in-review" | "done";
   type WorkspaceTask = TestableTask & { boardStatus?: BoardTaskStatus };
@@ -224,7 +225,7 @@
       pendingTerminalInits.set(id, async (el: HTMLDivElement) => {
         try {
           const inst = new TerminalInitializer();
-          await inst.initializeDockerTerminal(el, dockerContainerId);
+          await inst.initializeDockerTerminal(el, dockerContainerId, id);
           terminalSessions = terminalSessions.map((s) => (s.id === id ? { ...s, instance: inst } : s));
         } catch (err) {
           console.error("Terminal init error:", err);
@@ -413,19 +414,6 @@
 
   function refreshTerminal() {
     activeTerminalSession?.instance?.reconnect();
-  }
-
-  function runDevServer() {
-    if (isRunning) return;
-    isRunning = true;
-    activeTab = "terminal";
-    activeTerminalSession?.instance?.write("npm install\r");
-    activeTerminalSession?.instance?.write("npm run dev\r");
-  }
-
-  function stopDevServer() {
-    activeTerminalSession?.instance?.write("\x03");
-    isRunning = false;
   }
 
   function handleDownload() {
@@ -723,13 +711,9 @@
       stack,
       difficulty: tutorialDifficulty,
       timeRemaining,
-      isRunning,
       isDownloading,
       onBack: handleBack,
-      onRun: runDevServer,
-      onStop: stopDevServer,
-      onDemo: () => handleTabChange("preview"),
-onSubmit: submitSprint,
+      onSubmit: submitSprint,
       onDownload: handleDownload,
     }}
   >
@@ -765,7 +749,12 @@ onSubmit: submitSprint,
 
     <div class="flex-1 flex flex-col min-w-0" data-tour="editor-workspace">
       <div data-tour="workspace-tabs">
-        <WorkspaceTabs {activeTab} onTabChange={handleTabChange} />
+        <WorkspaceTabs
+          {activeTab}
+          onTabChange={handleTabChange}
+          aiHelperActive={showAiHelper}
+          onToggleAiHelper={() => (showAiHelper = !showAiHelper)}
+        />
       </div>
 
       <div class="flex-1 relative overflow-hidden">
@@ -815,6 +804,23 @@ onSubmit: submitSprint,
         onClose={closeTerminalSession}
       />
     {/if}
+
+    <!-- Right: AI Helper (SAZ) docked panel -->
+    <AiHelp
+      show={showAiHelper}
+      onClose={() => (showAiHelper = false)}
+      containerId={dockerContainerId}
+      userId={data.userId}
+      scenario={scenario}
+      {tasks}
+      initialFileTree={fileTree}
+      initialFileContents={fileContents}
+      {projectName}
+      level={tutorialLevel}
+      initialCoins={data.userCoins}
+      initialAiHelps={data.userAiHelps}
+      bind:mode={aiPanelMode}
+    />
   </div>
 
   <SubmitSprintModal
@@ -867,22 +873,6 @@ onSubmit: submitSprint,
 
 <WorkspaceSetupOverlay visible={tutorialCleanupLoading} />
 
-<div class="fixed inset-0 z-50 pointer-events-none">
-  <div class="pointer-events-auto">
-    <AiHelp
-      containerId={dockerContainerId}
-      userId={data.userId}
-      scenario={scenario}
-      {tasks}
-      initialFileTree={fileTree}
-      initialFileContents={fileContents}
-      {projectName}
-      level={tutorialLevel}
-      initialCoins={data.userCoins}
-      bind:mode={aiPanelMode}
-    />
-  </div>
-</div>
 
 <style>
   :global(body) {
