@@ -100,7 +100,7 @@ function buildNextjsPostgresTaskTwo(): ITask {
       order: 1,
       taskId,
       content:
-        'In src/app/page.tsx, find the <h1> tag inside the <header> and change the text from "My To-Do List" to "Task Tracker".',
+        'In src/components/TodoApp.tsx, find the <h1> tag and change the text from "To-Do List Tutorial" to "Task Tracker".',
     },
     {
       id: `${taskId}-hint-2`,
@@ -124,7 +124,7 @@ function buildNextjsPostgresTaskTwo(): ITask {
       taskId,
       order: 1,
       isRequired: true,
-      description: 'Header in src/app/page.tsx updated from "My To-Do List" to "Task Tracker"',
+      description: 'Header in src/components/TodoApp.tsx updated from "To-Do List Tutorial" to "Task Tracker"',
     },
     {
       id: `${taskId}-ac-2`,
@@ -146,7 +146,7 @@ function buildNextjsPostgresTaskTwo(): ITask {
     isCompleted: false,
     testType: "client",
     userStory:
-      "As a developer, I need to update the app header in src/app/page.tsx so I can practice making a targeted UI change and verifying it live through Next.js hot-reload.",
+      "As a developer, I need to update the app header in src/components/TodoApp.tsx so I can practice making a targeted UI change and verifying it live through Next.js hot-reload.",
   };
 }
 
@@ -388,33 +388,13 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
   {
-    id: "search-open-panel",
-    title: "Open Search Tool",
-    instruction: "Click the Search icon in the Dev Sidebar to open file search.",
-    hint: "Use the highlighted Search icon in the sidebar activity bar.",
-    target: "tutorial-search-button",
-    switchTab: "editor",
-    preferSide: "left",
-  },
-  {
-    id: "search-type-query",
-    title: "Search for the Header Text",
+    id: "task-two-open-page-file",
+    title: "Open the Header Component",
     instruction:
-      'Search for "My To-Do List" to find the heading you need to update in the page component.',
-    hint: 'Type "My To-Do List" in the search box and click the highlighted result snippet.',
-    target: "tutorial-search-result-item",
-    spotlightTarget: "tutorial-search-panel",
-    switchTab: "editor",
-    requireTargetClick: true,
-    preferSide: "left",
-  },
-  {
-    id: "search-works-confirm",
-    title: "Search Works",
-    instruction:
-      "Great. Search opened page.tsx right at the header — this is the element you'll update.",
-    hint: "Click Next",
+      'Open src/components/TodoApp.tsx — this component renders the "To-Do List Tutorial" header you need to change. We\'ve opened it in the editor and jumped to the heading for you.',
+    hint: "Find TodoApp.tsx under src/components in the Explorer. The editor already has it open at the header line.",
     target: "editor-workspace",
+    switchTab: "editor",
     confirmLabel: "Next",
     requireTargetClick: false,
     preferSide: "left",
@@ -423,8 +403,8 @@ export const STEPS: TutorialStep[] = [
     id: "task-two-header-edit",
     title: "Update the Page Header",
     instruction:
-      'In src/app/page.tsx, change the <h1> text from "My To-Do List" to "Task Tracker". Save the file (Ctrl+S) — Next.js will hot-reload the preview automatically.',
-    hint: "Find the <h1> tag inside the <header> element and update its text content. Save with Ctrl+S.",
+      'In src/components/TodoApp.tsx, change the <h1> text from "To-Do List Tutorial" to "Task Tracker". Save the file (Ctrl+S) — Next.js will hot-reload the preview automatically.',
+    hint: "Find the <h1> tag in TodoApp.tsx and update its text content. Save with Ctrl+S.",
     switchTab: "editor",
     target: "editor-workspace",
     confirmLabel: "Header Updated",
@@ -504,9 +484,9 @@ export const STEPS: TutorialStep[] = [
     title: "Enter Mastery Reflection",
     instruction:
       "Type a short reflection on what you learned. Use the Copy button below to paste the example into the field.",
-    hint: 'Example: "I set up the Next.js + Postgres + Prisma stack by following the README — installing dependencies, running Prisma generate, migrate, and seed, then starting the dev server. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload."',
+    hint: 'Example: "I set up the Next.js + Postgres + Prisma stack by following the README — installing dependencies, running Prisma generate, migrate, and seed, then starting the dev server. For Task 2 I opened src/components/TodoApp.tsx from the Explorer and updated the header, verifying the change instantly through Next.js hot-reload."',
     copyText:
-      "I set up the Next.js + Postgres + Prisma stack by following the README — installing dependencies, running Prisma generate, migrate, and seed, then starting the dev server. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload.",
+      "I set up the Next.js + Postgres + Prisma stack by following the README — installing dependencies, running Prisma generate, migrate, and seed, then starting the dev server. For Task 2 I opened src/components/TodoApp.tsx from the Explorer and updated the header, verifying the change instantly through Next.js hot-reload.",
     target: "mastery-reflection-input",
     confirmLabel: "Next",
     requireTargetClick: false,

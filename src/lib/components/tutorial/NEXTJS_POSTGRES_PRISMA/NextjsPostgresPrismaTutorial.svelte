@@ -23,13 +23,26 @@
       window.dispatchEvent(new CustomEvent("devsim-tour-open-explorer-panel"));
     }
 
+    if (step.id === "task-two-open-page-file") {
+      window.dispatchEvent(new CustomEvent("devsim-tour-open-explorer-panel"));
+      window.dispatchEvent(
+        new CustomEvent("devsim-tour-open-file", {
+          detail: {
+            file: "src/components/TodoApp.tsx",
+            lineNumber: 77,
+            searchTerm: "To-Do List Tutorial",
+          },
+        }),
+      );
+    }
+
     if (step.id === "task-two-header-edit") {
       window.dispatchEvent(
         new CustomEvent("devsim-tour-open-file", {
           detail: {
-            file: "src/app/page.tsx",
-            lineNumber: 1,
-            searchTerm: "My To-Do List",
+            file: "src/components/TodoApp.tsx",
+            lineNumber: 77,
+            searchTerm: "To-Do List Tutorial",
           },
         }),
       );
