@@ -38,14 +38,12 @@ export const load: PageServerLoad = async (event) => {
     }
   });
 
-  // Gate: the post-assessment is only reachable after a user finishes the FINAL
-  // level (level 5) of the stack they played. `status` is set to "completed"
-  // exactly when the last level is submitted (WorkspaceService.submitWork →
-  // updateWorkspaceStatus(..., "completed", false)); archiving afterward flips
-  // is_archived but leaves status untouched, so it stays a reliable signal.
-  // No container, or any other status (created/tutorial/in-progress/stopped),
-  // means they haven't finished — so they can't reach this page by typing the URL.
-  if (!latestContainer || latestContainer.status !== "completed") {
+  // Gate: the post-assessment no longer requires finishing the final level
+  // (level 5). Any user with a workspace can reach it — the page derives its
+  // reflection topics and key takeaways from whatever levels they've completed
+  // so far, so it works mid-progress. We still redirect when there's no
+  // container at all, since the load logic below dereferences `latestContainer`.
+  if (!latestContainer) {
     throw redirect(303, "/dashboard");
   }
 
