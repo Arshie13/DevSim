@@ -39,7 +39,7 @@ export const load: PageServerLoad = async (event) => {
   // Fetch metrics, rivals, and top achievements for the target user
   const [metrics, rivals, topAchievements, currentUserDb] = await Promise.all([
     getProfileMetrics(targetUser.id),
-    getRivals(targetUser.id, 6),
+    getRivals(targetUser.id, targetUser.xp, 4),
     getTopAchievements(targetUser.id, 3),
     prisma.user.findUnique({
       where: { id: currentUserId },

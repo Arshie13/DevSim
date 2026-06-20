@@ -14,13 +14,14 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(303, '/');
   }
 
-  const [dbUser, metrics, rivals, topAchievements] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userSession.id },
-      select: { image: true, coins: true, xp: true, level: true, owned_avatars: true, has_completed_tutorial: true, username: true },
-    }),
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userSession.id },
+    select: { image: true, coins: true, xp: true, level: true, owned_avatars: true, has_completed_tutorial: true, username: true },
+  });
+
+  const [metrics, rivals, topAchievements] = await Promise.all([
     getProfileMetrics(userSession.id),
-    getRivals(userSession.id, 6),
+    getRivals(userSession.id, dbUser?.xp ?? 0, 4),
     getTopAchievements(userSession.id, 3),
   ]);
 
