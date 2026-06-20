@@ -3,6 +3,7 @@ import { redirect } from '@sveltejs/kit';
 import prisma from '$lib/server/client';
 import { getProfileMetrics, getRivals } from '$lib/server/stats';
 import { getTopAchievements } from '$lib/server/achievements/snapshots';
+import { computeLevel } from '$lib/utils/level';
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -23,6 +24,8 @@ export const load: PageServerLoad = async (event) => {
     getTopAchievements(userSession.id, 3),
   ]);
 
+  const levelData = computeLevel(dbUser?.xp ?? 0);
+
   return {
     user: {
       ...session.user,
@@ -30,7 +33,7 @@ export const load: PageServerLoad = async (event) => {
       username: dbUser?.username,
       coins: dbUser?.coins ?? 0,
       xp: dbUser?.xp ?? 0,
-      level: dbUser?.level ?? 1,
+      level: levelData.level,
       ownedAvatars: dbUser?.owned_avatars ?? [],
       hasCompletedTutorial: dbUser?.has_completed_tutorial ?? false,
     },

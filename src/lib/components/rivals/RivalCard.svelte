@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Award, Code, Zap, Trophy, TrendingUp } from "lucide-svelte";
   import type { RivalEntry } from "$lib/types/dashboard";
+  import { computeLevel } from "$lib/utils/level";
 
   export let rival: RivalEntry & {
     completedProjects: number;
@@ -9,6 +10,7 @@
     rank: number;
   };
 
+  const levelData = computeLevel(rival.xp);
   const getRankColor = (rank: number) => {
     if (rank === 1) return "from-yellow-400 to-yellow-600";
     if (rank === 2) return "from-slate-300 to-slate-500";
@@ -71,7 +73,7 @@
           <span class="text-sm font-orbitron font-bold">{rival.xp.toLocaleString()} XP</span>
         </div>
         <div class="text-[0.65rem] font-mono text-obsidian-text-primary/40 mt-1 uppercase tracking-widest text-right">
-          Level {rival.level} Developer
+          Level {levelData.level} Developer
         </div>
       </div>
     </div>
