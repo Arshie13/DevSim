@@ -11,8 +11,8 @@ export interface TutorialWorkspaceData {
   tasks: ITask[];
 }
 
-function buildNestjsTaskOne(): ITask {
-  const taskId = "tutorial-nestjs-level1-task1";
+function buildNextjsPostgresTaskOne(): ITask {
+  const taskId = "tutorial-nextjs-pg-level1-task1";
 
   const hints: IHints[] = [
     {
@@ -20,14 +20,14 @@ function buildNestjsTaskOne(): ITask {
       order: 1,
       taskId,
       content:
-        "Read README.md first — it lists the exact setup sequence including the .env copy step before running migrations.",
+        "Read README.md first — it lists the exact setup sequence including environment configuration before running migrations.",
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "Copy .env.example to .env before running any Prisma commands. The DATABASE_URL must be set or migrations will fail.",
+        "Generate the Prisma client before running migrations so the typed query API is available.",
     },
     {
       id: `${taskId}-hint-3`,
@@ -51,7 +51,7 @@ function buildNestjsTaskOne(): ITask {
       taskId,
       order: 2,
       isRequired: true,
-      description: ".env file configured with valid DATABASE_URL",
+      description: "Prisma client generated successfully",
     },
     {
       id: `${taskId}-ac-3`,
@@ -72,27 +72,27 @@ function buildNestjsTaskOne(): ITask {
       taskId,
       order: 5,
       isRequired: true,
-      description: "NestJS dev server starts and responds at /api/todos",
+      description: "Next.js dev server starts and the terminal shows 'Ready'",
     },
   ];
 
   return {
     id: taskId,
-    levelId: "tutorial-nestjs-level1",
+    levelId: "tutorial-nextjs-pg-level1",
     taskName: "Prepare Development Environment",
     order: 1,
     hints,
     acceptanceCriteria,
     learningSections: [],
     isCompleted: false,
-    testType: "server",
+    testType: "both",
     userStory:
-      "As a developer, I need to set up the NestJS development environment so that I can start building and testing the To-Do List API.",
+      "As a developer, I need to set up the Next.js + Postgres + Prisma development environment so that I can start building and testing the To-Do List app.",
   };
 }
 
-function buildNestjsTaskTwo(): ITask {
-  const taskId = "tutorial-nestjs-level1-task2";
+function buildNextjsPostgresTaskTwo(): ITask {
+  const taskId = "tutorial-nextjs-pg-level1-task2";
 
   const hints: IHints[] = [
     {
@@ -100,21 +100,21 @@ function buildNestjsTaskTwo(): ITask {
       order: 1,
       taskId,
       content:
-        "Open prisma/schema.prisma. Add `priority Int @default(0)` as a new field inside the Todo model.",
+        'In src/components/TodoApp.tsx, find the <h1> tag and change the text from "To-Do List Tutorial" to "Task Tracker".',
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "After editing the schema, stop the dev server (Ctrl+C), then run `pnpm exec prisma migrate dev --name add-priority-to-todo`.",
+        "Save the file with Ctrl+S. Next.js will hot-reload the preview within a second — no restart needed.",
     },
     {
       id: `${taskId}-hint-3`,
       order: 3,
       taskId,
       content:
-        "Restart the server with `pnpm run dev` and verify the API still responds at /api/todos.",
+        "Confirm the heading updated in Preview before running the Task 2 tests.",
     },
   ];
 
@@ -124,48 +124,68 @@ function buildNestjsTaskTwo(): ITask {
       taskId,
       order: 1,
       isRequired: true,
-      description: "Added `priority Int @default(0)` field to the Todo model in prisma/schema.prisma",
+      description: 'Header in src/components/TodoApp.tsx updated from "To-Do List Tutorial" to "Task Tracker"',
     },
     {
       id: `${taskId}-ac-2`,
       taskId,
       order: 2,
       isRequired: true,
-      description: "Migration runs successfully — new `priority` column created in the todos table",
-    },
-    {
-      id: `${taskId}-ac-3`,
-      taskId,
-      order: 3,
-      isRequired: true,
-      description: "Dev server restarts without errors after schema change",
+      description: "Preview reflects the new heading after save",
     },
   ];
 
   return {
     id: taskId,
-    levelId: "tutorial-nestjs-level1",
-    taskName: "Add Priority Field to Todo",
+    levelId: "tutorial-nextjs-pg-level1",
+    taskName: "Update the Page Header",
     order: 2,
     hints,
     acceptanceCriteria,
     learningSections: [],
     isCompleted: false,
-    testType: "server",
+    testType: "client",
     userStory:
-      "As a developer, I need to add a priority field to the Todo model in prisma/schema.prisma so I can practice making and migrating a targeted schema change.",
+      "As a developer, I need to update the app header in src/components/TodoApp.tsx so I can practice making a targeted UI change and verifying it live through Next.js hot-reload.",
   };
 }
 
-export const NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA: TutorialWorkspaceData = {
-  stackKey: "nestjs-postgres-prisma",
-  stackLabel: "NestJS + Postgres + Prisma",
-  scenarioTitle: "NestJS + Postgres + Prisma Tutorial",
+const NEXTJS_POSTGRES_PRISMA_TUTORIAL_DATA: TutorialWorkspaceData = {
+  stackKey: "nextjs-postgres-prisma",
+  stackLabel: "Next.js + Postgres + Prisma",
+  scenarioTitle: "Next.js + Postgres + Prisma Tutorial",
   scenarioDescription:
-    "Set up the NestJS tutorial workspace by reading docs, installing dependencies, configuring the environment, running Prisma migrations, seeding the database, and verifying the API.",
+    "Set up the Next.js + Postgres + Prisma tutorial workspace by reading docs, installing dependencies, running Prisma migrations, seeding the database, and verifying the app.",
   level: 1,
-  tasks: [buildNestjsTaskOne(), buildNestjsTaskTwo()],
+  tasks: [buildNextjsPostgresTaskOne(), buildNextjsPostgresTaskTwo()],
 };
+
+const DEFAULT_TUTORIAL_DATA: TutorialWorkspaceData = {
+  ...NEXTJS_POSTGRES_PRISMA_TUTORIAL_DATA,
+  stackKey: "default",
+  stackLabel: "Full Stack",
+  scenarioTitle: "Stack Tutorial",
+};
+
+function normalizeStackName(raw: string): string {
+  return raw.toLowerCase().trim().replace(/[\s_+]+/g, "-");
+}
+
+export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceData {
+  const normalized = normalizeStackName(stackName);
+
+  if (
+    normalized.includes("nextjs-postgres-prisma") ||
+    (normalized.includes("next") && normalized.includes("postgres") && normalized.includes("prisma"))
+  ) {
+    return NEXTJS_POSTGRES_PRISMA_TUTORIAL_DATA;
+  }
+
+  return {
+    ...DEFAULT_TUTORIAL_DATA,
+    stackLabel: stackName || DEFAULT_TUTORIAL_DATA.stackLabel,
+  };
+}
 
 export const STEPS: TutorialStep[] = [
   {
@@ -285,28 +305,28 @@ export const STEPS: TutorialStep[] = [
     id: "terminal-dev-start",
     title: "Start Development Server",
     instruction:
-      "Start the NestJS app in development mode. The step will advance automatically once the server is ready.",
+      "Start the Next.js app in development mode. The step advances automatically once the server is ready.",
     hint: "Run: pnpm run dev",
     command: "pnpm run dev",
     requireCommand: true,
-    waitForTerminalOutput: ["Application is running on", "Nest application successfully"],
+    waitForTerminalOutput: ["localhost:3000", "Ready in"],
     target: "terminal-panel",
     preferSide: "left",
   },
   {
     id: "preview-button",
     title: "Open Preview",
-    instruction: "Click the Preview tab to open the live API preview.",
+    instruction: "Click the Preview tab to open the live application preview.",
     hint: "Click the highlighted Preview tab in the workspace tabs.",
     target: "workspace-tab-preview",
     preferSide: "bottom",
   },
   {
     id: "preview-check",
-    title: "Verify API Is Running",
+    title: "Verify Running App",
     instruction:
-      "Confirm the NestJS API is responding in the Preview panel. You should see a JSON response from /api/todos.",
-    hint: "Once you see the API response in the preview iframe, continue to the testing step.",
+      "Confirm the Next.js app is running in Preview. You should see the To-Do List app with mock todos.",
+    hint: "Once you can see the app in the preview iframe, continue to the testing step.",
     target: "tutorial-preview-panel",
     switchTab: "preview",
     confirmLabel: "Preview Looks Good",
@@ -353,7 +373,7 @@ export const STEPS: TutorialStep[] = [
   {
     id: "task-two-open",
     title: "Open Task 2 Ticket",
-    instruction: "Open Task 2 and review its requirements.",
+    instruction: "Open Task 2 and review its requirements — you'll update the page header.",
     hint: "Click on the second task card in the Kanban board.",
     target: "board-task-ticket-2",
     boardSubTab: "board",
@@ -368,101 +388,46 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
   {
-    id: "search-open-panel",
-    title: "Open Search Tool",
-    instruction: "Click the Search icon in the Dev Sidebar to open file search.",
-    hint: "Use the highlighted Search icon in the sidebar activity bar.",
-    target: "tutorial-search-button",
-    switchTab: "editor",
-    preferSide: "left",
-  },
-  {
-    id: "search-type-query",
-    title: "Search Files",
+    id: "task-two-open-page-file",
+    title: "Open the Header Component",
     instruction:
-      'Search for "completed Boolean" to find the Prisma schema file you need to edit for Task 2.',
-    hint: 'Type "completed Boolean" in the search box and click the highlighted result snippet.',
-    target: "tutorial-search-result-item",
-    spotlightTarget: "tutorial-search-panel",
-    switchTab: "editor",
-    requireTargetClick: true,
-    preferSide: "left",
-  },
-  {
-    id: "search-works-confirm",
-    title: "Search Works",
-    instruction:
-      "Great. Search opened the Prisma schema in the editor and shows exactly where the Todo fields are.",
-    hint: "Click Next",
+      'Open src/components/TodoApp.tsx — this component renders the "To-Do List Tutorial" header you need to change. We\'ve opened it in the editor and jumped to the heading for you.',
+    hint: "Find TodoApp.tsx under src/components in the Explorer. The editor already has it open at the header line.",
     target: "editor-workspace",
+    switchTab: "editor",
     confirmLabel: "Next",
     requireTargetClick: false,
     preferSide: "left",
   },
   {
-    id: "task-two-schema-edit",
-    title: "Add Priority Field to Schema",
+    id: "task-two-header-edit",
+    title: "Update the Page Header",
     instruction:
-      'Edit prisma/schema.prisma and add `priority Int @default(0)` as a new field inside the Todo model, below the `completed` field.',
-    hint: "Add the field, then save the file (Ctrl+S).",
+      'In src/components/TodoApp.tsx, change the <h1> text from "To-Do List Tutorial" to "Task Tracker". Save the file (Ctrl+S) — Next.js will hot-reload the preview automatically.',
+    hint: "Find the <h1> tag in TodoApp.tsx and update its text content. Save with Ctrl+S.",
     switchTab: "editor",
     target: "editor-workspace",
-    confirmLabel: "Schema Change Done",
+    confirmLabel: "Header Updated",
     requireTargetClick: false,
-    preferSide: "left",
-  },
-  {
-    id: "terminal-stop-server",
-    title: "Stop Dev Server",
-    instruction:
-      "Before running the migration, press Ctrl+C in the terminal to stop the running development server.",
-    hint: "Press Ctrl+C in the terminal panel, then click Server Stopped below.",
-    switchTab: "terminal",
-    target: "terminal-panel",
-    confirmLabel: "Server Stopped",
-    requireTargetClick: false,
-    preferSide: "left",
-  },
-  {
-    id: "terminal-migrate-priority",
-    title: "Run Migration for New Field",
-    instruction: "Apply the schema change to the database with a named migration.",
-    hint: "Run: pnpm exec prisma migrate dev --name add-priority-to-todo",
-    switchTab: "terminal",
-    command: "pnpm exec prisma migrate dev --name add-priority-to-todo",
-    requireCommand: true,
-    target: "terminal-panel",
-    preferSide: "left",
-  },
-  {
-    id: "terminal-dev-restart",
-    title: "Restart Dev Server",
-    instruction: "Start the development server again to verify the schema change works.",
-    hint: "Run: pnpm run dev",
-    switchTab: "terminal",
-    command: "pnpm run dev",
-    requireCommand: true,
-    waitForTerminalOutput: ["Application is running on", "Nest application successfully"],
-    target: "terminal-panel",
     preferSide: "left",
   },
   {
     id: "preview-task-two-button",
-    title: "Open Preview Again",
-    instruction: "Click the Preview tab to verify the API still works after the schema change.",
+    title: "Open Preview",
+    instruction: "Click the Preview tab to verify the heading change.",
     hint: "Click the highlighted Preview tab in the workspace tabs.",
     target: "workspace-tab-preview",
     preferSide: "bottom",
   },
   {
     id: "preview-task-two-check",
-    title: "Verify API Still Works",
+    title: "Verify Updated Heading",
     instruction:
-      "Confirm the API responds correctly in Preview. The todos should load and include the new priority field.",
-    hint: "Look for a JSON response at /api/todos — each todo should now have a priority property.",
+      'Confirm the app header now reads "Task Tracker" in Preview. Next.js hot-reloads on save — if it hasn\'t updated yet, wait a moment.',
+    hint: 'Look for "Task Tracker" in the top-left of the preview.',
     target: "tutorial-preview-panel",
     switchTab: "preview",
-    confirmLabel: "Changes Verified",
+    confirmLabel: "Heading Looks Good",
     requireTargetClick: false,
     preferSide: "left",
   },
@@ -519,9 +484,9 @@ export const STEPS: TutorialStep[] = [
     title: "Enter Mastery Reflection",
     instruction:
       "Type a short reflection on what you learned. Use the Copy button below to paste the example into the field.",
-    hint: 'Example: "I set up the NestJS + Postgres + Prisma stack by following the README — installing dependencies, copying the .env file, running Prisma migrations, seeding the database, and starting the dev server. For Task 2, I used search to locate the Prisma schema and added a priority field to the Todo model, then ran a migration and restarted the server. This tutorial showed me how the NestJS backend, Prisma ORM, and workspace tools work together."',
+    hint: 'Example: "I set up the Next.js + Postgres + Prisma stack by following the README — installing dependencies, running Prisma generate, migrate, and seed, then starting the dev server. For Task 2 I opened src/components/TodoApp.tsx from the Explorer and updated the header, verifying the change instantly through Next.js hot-reload."',
     copyText:
-      "I set up the NestJS + Postgres + Prisma stack by following the README — installing dependencies, copying the .env file, running Prisma migrations, seeding the database, and starting the dev server. For Task 2, I used search to locate the Prisma schema and added a priority field to the Todo model, then ran a migration and restarted the server. This tutorial showed me how the NestJS backend, Prisma ORM, and workspace tools work together.",
+      "I set up the Next.js + Postgres + Prisma stack by following the README — installing dependencies, running Prisma generate, migrate, and seed, then starting the dev server. For Task 2 I opened src/components/TodoApp.tsx from the Explorer and updated the header, verifying the change instantly through Next.js hot-reload.",
     target: "mastery-reflection-input",
     confirmLabel: "Next",
     requireTargetClick: false,
@@ -532,9 +497,9 @@ export const STEPS: TutorialStep[] = [
     id: "submit-sprint-layers",
     title: "Select Impacted Layers (Tutorial Mode)",
     instruction:
-      "Click Backend + Database checkboxes.\nNote: In real workspace, this will be checked strictly. Click Next.",
+      "Click Frontend + Database checkboxes.\nNote: In real workspace, this will be checked strictly. Click Next.",
     hint: "",
-    targets: ["impacted-layer-backend", "impacted-layer-database"],
+    targets: ["impacted-layer-frontend", "impacted-layer-database"],
     confirmLabel: "Next",
     requireTargetClick: false,
     spotlightTarget: "submit-sprint-modal",
@@ -552,7 +517,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "finish-tutorial-open-modal",
     title: "Sprint Submitted!",
-    instruction: "Your sprint is being recorded. The tutorial completion summary will appear shortly.",
+    instruction:
+      "Your sprint is being recorded. The tutorial completion summary will appear shortly.",
     hint: "Hang tight — the finish modal is loading.",
     preferSide: "bottom",
   },
