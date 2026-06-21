@@ -1,4 +1,5 @@
 import { UserDataAccess } from '../data-access/UserDataAccess';
+import { ConversationDataAccess } from '../data-access/ConversationDataAccess';
 import { ContainerService } from './ContainerService';
 import {
   QUICK_HINT_CREDIT_COST,
@@ -16,6 +17,7 @@ interface HintRequest {
   attachedFilesCount?: number;
   attachedFiles?: { path: string; name: string }[];
   level?: number;
+  conversationId?: string;
 }
 
 interface HintResult {
@@ -29,11 +31,13 @@ interface HintResult {
   coinsRemaining?: number;
   aiHelpsRemaining?: number;
   hintCost?: number;
+  conversationId?: string;
 }
 
 export class HintService {
   constructor(
     private readonly userDataAccess = new UserDataAccess(),
+    private readonly conversationDataAccess = new ConversationDataAccess(),
     private readonly containerService = new ContainerService(),
   ) {}
 
@@ -46,7 +50,8 @@ export class HintService {
       hintType,
       model,
       attachedFiles,
-      level = 1
+      level = 1,
+      conversationId,
     } = request;
 
     if (!message || message.trim().length === 0) {
@@ -124,11 +129,30 @@ export class HintService {
         this.isAskingAboutFileContents(message)
       );
 
-       // Build prompt
-       const prompt = this.buildPrompt(message, context || 'No additional context', level, fileContents);
+       // Build system prompt
+       const systemPrompt = this.buildSystemPrompt(context || 'No additional context', level, fileContents);
+
+       // Build messages array with conversation history
+       const messages = await this.buildMessages(conversationId, systemPrompt, message);
 
        // Get AI response
-       const hint = await this.getAIResponse(prompt, model);
+       const hint = await this.getAIResponse(messages, model);
+
+       // Save messages to DB if we have a conversation
+       let resolvedConversationId = conversationId;
+       if (!resolvedConversationId) {
+         const conv = await this.conversationDataAccess.findOrCreateConversation(userId, containerId);
+         resolvedConversationId = conv.id;
+       }
+
+       try {
+         await this.conversationDataAccess.saveMessages(resolvedConversationId, [
+           { role: 'user', content: message },
+           { role: 'assistant', content: hint }
+         ]);
+       } catch (e) {
+         console.error('Failed to save conversation messages:', e);
+       }
 
        // Spend the help credits only after a successful response.
        // Don't let a usage-tracking failure discard a hint the user already received.
@@ -148,7 +172,8 @@ export class HintService {
          creditsSpent: creditCost,
          coinsSpent,
          coinsRemaining: newCoinBalance,
-         aiHelpsRemaining: creditsRemaining
+         aiHelpsRemaining: creditsRemaining,
+         conversationId: resolvedConversationId
        };
     } catch (error) {
       // Refund coins on error (only if any were charged)
@@ -315,7 +340,7 @@ export class HintService {
     return undefined;
   }
 
-  private buildPrompt(message: string, context: string, level: number, fileContents?: { path: string; name: string; content: string }[]): string {
+  private buildSystemPrompt(context: string, level: number, fileContents?: { path: string; name: string; content: string }[]): string {
     const progress = this.extractProgressFromContext(context);
     const isHandHoldy = level <= 2;
 
@@ -332,7 +357,7 @@ ${handHoldingInstructions}
 ═════════════════════════════════════════════════════════════\nABSOLUTE STRICT RULES - VIOLATION WILL NOT BE TOLERATED:\n═════════════════════════════════════════════════════════════`;
 
     const tasksText = progress.tasks.slice(0, 5).join('\n');
-    
+
     let prompt = `You are SAZ, a friendly and helpful coding assistant for StudentHub, a learning platform where students complete coding projects.
 
 CURRENT USER PROGRESS:
@@ -346,14 +371,8 @@ ${context}
 
 ${rules}
 
-USER'S QUESTION: "${message}"`;
-
-    if (fileContents && fileContents.length > 0) {
-      const filesText = fileContents.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n');
-      prompt += `\n\nATTACHED FILES (explicitly attached by user for additional context):\n${filesText}`;
-    }
-
-    prompt += `\n\nYOUR TASK:\nWhen the user asks about files (like "what is in this file", "describe this file", "what does this file do", etc.), you MUST read and analyze the actual content of each file provided and describe:
+YOUR TASK:
+When the user asks about files (like "what is in this file", "describe this file", "what does this file do", etc.), you MUST read and analyze the actual content of each file provided and describe:
 - What the file contains (its actual code/functions/structure)
 - What specific functionality it provides
 - How the code works (in plain English, no code snippets)
@@ -368,10 +387,43 @@ For each file, be specific about what the actual code does. If a file contains a
 Example of CORRECT answer (based on actual file content):
 "The file App.tsx is the main React component. It imports Button and Layout components. The component renders a navigation bar with links to Dashboard, Books, Members, and BorrowRecords pages. It also displays a welcome message and uses React Router for navigation."`;
 
+    if (fileContents && fileContents.length > 0) {
+      const filesText = fileContents.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n');
+      prompt += `\n\nATTACHED FILES (explicitly attached by user for additional context):\n${filesText}`;
+    }
+
     return prompt;
   }
 
-  private async getAIResponse(prompt: string, model?: string): Promise<string> {
+  private async buildMessages(
+    conversationId: string | undefined,
+    systemPrompt: string,
+    userMessage: string
+  ): Promise<{ role: string; content: string }[]> {
+    const messages: { role: string; content: string }[] = [
+      { role: 'system', content: systemPrompt }
+    ];
+
+    if (conversationId) {
+      try {
+        const conversation = await this.conversationDataAccess.getConversation(conversationId);
+        if (conversation) {
+          const history = conversation.messages.slice(-20);
+          for (const msg of history) {
+            const role = msg.role === 'assistant' ? 'assistant' : 'user';
+            messages.push({ role, content: msg.content });
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load conversation history:', e);
+      }
+    }
+
+    messages.push({ role: 'user', content: userMessage });
+    return messages;
+  }
+
+  private async getAIResponse(messages: { role: string; content: string }[], model?: string): Promise<string> {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
       throw new Error('OPENROUTER_API_KEY is not configured. Please add it to your .env file. Get one free at https://openrouter.ai');
@@ -387,14 +439,13 @@ Example of CORRECT answer (based on actual file content):
 
     const models = model ? [model, ...defaultModels.filter((m) => m !== model)] : defaultModels;
 
-    let response = null;
     let lastError = null;
 
     for (const modelName of models) {
       console.log(`Trying model: ${modelName}`);
 
       if (modelName === 'google/gemini-2.5-flash:direct') {
-        const geminiResult = await this.tryGeminiModel(prompt);
+        const geminiResult = await this.tryGeminiModel(messages);
         if (geminiResult.success && geminiResult.hint) {
           return geminiResult.hint;
         }
@@ -402,7 +453,7 @@ Example of CORRECT answer (based on actual file content):
         continue;
       }
 
-      const openRouterResult = await this.tryOpenRouterModel(prompt, modelName, apiKey);
+      const openRouterResult = await this.tryOpenRouterModel(messages, modelName, apiKey);
       if (openRouterResult.success && openRouterResult.hint) {
         return openRouterResult.hint;
       }
@@ -418,22 +469,36 @@ Example of CORRECT answer (based on actual file content):
     throw new Error(`Failed to get response from AI: ${lastError?.error?.message || lastError?.message || 'All models unavailable'}`);
   }
 
-  private async tryGeminiModel(prompt: string): Promise<{ success: boolean; hint?: string; error?: any }> {
+  private async tryGeminiModel(messages: { role: string; content: string }[]): Promise<{ success: boolean; hint?: string; error?: any }> {
     const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
     if (!geminiApiKey) {
       return { success: false, error: 'Google Gemini API key not configured' };
     }
 
     try {
+      const systemMsg = messages.find(m => m.role === 'system');
+      const conversationMsgs = messages.filter(m => m.role !== 'system');
+
+      const contents = conversationMsgs.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+
+      const body: Record<string, unknown> = {
+        contents,
+        generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+      };
+
+      if (systemMsg) {
+        body.systemInstruction = { parts: [{ text: systemMsg.content }] };
+      }
+
       const geminiResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
-          })
+          body: JSON.stringify(body)
         }
       );
 
@@ -454,7 +519,7 @@ Example of CORRECT answer (based on actual file content):
   }
 
   private async tryOpenRouterModel(
-    prompt: string,
+    messages: { role: string; content: string }[],
     model: string,
     apiKey: string
   ): Promise<{ success: boolean; hint?: string; error?: any; status?: number }> {
@@ -468,10 +533,8 @@ Example of CORRECT answer (based on actual file content):
           'X-Title': 'DevSim AI Hints'
         },
         body: JSON.stringify({
-          // Enough headroom for multi-step, hand-holdy hints (level 1-2) without
-          // getting cut off mid-sentence. Matches the Gemini fallback budget.
           model,
-          messages: [{ role: 'user', content: prompt }],
+          messages,
           max_tokens: 1000,
           temperature: 0.7,
           reasoning: { enabled: false }

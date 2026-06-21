@@ -1,7 +1,7 @@
 // AI Help API Helper Functions
 import { get } from 'svelte/store';
 import type { ITask } from "$lib/types";
-import { aiChatHistory, aiCoins, aiHelpCredits, aiSelectedFile, aiFileTree, aiFileContents } from "$lib/stores/ai";
+import { aiChatHistory, aiCoins, aiHelpCredits, aiSelectedFile, aiFileTree, aiFileContents, aiConversationId } from "$lib/stores/ai";
 import { isAskingForCode, getCodeWarningMessage, getInsufficientCreditsMessage, getErrorMessage, getApiErrorMessage } from "$lib/ai";
 import type { ChatMessage } from "$lib/stores/ai";
 import {
@@ -241,8 +241,9 @@ export async function sendChatMessage(
   currentCoins: number,
   currentCredits: number,
   generateContextFn: () => Promise<string>,
-  model?: string
-): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
+  model?: string,
+  conversationId?: string | null
+): Promise<{ success: boolean; error?: string; coinsRemaining?: number; conversationId?: string }> {
   if (isAskingForCode(message)) {
     aiChatHistory.update((msgs) => [
       ...msgs,
@@ -297,7 +298,10 @@ export async function sendChatMessage(
       if (data.aiHelpsRemaining !== undefined) {
         aiHelpCredits.set(data.aiHelpsRemaining);
       }
-      return { success: true, coinsRemaining: data.coinsRemaining };
+      if (data.conversationId) {
+        aiConversationId.set(data.conversationId);
+      }
+      return { success: true, coinsRemaining: data.coinsRemaining, conversationId: data.conversationId };
     } else {
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: getApiErrorMessage(data.error) }]);
       return { success: false, error: data.error };
@@ -320,7 +324,8 @@ export async function requestQuickHintBubble(
   generateContextFn: () => Promise<string>,
   onSuccess?: (hint: string, coinsRemaining?: number) => void,
   onError?: (error: string) => void,
-  model?: string
+  model?: string,
+  conversationId?: string | null
 ): Promise<{ success: boolean; hint?: string; error?: string; coinsRemaining?: number }> {
   try {
     const response = await fetch("/api/ai/hint", {
@@ -336,6 +341,7 @@ export async function requestQuickHintBubble(
         attachedFilesCount: 0,
         attachedFiles: [],
         level,
+        conversationId,
       }),
     });
 
@@ -347,6 +353,9 @@ export async function requestQuickHintBubble(
       }
       if (data.aiHelpsRemaining !== undefined) {
         aiHelpCredits.set(data.aiHelpsRemaining);
+      }
+      if (data.conversationId) {
+        aiConversationId.set(data.conversationId);
       }
       if (onSuccess) {
         onSuccess(data.hint, data.coinsRemaining);
@@ -384,7 +393,8 @@ export async function sendBubbleChatMessage(
   generateContextFn: () => Promise<string>,
   onSuccess?: (hint: string, coinsRemaining?: number) => void,
   onError?: (error: string) => void,
-  model?: string
+  model?: string,
+  conversationId?: string | null
 ): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
   if (isAskingForCode(message)) {
     const warningMsg = getCodeWarningMessage();
@@ -434,6 +444,7 @@ export async function sendBubbleChatMessage(
         attachedFilesCount: filesCount,
         attachedFiles: filesToInclude,
         level,
+        conversationId,
       }),
     });
 
@@ -446,6 +457,9 @@ export async function sendBubbleChatMessage(
       }
       if (data.aiHelpsRemaining !== undefined) {
         aiHelpCredits.set(data.aiHelpsRemaining);
+      }
+      if (data.conversationId) {
+        aiConversationId.set(data.conversationId);
       }
       if (onSuccess) {
         onSuccess(data.hint, data.coinsRemaining);
@@ -569,4 +583,38 @@ export function validateMessage(
     return { valid: false, error: "Insufficient coins" };
   }
   return { valid: true };
+}
+
+/**
+ * Load conversation history from the server.
+ * Returns the conversation data so callers can handle store updates themselves.
+ */
+export async function loadConversationHistory(
+  userId: string,
+  workspaceId?: string,
+  conversationId?: string | null
+): Promise<{ conversationId: string; messages: ChatMessage[] } | null> {
+  try {
+    const params = new URLSearchParams({ userId });
+    if (workspaceId) params.set('workspaceId', workspaceId);
+    if (conversationId) params.set('conversationId', conversationId);
+
+    const response = await fetch(`/api/ai/conversation?${params.toString()}`);
+    const data = await response.json();
+
+    if (data.success && data.conversation) {
+      const messages: ChatMessage[] = data.conversation.messages.map(
+        (m: { role: string; content: string }) => ({
+          role: m.role === 'assistant' ? 'ai' : 'user',
+          content: m.content,
+        })
+      );
+
+      return { conversationId: data.conversation.id, messages };
+    }
+    return null;
+  } catch (e) {
+    console.error('Failed to load conversation history:', e);
+    return null;
+  }
 }

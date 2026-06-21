@@ -51,6 +51,7 @@ model user {
   learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
   learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")
   userProjectAccess      user_project_access[]     @relation("userProjectAccess")
+  conversations          conversation[]
 }
 
 model workspace {
@@ -71,6 +72,7 @@ model workspace {
   scenario            scenario            @relation(fields: [current_scenario_id], references: [id])
   user                user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
   workspace_stacks    workspace_stack[]
+  conversations       conversation[]
   
   @@index([user_id])
 }
@@ -497,6 +499,32 @@ model user_project_access {
   @@index([project_id])
   @@index([source])
   user          user     @relation("userProjectAccess", fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model conversation {
+  id           String    @id @default(cuid())
+  user_id      String
+  workspace_id String?
+  title        String?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  user         user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  workspace    workspace? @relation(fields: [workspace_id], references: [id])
+  messages     message[]
+
+  @@index([user_id])
+  @@index([workspace_id])
+}
+
+model message {
+  id              String       @id @default(cuid())
+  conversation_id String
+  role            String
+  content         String
+  created_at      DateTime     @default(now())
+  conversation    conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+
+  @@index([conversation_id, created_at])
 }
 
 enum UserRole {

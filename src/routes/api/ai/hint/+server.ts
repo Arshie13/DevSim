@@ -23,7 +23,8 @@ export const POST: RequestHandler = async ({ request }) => {
       creditsSpent: result.creditsSpent,
       coinsSpent: result.coinsSpent,
       coinsRemaining: result.coinsRemaining,
-      aiHelpsRemaining: result.aiHelpsRemaining
+      aiHelpsRemaining: result.aiHelpsRemaining,
+      conversationId: result.conversationId
     });
   } catch (error) {
     console.error('Error in hint endpoint:', error);

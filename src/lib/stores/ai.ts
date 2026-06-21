@@ -31,6 +31,9 @@ export const aiFileContents: Writable<Record<string, string>> = writable({});
 // Store for current AI panel visibility
 export const aiPanelOpen: Writable<boolean> = writable(false);
 
+// Store for current conversation ID
+export const aiConversationId: Writable<string | null> = writable(null);
+
 // Helper functions to manage chat history
 export function addUserMessage(content: string) {
   aiChatHistory.update(msgs => [...msgs, { role: "user", content }]);

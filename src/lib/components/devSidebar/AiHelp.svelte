@@ -1,8 +1,10 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { Send, AlertTriangle, Bot, User, Coins, X, MessageSquare, Paperclip, File, FileText } from "lucide-svelte";
-  import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents } from "./PrimarySidebar.svelte";
+  import { aiChatHistory, aiCoins, aiSelectedFile, aiFileTree, aiFileContents, aiConversationId } from "./PrimarySidebar.svelte";
   import { isAskingForCode, getCodeWarningMessage, getInsufficientCoinsMessage, getErrorMessage, getApiErrorMessage, formatMessage as formatMessageContent } from "$lib/ai";
   import { type ITask } from "$lib/types";
+  import { loadConversationHistory } from "$lib/utils/aiHelpApi";
 
   // SAZ - AI Assistant Name
   const AI_NAME = "SAZ";
@@ -96,6 +98,17 @@
   let isLoading: boolean = false;
   let chatContainer: HTMLDivElement;
   let previousMessageCount: number = 0;
+
+  onMount(() => {
+    if (userId && containerId) {
+      loadConversationHistory(userId, containerId).then((result) => {
+        if (result) {
+          aiConversationId.set(result.conversationId);
+          aiChatHistory.set(result.messages);
+        }
+      });
+    }
+  });
 
   // Track if user is manually scrolling
   let userScrolling = false;
@@ -427,6 +440,7 @@
           attachedFilesCount: filesCount,
           attachedFiles,
           level,
+          conversationId: $aiConversationId,
         }),
       });
 
@@ -437,6 +451,9 @@
           ...msgs,
           { role: "ai", content: data.hint },
         ]);
+        if (data.conversationId) {
+          aiConversationId.set(data.conversationId);
+        }
         // Update coin balance in store and force re-render
         if (data.coinsRemaining !== undefined) {
           aiCoins.set(data.coinsRemaining);
@@ -520,6 +537,7 @@
           attachedFilesCount: attachedFilesCount,
           attachedFiles,
           level,
+          conversationId: $aiConversationId,
         }),
       });
 
@@ -527,6 +545,9 @@
 
       if (data.success) {
         quickHintMessage = data.hint;
+        if (data.conversationId) {
+          aiConversationId.set(data.conversationId);
+        }
         // Update coin balance
         if (data.coinsRemaining !== undefined) {
           aiCoins.set(data.coinsRemaining);

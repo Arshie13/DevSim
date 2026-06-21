@@ -6,6 +6,7 @@
     aiSelectedFile,
     aiFileTree,
     aiFileContents,
+    aiConversationId,
   } from "$lib/stores/ai";
   import { getInsufficientCreditsMessage, getErrorMessage } from "$lib/ai";
   import { type ITask } from "$lib/types";
@@ -29,6 +30,7 @@
     generateContext as generateContextHelper,
     sendChatMessage as apiSendChatMessage,
     requestQuickHintBubble,
+    loadConversationHistory,
   } from "$lib/utils/aiHelpApi";
   import { onMount } from "svelte";
 
@@ -93,6 +95,15 @@
   onMount(() => {
     const saved = Number(localStorage.getItem(PANEL_WIDTH_KEY));
     if (saved && !Number.isNaN(saved)) panelWidth = clampWidth(saved);
+
+    if (userId && containerId) {
+      loadConversationHistory(userId, containerId).then((result) => {
+        if (result) {
+          aiConversationId.set(result.conversationId);
+          aiChatHistory.set(result.messages);
+        }
+      });
+    }
   });
 
   function persistWidth() {
@@ -247,6 +258,7 @@
         currentAiHelps,
         generateContext,
         selectedAiModel,
+        $aiConversationId,
       );
 
       if (result.success && result.coinsRemaining !== undefined) {
@@ -351,6 +363,7 @@
           ]);
         },
         selectedAiModel,
+        $aiConversationId,
       );
     } finally {
       isLoading = false;

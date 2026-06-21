@@ -21,6 +21,9 @@
 
   // Store for file contents - persists across tab switches
   export const aiFileContents: Writable<Record<string, string>> = writable({});
+
+  // Store for the current conversation ID
+  export const aiConversationId: Writable<string | null> = writable(null);
 </script>
 
 <script lang="ts">
