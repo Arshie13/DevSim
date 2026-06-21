@@ -3,6 +3,41 @@ import { pickPreviewHostPortWithProbe } from '$lib/server/docker/preview-port';
 import * as crypto from 'crypto';
 import { Writable } from 'stream';
 
+const STACK_CATEGORY: Record<string, 'frontend' | 'backend' | 'database'> = {
+  react: 'frontend',
+  nextjs: 'frontend',
+  vue: 'frontend',
+  svelte: 'frontend',
+  angular: 'frontend',
+  express: 'backend',
+  fastify: 'backend',
+  nestjs: 'backend',
+  django: 'backend',
+  flask: 'backend',
+  postgresql: 'database',
+  mongodb: 'database',
+  mysql: 'database',
+  sqlite: 'database',
+  redis: 'database',
+};
+
+const STACK_DEFAULT_PORT: Record<string, number> = {
+  react: 3000,
+  nextjs: 3000,
+  vue: 5173,
+  svelte: 5173,
+  angular: 4200,
+  express: 5000,
+  fastify: 3000,
+  nestjs: 3000,
+  django: 8000,
+  flask: 5000,
+  postgresql: 5432,
+  mongodb: 27017,
+  mysql: 3306,
+  redis: 6379,
+};
+
 export interface CreateContainerParams {
   userId: string;
   stackName: string;
@@ -16,8 +51,8 @@ export interface CreateContainerParams {
 export interface CreateContainerResult {
   id: string;
   ports: {
-    backend: string | undefined;
     frontend: string | undefined;
+    backend: string | undefined;
     database: string | undefined;
   };
 }
@@ -232,6 +267,25 @@ export class ContainerService {
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
 
+    // Determine ports to expose based on selected stacks
+    const portsToExpose: string[] = [];
+    for (const stack of stacksArray) {
+      const port = STACK_DEFAULT_PORT[stack.stackName];
+      if (port) {
+        const binding = `${port}/tcp`;
+        if (!portsToExpose.includes(binding)) {
+          portsToExpose.push(binding);
+        }
+      }
+    }
+
+    const exposedPorts: Record<string, {}> = {};
+    const portBindings: Record<string, Array<{ HostPort: string }>> = {};
+    for (const p of portsToExpose) {
+      exposedPorts[p] = {};
+      portBindings[p] = [{ HostPort: '' }];
+    }
+
     const containerConfig: any = {
       Image: resolved.imageToUse,
       name: `devsim-${stackName}-${userId}-${level}`,
@@ -239,12 +293,7 @@ export class ContainerService {
       Tty: true,
       OpenStdin: true,
       WorkingDir: '/workspace',
-      ExposedPorts: {
-        '5000/tcp': {},
-        '3000/tcp': {},
-        '5173/tcp': {},
-        '5432/tcp': {}
-      },
+      ExposedPorts: exposedPorts,
       Env: [
         'POSTGRES_USER=devsim',
         'POSTGRES_PASSWORD=devsim',
@@ -258,12 +307,7 @@ export class ContainerService {
       HostConfig: {
         Memory: 512 * 1024 * 1024,
         AutoRemove: false,
-        PortBindings: {
-          '5000/tcp': [{ HostPort: '' }],
-          '3000/tcp': [{ HostPort: '' }],
-          '5173/tcp': [{ HostPort: '' }],
-          '5432/tcp': [{ HostPort: '' }]
-        }
+        PortBindings: portBindings
       },
       Labels: {
         'devsim.userId': userId,
@@ -290,13 +334,26 @@ export class ContainerService {
 
     const inspect = await docker.getContainer(container.id).inspect();
 
+    const returnPorts: CreateContainerResult['ports'] = {
+      frontend: undefined,
+      backend: undefined,
+      database: undefined,
+    };
+
+    for (const stack of stacksArray) {
+      const category = STACK_CATEGORY[stack.stackName];
+      const port = STACK_DEFAULT_PORT[stack.stackName];
+      if (category && port) {
+        const hostPort = inspect.NetworkSettings.Ports[`${port}/tcp`]?.[0]?.HostPort;
+        if (hostPort) {
+          (returnPorts as Record<string, string | undefined>)[category] = hostPort;
+        }
+      }
+    }
+
     return {
       id: container.id,
-      ports: {
-        backend: inspect.NetworkSettings.Ports['5000/tcp']?.[0]?.HostPort,
-        frontend: inspect.NetworkSettings.Ports['5173/tcp']?.[0]?.HostPort,
-        database: inspect.NetworkSettings.Ports['5432/tcp']?.[0]?.HostPort
-      }
+      ports: returnPorts,
     };
   }
 

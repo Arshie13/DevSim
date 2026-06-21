@@ -101,7 +101,7 @@ export function createTerminalWSServer(server: http.Server): WebSocketServer {
           await existing.exec.resize({ h: initialRows, w: initialCols });
         } catch {}
 
-        ws.send('\x1b[1;33m🔗 Reconnected to existing terminal session\x1b[0m\r\n');
+        ws.send('\x1b[1;33m🔗 Reconnected to existing terminal session. Press Ctrl + C to activate\x1b[0m\r\n');
         existing.execStream.write('\x1b[1;32m$ \x1b[0m');
 
         ws.on('close', () => {

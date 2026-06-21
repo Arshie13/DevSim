@@ -1,16 +1,16 @@
-import { CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID, CLOUDFLARE_TUNNEL_ID, CLOUDFLARE_ACCOUNT_ID } from '$env/static/private';
+import { CLOUDFLARE_API_TOKEN, CLOUDFLARE_TUNNEL_ID, CLOUDFLARE_ACCOUNT_ID } from '$env/static/private';
 
 const CF_API = 'https://api.cloudflare.com/client/v4';
 
 export class CloudflaredWrapper {
   private apiToken: string;
-  private zoneId: string;
   private tunnelId: string;
   private accountId: string;
 
+  private tunnelLock: Promise<void> = Promise.resolve();
+
   constructor() {
     this.apiToken = CLOUDFLARE_API_TOKEN;
-    this.zoneId = CLOUDFLARE_ZONE_ID;
     this.tunnelId = CLOUDFLARE_TUNNEL_ID;
     this.accountId = CLOUDFLARE_ACCOUNT_ID;
   }
@@ -20,6 +20,15 @@ export class CloudflaredWrapper {
       'Authorization': `Bearer ${this.apiToken}`,
       'Content-Type': 'application/json',
     };
+  }
+
+  private async acquireTunnelLock(): Promise<() => void> {
+    let release: () => void;
+    const wait = new Promise<void>(resolve => { release = resolve; });
+    const prev = this.tunnelLock;
+    this.tunnelLock = prev.then(() => wait);
+    await prev;
+    return release!;
   }
 
   /**
@@ -36,13 +45,7 @@ export class CloudflaredWrapper {
       return `https://${hostname}`;
     }
 
-    // New or changed port — update tunnel + DNS
     await this.addTunnelRoute(hostname, serviceUrl);
-
-    if (!existing) {
-      // Only create DNS record if it doesn't exist yet
-      await this.createDnsRecord(hostname);
-    }
 
     return `https://${hostname}`;
   }
@@ -52,7 +55,6 @@ export class CloudflaredWrapper {
    */
   async removeRoute(hostname: string): Promise<void> {
     await this.deleteTunnelRoute(hostname);
-    await this.deleteDnsRecord(hostname);
   }
 
   /**
@@ -64,6 +66,11 @@ export class CloudflaredWrapper {
       { method: 'GET', headers: this.headers }
     );
 
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Cloudflare API error ${res.status}: ${body.slice(0, 200)}`);
+    }
+
     const data = await res.json();
     const ingress = data.result?.config?.ingress ?? [];
 
@@ -72,100 +79,91 @@ export class CloudflaredWrapper {
   }
 
   private async addTunnelRoute(hostname: string, service: string): Promise<void> {
-    const res = await fetch(
-      `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
-      {
-        method: 'GET',
-        headers: this.headers,
+    const unlock = await this.acquireTunnelLock();
+    try {
+      const res = await fetch(
+        `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
+        {
+          method: 'GET',
+          headers: this.headers,
+        }
+      );
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Cloudflare API error ${res.status}: ${body.slice(0, 200)}`);
       }
-    );
 
-    const data = await res.json();
-    const config = data.result?.config ?? { ingress: [] };
+      const data = await res.json();
+      const config = data.result?.config ?? { ingress: [] };
 
-    // Remove existing route for this hostname if any
-    config.ingress = config.ingress.filter(
-      (rule: any) => rule.hostname !== hostname
-    );
+      config.ingress = config.ingress.filter(
+        (rule: any) => rule.hostname !== hostname
+      );
 
-    // Add new route before the catch-all
-    const catchAll = config.ingress.find((r: any) => !r.hostname);
-    const rules = config.ingress.filter((r: any) => r.hostname);
+      const catchAll = config.ingress.find((r: any) => !r.hostname);
+      const rules = config.ingress.filter((r: any) => r.hostname);
 
-    config.ingress = [
-      ...rules,
-      { hostname, service },
-      catchAll ?? { service: 'http_status:404' }, // ensure catch-all exists
-    ];
+      config.ingress = [
+        ...rules,
+        { hostname, service },
+        catchAll ?? { service: 'http_status:404' },
+      ];
 
-    await fetch(
-      `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
-      {
-        method: 'PUT',
-        headers: this.headers,
-        body: JSON.stringify({ config }),
+      const putRes = await fetch(
+        `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
+        {
+          method: 'PUT',
+          headers: this.headers,
+          body: JSON.stringify({ config }),
+        }
+      );
+
+      if (!putRes.ok) {
+        const body = await putRes.text();
+        throw new Error(`Cloudflare API error ${putRes.status}: ${body.slice(0, 200)}`);
       }
-    );
-  }
-
-  private async deleteTunnelRoute(hostname: string): Promise<void> {
-    const res = await fetch(
-      `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
-      { method: 'GET', headers: this.headers }
-    );
-
-    const data = await res.json();
-    const config = data.result?.config ?? { ingress: [] };
-
-    config.ingress = config.ingress.filter(
-      (rule: any) => rule.hostname !== hostname
-    );
-
-    await fetch(
-      `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
-      {
-        method: 'PUT',
-        headers: this.headers,
-        body: JSON.stringify({ config }),
-      }
-    );
-  }
-
-  private async createDnsRecord(hostname: string): Promise<void> {
-    const subdomain = hostname.split('.')[0]; // e.g. "alice"
-
-    await fetch(`${CF_API}/zones/${this.zoneId}/dns_records`, {
-      method: 'POST',
-      headers: this.headers,
-      body: JSON.stringify({
-        type: 'CNAME',
-        name: subdomain,
-        content: `${this.tunnelId}.cfargotunnel.com`,
-        proxied: true,
-        ttl: 1, // Auto TTL when proxied
-      }),
-    });
-  }
-
-  private async deleteDnsRecord(hostname: string): Promise<void> {
-    const subdomain = hostname.split('.')[0];
-
-    // Find the record ID first
-    const res = await fetch(
-      `${CF_API}/zones/${this.zoneId}/dns_records?type=CNAME&name=${subdomain}.devsim.dev`,
-      { method: 'GET', headers: this.headers }
-    );
-
-    const data = await res.json();
-    const recordId = data.result?.[0]?.id;
-
-    if (recordId) {
-      await fetch(`${CF_API}/zones/${this.zoneId}/dns_records/${recordId}`, {
-        method: 'DELETE',
-        headers: this.headers,
-      });
+    } finally {
+      unlock();
     }
   }
 
-  // TODO: stop tunnel if user exits
+  private async deleteTunnelRoute(hostname: string): Promise<void> {
+    const unlock = await this.acquireTunnelLock();
+    try {
+      const res = await fetch(
+        `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
+        { method: 'GET', headers: this.headers }
+      );
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Cloudflare API error ${res.status}: ${body.slice(0, 200)}`);
+      }
+
+      const data = await res.json();
+      const config = data.result?.config ?? { ingress: [] };
+
+      config.ingress = config.ingress.filter(
+        (rule: any) => rule.hostname !== hostname
+      );
+
+      const putRes = await fetch(
+        `${CF_API}/accounts/${this.accountId}/cfd_tunnel/${this.tunnelId}/configurations`,
+        {
+          method: 'PUT',
+          headers: this.headers,
+          body: JSON.stringify({ config }),
+        }
+      );
+
+      if (!putRes.ok) {
+        const body = await putRes.text();
+        throw new Error(`Cloudflare API error ${putRes.status}: ${body.slice(0, 200)}`);
+      }
+    } finally {
+      unlock();
+    }
+  }
+
 }
