@@ -14,12 +14,10 @@
   let searchQuery = "";
   let filterType: "all" | "top" | "friends" = "all";
 
-  $: filteredRivals = data.rivals
-    .filter(r => 
-      r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      r.username.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => b.xp - a.xp);
+  $: filteredRivals = data.rivals.filter(r => 
+    r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    r.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   let headerUserData: UserData = {
     ...data.user,
