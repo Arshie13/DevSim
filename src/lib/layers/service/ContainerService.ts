@@ -54,6 +54,12 @@ export class ContainerService {
       await container.start();
     }
 
+    // The sidecar shares the workspace's namespace, so start it after the
+    // workspace is running. Works for pre-existing containers too.
+    if (this.isMongoWorkspace(info.Config?.Labels)) {
+      await this.ensureMongoSidecar(containerId);
+    }
+
     return info;
   }
 
@@ -101,6 +107,118 @@ export class ContainerService {
     };
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // MongoDB sidecar support
+  //
+  // The base workspace image runs PostgreSQL, but Mongo-based stacks (e.g.
+  // react-express-mongodb) need a MongoDB server. Rather than baking Mongo into
+  // the image, we run a stock `mongo:7` container that SHARES the workspace's
+  // network namespace (`--network container:<workspaceId>`). That makes MongoDB
+  // answer on `localhost:27017` *inside* the workspace, so the project's default
+  // `mongodb://localhost:27017/...` URI works untouched — no env injection, and
+  // it works for reused/pre-existing workspace containers too.
+  //
+  // Because the sidecar borrows the workspace's namespace, ordering matters:
+  //   • start: workspace first, then sidecar
+  //   • stop/remove: sidecar first, then workspace
+  // Its lifecycle is tied to the workspace container so callers (WorkspaceService)
+  // don't need to manage it.
+  // ───────────────────────────────────────────────────────────────────────────
+
+  private static readonly MONGO_IMAGE = 'mongo:7';
+
+  private isMongoStack(stackName: string | undefined): boolean {
+    return !!stackName && stackName.toLowerCase().includes('mongo');
+  }
+
+  private isMongoWorkspace(labels: Record<string, string> | undefined): boolean {
+    return this.isMongoStack(labels?.['devsim.stack']);
+  }
+
+  private mongoSidecarName(workspaceId: string): string {
+    return `devsim-mongo-${workspaceId.slice(0, 12)}`;
+  }
+
+  private async ensureImage(image: string) {
+    try {
+      await docker.getImage(image).inspect();
+      return;
+    } catch {
+      // not present locally → pull below
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      docker.pull(image, (err: unknown, stream: NodeJS.ReadableStream) => {
+        if (err) return reject(err);
+        docker.modem.followProgress(stream, (progressErr: unknown) =>
+          progressErr ? reject(progressErr) : resolve()
+        );
+      });
+    });
+  }
+
+  /**
+   * Ensure a MongoDB sidecar is running for the given (already-running) workspace
+   * container. The sidecar shares the workspace's network namespace, so mongod
+   * is reachable at localhost:27017 from inside the workspace.
+   */
+  private async ensureMongoSidecar(workspaceId: string) {
+    const name = this.mongoSidecarName(workspaceId);
+
+    await this.ensureImage(ContainerService.MONGO_IMAGE);
+
+    const existing = docker.getContainer(name);
+    try {
+      const info = await existing.inspect();
+      if (!info.State.Running) {
+        await existing.start();
+      }
+      return;
+    } catch {
+      // not created yet → create below
+    }
+
+    const mongo = await docker.createContainer({
+      Image: ContainerService.MONGO_IMAGE,
+      name,
+      Labels: {
+        'devsim.role': 'mongo-sidecar',
+        'devsim.workspace': workspaceId
+      },
+      HostConfig: {
+        Memory: 512 * 1024 * 1024,
+        NetworkMode: `container:${workspaceId}`,
+        AutoRemove: false
+      }
+    });
+    await mongo.start();
+  }
+
+  private async stopMongoSidecar(workspaceId: string) {
+    try {
+      const mongo = docker.getContainer(this.mongoSidecarName(workspaceId));
+      const info = await mongo.inspect();
+      if (info.State.Running) {
+        await mongo.stop({ t: 5 });
+      }
+    } catch {
+      // already stopped/removed
+    }
+  }
+
+  private async removeMongoSidecar(workspaceId: string) {
+    try {
+      const mongo = docker.getContainer(this.mongoSidecarName(workspaceId));
+      const info = await mongo.inspect();
+      if (info.State.Running) {
+        await mongo.stop({ t: 5 });
+      }
+      await mongo.remove();
+    } catch {
+      // already gone
+    }
+  }
+
   /**
    * Create a fresh workspace container with all necessary configuration.
    */
@@ -108,6 +226,9 @@ export class ContainerService {
     const { userId, stackName, level, stacks, scenarioId, projectFolder, mode } = params;
 
     const resolved = await this.resolveImageAndVolume(stackName, level, scenarioId, projectFolder, mode);
+
+    // Mongo-based stacks get a MongoDB sidecar started after the workspace below.
+    const isMongo = this.isMongoStack(stackName);
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
 
@@ -159,6 +280,13 @@ export class ContainerService {
 
     const container = await docker.createContainer(containerConfig);
     await docker.getContainer(container.id).start();
+
+    // For Mongo stacks, start a MongoDB sidecar that shares this workspace's
+    // network namespace so mongod answers on localhost:27017 inside it. Must run
+    // after the workspace is started (the sidecar borrows its namespace).
+    if (isMongo) {
+      await this.ensureMongoSidecar(container.id);
+    }
 
     const inspect = await docker.getContainer(container.id).inspect();
 
@@ -218,6 +346,12 @@ export class ContainerService {
       const container = docker.getContainer(containerId);
       const info = await container.inspect();
 
+      // Remove the Mongo sidecar first — Docker won't remove a container whose
+      // network namespace is still in use by the sidecar.
+      if (this.isMongoWorkspace(info.Config?.Labels)) {
+        await this.removeMongoSidecar(containerId);
+      }
+
       if (info.State.Running) {
         await container.stop({ t: 5 });
       }
@@ -245,6 +379,11 @@ export class ContainerService {
     if (!info.State.Running) {
       await container.start();
       info = await container.inspect();
+    }
+
+    // Sidecar shares the workspace's namespace → start it after the workspace.
+    if (this.isMongoWorkspace(info.Config?.Labels)) {
+      await this.ensureMongoSidecar(containerId);
     }
 
     return {
@@ -276,7 +415,24 @@ export class ContainerService {
 
   async stopWorkspace(containerId: string) {
     try {
-      await docker.getContainer(containerId).stop();
+      const container = docker.getContainer(containerId);
+
+      let isMongo = false;
+      try {
+        const info = await container.inspect();
+        isMongo = this.isMongoWorkspace(info.Config?.Labels);
+      } catch {
+        // container already gone — nothing to stop
+      }
+
+      // Stop (but keep) the Mongo sidecar first — it shares the workspace's
+      // namespace — so it restarts with the workspace next time.
+      if (isMongo) {
+        await this.stopMongoSidecar(containerId);
+      }
+
+      await container.stop();
+
       return { success: true };
     } catch (err) {
       console.error('Background container stop failed:', err);
