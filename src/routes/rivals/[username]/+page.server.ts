@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
 import { getProfileMetrics, getRivals } from '$lib/server/stats';
 import { getTopAchievements } from '$lib/server/achievements/snapshots';
+import { computeLevel } from '$lib/utils/level';
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -38,7 +39,7 @@ export const load: PageServerLoad = async (event) => {
   // Fetch metrics, rivals, and top achievements for the target user
   const [metrics, rivals, topAchievements, currentUserDb] = await Promise.all([
     getProfileMetrics(targetUser.id),
-    getRivals(targetUser.id, 6),
+    getRivals(targetUser.id, targetUser.xp, 4),
     getTopAchievements(targetUser.id, 3),
     prisma.user.findUnique({
       where: { id: currentUserId },
@@ -46,19 +47,20 @@ export const load: PageServerLoad = async (event) => {
     })
   ]);
 
-  return {
-    targetUser: {
-      id: targetUser.id,
-      name: targetUser.name,
-      email: targetUser.email,
-      image: targetUser.image,
-      avatar: targetUser.owned_avatars[0] || targetUser.image || "",
-      xp: targetUser.xp,
-      level: targetUser.level,
-      ownedAvatars: targetUser.owned_avatars,
-      hasCompletedTutorial: targetUser.has_completed_tutorial,
-      username: targetUser.username,
-    },
+  const levelData = computeLevel(targetUser.xp);
+    return {
+      targetUser: {
+        id: targetUser.id,
+        name: targetUser.name,
+        email: targetUser.email,
+        image: targetUser.image,
+        avatar: targetUser.owned_avatars[0] || targetUser.image || "",
+        xp: targetUser.xp,
+        level: levelData.level,
+        ownedAvatars: targetUser.owned_avatars,
+        hasCompletedTutorial: targetUser.has_completed_tutorial,
+        username: targetUser.username,
+      },
     metrics,
     rivals,
     topAchievements,

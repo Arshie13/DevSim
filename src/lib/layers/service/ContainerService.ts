@@ -270,7 +270,7 @@ export class ContainerService {
         'devsim.stack': stackName,
         'devsim.level': level.toString(),
         'devsim.projectFolder': projectFolder ?? '',
-        'devsim.mode': mode ?? ''
+        'devsim.mode': mode ?? 'workspace'
       }
     };
 
