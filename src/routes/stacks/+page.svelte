@@ -94,11 +94,11 @@
 
   const headerUserData: Partial<UserData> = {
     name: data.user?.name ?? 'No Name',
-    email: data.user.email,
-    image: data.user.image,
+    email: data.user.email ?? 'Email not found',
+    image: data.user.image ?? '/static/avatars/defaultcyan.svg',
     id: data.user.id,
-    avatar: data.user.image,
-    givenName: data.user.givenName,
+    avatar: data.user.image ?? '/static/avatars/defaultcyan.svg',
+    givenName: data.user.givenName ?? 'John Doe',
     fullName: data.user?.fullName ?? data.user?.name ?? 'No Name',
     coins: data.userCoins,
   };
@@ -163,19 +163,6 @@
                   </span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Right side stats -->
-          <div class="hidden lg:flex items-center gap-6">
-            <div class="text-right">
-              <p class="page-stat-num">5</p>
-              <p class="page-stat-label">Stacks</p>
-            </div>
-            <div class="w-px h-10" style="background: rgba(7,165,201,0.15);"></div>
-            <div class="text-right">
-              <p class="page-stat-num">4</p>
-              <p class="page-stat-label">Layers</p>
             </div>
           </div>
         </div>
