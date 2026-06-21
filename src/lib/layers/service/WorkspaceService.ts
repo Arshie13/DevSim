@@ -7,7 +7,6 @@ import { FileChangesDataAccess } from "../data-access/FileChangesDataAccess";
 import { ScenarioDataAccess } from "../data-access/ScenarioDataAccess";
 import { saveUserContainer } from "$lib/server/docker/user/save-user-container";
 import type { CreateWorkspaceRequest } from "$lib/contracts/request/CreateWorkspaceRequest";
-import type { StackSelection } from "$lib/types";
 import { CloudflaredWrapper } from "$lib/wrapper/cloudflared";
 import * as crypto from "crypto";
 import prisma from "$lib/server/client";
@@ -25,11 +24,6 @@ interface StartContainerForPreviewResult {
   id: string;
   previewPorts: Record<string, number>;
   previewUrl: string;
-}
-
-interface StackInfo {
-  stackName: string;
-  stackVersion?: string;
 }
 
 interface SubmitWorkParams {
@@ -89,8 +83,8 @@ export class WorkspaceService {
       stackName: string;
     }>;
 
-    // check if workspace already exists in DB
-    const existing = await this.workspace.findActiveWorkspace(userId, level);
+    // check if workspace already exists in DB (must match stacks)
+    const existing = await this.workspace.findActiveWorkspaceByStacks(userId, level, stacksArray);
 
     // Tutorial workspaces are asynchronously destroyed (bgCleanup removes the
     // Docker container in the background).  Reusing a tutorial container for a
@@ -99,8 +93,6 @@ export class WorkspaceService {
     // create a fresh container instead.
     const existingIsReusable =
       existing &&
-      existing.workspaceStacks &&
-      this.stacksMatch(existing.workspaceStacks, stacks) &&
       !(mode === "workspace" && existing.status === "tutorial");
 
     if (existingIsReusable) {
@@ -232,32 +224,6 @@ export class WorkspaceService {
     }
 
     return null;
-  }
-
-  private stacksMatch(
-    existingStacks: Array<{
-      id: string;
-      workspaceId: string;
-      stackName: string;
-      stackVersion: string | null;
-    }>,
-    stacks: StackSelection,
-  ) {
-    const stacksArray: StackInfo[] = [
-      stacks.frontend ? { stackName: stacks.frontend } : null,
-      stacks.backend ? { stackName: stacks.backend } : null,
-      stacks.database ? { stackName: stacks.database } : null,
-      stacks.services ? { stackName: stacks.services } : null,
-    ].filter(
-      (s): s is StackInfo =>
-        s !== null && s.stackName !== null && s.stackName !== undefined,
-    );
-
-    const existingNames = existingStacks.map((s) => s.stackName);
-    return (
-      stacksArray.length === existingNames.length &&
-      stacksArray.every((s) => existingNames.includes(s.stackName))
-    );
   }
 
   async archiveWorkspace(params: { dbContainerId: string; userId: string }) {
