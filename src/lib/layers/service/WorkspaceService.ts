@@ -307,6 +307,14 @@ export class WorkspaceService {
     // 3. Remove original container
     await this.container.stopAndRemove(record.container_id);
 
+    // Clean up tunnel ingress rule (fire-and-forget)
+    const user = await this.user.findUserById(record.user_id);
+    if (user) {
+      const hostname = `${user.name.toLowerCase().replace(/[^a-z0-9-]/g, "-")}.devsim.dev`;
+      const cloudflared = new CloudflaredWrapper();
+      cloudflared.removeRoute(hostname).catch(() => {});
+    }
+
     // 4. Update DB
     await this.workspace.archiveWorkspace(record.id, volumeName);
 
