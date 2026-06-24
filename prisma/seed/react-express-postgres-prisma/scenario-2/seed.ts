@@ -21,7 +21,7 @@ export const levels = [
       xp_reward: 100,
       coin_reward: 50,
       key_takeaways:
-        "A PERN stack project requires separate npm install runs in the root, client/, and server/ directories. Prisma migrations keep the PostgreSQL schema in sync with your code. Environment variables (DATABASE_URL, PORT) are read by dotenv and must never be committed. React layout components like Navbar are the single place to update global brand text — change it once and it updates everywhere.",
+        "A PERN stack project requires separate pnpm install runs in the root, client/, and server/ directories. Prisma migrations keep the PostgreSQL schema in sync with your code. Environment variables (DATABASE_URL, PORT) are read by dotenv and must never be committed. React layout components like Navbar are the single place to update global brand text — change it once and it updates everywhere.",
       scenario_id: "pern-oe-scenario-2",
       tasks: {
         create: [
@@ -53,7 +53,7 @@ export const levels = [
                 {
                   title: "Package Management 101",
                   content:
-                    "Package management is the process of managing external code dependencies a project relies on. A package manager (like npm) handles installing, updating, and removing dependencies, ensuring the right versions are available.\n\nFor example: when you join an existing project like UrbanPottery, dependencies are not installed yet — you run npm install to download all packages listed in each directory's package.json.",
+                    "Package management is the process of managing external code dependencies a project relies on. A package manager (like pnpm) handles installing, updating, and removing dependencies, ensuring the right versions are available.\n\nFor example: when you join an existing project like UrbanPottery, dependencies are not installed yet — you run pnpm install to download all packages listed in each directory's package.json.",
                   order: 4,
                 },
                 {
@@ -111,7 +111,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "There are three directories that each contain a package.json — you must run npm install in all three (root, client/, server/).",
+                    "There are three directories that each contain a package.json — you must run pnpm install in all three (root, client/, server/).",
                   order: 1,
                 },
                 {
@@ -121,7 +121,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "After installing server dependencies, run `npx prisma migrate dev` inside the server/ directory to apply the schema.",
+                    "After installing server dependencies, run `pnpm exec prisma migrate dev` inside the server/ directory to apply the schema.",
                   order: 3,
                 },
               ],
@@ -1029,7 +1029,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Add the Coupon model to server/prisma/schema.prisma with all six required fields, then run `npx prisma migrate dev` from the server directory.",
+                    "Add the Coupon model to server/prisma/schema.prisma with all six required fields, then run `pnpm exec prisma migrate dev` from the server directory.",
                   order: 1,
                 },
                 {
