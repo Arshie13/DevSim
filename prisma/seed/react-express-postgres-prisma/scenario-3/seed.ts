@@ -34,31 +34,31 @@ export const levels = [
                 {
                   title: "Overview\nSetting Up a PERN Stack Project",
                   content:
-                    "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                    "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and foundational concepts relevant to the setup process.",
                   order: 1,
                 },
                 {
                   title: "What is the PERN Stack?",
                   content:
-                    "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nPostgreSQL — the database that stores your data\nExpress — a Node.js framework that handles your server and API routes\nReact — the frontend library that builds your user interface\nNode.js — the JavaScript runtime that runs your server code",
+                    "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web applications.\n\nPostgreSQL — a relational database management system for persistent data storage\nExpress — a Node.js framework for handling server logic and API routing\nReact — a frontend library for building component-based user interfaces\nNode.js — a JavaScript runtime for executing server-side code",
                   order: 2,
                 },
                 {
                   title: "How a PERN App is Structured",
                   content:
-                    "A typical PERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach part has its own package.json, which means you need to install dependencies in all three locations.",
+                    "A PERN project is divided into three directories:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach directory contains its own package.json, meaning dependency installation must be performed in all three locations.",
                   order: 3,
                 },
                 {
                   title: "Package Management 101",
                   content:
-                    "Package management is the process of managing external code dependencies a project relies on. A package manager (like pnpm) handles installing, updating, and removing dependencies, ensuring the right versions are available.\n\nFor example: when you join an existing project, dependencies are not installed yet — you run pnpm install to download all packages listed in each directory's package.json.",
+                    "Package management is the process of managing external code dependencies a project relies on. A package manager (such as pnpm) handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. This must be done for each directory that contains a package.json — root, client, and server.",
                   order: 4,
                 },
                 {
                   title: "Change Directory (cd) Basics",
                   content:
-                    "In development, you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server before running installs or scripts.\n\nCommon commands:\ncd client → move from root to frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running a command — package management commands affect the folder you are currently in.",
+                    "Terminal commands are executed relative to the current working directory. The cd (change directory) command moves between directories before running installs or scripts.\n\nCommon commands:\ncd client → move from root to the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nThe current directory determines which package.json a package manager reads, so commands must be run from the correct location.",
                   order: 5,
                 },
                 {
@@ -83,25 +83,25 @@ export const levels = [
                 {
                   title: "Environment Variables",
                   content:
-                    'Sensitive config (like database credentials) is stored in .env files — never hardcoded in source code.\nDATABASE_URL="postgresql://user:password@localhost:5432/pos_system"\nPORT=5000\nJWT_SECRET=your-secret\nThe dotenv package reads these files and makes them available as process.env in your code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, environment variables are pre-configured, so no need to set them up.',
+                    'Sensitive configuration such as database credentials is stored in .env files rather than hardcoded in source code.\nDATABASE_URL="postgresql://user:password@localhost:5432/pos_system"\nPORT=5000\nThe dotenv package reads these files and provides the values via process.env in Node.js. .env files are listed in .gitignore because they contain secrets that should not be committed to version control.\n\nNote: Environment variables in this project are pre-configured.',
                   order: 7,
                 },
                 {
                   title: "What is Prisma?",
                   content:
-                    "Prisma is a next-generation ORM (Object-Relational Mapper) for Node.js and TypeScript. Its importance lies in giving developers compile-time type safety and autocomplete when working with databases, preventing the runtime errors common with raw SQL or traditional ORMs.\n\nIt provides three main tools: Prisma Client (type-safe database access), Prisma Migrate (database schema evolution), and Prisma Studio (visual data browser).",
+                    "Prisma is an ORM (Object-Relational Mapper) for Node.js and TypeScript. It provides compile-time type safety and autocomplete when working with databases, helping prevent runtime errors during database access.\n\nPrisma provides three main tools: Prisma Client (type-safe database access), Prisma Migrate (database schema evolution), and Prisma Studio (visual data browser).",
                   order: 8,
                 },
                 {
                   title: "Prisma Migrations",
                   content:
-                    "A migration is a recorded change to your database schema (tables, columns, relationships). It generates and applies SQL migration files from changes made to the Prisma schema. Each migration file records the exact SQL needed to transition between schema versions, enabling version-controlled, reproducible database changes.\n\nMigrations are important because they keep all team members' databases synchronized. Without migrations, each developer would need to manually run SQL scripts against their local database, leading to inconsistencies and errors.",
+                    "A migration is a recorded change to a database schema — tables, columns, and relationships. It generates SQL migration files from changes made to the Prisma schema and applies them to the database. Each migration file records the exact SQL needed to transition between schema versions, enabling version-controlled, reproducible database changes.\n\nMigrations keep all team members' database schemas synchronized. When the schema is updated and a migration is created, every developer applies the same migration to their local database, ensuring consistency across environments.",
                   order: 9,
                 },
                 {
                   title: "Key Takeaway",
                   content:
-                    "Setting up a project isn't just installing packages — it's aligning your local environment (dependencies, env vars, database schema) so the app runs the same way for every developer on the team.",
+                    "Setting up a project involves aligning the local environment — dependencies, environment variables, and database schema — so the application runs consistently for every developer on the team.",
                   order: 10,
                 },
               ],
@@ -171,13 +171,13 @@ export const levels = [
                 {
                   title: "Layout Components",
                   content:
-                    "In most React apps, elements like the header and footer live in layout components — shared wrappers used across multiple pages. This way, you change the header text in one place and it updates everywhere.\n\nA typical layout structure:\ncomponents/\n    └── layout/\n          ├── Navbar.tsx ← top navigation bar\n          ├── Sidebar.tsx ← side menu\n          └── Footer.tsx ← bottom bar",
+                    "In most React apps, elements like the header and footer live in layout components — shared wrappers used across multiple pages. Changing text in the layout updates it across all pages.\n\nA typical layout structure:\ncomponents/\n    └── layout/\n          ├── Navbar.tsx ← top navigation bar\n          ├── Sidebar.tsx ← side menu\n          └── Footer.tsx ← bottom bar",
                   order: 3,
                 },
                 {
                   title: "How to Find What to Change",
                   content:
-                    "When you need to update something you see in the browser, ask:\nWhat element is it? (navbar, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For brand text, you'd look inside the layout component for a hardcoded string.",
+                    "To locate the source of a UI element visible in the browser:\nWhat element is it? (navbar, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For brand text, the hardcoded string is located inside the layout component.",
                   order: 4,
                 },
                 {
@@ -187,9 +187,9 @@ export const levels = [
                   order: 5,
                 },
                 {
-                  title: "Verifying Your Change",
+                  title: "Verifying the Change",
                   content:
-                    "After editing, save the file and check the browser. React's dev server (via Vite) supports Hot Module Replacement (HMR) — meaning the page updates instantly without a full refresh when you save a file.",
+                    "After editing a component file, saving triggers the dev server to update the browser. React's dev server via Vite supports Hot Module Replacement (HMR) — the page updates instantly without a full refresh when a file is saved.",
                   order: 6,
                 },
                 {
@@ -224,7 +224,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "UI changes in React always trace back to a component file. Layout components are the first place to look for global elements like headers and navbars. Find the component, find the text, change it.",
+                    "UI changes in React trace back to a component file. Layout components are the primary location for global elements such as headers and navbars. The source text is found inside the component and modified there.",
                   order: 8,
                 },
               ],

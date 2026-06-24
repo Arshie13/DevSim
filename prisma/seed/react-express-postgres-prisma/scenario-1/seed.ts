@@ -17,11 +17,11 @@ export const levels = [
       order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
-        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in your local machine.",
+        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in a local development environment.",
       xp_reward: 100,
       coin_reward: 50,
       key_takeaways:
-        "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (npm/pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
+        "Setting up a PERN development environment requires understanding package management (pnpm), environment variables for securing database connections, and Prisma migrations to synchronize PostgreSQL schemas. This ensures consistent development across team members and reliable deployments.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
       scenario_id: "pern-lb-scenario-1",
       tasks: {
         create: [
@@ -35,31 +35,31 @@ export const levels = [
                 {
                   title: "Overview\nSetting Up a PERN Stack Project",
                   content:
-                    "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                    "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and foundational concepts relevant to the setup process.",
                   order: 1,
                 },
                 {
                   title: "What is the PERN Stack?",
                   content:
-                    "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nPostgreSQL — the database that stores your data\nExpress — a Node.js framework that handles your server and API routes\nReact — the frontend library that builds your user interface\nNode.js — the JavaScript runtime that runs your server code",
+                    "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web applications.\n\nPostgreSQL — a relational database management system for persistent data storage\nExpress — a Node.js framework for handling server logic and API routing\nReact — a frontend library for building component-based user interfaces\nNode.js — a JavaScript runtime for executing server-side code",
                   order: 2,
                 },
                 {
                   title: "How a PERN App is Structured",
                   content:
-                    "A typical PERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach part has its own package.json, which means you need to install dependencies in all three locations.",
+                    "A PERN project is divided into three directories:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach directory contains its own package.json, meaning dependency installation must be performed in all three locations.",
                   order: 3,
                 },
                 {
                   title: "Package Management 101",
                   content:
-                    "Package management is the process of managing external code dependencies a project relies on. A package manager (like pnpm or npm) handles installing, updating, and removing dependencies, ensuring the right versions are available.\n\nFor example: when you join an existing project, dependencies are not installed yet, so you run pnpm install (or npm install) to download all packages listed in package.json.",
+                    "Package management is the process of managing external code dependencies a project relies on. A package manager (such as pnpm) handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. This must be done for each directory that contains a package.json — root, client, and server.",
                   order: 4,
                 },
                 {
                   title: "Change Directory (cd) Basics",
                   content:
-                    "In development, you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server before running installs or scripts.\n\nCommon commands:\ncd client → move from root to frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running a command, because package management commands affect the folder you are currently in.",
+                    "Terminal commands are executed relative to the current working directory. The cd (change directory) command moves between directories before running installs or scripts.\n\nCommon commands:\ncd client → move from root to the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nThe current directory determines which package.json a package manager reads, so commands must be run from the correct location.",
                   order: 5,
                 },
                 {
@@ -84,25 +84,25 @@ export const levels = [
                 {
                   title: "Environment Variables",
                   content:
-                    'Sensitive config (like database credentials) is stored in .env files — never hardcoded in source code. DATABASE_URL="postgresql://user:password@localhost:5432/mydb"\nPORT=3000\n The dotenv package reads these files and makes them available as process.env.DATABASE_URL in your code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control. \n\n Note:\nIn this project, environment variables setup will be provided by us, so no need to set it up',
+                    'Sensitive configuration such as database credentials is stored in .env files rather than hardcoded in source code. DATABASE_URL="postgresql://user:password@localhost:5432/mydb"\nPORT=3000\nThe dotenv package reads these files and provides the values via process.env in Node.js. .env files are listed in .gitignore because they contain secrets that should not be committed to version control.\n\nNote: Environment variables in this project are pre-configured.',
                   order: 7,
                 },
                 {
                   title: "What is Prisma?",
                   content:
-                    "Prisma is a next-generation ORM (Object-Relational Mapper) for Node.js and TypeScript.  Its importance lies in giving developers compile-time type safety and autocomplete when working with databases, preventing the runtime errors common with raw SQL or traditional ORMs.\n\n It provides three main tools: Prisma Client (type-safe database access), Prisma Migrate (database schema evolution), and Prisma Studio (visual data browser).",
+                    "Prisma is an ORM (Object-Relational Mapper) for Node.js and TypeScript. It provides compile-time type safety and autocomplete when working with databases, helping prevent runtime errors during database access.\n\nPrisma provides three main tools: Prisma Client (type-safe database access), Prisma Migrate (database schema evolution), and Prisma Studio (visual data browser).",
                   order: 8,
                 },
                 {
                   title: "Prisma Migrations",
                   content:
-                    "A migration is a recorded change to your database schema (tables, columns, relationships). It generates and applies SQL migration files from changes made to the Prisma schema. Each migration file records the exact SQL needed to transition between schema versions, enabling version-controlled, reproducible database changes.\n\nMigrations are important because they keep all team members' databases synchronized. Without migrations, each developer would need to manually run SQL scripts against their local database, leading to inconsistencies and errors.",
+                    "A migration is a recorded change to a database schema — tables, columns, and relationships. It generates SQL migration files from changes made to the Prisma schema and applies them to the database. Each migration file records the exact SQL needed to transition between schema versions, enabling version-controlled, reproducible database changes.\n\nMigrations keep all team members' database schemas synchronized. When the schema is updated and a migration is created, every developer applies the same migration to their local database, ensuring consistency across environments.",
                   order: 9,
                 },
                 {
                   title: "Key Takeaway",
                   content:
-                    "Setting up a project isn't just installing packages — it's aligning your local environment (dependencies, env vars, database schema) so the app runs the same way for every developer on the team.",
+                    "Setting up a project involves aligning the local environment — dependencies, environment variables, and database schema — so the application runs consistently for every developer on the team.",
                   order: 10,
                 },
               ],
@@ -176,7 +176,7 @@ export const levels = [
                 {
                   title: "How to Find What to Change",
                   content:
-                    "When you need to update something you see in the browser, ask:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, you'd look inside the layout's header component for a hardcoded string like \"Public Library\" or similar.",
+                    "To locate the source of a UI element visible in the browser:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, the hardcoded string is located inside the layout's header component, such as \"Public Library\" or a similar label.",
                   order: 4,
                 },
                 {
@@ -186,9 +186,9 @@ export const levels = [
                   order: 5,
                 },
                 {
-                  title: "Verifying Your Change",
+                  title: "Verifying the Change",
                   content:
-                    "After editing, save the file and check the browser. React's dev server (via Vite or CRA) supports Hot Module Replacement (HMR) — meaning the page updates instantly without a full refresh when you save a file.",
+                    "After editing a component file, saving triggers the dev server to update the browser. React's dev server via Vite supports Hot Module Replacement (HMR) — the page updates instantly without a full refresh when a file is saved.",
                   order: 6,
                 },
                 {
@@ -223,7 +223,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "UI changes in React always trace back to a component file. Layout components are the first place to look for global elements like headers. Find the component, find the text, change it.",
+                    "UI changes in React trace back to a component file. Layout components are the primary location for global elements such as headers. The source text is found inside the component and modified there.",
                   order: 8,
                 },
               ],
@@ -446,7 +446,7 @@ export const levels = [
                 {
                   title: "The Problem: Duplicated Logic",
                   content:
-                    'When the same decision appears in multiple components with slight differences, bugs creep in:\n // Members.tsx\nconst showBadge = member.yearsActive >= 1;\n // Dashboard.tsx\nconst showBadge = member.activeYears > 0; ← different threshold!\nThese two checks look similar but behave differently at edge cases (e.g., someone with 11 months). If the membership criteria change, you\'d need to hunt down every inline check.',
+                    'When the same decision logic appears in multiple components with slight differences, bugs can appear:\n // Members.tsx\nconst showBadge = member.yearsActive >= 1;\n // Dashboard.tsx\nconst showBadge = member.activeYears > 0; ← different threshold!\nThese two checks look similar but behave differently at edge cases such as someone with 11 months of activity. When membership criteria change, every inline check must be located and updated individually.',
                   order: 3,
                 },
                 {
@@ -458,14 +458,14 @@ export const levels = [
                 {
                   title: "Finding Inline Checks to Replace",
                   content:
-                    "When refactoring, search the codebase for patterns that mirror the logic you're centralizing. In this case, look for:\n - Direct comparisons involving member activity duration\n - Conditions used to show/hide member badges\n - Any boolean derived from years or membership metadata",
+                    "During refactoring, patterns that mirror the centralized logic are searched for in the codebase. These include:\n - Direct comparisons involving the same field\n - Conditions used to show or hide UI elements\n - Any boolean derived from related data",
                   order: 5,
                 },
                 {
                   title:
-                    "Non-Regression: Making Sure You Didn't Break Anything",
+                    "Non-Regression: Confirming Behavior Is Preserved",
                   content:
-                    'After refactoring, verify the feature still works the same way:\nMembers with 1+ active years → badge shown\nMembers with less than 1 year → badge hidden\nThe profile and member list pages both behave consistently\nRefactoring should be invisible to the user — same behavior, better code.',
+                    'After refactoring, the feature should be verified to work the same way:\nMembers with 1+ active years → badge shown\nMembers with less than 1 year → badge hidden\nThe profile and member list pages both behave consistently\nRefactoring should be invisible to the user — same behavior, better code structure.',
                   order: 6,
                 },
                 {
