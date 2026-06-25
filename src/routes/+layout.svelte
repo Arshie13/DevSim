@@ -4,6 +4,7 @@
   import Toast from '$lib/components/ui/Toast.svelte';
   import { page } from '$app/state';
   import SessionExpiredModal from '$lib/components/ui/SessionExpiredModal.svelte';
+  import DisclaimerModal from '$lib/components/landing/DisclaimerModal.svelte';
   import { notifyAchievementUnlocks } from '$lib/stores/achievementToast';
   import { sessionInvalidated } from '$lib/stores/sessionInvalidated';
   import { signOut } from '@auth/sveltekit/client';
@@ -140,6 +141,7 @@
 
 {@render children()}
 <Toast />
+<DisclaimerModal />
 
 {#if showSessionExpired && !isPublicPage()}
   <SessionExpiredModal open={true} on:confirm={handleSessionExpired} />
