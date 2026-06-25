@@ -374,6 +374,8 @@ export class ContainerService {
       portBindings[p] = [{ HostPort: '' }];
     }
 
+    const mongoJwtSecret = crypto.randomBytes(32).toString('hex');
+
     const containerConfig: any = {
       Image: resolved.imageToUse,
       name: `devsim-${stackName}-${userId}-${level}`,
@@ -389,7 +391,11 @@ export class ContainerService {
         `DATABASE_USER=${dbName}`,
         `DATABASE_PASSWORD=${dbPassword}`,
         `DATABASE_URL=postgresql://${dbName}:${dbPassword}@devsim-postgres:5432/${dbName}`,
-        'SKIP_POSTGRES=true'
+        'SKIP_POSTGRES=true',
+        ...isMongo ? [
+          `MONGO_URI=mongodb://localhost:27017/${dbName}`,
+          `JWT_SECRET=${mongoJwtSecret}`,
+        ] : [],
       ],
       HostConfig: {
         Memory: 512 * 1024 * 1024,

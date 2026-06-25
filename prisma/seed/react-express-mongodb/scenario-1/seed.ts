@@ -159,7 +159,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description: "Both client (5173) and server (4000) start via `npm run dev` without crashes",
+                description: "Both client and server start via `npm run dev` without crashes",
                 is_required: true,
                 order: 4,
               },
