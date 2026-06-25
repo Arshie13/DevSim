@@ -17,11 +17,11 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: You've joined WorkPulse Inc. as a full-stack developer working on the manager dashboard of the time-tracking product, built with Next.js, PostgreSQL, and Prisma. Get the dashboard running against your own database, then add two formatting helpers so hour columns and payroll columns display consistently.",
+      "Mission Briefing: A new full-stack developer has joined WorkPulse Inc. to work on the manager dashboard of the time-tracking product, built with Next.js, PostgreSQL, and Prisma. The first tasks are to get the dashboard running against a local database and add two formatting helpers so hour columns and payroll columns display consistently.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "A Next.js + Prisma dashboard boots the same way every Next.js + Prisma project does. Knowing the recipe by heart — install, configure, migrate, seed, run — lets you focus on the real work instead of debugging tooling.\n\nSmall formatters in src/lib/ replace ad-hoc `toFixed` calls scattered across the dashboard. One change to the format spec, one file to edit.",
+      "A Next.js + Prisma dashboard boots the same way every Next.js + Prisma project does. Knowing the recipe by heart — install, configure, migrate, seed, run — means less time debugging tooling and more time on the actual work.\n\nSmall formatters in src/lib/ replace ad-hoc `toFixed` calls scattered across the dashboard. One change to the format spec, one file to edit.",
     scenario_id: "nextjs-postgres-prisma-3",
     tasks: {
       create: [
@@ -35,32 +35,44 @@ export const levels = [
               {
                 title: "Overview\nBooting a Next.js + Prisma Dashboard",
                 content:
-                  "This section walks through getting the WorkPulse dashboard running locally. Install deps, configure DATABASE_URL, run Prisma migrations, seed sample data, then start Next.js. Each step is independent and each step has to pass before the next.",
+                  "This section walks through getting a Next.js dashboard app running against a local PostgreSQL database. The flow is the same on every Next.js + Prisma project: install dependencies, configure environment variables, run migrations, seed sample data, then start the dev server.",
                 order: 1,
+              },
+              {
+                title: "Serverless Architecture Context",
+                content:
+                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/app/actions/ as server actions.",
+                order: 2,
               },
               {
                 title: "What Lives Where",
                 content:
-                  "project/\n    ├── prisma/\n    │     ├── schema.prisma ← Employee, TimeEntry, TimeOffRequest, PayrollPeriod, PayrollRecord\n    │     └── seed.ts ← demo employees + entries + payroll\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages (manager dashboard)\n    │     ├── app/api/ ← API routes (dashboard, time-off-requests)\n    │     └── lib/ ← shared helpers (you'll add files here)\n    └── package.json\nThe manager dashboard lives entirely under src/app/ — there's no separate employee app.",
-                order: 2,
-              },
-              {
-                title: "Environment Variables and DATABASE_URL",
-                content:
-                  'Prisma reads DATABASE_URL from a .env file at the project root:\nDATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"\nFor local Postgres:\nDATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/workpulse"\nNever commit .env. Copy .env.example as a starting point.',
+                  "A typical Next.js + Prisma project is structured like:\nproject/\n    ├── prisma/\n    │     ├── schema.prisma ← Employee, TimeEntry, TimeOffRequest, PayrollPeriod, PayrollRecord\n    │     └── seed.ts ← demo employees + entries + payroll\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages (manager dashboard)\n    │     ├── app/api/ ← API routes (dashboard, time-off-requests)\n    │     └── lib/ ← shared helpers (new helpers are added here)\n    └── package.json ← scripts and dependencies\nKnowing where helpers live is half of being productive on a Next.js codebase.",
                 order: 3,
               },
               {
-                title: "Prisma Migrate, Seed, and Dev",
+                title: "Environment Variables",
                 content:
-                  "Three commands in order:\n  1. `npm run prisma:migrate` — applies SQL migrations and regenerates the Prisma Client.\n  2. `npm run prisma:seed` — inserts the demo employees, time entries, time-off requests, and a closed payroll period with records.\n  3. `npm run dev` — boots Next.js on http://localhost:3000.\nIf the seed step fails, run `prisma migrate reset` to reset the DB and try again.",
+                  'Prisma reads DATABASE_URL from a .env file at the project root. The format is:\nDATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"\nFor local Postgres on the default port it usually looks like:\nDATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/workpulse"\nThe .env file should never be committed. The repo\'s .gitignore already excludes it; .env.example is provided as a starting point.\n\nNote: Environment variables in this project are pre-configured.',
                 order: 4,
+              },
+              {
+                title: "Prisma Migrate & Generate",
+                content:
+                  "pnpm prisma:migrate (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to the database.\n  2. Regenerates the Prisma Client (the typed API imported as `prisma`) so it matches the schema.\nWhen schema.prisma is changed, this command should be re-run — migrations keep every developer's DB in lockstep.",
+                order: 5,
+              },
+              {
+                title: "Seeding and Running the Dev Server",
+                content:
+                  "pnpm prisma:seed runs prisma/seed.ts, which clears the relevant tables and inserts demo employees, time entries, time-off requests, and a closed payroll period with records. Then pnpm dev boots the Next.js dev server on http://localhost:3000 with hot module replacement — saving a file triggers an instant page update without a full refresh.",
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Set up once, set up right. Every developer running the dashboard locally should see the same dashboard, with the same employees, on the same payroll period.",
-                order: 5,
+                  "Setting up a Next.js + Prisma project isn't about memorizing commands — it's about aligning the local environment (deps, .env, migrated schema, seeded data) so the app behaves identically for every developer on the team.",
+                order: 7,
               },
             ],
           },
@@ -68,12 +80,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "If `prisma migrate dev` fails on a fresh database, your Postgres user may not have CREATE privileges — fix the user or pre-create the database.",
+                  "If `prisma migrate dev` fails on a fresh database, the Postgres user may not have CREATE privileges — fix the user or pre-create the database.",
                 order: 1,
               },
               {
                 description:
-                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — make sure all three pass locally.",
+                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — all three should pass locally.",
                 order: 2,
               },
             ],
@@ -83,7 +95,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Dependencies installed cleanly via `npm install`",
+                  "Dependencies installed cleanly via `pnpm install`",
                 is_required: true,
                 order: 1,
               },
@@ -101,7 +113,7 @@ export const levels = [
               },
               {
                 description:
-                  "`npm run dev` boots the dashboard on http://localhost:3000",
+                  "`pnpm dev` boots the dashboard on http://localhost:3000",
                 is_required: true,
                 order: 4,
               },
@@ -130,7 +142,7 @@ export const levels = [
               {
                 title: "The formatCurrency Contract",
                 content:
-                  "export function formatCurrency(amount: number): string\n\nPrefix `$`, exactly two decimals, comma thousands separators.\n  • `1234` → `\"$1,234.00\"`\n  • `0.5` → `\"$0.50\"`\n  • `1000000` → `\"$1,000,000.00\"`\n`Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })` gives you the formatting; prepend `$` yourself or use `style: 'currency', currency: 'USD'`.",
+                  "export function formatCurrency(amount: number): string\n\nPrefix `$`, exactly two decimals, comma thousands separators.\n  • `1234` → `\"$1,234.00\"`\n  • `0.5` → `\"$0.50\"`\n  • `1000000` → `\"$1,000,000.00\"`\n`Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })` provides thousands separators and 2-decimal padding for free; prepend `$` or use `style: 'currency', currency: 'USD'`.",
                 order: 3,
               },
               {
@@ -167,7 +179,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Formatters are the cheapest helper to write and the cheapest helper to forget. Put them in src/lib/ on day one so day-three you doesn't sprinkle `.toFixed(1)` across twelve components.",
+                  "Formatters are the cheapest helper to write and the cheapest helper to forget. Put them in src/lib/ on day one to avoid `.toFixed(1)` scattered across twelve components later.",
                 order: 6,
               },
             ],
@@ -181,7 +193,7 @@ export const levels = [
               },
               {
                 description:
-                  "For formatCurrency, `Intl.NumberFormat` with `style: 'currency', currency: 'USD'` gives you the `$` and the comma separators in one call.",
+                  "For formatCurrency, `Intl.NumberFormat` with `style: 'currency', currency: 'USD'` provides the `$` and the comma separators in one call.",
                 order: 2,
               },
               {
@@ -232,7 +244,7 @@ export const levels = [
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The attendance table re-checks clock-in/out fields in every row, and the 'hours this week' total is computed on the client. Move both behind server actions backed by Prisma so the dashboard agrees with the database. The graders mock `@/lib/prisma`, so you write real Prisma queries — no DB calls execute during the test.",
+      "Mission Briefing: The attendance table re-checks clock-in/out fields in every row, and the 'hours this week' total is computed on the client. Both must be moved behind server actions backed by Prisma so the dashboard agrees with the database. The graders mock `@/lib/prisma`, so real Prisma queries are written — no DB calls execute during the test.",
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
@@ -262,13 +274,13 @@ export const levels = [
               {
                 title: "Why findFirst",
                 content:
-                  "`findFirst` returns the first matching row (or null) without throwing. In real usage you'd add an `orderBy: { clock_in: 'desc' }` to get the latest entry, but the grader's mock returns whichever row it wants — your job is to handle `null` and the two `clock_out` branches.",
+                  "`findFirst` returns the first matching row (or null) without throwing. In real usage an `orderBy: { clock_in: 'desc' }` would be added to get the latest entry, but the grader's mock returns whichever row it wants — the task is to handle `null` and the two `clock_out` branches.",
                 order: 3,
               },
               {
                 title: "Null-First Narrowing",
                 content:
-                  "Check `entry == null` first so the rest of the function can treat `entry` as non-null. TypeScript's narrowing then lets you read `entry.clock_out` without optionals, and the code reads as a flat three-way split.",
+                  "Check `entry == null` first so the rest of the function can treat `entry` as non-null. TypeScript's narrowing then allows `entry.clock_out` to be read without optionals, and the code reads as a flat three-way split.",
                 order: 4,
               },
               {
@@ -679,7 +691,7 @@ export const levels = [
     xp_reward: 300,
     coin_reward: 400,
     key_takeaways:
-      "Mixed reporting levels split the work cleanly: presentational components total what's already on the page, server actions join Prisma models and aggregate. The component never queries; the action never renders.\n\nGrouping by a derived key (department from first name) is just a function that runs as you fold rows into a `Map`. Defining the name→department mapping inside the action keeps the source of truth next to the consumer.",
+      "Mixed reporting levels split the work cleanly: presentational components total what's already on the page, server actions join Prisma models and aggregate. The component never queries; the action never renders.\n\nGrouping by a derived key (department from first name) is a function that runs as rows are folded into a `Map`. Defining the name→department mapping inside the action keeps the source of truth next to the consumer.",
     scenario_id: "nextjs-postgres-prisma-3",
     tasks: {
       create: [
@@ -745,7 +757,7 @@ export const levels = [
               },
               {
                 description:
-                  "`headcount` is distinct employees — a `Set` is your friend.",
+                  "`headcount` is distinct employees — a `Set` handles this cleanly.",
                 order: 2,
               },
               {
