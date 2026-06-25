@@ -213,7 +213,7 @@ export class ContainerService {
         'devsim.workspace': workspaceId
       },
       HostConfig: {
-        Memory: 512 * 1024 * 1024,
+        Memory: 1024 * 1024 * 1024,
         NetworkMode: `container:${workspaceId}`,
         AutoRemove: false
       }
