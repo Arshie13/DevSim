@@ -246,6 +246,56 @@ export class ContainerService {
     }
   }
 
+  private generateDbName(userId: string, stackName: string, level: number): string {
+    const safeStack = stackName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const safeUser = userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
+    return `devsim_${safeStack}_${level}_${safeUser}`;
+  }
+
+  private static readonly SHARED_NETWORK = 'devsim-network';
+  private static readonly SHARED_POSTGRES = 'devsim-postgres';
+
+  private async ensureDevsimNetwork() {
+    try {
+      await docker.getNetwork(ContainerService.SHARED_NETWORK).inspect();
+    } catch {
+      await docker.createNetwork({ Name: ContainerService.SHARED_NETWORK });
+    }
+  }
+
+  private async ensureSharedPostgresDatabase(dbName: string) {
+    const container = docker.getContainer(ContainerService.SHARED_POSTGRES);
+
+    const exec = await container.exec({
+      Cmd: [
+        'psql',
+        '-U', 'devsim',
+        '-d', 'devsim',
+        '-c', `CREATE DATABASE "${dbName}" OWNER "devsim";`
+      ],
+      AttachStdout: true,
+      AttachStderr: true,
+    });
+
+    const stream = await exec.start({});
+    let errOutput = '';
+
+    await new Promise<void>((resolve) => {
+      container.modem.demuxStream(
+        stream,
+        { write: () => {} } as any,
+        { write: (chunk: Buffer) => { errOutput += chunk.toString(); } }
+      );
+      stream.on('end', resolve);
+    });
+
+    const inspect = await exec.inspect();
+    if (inspect.ExitCode !== 0) {
+      if (errOutput.toLowerCase().includes('already exists')) return;
+      throw new Error(`Shared Postgres: ${errOutput.trim()}`);
+    }
+  }
+
   /**
    * Create a fresh workspace container with all necessary configuration.
    */
@@ -256,6 +306,10 @@ export class ContainerService {
 
     // Mongo-based stacks get a MongoDB sidecar started after the workspace below.
     const isMongo = this.isMongoStack(stackName);
+
+    const dbName = this.generateDbName(userId, stackName, level);
+    await this.ensureDevsimNetwork();
+    await this.ensureSharedPostgresDatabase(dbName);
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
 
@@ -287,19 +341,19 @@ export class ContainerService {
       WorkingDir: '/workspace',
       ExposedPorts: exposedPorts,
       Env: [
-        'POSTGRES_USER=devsim',
-        'POSTGRES_PASSWORD=devsim',
-        'POSTGRES_DB=devsim',
-        'DATABASE_HOST=localhost',
+        `DATABASE_NAME=${dbName}`,
+        'DATABASE_HOST=devsim-postgres',
         'DATABASE_PORT=5432',
         'DATABASE_USER=devsim',
         'DATABASE_PASSWORD=devsim',
-        'DATABASE_URL=postgresql://devsim:devsim@localhost:5432/devsim'
+        `DATABASE_URL=postgresql://devsim:devsim@devsim-postgres:5432/${dbName}`,
+        'SKIP_POSTGRES=true'
       ],
       HostConfig: {
         Memory: 512 * 1024 * 1024,
         AutoRemove: false,
-        PortBindings: portBindings
+        PortBindings: portBindings,
+        NetworkMode: ContainerService.SHARED_NETWORK
       },
       Labels: {
         'devsim.userId': userId,
