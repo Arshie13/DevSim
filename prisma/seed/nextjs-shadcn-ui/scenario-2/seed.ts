@@ -26,7 +26,7 @@ export const levels = [
       create: [
         {
           task_name: "Environment Setup",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want to install dependencies and configure environment variables so that the support portal runs locally with the correct contact details.",
           learning_sections: {
@@ -117,7 +117,7 @@ export const levels = [
         },
         {
           task_name: "UI Text Updates",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want consistent button labels and a configurable app heading so that the portal feels polished and identifiable.",
           learning_sections: {
@@ -211,7 +211,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix Conversation Status Badge Colors",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As an agent, I want status badges to use distinct, accessible colors so that I can scan the conversations list quickly.",
           learning_sections: {
@@ -326,7 +326,7 @@ export const levels = [
         },
         {
           task_name: "Refactor & Extract MessageBubble",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want a single reusable MessageBubble component and a single useMemo for conversation counts so that the codebase is consistent and maintainable.",
           learning_sections: {
@@ -449,7 +449,7 @@ export const levels = [
       create: [
         {
           task_name: "Conversation Search & Status Filter",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As an agent, I want to search conversations by name or complaint and filter by status so that I can locate the right thread quickly.",
           learning_sections: {
@@ -571,7 +571,7 @@ export const levels = [
         },
         {
           task_name: "Citizen Complaint History Page",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a citizen, I want to see complaints I previously submitted so that I can track their status.",
           learning_sections: {
@@ -674,7 +674,7 @@ export const levels = [
       create: [
         {
           task_name: "Form & Message Validation",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want the support form to reject invalid input with clear inline errors so that I know exactly what to fix.",
           learning_sections: {
@@ -798,7 +798,7 @@ export const levels = [
         },
         {
           task_name: "localStorage Persistence",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want conversations, agent status, and chat messages to survive a page reload so that I don't lose context.",
           learning_sections: {
@@ -937,7 +937,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix Unread Count Bug",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As an agent, I want the unread badge to clear when I click a conversation and the header counts to stay accurate so that the dashboard reflects reality.",
           learning_sections: {
@@ -1013,7 +1013,7 @@ export const levels = [
         },
         {
           task_name: "Date Utilities & Documentation",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want reusable date utilities and a current README so that future contributors can onboard quickly.",
           learning_sections: {

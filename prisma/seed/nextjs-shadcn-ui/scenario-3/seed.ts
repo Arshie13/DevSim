@@ -26,7 +26,7 @@ export const levels = [
       create: [
         {
           task_name: "Environment Setup",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want to install dependencies and configure environment variables so that the student portal runs locally with the correct school identity.",
           learning_sections: {
@@ -117,7 +117,7 @@ export const levels = [
         },
         {
           task_name: "UI Text Updates",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want consistent login copy and an environment-driven academic year so that the portal feels polished and accurate.",
           learning_sections: {
@@ -211,7 +211,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix Grade Badge Colors",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want grade badges to use distinct, accessible colors so that I can quickly identify how I'm doing in each course.",
           learning_sections: {
@@ -336,7 +336,7 @@ export const levels = [
         },
         {
           task_name: "Refactor & Extract StatCard",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want a single reusable StatCard component and a single useMemo for fee totals so that the codebase stays consistent and maintainable.",
           learning_sections: {
@@ -459,7 +459,7 @@ export const levels = [
       create: [
         {
           task_name: "Grade Search & Semester Filter",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want to search my grades by course code or name and filter by semester so that I can locate an old grade quickly.",
           learning_sections: {
@@ -581,7 +581,7 @@ export const levels = [
         },
         {
           task_name: "Student Notes Page",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want to write and revisit personal study notes per course so that I can track ideas without leaving the portal.",
           learning_sections: {
@@ -690,7 +690,7 @@ export const levels = [
       create: [
         {
           task_name: "Login Form Validation",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want the login form to reject invalid input with clear inline errors so that I know exactly what to fix before submitting.",
           learning_sections: {
@@ -815,7 +815,7 @@ export const levels = [
         },
         {
           task_name: "localStorage Persistence",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want the sidebar state, my notes, and my last successful student ID to survive a page reload so that I don't have to reconfigure the portal every visit.",
           learning_sections: {
@@ -958,7 +958,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix GPA + Standing Sync Bug",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want the cumulative GPA on the dashboard, grades page, and standing page to always match so that I can trust what the portal tells me.",
           learning_sections: {
@@ -1043,7 +1043,7 @@ export const levels = [
         },
         {
           task_name: "Date Utilities & Documentation",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want reusable date utilities and a current README so that future contributors can onboard quickly and fee due dates render in human-friendly form.",
           learning_sections: {

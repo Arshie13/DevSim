@@ -26,7 +26,7 @@ export const levels = [
       create: [
         {
           task_name: "Environment Setup",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want to set up the development environment so that I can start working on the project.",
           learning_sections: {
@@ -123,7 +123,7 @@ export const levels = [
         },
         {
           task_name: "Update UI Text",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want to see the correct library name and page titles so that I know which system I'm using.",
           learning_sections: {
@@ -258,7 +258,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix Status Badge Colors",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want to see distinct colors for different book statuses so that I can quickly identify book availability.",
           learning_sections: {
@@ -368,7 +368,7 @@ export const levels = [
         },
         {
           task_name: "Refactor Book Filtering",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want to use useMemo for book filtering so that the application performs better and the code is more maintainable.",
           learning_sections: {
@@ -502,7 +502,7 @@ export const levels = [
       create: [
         {
           task_name: "Add Search & Borrow Features",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want to search for books and borrow available books so that I can find and reserve books easily.",
           learning_sections: {
@@ -618,7 +618,7 @@ export const levels = [
         },
         {
           task_name: "Create Returns Page",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a librarian, I want to process book returns so that I can update the system when books are returned.",
           learning_sections: {
@@ -713,7 +713,7 @@ export const levels = [
       create: [
         {
           task_name: "Add Validation & Date Handling",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want proper validation and date handling so that the system prevents invalid operations.",
           learning_sections: {
@@ -818,7 +818,7 @@ export const levels = [
         },
         {
           task_name: "Add Confirmation & Persistence",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want confirmation dialogs and data persistence so that I don't lose data accidentally.",
           learning_sections: {
@@ -907,7 +907,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix Overdue Bug & Build Report",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a client, I want overdue statuses to be accurate so that library operations run smoothly.",
           learning_sections: {
@@ -978,7 +978,7 @@ export const levels = [
         },
         {
           task_name: "Create Utilities & Documentation",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want reusable date utilities and documentation so that the codebase is maintainable.",
           learning_sections: {
