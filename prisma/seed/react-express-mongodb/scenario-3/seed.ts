@@ -4,9 +4,9 @@
  * Seeds the database with Level and Scenario data for the TripWeaver learning scenario.
  *
  * Usage:
- *   npx tsx prisma/seed.ts
+ *   pnpm exec tsx prisma/seed.ts
  *
- * Make sure to run `npx prisma generate` first to generate the client.
+ * Make sure to run `pnpm exec prisma generate` first to generate the client.
  *
  * Task type values:
  *   "client" — only a client-side test exists
@@ -36,7 +36,7 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: WanderMint Studios just onboarded you as a developer on TripWeaver. Your first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms you understand how the codebase is organized.",
+      "Mission Briefing: WanderMint Studios just onboarded a new developer on TripWeaver. The first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms understanding of how the codebase is organized.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
@@ -55,42 +55,42 @@ export const levels = [
               {
                 title: "Overview\nSetting Up a MERN Stack Project",
                 content:
-                  "This section introduces the crash course for preparing a MERN stack development environment. It gives a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                  "This section introduces the crash course for preparing a MERN stack development environment. It gives a high-level view of the setup flow, required tools, and key concepts needed before starting the hands-on tasks.",
                 order: 1,
               },
               {
                 title: "What is the MERN Stack?",
                 content:
-                  "MERN stands for MongoDB, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nMongoDB — a NoSQL document database that stores your data as JSON-like objects\nExpress — a Node.js framework that handles your server and API routes\nReact — the frontend library that builds your user interface\nNode.js — the JavaScript runtime that runs your server code\n\nTripWeaver uses all four layers: MongoDB stores trips, stops, and expenses, Express serves the REST API, React renders the trip feed and itinerary forms, and Node.js ties the backend together.",
+                  "MERN stands for MongoDB, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nMongoDB — a NoSQL document database that stores data as JSON-like objects\nExpress — a Node.js framework that handles server and API routes\nReact — the frontend library that builds the user interface\nNode.js — the JavaScript runtime that runs server code\n\nTripWeaver uses all four layers: MongoDB stores trips, stops, and expenses, Express serves the REST API, React renders the trip feed and itinerary forms, and Node.js ties the backend together.",
                 order: 2,
               },
               {
                 title: "How a MERN App is Structured",
                 content:
-                  "A typical MERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend (Vite + Tailwind)\n    └── server/ ← Express backend (Mongoose + MongoDB)\n\nEach part has its own package.json, which means you need to install dependencies in all three locations. The root also has convenience scripts that start both servers at once.",
+                  "A typical MERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend (Vite + Tailwind)\n    └── server/ ← Express backend (Mongoose + MongoDB)\n\nEach part has its own package.json, so dependencies must be installed in all three locations. The root also has convenience scripts that start both servers at once.",
                 order: 3,
               },
               {
                 title: "Package Management 101",
                 content:
-                  "When you clone a project, no dependencies are installed yet — node_modules is in .gitignore. You must run npm install in each folder that has a package.json.\n\nWhy separate installs?\nEach folder is its own isolated module. The client uses React and Vite; the server uses Express and Mongoose. Mixing them would create version conflicts and bloated bundles.",
+                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed in each folder that has a package.json using pnpm install.\n\nWhy separate installs?\nEach folder is its own isolated module. The client uses React and Vite; the server uses Express and Mongoose. Mixing them would create version conflicts and bloated bundles.",
                 order: 4,
               },
               {
                 title: "Change Directory (cd) Basics",
                 content:
-                  "In development you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running npm install or npm run commands — they only affect the folder you are currently in.",
+                  "In development, commands must be run in the correct folder. Use cd (change directory) to move between root, client, and server.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check the current directory before running pnpm install or pnpm run commands — they only affect the folder currently active.",
                 order: 5,
               },
               {
                 title: "Practice Lab: cd Navigation",
                 content:
-                  "Practice navigating folders with cd. Use `ls` to list files/folders in your current directory and `pwd` to print your current path when you want to verify where you are.",
+                  "Practice navigating folders with cd. Use `ls` to list files/folders in the current directory and `pwd` to print the current path when verification of the location is needed.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "TERMINAL_CD" as const,
                 interactive_config: {
                   instructions:
-                    "Goal: navigate to /workspace/client, then to /workspace/server, then back to /workspace. Tip: `ls` lists current directory contents and `pwd` prints your current path.",
+                    "Goal: navigate to /workspace/client, then to /workspace/server, then back to /workspace. Tip: `ls` lists current directory contents and `pwd` prints the current path.",
                   initial_directory: "/workspace",
                   expected_commands: ["cd client", "cd ../server", "cd .."],
                   directory_tree: {
@@ -104,25 +104,25 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/tripweaver\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in your code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/tripweaver\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
                 order: 7,
               },
               {
                 title: "What is MongoDB & Mongoose?",
                 content:
-                  "MongoDB is a document database — instead of rows and tables, it stores JSON-like documents in collections. Mongoose is an ODM (Object Document Mapper) that wraps the MongoDB Node.js driver with a schema layer:\n\n// Raw MongoDB driver\ndb.collection('trips').insertOne({ title: 'Tokyo Cherry Blossoms', ... });\n\n// With Mongoose\nawait Trip.create({ title: 'Tokyo Cherry Blossoms', ... });\n\nMongoose schemas define the shape of your documents, enforce types, and provide helper methods. The seed script uses Mongoose to insert realistic sample data.",
+                  "MongoDB is a document database — it stores JSON-like documents in collections. Mongoose is an ODM (Object Document Mapper) that wraps the MongoDB Node.js driver with a schema layer that defines the shape of documents, enforces types, and provides helper methods. The seed script uses Mongoose to insert realistic sample data.",
                 order: 8,
               },
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so you can develop against a real dataset instead of an empty one. The TripWeaver seed creates 8 users, 4 trips, ~20 stops, ~12 expenses, and ~10 votes.\n\nRun the seed with:\nnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The TripWeaver seed creates 8 users, 4 trips, ~20 stops, ~12 expenses, and ~10 votes.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
                 order: 9,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a project is more than running one command — it means aligning your local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Get this right first, then build features.",
+                  "Setting up a project is more than running one command — it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first, then build features.",
                 order: 10,
               },
             ],
@@ -141,7 +141,7 @@ export const levels = [
               },
               {
                 description:
-                  "MongoDB must be running before the seed script can insert data. Check the README for how to start MongoDB on your platform (local install or Docker).",
+                  "MongoDB must be running before the seed script can insert data. Check the README for how to start MongoDB on the current platform (local install or Docker).",
                 order: 3,
               },
             ],
@@ -189,43 +189,43 @@ export const levels = [
               {
                 title: "Overview\nEditing a React Layout Component",
                 content:
-                  "This section introduces the crash course for making your first UI change in a React codebase. It covers how React components work, how layout components are shared across pages, and how to find the right file to edit.",
+                  "This section introduces the crash course for making the first UI change in a React codebase. It covers how React components work, how layout components are shared across pages, and how to find the right file to edit.",
                 order: 1,
               },
               {
                 title: "What is a React Component?",
                 content:
-                  "A React component is a JavaScript function that returns JSX — a syntax that looks like HTML but is compiled to JavaScript. Components can be small (a button) or large (an entire page).\n\nfunction Greeting() {\n  return <h1>Hello, traveler!</h1>;\n}\n\nEvery piece of UI in TripWeaver is a component. Components are composable — you build complex UIs by nesting smaller components inside larger ones.",
+                  "A React component is a JavaScript function that returns JSX — a syntax that looks like HTML but is compiled to JavaScript. Components can be small (a button) or large (an entire page). Every piece of UI in TripWeaver is a component. Components are composable — complex UIs are built by nesting smaller components inside larger ones.",
                 order: 2,
               },
               {
                 title: "Layout Components",
                 content:
-                  "A layout component wraps every page in a consistent shell — header, footer, and the page content in between.\n\nfunction Layout({ children }) {\n  return (\n    <div>\n      <Header />\n      <main>{children}</main>\n      <Footer />\n    </div>\n  );\n}\n\nBecause Header is rendered once in Layout (and Layout wraps every page), any change to Header immediately affects the entire app.",
+                  "A layout component wraps every page in a consistent shell — header, footer, and the page content in between. Because Header is rendered once in Layout (and Layout wraps every page), any change to Header immediately affects the entire app.",
                 order: 3,
               },
               {
                 title: "How to Find What to Change",
                 content:
-                  "When you need to change visible text, work backwards from what you see:\n1. Look at the UI — which element contains the text?\n2. Open the browser DevTools and inspect the element to find a class name or data attribute.\n3. Search the codebase for that string: grep -r 'Your Tagline Here' client/src/\n4. Open the file, find the line, and change it.\n\nFor TripWeaver, the tagline lives in client/src/components/layout/Header.tsx.",
+                  "When visible text needs changing, work backwards from what is displayed:\n1. Look at the UI — which element contains the text?\n2. Open the browser DevTools and inspect the element to find a class name or data attribute.\n3. Search the codebase for that string.\n4. Open the file, find the line, and change it.",
                 order: 4,
               },
               {
                 title: "JSX Text Content",
                 content:
-                  "In JSX, text content is written directly between tags:\n\n<span>Plan Together. Travel Smarter.</span>\n\nUnlike HTML, JSX is case-sensitive and requires all tags to be closed. Changing the text between the tags is the simplest possible React edit — no state, no props, no hooks needed.",
+                  "In JSX, text content is written directly between tags. Unlike HTML, JSX is case-sensitive and requires all tags to be closed. Changing the text between the tags is the simplest possible React edit — no state, no props, no hooks needed.",
                 order: 5,
               },
               {
                 title: "Hot Module Replacement (HMR)",
                 content:
-                  "Vite (the build tool for TripWeaver's client) supports Hot Module Replacement — when you save a file, the browser instantly reflects the change without a full page reload. This makes UI iterations very fast.\n\nAfter saving Header.tsx with the updated tagline, switch to your browser tab — you should see the new text appear immediately without pressing refresh.",
+                  "Vite (the build tool for TripWeaver's client) supports Hot Module Replacement — when a file is saved, the browser instantly reflects the change without a full page reload. This makes UI iterations very fast.",
                 order: 6,
               },
               {
                 title: "Practice Lab: Return the Correct Heading Text",
                 content:
-                  "Practice returning the correct string value from a function — the same logic you will apply when updating the JSX text in Header.tsx.",
+                  "Practice returning the correct string value from a function.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
@@ -254,7 +254,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  'Layout components are the single source of truth for shared UI elements. A one-line text change in Header.tsx propagates to every page instantly. Always trace UI elements back to their source component before editing — never guess the file.',
+                  "Layout components are the single source of truth for shared UI elements. A one-line text change in a Header component propagates to every page instantly. Always trace UI elements back to their source component before editing.",
                 order: 8,
               },
             ],
@@ -309,7 +309,7 @@ export const levels = [
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The TripWeaver itinerary page is barely functional — stops are not displaying and there is no way to filter by day. Your job is to build the StopCard presentational component from a stub and then wire up the DayFilter so travelers can focus on a single day of their trip.",
+      "Mission Briefing: The TripWeaver itinerary page is barely functional — stops are not displaying and there is no way to filter by day. The tasks are to build the StopCard presentational component from a stub and then wire up the DayFilter so travelers can focus on a single day of their trip.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
@@ -334,31 +334,31 @@ export const levels = [
               {
                 title: "What is a Presentational Component?",
                 content:
-                  "A presentational component is a React component that:\n- Receives all its data through props\n- Has no internal state (or only local UI state like hover)\n- Does not fetch data or call APIs directly\n- Returns JSX that visualizes the props\n\nStopCard is a perfect presentational component: it receives a Stop object as a prop and renders its fields. It does not know where the data came from.",
+                  "A presentational component is a React component that receives all its data through props, has no internal state (or only local UI state like hover), does not fetch data or call APIs directly, and returns JSX that visualizes the props. StopCard is a perfect example: it receives a Stop object as a prop and renders its fields.",
                 order: 2,
               },
               {
                 title: "Typed Props with TypeScript",
                 content:
-                  "Define a props interface before writing the component:\n\ninterface StopCardProps {\n  stop: Stop;          // the data to display\n  onVote?: () => void; // optional callback for the vote button\n}\n\nexport function StopCard({ stop, onVote }: StopCardProps) {\n  return <div>...</div>;\n}\n\nTypeScript will warn you if you try to access a field that doesn't exist on Stop, or if you forget to pass a required prop. This catches bugs at compile time, not at runtime.",
+                  "Define a props interface before writing the component. TypeScript warns if a field that does not exist on the type is accessed, or if a required prop is missing. This catches bugs at compile time, not at runtime.",
                 order: 3,
               },
               {
                 title: "Reusing UI Primitives",
                 content:
-                  "TripWeaver ships a ui/ folder with ready-made components:\n\nimport { Card } from '../ui/Card';\nimport { Badge } from '../ui/Badge';\nimport { Button } from '../ui/Button';\n\nUse Card as the container, Badge for the category label, and Button for the Vote action. This keeps the visual language consistent across the app — you do not need to write custom CSS for borders, shadows, or button styles.",
+                  "TripWeaver ships a ui/ folder with ready-made components like Card, Badge, and Button. Using these keeps the visual language consistent across the app — no need to write custom CSS for borders, shadows, or button styles.",
                 order: 4,
               },
               {
                 title: "data-testid Attributes",
                 content:
-                  "Tests use data-testid attributes to find elements without relying on implementation details like class names:\n\n<span data-testid=\"vote-count\">{stop.voteCount}</span>\n<span data-testid=\"category-badge\">{stop.category}</span>\n<span data-testid=\"day-label\">{formatDate(stop.dayDate)}</span>\n\nIf you rename a CSS class, tests still pass because they look for testids, not classes. Always add these attributes exactly as specified — the tests check for them by name.",
+                  "Tests use data-testid attributes to find elements without relying on implementation details like class names. If a CSS class is renamed, tests still pass because they look for testids, not classes. Always add these attributes exactly as specified.",
                 order: 5,
               },
               {
                 title: "Conditional Rendering",
                 content:
-                  "Some fields are optional (like stop.notes). Use the && operator to conditionally render them:\n\n{stop.notes && (\n  <p className=\"text-sm text-gray-600\">{stop.notes}</p>\n)}\n\nWhen stop.notes is an empty string or undefined, React renders nothing. When it has a value, it renders the paragraph. This prevents empty elements from cluttering the DOM.",
+                  "Some fields are optional. The && operator conditionally renders elements: when a field is empty or undefined, React renders nothing. When it has a value, it renders the element. This prevents empty elements from cluttering the DOM.",
                 order: 6,
               },
               {
@@ -476,31 +476,31 @@ export const levels = [
               {
                 title: "Lifting State Up",
                 content:
-                  "When two sibling components need to share the same value, move that value up to their nearest common ancestor:\n\n// TripDetail.tsx (parent)\nconst [activeDay, setActiveDay] = useState<string>('all');\n\nreturn (\n  <>\n    <DayFilter activeDay={activeDay} onDayChange={setActiveDay} />\n    <ItineraryFeed stops={filteredStops} />\n  </>\n);\n\nDayFilter reads activeDay to highlight the selected chip. ItineraryFeed reads filteredStops (derived from activeDay). Neither component manages the state — they just receive and display it.",
+                  "When two sibling components need to share the same value, move that value up to their nearest common ancestor. DayFilter reads activeDay to highlight the selected chip. ItineraryFeed reads filteredStops (derived from activeDay). Neither component manages the state — they just receive and display it.",
                 order: 2,
               },
               {
-                title: "Controlled vs Uncontrolled Components",
+                title: "Controlled Components",
                 content:
-                  "A controlled component has its state managed by a parent via props:\n\n// Controlled — parent owns the state\n<DayFilter activeDay={activeDay} onDayChange={setActiveDay} />\n\nAn uncontrolled component manages its own state internally. For a filter chip group, controlled is correct — the parent needs to know the active day to compute the filtered list.",
+                  "A controlled component has its state managed by a parent via props. For a filter chip group, controlled is correct — the parent needs to know the active day to compute the filtered list.",
                 order: 3,
               },
               {
                 title: "Pure Filter Functions",
                 content:
-                  "A pure function always returns the same output for the same input and has no side effects. filterByDay is a pure filter:\n\nfunction filterByDay(stops: Stop[], dayKey: string): Stop[] {\n  if (dayKey === 'all') return stops;\n  return stops.filter(s => toDateKey(s.dayDate) === dayKey);\n}\n\nBecause it is pure, it is trivial to unit-test: pass in an array, assert the output. No mocking required.",
+                  "A pure function always returns the same output for the same input and has no side effects. Because it is pure, it is trivial to unit-test: pass in an array, assert the output. No mocking required.",
                 order: 4,
               },
               {
                 title: "useMemo for Derived State",
                 content:
-                  "Instead of storing filteredStops in state, derive it from existing state with useMemo:\n\nconst filteredStops = useMemo(\n  () => filterByDay(stops, activeDay),\n  [stops, activeDay]\n);\n\nThis is more reliable than keeping a separate filtered array in state — it stays in sync automatically whenever stops or activeDay changes. Only recomputes when the dependencies change.",
+                  "Instead of storing filteredStops in state, derive it from existing state with useMemo. This is more reliable than keeping a separate filtered array in state — it stays in sync automatically whenever the source data or filter changes. Only recomputes when the dependencies change.",
                 order: 5,
               },
               {
                 title: "Chip Group Pattern",
                 content:
-                  'A chip group is a row of pill-shaped buttons where one is active at a time:\n\n<button\n  onClick={() => onDayChange(day)}\n  className={activeDay === day ? "bg-blue-500 text-white" : "bg-gray-100"}\n>\n  {day}\n</button>\n\nGenerate the day chips dynamically from the trip\'s startDate and endDate so they always match the trip duration. The "All" chip always comes first and resets the filter.',
+                  "A chip group is a row of pill-shaped buttons where one is active at a time. Generate the day chips dynamically from the trip's startDate and endDate so they always match the trip duration. The 'All' chip always comes first and resets the filter.",
                 order: 6,
               },
               {
@@ -570,7 +570,7 @@ export const levels = [
               },
               {
                 description:
-                  "`TripDetail.tsx` already holds `activeDay` state and passes it down. Your job is to fix `DayFilter.tsx` — the chip buttons currently have an empty `onClick`. Wire them to call `onDayChange(day)` when clicked.",
+                  "`TripDetail.tsx` already holds `activeDay` state and passes it down. Fix `DayFilter.tsx` — the chip buttons currently have an empty `onClick`. Wire them to call `onDayChange(day)` when clicked.",
                 order: 2,
               },
               {
@@ -626,7 +626,7 @@ export const levels = [
     order: 3,
     deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The product team wants a Trip Stats endpoint that returns the top-voted stops and total spend for a trip. The aggregation pipeline was written in a hurry — it has four bugs that produce wrong or empty results. After fixing the pipeline, you will also harden the endpoint with query validation, a consistent response envelope, and proper error handling.",
+      "Mission Briefing: The product team wants a Trip Stats endpoint that returns the top-voted stops and total spend for a trip. The aggregation pipeline was written in a hurry — it has four bugs that produce wrong or empty results. After fixing the pipeline, hardening the endpoint with query validation, a consistent response envelope, and proper error handling is also needed.",
     xp_reward: 200,
     coin_reward: 100,
     key_takeaways:
@@ -651,31 +651,31 @@ export const levels = [
               {
                 title: "What is an Aggregation Pipeline?",
                 content:
-                  "An aggregation pipeline transforms documents through a sequence of stages. Each stage receives the output of the previous one:\n\nStop.aggregate([\n  { $match: { tripId } },          // 1. filter to this trip\n  { $sort: { voteCount: -1 } },    // 2. sort by votes\n  { $limit: topN },                // 3. take top N\n])\n\nThink of it as a Unix pipe: cat documents | grep tripId | sort -k voteCount | head -5.",
+                  "An aggregation pipeline transforms documents through a sequence of stages. Each stage receives the output of the previous one. Think of it as a Unix pipe: documents are filtered, joined, grouped, sorted, and projected as they flow through the stages.",
                 order: 2,
               },
               {
                 title: "$match Before $lookup: Why Order Matters",
                 content:
-                  "A common performance and correctness bug is running $lookup (a join) before $match (a filter):\n\n// WRONG — joins the entire collection before filtering\n[\n  { $lookup: { from: 'votes', ... } },\n  { $match: { tripId } },\n]\n\n// CORRECT — filters first, then joins only the matching docs\n[\n  { $match: { tripId } },\n  { $lookup: { from: 'votes', ... } },\n]\n\nThe wrong order is both slow (processes every stop in the DB) and semantically incorrect (joins before the trip filter is applied).",
+                  "A common performance and correctness bug is running $lookup (a join) before $match (a filter). The wrong order is both slow (processes every document in the DB) and semantically incorrect (joins before the trip filter is applied).",
                 order: 3,
               },
               {
                 title: "Date Math for Range Filters",
                 content:
-                  "To filter stops within a trip's date range, compare against the trip's startDate and endDate:\n\n{ $match: {\n  tripId: trip._id,\n  dayDate: { $gte: trip.startDate, $lte: trip.endDate }\n}}\n\nA common bug is using `new Date()` (the current time) as the lower bound — which means only stops scheduled in the future match. Always use the trip's actual startDate.",
+                  "To filter stops within a trip's date range, compare against the trip's startDate and endDate. A common bug is using `new Date()` (the current time) as the lower bound — which means only stops scheduled in the future match.",
                 order: 4,
               },
               {
                 title: "$group Accumulators and Field Names",
                 content:
-                  "The $group stage accumulates values across documents. Field paths use the $ prefix:\n\n{ $group: {\n  _id: '$tripId',\n  totalSpent: { $sum: '$amount' },   // correct: field is 'amount'\n  stopCount: { $sum: 1 },\n}}\n\nA misspelled field like '$votes' (instead of '$voteCount') silently returns 0 for every document — MongoDB does not throw an error for missing field references.",
+                  "The $group stage accumulates values across documents. Field paths use the $ prefix. A misspelled field silently returns 0 for every document — MongoDB does not throw an error for missing field references.",
                 order: 5,
               },
               {
                 title: "$sort and $limit for Ranked Results",
                 content:
-                  "Without $sort and $limit, the aggregation returns documents in arbitrary order and could return the entire collection.\n\n{ $sort: { voteCount: -1 } },  // -1 = descending (highest first)\n{ $limit: topN },              // cap at topN (default 5)\n\nAlways add both when building a ranked leaderboard or top-N list — they prevent unbounded queries and non-deterministic ordering.",
+                  "Without $sort and $limit, the aggregation returns documents in arbitrary order and could return the entire collection. Always add both when building a ranked list — they prevent unbounded queries and non-deterministic ordering.",
                 order: 6,
               },
               {
@@ -686,7 +686,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete getTripStartCutoff(trip) so it returns a Date equal to trip.startDate minus 1 millisecond. This ensures $gte includes stops scheduled exactly on startDate.",
+                    "Complete getTripStartCutoff(trip) so it returns a Date equal to trip.startDate minus 1 millisecond.",
                   language: "javascript",
                   starter_code:
                     "export function getTripStartCutoff(trip) {\n  // TODO: return a Date 1ms before trip.startDate\n}\n",
@@ -710,7 +710,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Always $match before $lookup. Always use the correct date boundaries (trip.startDate, not new Date()). Always reference the correct field names with $ in accumulators. Always $sort and $limit ranked queries. Four rules — four of the most common aggregation bugs fixed.",
+                  "Always $match before $lookup. Always use the correct date boundaries (trip.startDate, not new Date()). Always reference the correct field names with $ in accumulators. Always $sort and $limit ranked queries.",
                 order: 8,
               },
             ],
@@ -788,31 +788,31 @@ export const levels = [
               {
                 title: "Query Parameter Validation with Zod",
                 content:
-                  "Query parameters arrive as strings and must be validated before use. Zod makes this declarative:\n\nconst statsQuerySchema = z.object({\n  topN: z.string().optional()\n    .transform(v => v === undefined ? 5 : Number(v))\n    .pipe(z.number().int().min(1).max(25)),\n});\n\nThis schema transforms the raw string into a number, then validates it is an integer between 1 and 25. Invalid values (e.g., \"abc\", 999) cause validation to fail before the controller runs.",
+                  "Query parameters arrive as strings and must be validated before use. Zod makes this declarative by transforming raw strings into typed values and validating constraints before the controller runs.",
                 order: 2,
               },
               {
                 title: "The validateRequest Middleware",
                 content:
-                  "TripWeaver has a shared `validateRequest` middleware that wraps Zod schemas and automatically returns 400 with a helpful error message on failure. Use it on your route:\n\nrouter.get(\n  '/:tripId/stats',\n  validateRequest({ query: statsQuerySchema }),\n  getTripStats\n);\n\nThis keeps validation logic out of the controller and ensures every invalid request is rejected before reaching business logic.",
+                  "TripWeaver has a shared `validateRequest` middleware that wraps Zod schemas and automatically returns 400 with a helpful error message on failure. This keeps validation logic out of the controller and ensures every invalid request is rejected before reaching business logic.",
                 order: 3,
               },
               {
                 title: "Response Envelopes",
                 content:
-                  "Consistent response shapes make client code simpler. TripWeaver uses:\n\n// Success\nres.status(200).json({ success: true, data: payload });\n\n// Failure\nres.status(400).json({ success: false, message: 'topN must be between 1 and 25' });\n\nClients only need to check `body.success` to decide how to handle the response — no guessing about status codes or field names.",
+                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, message: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
                 order: 4,
               },
               {
                 title: "Async Error Propagation with next(err)",
                 content:
-                  "Unhandled promise rejections in Express crash the process or return no response. Always wrap async controllers in try/catch and forward errors to next:\n\nexport async function getTripStats(\n  req: Request, res: Response, next: NextFunction\n) {\n  try {\n    const data = await computeStats(...);\n    res.json({ success: true, data });\n  } catch (err) {\n    next(err); // passes to the global error handler\n  }\n}\n\nThe global error handler in `middleware/errorHandler.ts` converts these into proper 500 responses.",
+                  "Unhandled promise rejections in Express crash the process or return no response. Async controllers wrapped in try/catch forward errors to next(err), which passes them to the global error handler that converts them into proper 500 responses.",
                 order: 5,
               },
               {
                 title: "Express RequestHandler Typing",
                 content:
-                  "Typing Express handlers in TypeScript prevents `req.query` from being typed as `any`:\n\nimport type { Request, Response, NextFunction } from 'express';\n\nexport async function getTripStats(\n  req: Request,\n  res: Response,\n  next: NextFunction\n): Promise<void> { ... }\n\nWith the Zod schema attached to the route, `req.query.topN` becomes a typed `number` after validation.",
+                  "Typing Express handlers in TypeScript prevents `req.query` from being typed as `any`. With the Zod schema attached to the route, validated query params become properly typed values.",
                 order: 6,
               },
               {
@@ -852,7 +852,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Production endpoints do three things: validate inputs before processing, return consistent response shapes, and propagate errors without crashing. Get these right and your API becomes predictable for every caller.",
+                  "Production endpoints do three things: validate inputs before processing, return consistent response shapes, and propagate errors without crashing. Get these right and the API becomes predictable for every caller.",
                 order: 8,
               },
             ],
@@ -932,7 +932,7 @@ export const levels = [
     xp_reward: 250,
     coin_reward: 125,
     key_takeaways:
-      "Idempotent operations are safe to retry — a second vote request from the same user should produce the same state as the first without double-counting. Separating the Vote join-table from a voteCount cache lets you maintain both an accurate count and a queryable history of who voted on what.\n\nExpense splitting is a balance computation: paidBy contributed `amount`, every member in `splitBetween` owes `amount / splitBetween.length`. A balance summary (paid minus owed per member) must sum to zero across all members — this invariant is a good sanity check for any implementation.",
+      "Idempotent operations are safe to retry — a second vote request from the same user should produce the same state as the first without double-counting. Separating the Vote join-table from a voteCount cache enables maintaining both an accurate count and a queryable history of who voted on what.\n\nExpense splitting is a balance computation: paidBy contributed `amount`, every member in `splitBetween` owes `amount / splitBetween.length`. A balance summary (paid minus owed per member) must sum to zero across all members — this invariant is a good sanity check for any implementation.",
     scenario_id: "mern-tw-scenario-3",
     tasks: {
       create: [
@@ -953,31 +953,31 @@ export const levels = [
               {
                 title: "REST Verb Semantics for Social Actions",
                 content:
-                  "Vote maps naturally to REST verbs:\n\nPOST   /api/trips/:tripId/stops/:stopId/vote → add a vote (idempotent)\nDELETE /api/trips/:tripId/stops/:stopId/vote → remove a vote\n\nPOST is appropriate for creating a resource (a Vote document). DELETE removes it. Both are scoped to the authenticated user's identity via the JWT — you never pass userId in the body.",
+                  "Vote maps naturally to REST verbs: POST creates a Vote document (idempotent), DELETE removes it. Both are scoped to the authenticated user's identity via the JWT — the userId is never passed in the body.",
                 order: 2,
               },
               {
                 title: "Idempotency: Safe to Retry",
                 content:
-                  "An idempotent operation produces the same result no matter how many times it is called with the same input. Vote should be idempotent:\n\n- First POST → create Vote doc, increment voteCount → return 201\n- Second POST (same user) → Vote doc already exists → no-op, return 200\n\nNever double-increment. A user's vote contribution is either 0 (not voted) or 1 (voted).",
+                  "An idempotent operation produces the same result no matter how many times it is called with the same input. The first POST creates the Vote doc and increments the counter; a second POST from the same user finds the existing doc and returns success without incrementing again.",
                 order: 3,
               },
               {
                 title: "Join Table Pattern (Vote Model)",
                 content:
-                  "Rather than storing a list of userId values inside the Stop document, TripWeaver uses a separate Vote collection (join table):\n\nVote: { stopId, userId, votedAt }\n\nBenefits:\n- Queryable: 'who voted on this stop?' is an index scan, not an array scan\n- Countable: Vote.countDocuments({ stopId }) gives accurate counts\n- No document size limit issues (a popular stop with many votes stays fast)",
+                  "Rather than storing a list of userId values inside the Stop document, a separate Vote collection (join table) stores each vote as its own document. This makes queries scannable by index, counts accurate via countDocuments, and avoids document size limit issues.",
                 order: 4,
               },
               {
                 title: "Atomic Increment with $inc",
                 content:
-                  "When creating a vote, increment the counter atomically so concurrent requests don't race:\n\nawait Stop.findByIdAndUpdate(\n  stopId,\n  { $inc: { voteCount: 1 } },\n  { new: true }\n);\n\nNever read-modify-write (fetch, then set). Atomic $inc is the MongoDB-safe way to update counters under concurrent load.",
+                  "When creating a vote, the counter is incremented atomically using $inc so concurrent requests do not race. Never read-modify-write (fetch, then set) — atomic $inc is the MongoDB-safe way to update counters under concurrent load.",
                 order: 5,
               },
               {
                 title: "Optimistic UI Updates",
                 content:
-                  "For a snappy UX, update the UI immediately before the server confirms the action:\n\n// 1. Update state immediately (optimistic)\nsetVoteCount(prev => prev + 1);\nsetVoted(true);\n\ntry {\n  await voteStop(tripId, stopId); // confirm with server\n} catch {\n  // 2. Revert on error\n  setVoteCount(prev => prev - 1);\n  setVoted(false);\n}\n\nThis makes the UI feel instant even on slow connections.",
+                  "For a snappy UX, the UI updates immediately before the server confirms the action. If the server request fails, the UI reverts to the previous state. This makes the interface feel instant even on slow connections.",
                 order: 6,
               },
               {
@@ -988,7 +988,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete nextVoteCount(current, action) where action is \"vote\" or \"unvote\". Never return a count below 0.",
+                    'Complete nextVoteCount(current, action) where action is "vote" or "unvote". Never return a count below 0.',
                   language: "javascript",
                   starter_code:
                     "export function nextVoteCount(current, action) {\n  // TODO: return current + 1 for 'vote', current - 1 for 'unvote' (min 0)\n}\n",
@@ -1112,31 +1112,31 @@ export const levels = [
               {
                 title: "Validating Trip Membership",
                 content:
-                  "Before creating an expense, validate that paidBy and every user in splitBetween are members of the trip (either the ownerId or in collaboratorIds):\n\nconst memberIds = [trip.ownerId.toString(), ...trip.collaboratorIds.map(id => id.toString())];\nconst invalid = splitBetween.filter(id => !memberIds.includes(id));\nif (invalid.length > 0) {\n  return res.status(400).json({ success: false, message: 'Non-member in splitBetween' });\n}\n\nThis prevents expenses from referencing users who are not part of the trip.",
+                  "Before creating an expense, validate that paidBy and every user in splitBetween are members of the trip (either the ownerId or in collaboratorIds). This prevents expenses from referencing users who are not part of the trip.",
                 order: 2,
               },
               {
                 title: "Computing Per-Member Share",
                 content:
-                  "Divide the total amount equally among the members in splitBetween, rounding to 2 decimal places:\n\nfunction computeShare(amount: number, splitCount: number): number {\n  return Math.round(amount * 100 / splitCount) / 100;\n}\n\nThis rounds at the cent level (multiply by 100, round, divide by 100). For 100 / 3, this gives 33.33 — the rounding means the sum of shares may be 1 cent off the total, which is acceptable in most expense-splitting apps.",
+                  "Divide the total amount equally among the members in splitBetween, rounding to 2 decimal places using Math.round(amount * 100 / splitCount) / 100. This gives consistent cent-level rounding across all languages.",
                 order: 3,
               },
               {
                 title: "Atomic Trip Counter Update",
                 content:
-                  "After creating the Expense document, update Trip.totalSpent atomically:\n\nawait Trip.findByIdAndUpdate(\n  tripId,\n  { $inc: { totalSpent: amount } },\n  { new: true }\n);\n\nUsing $inc instead of read-modify-write prevents counter drift under concurrent expense logging.",
+                  "After creating the Expense document, update Trip.totalSpent atomically using $inc instead of read-modify-write. This prevents counter drift under concurrent expense logging.",
                 order: 4,
               },
               {
                 title: "Returning a Balance Summary",
                 content:
-                  "After creating the expense, compute a balance summary for all trip members:\n\nbalance per member = paid − owed\n\nFor an expense of $60 split between A, B, C:\n- paidBy A: paid=60, owes=20 → net=+40 (others owe A)\n- B: paid=0, owes=20 → net=-20\n- C: paid=0, owes=20 → net=-20\n\nThe sum of all net balances must equal 0. Return this as an array: { userId, net }[].",
+                  "After creating the expense, compute a balance summary for all trip members: net balance = paid − owed. The sum of all net balances must equal 0. Return this as an array of { userId, net } objects.",
                 order: 5,
               },
               {
                 title: "Idempotency-Key Pattern (Awareness Only)",
                 content:
-                  "For financial endpoints, production systems use an idempotency key (a unique client-generated UUID sent in a header) to prevent duplicate charges on network retries:\n\nX-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000\n\nThe server stores the key and result in a cache. On retry, it returns the cached result without re-processing. TripWeaver does not implement this in Level 4 — it is a real-world pattern worth knowing about.",
+                  "For financial endpoints, production systems use an idempotency key (a unique client-generated UUID sent in a header) to prevent duplicate charges on network retries. The server stores the key and result in a cache. On retry, it returns the cached result without re-processing. TripWeaver does not implement this in Level 4 — it is a real-world pattern worth knowing about.",
                 order: 6,
               },
               {
@@ -1187,7 +1187,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Expense splitting has three invariants: only trip members can be in splitBetween, the per-member share rounds to 2 decimal places, and the balance summary sums to zero. Verify all three in your tests.",
+                  "Expense splitting has three invariants: only trip members can be in splitBetween, the per-member share rounds to 2 decimal places, and the balance summary sums to zero. Verify all three in tests.",
                 order: 8,
               },
             ],
@@ -1288,31 +1288,31 @@ export const levels = [
               {
                 title: "The Bug: Duplicate Vote Documents",
                 content:
-                  'Client Report: "Some stops show 8 votes but we can only count 5 distinct users who voted on them."\n\nRoot cause: two concurrent POST /vote requests from the same user both execute Vote.findOne({ userId, stopId }) simultaneously and both find no existing document. They both proceed to insert — so now there are 2 Vote docs for the same pair, and voteCount was incremented twice.\n\nThis is the classic "check then act" race condition.',
+                  'Client Report: "Some stops show 8 votes but we can only count 5 distinct users who voted on them."\n\nRoot cause: two concurrent POST /vote requests from the same user both execute Vote.findOne({ userId, stopId }) simultaneously and both find no existing document. They both proceed to insert — so now there are 2 Vote docs for the same pair, and voteCount was incremented twice. This is the classic "check then act" race condition.',
                 order: 2,
               },
               {
                 title: "Application-Level Checks Are Not Enough",
                 content:
-                  "A findOne → create sequence has a race window between the read and the write:\n\nRequest A reads:  no vote found\nRequest B reads:  no vote found  (same moment)\nRequest A writes: Vote doc created ✅\nRequest B writes: Vote doc created ❌ (duplicate!)\n\nNo amount of careful application-level logic can close this window. Only the database can enforce uniqueness atomically.",
+                  "A findOne → create sequence has a race window between the read and the write. No amount of careful application-level logic can close this window. Only the database can enforce uniqueness atomically.",
                 order: 3,
               },
               {
                 title: "MongoDB Unique Indexes",
                 content:
-                  "A compound unique index tells MongoDB to reject any insert that would create a duplicate combination of fields:\n\nVoteSchema.index({ userId: 1, stopId: 1 }, { unique: true });\n\nThis index is enforced at the storage engine level — no race condition is possible. The second insert fails with a duplicate-key error (E11000) before the document is written.",
+                  "A compound unique index tells MongoDB to reject any insert that would create a duplicate combination of fields. This index is enforced at the storage engine level — no race condition is possible. The second insert fails with a duplicate-key error (E11000) before the document is written.",
                 order: 4,
               },
               {
                 title: "Handling E11000 in the Controller",
                 content:
-                  "When the unique index rejects a duplicate insert, Mongoose throws an error with code 11000. Catch it and treat it as the idempotent path:\n\ntry {\n  await Vote.create({ userId, stopId });\n  await Stop.findByIdAndUpdate(stopId, { $inc: { voteCount: 1 } });\n  return res.status(201).json({ success: true, voted: true });\n} catch (err: any) {\n  if (err.code === 11000) {\n    // already voted — idempotent, return current state\n    return res.status(200).json({ success: true, voted: true });\n  }\n  throw err;\n}",
+                  "When the unique index rejects a duplicate insert, Mongoose throws an error with code 11000. Catching it and treating it as the idempotent path returns success without double-incrementing the counter.",
                 order: 5,
               },
               {
                 title: "Backfill: Cleaning Up Existing Duplicates",
                 content:
-                  "Once the unique index is added with syncIndexes(), MongoDB enforces it going forward. But existing duplicate documents from before the fix must be cleaned up manually:\n\n// Find all duplicate (userId, stopId) pairs\nconst dups = await Vote.aggregate([\n  { $group: { _id: { userId: '$userId', stopId: '$stopId' }, count: { $sum: 1 }, ids: { $push: '$_id' } } },\n  { $match: { count: { $gt: 1 } } },\n]);\n\nFor each pair, keep the oldest doc and delete the rest, then recalculate voteCount from the clean Vote collection.",
+                  "Once the unique index is added with syncIndexes(), MongoDB enforces it going forward. Existing duplicate documents from before the fix must be cleaned up by finding all duplicate (userId, stopId) pairs, keeping the oldest doc and deleting the rest, then recalculating voteCount from the clean Vote collection.",
                 order: 6,
               },
               {
@@ -1434,37 +1434,37 @@ export const levels = [
               {
                 title: "The Bug: Wrong Day Assignment",
                 content:
-                  "Client Report: \"I'm planning a Tokyo trip from Manila. A stop I scheduled for midnight in Tokyo shows up on the wrong day in my timeline.\"\n\nRoot cause: the timeline controller uses:\nstop.dayDate.toISOString().slice(0, 10)\n\nFor a stop at 2026-04-12T15:30:00Z, this gives \"2026-04-12\" — the UTC date. But in Tokyo (UTC+9), that timestamp is 2026-04-13 00:30 — the next day. The UTC date is wrong for the trip's destination.",
+                  "Client Report: \"I'm planning a Tokyo trip from Manila. A stop I scheduled for midnight in Tokyo shows up on the wrong day in my timeline.\"\n\nRoot cause: the timeline controller uses stop.dayDate.toISOString().slice(0, 10), which always returns the UTC date. For a stop at 15:30 UTC in Tokyo (UTC+9), that timestamp is 00:30 the next day — the UTC date is wrong for the trip's destination.",
                 order: 2,
               },
               {
                 title: "JavaScript Date is Always UTC",
                 content:
-                  "new Date('2026-04-12T15:30:00Z') stores a UTC instant. It has no local timezone built in — it's always UTC underneath.\n\nMethods to get local calendar info:\n- getDate(), getMonth() → uses the server's local timezone (wrong on a UTC server)\n- toISOString() → always UTC\n- Intl.DateTimeFormat → correct, uses any specified IANA timezone\n\nOn a UTC server, getDate() and toISOString().slice(0,10) return the same thing — the UTC date. Neither is correct for a Tokyo trip.",
+                  "new Date() stores a UTC instant. It has no local timezone built in — it is always UTC underneath. Using toISOString() always converts to UTC. Using getDate() uses the server locale (wrong on a UTC server). Intl.DateTimeFormat is the correct approach because it accepts an explicit IANA timezone parameter.",
                 order: 3,
               },
               {
                 title: "Per-Trip Timezone, Not Per-User Timezone",
                 content:
-                  "This is the key insight for travel apps: when grouping a trip's itinerary by day, the correct timezone is the trip's DESTINATION — not the traveler's home timezone.\n\nA Manila user planning a Tokyo trip should see stops grouped by Tokyo local dates. If she is still home in Manila, she wants to see the Tokyo schedule, not the Manila schedule.\n\nThe Trip document stores `destinationTimezone` (e.g., \"Asia/Tokyo\") for exactly this purpose. Read from the trip, not from req.user.timezone.",
+                  "This is the key insight for travel apps: when grouping a trip's itinerary by day, the correct timezone is the trip's DESTINATION — not the traveler's home timezone. A Manila user planning a Tokyo trip should see stops grouped by Tokyo local dates. The Trip document stores `destinationTimezone` (e.g., \"Asia/Tokyo\") for exactly this purpose.",
                 order: 4,
               },
               {
                 title: "IANA Timezone Identifiers",
                 content:
-                  "IANA timezones (like \"Asia/Tokyo\", \"Asia/Manila\", \"America/New_York\") encode both the UTC offset AND daylight saving time rules. They are more reliable than raw offsets (+09:00) because:\n- UTC+9 alone doesn't encode DST rules\n- Some regions observe DST, shifting the offset seasonally\n- IANA IDs are stable and recognized by all modern JS runtimes\n\nStore the trip's destination timezone as an IANA string in Trip.destinationTimezone.",
+                  "IANA timezones (like \"Asia/Tokyo\", \"Asia/Manila\", \"America/New_York\") encode both the UTC offset and daylight saving time rules. They are more reliable than raw offsets because some regions observe DST. Store the trip's destination timezone as an IANA string in Trip.destinationTimezone.",
                 order: 5,
               },
               {
                 title: "Intl.DateTimeFormat for Timezone-Aware Date Keys",
                 content:
-                  "The Web Standard way to get a calendar date in a specific timezone:\n\nfunction localDateKeyForTrip(instant: Date, tripTz: string): string {\n  return new Intl.DateTimeFormat('en-CA', {\n    timeZone: tripTz,\n    year: 'numeric',\n    month: '2-digit',\n    day: '2-digit',\n  }).format(instant); // returns 'YYYY-MM-DD' in en-CA locale\n}\n\nlocalDateKeyForTrip(new Date('2026-04-12T15:30:00Z'), 'Asia/Tokyo')\n// → '2026-04-13' (00:30 Tuesday Tokyo — the stop is on Apr 13 in Tokyo)",
+                  "The Web Standard way to get a calendar date in a specific timezone is Intl.DateTimeFormat with en-CA locale, which produces YYYY-MM-DD output. This correctly converts the UTC timestamp to the destination's local calendar day.",
                 order: 6,
               },
               {
                 title: "Reading the Trip's Destination Timezone",
                 content:
-                  "The timeline controller loads the Trip document before grouping. Read the timezone from the trip:\n\nconst trip = await Trip.findById(tripId);\nconst tz = trip.destinationTimezone ?? 'UTC';\n\n// Then group each stop by destination local date:\nconst dayKey = localDateKeyForTrip(stop.dayDate, tz);\n\nDefault to 'UTC' when destinationTimezone is missing so trips without a timezone set are unaffected.",
+                  "The timeline controller loads the Trip document before grouping. Read the timezone from the trip: trip.destinationTimezone. Default to 'UTC' when destinationTimezone is missing so trips without a timezone set are unaffected.",
                 order: 7,
               },
               {
@@ -1529,7 +1529,7 @@ export const levels = [
               },
               {
                 description:
-                  "The test seeds a Tokyo trip with two stops at 15:30Z on consecutive UTC dates. After your fix, both stops should group to their correct Tokyo local days (Apr 13 and Apr 14). The test also verifies that a Manila user signing in does NOT change the grouping — the timezone comes from the trip, not the user.",
+                  "The test seeds a Tokyo trip with two stops at 15:30Z on consecutive UTC dates. After the fix, both stops should group to their correct Tokyo local days (Apr 13 and Apr 14). The test also verifies that a Manila user signing in does NOT change the grouping — the timezone comes from the trip, not the user.",
                 order: 3,
               },
             ],

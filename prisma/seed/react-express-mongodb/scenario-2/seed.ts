@@ -4,9 +4,9 @@
  * Seeds the database with Level and Scenario data for the FitTrackr learning scenario.
  *
  * Usage:
- *   npx tsx prisma/seed.ts
+ *   pnpm exec tsx prisma/seed.ts
  *
- * Make sure to run `npx prisma generate` first to generate the client.
+ * Make sure to run `pnpm exec prisma generate` first to generate the client.
  *
  * Task type values:
  *   "client" — only a client-side test exists
@@ -36,7 +36,7 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: PulseLabs just onboarded you as a developer on FitTrackr. Your first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms you understand how the codebase is organized.",
+      "Mission Briefing: PulseLabs just onboarded a new developer on FitTrackr. The first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms understanding of how the codebase is organized.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
@@ -55,42 +55,42 @@ export const levels = [
               {
                 title: "Overview\nSetting Up a MERN Stack Project",
                 content:
-                  "This section introduces the crash course for preparing a MERN stack development environment. It gives a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                  "This section introduces the crash course for preparing a MERN stack development environment. It gives a high-level view of the setup flow, required tools, and key concepts needed before starting the hands-on tasks.",
                 order: 1,
               },
               {
                 title: "What is the MERN Stack?",
                 content:
-                  "MERN stands for MongoDB, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nMongoDB — a NoSQL document database that stores your data as JSON-like objects\nExpress — a Node.js framework that handles your server and API routes\nReact — the frontend library that builds your user interface\nNode.js — the JavaScript runtime that runs your server code\n\nFitTrackr uses all four layers: MongoDB stores workouts and user data, Express serves the REST API, React renders the workout feed and forms, and Node.js ties the backend together.",
+                  "MERN stands for MongoDB, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nMongoDB — a NoSQL document database that stores data as JSON-like objects\nExpress — a Node.js framework that handles server and API routes\nReact — the frontend library that builds the user interface\nNode.js — the JavaScript runtime that runs server code\n\nFitTrackr uses all four layers: MongoDB stores workouts and user data, Express serves the REST API, React renders the workout feed and forms, and Node.js ties the backend together.",
                 order: 2,
               },
               {
                 title: "How a MERN App is Structured",
                 content:
-                  "A typical MERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend (Vite + Tailwind)\n    └── server/ ← Express backend (Mongoose + MongoDB)\n\nEach part has its own package.json, which means you need to install dependencies in all three locations. The root also has convenience scripts that start both servers at once.",
+                  "A typical MERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend (Vite + Tailwind)\n    └── server/ ← Express backend (Mongoose + MongoDB)\n\nEach part has its own package.json, so dependencies must be installed in all three locations. The root also has convenience scripts that start both servers at once.",
                 order: 3,
               },
               {
                 title: "Package Management 101",
                 content:
-                  "When you clone a project, no dependencies are installed yet — node_modules is in .gitignore. You must run npm install in each folder that has a package.json.\n\nWhy separate installs?\nEach folder is its own isolated module. The client uses React and Vite; the server uses Express and Mongoose. Mixing them would create version conflicts and bloated bundles.",
+                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed in each folder that has a package.json using pnpm install.\n\nWhy separate installs?\nEach folder is its own isolated module. The client uses React and Vite; the server uses Express and Mongoose. Mixing them would create version conflicts and bloated bundles.",
                 order: 4,
               },
               {
                 title: "Change Directory (cd) Basics",
                 content:
-                  "In development you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running npm install or npm run commands — they only affect the folder you are currently in.",
+                  "In development, commands must be run in the correct folder. Use cd (change directory) to move between root, client, and server.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check the current directory before running pnpm install or pnpm run commands — they only affect the folder currently active.",
                 order: 5,
               },
               {
                 title: "Practice Lab: cd Navigation",
                 content:
-                  "Practice navigating folders with cd. Use `ls` to list files/folders in your current directory and `pwd` to print your current path when you want to verify where you are.",
+                  "Practice navigating folders with cd. Use `ls` to list files/folders in the current directory and `pwd` to print the current path when verification of the location is needed.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "TERMINAL_CD" as const,
                 interactive_config: {
                   instructions:
-                    "Goal: navigate to /workspace/client, then to /workspace/server, then back to /workspace. Tip: `ls` lists current directory contents and `pwd` prints your current path.",
+                    "Goal: navigate to /workspace/client, then to /workspace/server, then back to /workspace. Tip: `ls` lists current directory contents and `pwd` prints the current path.",
                   initial_directory: "/workspace",
                   expected_commands: ["cd client", "cd ../server", "cd .."],
                   directory_tree: {
@@ -104,25 +104,25 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/fittrackr\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in your code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/fittrackr\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
                 order: 7,
               },
               {
                 title: "What is MongoDB & Mongoose?",
                 content:
-                  "MongoDB is a document database — instead of rows and tables, it stores JSON-like documents in collections. Mongoose is an ODM (Object Document Mapper) that wraps the MongoDB Node.js driver with a schema layer:\n\n// Raw MongoDB driver\ndb.collection('workouts').insertOne({ title: 'Leg Day', ... });\n\n// With Mongoose\nawait Workout.create({ title: 'Leg Day', ... });\n\nMongoose schemas define the shape of your documents, enforce types, and provide helper methods. The seed script uses Mongoose to insert realistic sample data.",
+                  "MongoDB is a document database — it stores JSON-like documents in collections. Mongoose is an ODM (Object Document Mapper) that wraps the MongoDB Node.js driver with a schema layer that defines the shape of documents, enforces types, and provides helper methods. The seed script uses Mongoose to insert realistic sample data.",
                 order: 8,
               },
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so you can develop against a real dataset instead of an empty one. The FitTrackr seed creates 8 users, 18 workouts, 20 cheers, and 15 comments.\n\nRun the seed with:\nnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The FitTrackr seed creates 8 users, 18 workouts, 20 cheers, and 15 comments.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
                 order: 9,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a project is more than running one command — it means aligning your local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Get this right first, then build features.",
+                  "Setting up a project is more than running one command — it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first, then build features.",
                 order: 10,
               },
             ],
@@ -141,7 +141,7 @@ export const levels = [
               },
               {
                 description:
-                  "MongoDB must be running before the seed script can insert data. Check the README for how to start MongoDB on your platform (local install or Docker).",
+                  "MongoDB must be running before the seed script can insert data. Check the README for how to start MongoDB on the current platform (local install or Docker).",
                 order: 3,
               },
             ],
@@ -194,31 +194,31 @@ export const levels = [
               {
                 title: "What is a React Component?",
                 content:
-                  "A React component is a reusable piece of UI — like a header, a button, or a card. Components are JavaScript functions that return HTML-like syntax called JSX.\n\nfunction Header() {\n  return (\n    <header>\n      <h1>FitTrackr</h1>\n      <span>Your Tagline Here</span>\n    </header>\n  );\n}\n\nEach component lives in its own file and can be imported and used anywhere in the app.",
+                  "A React component is a reusable piece of UI — like a header, a button, or a card. Components are JavaScript functions that return HTML-like syntax called JSX. Each component lives in its own file and can be imported and used anywhere in the app.",
                 order: 2,
               },
               {
                 title: "Layout Components",
                 content:
-                  "In most React apps, the header and footer live in layout components — shared wrappers used across all pages. Change the text once in the layout component and it updates everywhere the layout is used.\n\nA typical layout structure:\ncomponents/\n    └── layout/\n          ├── Header.tsx ← top navigation + brand area\n          ├── Layout.tsx ← wraps every page\n          └── Footer.tsx ← bottom bar",
+                  "In most React apps, the header and footer live in layout components — shared wrappers used across all pages. Changing text once in the layout component updates it everywhere the layout is used.\n\nA typical layout structure:\ncomponents/\n    └── layout/\n          ├── Header.tsx\n          ├── Layout.tsx\n          └── Footer.tsx",
                 order: 3,
               },
               {
                 title: "How to Find What to Change",
                 content:
-                  "When you need to update something visible in the browser, ask:\n1. What element is it? (header, footer, sidebar?)\n2. Which component renders it? (trace it to a file)\n3. Is the text hardcoded or dynamic?\n\nFor a tagline in the header, look inside the layout's Header component for a hardcoded string like \"Your Tagline Here\".",
+                  "When something visible in the browser needs updating, trace the element to its source:\n1. What element is it? (header, footer, sidebar)\n2. Which component renders it?\n3. Is the text hardcoded or dynamic?\n\nFor a tagline in the header, look inside the layout's Header component for a hardcoded string.",
                 order: 4,
               },
               {
                 title: "JSX Text Content",
                 content:
-                  "Changing text in JSX is straightforward — just like editing HTML:\n\n// Before\n<span className=\"text-xs text-gray-400\">Your Tagline Here</span>\n\n// After\n<span className=\"text-xs text-gray-400\">Train. Log. Level Up.</span>\n\nThe dots and capitalization must match exactly — the test checks character-for-character.",
+                  "Changing text in JSX is similar to editing HTML. The tagline text must match the expected string character-for-character — the test checks every character.",
                 order: 5,
               },
               {
                 title: "Hot Module Replacement (HMR)",
                 content:
-                  "After saving a React file, Vite's HMR (Hot Module Replacement) instantly updates the browser without a full page refresh. This means:\n1. Save the file\n2. Switch to the browser\n3. See the update immediately\n\nIf the update doesn't appear, check the terminal for compile errors before refreshing manually.",
+                  "After saving a React file, Vite's HMR (Hot Module Replacement) instantly updates the browser without a full page refresh. If the update does not appear, check the terminal for compile errors before refreshing manually.",
                 order: 6,
               },
               {
@@ -267,12 +267,12 @@ export const levels = [
               },
               {
                 description:
-                  "After saving your change, open the running client in the browser to confirm the tagline updated correctly in the header.",
+                  "After saving the change, open the running client in the browser to confirm the tagline updated correctly in the header.",
                 order: 2,
               },
               {
                 description:
-                  'The acceptance criteria specifies the exact tagline text — make sure your change matches "Train. Log. Level Up." character for character, including the periods.',
+                  'The acceptance criteria specifies the exact tagline text — the change must match "Train. Log. Level Up." character for character, including the periods.',
                 order: 3,
               },
             ],
@@ -307,7 +307,7 @@ export const levels = [
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Users are frustrated — the workout feed is blank and there is no way to filter by training category. Your tasks are to implement the WorkoutCard presentational component and wire up category filter chips so members can browse workouts by type.",
+      "Mission Briefing: Users are frustrated — the workout feed is blank and there is no way to filter by training category. The tasks are to implement the WorkoutCard presentational component and wire up category filter chips so members can browse workouts by type.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
@@ -332,31 +332,31 @@ export const levels = [
               {
                 title: "What is a Presentational Component?",
                 content:
-                  "A presentational component receives data via props and returns JSX. It has no side effects, no API calls, and no local state beyond visual interactions (e.g., hover). This makes it fully predictable and easy to test.\n\nfunction WorkoutCard({ title, author }: WorkoutCardProps) {\n  return (\n    <div>\n      <h3>{title}</h3>\n      <p>by {author.username}</p>\n    </div>\n  );\n}",
+                  "A presentational component receives data via props and returns JSX. It has no side effects, no API calls, and no local state beyond visual interactions (e.g., hover). This makes it fully predictable and easy to test.",
                 order: 2,
               },
               {
                 title: "Typed Props with TypeScript",
                 content:
-                  "TypeScript interfaces describe the shape of your component's props. The WorkoutCard already has a typed interface defined — your job is to implement the component body so it renders every field.\n\ninterface WorkoutCardProps {\n  workout: Workout;\n  onCheer?: (id: string) => void;\n}\n\nTypeScript will warn you if you try to access a field that doesn't exist in the interface.",
+                  "TypeScript interfaces describe the shape of a component's props. The WorkoutCard already has a typed interface defined — the task is to implement the component body so it renders every field. TypeScript warns if a field that does not exist in the interface is accessed.",
                 order: 3,
               },
               {
                 title: "Reusing UI Primitives",
                 content:
-                  "FitTrackr has a set of pre-built UI primitives in `client/src/components/ui/`:\n\n- `<Card>` — white rounded container\n- `<Badge variant=\"category\">` — colored label chip\n- `<Avatar>` — circular user image\n- `<Button>` — accessible button\n\nReuse these instead of writing raw `<div>` / `<button>` tags. They already handle accessibility, styling, and dark mode.",
+                  "FitTrackr has a set of pre-built UI primitives in `client/src/components/ui/` — reusable components like Card, Badge, Avatar, and Button that already handle accessibility, styling, and dark mode.",
                 order: 4,
               },
               {
                 title: "Conditional Rendering",
                 content:
-                  "Some workout fields are optional. Use conditional rendering to handle missing values gracefully:\n\n// Short-circuit: only renders if notes is non-empty\n{workout.notes && <p className=\"text-sm text-gray-500\">{workout.notes}</p>}\n\n// Ternary: show count or placeholder\n{workout.exercises.length > 0\n  ? <span>{workout.exercises.length} exercises</span>\n  : <span>No exercises logged</span>\n}",
+                  "Some workout fields are optional. Conditional rendering handles missing values gracefully using short-circuit evaluation or ternary expressions based on whether the field is truthy or non-empty.",
                 order: 5,
               },
               {
                 title: "Displaying Counts and Dates",
                 content:
-                  "Format dynamic values clearly:\n\n// Exercise count\n`${workout.exercises.length} exercise${workout.exercises.length !== 1 ? 's' : ''}`\n\n// Duration\n`${workout.durationMin} min`\n\n// Date\nnew Date(workout.performedAt).toLocaleDateString()\n\nConsistency in formatting keeps the UI readable across different data shapes.",
+                  "Dynamic values are formatted in the JSX using JavaScript expressions: exercise count with pluralization, duration in minutes, and dates localized via toLocaleDateString(). Consistency in formatting keeps the UI readable across different data shapes.",
                 order: 6,
               },
               {
@@ -373,7 +373,7 @@ export const levels = [
                     'export function formatWorkoutSummary(workout) {\n  // TODO: return "{title} by {authorUsername}"\n}\n',
                   editable_regions: [
                     {
-                      placeholder: "// TODO: return \"{title} by {authorUsername}\"",
+                      placeholder: '// TODO: return "{title} by {authorUsername}"',
                       case_sensitive: true,
                     },
                   ],
@@ -405,7 +405,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The component file already exists at `client/src/components/workout/WorkoutCard.tsx` — it is a stub that returns null. Your job is to replace the return statement with real JSX.",
+                  "The component file already exists at `client/src/components/workout/WorkoutCard.tsx` — it is a stub that returns null. The job is to replace the return statement with real JSX.",
                 order: 1,
               },
               {
@@ -439,7 +439,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description: "WorkoutCard renders the exercise count (e.g., \"3 exercises\")",
+                description: 'WorkoutCard renders the exercise count (e.g., "3 exercises")',
                 is_required: true,
                 order: 4,
               },
@@ -478,31 +478,31 @@ export const levels = [
               {
                 title: "Lifting State Up",
                 content:
-                  "When two sibling components need to share data, the state must live in their nearest common parent and flow down as props.\n\n// Feed.tsx (parent)\nconst [activeCategory, setActiveCategory] = useState<WorkoutCategory | 'all'>('all');\n\nreturn (\n  <>\n    <CategoryFilter active={activeCategory} onChange={setActiveCategory} />\n    <WorkoutList workouts={filtered} />\n  </>\n);\n\nNeither CategoryFilter nor WorkoutList should hold the filter state internally — the parent coordinates between them.",
+                  "When two sibling components need to share data, the state must live in their nearest common parent and flow down as props. Neither child component should hold the filter state internally — the parent coordinates between them.",
                 order: 2,
               },
               {
-                title: "Controlled vs Uncontrolled",
+                title: "Controlled Components",
                 content:
-                  "A controlled component's value is driven entirely by props passed from the parent. The component never holds its own state for the displayed value — it only calls the `onChange` callback when the user interacts.\n\nThis is the same pattern as a controlled `<input value={...} onChange={...} />`. CategoryFilter should work the same way: it receives `active` and calls `onChange` when a chip is clicked.",
+                  "A controlled component's value is driven entirely by props passed from the parent. The component never holds its own state for the displayed value — it only calls the `onChange` callback when the user interacts. This is the same pattern as a controlled `<input value={...} onChange={...} />`.",
                 order: 3,
               },
               {
                 title: "Pure Filter Functions",
                 content:
-                  "Filtering is pure data manipulation — no side effects needed:\n\nfunction filterByCategory(\n  workouts: Workout[],\n  category: WorkoutCategory | 'all'\n): Workout[] {\n  if (category === 'all') return workouts;\n  return workouts.filter(w => w.category === category);\n}\n\nA pure filter function is easy to unit-test in isolation and safe to call inside `useMemo`.",
+                  "Filtering is pure data manipulation — no side effects needed. A pure filter function is easy to unit-test in isolation and safe to call inside `useMemo`.",
                 order: 4,
               },
               {
                 title: "useMemo for Derived State",
                 content:
-                  "When a value is derived from props or state (like a filtered list), wrap it in `useMemo` so React only recomputes it when the input changes:\n\nconst filtered = useMemo(\n  () => filterByCategory(workouts, activeCategory),\n  [workouts, activeCategory]\n);\n\nThis prevents unnecessary re-renders when unrelated state changes.",
+                  "When a value is derived from props or state (like a filtered list), wrap it in `useMemo` so React only recomputes it when the input changes. This prevents unnecessary re-renders when unrelated state changes.",
                 order: 5,
               },
               {
                 title: "Chip Group Pattern",
                 content:
-                  "A chip group (also called a toggle group) is a row of labeled buttons where exactly one is active at a time. The active chip gets a highlighted style; clicking it de-selects to `'all'`.\n\nFitTrackr categories: all | strength | cardio | mobility | hiit\n\nEach chip should have role=\"button\" and visually distinguish itself as selected (e.g., different background color) when it matches `activeCategory`.",
+                  "A chip group (also called a toggle group) is a row of labeled buttons where exactly one is active at a time. The active chip gets a highlighted style. Each chip should have role=\"button\" and visually distinguish itself as selected when it matches the active category.",
                 order: 6,
               },
               {
@@ -513,7 +513,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete filterByCategory so it returns all items when category is \"all\", and only items matching the category otherwise.",
+                    'Complete filterByCategory so it returns all items when category is "all", and only items matching the category otherwise.',
                   language: "javascript",
                   starter_code:
                     "export function filterByCategory(items, category) {\n  // TODO: return all items when category === 'all'\n  // return only matching items otherwise\n}\n",
@@ -558,7 +558,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Lifting state up and passing it down via props is the fundamental React pattern for coordinating between sibling components. Keep filter logic pure and separated from rendering — it's easier to test, easier to extend, and easier to debug.",
+                  "Lifting state up and passing it down via props is the fundamental React pattern for coordinating between sibling components. Keep filter logic pure and separated from rendering — it is easier to test, easier to extend, and easier to debug.",
                 order: 8,
               },
             ],
@@ -603,7 +603,7 @@ export const levels = [
               },
               {
                 description:
-                  "filterByCategory in utils/helpers.ts returns workouts unchanged when category is \"all\"",
+                  'filterByCategory in utils/helpers.ts returns workouts unchanged when category is "all"',
                 is_required: true,
                 order: 4,
               },
@@ -629,7 +629,7 @@ export const levels = [
     order: 3,
     deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The weekly leaderboard is returning empty results and bad data. Two backend tasks await you: fix the broken MongoDB aggregation pipeline in the leaderboard controller, then wrap it in proper Express error handling and query-param validation so the endpoint is production-ready.",
+      "Mission Briefing: The weekly leaderboard is returning empty results and bad data. Two backend tasks await: fix the broken MongoDB aggregation pipeline in the leaderboard controller, then wrap it in proper Express error handling and query-param validation so the endpoint is production-ready.",
     xp_reward: 200,
     coin_reward: 100,
     key_takeaways:
@@ -654,31 +654,31 @@ export const levels = [
               {
                 title: "What is an Aggregation Pipeline?",
                 content:
-                  "An aggregation pipeline is a sequence of stages that each transform the documents flowing through it:\n\nWorkout.aggregate([\n  { $match: ... },   // 1. filter\n  { $lookup: ... },  // 2. join\n  { $group: ... },   // 3. group + accumulate\n  { $sort: ... },    // 4. sort\n  { $limit: ... },   // 5. cap results\n  { $project: ... }, // 6. shape output\n])\n\nEach stage receives the output of the previous stage. Order matters enormously — a mistake early in the pipeline corrupts everything downstream.",
+                  "An aggregation pipeline is a sequence of stages that each transform the documents flowing through it. Each stage receives the output of the previous stage. Order matters enormously — a mistake early in the pipeline corrupts everything downstream.",
                 order: 2,
               },
               {
                 title: "$match Before $lookup — Why It Matters",
                 content:
-                  "Running $lookup (a join) before $match means you join every document in the collection before filtering. For a collection with 100k workouts, you compute 100k joins, then throw away 93k.\n\nCorrect order:\n[\n  { $match: { performedAt: { $gte: sevenDaysAgo } } }, // filter first\n  { $lookup: { ... } },                                // then join\n]\n\nThis can be the difference between a 2ms query and a 2000ms query.",
+                  "Running $lookup (a join) before $match joins every document in the collection before filtering. For a collection with 100k workouts, that computes 100k joins before discarding 93k. Filtering first can be the difference between a 2ms query and a 2000ms query.",
                 order: 3,
               },
               {
                 title: "Date Math for a 7-Day Window",
                 content:
-                  "To find workouts from the last 7 days, compute the cutoff date:\n\nconst sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);\n\nA common bug is using `new Date()` without any subtraction — which makes the cutoff \"right now\", so only workouts from the current millisecond match (effectively empty results).",
+                  "To find workouts from the last 7 days, compute the cutoff date by subtracting 7 days in milliseconds from the current time. A common bug is using `new Date()` without any subtraction — which makes the cutoff the current moment, so only workouts from that exact millisecond match.",
                 order: 4,
               },
               {
                 title: "$group Accumulators and Field Names",
                 content:
-                  "The $group stage accumulates values across documents. Field paths use the $ prefix:\n\n{ $group: {\n  _id: '$authorId',\n  totalCheers: { $sum: '$cheerCount' },  // correct: field is cheerCount\n  workoutCount: { $sum: 1 },\n}}\n\nA misspelled field like '$cheers' (instead of '$cheerCount') silently returns 0 for every document — MongoDB doesn't throw an error for missing field references.",
+                  "The $group stage accumulates values across documents. Field paths use the $ prefix. A misspelled field silently returns 0 for every document — MongoDB does not throw an error for missing field references.",
                 order: 5,
               },
               {
                 title: "$sort and $limit for Ranked Results",
                 content:
-                  "Without $sort and $limit, the aggregation returns documents in arbitrary order and could return the entire collection.\n\n{ $sort: { totalCheers: -1 } },  // -1 = descending (highest first)\n{ $limit: 10 },                  // cap at top 10\n\nAlways add both when building a ranked leaderboard — they prevent unbounded queries and non-deterministic ordering.",
+                  "Without $sort and $limit, the aggregation returns documents in arbitrary order and could return the entire collection. Always add both when building a ranked leaderboard — they prevent unbounded queries and non-deterministic ordering.",
                 order: 6,
               },
               {
@@ -713,7 +713,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Always match (filter) before you lookup (join). Always use the correct field names with $ prefix in accumulators. Always sort and limit ranked queries. Three rules — three of the most common aggregation bugs fixed.",
+                  "Always match (filter) before lookup (join). Always use the correct field names with $ prefix in accumulators. Always sort and limit ranked queries. Three rules — three of the most common aggregation bugs fixed.",
                 order: 8,
               },
             ],
@@ -732,7 +732,7 @@ export const levels = [
               },
               {
                 description:
-                  "After fixing the date math, check the $group stage's $sum field reference — it references a field name that doesn't exist on Workout documents. Also ensure $sort and $limit are present.",
+                  "After fixing the date math, check the $group stage's $sum field reference — it references a field name that does not exist on Workout documents. Also ensure $sort and $limit are present.",
                 order: 3,
               },
             ],
@@ -787,31 +787,31 @@ export const levels = [
               {
                 title: "Query Parameter Validation with Zod",
                 content:
-                  "Query parameters arrive as strings and must be validated before use. Zod makes this declarative:\n\nconst leaderboardQuerySchema = z.object({\n  limit: z.string().optional()\n    .transform(v => v === undefined ? 10 : Number(v))\n    .pipe(z.number().int().min(1).max(50)),\n});\n\nThis schema transforms the raw string into a number, then validates it is an integer between 1 and 50. Invalid values (e.g., \"abc\", 999) cause validation to fail before the controller runs.",
+                  "Query parameters arrive as strings and must be validated before use. Zod makes this declarative by transforming raw strings into typed values and validating constraints before the controller runs.",
                 order: 2,
               },
               {
                 title: "The validateRequest Middleware",
                 content:
-                  "FitTrackr has a shared `validateRequest` middleware that wraps Zod schemas and automatically returns 400 with a helpful error message on failure. Use it on your route:\n\nrouter.get(\n  '/leaderboard',\n  validateRequest({ query: leaderboardQuerySchema }),\n  getLeaderboard\n);\n\nThis keeps validation logic out of the controller and ensures every invalid request is rejected before reaching business logic.",
+                  "The shared `validateRequest` middleware wraps Zod schemas and automatically returns 400 with a helpful error message on failure. This keeps validation logic out of the controller and ensures every invalid request is rejected before reaching business logic.",
                 order: 3,
               },
               {
                 title: "Response Envelopes",
                 content:
-                  "Consistent response shapes make client code simpler. FitTrackr uses:\n\n// Success\nres.status(200).json({ success: true, data: payload });\n\n// Failure\nres.status(400).json({ success: false, message: 'limit must be between 1 and 50' });\n\nClients only need to check `body.success` to decide how to handle the response — no guessing about status codes or field names.",
+                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, message: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
                 order: 4,
               },
               {
                 title: "Async Error Propagation with next(err)",
                 content:
-                  "Unhandled promise rejections in Express crash the process or return no response. Always wrap async controllers in try/catch and forward errors to next:\n\nexport async function getLeaderboard(\n  req: Request, res: Response, next: NextFunction\n) {\n  try {\n    const data = await Workout.aggregate([...]);\n    res.json({ success: true, data });\n  } catch (err) {\n    next(err); // passes to the global error handler\n  }\n}\n\nThe global error handler in `middleware/errorHandler.ts` converts these into proper 500 responses.",
+                  "Unhandled promise rejections in Express crash the process or return no response. Async controllers wrapped in try/catch forward errors to next(err), which passes them to the global error handler that converts them into proper 500 responses.",
                 order: 5,
               },
               {
                 title: "Express RequestHandler Typing",
                 content:
-                  "Typing Express handlers in TypeScript prevents `req.query` from being typed as `any`:\n\nimport type { Request, Response, NextFunction } from 'express';\n\nexport async function getLeaderboard(\n  req: Request,\n  res: Response,\n  next: NextFunction\n): Promise<void> { ... }\n\nWith the Zod schema attached to the route, `req.query.limit` becomes a typed `number` after validation.",
+                  "Typing Express handlers in TypeScript prevents `req.query` from being typed as `any`. With the Zod schema attached to the route, validated query params become properly typed values.",
                 order: 6,
               },
               {
@@ -851,7 +851,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Production endpoints do three things: validate inputs before processing, return consistent response shapes, and propagate errors without crashing. Get these right and your API becomes predictable for every caller.",
+                  "Production endpoints do three things: validate inputs before processing, return consistent response shapes, and propagate errors without crashing. Get these right and the API becomes predictable for every caller.",
                 order: 8,
               },
             ],
@@ -930,7 +930,7 @@ export const levels = [
     xp_reward: 250,
     coin_reward: 125,
     key_takeaways:
-      "Idempotent operations are safe to retry — a second cheer request from the same user should produce the same state as the first without double-counting. Separating the Cheer join-table from a cheerCount cache lets you maintain both an accurate count and a queryable history of who cheered what.\n\nStreak computation is a pure algorithm over date-keyed data: deduplicate workouts to one per calendar day, then count consecutive days walking backwards from today. Caching vs. computing on the fly involves a real trade-off: computation is always correct but O(n); a cache is fast but can drift if not invalidated correctly.",
+      "Idempotent operations are safe to retry — a second cheer request from the same user should produce the same state as the first without double-counting. Separating the Cheer join-table from a cheerCount cache enables both an accurate count and a queryable history of who cheered what.\n\nStreak computation is a pure algorithm over date-keyed data: deduplicate workouts to one per calendar day, then count consecutive days walking backwards from today. Computation is always correct but O(n); a cache is fast but can drift if not invalidated correctly.",
     scenario_id: "mern-ft-scenario-2",
     tasks: {
       create: [
@@ -951,31 +951,31 @@ export const levels = [
               {
                 title: "REST Verb Semantics for Social Actions",
                 content:
-                  "Cheer maps naturally to REST verbs:\n\nPOST /api/workouts/:id/cheer   → add a cheer (idempotent)\nDELETE /api/workouts/:id/cheer → remove a cheer\n\nPOST is appropriate for creating a resource (a Cheer document). DELETE removes it. Both are scoped to the authenticated user's identity via the JWT — you never pass userId in the body.",
+                  "Cheer maps naturally to REST verbs: POST creates a Cheer document (idempotent), DELETE removes it. Both are scoped to the authenticated user's identity via the JWT — the userId is never passed in the body.",
                 order: 2,
               },
               {
                 title: "Idempotency: Safe to Retry",
                 content:
-                  "An idempotent operation produces the same result no matter how many times it is called with the same input. Cheer should be idempotent:\n\n- First POST → create Cheer doc, increment cheerCount → return 201\n- Second POST (same user) → Cheer doc already exists → no-op, return 200\n\nNever double-increment. A user's cheerCount contribution is either 0 (not cheered) or 1 (cheered).",
+                  "An idempotent operation produces the same result no matter how many times it is called with the same input. The first POST creates the Cheer doc and increments the counter; a second POST from the same user finds the existing doc and returns success without incrementing again.",
                 order: 3,
               },
               {
                 title: "Join Table Pattern (Cheer Model)",
                 content:
-                  "Rather than storing a list of userId values inside the Workout document, FitTrackr uses a separate Cheer collection (join table):\n\nCheer: { workoutId, userId, cheeredAt }\n\nBenefits:\n- Queryable: \"who cheered this workout?\" is an index scan, not an array scan\n- Countable: Cheer.countDocuments({ workoutId }) gives accurate counts\n- No document size limit issues (a viral post with 100k cheers stays fast)",
+                  "Rather than storing a list of userId values inside the Workout document, a separate Cheer collection (join table) stores each cheer as its own document. This makes queries scannable by index, counts accurate via countDocuments, and avoids document size limit issues.",
                 order: 4,
               },
               {
                 title: "Atomic Increment with $inc",
                 content:
-                  "When creating a cheer, increment the counter atomically so concurrent requests don't race:\n\nawait Workout.findByIdAndUpdate(\n  workoutId,\n  { $inc: { cheerCount: 1 } },\n  { new: true }\n);\n\nNever read-modify-write (fetch, then set). Atomic $inc is the MongoDB-safe way to update counters under concurrent load.",
+                  "When creating a cheer, the counter is incremented atomically using $inc so concurrent requests do not race. Never read-modify-write (fetch, then set) — atomic $inc is the MongoDB-safe way to update counters under concurrent load.",
                 order: 5,
               },
               {
                 title: "Optimistic UI Updates",
                 content:
-                  "For a snappy UX, update the UI immediately before the server confirms the action:\n\n// 1. Update state immediately (optimistic)\nsetCheerCount(prev => prev + 1);\nsetCheered(true);\n\ntry {\n  await cheerWorkout(id); // confirm with server\n} catch {\n  // 2. Revert on error\n  setCheerCount(prev => prev - 1);\n  setCheered(false);\n}\n\nThis makes the UI feel instant even on slow connections.",
+                  "For a snappy UX, the UI updates immediately before the server confirms the action. If the server request fails, the UI reverts to the previous state. This makes the interface feel instant even on slow connections.",
                 order: 6,
               },
               {
@@ -986,7 +986,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete nextCheerCount(current, action) where action is \"cheer\" or \"uncheer\". Never return a count below 0.",
+                    'Complete nextCheerCount(current, action) where action is "cheer" or "uncheer". Never return a count below 0.',
                   language: "javascript",
                   starter_code:
                     "export function nextCheerCount(current, action) {\n  // TODO: return current + 1 for 'cheer', current - 1 for 'uncheer' (min 0)\n}\n",
@@ -1108,31 +1108,31 @@ export const levels = [
               {
                 title: "What is a Workout Streak?",
                 content:
-                  "A streak is the number of consecutive calendar days on which a user has logged at least one workout. The streak continues today (or ended yesterday — the app doesn't break the streak for not yet working out today).\n\nExamples:\n- Workouts on Mon, Tue, Wed → streak: 3\n- Workouts on Mon, Wed (gap on Tue) → streak: 1 (only Wed counts)\n- No workouts → streak: 0",
+                  "A streak is the number of consecutive calendar days on which a user has logged at least one workout. The streak continues today (or ended yesterday — the app does not break the streak for not yet working out today).\n\nExamples:\n- Workouts on Mon, Tue, Wed → streak: 3\n- Workouts on Mon, Wed (gap on Tue) → streak: 1 (only Wed counts)\n- No workouts → streak: 0",
                 order: 2,
               },
               {
                 title: "Date-Only Comparison",
                 content:
-                  "Workout timestamps are full Date objects (e.g., 2026-01-12T09:45:00Z). To count streaks you only care about the calendar date, not the time.\n\nConvert to a date string:\n\nfunction toDateKey(date: Date): string {\n  return date.toISOString().slice(0, 10); // '2026-01-12'\n}\n\nThen group workouts by their date key to get one entry per calendar day.",
+                  "Workout timestamps are full Date objects. To count streaks, only the calendar date matters, not the time. Converting each timestamp to a date string allows grouping workouts by their date key to get one entry per calendar day.",
                 order: 3,
               },
               {
                 title: "Deduplication and Sorting",
                 content:
-                  "Multiple workouts on the same day still count as one streak day. Use a Set to deduplicate:\n\nconst days = [...new Set(\n  workouts.map(w => toDateKey(new Date(w.performedAt)))\n)].sort().reverse(); // newest first\n\nNow `days` is a sorted, deduplicated array of date strings. Walk it to count consecutive days.",
+                  "Multiple workouts on the same day still count as one streak day. A Set deduplicates the date strings. Sorting in descending order produces a list that can be walked to count consecutive days.",
                 order: 4,
               },
               {
                 title: "Counting Consecutive Days",
                 content:
-                  "Walking backwards from today:\n\nlet streak = 0;\nlet cursor = new Date();\n\nfor (const day of days) {\n  const expected = toDateKey(cursor);\n  if (day === expected) {\n    streak++;\n    cursor.setDate(cursor.getDate() - 1); // go back one day\n  } else if (day === toDateKey(yesterday)) {\n    // allow starting from yesterday (streak hasn't broken yet today)\n    streak++;\n    cursor = new Date(yesterday);\n    cursor.setDate(cursor.getDate() - 1);\n  } else {\n    break; // gap found, streak ends\n  }\n}",
+                  "Walking backwards from today, each matching date increments the streak counter and moves the cursor back one day. The algorithm allows starting from yesterday so the streak is not broken simply because the user has not worked out yet today. A gap of more than one day ends the streak.",
                 order: 5,
               },
               {
                 title: "The Streak API Shape",
                 content:
-                  "The endpoint GET /api/users/me/streak returns:\n\n{\n  success: true,\n  data: {\n    currentStreak: 5,\n    longestStreak: 12,\n    lastWorkoutDate: '2026-05-06' | null\n  }\n}\n\nlongestStreak must always be >= currentStreak. When there are no workouts, all values are 0 / null.",
+                  "The endpoint GET /api/users/me/streak returns `{ success: true, data: { currentStreak, longestStreak, lastWorkoutDate } }`. longestStreak must always be >= currentStreak. When there are no workouts, all values are 0 or null.",
                 order: 6,
               },
               {
@@ -1290,31 +1290,31 @@ export const levels = [
               {
                 title: "The Bug: Duplicate Cheer Documents",
                 content:
-                  'Client Report: "Some workouts show 12 cheers but we can only count 6 distinct users who cheered."\n\nRoot cause: two concurrent POST /cheer requests from the same user both execute Cheer.findOne({ userId, workoutId }) simultaneously and both find no existing document. They both proceed to insert — so now there are 2 Cheer docs for the same pair, and cheerCount was incremented twice.\n\nThis is the classic "check then act" race condition.',
+                  'Client Report: "Some workouts show 12 cheers but we can only count 6 distinct users who cheered."\n\nRoot cause: two concurrent POST /cheer requests from the same user both execute Cheer.findOne({ userId, workoutId }) simultaneously and both find no existing document. They both proceed to insert — so now there are 2 Cheer docs for the same pair, and cheerCount was incremented twice. This is the classic "check then act" race condition.',
                 order: 2,
               },
               {
                 title: "Application-Level Checks Are Not Enough",
                 content:
-                  "A findOne → create sequence has a race window between the read and the write:\n\nRequest A reads:  no cheer found\nRequest B reads:  no cheer found  (same moment)\nRequest A writes: Cheer doc created ✅\nRequest B writes: Cheer doc created ❌ (duplicate!)\n\nNo amount of careful application-level logic can close this window. Only the database can enforce uniqueness atomically.",
+                  "A findOne → create sequence has a race window between the read and the write. No amount of careful application-level logic can close this window. Only the database can enforce uniqueness atomically.",
                 order: 3,
               },
               {
                 title: "MongoDB Unique Indexes",
                 content:
-                  "A compound unique index tells MongoDB to reject any insert that would create a duplicate combination of fields:\n\nCheerSchema.index({ userId: 1, workoutId: 1 }, { unique: true });\n\nThis index is enforced at the storage engine level — no race condition is possible. The second insert fails with a duplicate-key error (E11000) before the document is written.",
+                  "A compound unique index tells MongoDB to reject any insert that would create a duplicate combination of fields. This index is enforced at the storage engine level — no race condition is possible. The second insert fails with a duplicate-key error (E11000) before the document is written.",
                 order: 4,
               },
               {
                 title: "Handling E11000 in the Controller",
                 content:
-                  "When the unique index rejects a duplicate insert, Mongoose throws an error with code 11000. Catch it and treat it as the idempotent path:\n\ntry {\n  await Cheer.create({ userId, workoutId });\n  await Workout.findByIdAndUpdate(workoutId, { $inc: { cheerCount: 1 } });\n  return res.status(201).json({ success: true, cheered: true });\n} catch (err: any) {\n  if (err.code === 11000) {\n    // already cheered — idempotent, return current state\n    return res.status(200).json({ success: true, cheered: true });\n  }\n  throw err;\n}",
+                  "When the unique index rejects a duplicate insert, Mongoose throws an error with code 11000. Catching it and treating it as the idempotent path returns success without double-incrementing the counter.",
                 order: 5,
               },
               {
                 title: "Backfill: Cleaning Up Existing Duplicates",
                 content:
-                  "Once the unique index is added with syncIndexes(), MongoDB enforces it going forward. But existing duplicate documents from before the fix must be cleaned up manually:\n\n// Find all duplicate (userId, workoutId) pairs\nconst dups = await Cheer.aggregate([\n  { $group: { _id: { userId: '$userId', workoutId: '$workoutId' }, count: { $sum: 1 }, ids: { $push: '$_id' } } },\n  { $match: { count: { $gt: 1 } } },\n]);\n\nFor each pair, keep the oldest doc and delete the rest, then recalculate cheerCount from the clean Cheer collection.",
+                  "Once the unique index is added with syncIndexes(), MongoDB enforces it going forward. Existing duplicate documents from before the fix must be cleaned up by finding all duplicate (userId, workoutId) pairs, keeping the oldest doc and deleting the rest, then recalculating cheerCount from the clean Cheer collection.",
                 order: 6,
               },
               {
@@ -1435,31 +1435,31 @@ export const levels = [
               {
                 title: "The Bug: Wrong Day Assignment",
                 content:
-                  'Client Report: "I log a workout at 11:30 PM on Monday (I\'m in Manila, UTC+8) but my streak page says it counts as Tuesday and breaks my streak."\n\nRoot cause: the streak controller uses:\nperformedAt.toISOString().slice(0, 10)\n\nFor a workout logged at 2026-01-12T15:30:00Z, this gives "2026-01-12" — the UTC date. But for a user in UTC+8, that timestamp is 23:30 on January 12 (local) — still Monday. The UTC date is correct here. The problem appears for workouts like 2026-01-12T16:30:00Z which is 00:30 on January 13 local — a different local day than what toISOString() gives.',
+                  'Client Report: "I log a workout at 11:30 PM on Monday (I\'m in Manila, UTC+8) but my streak page says it counts as Tuesday and breaks my streak."\n\nRoot cause: the streak controller uses performedAt.toISOString().slice(0, 10), which always returns the UTC date. For a user in UTC+8, a workout timestamp that is 00:30 local the next day gets assigned to the wrong calendar day. The problem only affects users in timezones with positive offsets where late-night workouts cross the UTC date boundary.',
                 order: 2,
               },
               {
                 title: "JavaScript Date is Always UTC",
                 content:
-                  "new Date('2026-01-12T15:30:00Z') stores a UTC instant. It has no local timezone built in — it's always UTC underneath.\n\nMethods to get local calendar info:\n- getDate(), getMonth() → uses the system's local timezone (wrong on a UTC server)\n- toISOString() → always UTC\n- Intl.DateTimeFormat → correct, uses specified IANA timezone\n\nOn a UTC server, getDate() and toISOString().slice(0,10) return the same thing — the UTC date. Neither is correct for a user in UTC+8.",
+                  "new Date() stores a UTC instant. It has no local timezone built in — it is always UTC underneath. Using toISOString() always converts to UTC. Using getDate() uses the system locale (wrong on a UTC server). Intl.DateTimeFormat is the correct approach because it accepts an explicit IANA timezone parameter.",
                 order: 3,
               },
               {
                 title: "IANA Timezone Identifiers",
                 content:
-                  "IANA timezones (like \"Asia/Manila\", \"America/New_York\", \"Europe/London\") encode both the UTC offset AND daylight saving time rules. They are more reliable than raw offsets (+08:00) because:\n- UTC+8 doesn't exist in the IANA database — \"Asia/Manila\" does\n- Some regions observe DST, shifting the offset seasonally\n- IANA IDs are stable and recognized by all modern JS runtimes\n\nStore the user's IANA timezone in User.timezone (default: 'UTC').",
+                  "IANA timezones (like \"Asia/Manila\", \"America/New_York\", \"Europe/London\") encode both the UTC offset and daylight saving time rules. They are more reliable than raw offsets because some regions observe DST, shifting the offset seasonally. Store the user's IANA timezone in User.timezone (default: 'UTC').",
                 order: 4,
               },
               {
                 title: "Intl.DateTimeFormat for Timezone-Aware Date Keys",
                 content:
-                  "The Web Standard way to get a calendar date in a specific timezone:\n\nfunction localDateKey(instant: Date, tz: string): string {\n  return new Intl.DateTimeFormat('en-CA', {\n    timeZone: tz,\n    year: 'numeric',\n    month: '2-digit',\n    day: '2-digit',\n  }).format(instant); // returns 'YYYY-MM-DD' in en-CA locale\n}\n\nlocalDateKey(new Date('2026-01-12T15:30:00Z'), 'Asia/Manila')\n// → '2026-01-12' (23:30 Monday local — correct)",
+                  "The Web Standard way to get a calendar date in a specific timezone is Intl.DateTimeFormat with en-CA locale, which produces YYYY-MM-DD output. This correctly converts the UTC timestamp to the user's local calendar day.",
                 order: 5,
               },
               {
                 title: "Reading the User's Timezone",
                 content:
-                  "The streak controller has access to the authenticated user via req.user (populated by the auth middleware). The User model has a timezone field:\n\nconst tz = req.user.timezone ?? 'UTC';\n\nUse this when calling localDateKey() for every workout's performedAt. Default to 'UTC' when no timezone is set so existing UTC-timezone users are unaffected.",
+                  "The streak controller has access to the authenticated user via req.user (populated by the auth middleware). The User model has a timezone field that defaults to 'UTC' when no timezone is set, so existing UTC-timezone users are unaffected.",
                 order: 6,
               },
               {
@@ -1519,7 +1519,7 @@ export const levels = [
               },
               {
                 description:
-                  "The test seeds two workouts at 15:30Z on consecutive UTC dates for a Manila user (UTC+8). After your fix, both should group to their correct local calendar days (consecutive) and produce streak: 2. Verify UTC-timezone users are still unaffected.",
+                  "The test seeds two workouts at 15:30Z on consecutive UTC dates for a Manila user (UTC+8). After the fix, both should group to their correct local calendar days (consecutive) and produce streak: 2. Verify UTC-timezone users are still unaffected.",
                 order: 3,
               },
             ],
