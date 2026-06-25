@@ -16,11 +16,11 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: City Hall has onboarded a new developer (you!) and needs the customer support portal running locally with environment configuration and minor UI tweaks. Set up the Next.js development environment, configure environment variables for the support phone, email, and app name, then replace hard-coded UI text to use these variables.",
+      "Mission Briefing: City Hall has onboarded a new developer and needs the customer support portal running locally with environment configuration and minor UI tweaks. The Next.js development environment needs to be set up, environment variables configured for the support phone, email, and app name, and hard-coded UI text replaced to use these variables.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Environment variables centralize per-environment configuration in Next.js, separating deployment-specific values from source code. Using NEXT_PUBLIC_* variables for client-visible values keeps phone numbers, emails, and app names easy to change without code edits. This pattern is essential for portable Next.js applications.\n\nReplacing hard-coded UI text with environment-driven values prepares the codebase for white-labelling and per-tenant customization. Verifying the dev server runs cleanly before any feature work establishes a reliable baseline you can return to when debugging.",
+      "Environment variables centralize per-environment configuration in Next.js, separating deployment-specific values from source code. Using NEXT_PUBLIC_* variables for client-visible values keeps phone numbers, emails, and app names easy to change without code edits. This pattern is essential for portable Next.js applications.\n\nReplacing hard-coded UI text with environment-driven values prepares the codebase for white-labelling and per-tenant customization. Verifying the dev server runs cleanly before any feature work establishes a reliable baseline to return to when debugging.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
@@ -52,21 +52,36 @@ export const levels = [
               {
                 title: "Replacing Hard-Coded Values",
                 content:
-                  "Search the codebase for the exact strings you want to replace. Use the editor's find feature (Ctrl+Shift+F in VS Code) to search for the old phone number or email, then replace them with the environment variable.\n\n// Before\n<p>(555) 123-4567</p>\n// After\n<p>{process.env.NEXT_PUBLIC_SUPPORT_PHONE}</p>",
+                  "Hard-coded strings can be found by searching the codebase for the specific values. The editor's find feature (Ctrl+Shift+F in VS Code) can be used to locate the old phone number or email, which are then replaced with the environment variable.\n\n// Before\n<p>(555) 123-4567</p>\n// After\n<p>{process.env.NEXT_PUBLIC_SUPPORT_PHONE}</p>",
                 order: 4,
+              },
+              {
+                title: "Practice Lab: Adding shadcn/ui Components",
+                content:
+                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn-ui@latest add textarea",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "TERMINAL_CMD" as const,
+                interactive_config: {
+                  instructions:
+                    "Run the shadcn/ui CLI command to add the Textarea component. Type the exact command and click Check to verify.",
+                  expected_commands: [
+                    "pnpm dlx shadcn-ui@latest add textarea",
+                  ],
+                },
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Environment variables make a Next.js app portable. Replace hard-coded tenant details with NEXT_PUBLIC_* variables so the same codebase can run for different organizations without edits.",
-                order: 5,
+                  "Environment variables make a Next.js app portable. Hard-coded tenant details are replaced with NEXT_PUBLIC_* variables so the same codebase can run for different organizations without edits.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Run `npm install` at the project root and inside the `client/` folder.",
+                description: "Run `pnpm install` at the project root and inside the `client/` folder.",
                 order: 1,
               },
               {
@@ -83,7 +98,7 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on `npm run dev`",
+                description: "App runs without errors on `pnpm run dev`",
                 is_required: true,
                 order: 1,
               },
@@ -128,13 +143,13 @@ export const levels = [
               {
                 title: "Verifying Copy Changes",
                 content:
-                  "After editing, check every page that might share the component. A layout change affects all pages that use it. A page-specific change only affects that route. Use the browser dev tools to verify each route.",
+                  "After editing, every page that might share the component should be checked. A layout change affects all pages that use it. A page-specific change only affects that route. Browser dev tools can be used to verify each route.",
                 order: 4,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Consistent copy is a sign of a polished product. Align button labels, loading states, and headings with the environment variables so the portal feels cohesive.",
+                  "Consistent copy is a sign of a polished product. Button labels, loading states, and headings should be aligned with the environment variables so the portal feels cohesive.",
                 order: 5,
               },
             ],
@@ -210,19 +225,19 @@ export const levels = [
               {
                 title: "The Contrast Problem",
                 content:
-                  "Default badge colors often fail accessibility standards. A bg-blue-500 text-white badge might look fine to you, but be unreadable for someone with low-contrast vision. The *-100 / *-800 pairing guarantees enough contrast:\n\n• bg-green-100 + text-green-800 → Active\n• bg-yellow-100 + text-yellow-800 → Waiting\n• bg-gray-100 + text-gray-800 → Resolved",
+                  "Default badge colors often fail accessibility standards. A bg-blue-500 text-white badge might look fine but be unreadable for someone with low-contrast vision. The *-100 / *-800 pairing guarantees enough contrast:\n\n• bg-green-100 + text-green-800 → Active\n• bg-yellow-100 + text-yellow-800 → Waiting\n• bg-gray-100 + text-gray-800 → Resolved",
                 order: 2,
               },
               {
                 title: "Mapping Status to Color",
                 content:
-                  "Create a helper that maps each status to its palette. Don't inline the classes in every render — centralize them:\n\nconst statusPalette = {\n  active: 'bg-green-100 text-green-800',\n  waiting: 'bg-yellow-100 text-yellow-800',\n  resolved: 'bg-gray-100 text-gray-800',\n};\n\nfunction getStatusBadge(status: string) {\n  return statusPalette[status] || 'bg-gray-100 text-gray-800';\n}",
+                  "A helper that maps each status to its palette should be created. Classes should not be inlined in every render — they should be centralized:\n\nconst statusPalette = {\n  active: 'bg-green-100 text-green-800',\n  waiting: 'bg-yellow-100 text-yellow-800',\n  resolved: 'bg-gray-100 text-gray-800',\n};\n\nfunction getStatusBadge(status: string) {\n  return statusPalette[status] || 'bg-gray-100 text-gray-800';\n}",
                 order: 3,
               },
               {
                 title: "Verifying Accessibility",
                 content:
-                  "Use browser dev tools to check contrast ratios. The goal is WCAG AA (4.5:1 for normal text). The *-100 / *-800 combinations typically exceed 7:1, which is AAA. Distinct colors also help users scan quickly — a green badge means 'active' at a glance.",
+                  "Browser dev tools can be used to check contrast ratios. The goal is WCAG AA (4.5:1 for normal text). The *-100 / *-800 combinations typically exceed 7:1, which is AAA. Distinct colors also help users scan quickly — a green badge means 'active' at a glance.",
                 order: 4,
               },
               {
@@ -267,7 +282,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Accessible palettes are not just nice-to-have — they are required for usability. Map every status to a tested, high-contrast combination and reuse it across the app.",
+                  "Accessible palettes are not just nice-to-have — they are required for usability. Every status should be mapped to a tested, high-contrast combination and reused across the app.",
                 order: 6,
               },
             ],
@@ -331,7 +346,7 @@ export const levels = [
               {
                 title: "Extracting a MessageBubble",
                 content:
-                  "Create a component that accepts a message and a viewer prop to control alignment:\n\n// components/MessageBubble.tsx\nexport function MessageBubble({ message, viewer }: { message: string; viewer: 'customer' | 'agent' }) {\n  const align = viewer === 'customer' ? 'justify-start' : 'justify-end';\n  return (\n    <div className={`flex ${align}`}>\n      <div className=\"rounded p-2\">{message}</div>\n    </div>\n  );\n}\n\nThis single component replaces both inline versions.",
+                  "A component that accepts a message and a viewer prop to control alignment can be created:\n\n// components/MessageBubble.tsx\nexport function MessageBubble({ message, viewer }: { message: string; viewer: 'customer' | 'agent' }) {\n  const align = viewer === 'customer' ? 'justify-start' : 'justify-end';\n  return (\n    <div className={`flex ${align}`}>\n      <div className=\"rounded p-2\">{message}</div>\n    </div>\n  );\n}\n\nThis single component replaces both inline versions.",
                 order: 3,
               },
               {
@@ -372,7 +387,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Duplication is a maintenance tax. Extract shared markup into components and consolidate derived state into useMemo. The codebase becomes smaller, faster, and more consistent.",
+                  "Duplication is a maintenance tax. Shared markup should be extracted into components and derived state should be consolidated into useMemo. The codebase becomes smaller, faster, and more consistent.",
                 order: 6,
               },
             ],
@@ -454,13 +469,13 @@ export const levels = [
               {
                 title: "Filter Chips UI",
                 content:
-                  "Use shadcn/ui Badge or Button components for filter chips. Highlight the active chip so the user knows which filter is applied:\n\nconst chips = ['all', 'active', 'waiting', 'resolved'];\n{chips.map(chip => (\n  <button\n    key={chip}\n    className={statusFilter === chip ? 'bg-primary' : 'bg-secondary'}\n    onClick={() => setStatusFilter(chip)}\n  >\n    {chip}\n  </button>\n))}\n\nThis pattern is reusable for any filterable list.",
+                  "shadcn/ui Badge or Button components can be used for filter chips. The active chip should be highlighted so the user knows which filter is applied:\n\nconst chips = ['all', 'active', 'waiting', 'resolved'];\n{chips.map(chip => (\n  <button\n    key={chip}\n    className={statusFilter === chip ? 'bg-primary' : 'bg-secondary'}\n    onClick={() => setStatusFilter(chip)}\n  >\n    {chip}\n  </button>\n))}\n\nThis pattern is reusable for any filterable list.",
                 order: 3,
               },
               {
                 title: "Empty States",
                 content:
-                  "When combined filters yield no results, show a clear message inside the list container:\n\n{filtered.length === 0 && (\n  <p>No conversations found</p>\n)}\n\nThis prevents the UI from looking broken and tells the user their filters are too restrictive.",
+                  "When combined filters yield no results, a clear message should be shown inside the list container:\n\n{filtered.length === 0 && (\n  <p>No conversations found</p>\n)}\n\nThis prevents the UI from looking broken and tells the user their filters are too restrictive.",
                 order: 4,
               },
               {
@@ -508,7 +523,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Real-time filtering is a combination of controlled state, useMemo, and thoughtful UI. Give users both text search and discrete chips, and always handle the empty state.",
+                  "Real-time filtering is a combination of controlled state, useMemo, and thoughtful UI. Users should be given both text search and discrete chips, and the empty state should always be handled as a first-class UI concern.",
                 order: 6,
               },
             ],
@@ -582,13 +597,13 @@ export const levels = [
               {
                 title: "Creating a New Route",
                 content:
-                  "Create app/support/history/page.tsx to add the /support/history route. Use the same layout as the support page by placing it inside the support folder.\n\napp/support/\n    ├── page.tsx ← /support\n    └── history/page.tsx ← /support/history\n\nAdd a link from the support page to the history page so users can navigate.",
+                  "app/support/history/page.tsx should be created to add the /support/history route. The same layout as the support page is used by placing it inside the support folder.\n\napp/support/\n    ├── page.tsx ← /support\n    └── history/page.tsx ← /support/history\n\nA link should be added from the support page to the history page so users can navigate.",
                 order: 4,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "localStorage is a lightweight database for the browser. Use it to store user-generated data before a backend exists. Always serialize to JSON, always handle the empty state, and always provide navigation.",
+                  "localStorage is a lightweight database for the browser. It can be used to store user-generated data before a backend exists. Data should be serialized to JSON, the empty state should always be handled, and navigation should always be provided.",
                 order: 5,
               },
             ],
@@ -673,25 +688,25 @@ export const levels = [
               {
                 title: "Validation Rules",
                 content:
-                  "Define clear rules for each field before writing code:\n\n• fullName: at least 2 characters\n• zipCode: exactly 5 digits (/^\\d{5}$/)\n• complaint: at least 10 characters\n\nThese rules are simple to test and easy to explain to users.",
+                  "Clear rules should be defined for each field before writing code:\n\n• fullName: at least 2 characters\n• zipCode: exactly 5 digits (/^\\d{5}$/)\n• complaint: at least 10 characters\n\nThese rules are simple to test and easy to explain to users.",
                 order: 2,
               },
               {
                 title: "Inline Error Messages",
                 content:
-                  "Show an error message directly under the invalid field. Don't wait for the user to submit — validate on every keystroke or on blur:\n\n{errors.fullName && (\n  <p className=\"text-red-600 text-sm\">{errors.fullName}</p>\n)}\n\nThis gives immediate feedback and tells the user exactly what to fix.",
+                  "An error message should be shown directly under the invalid field. Validation should not wait for the user to submit — it runs on every keystroke or on blur:\n\n{errors.fullName && (\n  <p className=\"text-red-600 text-sm\">{errors.fullName}</p>\n)}\n\nThis gives immediate feedback and tells the user exactly what to fix.",
                 order: 3,
               },
               {
                 title: "Disabling Submit",
                 content:
-                  "Disable the submit button until all fields are valid. This prevents the user from sending garbage data:\n\nconst isValid = fullName.length >= 2 && /^\\d{5}$/.test(zipCode) && complaint.length >= 10;\n<button disabled={!isValid}>Submit</button>\n\nThis is a simple but effective guard.",
+                  "The submit button should be disabled until all fields are valid. This prevents garbage data from being sent:\n\nconst isValid = fullName.length >= 2 && /^\\d{5}$/.test(zipCode) && complaint.length >= 10;\n<button disabled={!isValid}>Submit</button>\n\nThis is a simple but effective guard.",
                 order: 4,
               },
               {
                 title: "Chat Input Validation",
                 content:
-                  "Chat inputs need validation too. Prevent whitespace-only messages from being sent:\n\nconst canSend = message.trim().length > 0;\n<button disabled={!canSend}>Send</button>\n\nThis stops accidental empty sends and keeps the chat clean.",
+                  "Chat inputs need validation too. Whitespace-only messages should be prevented from being sent:\n\nconst canSend = message.trim().length > 0;\n<button disabled={!canSend}>Send</button>\n\nThis stops accidental empty sends and keeps the chat clean.",
                 order: 5,
               },
               {
@@ -803,19 +818,19 @@ export const levels = [
               {
                 title: "Hydrate on Mount",
                 content:
-                  "Read from localStorage when the component first mounts, not during render. This avoids hydration mismatches in SSR:\n\nconst [value, setValue] = useState<T>(initialValue);\n\nuseEffect(() => {\n  const stored = localStorage.getItem(key);\n  if (stored) setValue(JSON.parse(stored));\n}, [key]);\n\nThis ensures the server render matches the client render on first paint.",
+                  "Data should be read from localStorage when the component first mounts, not during render. This avoids hydration mismatches in SSR:\n\nconst [value, setValue] = useState<T>(initialValue);\n\nuseEffect(() => {\n  const stored = localStorage.getItem(key);\n  if (stored) setValue(JSON.parse(stored));\n}, [key]);\n\nThis ensures the server render matches the client render on first paint.",
                 order: 3,
               },
               {
                 title: "Persist on Change",
                 content:
-                  "Write back to localStorage whenever the value changes:\n\nuseEffect(() => {\n  localStorage.setItem(key, JSON.stringify(value));\n}, [key, value]);\n\nThis keeps the browser storage in sync with React state.",
+                  "Data should be written back to localStorage whenever the value changes:\n\nuseEffect(() => {\n  localStorage.setItem(key, JSON.stringify(value));\n}, [key, value]);\n\nThis keeps the browser storage in sync with React state.",
                 order: 4,
               },
               {
                 title: "Using the Hook Across Pages",
                 content:
-                  "Once the hook exists, use it everywhere:\n\n// Agent page\nconst [conversations, setConversations] = useLocalStorage('agentConversations', []);\nconst [status, setStatus] = useLocalStorage('agentStatus', 'active');\n\n// Support page\nconst [messages, setMessages] = useLocalStorage('supportMessages', []);\n\nEach page gets its own isolated key, so data doesn't collide.",
+                  "Once the hook exists, it can be used everywhere:\n\n// Agent page\nconst [conversations, setConversations] = useLocalStorage('agentConversations', []);\nconst [status, setStatus] = useLocalStorage('agentStatus', 'active');\n\n// Support page\nconst [messages, setMessages] = useLocalStorage('supportMessages', []);\n\nEach page gets its own isolated key, so data doesn't collide.",
                 order: 5,
               },
               {
@@ -916,7 +931,7 @@ export const levels = [
     xp_reward: 75,
     coin_reward: 200,
     key_takeaways:
-      "When the same value is mirrored across two pieces of state (`conversations[i].unreadCount` and `selectedConversation.unreadCount`), forgetting to update both causes 'phantom' UI bugs that look like rendering issues but are really state-sync issues. The fix is to update every copy together — or, better, derive one from the other.\n\nCentralizing date formatting in a `dateUtils` module makes timestamp behavior consistent across pages and gives you a single place to handle invalid input safely. Keeping the README current with project overview, credentials, dev commands, and routes is what makes a codebase actually onboardable.",
+      "When the same value is mirrored across two pieces of state (`conversations[i].unreadCount` and `selectedConversation.unreadCount`), forgetting to update both causes 'phantom' UI bugs that look like rendering issues but are really state-sync issues. The fix is to update every copy together — or, better, derive one from the other.\n\nCentralizing date formatting in a `dateUtils` module makes timestamp behavior consistent across pages and provides a single place to handle invalid input safely. Keeping the README current with project overview, credentials, dev commands, and routes is what makes a codebase actually onboardable.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
@@ -936,7 +951,7 @@ export const levels = [
               {
                 title: "The Mirrored State Problem",
                 content:
-                  "When the same value lives in two places, they can drift:\n\nconst [conversations, setConversations] = useState([...]);\nconst [selected, setSelected] = useState(null);\n\n// Clicking a conversation should clear its unread count\n// You must update BOTH arrays, or the list badge stays red\n\nThe fix is to update every copy of the value in the same event handler, or derive one from the other.",
+                  "When the same value lives in two places, they can drift:\n\nconst [conversations, setConversations] = useState([...]);\nconst [selected, setSelected] = useState(null);\n\n// Clicking a conversation should clear its unread count\n// Both arrays must be kept in sync, or the list badge stays red\n\nThe fix is to update every copy of the value in the same event handler, or derive one from the other.",
                 order: 2,
               },
               {
@@ -954,7 +969,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Phantom UI bugs are usually state-sync bugs. When the same value appears in two places, update both in the same handler, or derive one from the other. Never let them drift.",
+                  "Phantom UI bugs are usually state-sync bugs. When the same value appears in two places, both should be updated in the same handler, or one should be derived from the other. They should never be allowed to drift.",
                 order: 5,
               },
             ],
@@ -1018,13 +1033,13 @@ export const levels = [
               {
                 title: "Safe Defaults",
                 content:
-                  "Always return safe values for invalid input:\n\nexport function formatRelativeTime(date: string): string {\n  if (!date) return '';\n  ...\n}\n\nThis prevents crashes when the input is missing or malformed.",
+                  "Safe values should always be returned for invalid input:\n\nexport function formatRelativeTime(date: string): string {\n  if (!date) return '';\n  ...\n}\n\nThis prevents crashes when the input is missing or malformed.",
                 order: 3,
               },
               {
                 title: "README Structure",
                 content:
-                  "A good README should include:\n\n• Project overview (what it does, who it's for)\n• Demo credentials (if any)\n• Dev workflow (npm install, npm run dev)\n• Route list (what pages exist)\n• Key utilities and how to use them\n\nKeep it current — outdated documentation is worse than no documentation.",
+                  "A good README should include:\n\n• Project overview (what it does, who it's for)\n• Demo credentials (if any)\n• Dev workflow (pnpm install, pnpm run dev)\n• Route list (what pages exist)\n• Key utilities and how to use them\n\nKeep it current — outdated documentation is worse than no documentation.",
                 order: 4,
               },
               {

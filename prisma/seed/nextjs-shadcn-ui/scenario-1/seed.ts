@@ -16,7 +16,7 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The library has onboarded a new developer (you!) and needs the system running locally with minor UI tweaks and environment configuration. Set up the Next.js development environment, configure environment variables, and make initial UI text updates to get the library management system running.",
+      "Mission Briefing: The library has onboarded a new developer and needs the system running locally with minor UI tweaks and environment configuration. Set up the Next.js development environment, configure environment variables, and make initial UI text updates to get the library management system running.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
@@ -34,68 +34,44 @@ export const levels = [
               {
                 title: "Overview\nSetting Up a Next.js + shadcn/ui Project",
                 content:
-                  "This section introduces the crash course for preparing a Next.js + shadcn/ui development environment. It provides a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                  "This section introduces the crash course for preparing a Next.js + shadcn/ui development environment. It provides a high-level view of the setup flow, required tools, and key concepts needed before starting the hands-on tasks.",
                 order: 1,
               },
               {
                 title: "What is Next.js?",
                 content:
-                  "Next.js is a React framework that adds server-side rendering, static site generation, and a file-based routing system on top of React. It handles bundling, dev server, and production optimizations so you can focus on building features.",
+                  "Next.js is a React framework that adds server-side rendering, static site generation, and a file-based routing system on top of React. It handles bundling, dev server, and production optimizations so developers can focus on building features.",
                 order: 2,
               },
               {
                 title: "What is shadcn/ui?",
                 content:
-                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. Unlike a component library, you copy the components directly into your project — giving you full ownership and easy customization.",
+                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.",
                 order: 3,
               },
               {
                 title: "Environment Variables in Next.js",
                 content:
-                  "Next.js uses .env.local for local environment variables. Variables prefixed with NEXT_PUBLIC_ are exposed to the browser; all others are server-only.\n\nExample:\nNEXT_PUBLIC_APP_NAME=\"BookStop Library\"\n\nNever commit .env files — they contain secrets. The repo's .gitignore already excludes them.",
+                  "Next.js uses .env.local for local environment variables. Variables prefixed with NEXT_PUBLIC_ are exposed to the browser; all others are server-only.\n\nExample:\nNEXT_PUBLIC_APP_NAME=\"BookStop Library\"\n\nEnvironment variable files should not be committed to version control — they contain secrets. The repo's .gitignore already excludes them.",
                 order: 4,
               },
               {
                 title: "Package Management 101",
                 content:
-                  "When you start a project, no dependencies are installed yet. You need to run npm install in the project root.\n\nWhy? The package.json lists all the libraries the app needs (React, Next.js, shadcn/ui components, Tailwind CSS). npm install downloads them into node_modules.",
+                  "Package management is the process of managing external code dependencies a project relies on. A package manager such as pnpm handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. The package.json lists all the libraries the app needs (React, Next.js, shadcn/ui components, Tailwind CSS). pnpm install downloads them into node_modules.",
                 order: 5,
               },
               {
-                title: "Practice Lab: NEXT_PUBLIC Prefix Check",
+                title: "Practice Lab: Adding shadcn/ui Components",
                 content:
-                  "Practice writing a function that checks if a variable name is a valid NEXT_PUBLIC variable.",
+                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn-ui@latest add select",
                 section_type: "INTERACTIVE" as const,
-                interactive_mode: "CODE_EDITOR" as const,
+                interactive_mode: "TERMINAL_CMD" as const,
                 interactive_config: {
                   instructions:
-                    "Implement isNextPublicVariable(name) that returns true if the variable starts with NEXT_PUBLIC_.",
-                  language: "javascript",
-                  starter_code:
-                    "export function isNextPublicVariable(name) {\n  // TODO\n}\n",
-                  editable_regions: [
-                    {
-                      placeholder: "// TODO",
-                      case_sensitive: true,
-                    },
-                  ],
-                  entry_point: "isNextPublicVariable",
-                  test_cases: [
-                    {
-                      input: ["NEXT_PUBLIC_APP_NAME"],
-                      expected: true,
-                      label: "valid prefix",
-                    },
-                    {
-                      input: ["DATABASE_URL"],
-                      expected: false,
-                      label: "invalid prefix",
-                    },
-                    {
-                      input: ["next_public_app_name"],
-                      expected: false,
-                      label: "lowercase prefix",
-                    },
+                    "Run the shadcn/ui CLI command to add the Select component. Type the exact command and click Check to verify.",
+                  expected_commands: [
+                    "pnpm dlx shadcn-ui@latest add select",
                   ],
                 },
                 order: 6,
@@ -103,7 +79,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a Next.js project isn't just installing packages — it's aligning your local environment (dependencies, env vars, dev server) so the app runs the same way for every developer.",
+                  "Setting up a Next.js project aligns the local environment (dependencies, env vars, dev server) so the app runs the same way for every developer.",
                 order: 7,
               },
             ],
@@ -111,7 +87,7 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Install dependencies using npm install",
+                description: "Install dependencies using pnpm install",
                 order: 1,
               },
               {
@@ -128,7 +104,7 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on npm run dev",
+                description: "App runs without errors on pnpm run dev",
                 is_required: true,
                 order: 1,
               },
@@ -173,7 +149,7 @@ export const levels = [
               {
                 title: "How to Find What to Change",
                 content:
-                  "When you need to update something you see in the browser, ask:\nWhat element is it? (header, footer, page title?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state?\nFor a page title, you'd look inside layout.tsx for a hardcoded string or a metadata export.",
+                  "To locate the source of a UI element visible in the browser, the following questions help:\nWhat element is it? (header, footer, page title?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state?\nFor a page title, layout.tsx is where to look for a hardcoded string or a metadata export.",
                 order: 4,
               },
               {
@@ -183,9 +159,9 @@ export const levels = [
                 order: 5,
               },
               {
-                title: "Verifying Your Change",
+                title: "Verifying the Change",
                 content:
-                  "After editing, save the file and check the browser. Next.js's dev server supports Fast Refresh — meaning the page updates instantly without a full refresh when you save a file.",
+                  "After editing a component file, saving triggers the dev server to update the browser. Next.js's dev server supports Fast Refresh — the page updates instantly without a full refresh when a file is saved.",
                 order: 6,
               },
               {
@@ -220,7 +196,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "UI changes in Next.js always trace back to a component file. Layout components are the first place to look for global elements like page titles. Find the component, find the text, change it.",
+                  "UI changes in Next.js always trace back to a component file. Layout components are the primary location for global elements such as page titles. The source text is found inside the component and modified there.",
                 order: 8,
               },
             ],
@@ -296,19 +272,19 @@ export const levels = [
               {
                 title: "The Badge Component",
                 content:
-                  "shadcn/ui provides a Badge component that wraps content in a small pill. You can override its appearance by passing custom className props with Tailwind utility classes.",
+                  "shadcn/ui provides a Badge component that wraps content in a small pill. Its appearance can be overridden by passing custom className props with Tailwind utility classes.",
                 order: 2,
               },
               {
                 title: "Accessible Color Palettes",
                 content:
-                  "For status indicators, use a *-100 background with *-800 text. This ensures high contrast and readability:\n\n• bg-green-100 + text-green-800 → Available\n• bg-blue-100 + text-blue-800 → Borrowed\n• bg-red-100 + text-red-800 → Overdue\n\nThese combinations pass WCAG contrast guidelines and look consistent across themes.",
+                  "For status indicators, a *-100 background with *-800 text provides high contrast and readability:\n\n• bg-green-100 + text-green-800 → Available\n• bg-blue-100 + text-blue-800 → Borrowed\n• bg-red-100 + text-red-800 → Overdue\n\nThese combinations pass WCAG contrast guidelines and look consistent across themes.",
                 order: 3,
               },
               {
                 title: "Mapping States to Colors",
                 content:
-                  "Create a helper function that maps each status string to its color className:\n\nfunction getStatusBadge(status: string) {\n  switch (status) {\n    case 'available': return 'bg-green-100 text-green-800';\n    case 'borrowed': return 'bg-blue-100 text-blue-800';\n    case 'overdue': return 'bg-red-100 text-red-800';\n    default: return 'bg-gray-100 text-gray-800';\n  }\n}",
+                  "A helper function maps each status string to its color className:\n\nfunction getStatusBadge(status: string) {\n  switch (status) {\n    case 'available': return 'bg-green-100 text-green-800';\n    case 'borrowed': return 'bg-blue-100 text-blue-800';\n    case 'overdue': return 'bg-red-100 text-red-800';\n    default: return 'bg-gray-100 text-gray-800';\n  }\n}",
                 order: 4,
               },
               {
@@ -353,7 +329,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Consistent color mapping makes status badges instantly scannable. Centralize the mapping in a helper so every badge in the app follows the same rules.",
+                  "Consistent color mapping makes status badges instantly scannable. Centralizing the mapping in a helper ensures every badge in the app follows the same rules.",
                 order: 6,
               },
             ],
@@ -412,19 +388,19 @@ export const levels = [
               {
                 title: "When to Use useMemo",
                 content:
-                  "Use useMemo when:\n\n• Filtering or sorting large arrays\n• Deriving multiple values from the same source\n• The calculation is noticeably slow\n\nDon't use it for trivial operations — the overhead of useMemo can outweigh the benefit for simple math.",
+                  "useMemo is appropriate when:\n\n• Filtering or sorting large arrays\n• Deriving multiple values from the same source\n• The calculation is noticeably slow\n\nIt should not be used for trivial operations — the overhead of useMemo can outweigh the benefit for simple math.",
                 order: 3,
               },
               {
                 title: "Extracting Reusable Components",
                 content:
-                  "When the same JSX appears in multiple places, extract it into a component:\n\n// Before — inline in Dashboard\n{books.map(b => <tr key={b.id}>...</tr>)}\n\n// After — reusable BookRow\nimport { BookRow } from '@/components/BookRow';\n{books.map(b => <BookRow key={b.id} book={b} />)}\n\nThis keeps the parent clean and makes the row testable in isolation.",
+                  "When the same JSX appears in multiple places, extracting it into a component is beneficial:\n\n// Before — inline in Dashboard\n{books.map(b => <tr key={b.id}>...</tr>)}\n\n// After — reusable BookRow\nimport { BookRow } from '@/components/BookRow';\n{books.map(b => <BookRow key={b.id} book={b} />)}\n\nThis keeps the parent clean and makes the row testable in isolation.",
                 order: 4,
               },
               {
                 title: "Returning Multiple Derived Values",
                 content:
-                  "When you need several filtered views, compute them in one useMemo and return an object:\n\nconst { available, borrowed, overdue } = useMemo(() => {\n  return {\n    available: books.filter(b => b.status === 'available'),\n    borrowed: books.filter(b => b.status === 'borrowed'),\n    overdue: books.filter(b => b.status === 'overdue'),\n  };\n}, [books]);\n\nThis avoids three separate filter passes on every render.",
+                  "When multiple filtered views are needed, they can be computed in one useMemo result and returned as an object:\n\nconst { available, borrowed, overdue } = useMemo(() => {\n  return {\n    available: books.filter(b => b.status === 'available'),\n    borrowed: books.filter(b => b.status === 'borrowed'),\n    overdue: books.filter(b => b.status === 'overdue'),\n  };\n}, [books]);\n\nThis avoids three separate filter passes on every render.",
                 order: 5,
               },
               {
@@ -546,19 +522,19 @@ export const levels = [
               {
                 title: "Real-Time Filtering",
                 content:
-                  "Combine a controlled input with useMemo to filter a list in real time:\n\nconst filtered = useMemo(() => {\n  return books.filter(b =>\n    b.title.toLowerCase().includes(query.toLowerCase()) ||\n    b.author.toLowerCase().includes(query.toLowerCase())\n  );\n}, [books, query]);\n\nThe user sees results instantly as they type.",
+                  "A controlled input combined with useMemo creates real-time list filtering:\n\nconst filtered = useMemo(() => {\n  return books.filter(b =>\n    b.title.toLowerCase().includes(query.toLowerCase()) ||\n    b.author.toLowerCase().includes(query.toLowerCase())\n  );\n}, [books, query]);\n\nThe user sees results instantly as they type.",
                 order: 3,
               },
               {
                 title: "Empty States",
                 content:
-                  "Always show a friendly message when filters yield no results:\n\n{filtered.length === 0 && (\n  <p>No books found</p>\n)}\n\nThis prevents the UI from looking broken when a search returns nothing.",
+                  "A friendly message should be shown when filters yield no results:\n\n{filtered.length === 0 && (\n  <p>No books found</p>\n)}\n\nThis prevents the UI from looking broken when a search returns nothing.",
                 order: 4,
               },
               {
                 title: "Modal Dialogs with shadcn/ui",
                 content:
-                  "shadcn/ui provides a Dialog component that handles focus trapping, keyboard navigation, and accessibility.\n\n<Dialog>\n  <DialogTrigger>Open</DialogTrigger>\n  <DialogContent>\n    <DialogTitle>Borrow Book</DialogTitle>\n    ...\n  </DialogContent>\n</Dialog>\n\nUse Dialog for actions that need confirmation or additional input before proceeding.",
+                  "shadcn/ui provides a Dialog component that handles focus trapping, keyboard navigation, and accessibility.\n\n<Dialog>\n  <DialogTrigger>Open</DialogTrigger>\n  <DialogContent>\n    <DialogTitle>Borrow Book</DialogTitle>\n    ...\n  </DialogContent>\n</Dialog>\n\nDialog is appropriate for actions that need confirmation or additional input before proceeding.",
                 order: 5,
               },
               {
@@ -603,7 +579,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Controlled inputs + useMemo create responsive search. Dialog components make complex workflows feel simple and safe. Always handle the empty state.",
+                  "Controlled inputs combined with useMemo create responsive search. Dialog components make complex workflows feel simple and safe. The empty state should always be handled as a first-class UI concern.",
                 order: 7,
               },
             ],
@@ -656,7 +632,7 @@ export const levels = [
               {
                 title: "File-Based Routing",
                 content:
-                  "In Next.js App Router, every folder inside app/ becomes a route.\n\napp/\n    ├── page.tsx ← /\n    ├── dashboard/page.tsx ← /dashboard\n    └── returns/page.tsx ← /returns\n\nCreate a new folder and a page.tsx file to add a route.",
+                  "In Next.js App Router, every folder inside app/ becomes a route.\n\napp/\n    ├── page.tsx ← /\n    ├── dashboard/page.tsx ← /dashboard\n    └── returns/page.tsx ← /returns\n\nTo add a route, a new folder and a page.tsx file are created inside the app directory.",
                 order: 2,
               },
               {
@@ -668,19 +644,19 @@ export const levels = [
               {
                 title: "Table Components",
                 content:
-                  "shadcn/ui provides a Table component built on top of Tailwind. Use it for data-heavy pages:\n\n<Table>\n  <TableHeader>\n    <TableRow>\n      <TableHead>Title</TableHead>\n      <TableHead>Status</TableHead>\n    </TableRow>\n  </TableHeader>\n  <TableBody>\n    {books.map(b => (...))}\n  </TableBody>\n</Table>\n\nThis gives you a styled, accessible table out of the box.",
+                  "shadcn/ui provides a Table component built on top of Tailwind. It is well-suited for data-heavy pages:\n\n<Table>\n  <TableHeader>\n    <TableRow>\n      <TableHead>Title</TableHead>\n      <TableHead>Status</TableHead>\n    </TableRow>\n  </TableHeader>\n  <TableBody>\n    {books.map(b => (...))}\n  </TableBody>\n</Table>\n\nThis provides a styled, accessible table out of the box.",
                 order: 4,
               },
               {
                 title: "Updating State on Action",
                 content:
-                  "When a user clicks 'Return', update the local state to reflect the change immediately:\n\nconst handleReturn = (bookId) => {\n  setBooks(prev => prev.map(b =>\n    b.id === bookId ? { ...b, status: 'returned' } : b\n  ));\n};\n\nThis keeps the UI responsive without waiting for a server round-trip.",
+                  "When a user clicks 'Return', the local state is updated to reflect the change immediately:\n\nconst handleReturn = (bookId) => {\n  setBooks(prev => prev.map(b =>\n    b.id === bookId ? { ...b, status: 'returned' } : b\n  ));\n};\n\nThis keeps the UI responsive without waiting for a server round-trip.",
                 order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "New pages are just folders and files. Reuse layouts and table components to keep the UI consistent. Update state immediately for a responsive feel.",
+                  "New pages are created by adding folders and files to the app directory. Layouts and table components are reused to keep the UI consistent, and state is updated immediately for a responsive feel.",
                 order: 6,
               },
             ],
@@ -751,19 +727,19 @@ export const levels = [
               {
                 title: "Guard Conditions",
                 content:
-                  "Guard conditions prevent invalid operations before they happen. Instead of letting the user attempt a borrow and then showing an error, disable the action upfront:\n\nconst canBorrow = book.status !== 'overdue' && book.status === 'available';\n\n<button disabled={!canBorrow}>Borrow</button>\n\nThis is simpler and more user-friendly than error handling after the fact.",
+                  "Guard conditions prevent invalid operations before they happen. Instead of letting an invalid borrow attempt proceed and then showing an error, the action is disabled upfront:\n\nconst canBorrow = book.status !== 'overdue' && book.status === 'available';\n\n<button disabled={!canBorrow}>Borrow</button>\n\nThis approach prevents invalid operations before they occur rather than handling them retroactively.",
                 order: 2,
               },
               {
                 title: "Date Math in JavaScript",
                 content:
-                  "JavaScript's Date object makes date math straightforward:\n\nconst today = new Date();\nconst dueDate = new Date(today);\ndueDate.setDate(today.getDate() + 14);\n\nThis creates a due date 14 days from today. Be careful with timezones — when comparing dates, use setHours(0,0,0,0) to ignore time of day.",
+                  "JavaScript's Date object makes date math straightforward:\n\nconst today = new Date();\nconst dueDate = new Date(today);\ndueDate.setDate(today.getDate() + 14);\n\nThis creates a due date 14 days from today. Timezones require careful handling — when comparing dates, setHours(0,0,0,0) is called to ignore time of day.",
                 order: 3,
               },
               {
                 title: "Formatting Dates",
                 content:
-                  "Use toLocaleDateString or a library like date-fns for consistent formatting. For the task requirement (YYYY-MM-DD), use:\n\nconst yyyy = dueDate.getFullYear();\nconst mm = String(dueDate.getMonth() + 1).padStart(2, '0');\nconst dd = String(dueDate.getDate()).padStart(2, '0');\nconst formatted = `${yyyy}-${mm}-${dd}`;\n\nThis guarantees exactly 2 digits for month and day.",
+                  "toLocaleDateString or a library such as date-fns can be used for consistent formatting. For YYYY-MM-DD format, the following approach works:\n\nconst yyyy = dueDate.getFullYear();\nconst mm = String(dueDate.getMonth() + 1).padStart(2, '0');\nconst dd = String(dueDate.getDate()).padStart(2, '0');\nconst formatted = `${yyyy}-${mm}-${dd}`;\n\nThis guarantees exactly 2 digits for month and day.",
                 order: 4,
               },
               {
@@ -803,7 +779,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Prevent invalid actions with guard conditions. Calculate dates carefully and format them consistently. These small checks make an app feel reliable.",
+                  "Invalid actions are prevented with guard conditions. Dates should be calculated carefully and formatted consistently. These small checks make an app feel reliable.",
                 order: 6,
               },
             ],
@@ -856,7 +832,7 @@ export const levels = [
               {
                 title: "localStorage Basics",
                 content:
-                  "localStorage is a browser API that stores key-value pairs persistently. Data survives page refreshes and browser restarts.\n\nlocalStorage.setItem('books', JSON.stringify(books));\nconst stored = JSON.parse(localStorage.getItem('books') || '[]');\n\nAlways serialize objects with JSON.stringify and parse them back with JSON.parse.",
+                  "localStorage is a browser API that stores key-value pairs persistently. Data survives page refreshes and browser restarts.\n\nlocalStorage.setItem('books', JSON.stringify(books));\nconst stored = JSON.parse(localStorage.getItem('books') || '[]');\n\nObjects should always be serialized with JSON.stringify and parsed back with JSON.parse.",
                 order: 2,
               },
               {
@@ -868,13 +844,13 @@ export const levels = [
               {
                 title: "Confirmation Dialogs",
                 content:
-                  "Use an Alert Dialog for destructive or irreversible actions:\n\n<AlertDialog>\n  <AlertDialogTrigger>Return Book</AlertDialogTrigger>\n  <AlertDialogContent>\n    <AlertDialogTitle>Are you sure?</AlertDialogTitle>\n    <AlertDialogAction onClick={handleConfirm}>\n      Confirm\n    </AlertDialogAction>\n  </AlertDialogContent>\n</AlertDialog>\n\nThis prevents accidental clicks from causing data loss.",
+                  "An Alert Dialog is used for destructive or irreversible actions:\n\n<AlertDialog>\n  <AlertDialogTrigger>Return Book</AlertDialogTrigger>\n  <AlertDialogContent>\n    <AlertDialogTitle>Are you sure?</AlertDialogTitle>\n    <AlertDialogAction onClick={handleConfirm}>\n      Confirm\n    </AlertDialogAction>\n  </AlertDialogContent>\n</AlertDialog>\n\nThis prevents accidental clicks from causing data loss.",
                 order: 4,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Persist state to localStorage for resilience. Add confirmation dialogs for actions that are hard to undo. These two patterns together make a frontend app feel reliable.",
+                  "State should be persisted to localStorage for resilience. Confirmation dialogs should be added for actions that are hard to undo. These two patterns together make a frontend app feel reliable.",
                 order: 5,
               },
             ],
@@ -945,25 +921,25 @@ export const levels = [
               {
                 title: "Symptoms vs Root Causes",
                 content:
-                  "A bug where overdue statuses are wrong could be caused by:\n\n• Incorrect date comparison logic\n• State not updating when a book is returned\n• Timezone issues in date math\n• A stale closure capturing old state\n\nDon't guess — trace the code path that produces the status.",
+                  "A bug where overdue statuses are wrong could be caused by:\n\n• Incorrect date comparison logic\n• State not updating when a book is returned\n• Timezone issues in date math\n• A stale closure capturing old state\n\nGuessing is not productive — the code path that produces the status should be traced systematically.",
                 order: 2,
               },
               {
                 title: "Tracing the Data Flow",
                 content:
-                  "Follow the data from source to screen:\n\n1. Where is the status computed? (useMemo? inline render?)\n2. What inputs does it depend on? (borrowDate, dueDate, returnedAt?)\n3. What happens when those inputs change?\n4. Is there a mismatch between the computed value and what's displayed?\n\nAdd console.log at each step to verify assumptions.",
+                  "The data can be traced from source to screen:\n\n1. Where is the status computed? (useMemo? inline render?)\n2. What inputs does it depend on? (borrowDate, dueDate, returnedAt?)\n3. What happens when those inputs change?\n4. Is there a mismatch between the computed value and what's displayed?\n\nconsole.log can be added at each step to verify assumptions.",
                 order: 3,
               },
               {
                 title: "Building Report Pages",
                 content:
-                  "A report page is just a filtered view of existing data. Use the same patterns as the dashboard:\n\n• Filter books where status === 'overdue'\n• Render them in a table\n• Add actions like 'Mark as Returned'\n\nKeep the report page simple — it should read from the same state source as the dashboard.",
+                  "A report page is just a filtered view of existing data. The same patterns used in the dashboard apply:\n\n• Filter books where status === 'overdue'\n• Render them in a table\n• Add actions like 'Mark as Returned'\n\nThe report page should be kept simple — it reads from the same state source as the dashboard.",
                 order: 4,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Debugging is a systematic process, not a guess. Trace the data flow, identify the exact line where the bug originates, and fix it there. Report pages are just filtered views of the same data.",
+                  "Debugging is a systematic process, not a guess. The data flow should be traced to identify the exact line where the bug originates, and the fix should be applied there. Report pages are simply filtered views of the same underlying data.",
                 order: 5,
               },
             ],
@@ -1016,19 +992,19 @@ export const levels = [
               {
                 title: "Utility Modules",
                 content:
-                  "Utility functions belong in a dedicated folder like src/lib/ or src/utils/. Each module should have a single responsibility:\n\n// src/lib/dateUtils.ts\nexport function isOverdue(dueDate: string): boolean {\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  return new Date(dueDate) < today;\n}\n\nexport function formatDueDate(dueDate: string): string {\n  ...\n}\n\nKeep utilities pure — they should receive inputs and return outputs without side effects.",
+                  "Utility functions belong in a dedicated folder such as src/lib/ or src/utils/. Each module should have a single responsibility:\n\n// src/lib/dateUtils.ts\nexport function isOverdue(dueDate: string): boolean {\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  return new Date(dueDate) < today;\n}\n\nexport function formatDueDate(dueDate: string): string {\n  ...\n}\n\nUtilities should be kept pure — they should receive inputs and return outputs without side effects.",
                 order: 2,
               },
               {
                 title: "Safe Defaults for Invalid Input",
                 content:
-                  "Always handle invalid or missing input gracefully:\n\nexport function isOverdue(dueDate: string): boolean {\n  if (!dueDate) return false;\n  ...\n}\n\nThis prevents crashes when the input is undefined, null, or malformed.",
+                  "Invalid or missing input should always be handled gracefully:\n\nexport function isOverdue(dueDate: string): boolean {\n  if (!dueDate) return false;\n  ...\n}\n\nThis prevents crashes when the input is undefined, null, or malformed.",
                 order: 3,
               },
               {
                 title: "Writing a README",
                 content:
-                  "A good README should include:\n\n• Project overview (what it does, who it's for)\n• Demo credentials (if any)\n• Dev workflow (npm install, npm run dev)\n• Route list (what pages exist)\n• Key utilities and how to use them\n\nKeep it current — outdated documentation is worse than no documentation.",
+                  "A good README should include:\n\n• Project overview (what it does, who it's for)\n• Demo credentials (if any)\n• Dev workflow (pnpm install, pnpm run dev)\n• Route list (what pages exist)\n• Key utilities and how to use them\n\nKeeping it current is important — outdated documentation is worse than no documentation.",
                 order: 4,
               },
               {
@@ -1073,7 +1049,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Utilities are the shared vocabulary of your codebase. Document them, test them, and keep them safe. A current README is the fastest way to onboard the next developer.",
+                  "Utilities are the shared vocabulary of a codebase. They should be documented, tested, and kept safe. A current README is the fastest way to onboard the next developer.",
                 order: 6,
               },
             ],
@@ -1114,3 +1090,4 @@ export const levels = [
     },
   },
 ];
+
