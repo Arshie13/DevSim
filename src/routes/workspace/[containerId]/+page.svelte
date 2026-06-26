@@ -280,6 +280,20 @@
 
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
+  let showDockerDisclaimer = $state(true);
+  let showDockerDisclaimerModal = $state(false);
+  const dockerDisclaimerLimitations = [
+    "The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.",
+    "File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.",
+    "Network behavior may differ from a full local setup due to port forwarding and container networking.",
+    "Some native or GUI-dependent tools may not work inside the simulated container environment.",
+    "Performance and timing can vary from a standard local development machine.",
+    "Hot reloading and file watching may not detect changes reliably due to Docker's filesystem event propagation.",
+    "Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.",
+    "Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.",
+    "The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.",
+    "The terminal session may disconnect due to network fluctuations, interrupting running processes.",
+  ];
   let triviaCorrectCount: number = 0;
   let triviaTotalCount: number = 0;
   let triviaShownThisSession: boolean = false;
@@ -1690,6 +1704,79 @@ $effect(() => {
       />
     </svelte:fragment>
   </WorkspaceHeader>
+
+  {#if showDockerDisclaimer}
+    <div
+      class="w-full px-4 py-2 bg-[#07101c] border-b border-[rgba(7,165,201,0.15)] text-[#a7b6c6] text-sm"
+      role="status"
+    >
+      <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <p class="leading-6">
+          ⚠️ This workspace runs inside a Docker container to simulate a development environment. Some behavior may differ from a full local setup, and file or terminal actions are scoped to this container only.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            class="text-[#07a5c9] hover:text-[#00f5ff] underline underline-offset-2 text-[0.78rem] font-semibold"
+            onclick={() => (showDockerDisclaimerModal = true)}
+          >
+            Learn more →
+          </button>
+          <button
+            type="button"
+            class="rounded px-2 py-1 text-[#8892a0] hover:text-[#d0d7dd]"
+            onclick={() => (showDockerDisclaimer = false)}
+            aria-label="Dismiss container disclaimer"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if showDockerDisclaimerModal}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div class="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#0f1725] p-6 text-[#d0d7dd] shadow-2xl shadow-black/30">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-semibold text-white">Docker Container Workspace Limitations</h2>
+            <p class="mt-2 text-sm text-[#9aa8b8]">
+              This workspace uses a container-backed environment. The experience is intentionally simulated and may not match a full native development setup.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-1 text-sm text-[#d0d7dd] hover:bg-[rgba(255,255,255,0.08)]"
+            onclick={() => (showDockerDisclaimerModal = false)}
+            aria-label="Close disclaimer details"
+          >
+            ✕
+          </button>
+        </div>
+
+        <ul class="mt-6 space-y-3 text-sm leading-6 text-[#cbd5e1]">
+          {#each dockerDisclaimerLimitations as limitation}
+            <li class="flex gap-3">
+              <span class="mt-1 text-[#07a5c9]">•</span>
+              <span>{limitation}</span>
+            </li>
+          {/each}
+        </ul>
+
+        <div class="mt-6 flex justify-end">
+          <button
+            type="button"
+            class="rounded border border-[#07a5c9] bg-[#07a5c9] px-4 py-2 text-sm font-semibold text-[#0a0e1a] hover:bg-[#00f5ff] hover:text-[#0a0e1a]"
+            onclick={() => (showDockerDisclaimerModal = false)}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <div class="flex flex-1 overflow-hidden">
     <!-- Left Sidebar -->
