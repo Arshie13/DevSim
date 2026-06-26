@@ -8,6 +8,7 @@
     ChevronDown,
     ChevronUp,
     Eye,
+    Lock,
   } from "lucide-svelte";
   import type { ScenarioMeta } from "$types";
   import PreviewImages from "./PreviewImages.svelte";
@@ -31,6 +32,7 @@
 
   $: previewImages = scenario.previewImages ?? [];
   $: epics = scenario.epics ?? [];
+  $: isLocked = scenario.isLocked ?? false;
 
   $: if (isActive && scenario) {
     showMore = false;
@@ -53,7 +55,7 @@
 {#if isActive}
   <!-- ── Active card (center) ── -->
   <div
-    class="carousel-card is-active"
+    class="carousel-card is-active {isLocked ? 'is-locked' : ''}"
     role="article"
     aria-label="Scenario {scenario.number}: {scenario.title}"
     style="--diff-color:{diffColor}; transform:{transform};"
@@ -83,6 +85,15 @@
           <Star class="w-2.5 h-2.5 flex-shrink-0" />
           <span>{scenario.difficulty}</span>
         </div>
+        {#if isLocked}
+          <div
+            class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase ml-2"
+            style="color:#ffb400; border-color:#ffb40055; background:#ffb40014;"
+          >
+            <Lock class="w-2.5 h-2.5 flex-shrink-0" />
+            <span>Learner Pass</span>
+          </div>
+        {/if}
       </div>
 
       <div class="card-divider flex-shrink-0" aria-hidden="true"></div>
@@ -163,12 +174,16 @@
           <button
             class="launch-btn flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[#07a5c9] bg-[rgba(7,165,201,0.08)] border border-[rgba(7,165,201,0.35)] px-4 py-2 rounded-[3px] relative overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             on:click={() => dispatch("launchSprint")}
-            disabled={isLoading}
+            disabled={isLoading || isLocked}
             aria-busy={isLoading}
+            title={isLocked ? "Unlock with a Learner Pass" : undefined}
           >
             {#if isLoading}
               <Loader class="w-3.5 h-3.5 animate-spin" />
               <span>Starting…</span>
+            {:else if isLocked}
+              <Lock class="w-3.5 h-3.5" />
+              <span>Locked</span>
             {:else}
               <Zap class="w-3.5 h-3.5" />
               <span>Launch Scenario</span>
@@ -192,7 +207,7 @@
 {:else}
   <!-- ── Non-active card (side / hidden, clickable) ── -->
   <button
-    class="carousel-card {isAdj ? 'is-adj' : 'is-far'}"
+    class="carousel-card {isAdj ? 'is-adj' : 'is-far'} {isLocked ? 'is-locked' : ''}"
     style="--diff-color:{diffColor}; transform:{transform};"
     on:click={() => dispatch("select")}
     aria-label="Go to scenario {scenario.number}: {scenario.title}"
@@ -208,12 +223,23 @@
             {scenario.number.toString().padStart(2, "0")}
           </span>
         </div>
-        <div
-          class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
-          style="color:{diffColor}; border-color:{diffColor}55; background:{diffColor}14;"
-        >
-          <Star class="w-2.5 h-2.5 flex-shrink-0" />
-          <span>{scenario.difficulty}</span>
+        <div class="flex items-center gap-2">
+          <div
+            class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
+            style="color:{diffColor}; border-color:{diffColor}55; background:{diffColor}14;"
+          >
+            <Star class="w-2.5 h-2.5 flex-shrink-0" />
+            <span>{scenario.difficulty}</span>
+          </div>
+          {#if isLocked}
+            <div
+              class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
+              style="color:#ffb400; border-color:#ffb40055; background:#ffb40014;"
+            >
+              <Lock class="w-2.5 h-2.5 flex-shrink-0" />
+              <span>Locked</span>
+            </div>
+          {/if}
         </div>
       </div>
       <div class="card-divider" aria-hidden="true"></div>
@@ -261,6 +287,17 @@
     filter: blur(3px);
     pointer-events: none;
     z-index: 1;
+  }
+  .carousel-card.is-locked {
+    filter: grayscale(0.6);
+  }
+  .carousel-card.is-active.is-locked {
+    opacity: 0.7;
+    border-color: rgba(255, 180, 0, 0.3);
+    animation: none;
+    box-shadow:
+      0 0 0 1px rgba(255, 180, 0, 0.12),
+      0 0 24px rgba(255, 180, 0, 0.08);
   }
   .carousel-card.is-active {
     opacity: 1;

@@ -4,6 +4,8 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
 import type { ScenarioMeta, StackSelection, EpicMeta } from '$lib/types/techstack';
+import { resolveScenarioId } from '$lib/utils/scenario-mapping';
+import { hasProjectAccess } from '$lib/server/access/hasProjectAccess';
 
 const BASE_DIR = path.resolve('submodules/projects/tech-stacks');
 
@@ -175,6 +177,18 @@ export const load: PageServerLoad = async (event) => {
 
 	const scenarios: ScenarioMeta[] = [];
 
+	// Resolve folder IDs to DB IDs for paywall check
+	const folderIdToDbId: Record<string, string> = {};
+	for (const dir of scenarioDirs) {
+		folderIdToDbId[dir.name] = resolveScenarioId(stackParam, dir.name);
+	}
+	const dbIds = Object.values(folderIdToDbId);
+	const dbScenarios = dbIds.length > 0 ? await prisma.scenario.findMany({
+		where: { id: { in: dbIds } },
+		select: { id: true, paywall: true }
+	}) : [];
+	const paywallMap = new Map(dbScenarios.map(s => [s.id, s.paywall]));
+
 	for (const dir of scenarioDirs) {
 		const scenarioPath = path.join(stackDir, dir.name);
 		const subEntries = await fs.readdir(scenarioPath, { withFileTypes: true });
@@ -266,7 +280,15 @@ export const load: PageServerLoad = async (event) => {
 			// No epics.md, continue without
 		}
 
-		scenarios.push({ id: dir.name, number, title, description, difficulty, levelCount, projectFolder, hasLevels, previewImages, epics });
+		const dbId = folderIdToDbId[dir.name];
+		const scenarioPaywall = dbId ? paywallMap.get(dbId) ?? false : false;
+		let isLocked = false;
+		if (scenarioPaywall) {
+			const hasAccess = await hasProjectAccess(session.user.id, dbId, false);
+			isLocked = !hasAccess;
+		}
+
+		scenarios.push({ id: dir.name, number, title, description, difficulty, levelCount, projectFolder, hasLevels, previewImages, epics, isLocked });
 	}
 
 	let stackSummary: string | null = null;

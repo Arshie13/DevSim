@@ -213,7 +213,7 @@ export class ContainerService {
         'devsim.workspace': workspaceId
       },
       HostConfig: {
-        Memory: 512 * 1024 * 1024,
+        Memory: 1024 * 1024 * 1024,
         NetworkMode: `container:${workspaceId}`,
         AutoRemove: false
       }
@@ -246,6 +246,98 @@ export class ContainerService {
     }
   }
 
+  private generateDbName(userId: string, stackName: string, level: number): string {
+    const safeStack = stackName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const safeUser = userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
+    return `devsim_${safeStack}_${level}_${safeUser}`;
+  }
+
+  private generateDbPassword(): string {
+    return crypto.randomBytes(16).toString('hex');
+  }
+
+  private static readonly SHARED_NETWORK = 'devsim-network';
+  private static readonly SHARED_POSTGRES = 'devsim-postgres';
+
+  private async ensureDevsimNetwork() {
+    try {
+      await docker.getNetwork(ContainerService.SHARED_NETWORK).inspect();
+    } catch {
+      await docker.createNetwork({ Name: ContainerService.SHARED_NETWORK });
+    }
+  }
+
+  private async ensureSharedPostgresDatabase(dbName: string): Promise<string> {
+    const container = docker.getContainer(ContainerService.SHARED_POSTGRES);
+    const dbPassword = this.generateDbPassword();
+
+    // Ensure the per-database role exists (idempotent)
+    await this.runPgSql(container, [
+      `DO $$ BEGIN`,
+      `  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${dbName}') THEN`,
+      `    CREATE ROLE "${dbName}" WITH LOGIN PASSWORD '${dbPassword}' CREATEDB;`,
+      `  ELSE`,
+      `    ALTER ROLE "${dbName}" WITH LOGIN PASSWORD '${dbPassword}';`,
+      `  END IF;`,
+      `END $$;`
+    ].join(' ')).catch(() => {});
+
+    // Create the database (must run outside a transaction block)
+    try {
+      await this.runPgSql(container, `CREATE DATABASE "${dbName}" OWNER "${dbName}";`);
+      await this.fixupPermissions(container, dbName);
+    } catch (err: any) {
+      if (!String(err.message ?? '').toLowerCase().includes('already exists')) throw err;
+      await this.runPgSql(container, `ALTER DATABASE "${dbName}" OWNER TO "${dbName}";`).catch(() => {});
+      await this.fixupPermissions(container, dbName).catch(() => {});
+    }
+
+    return dbPassword;
+  }
+
+  private async runPgSql(container: any, sql: string, database: string = 'devsim'): Promise<void> {
+    const exec = await container.exec({
+      Cmd: ['psql', '-U', 'devsim', '-d', database, '-c', sql],
+      AttachStdout: true, AttachStderr: true,
+    });
+    const stream = await exec.start({});
+    let errOutput = '';
+
+    await new Promise<void>((resolve) => {
+      container.modem.demuxStream(
+        stream,
+        { write: () => {} } as any,
+        { write: (chunk: Buffer) => { errOutput += chunk.toString(); } }
+      );
+      stream.on('end', resolve);
+    });
+
+    const inspect = await exec.inspect();
+    if (inspect.ExitCode !== 0) {
+      throw new Error(errOutput.trim() || `psql exit code ${inspect.ExitCode}`);
+    }
+  }
+
+  private async fixupPermissions(container: any, dbName: string) {
+    await this.runPgSql(container, [
+      `ALTER SCHEMA public OWNER TO "${dbName}";`,
+      `GRANT ALL ON SCHEMA public TO "${dbName}";`,
+      `GRANT ALL PRIVILEGES ON DATABASE "${dbName}" TO "${dbName}";`
+    ].join(' '), dbName);
+
+    // ponytail: reassign any pre-existing objects (e.g. _prisma_migrations from prior sessions)
+    await this.runPgSql(container, [
+      `DO $$ DECLARE r RECORD; BEGIN`,
+      `  FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP`,
+      `    EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO "${dbName}"';`,
+      `  END LOOP;`,
+      `  FOR r IN SELECT sequencename FROM pg_sequences WHERE schemaname = 'public' LOOP`,
+      `    EXECUTE 'ALTER SEQUENCE public.' || quote_ident(r.sequencename) || ' OWNER TO "${dbName}"';`,
+      `  END LOOP;`,
+      `END $$;`
+    ].join(' '), dbName).catch(() => {});
+  }
+
   /**
    * Create a fresh workspace container with all necessary configuration.
    */
@@ -256,6 +348,10 @@ export class ContainerService {
 
     // Mongo-based stacks get a MongoDB sidecar started after the workspace below.
     const isMongo = this.isMongoStack(stackName);
+
+    const dbName = this.generateDbName(userId, stackName, level);
+    await this.ensureDevsimNetwork();
+    const dbPassword = await this.ensureSharedPostgresDatabase(dbName);
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
 
@@ -278,6 +374,8 @@ export class ContainerService {
       portBindings[p] = [{ HostPort: '' }];
     }
 
+    const mongoJwtSecret = crypto.randomBytes(32).toString('hex');
+
     const containerConfig: any = {
       Image: resolved.imageToUse,
       name: `devsim-${stackName}-${userId}-${level}`,
@@ -287,19 +385,23 @@ export class ContainerService {
       WorkingDir: '/workspace',
       ExposedPorts: exposedPorts,
       Env: [
-        'POSTGRES_USER=devsim',
-        'POSTGRES_PASSWORD=devsim',
-        'POSTGRES_DB=devsim',
-        'DATABASE_HOST=localhost',
+        `DATABASE_NAME=${dbName}`,
+        'DATABASE_HOST=devsim-postgres',
         'DATABASE_PORT=5432',
-        'DATABASE_USER=devsim',
-        'DATABASE_PASSWORD=devsim',
-        'DATABASE_URL=postgresql://devsim:devsim@localhost:5432/devsim'
+        `DATABASE_USER=${dbName}`,
+        `DATABASE_PASSWORD=${dbPassword}`,
+        `DATABASE_URL=postgresql://${dbName}:${dbPassword}@devsim-postgres:5432/${dbName}`,
+        'SKIP_POSTGRES=true',
+        ...isMongo ? [
+          `MONGO_URI=mongodb://localhost:27017/${dbName}`,
+          `JWT_SECRET=${mongoJwtSecret}`,
+        ] : [],
       ],
       HostConfig: {
         Memory: 512 * 1024 * 1024,
         AutoRemove: false,
-        PortBindings: portBindings
+        PortBindings: portBindings,
+        NetworkMode: ContainerService.SHARED_NETWORK
       },
       Labels: {
         'devsim.userId': userId,

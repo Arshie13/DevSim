@@ -102,6 +102,8 @@ export interface ScenarioMeta {
   previewImages?: string[];
   /** Epic data for sprint structure */
   epics?: EpicMeta[];
+  /** Whether this scenario is locked behind the paywall */
+  isLocked?: boolean;
 }
 
 export interface EpicMeta {
