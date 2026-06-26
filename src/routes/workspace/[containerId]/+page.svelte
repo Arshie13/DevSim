@@ -811,7 +811,15 @@ $effect(() => {
       }
     }
 
+    const onPageHide = () => {
+      if (containerId) {
+        navigator.sendBeacon(`/api/docker/container/${containerId}/stop`);
+      }
+    };
+    window.addEventListener('pagehide', onPageHide);
+
     return () => {
+      window.removeEventListener('pagehide', onPageHide);
       terminalSessions.forEach((s) => s.instance?.dispose());
       monacoEditor?.dispose();
     };
