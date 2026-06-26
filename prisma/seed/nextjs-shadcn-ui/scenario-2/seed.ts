@@ -91,7 +91,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Add the shadcn Textarea component using pnpm dlx shadcn@latest add textarea",
+                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
                 order: 2,
               },
               {
@@ -109,7 +109,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Required shadcn/components/ui/textarea component is installed",
+                description: "Required shadcn/components/ui/alert component is installed",
                 is_required: true,
                 order: 2,
               },
@@ -153,26 +153,47 @@ export const levels = [
                 order: 4,
               },
               {
+                title: "Practice Lab: Update Button Label",
+                content:
+                  "Practice updating button labels to maintain consistency across the portal.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    'Update the function output from "Sign In" to "Login" for the button label.',
+                  language: "typescript",
+                  starter_code:
+                    'export function getAgentButtonLabel() {\n  return "Sign In";\n}\n',
+                  editable_regions: [
+                    {
+                      placeholder: "Sign In",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "getAgentButtonLabel",
+                  test_cases: [
+                    {
+                      input: [],
+                      expected: "Login",
+                      label: "updated button label",
+                    },
+                  ],
+                },
+                order: 5,
+              },
+              {
                 title: "Key Takeaway",
                 content:
                   "Consistent copy is a sign of a polished product. Button labels, loading states, and headings should be aligned with the environment variables so the portal feels cohesive.",
-                order: 5,
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Change the agent login button label from 'Sign In' to 'Login' in `src/app/agent/login/page.tsx`.",
+                description: "Change the agent login button label from 'Sign In' to 'Login' in `src/app/agent/login/page.tsx`",
                 order: 1,
-              },
-              {
-                description: "Change the support page logout label from 'Return to menu' to 'Logout' in `src/app/support/page.tsx`.",
-                order: 2,
-              },
-              {
-                description: "Render the home page heading from `NEXT_PUBLIC_APP_NAME` in `src/app/page.tsx`.",
-                order: 3,
               },
             ],
           },
@@ -183,16 +204,6 @@ export const levels = [
                 description: "Agent login button reads 'Login'",
                 is_required: true,
                 order: 1,
-              },
-              {
-                description: "Support page logout button reads 'Logout'",
-                is_required: true,
-                order: 2,
-              },
-              {
-                description: "Home page heading reflects NEXT_PUBLIC_APP_NAME",
-                is_required: true,
-                order: 3,
               },
             ],
           },

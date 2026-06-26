@@ -91,7 +91,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Add the shadcn Select component using pnpm dlx shadcn@latest add select",
+                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
                 order: 2,
               },
               {
@@ -109,7 +109,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Required shadcn/components/select component is installed",
+                description: "Required shadcn/components/ui/alert component is installed",
                 is_required: true,
                 order: 2,
               },
@@ -204,16 +204,8 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Update layout.tsx to use NEXT_PUBLIC_APP_NAME for page title",
+                description: "Change the signup button label from 'Sign Up' to 'Register' in `src/app/signup/page.tsx`",
                 order: 1,
-              },
-              {
-                description: "Change 'Sign Up' to 'Register' on auth pages",
-                order: 2,
-              },
-              {
-                description: "Update dashboard header to display 'BookStop Public Library'",
-                order: 3,
               },
             ],
           },
@@ -221,19 +213,9 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Page title reflects the environment variable",
+                description: "Signup button reads 'Register'",
                 is_required: true,
                 order: 1,
-              },
-              {
-                description: "Updated text appears correctly in the UI",
-                is_required: true,
-                order: 2,
-              },
-              {
-                description: "Dashboard header shows correct library name",
-                is_required: true,
-                order: 3,
               },
             ],
           },

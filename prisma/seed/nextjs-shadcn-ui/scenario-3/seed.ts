@@ -91,7 +91,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Add the shadcn Avatar component using pnpm dlx shadcn@latest add avatar",
+                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
                 order: 2,
               },
               {
@@ -109,7 +109,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Required shadcn/components/ui/avatar component is installed",
+                description: "Required shadcn/components/ui/alert component is installed",
                 is_required: true,
                 order: 2,
               },
@@ -153,26 +153,47 @@ export const levels = [
                 order: 4,
               },
               {
+                title: "Practice Lab: Update Login Label",
+                content:
+                  "Practice updating login labels to maintain consistency across the academic portal.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    'Update the function output from "Sign In" to "Log In" for the login button label.',
+                  language: "typescript",
+                  starter_code:
+                    'export function getLoginButtonLabel() {\n  return "Sign In";\n}\n',
+                  editable_regions: [
+                    {
+                      placeholder: "Sign In",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "getLoginButtonLabel",
+                  test_cases: [
+                    {
+                      input: [],
+                      expected: "Log In",
+                      label: "updated login label",
+                    },
+                  ],
+                },
+                order: 5,
+              },
+              {
                 title: "Key Takeaway",
                 content:
                   "Consistent copy is a sign of a polished product. Button labels, loading states, and headings should be aligned with the environment variables so the portal feels cohesive.",
-                order: 5,
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Change the login submit button label from 'Sign In' to 'Log In' (and 'Signing in...' to 'Logging in...') in `src/app/login/page.tsx`.",
+                description: "Change the login button label from 'Sign In' to 'Log In' in `src/app/login/page.tsx`",
                 order: 1,
-              },
-              {
-                description: "Update the login card description from 'Sign in to access your academic information' to 'Log in to access your academic information'.",
-                order: 2,
-              },
-              {
-                description: "Replace the hard-coded academic year in the fees page summary card subtitle (`src/app/dashboard/fees/page.tsx`) with NEXT_PUBLIC_ACADEMIC_YEAR.",
-                order: 3,
               },
             ],
           },
@@ -180,19 +201,9 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Login button reads 'Log In' and its loading state reads 'Logging in...'",
+                description: "Login button reads 'Log In'",
                 is_required: true,
                 order: 1,
-              },
-              {
-                description: "Login card description uses 'Log in' instead of 'Sign in'",
-                is_required: true,
-                order: 2,
-              },
-              {
-                description: "Fees page summary card subtitle uses NEXT_PUBLIC_ACADEMIC_YEAR",
-                is_required: true,
-                order: 3,
               },
             ],
           },
