@@ -16,11 +16,11 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The library has onboarded a new developer and needs the system running locally with minor UI tweaks and environment configuration. Set up the Next.js development environment, configure environment variables, and make initial UI text updates to get the library management system running.",
+      "Mission Briefing: The library has onboarded a new developer and needs the system running locally with minor UI tweaks. Set up the Next.js development environment, install dependencies, add the required shadcn/ui components, and verify the dev server starts cleanly.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Next.js environment configuration ensures secure API keys and database connections. Proper environment variable setup is crucial for both development and production deployments. Shadcn/ui components provide consistent styling and accessibility out of the box.",
+      "Installing project dependencies with pnpm install ensures all required libraries (React, Next.js, shadcn/ui, Tailwind CSS) are available. Running the dev server verifies the project boots without errors before any feature work begins. Adding shadcn/ui components via the CLI copies them into the project source, giving full ownership and easy customization.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
@@ -34,7 +34,7 @@ export const levels = [
               {
                 title: "Overview\nSetting Up a Next.js + shadcn/ui Project",
                 content:
-                  "This section introduces the crash course for preparing a Next.js + shadcn/ui development environment. It provides a high-level view of the setup flow, required tools, and key concepts needed before starting the hands-on tasks.",
+                  "This section introduces the crash course for setting up a Next.js + shadcn/ui project locally. It covers the key tools, dependency installation, and verifying the dev server runs cleanly before writing any feature code.",
                 order: 1,
               },
               {
@@ -50,15 +50,15 @@ export const levels = [
                 order: 3,
               },
               {
-                title: "Environment Variables in Next.js",
-                content:
-                  "Next.js uses .env.local for local environment variables. Variables prefixed with NEXT_PUBLIC_ are exposed to the browser; all others are server-only.\n\nExample:\nNEXT_PUBLIC_APP_NAME=\"BookStop Library\"\n\nEnvironment variable files should not be committed to version control — they contain secrets. The repo's .gitignore already excludes them.",
-                order: 4,
-              },
-              {
                 title: "Package Management 101",
                 content:
                   "Package management is the process of managing external code dependencies a project relies on. A package manager such as pnpm handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. The package.json lists all the libraries the app needs (React, Next.js, shadcn/ui components, Tailwind CSS). pnpm install downloads them into node_modules.",
+                order: 4,
+              },
+              {
+                title: "The Development Server",
+                content:
+                  "Next.js includes a built-in development server that provides hot module replacement and Fast Refresh. Running pnpm run dev starts the server, watches for file changes, and instantly updates the browser without a full page reload.\n\nBefore writing any feature code, always verify the dev server starts without errors — this confirms the project setup is complete and establishes a known-good baseline.",
                 order: 5,
               },
               {
@@ -79,7 +79,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a Next.js project aligns the local environment (dependencies, env vars, dev server) so the app runs the same way for every developer.",
+                  "Setting up a Next.js project means installing dependencies, adding required UI components, and confirming the dev server starts cleanly — this establishes a reliable baseline before any feature work.",
                 order: 7,
               },
             ],
@@ -91,7 +91,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Create .env.local file with required environment variables",
+                description: "Add the shadcn Select component using pnpm dlx shadcn@latest add select",
                 order: 2,
               },
               {
@@ -109,12 +109,12 @@ export const levels = [
                 order: 1,
               },
               {
-                description: ".env.local file is properly configured",
+                description: "Required shadcn/components/select component is installed",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Development server starts successfully",
+                description: "All project dependencies are installed",
                 is_required: true,
                 order: 3,
               },

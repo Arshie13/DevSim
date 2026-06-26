@@ -12,15 +12,15 @@ export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-2-level-1",
     title: "Onboarding the Support Portal",
-    subtitle: "Configure environment and update UI text",
+    subtitle: "Bootstrap the dev environment",
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: City Hall has onboarded a new developer and needs the customer support portal running locally with environment configuration and minor UI tweaks. The Next.js development environment needs to be set up, environment variables configured for the support phone, email, and app name, and hard-coded UI text replaced to use these variables.",
+      "Mission Briefing: City Hall has onboarded a new developer and needs the customer support portal running locally. Set up the Next.js development environment by installing dependencies, adding the required shadcn/ui components, and verifying the dev server starts cleanly.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Environment variables centralize per-environment configuration in Next.js, separating deployment-specific values from source code. Using NEXT_PUBLIC_* variables for client-visible values keeps phone numbers, emails, and app names easy to change without code edits. This pattern is essential for portable Next.js applications.\n\nReplacing hard-coded UI text with environment-driven values prepares the codebase for white-labelling and per-tenant customization. Verifying the dev server runs cleanly before any feature work establishes a reliable baseline to return to when debugging.",
+      "Installing project dependencies with pnpm install ensures all required libraries are available. Adding shadcn/ui components via the CLI copies them into the project source for full ownership. Verifying the dev server boots without errors establishes a reliable baseline before any feature work begins.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
@@ -28,32 +28,38 @@ export const levels = [
           task_name: "Environment Setup",
           test_type: "both",
           user_story:
-            "As a developer, I want to install dependencies and configure environment variables so that the support portal runs locally with the correct contact details.",
+            "As a developer, I want to install dependencies and add required shadcn/ui components so that the support portal runs locally.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nBooting a Next.js + shadcn/ui Portal",
                 content:
-                  "This section walks through getting a Next.js support portal running locally. The flow is the same on every Next.js project: install dependencies, configure environment variables, then start the dev server.",
+                  "This section walks through getting a Next.js support portal running locally. The flow is the same on every Next.js project: install dependencies, add required UI components, then verify the dev server starts cleanly.",
                 order: 1,
               },
               {
                 title: "What Lives Where",
                 content:
-                  "A typical Next.js + shadcn/ui project is structured like:\nproject/\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     ├── components/ ← shadcn/ui components and custom ones\n    │     └── lib/ ← shared helpers\n    ├── .env.local ← local environment variables\n    └── package.json ← scripts and dependencies\n\nKnowing where the app name, phone, and email are rendered is half of being productive.",
+                  "A typical Next.js + shadcn/ui project is structured like:\nproject/\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     ├── components/ ← shadcn/ui components and custom ones\n    │     └── lib/ ← shared helpers\n    ├── package.json ← scripts and dependencies\n\nKnowing where files live makes navigating the codebase productive from day one.",
                 order: 2,
               },
               {
-                title: "NEXT_PUBLIC_* Variables",
+                title: "What is shadcn/ui?",
                 content:
-                  "Variables prefixed with NEXT_PUBLIC_ are inlined into the client bundle at build time. Anything the browser needs to see (app name, phone, email) must use this prefix.\n\nNEXT_PUBLIC_APP_NAME=\"City Support Portal\"\nNEXT_PUBLIC_SUPPORT_PHONE=\"(555) 123-4567\"\nNEXT_PUBLIC_SUPPORT_EMAIL=\"support@cityhall.gov\"\n\nThese values are available in browser code via process.env.NEXT_PUBLIC_APP_NAME.",
+                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.",
                 order: 3,
               },
               {
-                title: "Replacing Hard-Coded Values",
+                title: "Package Management 101",
                 content:
-                  "Hard-coded strings can be found by searching the codebase for the specific values. The editor's find feature (Ctrl+Shift+F in VS Code) can be used to locate the old phone number or email, which are then replaced with the environment variable.\n\n// Before\n<p>(555) 123-4567</p>\n// After\n<p>{process.env.NEXT_PUBLIC_SUPPORT_PHONE}</p>",
+                  "Package management is the process of managing external code dependencies a project relies on. A package manager such as pnpm handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. The package.json lists all the libraries the app needs (React, Next.js, shadcn/ui components, Tailwind CSS). pnpm install downloads them into node_modules.",
                 order: 4,
+              },
+              {
+                title: "The Development Server",
+                content:
+                  "Next.js includes a built-in development server that provides hot module replacement and Fast Refresh. Running pnpm run dev starts the server, watches for file changes, and instantly updates the browser without a full page reload.\n\nBefore writing any feature code, always verify the dev server starts without errors — this confirms the project setup is complete and establishes a known-good baseline.",
+                order: 5,
               },
               {
                 title: "Practice Lab: Adding shadcn/ui Components",
@@ -68,28 +74,28 @@ export const levels = [
                     "pnpm dlx shadcn@latest add textarea",
                   ],
                 },
-                order: 5,
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Environment variables make a Next.js app portable. Hard-coded tenant details are replaced with NEXT_PUBLIC_* variables so the same codebase can run for different organizations without edits.",
-                order: 6,
+                  "Setting up a Next.js project means installing dependencies, adding required UI components, and confirming the dev server starts cleanly — this establishes a reliable baseline before any feature work.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Run `pnpm install` at the project root and inside the `client/` folder.",
+                description: "Install dependencies using pnpm install at the project root",
                 order: 1,
               },
               {
-                description: "Create `client/.env.local` with NEXT_PUBLIC_APP_NAME, NEXT_PUBLIC_SUPPORT_PHONE, and NEXT_PUBLIC_SUPPORT_EMAIL.",
+                description: "Add the shadcn Textarea component using pnpm dlx shadcn@latest add textarea",
                 order: 2,
               },
               {
-                description: "Replace hard-coded phone/email in `src/app/page.tsx` and `src/app/support/page.tsx` with the env values.",
+                description: "Start the development server and verify it loads",
                 order: 3,
               },
             ],
@@ -98,17 +104,17 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on `pnpm run dev`",
+                description: "App runs without errors on pnpm run dev",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`.env.local` defines NEXT_PUBLIC_APP_NAME, NEXT_PUBLIC_SUPPORT_PHONE, NEXT_PUBLIC_SUPPORT_EMAIL",
+                description: "Required shadcn/components/ui/textarea component is installed",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Footer phone/email render from environment variables on home and support pages",
+                description: "All project dependencies are installed",
                 is_required: true,
                 order: 3,
               },
