@@ -512,6 +512,7 @@ enum LearningSectionType {
 enum LearningInteractiveMode {
   TERMINAL_CD
   CODE_EDITOR
+  TERMINAL_CMD
 }
 
 enum achievement_tier_level {

@@ -58,14 +58,14 @@ export const levels = [
               {
                 title: "Practice Lab: Adding shadcn/ui Components",
                 content:
-                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn-ui@latest add avatar",
+                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn@latest add avatar",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "TERMINAL_CMD" as const,
                 interactive_config: {
                   instructions:
                     "Run the shadcn/ui CLI command to add the Avatar component. Type the exact command and click Check to verify.",
                   expected_commands: [
-                    "pnpm dlx shadcn-ui@latest add avatar",
+                    "pnpm dlx shadcn@latest add avatar",
                   ],
                 },
                 order: 5,

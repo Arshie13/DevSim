@@ -319,6 +319,7 @@
 
     if (raw.toLowerCase() === "clear") {
       cmdHistory = [];
+      cmdCommands = [];
       cmdInput = "";
       scheduleTerminalAutoScroll();
       return;
@@ -365,6 +366,8 @@
 
     if (mismatches.length > 0) {
       cmdPracticePassed = false;
+      cmdCommands = [];
+      cmdHistory = [];
       cmdFeedback = `Command check failed: ${mismatches.join(" | ")}`;
       return;
     }
