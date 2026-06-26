@@ -25,11 +25,11 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: You just joined the FlexiSpend engineering team. Your first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change — adding a note field to transactions — so you understand how the codebase is organized end-to-end.",
+      "Mission Briefing: A new developer has joined the FlexiSpend engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change — adding a note field to transactions — so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "Setting up a NestJS + PostgreSQL + Prisma project requires understanding three layers: the NestJS runtime (controllers, services, modules), the Prisma schema (models, enums, relations), and the PostgreSQL database (migrations, seeds, connection strings). Knowing how to run `npx prisma migrate dev`, `npx prisma generate`, and `npm run start:dev` in the correct order is foundational for every backend developer on this stack.\n\nPrisma schema changes are the source of truth for your database. Adding a single field like `note String?` to a model triggers a migration, updates the TypeScript types, and propagates to the API DTOs and service logic. Understanding this single-file-to-database pipeline is critical before building any feature.",
+      "Setting up a NestJS + PostgreSQL + Prisma project requires understanding three layers: the NestJS runtime (controllers, services, modules), the Prisma schema (models, enums, relations), and the PostgreSQL database (migrations, seeds, connection strings). Knowing how to run `pnpm exec prisma migrate dev`, `pnpm exec prisma generate`, and `pnpm run start:dev` in the correct order is foundational for every backend developer on this stack.\n\nPrisma schema changes are the source of truth for the database. Adding a single field like `note String?` to a model triggers a migration, updates the TypeScript types, and propagates to the API DTOs and service logic. Understanding this single-file-to-database pipeline is critical before building any feature.",
     scenario_id: "nestjs-fs-scenario-1",
     tasks: {
       create: [
@@ -44,7 +44,7 @@ export const levels = [
               {
                 title: "Overview\nSetting Up a NestJS + PostgreSQL + Prisma Project",
                 content:
-                  "This section introduces the crash course for preparing a NestJS backend with PostgreSQL and Prisma. It gives a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                  "This section introduces the crash course for preparing a NestJS backend with PostgreSQL and Prisma. It gives a high-level view of the setup flow, required tools, and key concepts needed before starting the hands-on tasks.",
                 order: 1,
               },
               {
@@ -62,13 +62,13 @@ export const levels = [
               {
                 title: "Package Management in a NestJS Project",
                 content:
-                  "When you clone a project, no dependencies are installed yet — node_modules is in .gitignore. You must run npm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- class-validator, class-transformer — DTO validation\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what your services import at runtime.",
+                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- class-validator, class-transformer — DTO validation\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
                 order: 4,
               },
               {
                 title: "Prisma Schema and Migrations",
                 content:
-                  "The Prisma schema (prisma/schema.prisma) is the single source of truth for your database structure:\n\nmodel User {\n  id    String @id @default(uuid())\n  email String @unique\n  name  String\n}\n\nAfter editing the schema, you apply changes with:\nnpx prisma migrate dev --name add_user_fields\n\nThis generates a SQL migration file and applies it to your database. Then run:\nnpx prisma generate\n\nThis regenerates the Prisma Client TypeScript types so your services get autocomplete and type checking.",
+                  "The Prisma schema (prisma/schema.prisma) is the single source of truth for the database structure. Models define tables, fields define columns, and decorators define constraints like `@id`, `@unique`, and `@default`.\n\nAfter editing the schema, changes are applied with:\npnpm exec prisma migrate dev --name add_user_fields\n\nThis generates a SQL migration file and applies it to the database. Then run:\npnpm exec prisma generate\n\nThis regenerates the Prisma Client TypeScript types so services get autocomplete and type checking.",
                 order: 5,
               },
               {
@@ -103,19 +103,19 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/flexispend\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/flexispend\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
                 order: 7,
               },
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so you can develop against a real dataset instead of an empty one. The FlexiSpend seed creates 2 users, 8 default categories, 3 accounts, and ~18 transactions.\n\nRun the seed with:\nnpx prisma db seed\n\nThis command is defined in the root package.json and calls prisma/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so development can proceed against a real dataset instead of an empty one. The FlexiSpend seed creates 2 users, 8 default categories, 3 accounts, and ~18 transactions.\n\nRun the seed with:\npnpm exec prisma db seed\n\nThis command is defined in the root package.json and calls prisma/seed.ts via ts-node.",
                 order: 8,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a project is more than running one command — it means aligning your local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Get this right first, then build features.",
+                  "Setting up a project is more than running one command — it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first enables building features with confidence.",
                 order: 9,
               },
             ],
@@ -124,7 +124,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has a single root package.json — run npm install from the project root, not from any subfolder.",
+                  "The project has a single root package.json — run pnpm install from the project root, not from any subfolder.",
                 order: 1,
               },
               {
@@ -134,7 +134,7 @@ export const levels = [
               },
               {
                 description:
-                  "PostgreSQL must be running before Prisma can connect. Check the README for how to start PostgreSQL on your platform (local install or Docker).",
+                  "PostgreSQL must be running before Prisma can connect. The README contains instructions for starting PostgreSQL on the local platform (local install or Docker).",
                 order: 3,
               },
             ],
@@ -153,7 +153,7 @@ export const levels = [
                 order: 2,
               },
               {
-                description: "Prisma migrations applied successfully (npx prisma migrate dev)",
+                description: "Prisma migrations applied successfully (pnpm exec prisma migrate dev)",
                 is_required: true,
                 order: 3,
               },
@@ -182,37 +182,37 @@ export const levels = [
               {
                 title: "Overview\nExtending a Prisma Model and API",
                 content:
-                  "This section introduces the crash course for making your first schema change in a NestJS + Prisma codebase. It covers how Prisma models map to database tables, how migrations propagate changes, and how DTOs and services stay in sync with the schema.",
+                  "This section introduces the crash course for making a first schema change in a NestJS + Prisma codebase. It covers how Prisma models map to database tables, how migrations propagate changes, and how DTOs and services stay in sync with the schema.",
                 order: 1,
               },
               {
                 title: "Prisma Models are Schema-First",
                 content:
-                  "In Prisma, you define your database structure in schema.prisma, then generate the client. This is schema-first development:\n\nmodel Transaction {\n  id          String   @id @default(uuid())\n  amount      Decimal  @db.Decimal(10, 2)\n  type        TransactionType\n  description String?\n  // TODO: add note field here\n  accountId   String\n  categoryId  String\n  userId      String\n}\n\nThe `?` after String means the field is optional (nullable in SQL). Adding a field here is the first step; the migration and DTO updates follow.",
+                  "In Prisma, database structure is defined in schema.prisma, then the client is generated. This is schema-first development. Models define the shape of database tables, and fields map to columns. A `?` after a field type means the field is optional (nullable in SQL). Adding a field here is the first step; the migration and DTO updates follow.",
                 order: 2,
               },
               {
                 title: "Running a Migration",
                 content:
-                  "After editing schema.prisma, create a migration:\n\nnpx prisma migrate dev --name add_transaction_note\n\nPrisma compares your schema against the current database state, generates a SQL migration file in prisma/migrations/, and applies it. This is how the database stays in sync with your code. Never edit migration files by hand unless you know exactly what you are doing.",
+                  "After editing schema.prisma, a migration is created:\n\npnpm exec prisma migrate dev --name add_transaction_note\n\nPrisma compares the schema against the current database state, generates a SQL migration file in prisma/migrations/, and applies it. This is how the database stays in sync with the code. Migration files should never be edited by hand without a thorough understanding of the consequences.",
                 order: 3,
               },
               {
                 title: "DTOs: Data Transfer Objects",
                 content:
-                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateTransactionDto tells NestJS what fields to expect when someone POSTs to /api/transactions:\n\nexport class CreateTransactionDto {\n  @IsNumber()\n  amount: number;\n\n  @IsEnum(TransactionType)\n  type: TransactionType;\n\n  // TODO: add note field here\n  @IsUUID()\n  accountId: string;\n}\n\nUse class-validator decorators (@IsString, @IsOptional, etc.) to enforce rules before the data reaches your service.",
+                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateTransactionDto tells NestJS what fields to expect when someone POSTs to /api/transactions. Class-validator decorators (@IsString, @IsOptional, etc.) enforce validation rules before the data reaches the service layer.",
                 order: 4,
               },
               {
                 title: "Updating the Service and Controller",
                 content:
-                  "The service layer calls Prisma Client methods to interact with the database. After adding a field, update the service to include it in create and find operations:\n\n// transactions.service.ts\nasync create(dto: CreateTransactionDto, userId: string) {\n  return this.prisma.transaction.create({\n    data: {\n      ...dto,\n      userId,\n      // note will be passed through automatically if in dto\n    },\n  });\n}\n\nThe controller returns the full Prisma result, so if the model and DTO both include `note`, the API response will include it too.",
+                  "The service layer calls Prisma Client methods to interact with the database. After adding a field, the service must be updated to include it in create and find operations. The controller returns the full Prisma result, so if the model and DTO both include the field, the API response will include it too.",
                 order: 5,
               },
               {
                 title: "Hot Reload with NestJS Dev Mode",
                 content:
-                  "NestJS in development mode (npm run start:dev) watches your files and restarts automatically on save. After running prisma generate and updating your DTO/service, save the files — the server will restart and the new `note` field will be available immediately.\n\nYou do NOT need to restart PostgreSQL or re-run migrations unless the schema itself changes.",
+                  "NestJS in development mode (pnpm run start:dev) watches files and restarts automatically on save. After running prisma generate and updating the DTO/service, saving the files triggers the server to restart — the new field will be available immediately.\n\nPostgreSQL does not need to be restarted, nor do migrations need to be re-run, unless the schema itself changes.",
                 order: 6,
               },
               {
@@ -271,7 +271,7 @@ export const levels = [
               },
               {
                 description:
-                  "Run `npx prisma migrate dev --name add_transaction_note` to apply the schema change to PostgreSQL, then `npx prisma generate` to update the TypeScript types.",
+                  "Run `pnpm exec prisma migrate dev --name add_transaction_note` to apply the schema change to PostgreSQL, then `pnpm exec prisma generate` to update the TypeScript types.",
                 order: 2,
               },
               {
@@ -326,7 +326,7 @@ export const levels = [
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. Your job is to implement cursor-based pagination with filters and enforce soft-delete visibility rules across the API.",
+      "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. The job is to implement cursor-based pagination with filters and enforce soft-delete visibility rules across the API.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
@@ -369,13 +369,13 @@ export const levels = [
               {
                 title: "Composing WHERE Filters",
                 content:
-                  "Prisma's `where` object accepts multiple conditions that are ANDed together by default:\n\nconst where: Prisma.TransactionWhereInput = {\n  userId,\n  ...(type && { type }),\n  ...(categoryId && { categoryId }),\n  ...(startDate && endDate && {\n    date: { gte: new Date(startDate), lte: new Date(endDate) },\n  }),\n};\n\nUse the spread operator with conditional objects to build dynamic filters without nested if-statements. This keeps the code readable when you have 4+ optional filters.",
+                  "Prisma's `where` object accepts multiple conditions that are ANDed together by default. The spread operator with conditional objects builds dynamic filters without nested if-statements. This keeps the code readable when there are 4 or more optional filters.",
                 order: 5,
               },
               {
                 title: "Counting for the Envelope",
                 content:
-                  "You need two Prisma calls for a proper paginated response:\n\nconst [data, total] = await Promise.all([\n  prisma.transaction.findMany({ skip, take, where, orderBy }),\n  prisma.transaction.count({ where }),\n]);\n\nUse `Promise.all` so both queries run concurrently. `count` uses the exact same `where` object so `total` reflects the filtered result set, not the entire table.",
+                  "Two Prisma calls are needed for a proper paginated response:\n\nconst [data, total] = await Promise.all([\n  prisma.transaction.findMany({ skip, take, where, orderBy }),\n  prisma.transaction.count({ where }),\n]);\n\n`Promise.all` runs both queries concurrently. `count` uses the exact same `where` object so `total` reflects the filtered result set, not the entire table.",
                 order: 6,
               },
               {
@@ -506,7 +506,7 @@ export const levels = [
               {
                 title: "Prisma Model Configuration",
                 content:
-                  "The Category model already has `isActive Boolean @default(true)`. When you soft-delete, you update this field instead of calling `delete`. No schema changes are needed for this feature — only service and controller logic changes.\n\nmodel Category {\n  id        String   @id @default(uuid())\n  name      String\n  isActive  Boolean  @default(true)\n  // ... relations\n}",
+                  "The Category model already has `isActive Boolean @default(true)`. When a soft-delete is performed, this field is updated instead of calling `delete`. No schema changes are needed for this feature — only service and controller logic changes.",
                 order: 5,
               },
               {
@@ -605,7 +605,7 @@ export const levels = [
     order: 3,
     deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: FlexiSpend handles real money — incorrect balance calculations or overspent budgets erode user trust. Your job is to implement atomic balance updates (so concurrent transactions never drift), enforce funds guards (prevent overspending), and build a budget tracker that compares monthly limits against real transaction totals.",
+      "Mission Briefing: FlexiSpend handles real money — incorrect balance calculations or overspent budgets erode user trust. The job is to implement atomic balance updates (so concurrent transactions never drift), enforce funds guards (prevent overspending), and build a budget tracker that compares monthly limits against real transaction totals.",
     xp_reward: 200,
     coin_reward: 100,
     key_takeaways:
@@ -648,7 +648,7 @@ export const levels = [
               {
                 title: "Field Validation with class-validator",
                 content:
-                  "Use class-validator decorators to reject bad data before it reaches business logic:\n\n@IsPositive()\namount: number;\n\n@IsEnum(TransactionType)\ntype: TransactionType;\n\n@IsDateString()\ndate: string;\n\nclass-validator runs automatically when you apply the `ValidationPipe` globally in main.ts. This means negative amounts, invalid dates, and unknown enum values all return 400 before your service code executes.",
+                  "Use class-validator decorators to reject bad data before it reaches business logic. class-validator runs automatically when the `ValidationPipe` is applied globally in main.ts. This means negative amounts, invalid dates, and unknown enum values all return 400 before service code executes.",
                 order: 5,
               },
               {
@@ -778,7 +778,7 @@ export const levels = [
               {
                 title: "Aggregating Transactions by Category",
                 content:
-                  "Use Prisma's aggregate API to sum expenses per category in a given month:\n\nconst spent = await prisma.transaction.groupBy({\n  by: ['categoryId'],\n  where: {\n    userId,\n    type: 'EXPENSE',\n    date: {\n      gte: new Date(year, month - 1, 1),\n      lt: new Date(year, month, 1),\n    },\n  },\n  _sum: { amount: true },\n});\n\nThis returns an array like [{ categoryId, _sum: { amount: 300 } }]. Map this into your budget response to compute spent, remaining, and percentUsed.",
+                  "Use Prisma's aggregate API to sum expenses per category in a given month. This returns an array of category IDs with summed amounts, which is mapped into the budget response to compute spent, remaining, and percentUsed.",
                 order: 3,
               },
               {
@@ -904,7 +904,7 @@ export const levels = [
     xp_reward: 250,
     coin_reward: 125,
     key_takeaways:
-      "Aggregate queries should always be scoped to an indexed column (userId, date range) so the database scans a small subset of rows instead of the entire transactions table. Prisma's `aggregate`, `groupBy`, and raw query APIs each have different performance characteristics — choose the one that generates the most efficient SQL for your report shape.\n\nBudget alerts are a filtered, sorted view of the same budget data. Instead of duplicating the query, build a reusable helper that computes budget metrics (spent, remaining, percentUsed) and apply a `percentUsed >= 80` filter on top. Reusing computation logic prevents the alerts and the budget page from diverging.",
+      "Aggregate queries should always be scoped to an indexed column (userId, date range) so the database scans a small subset of rows instead of the entire transactions table. Prisma's `aggregate`, `groupBy`, and raw query APIs each have different performance characteristics — the right one depends on the report shape and the most efficient SQL it generates.\n\nBudget alerts are a filtered, sorted view of the same budget data. Instead of duplicating the query, a reusable helper computes budget metrics (spent, remaining, percentUsed) and a `percentUsed >= 80` filter is applied on top. Reusing computation logic prevents the alerts and the budget page from diverging.",
     scenario_id: "nestjs-fs-scenario-1",
     tasks: {
       create: [
@@ -949,7 +949,7 @@ export const levels = [
               {
                 title: "Admin-Only Routes with Guards",
                 content:
-                  "Summary and trend endpoints should be protected by an admin or authenticated-user guard. The test uses an admin token, but in a real app you might restrict trends to paying users. NestJS guards intercept requests before they reach the controller:\n\n@UseGuards(JwtAuthGuard)\n@Controller('reports')\nexport class ReportsController {\n  @Get('monthly-summary')\n  async monthlySummary(@Query() query, @Req() req) { ... }\n}\n\nThe JWT strategy extracts the user from the Authorization header; the guard ensures only valid tokens proceed.",
+                  "Summary and trend endpoints should be protected by an admin or authenticated-user guard. NestJS guards intercept requests before they reach the controller. The JWT strategy extracts the user from the Authorization header; the guard ensures only valid tokens proceed.",
                 order: 6,
               },
               {
@@ -1003,7 +1003,7 @@ export const levels = [
               },
               {
                 description:
-                  "For the `trends` endpoint, query the last N months of data and group by year+month. You can use Prisma `groupBy` with raw date extraction, or a `$queryRaw` with PostgreSQL `DATE_TRUNC('month', date)`.",
+                  "For the `trends` endpoint, query the last N months of data and group by year+month. Prisma `groupBy` with raw date extraction or `$queryRaw` with PostgreSQL `DATE_TRUNC('month', date)` can both be used.",
                 order: 2,
               },
               {
@@ -1069,7 +1069,7 @@ export const levels = [
               {
                 title: "Filtering Alerts by Threshold",
                 content:
-                  "Budget alerts are simply budgets where `percentUsed >= 80` (or any threshold you define):\n\nconst alerts = enrichedBudgets\n  .filter((b) => b.percentUsed >= 80)\n  .sort((a, b) => b.percentUsed - a.percentUsed);\n\nReturn only the budgets that need attention, sorted by severity (highest percent first). This gives the user a clear priority list.",
+                  "Budget alerts are budgets where `percentUsed >= 80` (or any defined threshold). Only the budgets that need attention are returned, sorted by severity (highest percent first). This gives the user a clear priority list.",
                 order: 4,
               },
               {
@@ -1081,7 +1081,7 @@ export const levels = [
               {
                 title: "Response Shape for Breakdown",
                 content:
-                  "The category breakdown endpoint should return an array of objects with these exact fields:\n\n{\n  categoryName: string;\n  total: number;\n  percentage: number;\n  transactionCount: number;\n}\n\nInclude `categoryName` (not just `categoryId`) so the client can render labels without a second lookup. Use Prisma's `include: { category: true }` in your findMany or raw query to join the category name.",
+                  "The category breakdown endpoint should return an array of objects with these exact fields:\n\n{\n  categoryName: string;\n  total: number;\n  percentage: number;\n  transactionCount: number;\n}\n\nInclude `categoryName` (not just `categoryId`) so the client can render labels without a second lookup. Prisma's `include: { category: true }` in a findMany or raw query joins the category name.",
                 order: 6,
               },
               {
@@ -1184,7 +1184,7 @@ export const levels = [
     xp_reward: 300,
     coin_reward: 150,
     key_takeaways:
-      "Pessimistic locking (or atomic operations) is the only reliable way to prevent balance drift under concurrent load. Application-level read-modify-write sequences have a race window that grows with traffic. In PostgreSQL, you can use `SELECT ... FOR UPDATE` inside a transaction to lock the row before updating it, ensuring that no other request can modify the balance between the read and the write.\n\nTimezone-aware date filtering is essential for financial reports that group by calendar day. Using `new Date()` or server-local time in SQL queries produces different results depending on where the server is deployed. Always store dates in UTC and use PostgreSQL's timezone-aware functions (`AT TIME ZONE`) or Prisma's date filters with explicit UTC boundaries.\n\nDivision by zero in budget math is a silent bug that corrupts dashboards. A budget amount of zero is valid user input (they might want to track spending without a limit), so the computation must handle it gracefully by returning 0% instead of NaN or Infinity.",
+      "Pessimistic locking (or atomic operations) is the only reliable way to prevent balance drift under concurrent load. Application-level read-modify-write sequences have a race window that grows with traffic. In PostgreSQL, `SELECT ... FOR UPDATE` inside a transaction locks the row before updating it, ensuring that no other request can modify the balance between the read and the write.\n\nTimezone-aware date filtering is essential for financial reports that group by calendar day. Using `new Date()` or server-local time in SQL queries produces different results depending on where the server is deployed. Dates should always be stored in UTC, and PostgreSQL timezone-aware functions (`AT TIME ZONE`) or Prisma date filters with explicit UTC boundaries should be used.\n\nDivision by zero in budget math is a silent bug that corrupts dashboards. A budget amount of zero is valid user input (users might want to track spending without a limit), so the computation must handle it gracefully by returning 0% instead of NaN or Infinity.",
     scenario_id: "nestjs-fs-scenario-1",
     tasks: {
       create: [
@@ -1211,19 +1211,19 @@ export const levels = [
               {
                 title: "Bug #2: Timezone Inconsistency in Reports",
                 content:
-                  "Client Report: 'My January report shows different totals when I check it at 11 PM vs 1 AM.'\n\nRoot cause: The report groups transactions by calendar day using the server's local timezone. A transaction at 2026-01-15T23:00:00Z is January 15 in UTC but January 16 in Tokyo (+9).\n\nFix: Always use UTC date boundaries in your SQL queries, and store all dates in UTC. When grouping by day, truncate to UTC midnight:\n\nSELECT DATE_TRUNC('day', date AT TIME ZONE 'UTC') AS day ...\n\nFor Prisma, construct explicit UTC start/end dates in your controller and pass them to the service. Never rely on `new Date()` or server-local time for report boundaries.",
+                  "Client Report: 'My January report shows different totals when I check it at 11 PM vs 1 AM.'\n\nRoot cause: The report groups transactions by calendar day using the server's local timezone. A transaction at 2026-01-15T23:00:00Z is January 15 in UTC but January 16 in Tokyo (+9).\n\nFix: UTC date boundaries should always be used in SQL queries, and all dates should be stored in UTC. When grouping by day, truncate to UTC midnight. For Prisma, explicit UTC start/end dates are constructed in the controller and passed to the service. The server-local time or `new Date()` should never be relied upon for report boundaries.",
                 order: 3,
               },
               {
                 title: "Bug #3: Division by Zero in Budget Math",
                 content:
-                  "Client Report: 'When I set a budget to zero, the dashboard shows NaN% and breaks the charts.'\n\nRoot cause: `percentUsed = (spent / budgetAmount) * 100` produces `NaN` when `budgetAmount` is 0. JavaScript does not throw on division by zero — it silently returns `NaN` or `Infinity`.\n\nFix: Add a zero guard:\n\nconst percentUsed =\n  budgetAmount === 0 || budgetAmount === null\n    ? 0\n    : (spent / budgetAmount) * 100;\n\nAlso validate with `Number.isFinite(percentUsed)` in your tests to catch any remaining edge cases.",
+                  "Client Report: 'When I set a budget to zero, the dashboard shows NaN% and breaks the charts.'\n\nRoot cause: `percentUsed = (spent / budgetAmount) * 100` produces `NaN` when `budgetAmount` is 0. JavaScript does not throw on division by zero — it silently returns `NaN` or `Infinity`.\n\nFix: Add a zero guard that checks for zero or null budget amount before dividing. Validation with `Number.isFinite(percentUsed)` in tests catches remaining edge cases.",
                 order: 4,
               },
               {
                 title: "Prisma Interactive Transactions",
                 content:
-                  "Prisma's `$transaction` API accepts an async function that receives a transaction-bound client:\n\nawait prisma.$transaction(async (tx) => {\n  // All queries inside here share the same transaction\n  const account = await tx.account.findUnique({ where: { id } });\n  await tx.account.update({\n    where: { id },\n    data: { balance: { increment: -amount } },\n  });\n  await tx.transaction.create({ data: { ... } });\n});\n\nIf any query fails, the entire transaction rolls back. This is how you keep the account balance and the transaction record in perfect sync.",
+                  "Prisma's `$transaction` API accepts an async function that receives a transaction-bound client. If any query inside the callback fails, the entire transaction rolls back. This keeps the account balance and the transaction record in perfect sync.",
                 order: 5,
               },
               {
@@ -1344,7 +1344,7 @@ export const levels = [
               {
                 title: "Documenting the Three Bugs",
                 content:
-                  "Your postmortem should cover all three bugs fixed in Level 5, Task 1:\n\n1. Balance Drift / Race Condition\n   - Symptom: Incorrect balance after rapid create/delete\n   - Root cause: Read-modify-write without locking\n   - Fix: Prisma interactive transactions with atomic increment\n\n2. Timezone Inconsistency\n   - Symptom: Report totals vary by time of day\n   - Root cause: Server-local date boundaries in SQL\n   - Fix: Explicit UTC date ranges in controller, passed to all queries\n\n3. Division by Zero / NaN in Budgets\n   - Symptom: Dashboard shows NaN% when budget is $0\n   - Root cause: Unchecked division in percentage calculation\n   - Fix: Zero-guard before every division, validation with isFinite()",
+                  "The postmortem should cover all three bugs fixed in Level 5, Task 1:\n\n1. Balance Drift / Race Condition\n   - Symptom: Incorrect balance after rapid create/delete\n   - Root cause: Read-modify-write without locking\n   - Fix: Prisma interactive transactions with atomic increment\n\n2. Timezone Inconsistency\n   - Symptom: Report totals vary by time of day\n   - Root cause: Server-local date boundaries in SQL\n   - Fix: Explicit UTC date ranges in controller, passed to all queries\n\n3. Division by Zero / NaN in Budgets\n   - Symptom: Dashboard shows NaN% when budget is $0\n   - Root cause: Unchecked division in percentage calculation\n   - Fix: Zero-guard before every division, validation with isFinite()",
                 order: 4,
               },
               {
