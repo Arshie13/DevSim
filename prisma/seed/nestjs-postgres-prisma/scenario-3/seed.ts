@@ -1,5 +1,5 @@
-/**
- * Prisma Seed Script — IPPO POS System (NestJS Scenario 3)
+﻿/**
+ * Prisma Seed Script â€” IPPO POS System (NestJS Scenario 3)
  *
  * Seeds the database with Level and Scenario data for the IPPO POS learning scenario.
  */
@@ -18,15 +18,15 @@ export const levels = [
   {
     id: "nestjs-pos-level-1",
     title: "Getting Familiar with the Codebase",
-    subtitle: "Set up the development environment and make your first schema change.",
+    subtitle: "Set up the development environment and make a first schema change.",
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: You just joined the IPPO POS engineering team. Your first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change — adding a phoneNumber field to store settings — so you understand how the codebase is organized end-to-end.",
+      "Mission Briefing: A new developer has joined the IPPO POS engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change â€” adding a phoneNumber field to store settings â€” so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "Setting up a NestJS + PostgreSQL + Prisma project requires understanding three layers: the NestJS runtime (controllers, services, modules), the Prisma schema (models, enums, relations), and the PostgreSQL database (migrations, seeds, connection strings). Knowing how to run `npx prisma migrate dev`, `npx prisma generate`, and `npm run start:dev` in the correct order is foundational for every backend developer on this stack.\n\nPrisma schema changes are the source of truth for your database. Adding a single field like `phoneNumber String?` to a model triggers a migration, updates the TypeScript types, and propagates to the API DTOs and service logic. Understanding this single-file-to-database pipeline is critical before building any feature.",
+      "Setting up a NestJS + PostgreSQL + Prisma project requires understanding three layers: the NestJS runtime (controllers, services, modules), the Prisma schema (models, enums, relations), and the PostgreSQL database (migrations, seeds, connection strings). Knowing how to run `pnpm exec prisma migrate dev`, `pnpm exec prisma generate`, and `pnpm run start:dev` in the correct order is foundational for every backend developer on this stack.\n\nPrisma schema changes are the source of truth for the database. Adding a single field like `phoneNumber String?` to a model triggers a migration, updates the TypeScript types, and propagates to the API DTOs and service logic. Understanding this single-file-to-database pipeline is critical before building any feature.",
     scenario_id: "nestjs-pos-scenario-3",
     tasks: {
       create: [
@@ -40,31 +40,31 @@ export const levels = [
               {
                 title: "Overview\nSetting Up a NestJS + PostgreSQL + Prisma POS",
                 content:
-                  "This section introduces the crash course for preparing a NestJS backend with PostgreSQL and Prisma for a Point-of-Sale system. It gives a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                  "This section introduces the crash course for preparing a NestJS backend with PostgreSQL and Prisma for a Point-of-Sale system. It gives a high-level view of the setup flow, required tools, and key concepts needed before starting the hands-on tasks.",
                 order: 1,
               },
               {
                 title: "What is the IPPO POS System?",
                 content:
-                  "The IPPO POS System is a NestJS application using Prisma ORM with PostgreSQL. It has standard NestJS module structure with modules for Auth, Users, Products, Categories, Orders, Inventory, Reports, and Settings.\n\nNestJS — provides a modular architecture with decorators, dependency injection, and built-in support for REST APIs.\nPostgreSQL — stores users, products, categories, orders, and inventory.\nPrisma — defines the schema and generates the type-safe client.",
+                  "The IPPO POS System is a NestJS application using Prisma ORM with PostgreSQL. It has standard NestJS module structure with modules for Auth, Users, Products, Categories, Orders, Inventory, Reports, and Settings.\n\nNestJS â€” provides a modular architecture with decorators, dependency injection, and built-in support for REST APIs.\nPostgreSQL â€” stores users, products, categories, orders, and inventory.\nPrisma â€” defines the schema and generates the type-safe client.",
                 order: 2,
               },
               {
                 title: "How a NestJS App is Structured",
                 content:
-                  "A typical NestJS project is organized by feature modules:\n\nsrc/\n  ├── auth/          ← authentication module (JWT strategy, guards)\n  ├── users/         ← user management\n  ├── products/      ← product catalog\n  ├── categories/    ← product categories\n  ├── orders/        ← order management\n  ├── inventory/     ← stock tracking\n  ├── reports/       ← analytics endpoints\n  ├── settings/      ← store settings\n  ├── prisma/        ← schema, migrations, seed\n  └── main.ts        ← application bootstrap\n\nEach module contains its own controller, service, DTOs, and tests.",
+                  "A typical NestJS project is organized by feature modules:\n\nsrc/\n  â”œâ”€â”€ auth/          â† authentication module (JWT strategy, guards)\n  â”œâ”€â”€ users/         â† user management\n  â”œâ”€â”€ products/      â† product catalog\n  â”œâ”€â”€ categories/    â† product categories\n  â”œâ”€â”€ orders/        â† order management\n  â”œâ”€â”€ inventory/     â† stock tracking\n  â”œâ”€â”€ reports/       â† analytics endpoints\n  â”œâ”€â”€ settings/      â† store settings\n  â”œâ”€â”€ prisma/        â† schema, migrations, seed\n  â””â”€â”€ main.ts        â† application bootstrap\n\nEach module contains its own controller, service, DTOs, and tests.",
                 order: 3,
               },
               {
                 title: "Package Management in a NestJS Project",
                 content:
-                  "When you clone a project, no dependencies are installed yet — node_modules is in .gitignore. You must run npm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- class-validator, class-transformer — DTO validation\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what your services import at runtime.",
+                  "When a project is cloned, no dependencies are installed yet â€” node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common â€” framework runtime\n- @nestjs/platform-express â€” HTTP server adapter\n- @prisma/client â€” type-safe database client\n- prisma â€” CLI for migrations and schema management\n- bcrypt â€” password hashing\n- class-validator, class-transformer â€” DTO validation\n- supertest â€” HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
                 order: 4,
               },
               {
                 title: "Prisma Schema and Migrations",
                 content:
-                  "The Prisma schema (prisma/schema.prisma) is the single source of truth for your database structure.\n\nAfter editing the schema, you apply changes with:\nnpx prisma migrate dev --name init\n\nThis generates a SQL migration file and applies it to your database. Then run:\nnpx prisma generate\n\nThis regenerates the Prisma Client TypeScript types so your services get autocomplete and type checking.",
+                  "The Prisma schema (prisma/schema.prisma) is the single source of truth for the database structure.\n\nAfter editing the schema, changes are applied with:\npnpm exec prisma migrate dev --name init\n\nThis generates a SQL migration file and applies it to the database. Then run:\npnpm exec prisma generate\n\nThis regenerates the Prisma Client TypeScript types so services get autocomplete and type checking.",
                 order: 5,
               },
               {
@@ -99,19 +99,19 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/pos_system\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files â€” never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/pos_system\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. âš ï¸ .env files are listed in .gitignore intentionally â€” they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
                 order: 7,
               },
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so you can develop against a real dataset instead of an empty one. The IPPO POS seed creates default admin and cashier users for testing.\n\nRun the seed with:\nnpx prisma db seed\n\nThis command is defined in the root package.json and calls prisma/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so development can proceed against a real dataset instead of an empty one. The IPPO POS seed creates default admin and cashier users for testing.\n\nRun the seed with:\npnpm exec prisma db seed\n\nThis command is defined in the root package.json and calls prisma/seed.ts via ts-node.",
                 order: 8,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a project is more than running one command — it means aligning your local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Get this right first, then build features.",
+                  "Setting up a project is more than running one command â€” it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first enables building features with confidence.",
                 order: 9,
               },
             ],
@@ -120,17 +120,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has a single root package.json — run npm install from the project root, not from any subfolder.",
+                  "The project has a single root package.json â€” run pnpm install from the project root, not from any subfolder.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions — look for sections about environment configuration, the `.env` file, and the Prisma migrate/seed commands.",
+                  "The README.md contains step-by-step setup instructions â€” look for sections about environment configuration, the `.env` file, and the Prisma migrate/seed commands.",
                 order: 2,
               },
               {
                 description:
-                  "PostgreSQL must be running before Prisma can connect. Check the README for how to start PostgreSQL on your platform (local install or Docker).",
+                  "PostgreSQL must be running before Prisma can connect. The README contains instructions for starting PostgreSQL on the local platform (local install or Docker).",
                 order: 3,
               },
             ],
@@ -149,7 +149,7 @@ export const levels = [
                 order: 2,
               },
               {
-                description: "Prisma migrations applied successfully (npx prisma migrate dev)",
+                description: "Prisma migrations applied successfully (pnpm exec prisma migrate dev)",
                 is_required: true,
                 order: 3,
               },
@@ -176,19 +176,19 @@ export const levels = [
               {
                 title: "Overview\nExtending a Prisma Model",
                 content:
-                  "This section introduces the crash course for making your first schema change in a NestJS + Prisma codebase.",
+                  "This section introduces the crash course for making a first schema change in a NestJS + Prisma codebase.",
                 order: 1,
               },
               {
                 title: "Prisma Models are Schema-First",
                 content:
-                  "In Prisma, you define your database structure in schema.prisma, then generate the client. The Setting model currently stores storeName, storeAddress, taxRate, acceptCash, and acceptCard. You need to add a phoneNumber field that is optional (nullable).\n\nmodel Setting {\n  id           String   @id @default(uuid())\n  storeName    String   @default(\"My POS Store\")\n  storeAddress String   @default(\"\")\n  taxRate      Decimal  @db.Decimal(5, 2) @default(0)\n  acceptCash   Boolean  @default(true)\n  acceptCard   Boolean  @default(true)\n  // TODO: add phoneNumber here\n}",
+                  "In Prisma, database structure is defined in schema.prisma, then generate the client. The Setting model currently stores storeName, storeAddress, taxRate, acceptCash, and acceptCard. A phoneNumber field needs to be added that is optional (nullable).\n\nmodel Setting {\n  id           String   @id @default(uuid())\n  storeName    String   @default(\"My POS Store\")\n  storeAddress String   @default(\"\")\n  taxRate      Decimal  @db.Decimal(5, 2) @default(0)\n  acceptCash   Boolean  @default(true)\n  acceptCard   Boolean  @default(true)\n  // TODO: add phoneNumber here\n}",
                 order: 2,
               },
               {
                 title: "Running a Migration",
                 content:
-                  "After editing schema.prisma, create a migration:\n\nnpx prisma migrate dev --name add_setting_phone_number\n\nPrisma compares your schema against the current database state, generates a SQL migration file, and applies it. Then run `npx prisma generate` to update the TypeScript types.",
+                  "After editing schema.prisma, a migration is created:\n\npnpm exec prisma migrate dev --name add_setting_phone_number\n\nPrisma compares the schema against the current database state, generates a SQL migration file, and applies it. Then run `pnpm exec prisma generate` to update the TypeScript types.",
                 order: 3,
               },
               {
@@ -245,7 +245,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "In a Prisma + NestJS stack, schema changes flow in one direction: schema.prisma → migration → generated client → DTO → service → controller → API response. Master this pipeline and every feature becomes predictable to implement.",
+                  "In a Prisma + NestJS stack, schema changes flow in one direction: schema.prisma â†’ migration â†’ generated client â†’ DTO â†’ service â†’ controller â†’ API response. Master this pipeline and every feature becomes predictable to implement.",
                 order: 7,
               },
             ],
@@ -259,7 +259,7 @@ export const levels = [
               },
               {
                 description:
-                  "Run `npx prisma migrate dev --name add_setting_phone_number` to apply the schema change, then `npx prisma generate` to update the TypeScript types.",
+                  "Run `pnpm exec prisma migrate dev --name add_setting_phone_number` to apply the schema change, then `pnpm exec prisma generate` to update the TypeScript types.",
                 order: 2,
               },
               {
@@ -311,11 +311,11 @@ export const levels = [
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: IPPO customers need to browse the product catalog efficiently, and inventory guards must prevent invalid stock states. Your job is to fix low-stock comparison logic, prevent negative inventory updates, and build a paginated product listing.",
+      "Mission Briefing: IPPO customers need to browse the product catalog efficiently, and inventory guards must prevent invalid stock states. The job is to fix low-stock comparison logic, prevent negative inventory updates, and build a paginated product listing.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
-      "Inventory integrity requires both correct comparison operators (`lte` instead of `lt`) and input validation (rejecting negative quantities). These guards prevent silent data corruption.\n\nPagination is not a UI convenience — it is a performance requirement. A proper paginated API uses `skip` and `take` in Prisma, and returns a consistent envelope with `data`, `total`, `page`, `limit`, and `totalPages`.",
+      "Inventory integrity requires both correct comparison operators (`lte` instead of `lt`) and input validation (rejecting negative quantities). These guards prevent silent data corruption.\n\nPagination is not a UI convenience â€” it is a performance requirement. A proper paginated API uses `skip` and `take` in Prisma, and returns a consistent envelope with `data`, `total`, `page`, `limit`, and `totalPages`.",
     scenario_id: "nestjs-pos-scenario-3",
     tasks: {
       create: [
@@ -558,7 +558,7 @@ export const levels = [
     xp_reward: 200,
     coin_reward: 100,
     key_takeaways:
-      "Transactional checkout means the stock deduction, order creation, and payment validation all succeed or all fail together. Prisma's `$transaction` API wraps multiple database operations in a single ACID transaction. If any step fails (e.g., insufficient stock), the entire operation rolls back and the database remains consistent.\n\nTax and discount calculations require explicit rounding to 2 decimal places. JavaScript's floating-point arithmetic produces values like 14.030000000000001 instead of 14.03. Always use `Math.round(value * 100) / 100` for currency math.",
+      "Transactional checkout means the stock deduction, order creation, and payment validation all succeed or all fail together. Prisma's `$transaction` API wraps multiple database operations in a single ACID transaction. If any step fails (e.g., insufficient stock), the entire operation rolls back and the database remains consistent.\n\nTax and discount calculations require explicit rounding to 2 decimal places. JavaScript's floating-point arithmetic produces values like 14.030000000000001 instead of 14.03. `Math.round(value * 100) / 100` for currency math.",
     scenario_id: "nestjs-pos-scenario-3",
     tasks: {
       create: [
@@ -669,7 +669,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "tax equals subtotal × (taxRate / 100) from Settings",
+                description: "tax equals subtotal Ã— (taxRate / 100) from Settings",
                 is_required: true,
                 order: 2,
               },
@@ -829,7 +829,7 @@ export const levels = [
     order: 4,
     deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: IPPO management needs visibility into sales performance. Your job is to build daily and weekly sales reports, aggregating order data and showing top-selling products.",
+      "Mission Briefing: IPPO management needs visibility into sales performance. The job is to build daily and weekly sales reports, aggregating order data and showing top-selling products.",
     xp_reward: 250,
     coin_reward: 125,
     key_takeaways:
@@ -953,7 +953,7 @@ export const levels = [
                 order: 4,
               },
               {
-                description: "Is admin-only — cashier gets 401/403",
+                description: "Is admin-only â€” cashier gets 401/403",
                 is_required: true,
                 order: 5,
               },
@@ -1060,7 +1060,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description: "Is admin-only — cashier gets 401/403",
+                description: "Is admin-only â€” cashier gets 401/403",
                 is_required: true,
                 order: 4,
               },
@@ -1082,7 +1082,7 @@ export const levels = [
     xp_reward: 300,
     coin_reward: 150,
     key_takeaways:
-      "Pessimistic locking (SELECT ... FOR UPDATE) is the only reliable way to prevent overselling under concurrent load. Application-level read-modify-write sequences have a race window that grows with traffic. In PostgreSQL, you can use `SELECT ... FOR UPDATE` inside a transaction to lock the inventory row before updating it, ensuring that no other request can modify it between the read and the write.\n\nDecimal precision in financial calculations requires explicit rounding. JavaScript's floating-point arithmetic produces values like 30.029999999999 instead of 30.03. Always use `Math.round(value * 100) / 100` or a dedicated decimal library for currency math.\n\nTimezone-aware date filtering is essential for reports that group by calendar day. Using `new Date()` or server-local time in SQL queries produces different results depending on where the server is deployed. Always store dates in UTC and use explicit UTC boundaries.",
+      "Pessimistic locking (SELECT ... FOR UPDATE) is the only reliable way to prevent overselling under concurrent load. Application-level read-modify-write sequences have a race window that grows with traffic. In PostgreSQL, `SELECT ... FOR UPDATE` inside a transaction to lock the inventory row before updating it, ensuring that no other request can modify it between the read and the write.\n\nDecimal precision in financial calculations requires explicit rounding. JavaScript's floating-point arithmetic produces values like 30.029999999999 instead of 30.03. `Math.round(value * 100) / 100` or a dedicated decimal library for currency math.\n\nTimezone-aware date filtering is essential for reports that group by calendar day. Using `new Date()` or server-local time in SQL queries produces different results depending on where the server is deployed. Dates should always be stored in UTC and use explicit UTC boundaries.",
     scenario_id: "nestjs-pos-scenario-3",
     tasks: {
       create: [
@@ -1108,19 +1108,19 @@ export const levels = [
               {
                 title: "Bug #2: Decimal Precision Drift",
                 content:
-                  "Client Report: 'My order total shows $27.030000000000001 instead of $27.03.'\n\nRoot cause: JavaScript uses IEEE 754 floating-point arithmetic. 0.1 + 0.2 === 0.30000000000000004. When you multiply prices by quantities and add tax, tiny rounding errors accumulate.\n\nFix: Round every financial value to 2 decimal places before storing or returning it:\n\nfunction round2(value: number): number {\n  return Math.round(value * 100) / 100;\n}\n\nconst subtotal = round2(unitPrice * quantity);\nconst tax = round2(subtotal * taxRate);\nconst total = round2(subtotal + tax);\n\nThe test checks that `total.toString().split('.')[1].length <= 2`.",
+                  "Client Report: 'My order total shows $27.030000000000001 instead of $27.03.'\n\nRoot cause: JavaScript uses IEEE 754 floating-point arithmetic. 0.1 + 0.2 === 0.30000000000000004. When prices are multiplied by quantities and tax is added, tiny rounding errors accumulate.\n\nFix: Round every financial value to 2 decimal places before storing or returning it:\n\nfunction round2(value: number): number {\n  return Math.round(value * 100) / 100;\n}\n\nconst subtotal = round2(unitPrice * quantity);\nconst tax = round2(subtotal * taxRate);\nconst total = round2(subtotal + tax);\n\nThe test checks that `total.toString().split('.')[1].length <= 2`.",
                 order: 3,
               },
               {
                 title: "Bug #3: Timezone Inconsistency in Reports",
                 content:
-                  "Client Report: 'The daily report shows different order counts when I check at 11 PM vs 1 AM.'\n\nRoot cause: The report groups orders by calendar day using the server's local timezone. An order at 23:00 UTC is one day in UTC but the next day in Tokyo (+9).\n\nFix: Always use UTC date boundaries in your SQL queries, and store all dates in UTC. When grouping by day, truncate to UTC midnight:\n\nconst start = new Date();\nstart.setUTCHours(0, 0, 0, 0);\nconst end = new Date(start);\nend.setUTCDate(end.getUTCDate() + 1);\n\nFor Prisma, pass these exact UTC Date objects to the `createdAt` filter.",
+                  "Client Report: 'The daily report shows different order counts when I check at 11 PM vs 1 AM.'\n\nRoot cause: The report groups orders by calendar day using the server's local timezone. An order at 23:00 UTC is one day in UTC but the next day in Tokyo (+9).\n\nFix: UTC date boundaries should always be used in SQL queries, and store all dates in UTC. When grouping by day, truncate to UTC midnight:\n\nconst start = new Date();\nstart.setUTCHours(0, 0, 0, 0);\nconst end = new Date(start);\nend.setUTCDate(end.getUTCDate() + 1);\n\nFor Prisma, pass these exact UTC Date objects to the `createdAt` filter.",
                 order: 4,
               },
               {
                 title: "Prisma Interactive Transactions with Locking",
                 content:
-                  "For the oversell fix, wrap the stock check and deduction in a transaction. Prisma handles the locking automatically when you use `$transaction` with related queries on the same rows. The key insight is that the stock check and the decrement must happen in the same transaction - not as separate queries.\n\nIf you need explicit row-level locking, use a raw query:\n\nawait prisma.$executeRaw`SELECT * FROM inventory WHERE productId = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
+                  "For the oversell fix, wrap the stock check and deduction in a transaction. Prisma handles the locking automatically when `$transaction is used` with related queries on the same rows. The key insight is that the stock check and the decrement must happen in the same transaction - not as separate queries.\n\nIf explicit row-level locking, use a raw query:\n\nawait prisma.$executeRaw`SELECT * FROM inventory WHERE productId = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
                 order: 5,
               },
               {
@@ -1244,7 +1244,7 @@ export const levels = [
               {
                 title: "Documenting the Three Bugs",
                 content:
-                  "Your postmortem should cover all three bugs fixed in Level 5, Task 1:\n\n1. Race Condition / Oversell\n   - Symptom: Two customers bought the last item\n   - Root cause: Read-modify-write without locking\n   - Fix: Prisma interactive transactions with atomic decrement\n\n2. Decimal Precision Drift\n   - Symptom: Order totals showed 27.030000000000001\n   - Root cause: Unrounded floating-point arithmetic\n   - Fix: Math.round(value * 100) / 100 on all financial values\n\n3. Timezone Inconsistency\n   - Symptom: Daily reports varied by time of day\n   - Root cause: Server-local date boundaries in queries\n   - Fix: Explicit UTC date boundaries in controller, passed to all queries",
+                  "The postmortem should cover all three bugs fixed in Level 5, Task 1:\n\n1. Race Condition / Oversell\n   - Symptom: Two customers bought the last item\n   - Root cause: Read-modify-write without locking\n   - Fix: Prisma interactive transactions with atomic decrement\n\n2. Decimal Precision Drift\n   - Symptom: Order totals showed 27.030000000000001\n   - Root cause: Unrounded floating-point arithmetic\n   - Fix: Math.round(value * 100) / 100 on all financial values\n\n3. Timezone Inconsistency\n   - Symptom: Daily reports varied by time of day\n   - Root cause: Server-local date boundaries in queries\n   - Fix: Explicit UTC date boundaries in controller, passed to all queries",
                 order: 4,
               },
               {

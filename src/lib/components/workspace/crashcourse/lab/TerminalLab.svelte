@@ -12,7 +12,9 @@
 </script>
 
 <div class="mini-terminal">
-  <p class="terminal-path">Current path: {currentPath}</p>
+  {#if currentPath}
+    <p class="terminal-path">Current path: {currentPath}</p>
+  {/if}
   <Scrollbar className="terminal-log">
     {#each history as line}
       <p>{line}</p>

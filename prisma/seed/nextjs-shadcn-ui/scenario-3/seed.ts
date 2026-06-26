@@ -1,4 +1,4 @@
-export const scenarios = [
+﻿export const scenarios = [
   {
     id: "nextjs-shadcn-ui-scenario-3",
     name: "Riverside University Student Portal",
@@ -12,69 +12,90 @@ export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-3-level-1",
     title: "Onboarding the Student Portal",
-    subtitle: "Configure environment and update brand text",
+    subtitle: "Bootstrap the dev environment",
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Riverside University has onboarded a new developer (you!) and needs the student portal running locally with environment configuration and minor UI tweaks before the next semester roster is published. Set up the Next.js development environment, configure environment variables for the school name, registrar email, and academic year, then replace hard-coded brand text with these values.",
+      "Mission Briefing: Riverside University has onboarded a new developer and needs the student portal running locally. Set up the Next.js development environment by installing dependencies, adding the required shadcn/ui components, and verifying the dev server starts cleanly.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Centralizing per-environment values (school name, registrar email, academic year) in NEXT_PUBLIC_* variables keeps the Next.js codebase portable across deployments and supports white-labelling without touching source. Verifying that the dev server boots cleanly before any feature work establishes a known-good baseline you can return to when something breaks later.\n\nSwapping hard-coded copy for environment-driven strings on the login page, dashboard header, and fees page is a small change with outsized impact: it forces the codebase to treat tenant-specific data as configuration rather than content, which is the foundation for any multi-tenant Next.js application.",
+      "Installing project dependencies with pnpm install ensures all required libraries are available. Adding shadcn/ui components via the CLI copies them into the project source for full ownership. Verifying the dev server boots without errors establishes a reliable baseline before any feature work begins.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
           task_name: "Environment Setup",
-          test_type: "client",
+          test_type: "both",
           user_story:
-            "As a developer, I want to install dependencies and configure environment variables so that the student portal runs locally with the correct school identity.",
+            "As a developer, I want to install dependencies and add required shadcn/ui components so that the student portal runs locally.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nBooting a Next.js + shadcn/ui Portal",
                 content:
-                  "This section walks through getting a Next.js student portal running locally. The flow is the same on every Next.js project: install dependencies, configure environment variables, then start the dev server.",
+                  "This section walks through getting a Next.js student portal running locally. The flow is the same on every Next.js project: install dependencies, add required UI components, then verify the dev server starts cleanly.",
                 order: 1,
               },
               {
                 title: "What Lives Where",
                 content:
-                  "A typical Next.js + shadcn/ui project is structured like:\nproject/\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     ├── components/ ← shadcn/ui components and custom ones\n    │     ├── lib/ ← shared helpers and mock data\n    │     └── hooks/ ← custom React hooks\n    ├── .env.local ← local environment variables\n    └── package.json ← scripts and dependencies\n\nKnowing where the school name, registrar email, and academic year are rendered is half of being productive.",
+                  "A typical Next.js + shadcn/ui project is structured like:\nproject/\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     ├── components/ ← shadcn/ui components and custom ones\n    │     ├── lib/ ← shared helpers and mock data\n    │     └── hooks/ ← custom React hooks\n    ├── package.json ← scripts and dependencies\n\nKnowing where files live makes navigating the codebase productive from day one.",
                 order: 2,
               },
               {
-                title: "NEXT_PUBLIC_* Variables",
+                title: "What is shadcn/ui?",
                 content:
-                  "Variables prefixed with NEXT_PUBLIC_ are inlined into the client bundle at build time. Anything the browser needs to see (school name, registrar email, academic year) must use this prefix.\n\nNEXT_PUBLIC_SCHOOL_NAME=\"Riverside University\"\nNEXT_PUBLIC_REGISTRAR_EMAIL=\"registrar@riverside.edu\"\nNEXT_PUBLIC_ACADEMIC_YEAR=\"2025-2026\"\n\nThese values are available in browser code via process.env.NEXT_PUBLIC_SCHOOL_NAME.",
+                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.",
                 order: 3,
               },
               {
-                title: "Replacing Hard-Coded Values",
+                title: "Package Management 101",
                 content:
-                  "Search the codebase for the exact strings you want to replace. Use the editor's find feature (Ctrl+Shift+F in VS Code) to search for the old school name, then replace it with the environment variable.\n\n// Before\n<h1>Riverside University</h1>\n// After\n<h1>{process.env.NEXT_PUBLIC_SCHOOL_NAME}</h1>\n\nThis keeps the brand consistent across all pages.",
+                  "Package management is the process of managing external code dependencies a project relies on. A package manager such as pnpm handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. The package.json lists all the libraries the app needs (React, Next.js, shadcn/ui components, Tailwind CSS). pnpm install downloads them into node_modules.",
                 order: 4,
+              },
+              {
+                title: "The Development Server",
+                content:
+                  "Next.js includes a built-in development server that provides hot module replacement and Fast Refresh. Running pnpm run dev starts the server, watches for file changes, and instantly updates the browser without a full page reload.\n\nBefore writing any feature code, always verify the dev server starts without errors — this confirms the project setup is complete and establishes a known-good baseline.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Adding shadcn/ui Components",
+                content:
+                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn@latest add avatar",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "TERMINAL_CMD" as const,
+                interactive_config: {
+                  instructions:
+                    "Run the shadcn/ui CLI command to add the Avatar component. Type the exact command and click Check to verify.",
+                  expected_commands: [
+                    "pnpm dlx shadcn@latest add avatar",
+                  ],
+                },
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Environment variables make a Next.js app portable. Replace hard-coded tenant details with NEXT_PUBLIC_* variables so the same codebase can run for different schools without edits.",
-                order: 5,
+                  "Setting up a Next.js project means installing dependencies, adding required UI components, and confirming the dev server starts cleanly — this establishes a reliable baseline before any feature work.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Run `npm install` at the project root.",
+                description: "Install dependencies using pnpm install at the project root",
                 order: 1,
               },
               {
-                description: "Create `.env.local` with NEXT_PUBLIC_SCHOOL_NAME, NEXT_PUBLIC_REGISTRAR_EMAIL, and NEXT_PUBLIC_ACADEMIC_YEAR.",
+                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
                 order: 2,
               },
               {
-                description: "Replace the hard-coded brand label in `src/app/dashboard/layout.tsx` and `src/app/login/page.tsx` with `NEXT_PUBLIC_SCHOOL_NAME`.",
+                description: "Start the development server and verify it loads",
                 order: 3,
               },
             ],
@@ -83,17 +104,17 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on `npm run dev`",
+                description: "App runs without errors on pnpm run dev",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`.env.local` defines NEXT_PUBLIC_SCHOOL_NAME, NEXT_PUBLIC_REGISTRAR_EMAIL, NEXT_PUBLIC_ACADEMIC_YEAR",
+                description: "Required shadcn/components/ui/alert component is installed",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Brand label on login page and dashboard header reflects NEXT_PUBLIC_SCHOOL_NAME",
+                description: "All project dependencies are installed",
                 is_required: true,
                 order: 3,
               },
@@ -102,7 +123,7 @@ export const levels = [
         },
         {
           task_name: "UI Text Updates",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want consistent login copy and an environment-driven academic year so that the portal feels polished and accurate.",
           learning_sections: {
@@ -116,42 +137,63 @@ export const levels = [
               {
                 title: "Button Labels and Loading States",
                 content:
-                  "A button often has two states: idle and loading. Both should use the same verb:\n\n// Before\n<button>Sign In</button>\n<button>Signing in...</button>\n\n// After\n<button>Log In</button>\n<button>Logging in...</button>\n\nConsistency reduces cognitive load and makes the UI feel professional.",
+                  "A button often has two states: idle and loading. Both should use the same verb:\n\n// Before\n<button>Submit</button>\n<button>Submitting...</button>\n\n// After\n<button>Save</button>\n<button>Saving...</button>\n\nConsistency reduces cognitive load and makes the UI feel professional.",
                 order: 2,
               },
               {
                 title: "Page Descriptions and Environment Variables",
                 content:
-                  "The login card description and fees page subtitle should also use environment variables when they reference tenant-specific data.\n\n// Before\n<p>Sign in to access your academic information</p>\n// After\n<p>Log in to access your academic information</p>\n\n// Before\n<p>Summary for 2025-2026</p>\n// After\n<p>Summary for {process.env.NEXT_PUBLIC_ACADEMIC_YEAR}</p>\n\nThis keeps the portal accurate and easy to rebrand.",
+                  "Page descriptions and subtitles should use environment variables when they reference tenant-specific data. This ensures the text stays accurate when the portal is rebranded for a different institution.\n\n// Before\n<p>Sign in to access the portal</p>\n<p>Summary for 2025-2026</p>\n// After\n<p>Log in to access the portal</p>\n<p>Summary for {process.env.NEXT_PUBLIC_ACADEMIC_YEAR}</p>\n\nThis keeps the portal accurate and easy to rebrand.",
                 order: 3,
               },
               {
                 title: "Verifying Copy Changes",
                 content:
-                  "After editing, check every page that might share the component. A layout change affects all pages that use it. A page-specific change only affects that route. Use the browser dev tools to verify each route.",
+                  "After editing, every page that might share the component should be checked. A layout change affects all pages that use it. A page-specific change only affects that route. Browser dev tools can be used to verify each route.",
                 order: 4,
+              },
+              {
+                title: "Practice Lab: Update Login Label",
+                content:
+                  "Practice updating login labels to maintain consistency across the academic portal.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    'Update the function output from "Sign In" to "Log In" for the login button label.',
+                  language: "typescript",
+                  starter_code:
+                    'export function getLoginButtonLabel() {\n  return "Sign In";\n}\n',
+                  editable_regions: [
+                    {
+                      placeholder: "Sign In",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "getLoginButtonLabel",
+                  test_cases: [
+                    {
+                      input: [],
+                      expected: "Log In",
+                      label: "updated login label",
+                    },
+                  ],
+                },
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Consistent copy is a sign of a polished product. Align button labels, loading states, and headings with the environment variables so the portal feels cohesive.",
-                order: 5,
+                  "Consistent copy is a sign of a polished product. Button labels, loading states, and headings should be aligned with the environment variables so the portal feels cohesive.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Change the login submit button label from 'Sign In' to 'Log In' (and 'Signing in...' to 'Logging in...') in `src/app/login/page.tsx`.",
+                description: "Change the login button label from 'Sign In' to 'Log In' in `src/app/login/page.tsx`",
                 order: 1,
-              },
-              {
-                description: "Update the login card description from 'Sign in to access your academic information' to 'Log in to access your academic information'.",
-                order: 2,
-              },
-              {
-                description: "Replace the hard-coded academic year in the fees page summary card subtitle (`src/app/dashboard/fees/page.tsx`) with NEXT_PUBLIC_ACADEMIC_YEAR.",
-                order: 3,
               },
             ],
           },
@@ -159,19 +201,9 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Login button reads 'Log In' and its loading state reads 'Logging in...'",
+                description: "Login button reads 'Log In'",
                 is_required: true,
                 order: 1,
-              },
-              {
-                description: "Login card description uses 'Log in' instead of 'Sign in'",
-                is_required: true,
-                order: 2,
-              },
-              {
-                description: "Fees page summary card subtitle uses NEXT_PUBLIC_ACADEMIC_YEAR",
-                is_required: true,
-                order: 3,
               },
             ],
           },
@@ -190,13 +222,13 @@ export const levels = [
     xp_reward: 25,
     coin_reward: 50,
     key_takeaways:
-      "Mapping grade tiers (A, B, C, D/F) to explicit *-100 background and *-800 text classes guarantees accessible contrast across the dashboard rather than relying on shadcn variant defaults that drift across themes. Distinct color tiers help students scan their grades at a glance without re-reading each badge.\n\nExtracting repeated stat-card JSX into a single `StatCard` component prevents drift between the dashboard, fees, schedule, and standing pages. Replacing three back-to-back `.filter()` calls with a single `useMemo` returning all derived totals avoids redundant work on every render and keeps related fee state co-located.",
+      "Mapping grade tiers (A, B, C, D/F) to explicit *-100 background and *-800 text classes guarantees accessible contrast across the dashboard. Distinct color tiers help students scan their grades at a glance without re-reading each badge.\n\nExtracting repeated stat-card JSX into a single reusable component prevents drift across multiple dashboard pages. Replacing three back-to-back `.filter()` calls with a single `useMemo` returning all derived totals avoids redundant work on every render and keeps related derived state co-located.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
           task_name: "Fix Grade Badge Colors",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want grade badges to use distinct, accessible colors so that I can quickly identify how I'm doing in each course.",
           learning_sections: {
@@ -210,19 +242,19 @@ export const levels = [
               {
                 title: "Grade Tier Mapping",
                 content:
-                  "Map each grade tier to a high-contrast palette:\n\n• A-tier (A, A-) → bg-green-100 text-green-800\n• B-tier (B+, B, B-) → bg-blue-100 text-blue-800\n• C-tier (C+, C, C-) → bg-yellow-100 text-yellow-800\n• D/F-tier → bg-red-100 text-red-800\n\nThese combinations pass WCAG contrast guidelines and make grades scannable.",
+                  "Each grade tier is mapped to a high-contrast palette:\n\n- A-tier (A, A-) -> bg-green-100 text-green-800\n- B-tier (B+, B, B-) -> bg-blue-100 text-blue-800\n- C-tier (C+, C, C-) -> bg-yellow-100 text-yellow-800\n- D/F-tier -> bg-red-100 text-red-800\n\nThese combinations pass WCAG contrast guidelines and make grades scannable.",
                 order: 2,
               },
               {
                 title: "Replacing Variant-Driven Styles",
                 content:
-                  "Instead of relying on shadcn/ui Badge variants, pass explicit className strings:\n\n// Before\n<Badge variant={getGradeVariant(grade)}>\n\n// After\n<Badge className={getGradeClass(grade)}>\n\nThis gives you full control over the color and ensures consistency across themes.",
+                  "Instead of relying on shadcn/ui Badge variants, pass explicit className strings:\n\n// Before\n<Badge variant={getGradeVariant(grade)}>\n\n// After\n<Badge className={getGradeClass(grade)}>\n\nThis gives full control over the color and ensures consistency across themes.",
                 order: 3,
               },
               {
                 title: "Verifying Accessibility",
                 content:
-                  "Use browser dev tools to check contrast ratios. The *-100 / *-800 combinations typically exceed 7:1, which is AAA. Distinct colors also help students scan quickly — a green badge means 'A' at a glance.",
+                  "Browser dev tools can be used to check contrast ratios. The *-100 / *-800 combinations typically exceed 7:1, which is AAA. Distinct colors also help students scan quickly - a green badge means 'A' at a glance.",
                 order: 4,
               },
               {
@@ -272,7 +304,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Grade badges are a critical UI element. Map every tier to a tested, high-contrast combination and apply it via className for full control.",
+                  "Grade badges are a critical UI element. Every tier should be mapped to a tested, high-contrast combination and applied via className for full control.",
                 order: 6,
               },
             ],
@@ -284,7 +316,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Map A-tier (A, A-) → bg-green-100 text-green-800; B-tier (B+, B, B-) → bg-blue-100 text-blue-800; C-tier (C+, C, C-) → bg-yellow-100 text-yellow-800; D/F-tier → bg-red-100 text-red-800.",
+                description: "Map A-tier (A, A-) â†’ bg-green-100 text-green-800; B-tier (B+, B, B-) â†’ bg-blue-100 text-blue-800; C-tier (C+, C, C-) â†’ bg-yellow-100 text-yellow-800; D/F-tier â†’ bg-red-100 text-red-800.",
                 order: 2,
               },
               {
@@ -321,7 +353,7 @@ export const levels = [
         },
         {
           task_name: "Refactor & Extract StatCard",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want a single reusable StatCard component and a single useMemo for fee totals so that the codebase stays consistent and maintainable.",
           learning_sections: {
@@ -335,19 +367,19 @@ export const levels = [
               {
                 title: "The Duplication Problem",
                 content:
-                  "When the same stat-card markup appears on four pages, any style change requires editing four files. Over time, they drift apart and become inconsistent.\n\n// Dashboard page\n<Card><CardHeader>...</CardHeader><CardContent>...</CardContent></Card>\n// Fees page — same structure, different content\n<Card><CardHeader>...</CardHeader><CardContent>...</CardContent></Card>\n\nThese blocks should be one component.",
+                  "When the same stat-card markup appears across four pages, any style change requires editing four files. Over time, they drift apart and become inconsistent.\n\n// Page A\n<Card><CardHeader>...</CardHeader><CardContent>...</CardContent></Card>\n// Page B â€” same structure, different content\n<Card><CardHeader>...</CardHeader><CardContent>...</CardContent></Card>\n\nThese blocks should be one component.",
                 order: 2,
               },
               {
                 title: "Extracting a StatCard",
                 content:
-                  "Create a component that accepts title, value, subtitle, icon, and optional valueClassName:\n\n// components/StatCard.tsx\nimport { LucideIcon } from 'lucide-react';\n\nexport function StatCard({ title, value, subtitle, icon: Icon, valueClassName }: { ... }) {\n  return (\n    <Card>\n      <CardHeader className=\"flex flex-row items-center justify-between\">\n        <CardTitle>{title}</CardTitle>\n        <Icon />\n      </CardHeader>\n      <CardContent>\n        <div className={valueClassName}>{value}</div>\n        <p className=\"text-xs text-muted-foreground\">{subtitle}</p>\n      </CardContent>\n    </Card>\n  );\n}\n\nThis single component replaces every inline stat card.",
+                  "A component that accepts title, value, subtitle, icon, and optional valueClassName can be created:\n\n// components/StatCard.tsx\nimport { LucideIcon } from 'lucide-react';\n\nexport function StatCard({ title, value, subtitle, icon: Icon, valueClassName }: { ... }) {\n  return (\n    <Card>\n      <CardHeader className=\"flex flex-row items-center justify-between\">\n        <CardTitle>{title}</CardTitle>\n        <Icon />\n      </CardHeader>\n      <CardContent>\n        <div className={valueClassName}>{value}</div>\n        <p className=\"text-xs text-muted-foreground\">{subtitle}</p>\n      </CardContent>\n    </Card>\n  );\n}\n\nThis single component replaces every inline stat card.",
                 order: 3,
               },
               {
                 title: "Consolidating Fee Totals with useMemo",
                 content:
-                  "Instead of three separate .filter() calls on every render, use one useMemo that returns all totals:\n\nconst { paid, pending, overdue, totals } = useMemo(() => {\n  const paid = tuitionFees.filter(f => f.status === 'paid');\n  const pending = tuitionFees.filter(f => f.status === 'pending');\n  const overdue = tuitionFees.filter(f => f.status === 'overdue');\n  const grand = paid.reduce((s, f) => s + f.amount, 0);\n  return { paid, pending, overdue, totals: { paid, pending, overdue, grand } };\n}, [tuitionFees]);\n\nThis is cleaner, faster, and easier to debug.",
+                  "A single useMemo can return all derived totals:\n\nconst { paid, pending, overdue, totals } = useMemo(() => {\n  const paid = tuitionFees.filter(f => f.status === 'paid');\n  const pending = tuitionFees.filter(f => f.status === 'pending');\n  const overdue = tuitionFees.filter(f => f.status === 'overdue');\n  const grand = paid.reduce((s, f) => s + f.amount, 0);\n  return { paid, pending, overdue, totals: { paid, pending, overdue, grand } };\n}, [tuitionFees]);\n\nThis reduces multiple passes through the same array to a single computation.",
                 order: 4,
               },
               {
@@ -382,7 +414,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Duplication is a maintenance tax. Extract shared markup into components and consolidate derived state into useMemo. The codebase becomes smaller, faster, and more consistent.",
+                  "Duplication is a maintenance tax. Shared markup should be extracted into components and derived state consolidated into useMemo. The codebase becomes smaller, faster, and more consistent.",
                 order: 6,
               },
             ],
@@ -434,7 +466,7 @@ export const levels = [
     order: 3,
     deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Students are asking for two things — a faster way to find an old grade, and a way to write down personal study notes per course without leaving the portal. Add real-time search with semester filter chips to the grades page, then build a notes page that reads and writes from localStorage.",
+      "Mission Briefing: Students are asking for two things â€” a faster way to find an old grade, and a way to write down personal study notes per course without leaving the portal. Add real-time search with semester filter chips to the grades page, then build a notes page that reads and writes from localStorage.",
     xp_reward: 40,
     coin_reward: 100,
     key_takeaways:
@@ -444,7 +476,7 @@ export const levels = [
       create: [
         {
           task_name: "Grade Search & Semester Filter",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want to search my grades by course code or name and filter by semester so that I can locate an old grade quickly.",
           learning_sections: {
@@ -456,21 +488,21 @@ export const levels = [
                 order: 1,
               },
               {
-                title: "Text Search + Semester Chips",
+                title: "Text Search + Filter Chips",
                 content:
-                  "A good filter UI combines a free-text search with discrete semester chips. Both filters work independently but can be combined:\n\nconst filtered = useMemo(() => {\n  return grades\n    .filter(g =>\n      g.courseCode.toLowerCase().includes(query.toLowerCase()) ||\n      g.courseName.toLowerCase().includes(query.toLowerCase())\n    )\n    .filter(g => semesterFilter === 'all' || g.semester === semesterFilter);\n}, [grades, query, semesterFilter]);\n\nThis gives users two ways to slice the list.",
+                  "A combined filter approach pairs a free-text search input with discrete category chips. Both filters work independently and can be combined:\n\nconst filtered = useMemo(() => {\n  return items\n    .filter(item =>\n      item.title.toLowerCase().includes(query.toLowerCase()) ||\n      item.author.toLowerCase().includes(query.toLowerCase())\n    )\n    .filter(item => categoryFilter === 'all' || item.category === categoryFilter);\n}, [items, query, categoryFilter]);\n\nUsers can search by text, filter by category, or use both at the same time.",
                 order: 2,
               },
               {
                 title: "Filter Chips UI",
                 content:
-                  "Use shadcn/ui Badge or Button components for filter chips. Highlight the active chip so the user knows which filter is applied:\n\nconst chips = ['all', '1st Semester', '2nd Semester'];\n{chips.map(chip => (\n  <button\n    key={chip}\n    className={semesterFilter === chip ? 'bg-primary' : 'bg-secondary'}\n    onClick={() => setSemesterFilter(chip)}\n  >\n    {chip}\n  </button>\n))}\n\nThis pattern is reusable for any filterable list.",
+                  "shadcn/ui Badge or Button components can be used for filter chips. The active chip should be highlighted so the user knows which filter is applied:\n\nconst chips = ['all', 'Category A', 'Category B'];\n{chips.map(chip => (\n  <button\n    key={chip}\n    className={filter === chip ? 'bg-primary' : 'bg-secondary'}\n    onClick={() => setFilter(chip)}\n  >\n    {chip}\n  </button>\n))}\n\nThis pattern is reusable for any filterable list.",
                 order: 3,
               },
               {
                 title: "Empty States",
                 content:
-                  "When combined filters yield no results, show a clear message inside the table container:\n\n{filtered.length === 0 && (\n  <p>No grades found</p>\n)}\n\nThis prevents the UI from looking broken and tells the user their filters are too restrictive.",
+                  "When combined filters yield no results, a clear message should be shown inside the list container:\n\n{filtered.length === 0 && (\n  <p>No items found</p>\n)}\n\nThis prevents the UI from looking broken and tells the user their filters are too restrictive.",
                 order: 4,
               },
               {
@@ -518,7 +550,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Real-time filtering is a combination of controlled state, useMemo, and thoughtful UI. Give users both text search and discrete chips, and always handle the empty state.",
+                  "Real-time filtering is a combination of controlled state, useMemo, and thoughtful UI. Users should be given both text search and discrete chips, and the empty state should always be handled as a first-class UI concern.",
                 order: 6,
               },
             ],
@@ -566,7 +598,7 @@ export const levels = [
         },
         {
           task_name: "Student Notes Page",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want to write and revisit personal study notes per course so that I can track ideas without leaving the portal.",
           learning_sections: {
@@ -580,31 +612,31 @@ export const levels = [
               {
                 title: "Writing to localStorage",
                 content:
-                  "When a student adds a note, push the new entry into an array and store it:\n\nconst notes = JSON.parse(localStorage.getItem('studentNotes') || '[]');\nnotes.push({\n  id: crypto.randomUUID(),\n  courseCode,\n  content,\n  createdAt: new Date().toISOString(),\n});\nlocalStorage.setItem('studentNotes', JSON.stringify(notes));\n\nThis persists the data across page reloads.",
+                  "When a user adds an entry, it can be pushed into an array and stored:\n\nconst entries = JSON.parse(localStorage.getItem('userEntries') || '[]');\nentries.push({\n  id: crypto.randomUUID(),\n  category,\n  content,\n  createdAt: new Date().toISOString(),\n});\nlocalStorage.setItem('userEntries', JSON.stringify(entries));\n\nThis persists the data across page reloads.",
                 order: 2,
               },
               {
                 title: "Reading and Hydrating",
                 content:
-                  "On the notes page, read the stored array and render it. Use a useEffect or an initial state function to avoid hydration mismatches:\n\nconst [notes, setNotes] = useState(() => {\n  if (typeof window === 'undefined') return [];\n  return JSON.parse(localStorage.getItem('studentNotes') || '[]');\n});\n\nThe typeof window check prevents server-side rendering issues.",
+                  "The stored array should be read and rendered on the notes page. A useEffect or an initial state function can be used to avoid hydration mismatches:\n\nconst [notes, setNotes] = useState(() => {\n  if (typeof window === 'undefined') return [];\n  return JSON.parse(localStorage.getItem('userEntries') || '[]');\n});\n\nThe typeof window check prevents server-side rendering issues.",
                 order: 3,
               },
               {
                 title: "Creating a New Route",
                 content:
-                  "Create app/dashboard/notes/page.tsx to add the /dashboard/notes route. Use the same layout as the dashboard by placing it inside the dashboard folder.\n\napp/dashboard/\n    ├── layout.tsx ← wraps all dashboard pages\n    ├── page.tsx ← /dashboard\n    └── notes/page.tsx ← /dashboard/notes\n\nAdd a 'Notes' link to the sidebar so students can navigate.",
+                  "A new route is added by creating a page file in the appropriate subfolder of the app directory. A nested route inherits its parent layout, so placing a notes page inside the dashboard folder gives it the same sidebar and header as other dashboard pages.\n\napp/dashboard/\n    layout.tsx      - wraps all dashboard pages\n    page.tsx        - /dashboard\n    notes/page.tsx  - /dashboard/notes\n\nThe new page should be linked from the sidebar so users can navigate to it.",
                 order: 4,
               },
               {
                 title: "Adding Sidebar Navigation",
                 content:
-                  "Update the sidebar in app/dashboard/layout.tsx to include the new route. Use a Lucide icon (StickyNote) for visual consistency:\n\nimport { StickyNote } from 'lucide-react';\n\n// In the sidebar links array\n{ label: 'Notes', icon: StickyNote, href: '/dashboard/notes' }\n\nThis makes the new page discoverable.",
+                  "The sidebar in the layout file determines what navigation links are available. Adding a new entry to the links array with a label, icon, and href makes the new route discoverable:\n\n{ label: 'Notes', icon: StickyNote, href: '/dashboard/notes' }\n\nThis keeps the navigation consistent with the existing sidebar pattern.",
                 order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "localStorage is a lightweight database for the browser. Use it to store user-generated data before a backend exists. Always serialize to JSON, always handle the empty state, and always provide navigation.",
+                  "localStorage is a lightweight database for the browser. It can store user-generated data before a backend exists. Data should be serialized to JSON, the empty state should always be handled, and navigation should always be provided.",
                 order: 6,
               },
             ],
@@ -675,7 +707,7 @@ export const levels = [
       create: [
         {
           task_name: "Login Form Validation",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want the login form to reject invalid input with clear inline errors so that I know exactly what to fix before submitting.",
           learning_sections: {
@@ -689,25 +721,25 @@ export const levels = [
               {
                 title: "Regex Validation",
                 content:
-                  "Regex patterns are perfect for structured input like student IDs:\n\nconst studentIdRegex = /^\\d{2}-\\d{3}-\\d{2}$/;\nconst isValid = studentIdRegex.test(studentId);\n\nThis checks exactly 2 digits, a dash, 3 digits, a dash, and 2 digits. Regex gives you precise validation without complex logic.",
+                  "Regex patterns are well-suited for structured input like employee IDs or order codes:\n\nconst orderCodeRegex = /^\\d{3}-[A-Z]{2}-\\d{4}$/;\nconst isValid = orderCodeRegex.test(orderCode);\n\nThis checks exactly 3 digits, a dash, 2 uppercase letters, a dash, and 4 digits. Regex provides precise validation without complex conditional logic.",
                 order: 2,
               },
               {
                 title: "Inline Error Messages",
                 content:
-                  "Show an error message directly under the invalid field. Don't wait for the user to submit — validate on every keystroke or on blur:\n\n{errors.studentId && (\n  <p className=\"text-red-600 text-sm\">Student ID must be in format XX-XXX-XX</p>\n)}\n\nThis gives immediate feedback and tells the user exactly what to fix.",
+                  "An error message should be shown directly under the invalid field. Validation should not wait for the user to submit — it runs on every keystroke or on blur:\n\n{errors.orderCode && (\n  <p className=\"text-red-600 text-sm\">Order code must be in format XXX-XX-XXXX</p>\n)}\n\nThis gives immediate feedback and tells the user exactly what to fix.",
                 order: 3,
               },
               {
                 title: "Disabling Submit",
                 content:
-                  "Disable the submit button until all fields are valid. This prevents the user from sending garbage data:\n\nconst isValid = studentIdRegex.test(studentId) && password.length >= 6;\n<button disabled={!isValid}>Log In</button>\n\nThis is a simple but effective guard.",
+                  "The submit button should be disabled until all fields are valid. This prevents the user from sending invalid data:\n\nconst isValid = orderCodeRegex.test(orderCode) && password.length >= 6;\n<button disabled={!isValid}>Submit</button>\n\nThis is a simple but effective guard.",
                 order: 4,
               },
               {
                 title: "Handling Server Errors",
                 content:
-                  "After the client-side validation passes, the server may still reject the credentials. Show a clear error above the form:\n\n{serverError && (\n  <p className=\"text-red-600\">Invalid student ID or password</p>\n)}\n\nThis covers the case where the format is correct but the credentials don't match.",
+                  "After client-side validation passes, the server may still reject the credentials. A clear error can be shown above the form:\n\n{serverError && (\n  <p className=\"text-red-600\">Invalid credentials</p>\n)}\n\nThis covers the case where the format is correct but the values don't match.",
                 order: 5,
               },
               {
@@ -800,7 +832,7 @@ export const levels = [
         },
         {
           task_name: "localStorage Persistence",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a user, I want the sidebar state, my notes, and my last successful student ID to survive a page reload so that I don't have to reconfigure the portal every visit.",
           learning_sections: {
@@ -820,19 +852,19 @@ export const levels = [
               {
                 title: "Hydrate on Mount",
                 content:
-                  "Read from localStorage when the component first mounts, not during render. This avoids hydration mismatches in SSR:\n\nconst [value, setValue] = useState<T>(initialValue);\n\nuseEffect(() => {\n  const stored = localStorage.getItem(key);\n  if (stored) setValue(JSON.parse(stored));\n}, [key]);\n\nThis ensures the server render matches the client render on first paint.",
+                  "Data should be read from localStorage when the component first mounts, not during render. This avoids hydration mismatches in SSR:\n\nconst [value, setValue] = useState<T>(initialValue);\n\nuseEffect(() => {\n  const stored = localStorage.getItem(key);\n  if (stored) setValue(JSON.parse(stored));\n}, [key]);\n\nThis ensures the server render matches the client render on first paint.",
                 order: 3,
               },
               {
                 title: "Persist on Change",
                 content:
-                  "Write back to localStorage whenever the value changes:\n\nuseEffect(() => {\n  localStorage.setItem(key, JSON.stringify(value));\n}, [key, value]);\n\nThis keeps the browser storage in sync with React state.",
+                  "Data should be written back to localStorage whenever the value changes:\n\nuseEffect(() => {\n  localStorage.setItem(key, JSON.stringify(value));\n}, [key, value]);\n\nThis keeps the browser storage in sync with React state.",
                 order: 4,
               },
               {
                 title: "Using the Hook Across Pages",
                 content:
-                  "Once the hook exists, use it everywhere:\n\n// Dashboard layout\nconst [sidebarOpen, setSidebarOpen] = useLocalStorage('sidebarOpen', true);\n\n// Notes page\nconst [notes, setNotes] = useLocalStorage('studentNotes', []);\n\n// Login page\nconst [lastId, setLastId] = useLocalStorage('lastStudentId', '');\n\nEach page gets its own isolated key, so data doesn't collide.",
+                  "Once the hook exists, it can be used across any component:\n\n// Layout\nconst [sidebarOpen, setSidebarOpen] = useLocalStorage('sidebarOpen', true);\n\n// Notes page\nconst [entries, setEntries] = useLocalStorage('userEntries', []);\n\n// Login page\nconst [lastId, setLastId] = useLocalStorage('lastUserId', '');\n\nEach page gets its own isolated key, so data doesn't collide.",
                 order: 5,
               },
               {
@@ -933,17 +965,17 @@ export const levels = [
     order: 5,
     deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Students complain that their cumulative GPA on the dashboard never matches the one on the grades page, and the academic standing page is showing a hard-coded 3.67 even after grades are updated. They also want fee due dates rendered as 'Due in 5 days' / 'Overdue by 2 days' / 'Due Today' instead of raw ISO strings. Centralize the GPA calculation, build a reusable `dateUtils` module, and update the README so the next developer can onboard quickly.",
+      "Mission Briefing: Students complain that their cumulative GPA on the dashboard never matches the one on the grades page, and the academic standing page is showing a hard-coded 3.67 even after grades are updated. They also want fee due dates rendered as 'Due in 5 days' / 'Overdue by 2 days' / 'Due Today' rather than raw ISO strings. The GPA calculation must be centralized, a reusable dateUtils module built, and the README updated so the next developer can onboard quickly.",
     xp_reward: 75,
     coin_reward: 200,
     key_takeaways:
-      "When the same value (cumulative GPA) is duplicated across the dashboard, grades, and standing pages, each copy can drift independently and produce 'phantom' inconsistencies that look like rendering bugs but are really a single-source-of-truth problem. The fix is to compute it once in `src/lib/mockData.ts` and have every page read from that helper.\n\nCentralizing date formatting in a `dateUtils` module makes due-date behavior consistent across pages and gives you a single place to handle invalid input safely. Keeping the README current with project overview, demo credentials, dev commands, and routes is what makes a codebase actually onboardable to the next developer.",
+      "When the same value (cumulative GPA) is duplicated across multiple pages, each copy can drift independently and produce 'phantom' inconsistencies that look like rendering bugs but are really a single-source-of-truth problem. The fix is to compute it once in a shared utility and have every page read from that helper.\n\nCentralizing date formatting in a `dateUtils` module makes due-date behavior consistent across pages and provides a single place to handle invalid input safely. Keeping the README current with project overview, demo credentials, dev commands, and routes is what makes a codebase actually onboardable to the next developer.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
           task_name: "Fix GPA + Standing Sync Bug",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a student, I want the cumulative GPA on the dashboard, grades page, and standing page to always match so that I can trust what the portal tells me.",
           learning_sections: {
@@ -957,25 +989,25 @@ export const levels = [
               {
                 title: "The Duplication Problem",
                 content:
-                  "When the same value lives in multiple places, they can drift:\n\n// dashboard/page.tsx\nconst gpa = currentStanding.gpa;\n\n// grades/page.tsx\nconst gpa = getAllTimeGPA(grades);\n\n// standing/page.tsx\nconst gpa = 3.67; // hard-coded!\n\nThese three sources can disagree. The fix is to compute GPA in one place and import it everywhere.",
+                  "When the same value lives in multiple places, they can drift:\n\n// Page A\nconst value = sourceA.value;\n\n// Page B\nconst value = computeFromRaw(data);\n\n// Page C\nconst value = 3.67; // hard-coded!\n\nThese three sources can disagree. The fix is to compute the value in one place and import it everywhere.",
                 order: 2,
               },
               {
                 title: "Centralizing the Calculation",
                 content:
-                  "Create a pure function in src/lib/mockData.ts that computes GPA from the grades array:\n\nexport function computeCumulativeGPA(grades: Grade[]): number {\n  const points = { 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0 };\n  const totalPoints = grades.reduce((sum, g) => sum + (points[g.grade] || 0) * g.units, 0);\n  const totalUnits = grades.reduce((sum, g) => sum + g.units, 0);\n  return totalUnits > 0 ? totalPoints / totalUnits : 0;\n}\n\nThis is the single source of truth.",
+                  "A pure function that computes a value from an array can be created in a shared library module:\n\nexport function computeCumulativeGPA(grades: Grade[]): number {\n  const points = { 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0 };\n  const totalPoints = grades.reduce((sum, g) => sum + (points[g.grade] || 0) * g.units, 0);\n  const totalUnits = grades.reduce((sum, g) => sum + g.units, 0);\n  return totalUnits > 0 ? totalPoints / totalUnits : 0;\n}\n\nThis is the single source of truth.",
                 order: 3,
               },
               {
                 title: "Replacing Duplicated Sources",
                 content:
-                  "Replace every inline GPA calculation with the shared helper:\n\n// Before\nconst gpa = currentStanding.gpa;\n\n// After\nimport { computeCumulativeGPA } from '@/lib/mockData';\nconst gpa = computeCumulativeGPA(grades);\n\nDo this on every page that shows GPA. The dashboard, grades, and standing pages will now always agree.",
+                  "Every inline calculation should be replaced with the shared helper:\n\n// Before\nconst gpa = currentStanding.gpa;\n\n// After\nimport { computeCumulativeGPA } from '@/lib/mockData';\nconst gpa = computeCumulativeGPA(grades);\n\nThis ensures every page that shows the value stays in sync.",
                 order: 4,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Phantom UI bugs are usually state-sync bugs. When the same value appears in multiple places, compute it once and import it everywhere. Never let copies drift.",
+                  "Phantom UI bugs are usually state-sync bugs. When the same value appears in multiple places, it should be computed once and imported everywhere. Copies should never be allowed to drift.",
                 order: 5,
               },
             ],
@@ -1028,7 +1060,7 @@ export const levels = [
         },
         {
           task_name: "Date Utilities & Documentation",
-          test_type: "client",
+          test_type: "both",
           user_story:
             "As a developer, I want reusable date utilities and a current README so that future contributors can onboard quickly and fee due dates render in human-friendly form.",
           learning_sections: {
@@ -1042,19 +1074,19 @@ export const levels = [
               {
                 title: "Due-Date Formatting",
                 content:
-                  "Users prefer 'Due in 5 days' over '2026-06-15'. Implement a helper that converts a due date to a human-friendly string:\n\nexport function formatDueDate(dueDate: string): string {\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  const due = new Date(dueDate);\n  due.setHours(0, 0, 0, 0);\n  const diff = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));\n  if (diff === 0) return 'Due Today';\n  if (diff === 1) return 'Due Tomorrow';\n  if (diff > 1 && diff <= 7) return `Due in ${diff} days`;\n  if (diff < 0) return `Overdue by ${Math.abs(diff)} days`;\n  return due.toLocaleDateString();\n}\n\nThis makes due dates scannable.",
+                  "A helper that converts a due date to a human-friendly string makes deadlines scannable:\n\nexport function formatDueDate(dueDate: string): string {\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  const due = new Date(dueDate);\n  due.setHours(0, 0, 0, 0);\n  const diff = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));\n  if (diff === 0) return 'Due Today';\n  if (diff === 1) return 'Due Tomorrow';\n  if (diff > 1 && diff <= 7) return `Due in ${diff} days`;\n  if (diff < 0) return `Overdue by ${Math.abs(diff)} days`;\n  return due.toLocaleDateString();\n}\n\nThis makes due dates scannable.",
                 order: 2,
               },
               {
                 title: "Safe Defaults",
                 content:
-                  "Always return safe values for invalid input:\n\nexport function formatDueDate(dueDate: string): string {\n  if (!dueDate) return '';\n  ...\n}\n\nexport function isOverdue(dueDate: string): boolean {\n  if (!dueDate) return false;\n  ...\n}\n\nexport function daysUntilDue(dueDate: string): number {\n  if (!dueDate) return 0;\n  ...\n}\n\nThis prevents crashes when the input is missing or malformed.",
+                  "Safe values should always be returned for invalid input:\n\nexport function formatDueDate(dueDate: string): string {\n  if (!dueDate) return '';\n  ...\n}\n\nexport function isOverdue(dueDate: string): boolean {\n  if (!dueDate) return false;\n  ...\n}\n\nexport function daysUntilDue(dueDate: string): number {\n  if (!dueDate) return 0;\n  ...\n}\n\nThis prevents crashes when the input is missing or malformed.",
                 order: 3,
               },
               {
                 title: "README Structure",
                 content:
-                  "A good README should include:\n\n• Project overview (what it does, who it's for)\n• Demo credentials (12-346-78 / sample)\n• Dev workflow (npm install, npm run dev)\n• Route list (/, /login, /dashboard, /dashboard/grades, /dashboard/schedule, /dashboard/fees, /dashboard/standing, /dashboard/notes)\n\nKeep it current — outdated documentation is worse than no documentation.",
+                  "A good README should include:\n\nâ€¢ Project overview (what it does, who it's for)\nâ€¢ Demo credentials (if any)\nâ€¢ Dev workflow (pnpm install, pnpm run dev)\nâ€¢ Route list (what pages exist)\n\nKeeping it current matters â€” outdated documentation is worse than no documentation.",
                 order: 4,
               },
               {
@@ -1099,7 +1131,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Human-friendly date formatting makes UIs feel alive. Safe defaults prevent crashes. A current README is the fastest way to onboard the next developer.",
+                  "Human-friendly date formatting makes deadlines scannable at a glance. Safe defaults prevent crashes. A current README is the fastest way to onboard the next developer.",
                 order: 6,
               },
             ],
@@ -1154,3 +1186,5 @@ export const levels = [
     },
   },
 ];
+
+

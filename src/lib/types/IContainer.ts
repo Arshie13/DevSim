@@ -65,7 +65,7 @@ export interface ILearningSection {
   order: number;
   taskId: string;
   sectionType: "PLAIN_TEXT" | "INTERACTIVE";
-  interactiveMode?: "TERMINAL_CD" | "CODE_EDITOR" | null;
+  interactiveMode?: "TERMINAL_CD" | "CODE_EDITOR" | "TERMINAL_CMD" | null;
   interactiveConfig?: IInteractiveConfig | null;
 }
 

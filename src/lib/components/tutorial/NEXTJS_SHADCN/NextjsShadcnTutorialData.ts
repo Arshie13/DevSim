@@ -20,21 +20,21 @@ function buildShadcnTaskOne(): ITask {
       order: 1,
       taskId,
       content:
-        "Start by initializing shadcn: `pnpm exec shadcn@latest init`. Accept all default prompts — this creates components.json and wires up the CLI for the project.",
+        "Start by installing project dependencies: `pnpm install`. This ensures all packages listed in package.json are available before initializing shadcn.",
     },
     {
       id: `${taskId}-hint-2`,
       order: 2,
       taskId,
       content:
-        "Once init completes, add the Separator component with `pnpm exec shadcn@latest add separator`. shadcn copies the source file directly into src/components/ui/separator.tsx — no pnpm package needed.",
+        "Initialize shadcn with `pnpm dlx shadcn@latest init`. Accept all default prompts — this creates components.json and wires up the CLI for the project.",
     },
     {
       id: `${taskId}-hint-3`,
       order: 3,
       taskId,
       content:
-        "After shadcn setup, run `pnpm install` to install remaining project dependencies, then `pnpm run dev` to start the dev server. Look for 'Ready in' in the terminal to confirm startup.",
+        "Once init completes, add the Separator component with `pnpm dlx shadcn@latest add separator`. shadcn copies the source file directly into src/components/ui/separator.tsx — no pnpm package needed. Then `pnpm run dev` to start the dev server.",
     },
   ];
 
@@ -44,21 +44,21 @@ function buildShadcnTaskOne(): ITask {
       taskId,
       order: 1,
       isRequired: true,
-      description: "Ran `pnpm exec shadcn@latest init` — components.json present in the project root",
+      description: "Dependencies installed without errors (pnpm install)",
     },
     {
       id: `${taskId}-ac-2`,
       taskId,
       order: 2,
       isRequired: true,
-      description: "Ran `pnpm exec shadcn@latest add separator` — src/components/ui/separator.tsx exists",
+      description: "Ran `pnpm dlx shadcn@latest init` — components.json present in the project root",
     },
     {
       id: `${taskId}-ac-3`,
       taskId,
       order: 3,
       isRequired: true,
-      description: "Dependencies installed without errors (pnpm install)",
+      description: "Ran `pnpm dlx shadcn@latest add separator` — src/components/ui/separator.tsx exists",
     },
     {
       id: `${taskId}-ac-4`,
@@ -223,23 +223,36 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 2: shadcn setup (init + add separator) ──────────────────────────
+  // ── Phase 2: Install dependencies first ─────────────────────────────────────
   {
     id: "shadcn-terminal",
     title: "Switch to Terminal",
-    instruction: "Open the Terminal tab to run the shadcn CLI commands.",
+    instruction: "Open the Terminal tab to run the setup commands.",
     hint: "Click the highlighted Terminal tab.",
     target: "workspace-tab-terminal",
     preferSide: "bottom",
   },
   {
+    id: "terminal-install",
+    title: "Install Dependencies",
+    instruction: "Install all project dependencies from the root folder before setting up shadcn.",
+    hint: "Run: pnpm install",
+    switchTab: "terminal",
+    command: "pnpm install",
+    requireCommand: true,
+    target: "terminal-panel",
+    preferSide: "left",
+  },
+
+  // ── Phase 3: shadcn setup (init + add separator) ──────────────────────────
+  {
     id: "shadcn-init",
     title: "Initialize shadcn",
     instruction:
-      "Run `pnpm exec shadcn@latest init` to initialize shadcn in the project. This creates components.json and configures the CLI for this codebase. When prompted, accept the defaults.",
-    hint: "Run: pnpm exec shadcn@latest init",
+      "Run `pnpm dlx shadcn@latest init` to initialize shadcn in the project. This creates components.json and configures the CLI for this codebase. When prompted, accept the defaults.",
+    hint: "Run: pnpm dlx shadcn@latest init",
     switchTab: "terminal",
-    command: "pnpm exec shadcn@latest init",
+    command: "pnpm dlx shadcn@latest init",
     requireCommand: true,
     waitForCompletion: false,
     target: "terminal-panel",
@@ -262,9 +275,9 @@ export const STEPS: TutorialStep[] = [
     title: "Add the Separator Component",
     instruction:
       "Now add a specific component with the shadcn CLI. This creates src/components/ui/separator.tsx — shadcn copies the source directly into your project so you can customize it freely.",
-    hint: "Run: pnpm exec shadcn@latest add separator",
+    hint: "Run: pnpm dlx shadcn@latest add separator",
     switchTab: "terminal",
-    command: "pnpm exec shadcn@latest add separator",
+    command: "pnpm dlx shadcn@latest add separator",
     requireCommand: true,
     waitForCompletion: false,
     target: "terminal-panel",
@@ -283,18 +296,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 3: pnpm install + dev server ─────────────────────────────────────
-  {
-    id: "terminal-install",
-    title: "Install Dependencies",
-    instruction: "Install all project dependencies from the root folder.",
-    hint: "Run: pnpm install",
-    switchTab: "terminal",
-    command: "pnpm install",
-    requireCommand: true,
-    target: "terminal-panel",
-    preferSide: "left",
-  },
+  // ── Phase 4: dev server ────────────────────────────────────────────────────
   {
     id: "terminal-dev-start",
     title: "Start Development Server",
@@ -308,7 +310,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 4: Preview & Task 1 tests ──────────────────────────────────────
+  // ── Phase 5: Preview & Task 1 tests ──────────────────────────────────────
   {
     id: "preview-button",
     title: "Open Preview",
@@ -357,7 +359,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 5: Task 2 — Update the page header ─────────────────────────────
+  // ── Phase 6: Task 2 — Update the page header ─────────────────────────────
   {
     id: "task-two-kanban",
     title: "Back To Kanban",
@@ -477,7 +479,7 @@ export const STEPS: TutorialStep[] = [
     preferSide: "left",
   },
 
-  // ── Phase 6: Submit Sprint ────────────────────────────────────────────────
+  // ── Phase 7: Submit Sprint ────────────────────────────────────────────────
   {
     id: "submit-sprint-click",
     title: "Submit Sprint",
@@ -504,9 +506,9 @@ export const STEPS: TutorialStep[] = [
     title: "Enter Mastery Reflection",
     instruction:
       "Type a short reflection on what you learned. Use the Copy button below to paste the example into the field.",
-    hint: 'Example: "I initialized shadcn with `pnpm exec shadcn@latest init`, added the Separator component via `pnpm exec shadcn@latest add separator`, then ran pnpm install and pnpm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload."',
+    hint: 'Example: "I ran `pnpm install` to install dependencies, initialized shadcn with `pnpm dlx shadcn@latest init`, added the Separator component via `pnpm dlx shadcn@latest add separator`, then ran pnpm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload."',
     copyText:
-      "I initialized shadcn with `pnpm exec shadcn@latest init`, added the Separator component via `pnpm exec shadcn@latest add separator`, then ran pnpm install and pnpm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload.",
+      "I ran `pnpm install` to install dependencies, initialized shadcn with `pnpm dlx shadcn@latest init`, added the Separator component via `pnpm dlx shadcn@latest add separator`, then ran pnpm run dev to spin up the app. For Task 2 I found the header with the Search tool and updated it in src/app/page.tsx, verifying the change instantly through Next.js hot-reload.",
     target: "mastery-reflection-input",
     confirmLabel: "Next",
     requireTargetClick: false,

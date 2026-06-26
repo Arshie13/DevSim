@@ -48,6 +48,12 @@
   let terminalFeedback = $state("");
   let terminalPracticePassed = $state(false);
 
+  let cmdHistory: string[] = $state([]);
+  let cmdInput = $state("");
+  let cmdCommands: string[] = $state([]);
+  let cmdFeedback = $state("");
+  let cmdPracticePassed = $state(false);
+
   let interactiveCode = $state("");
   let codeFeedback = $state("");
   let codePracticePassed = $state(false);
@@ -182,6 +188,12 @@
     terminalFeedback = "";
     terminalPracticePassed = false;
 
+    cmdHistory = [];
+    cmdInput = "";
+    cmdCommands = [];
+    cmdFeedback = "";
+    cmdPracticePassed = false;
+
     interactiveCode = config.starter_code ?? "";
     codeFeedback = "";
     codePracticePassed = false;
@@ -292,6 +304,77 @@
     completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
     terminalFeedback = "Great work. Lab passed based on navigation output state (visited paths and final location).";
     sectionLockFeedback = "";
+    if (!wasAlreadyCompleted) {
+      labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
+      isLabCongratsOpen = true;
+    }
+  }
+
+  function runCmdCommand() {
+    const raw = cmdInput.trim();
+    if (!raw) return;
+
+    cmdHistory = [...cmdHistory, `$ ${raw}`];
+    cmdCommands = [...cmdCommands, raw];
+
+    if (raw.toLowerCase() === "clear") {
+      cmdHistory = [];
+      cmdCommands = [];
+      cmdInput = "";
+      scheduleTerminalAutoScroll();
+      return;
+    }
+
+    if (raw.toLowerCase() === "help") {
+      cmdHistory = [
+        ...cmdHistory,
+        "Type any command. Use Check to validate against expected commands.",
+      ];
+      cmdInput = "";
+      scheduleTerminalAutoScroll();
+      return;
+    }
+
+    cmdInput = "";
+    scheduleTerminalAutoScroll();
+  }
+
+  function checkCmdPractice() {
+    const config = activeSection.interactiveConfig ?? {};
+    const expected = config.expected_commands ?? [];
+    const actual = cmdCommands;
+    const wasAlreadyCompleted = completedInteractiveSections.has(activeSectionTypingKey);
+
+    if (expected.length === 0) {
+      cmdPracticePassed = true;
+      completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+      cmdFeedback = "No required command checklist for this practice section.";
+      return;
+    }
+
+    const mismatches: string[] = [];
+    for (let i = 0; i < expected.length; i++) {
+      if (i >= actual.length) {
+        mismatches.push(`Missing command #${i + 1}: expected "${expected[i]}"`);
+      } else if (actual[i].trim() !== expected[i].trim()) {
+        mismatches.push(`Command #${i + 1}: expected "${expected[i]}", got "${actual[i]}"`);
+      }
+    }
+    if (actual.length > expected.length) {
+      mismatches.push(`You entered ${actual.length} commands, but only ${expected.length} were expected.`);
+    }
+
+    if (mismatches.length > 0) {
+      cmdPracticePassed = false;
+      cmdCommands = [];
+      cmdHistory = [];
+      cmdFeedback = `Command check failed: ${mismatches.join(" | ")}`;
+      return;
+    }
+
+    cmdPracticePassed = true;
+    completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+    cmdFeedback = "Great work. All commands matched in the expected order.";
     if (!wasAlreadyCompleted) {
       labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
       isLabCongratsOpen = true;
@@ -549,6 +632,16 @@
             isPassed={terminalPracticePassed}
             on:run={runCdCommand}
             on:check={checkTerminalPractice}
+          />
+        {:else if activeSection.interactiveMode === "TERMINAL_CMD"}
+          <TerminalLab
+            currentPath=""
+            history={cmdHistory}
+            bind:inputValue={cmdInput}
+            feedback={cmdFeedback}
+            isPassed={cmdPracticePassed}
+            on:run={runCmdCommand}
+            on:check={checkCmdPractice}
           />
         {:else if activeSection.interactiveMode === "CODE_EDITOR"}
           <CodeLab

@@ -17,11 +17,11 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: You've joined FitTech Systems as a full-stack developer. The team maintains a member portal built with Next.js, PostgreSQL, and Prisma where members view their membership, book classes, and check attendance. Get the portal running against your own database, then add two small formatting helpers so the header and membership card display data consistently.",
+      "Mission Briefing: A new full-stack developer has joined FitTech Systems. The team maintains a member portal built with Next.js, PostgreSQL, and Prisma where members view their membership, book classes, and check attendance. The first tasks are to get the portal running against a local database and add two small formatting helpers so the header and membership card display data consistently.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "A Next.js + Prisma portal starts the same way every project does: install deps, point DATABASE_URL at your DB, run migrations, seed sample data, start the dev server. Knowing the recipe by heart frees you to focus on the actual work.\n\nFormatting helpers belong in src/lib/ as small pure functions. A shared formatMemberName / formatShortDate means the portal header, the membership card, and every future feature display names and dates the exact same way.",
+      "A Next.js + Prisma portal starts the same way every project does: install deps, point DATABASE_URL at a local DB, run migrations, seed sample data, start the dev server. Knowing the recipe by heart means setup stops being an obstacle and becomes routine.\n\nFormatting helpers belong in src/lib/ as small pure functions. A shared formatMemberName / formatShortDate means the portal header, the membership card, and every future feature display names and dates the exact same way.",
     scenario_id: "nextjs-postgres-prisma-2",
     tasks: {
       create: [
@@ -35,32 +35,44 @@ export const levels = [
               {
                 title: "Overview\nBooting a Next.js + Prisma Portal",
                 content:
-                  "This section walks through getting the FitTech portal running locally. The flow is identical to any Next.js + Prisma project: install dependencies, configure environment variables, migrate, seed, then run the dev server.",
+                  "This section walks through getting a Next.js portal app running against a local PostgreSQL database. The flow is the same on every Next.js + Prisma project: install dependencies, configure environment variables, run migrations, seed sample data, then start the dev server.",
                 order: 1,
+              },
+              {
+                title: "Serverless Architecture Context",
+                content:
+                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/app/actions/ as server actions.",
+                order: 2,
               },
               {
                 title: "What Lives Where",
                 content:
-                  "project/\n    ├── prisma/\n    │     ├── schema.prisma ← User, Membership, Class, Booking, Attendance\n    │     └── seed.ts ← demo members + classes\n    ├── src/\n    │     ├── app/portal/ ← portal pages and React components\n    │     ├── app/api/ ← Next.js API routes (classes, bookings)\n    │     └── lib/ ← shared helpers you'll add to\n    └── package.json\nMost of your code will live in src/app/portal/ and src/lib/.",
-                order: 2,
-              },
-              {
-                title: "Environment Variables and DATABASE_URL",
-                content:
-                  'Prisma reads DATABASE_URL from a .env file at the project root. Format:\nDATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"\nFor local Postgres on the default port:\nDATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/gym_portal"\nNever commit .env. Copy .env.example as a starting point and edit the credentials.',
+                  "A typical Next.js + Prisma project is structured like:\nproject/\n    ├── prisma/\n    │     ├── schema.prisma ← User, Membership, Class, Booking, Attendance\n    │     └── seed.ts ← demo members + classes\n    ├── src/\n    │     ├── app/portal/ ← portal pages and React components\n    │     ├── app/api/ ← Next.js API routes (classes, bookings)\n    │     └── lib/ ← shared helpers (new helpers are added here)\n    └── package.json ← scripts and dependencies\nKnowing where helpers live is half of being productive on a Next.js codebase.",
                 order: 3,
               },
               {
-                title: "Prisma Migrate, Seed, and Dev",
+                title: "Environment Variables",
                 content:
-                  "Three commands in order:\n  1. `npm run prisma:migrate` — applies SQL migrations to your database and regenerates the Prisma Client.\n  2. `npm run prisma:seed` — inserts the demo member, membership, classes, and attendance.\n  3. `npm run dev` — boots Next.js on http://localhost:3000 with hot module replacement.\nIf any step fails, fix it before moving on — the next step depends on it.",
+                  'Prisma reads DATABASE_URL from a .env file at the project root. The format is:\nDATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"\nFor local Postgres on the default port it usually looks like:\nDATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/gym_portal"\nThe .env file should never be committed. The repo\'s .gitignore already excludes it; .env.example is provided as a starting point.\n\nNote: Environment variables in this project are pre-configured.',
                 order: 4,
+              },
+              {
+                title: "Prisma Migrate & Generate",
+                content:
+                  "pnpm prisma:migrate (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to the database.\n  2. Regenerates the Prisma Client (the typed API imported as `prisma`) so it matches the schema.\nWhen schema.prisma is changed, this command should be re-run — migrations keep every developer's DB in lockstep.",
+                order: 5,
+              },
+              {
+                title: "Seeding and Running the Dev Server",
+                content:
+                  "pnpm prisma:seed runs prisma/seed.ts, which clears the relevant tables and inserts a demo member, memberships, classes, and attendance records. Then pnpm dev boots the Next.js dev server on http://localhost:3000 with hot module replacement — saving a file triggers an instant page update without a full refresh.",
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Local setup isn't ceremony — it's the contract that says every developer's environment matches every other developer's, which means a bug you see is a bug everyone sees.",
-                order: 5,
+                  "Setting up a Next.js + Prisma project isn't about memorizing commands — it's about aligning the local environment (deps, .env, migrated schema, seeded data) so the app behaves identically for every developer on the team.",
+                order: 7,
               },
             ],
           },
@@ -68,12 +80,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "If migrate fails, verify your Postgres user has the privileges to create databases or that the database referenced in DATABASE_URL already exists.",
+                  "If migrate fails, verify that the Postgres user has privileges to create databases or that the database referenced in DATABASE_URL already exists.",
                 order: 1,
               },
               {
                 description:
-                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — make sure all three pass locally.",
+                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — all three should pass locally.",
                 order: 2,
               },
             ],
@@ -83,7 +95,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Dependencies installed cleanly via `npm install`",
+                  "Dependencies installed cleanly via `pnpm install`",
                 is_required: true,
                 order: 1,
               },
@@ -101,7 +113,7 @@ export const levels = [
               },
               {
                 description:
-                  "`npm run dev` boots the portal on http://localhost:3000 without errors",
+                  "`pnpm dev` boots the portal on http://localhost:3000 without errors",
                 is_required: true,
                 order: 4,
               },
@@ -142,7 +154,7 @@ export const levels = [
               {
                 title: "Practice Lab: Member Name",
                 content:
-                  "Try the trimmed-join behaviour yourself before writing it in the real file.",
+                  "Try the trimmed-join behaviour before writing it in the real file.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
@@ -232,7 +244,7 @@ export const levels = [
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The portal needs an authoritative membership badge and an 'expires in N days' line. Today both are computed on the client from whichever fields the API happened to return. Move both behind server actions backed by Prisma so the database is the source of truth. The graders mock `@/lib/prisma`, so you write real Prisma queries — no DB calls execute during the test.",
+      "Mission Briefing: The portal needs an authoritative membership badge and an 'expires in N days' line. Today both are computed on the client from whichever fields the API happened to return. Both must be moved behind server actions backed by Prisma so the database is the source of truth. The graders mock `@/lib/prisma`, so real Prisma queries are written — no DB calls execute during the test.",
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
@@ -344,7 +356,7 @@ export const levels = [
               {
                 title: "Floor the Difference, Don't Round",
                 content:
-                  "Compute `(endDate - now) / 86_400_000` and apply `Math.floor`. Rounding would give you '1 day' on a 0.6-day diff — wrong both in human terms and per the spec. Flooring matches the natural 'how many full days remain' reading.",
+                  "Compute `(endDate - now) / 86_400_000` and apply `Math.floor`. Rounding would produce '1 day' on a 0.6-day diff — wrong both in human terms and per the spec. Flooring matches the natural 'how many full days remain' reading.",
                 order: 3,
               },
               {
@@ -425,7 +437,7 @@ export const levels = [
     xp_reward: 200,
     coin_reward: 200,
     key_takeaways:
-      "Presentational components map props to ARIA roles and `data-testid` hooks. Anchor your markup on the hooks the grader queries; style freely around them.\n\nWhen a UI element has more than two states (default / disabled-A / disabled-B / ...), encode the priority as a chain of `if` checks rather than overlapping booleans. The order of the checks is part of the spec — write the comments to match.",
+      "Presentational components map props to ARIA roles and `data-testid` hooks. The markup should be anchored on the hooks the grader queries; styling is flexible around them.\n\nWhen a UI element has more than two states (default / disabled-A / disabled-B / ...), the priority should be encoded as a chain of `if` checks rather than overlapping booleans. The order of the checks is part of the spec — the comments should match.",
     scenario_id: "nextjs-postgres-prisma-2",
     tasks: {
       create: [

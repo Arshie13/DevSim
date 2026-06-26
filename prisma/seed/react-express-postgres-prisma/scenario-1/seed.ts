@@ -17,11 +17,11 @@ export const levels = [
       order: 1,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
-        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in your local machine.",
+        "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in a local development environment.",
       xp_reward: 100,
       coin_reward: 50,
       key_takeaways:
-        "Mastering React + Express + PostgreSQL + Prisma development environments requires understanding package management (npm/pnpm), environment variables for securing database connections, and Prisma migrations to keep PostgreSQL schemas synchronized. This setup ensures consistent development across team members and reliable deployments. Every React frontend with Express backend and Prisma + PostgreSQL database starts with this crucial foundation.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
+        "Setting up a PERN development environment requires understanding package management (pnpm), environment variables for securing database connections, and Prisma migrations to synchronize PostgreSQL schemas. This ensures consistent development across team members and reliable deployments.\n\nReact component props enable parent-to-child data flow, creating dynamic UIs that display data from Express APIs. Understanding component hierarchy and prop passing is essential for building maintainable React applications that consume Prisma-fetched PostgreSQL data. This component architecture is fundamental to all React applications integrated with Express backends.",
       scenario_id: "pern-lb-scenario-1",
       tasks: {
         create: [
@@ -35,31 +35,31 @@ export const levels = [
                 {
                   title: "Overview\nSetting Up a PERN Stack Project",
                   content:
-                    "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and key concepts you need before starting the hands-on tasks.",
+                    "This section introduces the crash course for preparing a PERN stack development environment. It provides a high-level view of the setup flow, required tools, and foundational concepts relevant to the setup process.",
                   order: 1,
                 },
                 {
                   title: "What is the PERN Stack?",
                   content:
-                    "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web apps.\n\nPostgreSQL — the database that stores your data\nExpress — a Node.js framework that handles your server and API routes\nReact — the frontend library that builds your user interface\nNode.js — the JavaScript runtime that runs your server code",
+                    "PERN stands for PostgreSQL, Express, React, Node.js — four technologies that work together to build full-stack web applications.\n\nPostgreSQL — a relational database management system for persistent data storage\nExpress — a Node.js framework for handling server logic and API routing\nReact — a frontend library for building component-based user interfaces\nNode.js — a JavaScript runtime for executing server-side code",
                   order: 2,
                 },
                 {
                   title: "How a PERN App is Structured",
                   content:
-                    "A typical PERN project has three parts:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach part has its own package.json, which means you need to install dependencies in all three locations.",
+                    "A PERN project is divided into three directories:\nroot/ ← workspace root (shared config, scripts)\n    ├── client/ ← React frontend\n    └── server/ ← Express backend\nEach directory contains its own package.json, meaning dependency installation must be performed in all three locations.",
                   order: 3,
                 },
                 {
                   title: "Package Management 101",
                   content:
-                    "When you start a project, no dependencies are installed yet. You need to run npm install (or pnpm install) in each folder that has a package.json.\n\nWhy separate installs? Each folder is its own isolated module. The client uses React libraries, the server uses Express libraries — they don't share the same node_modules.",
+                    "Package management is the process of managing external code dependencies a project relies on. A package manager (such as pnpm) handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. This must be done for each directory that contains a package.json — root, client, and server.",
                   order: 4,
                 },
                 {
                   title: "Change Directory (cd) Basics",
                   content:
-                    "In development, you must run commands in the correct folder. Use cd (change directory) to move between root, client, and server before running installs or scripts.\n\nCommon commands:\ncd client → move into the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nAlways check your current location before running a command, because npm install and npm run commands affect the folder you are currently in.",
+                    "Terminal commands are executed relative to the current working directory. The cd (change directory) command moves between directories before running installs or scripts.\n\nCommon commands:\ncd client → move from root to the frontend folder\ncd ../server → move from client to server\ncd .. → move up one folder\n\nThe current directory determines which package.json a package manager reads, so commands must be run from the correct location.",
                   order: 5,
                 },
                 {
@@ -84,25 +84,25 @@ export const levels = [
                 {
                   title: "Environment Variables",
                   content:
-                    'Sensitive config (like database credentials) is stored in .env files — never hardcoded in source code. DATABASE_URL="postgresql://user:password@localhost:5432/mydb"\nPORT=3000\n The dotenv package reads these files and makes them available as process.env.DATABASE_URL in your code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control. \n\n Note:\nIn this project, some environment variables will be provided by us, so no need to set it up',
+                    'Sensitive configuration such as database credentials is stored in .env files rather than hardcoded in source code. DATABASE_URL="postgresql://user:password@localhost:5432/mydb"\nPORT=3000\nThe dotenv package reads these files and provides the values via process.env in Node.js. .env files are listed in .gitignore because they contain secrets that should not be committed to version control.\n\nNote: Environment variables in this project are pre-configured.',
                   order: 7,
                 },
                 {
                   title: "What is Prisma?",
                   content:
-                    "Prisma is an ORM (Object-Relational Mapper) — a tool that lets you interact with your database using JavaScript/TypeScript instead of raw SQL. Instead of writing:\nSELECT * FROM books WHERE id = 1;\n You write:\nawait prisma.book.findUnique({ where: { id: 1 } });",
+                    "Prisma is an ORM (Object-Relational Mapper) for Node.js and TypeScript. It provides compile-time type safety and autocomplete when working with databases, helping prevent runtime errors during database access.\n\nPrisma provides three main tools: Prisma Client (type-safe database access), Prisma Migrate (database schema evolution), and Prisma Studio (visual data browser).",
                   order: 8,
                 },
                 {
                   title: "Prisma Migrations",
                   content:
-                    "A migration is a recorded change to your database schema (tables, columns, relationships). When you run npx prisma migrate dev, Prisma reads your schema.prisma file, compares it with the current state of the database, and then generates and executes the necessary SQL to synchronize them. This process ensures that every developer's database remains consistent and follows the same structure.",
+                    "A migration is a recorded change to a database schema — tables, columns, and relationships. It generates SQL migration files from changes made to the Prisma schema and applies them to the database. Each migration file records the exact SQL needed to transition between schema versions, enabling version-controlled, reproducible database changes.\n\nMigrations keep all team members' database schemas synchronized. When the schema is updated and a migration is created, every developer applies the same migration to their local database, ensuring consistency across environments.",
                   order: 9,
                 },
                 {
                   title: "Key Takeaway",
                   content:
-                    "Setting up a project isn't just installing packages — it's aligning your local environment (dependencies, env vars, database schema) so the app runs the same way for every developer on the team.",
+                    "Setting up a project involves aligning the local environment — dependencies, environment variables, and database schema — so the application runs consistently for every developer on the team.",
                   order: 10,
                 },
               ],
@@ -176,7 +176,7 @@ export const levels = [
                 {
                   title: "How to Find What to Change",
                   content:
-                    "When you need to update something you see in the browser, ask:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, you'd look inside the layout's header component for a hardcoded string like \"Public Library\" or similar.",
+                    "To locate the source of a UI element visible in the browser:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, the hardcoded string is located inside the layout's header component, such as \"Public Library\" or a similar label.",
                   order: 4,
                 },
                 {
@@ -186,9 +186,9 @@ export const levels = [
                   order: 5,
                 },
                 {
-                  title: "Verifying Your Change",
+                  title: "Verifying the Change",
                   content:
-                    "After editing, save the file and check the browser. React's dev server (via Vite or CRA) supports Hot Module Replacement (HMR) — meaning the page updates instantly without a full refresh when you save a file.",
+                    "After editing a component file, saving triggers the dev server to update the browser. React's dev server via Vite supports Hot Module Replacement (HMR) — the page updates instantly without a full refresh when a file is saved.",
                   order: 6,
                 },
                 {
@@ -223,7 +223,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "UI changes in React always trace back to a component file. Layout components are the first place to look for global elements like headers. Find the component, find the text, change it.",
+                    "UI changes in React trace back to a component file. Layout components are the primary location for global elements such as headers. The source text is found inside the component and modified there.",
                   order: 8,
                 },
               ],
@@ -324,7 +324,7 @@ export const levels = [
                 {
                   title: "Exporting from a Module",
                   content:
-                    "To use your helper in other files, you must export it: \n// utils/helpers.ts\nexport function isBookAvailable(availableCopies: number): boolean { \nreturn availableCopies > 0;\n} \nAnd import it where needed:\nimport { isBookAvailable } from '../utils/helpers';",
+                    "To use your helper in other files, you must export it: \n// utils/helpers.ts\nexport function formatDate(dateString: string): string { \nreturn new Date(dateString).toLocaleDateString();\n} \nAnd import it where needed:\nimport { formatDate } from '../utils/formatters';",
                   order: 6,
                 },
                 {
@@ -357,7 +357,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "Small, focused pure functions are the building blocks of reliable UIs. By centralizing decision logic in a shared helper, you write it once, test it once, and trust it everywhere.",
+                    "Small, focused pure functions are the building blocks of reliable code. By centralizing decision logic in a shared helper, you write it once, test it once, and trust it everywhere.",
                   order: 8,
                 },
               ],
@@ -446,26 +446,26 @@ export const levels = [
                 {
                   title: "The Problem: Duplicated Logic",
                   content:
-                    'When the same decision appears in multiple components with slight differences, bugs creep in:\n // Books.tsx\nconst canBorrow = book.availableCopies > 0;\n // BorrowRecords.tsx\nconst canBorrow = book.copies !== 0; ← different condition!\nThese two checks look similar but behave differently at edge cases (e.g., negative copies). If a librarian borrows the last copy and copies somehow go negative, one check says "unavailable" and the other says "available."',
+                    'When the same decision logic appears in multiple components with slight differences, bugs can appear:\n // Members.tsx\nconst showBadge = member.yearsActive >= 1;\n // Dashboard.tsx\nconst showBadge = member.activeYears > 0; ← different threshold!\nThese two checks look similar but behave differently at edge cases such as someone with 11 months of activity. When membership criteria change, every inline check must be located and updated individually.',
                   order: 3,
                 },
                 {
                   title: "The Fix: Import and Reuse",
                   content:
-                    "Replace the inline condition with the shared helper: \n// Before — inline logic\nconst showBorrowButton = book.availableCopies !== 0;\n // After — shared helper\nimport { isBookAvailable } from '../utils/helpers';\nconst showBorrowButton = isBookAvailable(book.availableCopies); \nThe behavior is driven by the helper now. If the helper's rule ever changes, all components update automatically.",
+                    "Replace the inline condition with the shared helper: \n// Before — inline logic\nconst showBadge = member.activeYears > 0;\n // After — shared helper\nimport { isEligibleForBadge } from '../utils/membership';\nconst showBadge = isEligibleForBadge(member.yearsActive); \nThe behavior is driven by the helper now. If the helper's rule ever changes, all components update automatically.",
                   order: 4,
                 },
                 {
                   title: "Finding Inline Checks to Replace",
                   content:
-                    "When refactoring, search the codebase for patterns that mirror the logic you're centralizing. In this case, look for:\n - Direct comparisons involving availableCopies\n - Conditions used to show/hide borrow UI elements\n - Any boolean derived from copy count",
+                    "During refactoring, patterns that mirror the centralized logic are searched for in the codebase. These include:\n - Direct comparisons involving the same field\n - Conditions used to show or hide UI elements\n - Any boolean derived from related data",
                   order: 5,
                 },
                 {
                   title:
-                    "Non-Regression: Making Sure You Didn't Break Anything",
+                    "Non-Regression: Confirming Behavior Is Preserved",
                   content:
-                    'After refactoring, verify the feature still works the same way:\nBooks with copies available → borrow button shown\nBooks with 0 copies → borrow button hidden\nThe "Issue Book" flow works end-to-end Refactoring should be invisible to the user — same behavior, better code.',
+                    'After refactoring, the feature should be verified to work the same way:\nMembers with 1+ active years → badge shown\nMembers with less than 1 year → badge hidden\nThe profile and member list pages both behave consistently\nRefactoring should be invisible to the user — same behavior, better code structure.',
                   order: 6,
                 },
                 {
@@ -623,31 +623,31 @@ export const levels = [
                 {
                   title: 'What Does "Debugging" Mean Here?',
                   content:
-                    "Debugging isn't just fixing errors — sometimes it means understanding why a system produces wrong data. In this case, the symptom is availableCopies going negative. Your job is to trace the code path that causes it.",
+                    "Debugging isn't just fixing errors — sometimes it means understanding why a system produces wrong data. In this case, the symptom is a record saying an action happened but a related value not reflecting it. Your job is to trace the code path that causes the mismatch.",
                   order: 2,
                 },
                 {
-                  title: "The Return Flow",
+                  title: "A Two-Step Operation",
                   content:
-                    "When a member returns a book, two things should happen:\n\nThe BorrowRecord is updated (e.g., returnedAt set, status changed)\nThe Book's availableCopies is incremented by 1\n\nBoth changes need to happen — but what if only one of them does?",
+                    "Consider a system that processes membership renewals:\n\nThe member's expiration date is extended by one year\nA payment transaction record is created\n\nBoth changes need to happen for the renewal to be valid — but what if only one of them does? The member thinks they renewed, but there's no payment record.",
                   order: 3,
                 },
                 {
                   title: "The Problem: Separate Writes",
                   content:
-                    "If these two database updates are made in separate Prisma calls:\n\n// Step 1\nawait prisma.borrowRecord.update({\n  where: { id },\n  data: { returnedAt: new Date() }\n});\n\n// Step 2 — what if this crashes or the server restarts here?\nawait prisma.book.update({\n  where: { id: bookId },\n  data: { availableCopies: { increment: 1 } }\n});\n\n...then a failure between Step 1 and Step 2 leaves the database in a partial state:\n\nThe record says the book was returned ✅\nBut the inventory never updated ❌\n\nOver time, with repeated partial failures, counts drift and can go negative.",
+                    "If these two database updates are made in separate Prisma calls:\n\n// Step 1\nawait prisma.member.update({\n  where: { id },\n  data: { membershipExpires: newNextYear() }\n});\n\n// Step 2 — what if this crashes or the server restarts here?\nawait prisma.payment.create({\n  data: { memberId, amount, type: 'RENEWAL' }\n});\n\n...then a failure between Step 1 and Step 2 leaves the database in a partial state:\n\nThe member's expiry was extended ✅\nBut no payment was recorded ❌\n\nOver time, with repeated partial failures, records become unreliable and revenue tracking breaks.",
                   order: 4,
                 },
                 {
                   title: "How to Trace a Flow",
                   content:
-                    'Open the controller responsible for returning books\nFind every prisma call inside the return function\nAsk: "What happens if the second write fails after the first succeeds?"\nLook for any conditional logic that might skip the inventory update',
+                    'Open the controller responsible for processing renewals\nFind every prisma call inside the renewal function\nAsk: "What happens if the second write fails after the first succeeds?"\nLook for any conditional logic that might skip the payment record creation',
                   order: 5,
                 },
                 {
                   title: "Identifying the Root Cause",
                   content:
-                    "Document what you find:\nWhich line does the borrow record update?\nWhich line does the copy count update?\nAre they in the same operation, or separate?\nWhat scenario makes one succeed and the other fail? This kind of analysis — reading code to understand failure paths — is called root cause analysis and is a core backend engineering skill.",
+                    "Document what you find:\nWhich line does the member expiry update?\nWhich line does the payment record creation?\nAre they in the same operation, or separate?\nWhat scenario makes one succeed and the other fail? This kind of analysis — reading code to understand failure paths — is called root cause analysis and is a core backend engineering skill.",
                   order: 6,
                 },
                 {
@@ -772,53 +772,60 @@ export const levels = [
                 {
                   title: "Prisma Transactions",
                   content:
-                    "Prisma provides prisma.$transaction() to wrap multiple writes atomically:\n\nawait prisma.$transaction([\n  prisma.borrowRecord.update({\n    where: { id },\n    data: { returnedAt: new Date() }\n  }),\n  prisma.book.update({\n    where: { id: bookId },\n    data: { availableCopies: { increment: 1 } }\n  }),\n]);\n\nBoth writes succeed together, or neither is committed.",
+                    "Prisma provides prisma.$transaction() to wrap multiple writes atomically:\n\nawait prisma.$transaction([\n  prisma.member.update({\n    where: { id },\n    data: { membershipTier: 'PREMIUM' }\n  }),\n  prisma.benefit.create({\n    data: { memberId, type: 'PRIORITY_SUPPORT' }\n  }),\n]);\n\nBoth writes succeed together, or neither is committed.",
                   order: 4,
                 },
                 {
                   title: "The Concurrency Problem",
                   content:
-                    "Even with correct logic, concurrent requests can corrupt data.\n\nTimeline (no protection):\nRequest A reads availableCopies = 1\nRequest B reads availableCopies = 1\nRequest A borrows → sets to 0\nRequest B borrows → sets to 0 ← should have been rejected!\n\nResult: 2 borrows, 0 copies (should be -1 if no guard)",
+                    "Even with correct logic, concurrent requests can corrupt data.\n\nTimeline (no protection):\nRequest A checks event capacity = 10\nRequest B checks event capacity = 10\nRequest A registers → sets to 9\nRequest B registers → sets to 9 ← should have been rejected!\n\nResult: 2 registrations, but only 1 spot was available — the event is now over capacity.",
                   order: 5,
                 },
                 {
                   title: "Guard Conditions",
                   content:
-                    "A conditional update prevents this by including a safety check in the update itself:\n\nprisma.book.updateMany({\n  where: {\n    id: bookId,\n    availableCopies: { gt: 0 } // only update if copies > 0\n  },\n  data: {\n    availableCopies: { decrement: 1 }\n  },\n});\n\nIf 0 rows are updated, the borrow is rejected — the book is already gone.",
+                    "A conditional update prevents this by including a safety check in the update itself:\n\nprisma.event.updateMany({\n  where: {\n    id: eventId,\n    capacity: { gt: 0 } // only update if spots remain\n  },\n  data: {\n    capacity: { decrement: 1 }\n  },\n});\n\nIf 0 rows are updated, the registration is rejected — the event is already full.",
                   order: 6,
                 },
                 {
-                  title: "Practice Lab: Atomic Audit Write",
+                  title: "Practice Lab: Atomic Transfer",
                   content:
-                    "Practice wrapping a data update with an audit-log write in one atomic transaction.",
+                    "Implement an atomic transfer between two accounts. If there are sufficient funds, deduct from the sender and credit the recipient. If not, return the original balances unchanged — no partial state.",
                   section_type: "INTERACTIVE" as const,
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Create a function that returns both required transaction operations.",
-                    language: "typescript",
+                      "Given senderBalance, receiverBalance, and amount, return [newSender, newReceiver]. Deduct and credit atomically — if sender has insufficient funds, return the original balances untouched.",
+                    language: "javascript",
                     starter_code:
-                      "export function buildAtomicAuditPlan() {\n  // inventory update\n  // audit log insert\n  return [/* operations */];\n}\n",
+                      "function atomicTransfer(senderBalance, receiverBalance, amount) {\n  // TODO\n}\n",
                     editable_regions: [
                       {
-                        placeholder: "// inventory update",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "// audit log insert",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "/* operations */",
-                        case_sensitive: false,
+                        placeholder: "// TODO",
+                        case_sensitive: true,
                       },
                     ],
-                    entry_point: "buildAtomicAuditPlan",
+                    entry_point: "atomicTransfer",
                     test_cases: [
                       {
-                        input: [],
-                        expected: ["tx.book.update", "tx.auditLog.create"],
-                        label: "contains both atomic operations",
+                        input: [100, 50, 30],
+                        expected: [70, 80],
+                        label: "sufficient funds — both accounts updated",
+                      },
+                      {
+                        input: [10, 50, 30],
+                        expected: [10, 50],
+                        label: "insufficient funds — no change, no partial state",
+                      },
+                      {
+                        input: [30, 20, 30],
+                        expected: [0, 50],
+                        label: "exact funds — full transfer completes",
+                      },
+                      {
+                        input: [0, 100, 1],
+                        expected: [0, 100],
+                        label: "zero balance — transfer rejected atomically",
                       },
                     ],
                   },
@@ -827,7 +834,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "Transactions protect against partial writes. Guard conditions protect against race conditions. Together, they ensure your inventory data stays accurate even under concurrent load.",
+                    "Transactions protect against partial writes. Guard conditions protect against race conditions. Together, they ensure your data stays accurate even under concurrent load.",
                   order: 8,
                 },
               ],
@@ -908,45 +915,45 @@ export const levels = [
               create: [
                 {
                   title:
-                    "Overview\nBuilding a Full-Stack Feature: Reservation Creation",
+                    "Overview\nFull-Stack Queue Management Systems",
                   content:
-                    "This section introduces the crash course for implementing reservation creation as a full-stack feature. It summarizes the end-to-end task flow between API logic, data validation, and user-facing interactions.",
+                    "Queue-based reservation systems are common across many domains — event ticketing, restaurant waitlists, customer support triage, and inventory allocation. This section introduces the full-stack patterns used to build them: server-side position tracking, conditional client presentation, and error handling for concurrent requests.",
                   order: 1,
                 },
                 {
-                  title: 'What Does "Full-Stack" Mean for This Task?',
+                  title: "Full-Stack Architecture",
                   content:
-                    "A full-stack feature touches both the server (API logic, database) and the client (UI, service calls). You'll build both ends and make them talk to each other.",
+                    "Full-stack architecture describes systems where a single feature spans three layers: a database for persistent state, an API server for business logic and data access, and a client for user interaction. Each layer has distinct responsibilities and communicates through well-defined contracts. The database owns the source of truth — queue position, status transitions, and constraints. The server enforces rules — who can join, what positions they get, and when state changes. The client presents the current state and triggers actions through the server.",
                   order: 2,
                 },
                 {
-                  title: "The Feature: Reservation Queue",
+                  title: "Queue Systems",
                   content:
-                    "When all copies of a book are borrowed, a member should be able to join a queue. The queue determines who gets the book next when a copy becomes available.\n\n### Data Model Concept\nReservation {\n  id\n  bookId        ← which book\n  memberId      ← who reserved it\n  queuePosition ← their place in line (1 = first)\n  status        ← RESERVED | READY_FOR_PICKUP | CANCELLED\n  createdAt\n}",
+                    "A busy restaurant uses a waitlist when all tables are occupied. New parties are added to the end of the list. When a table opens, the party at the front is seated. Each entry records the party name, size, arrival time, and current status — WAITING, SEATED, or CANCELLED. The position in line is determined by arrival order and calculated by the host, not estimated by the customers. This same pattern — a FIFO queue with server-assigned positions and tracked states — appears in reservation systems across different industries.",
                   order: 3,
                 },
                 {
-                  title: "Server Side: The API Endpoint",
+                  title: "Server-Side Queue Management",
                   content:
-                    "### POST /api/reservations\nCreates a new reservation. Before inserting, the server must validate:\n- The book exists\n- availableCopies === 0 (reserving available books makes no sense)\n- The member doesn't already have an active reservation for this book\n\nAssigning Queue Position\nQueue position is calculated server-side — count active reservations and add 1:\n\nconst existingCount = await prisma.reservation.count({\n  where: { bookId, status: 'RESERVED' }\n});\nconst queuePosition = existingCount + 1;\n\n### GET /api/reservations?bookId=<id>\nReturns the reservation queue for a book, ordered by position. Each row includes member and book details so the UI doesn't need extra requests.",
+                    "In any queue system, position tracking and state transitions belong on the server. The server is the single authority — it reads the current queue count, assigns the next position, and validates entry conditions before inserting a new entry. In a restaurant, the host checks: is the restaurant at capacity? Is this party already on the list? Then they write the party name at the bottom of the waitlist. Position is calculated as the number of active entries plus one. This ensures every party gets a unique, sequential position regardless of how many hosts are managing the list simultaneously.",
                   order: 4,
                 },
                 {
-                  title: "Client Side: The Service Layer",
+                  title: "Client-Server Communication Pattern",
                   content:
-                    "In a well-structured React app, API calls live in a service layer — not directly in components:\n\nclient/src/\n    └── services/\n          └── libraryService.ts  ← all API calls live here\n\nYour createReservation function in this file calls POST /api/reservations and returns the result.",
+                    "A dedicated communication layer sits between the client interface and the server. In a restaurant, the waiter relays orders from the customer to the kitchen and brings back the result. The customer never talks directly to the kitchen. Similarly, a client service layer abstracts API calls — it formats requests, sends them to the correct endpoint, and returns parsed responses to the UI. This separation keeps network concerns isolated from presentation logic and allows the API contract to change without affecting component code.",
                   order: 5,
                 },
                 {
-                  title: "Client Side: The UI",
+                  title: "Conditional Presentation",
                   content:
-                    'The Books.tsx page needs conditional rendering:\nIf availableCopies > 0 → show Borrow button\nIf availableCopies === 0 → show Reserve button\n\nAfter a successful reservation, show the member their queue position:\n"You are #3 in line."\n\nThis number must come from the server response — not calculated on the client.',
+                    "A restaurant display board near the entrance shows different information depending on current conditions. When tables are available, it reads \"Walk-ins Welcome — No Wait.\" When full, it shows \"Current Wait: 45 minutes — Join the List.\" After a party joins, their name appears with an estimated wait. This same pattern applies in queue interfaces: the UI reads state from the server response and renders the appropriate view — an action to join the queue, a confirmation with position, or an error message explaining why the action failed.",
                   order: 6,
                 },
                 {
-                  title: "Error Handling",
+                  title: "Error Handling in Queue Systems",
                   content:
-                    'The UI should handle and display:\n"Book is available — no reservation needed"\n"You already have an active reservation for this book"\nGeneric server errors',
+                    "Queue systems have predictable failure modes. A party cannot join a waitlist twice — the host checks for duplicates before adding. An invalid party size (too large for any table) is rejected before reaching the queue. A restaurant at full capacity for the night may stop accepting new entries entirely. Each failure has a distinct response: already-registered, invalid-request, or service-unavailable. The same categories apply to digital queue systems — the server returns a specific error, and the client displays an appropriate message rather than a generic failure.",
                   order: 7,
                 },
                 {
@@ -997,7 +1004,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "Full-stack features require you to think in two layers: the API contract (what endpoints exist, what they accept, what they return) and the UI contract (what the user sees and does). Build the server first, then connect the client to it.",
+                    "Queue management systems share a common architecture regardless of domain. The server owns position assignment and validation rules. The service layer decouples network communication from presentation. The client reads server state and renders the appropriate view. Error responses map to specific failure modes so the user receives clear, actionable information.",
                   order: 9,
                 },
               ],
@@ -1135,33 +1142,33 @@ export const levels = [
             learning_sections: {
               create: [
                 {
-                  title: "Overview\nState Machines and Queue Management",
+                  title: "Overview\nState Machines in Queue Systems",
                   content:
-                    "This section introduces the crash course for reservation lifecycle states and queue management. It provides a high-level view of status transitions, ordering rules, and consistent state handling throughout the task.",
+                    "State machines are a formal model for tracking the status of entities that move through predictable phases. Queue systems use state machines to manage entries as they progress from waiting to fulfillment or cancellation. This section covers state transitions, automatic promotion rules, and reindexing — patterns that appear in airport standby lists, hospital triage queues, and service ticket systems.",
                   order: 1,
                 },
                 {
-                  title: "What is a Lifecycle?",
+                  title: "State Machines",
                   content:
-                    "A lifecycle describes all the states a thing can be in and how it moves between them. For a reservation, the lifecycle looks like this:\n\nRESERVED → READY_FOR_PICKUP → (borrowed, reservation complete)\n                     ↓\n                 CANCELLED\n\nEach state has meaning:\nRESERVED — in the queue, waiting\nREADY_FOR_PICKUP — a copy is available, this member is next\nCANCELLED — member withdrew from the queue",
+                    "A state machine defines every state an entity can occupy and the valid transitions between them. An airport upgrade list has three states:\n\nPENDING → UPGRADED → (seat assigned, complete)\n             ↓\n         CANCELLED\n\nPENDING — passenger is on the upgrade waitlist, awaiting an available premium seat.\nUPGRADED — a premium seat opened and was assigned to this passenger.\nCANCELLED — the passenger withdrew from the upgrade list before being called.\n\nEach transition is explicit, and no state can skip a step — a PENDING entry cannot go directly to CANCELLED without a cancellation event. This predictability is what makes state machines reliable for queue management across different industries.",
                   order: 2,
                 },
                 {
-                  title: "State Transitions: When and How",
+                  title: "Transitions: Promotion and Cancellation",
                   content:
-                    '### RESERVED → READY_FOR_PICKUP\nThis happens automatically when a book is returned. The return flow should:\nMark the borrow record as returned\nIncrement availableCopies\nCheck if any active reservations exist for this book\nIf yes, promote the first one (lowest queuePosition) to READY_FOR_PICKUP\n\nAll of this happens inside one transaction — it\'s one atomic action.\n\n### RESERVED → CANCELLED\nTriggered by the member. The cancellation flow should:\nMark the reservation as CANCELLED\nReindex the remaining active reservations so positions stay continuous\n\n### Reindexing the Queue\nWhen reservation #2 is cancelled, the queue looks like this:\nPosition 1 → Member A (RESERVED)\nPosition 2 → CANCELLED\nPosition 3 → Member C (RESERVED)\n\nAfter reindex:\nPosition 1 → Member A\nPosition 2 → Member C ← was 3, now 2\n\nReindexing ensures members always see accurate "You are #N in line" numbers.',
+                    "When a premium seat opens on a flight, the airport system checks the upgrade list and promotes the first PENDING passenger (lowest position) to UPGRADED. This happens atomically — the seat is marked as assigned and the passenger record is updated together. No partial state should exist where a seat appears available but a passenger has already been assigned it.\n\nWhen a passenger cancels their upgrade request, the system marks that entry as CANCELLED and reindexes the remaining PENDING entries so positions stay continuous. If position 2 cancels:\n\nBefore:\nPosition 1 → Passenger A (PENDING)\nPosition 2 → Passenger B (PENDING) [cancel request]\nPosition 3 → Passenger C (PENDING)\n\nAfter reindex:\nPosition 1 → Passenger A\nPosition 2 → Passenger C ← was 3, now 2\n\nContinuous positions ensure passengers always see accurate queue numbers. Gaps would make the list unreliable for display and downstream processing.",
                   order: 3,
                 },
                 {
-                  title: "Transactional Queue Mutations",
+                  title: "Atomic Queue Mutations",
                   content:
-                    "Both promotion and reindexing must happen inside a transaction:\n\nawait prisma.$transaction(async (tx) => {\n  // cancel the reservation\n  await tx.reservation.update({\n    where: { id },\n    data: { status: 'CANCELLED' }\n  });\n\n  // reindex remaining reservations\n  const remaining = await tx.reservation.findMany({\n    where: { bookId, status: 'RESERVED' },\n    orderBy: { createdAt: 'asc' }\n  });\n\n  for (let i = 0; i < remaining.length; i++) {\n    await tx.reservation.update({\n      where: { id: remaining[i].id },\n      data: { queuePosition: i + 1 }\n    });\n  }\n});",
+                    "Both promotion and reindexing involve multiple writes — updating one record's status, reading remaining entries, updating their positions — that must succeed or fail together. A database transaction groups these writes into a single atomic unit. If the cancellation write succeeds but the reindexing fails partway through, the transaction rolls back both, leaving the queue in its original state. This prevents corrupted positions or orphaned upgrades. Atomicity is what ensures the queue stays consistent even when multiple passengers or staff members trigger changes simultaneously.",
                   order: 4,
                 },
                 {
-                  title: "Client Side: Reservation List View",
+                  title: "Displaying Queue State",
                   content:
-                    "The UI should show each reservation with:\nBook title\nCurrent queue position\nStatus (visually distinct for READY_FOR_PICKUP vs RESERVED)\nA cancel button (only for active reservations)\n\nAlways render based on server data — never compute lifecycle status on the client.",
+                    "An airport departure screen shows each upgrade request with the passenger name, current position, and status — PENDING entries appear in the queue with their position, while UPGRADED entries show a confirmation message and CANCELLED entries are removed from the list. The screen also provides an action to cancel a pending request. All display data comes from the server — position numbers are calculated and stored server-side, not estimated or derived on the display board. This ensures every screen shows the same accurate queue state regardless of when it was last refreshed.",
                   order: 5,
                 },
                 {
@@ -1216,7 +1223,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "Lifecycle management is about controlling state transitions carefully. Use explicit states, handle transitions in the right place (server), keep mutations atomic, and always let the backend be the source of truth.",
+                    "State machines provide a reliable framework for queue lifecycle management. Explicit states with defined transitions prevent invalid operations. Atomic transactions protect multi-step mutations from partial failures. Server-side position and status ownership ensures consistency across all clients. These principles apply to any queue system regardless of domain.",
                   order: 7,
                 },
               ],
@@ -1355,39 +1362,39 @@ export const levels = [
               create: [
                 {
                   title:
-                    "Overview\nDebugging Production Data: Source of Truth vs. Stale State",
+                    "Overview\nSource of Truth vs. Derived State",
                   content:
-                    "This section introduces the crash course for debugging production data using source-of-truth fields. It explains how to evaluate stale-state risks and classify records accurately within the task context.",
+                    "Software systems often store both source-of-truth fields — set once by a real-world event and never changed — alongside derived fields computed from that source data. When the derivation logic fails or is skipped, the derived field becomes stale while the source field remains accurate. Identifying which fields are authoritative is a core debugging skill across inventory, booking, and financial systems.",
                   order: 1,
                 },
                 {
-                  title: "The Production Bug",
+                  title: "Stale State in Production",
                   content:
-                    "The overdue report is showing books as overdue even when they've already been returned. This is a stale data classification bug — the system is trusting a status field that may not reflect reality.",
+                    "A hotel management system reports a room as 'occupied' even after the guest has checked out and left. This is a stale-data classification bug — the system is relying on a room status field (OCCUPIED, VACANT, DIRTY) that was not updated when the checkout occurred. The actual checkout time was recorded correctly, but the derived status field never transitioned from OCCUPIED to VACANT. The bug manifests as incorrect reports — cleaning staff are not dispatched to the room, and the front desk cannot reassign it.",
                   order: 2,
                 },
                 {
-                  title: "Why Does Stale Status Happen?",
+                  title: "Source of Truth vs. Derived Fields",
                   content:
-                    "In a database, you often have:\n\nA computed/derived field — like status (BORROWED, OVERDUE, RETURNED) that gets set at specific points in time\nA source-of-truth field — like returnedAt which is only ever set when an actual return happens\n\nThe problem: status can become stale. If the code that updates status to RETURNED fails or is skipped, the record still has status = 'OVERDUE' even though returnedAt has a value.\n\nRecord:\n{ status: 'OVERDUE', returnedAt: '2024-01-10', dueDate: '2024-01-05' }\n↑ stale!\n↑ source of truth: book WAS returned",
+                    "Most database tables contain two kinds of fields. A source-of-truth field is written exactly once by a real-world event and never changed afterward — a checkout timestamp is set when the guest actually leaves. A derived field like room status (OCCUPIED, VACANT) is computed from source data and updated as a secondary step. If the update script is skipped due to a network error, a process crash, or a code path that forgets the update, the derived field becomes stale while the source field remains correct.\n\nA booking record might show:\nRoom status: OCCUPIED (stale — never updated)\nActual checkout: 2024-01-10 09:13 UTC (source of truth — guest definitely left)\n\nThe room status says occupied, but the checkout timestamp proves the guest is gone. The source-of-truth field is the reliable one.",
                   order: 3,
                 },
                 {
-                  title: "The Fix: Trust Source-of-Truth Fields",
+                  title: "Querying by Source of Truth",
                   content:
-                    "Instead of filtering overdue records by status:\n\n// ❌ Unreliable — status can be stale\nwhere: { status: 'OVERDUE' }\n\nFilter by the fields that cannot lie:\n\n// ✅ Reliable — returnedAt is only set when a return actually happened\nwhere: {\n  returnedAt: null, // not returned yet\n  dueDate: { lt: new Date() } // past due date\n}\n\nA record with returnedAt != null was returned — full stop. No status value can override that fact.",
+                    "The fix is to query using the field that cannot lie. Instead of filtering records by derived status — which may be stale — the query should use the source-of-truth timestamp. Rooms with an actual checkout timestamp set are vacant regardless of what their status field says. Rooms with no checkout timestamp and a scheduled departure date in the past are overstaying — these are the records that should appear in the report. This approach is immune to stale status values because the source field is only written when the real event occurs.",
                   order: 4,
                 },
                 {
-                  title: "UTC and Timezone Boundaries",
+                  title: "Time Boundaries in Classifications",
                   content:
-                    "Overdue logic is time-sensitive. Bugs often appear at midnight boundaries due to timezone differences. Always use UTC timestamps in tests:\n\nconst yesterday = new Date('2024-01-09T23:59:59Z'); // just before midnight UTC\nconst today = new Date('2024-01-10T00:00:01Z'); // just after midnight UTC\n\nUsing fixed, deterministic timestamps makes bugs reproducible — especially at edge cases.",
+                    "Any classification that depends on time is sensitive to boundary conditions. A guest who checked out at midnight should be classified the same way whether the query runs at 23:59 or 00:01. Using fixed UTC timestamps eliminates timezone ambiguity — the boundary between 'still here' and 'overstaying' is the same regardless of where the server or client is located. Deterministic timestamps also make bugs reproducible: if a test passes at 2 PM but fails at midnight, the likely cause is a timezone-relative comparison rather than a logic error.",
                   order: 5,
                 },
                 {
-                  title: "What is a Regression Test?",
+                  title: "Regression Tests for Classification Bugs",
                   content:
-                    "A regression test captures a bug so it can never silently return. You write it to reproduce the current broken behavior, then fix the code until the test passes. If the bug ever comes back, the test fails again — alerting you immediately.",
+                    "A regression test is written specifically to reproduce an identified bug so the same issue cannot re-enter the system undetected. The test creates a record with the stale-state scenario — a checkout timestamp set but the derived status still showing as occupied — and asserts that the corrected query excludes it. Once the fix is applied and the test passes, any future code change that reintroduces the stale-state bug will cause the test to fail. This creates a permanent safety net for classification logic.",
                   order: 6,
                 },
                 {
@@ -1435,7 +1442,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "In production debugging, always identify the source-of-truth field — the field that is set directly from a real-world event, not derived or computed. Build your queries around those fields, not cached status values.",
+                    "Source-of-truth fields — those set directly by a real-world event — are the authoritative basis for classification queries. Derived fields computed from source data can become stale when update pathways fail. Queries built around source fields produce correct results regardless of stale derived state. Regression tests capture the specific stale-state scenario so the classification logic stays reliable across code changes.",
                   order: 8,
                 },
               ],
@@ -1498,33 +1505,33 @@ export const levels = [
               create: [
                 {
                   title:
-                    "Overview\nProduction Fixes: Regression Tests, Shared Utilities, and Postmortems",
+                    "Overview\nDurable Production Fixes",
                   content:
-                    "This section introduces the crash course for delivering a durable production fix. It outlines the high-level task approach for using regression tests, shared logic, and documentation to prevent recurrence.",
+                    "Fixing a production bug involves more than patching the immediate symptom. A durable fix follows three phases: a regression test that reproduces the bug, a code change that addresses the root cause, and documentation that prevents recurrence. This pattern applies across all software domains — e-commerce, logistics, finance, and booking systems alike.",
                   order: 1,
                 },
                 {
-                  title: "The Professional Fix Workflow",
+                  title: "The Fix Workflow",
                   content:
-                    'In production, a proper fix isn\'t just "change the code and redeploy." It follows this pattern: Write a failing test that reproduces the bug\nImplement the fix\nConfirm the test now passes\nCentralize the logic to prevent future drift\nWrite a postmortem document',
+                    "A production fix follows a sequence of four steps. First, a regression test is written that reproduces the bug — the test fails, confirming the issue exists in the current code. Second, the root cause is addressed in the code. Third, the test is run again — a pass confirms the fix works. Fourth, the corrected logic is centralized into a shared utility so the same pattern is used everywhere, preventing future drift. This workflow ensures the fix is verifiable and permanent rather than a one-off patch.",
                   order: 2,
                 },
                 {
-                  title: "Step 1: Regression Tests First",
+                  title: "Regression Test First",
                   content:
-                    "Write the test before fixing the code. This proves:\nThe bug exists (test fails before fix)\nYour fix works (test passes after fix)\nThe bug can never silently return (test will catch it)\n\nit('should not list returned books as overdue even with stale OVERDUE status', async () => {\n  // create a record that has returnedAt set but status = 'OVERDUE'\n  // call /api/borrow-records/overdue\n  // assert: this record is NOT in the response\n});",
+                    "Writing the test before the fix is a verification tool. The failing test proves the bug is reproducible and the current code is incorrect. After the fix, the passing test proves the fix addresses the specific case. If future changes reintroduce the same stale-state scenario, the test fails again. For example, an e-commerce system with an order status bug would create an order record where the shipment timestamp is set but the status still shows PROCESSING, then assert that the order does not appear in the shipped report. The same test construct works for any classified data — create the stale scenario, run the query, verify the record is correctly included or excluded based on source fields rather than derived status.",
                   order: 3,
                 },
                 {
-                  title: "Step 2: Centralize the Date Logic",
+                  title: "Centralizing Shared Logic",
                   content:
-                    "Overdue determination logic (returnedAt === null && dueDate < now) should live in one shared utility:\n\n// utils/overdueUtils.ts\nexport function isOverdue(returnedAt: Date | null, dueDate: Date): boolean {\n  return returnedAt === null && dueDate < new Date();\n}\n\nThis prevents the same logic from being written differently in multiple places (the original cause of the bug).",
+                    "When the same classification logic appears in multiple places — a query filter, a display helper, a notification trigger — each copy can drift independently. A shared utility function that encapsulates the condition ensures every part of the system makes the same decision. The function takes the relevant source-of-truth fields as parameters and returns a boolean. All code paths that need the classification call this single function instead of reimplementing the condition. This prevents the original class of bug — where one code path used source fields while another used derived status — from recurring.",
                   order: 4,
                 },
                 {
-                  title: "Step 3: Writing a Postmortem",
+                  title: "Incident Postmortem Structure",
                   content:
-                    'A postmortem is a short document written after a production incident. It\'s not about blame — it\'s about learning and preventing recurrence. A good postmortem includes:\n\n### Symptom\nWhat the user/client observed:\n"Overdue report shows returned books as overdue"\n\n### Root Cause\nThe technical reason it happened:\n"The overdue query filtered by status field which can become stale when the return flow fails mid-way. Books with returnedAt set but status = \'OVERDUE\' were incorrectly included."\n\n### Fix\nWhat you changed:\n"Replaced status-based filter with returnedAt IS NULL AND dueDate < NOW() in the Prisma query. Centralized this logic in overdueUtils.ts."\n\n### Prevention\nHow to stop it from happening again:\n"Added regression test coverage. Added code comment warning against using status for overdue classification."',
+                    "A postmortem is a short document written after a production incident. It is not about assigning responsibility — it is a technical record that captures what happened and how to prevent it from happening again. A postmortem has four sections. Symptom describes what the user or system observed. Root Cause identifies the technical reason — for example, a query filtering by derived status instead of source-of-truth timestamp. Fix documents what was changed and where. Prevention describes what guardrails — regression tests, centralized utilities, or process changes — now exist to stop the same issue from recurring.",
                   order: 5,
                 },
                 {
@@ -1572,7 +1579,7 @@ export const levels = [
                 {
                   title: "Key Takeaway",
                   content:
-                    "A permanent fix includes tests, centralized logic, and documentation. Tests prevent regression. Shared utilities prevent drift. Postmortems prevent the same mistake from being made again by the next developer.",
+                    "A durable production fix combines three elements: a regression test that reproduces and guards against the bug, a centralized utility that ensures consistent classification logic across all code paths, and a postmortem that documents the root cause and prevention measures. This triad prevents the same issue from recurring regardless of which developer touches the code in the future.",
                   order: 7,
                 },
               ],

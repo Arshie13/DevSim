@@ -17,11 +17,11 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: You've just been hired at NOVO Enterprises Inc. as a full-stack developer. The team maintains a Point-of-Sale system built with Next.js, PostgreSQL, and Prisma. Get the project running against your own database, then add a small peso-formatting helper to confirm you know where the code lives.",
+      "Mission Briefing: A new full-stack developer has just been hired at NOVO Enterprises Inc. The team maintains a Point-of-Sale system built with Next.js, PostgreSQL, and Prisma. The first task is to get the project running against a local database, then add a small peso-formatting helper to confirm where the code lives.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "A Next.js + PostgreSQL + Prisma app comes up in three steps: install dependencies, point DATABASE_URL at your own database, then run Prisma migrations so the schema and the generated client match. Seeding loads the sample data your UI renders.\n\nFormatting helpers belong in src/lib/ as small, pure functions. Centralizing currency formatting in one exported helper keeps every price display consistent and makes the rule easy to test in isolation.",
+      "A Next.js + PostgreSQL + Prisma app comes up in three steps: install dependencies, point DATABASE_URL at a local database, then run Prisma migrations so the schema and the generated client match. Seeding loads the sample data the UI renders.\n\nFormatting helpers belong in src/lib/ as small, pure functions. Centralizing currency formatting in one exported helper keeps every price display consistent and makes the rule easy to test in isolation.",
     scenario_id: "nextjs-postgres-prisma-1",
     tasks: {
       create: [
@@ -35,38 +35,44 @@ export const levels = [
               {
                 title: "Overview\nBooting a Next.js + PostgreSQL + Prisma App",
                 content:
-                  "This section walks through getting a Next.js POS app running against your own PostgreSQL database. The flow is the same on every Next.js + Prisma project: install dependencies, configure environment variables, run migrations, seed sample data, then start the dev server.",
+                  "This section walks through getting a Next.js POS app running against a local PostgreSQL database. The flow is the same on every Next.js + Prisma project: install dependencies, configure environment variables, run migrations, seed sample data, then start the dev server.",
                 order: 1,
+              },
+              {
+                title: "Serverless Architecture Context",
+                content:
+                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/app/actions/ as server actions.",
+                order: 2,
               },
               {
                 title: "What Lives Where",
                 content:
-                  "A typical Next.js + Prisma project is structured like:\nproject/\n    ├── prisma/\n    │     ├── schema.prisma ← models and database URL\n    │     └── seed.ts ← sample data\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     └── lib/ ← shared helpers (you'll add files here)\n    └── package.json ← scripts and dependencies\nKnowing where helpers live is half of being productive on a Next.js codebase.",
-                order: 2,
+                  "A typical Next.js + Prisma project is structured like:\nproject/\n    ├── prisma/\n    │     ├── schema.prisma ← models and database URL\n    │     └── seed.ts ← sample data\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     └── lib/ ← shared helpers (new files are added here)\n    └── package.json ← scripts and dependencies\nKnowing where helpers live is half of being productive on a Next.js codebase.",
+                order: 3,
               },
               {
-                title: "Environment Variables and DATABASE_URL",
+                title: "Environment Variables",
                 content:
-                  "Prisma reads DATABASE_URL from a .env file at the project root. The format is:\nDATABASE_URL=\"postgresql://USER:PASSWORD@HOST:PORT/DATABASE\"\nFor local Postgres on the default port it usually looks like:\nDATABASE_URL=\"postgresql://postgres:yourpassword@localhost:5432/pos_system\"\nNever commit your .env. The repo's .gitignore already excludes it; copy .env.example as the starting point.",
-                order: 3,
+                  "Prisma reads DATABASE_URL from a .env file at the project root. The format is:\nDATABASE_URL=\"postgresql://USER:PASSWORD@HOST:PORT/DATABASE\"\nFor local Postgres on the default port it usually looks like:\nDATABASE_URL=\"postgresql://postgres:yourpassword@localhost:5432/pos_system\"\nThe .env file should never be committed. The repo's .gitignore already excludes it; .env.example is provided as a starting point.\n\nNote: Environment variables in this project are pre-configured.",
+                order: 4,
               },
               {
                 title: "Prisma Migrate & Generate",
                 content:
-                  "npm run prisma:migrate (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to your database.\n  2. Regenerates the Prisma Client (the typed API you import as `prisma`) so it matches the schema.\nIf you ever change schema.prisma, re-run this command — migrations keep every developer's DB in lockstep.",
-                order: 4,
+                  "pnpm prisma:migrate (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to the database.\n  2. Regenerates the Prisma Client (the typed API imported as `prisma`) so it matches the schema.\nWhen schema.prisma is changed, this command should be re-run — migrations keep every developer's DB in lockstep.",
+                order: 5,
               },
               {
                 title: "Seeding and Running the Dev Server",
                 content:
-                  "npm run prisma:seed runs prisma/seed.ts, which clears the relevant tables and inserts sample products, coupons, and orders. Then npm run dev boots the Next.js dev server on http://localhost:3000 with hot module replacement — save a file and the page updates without a refresh.",
-                order: 5,
+                  "pnpm prisma:seed runs prisma/seed.ts, which clears the relevant tables and inserts sample products, coupons, and orders. Then pnpm dev boots the Next.js dev server on http://localhost:3000 with hot module replacement — saving a file triggers an instant page update without a full refresh.",
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a Next.js + Prisma project isn't about memorizing commands — it's about aligning your environment (deps, .env, migrated schema, seeded data) so the app behaves identically for every developer on the team.",
-                order: 6,
+                  "Setting up a Next.js + Prisma project isn't about memorizing commands — it's about aligning the local environment (deps, .env, migrated schema, seeded data) so the app behaves identically for every developer on the team.",
+                order: 7,
               },
             ],
           },
@@ -74,12 +80,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "If `prisma migrate dev` fails, check that your Postgres user can create databases — the migration creates the schema from scratch on a fresh DB.",
+                  "If `prisma migrate dev` fails, check that the Postgres user can create databases — the migration creates the schema from scratch on a fresh DB.",
                 order: 1,
               },
               {
                 description:
-                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — make sure all three pass locally before submitting.",
+                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — all three should pass locally before submitting.",
                 order: 2,
               },
             ],
@@ -89,25 +95,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "Dependencies installed cleanly via `npm install`",
+                  "Dependencies installed cleanly via `pnpm install`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  ".env exists at the project root with a working DATABASE_URL pointing at your own PostgreSQL instance",
+                  ".env exists at the project root with a working DATABASE_URL pointing at a local PostgreSQL instance",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Prisma migrations applied and seed data inserted (`npm run prisma:migrate` and `npm run prisma:seed` succeed)",
+                  "Prisma migrations applied and seed data inserted (`pnpm prisma:migrate` and `pnpm prisma:seed` succeed)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`npm run dev` boots the app on http://localhost:3000 without errors",
+                  "`pnpm dev` boots the app on http://localhost:3000 without errors",
                 is_required: true,
                 order: 4,
               },
@@ -124,19 +130,19 @@ export const levels = [
               {
                 title: "Overview\nCentralizing Currency Formatting",
                 content:
-                  "This section introduces the idea of a single, pure helper that owns the rules for displaying money. When every component imports the same formatter, you get consistent prices everywhere and one place to change the rule if it ever needs to evolve.",
+                  "This section introduces the idea of a single, pure helper that owns the rules for displaying money. When every component imports the same formatter, consistent prices are achieved everywhere, with one place to change the rule if it ever needs to evolve.",
                 order: 1,
               },
               {
                 title: "Why a Pure Helper",
                 content:
-                  "A pure function returns the same output for the same input and has no side effects. Currency formatting is a perfect fit — given a number, you want exactly one string back. Pure helpers are trivial to unit-test, safe to import anywhere, and don't pull in React or Next.js internals.",
+                  "A pure function returns the same output for the same input and has no side effects. Currency formatting is a perfect fit — given a number, exactly one string is returned. Pure helpers are trivial to unit-test, safe to import anywhere, and do not pull in React or Next.js internals.",
                 order: 2,
               },
               {
                 title: "The formatPeso Contract",
                 content:
-                  "Create src/lib/format.ts and export:\n\nexport function formatPeso(amount: number): string\n\nRules:\n  • Always prefix the peso symbol ₱.\n  • Always show exactly 2 decimal places.\n  • Use comma thousands separators (1234.5 → \"₱1,234.50\").\n  • Negative amounts put the minus before the symbol (-5 → \"-₱5.00\").\nThe `Intl.NumberFormat` API handles thousands separators and fixed decimals out of the box — pair it with a sign check for the negative case.",
+                  "Create src/lib/format.ts and export:\n\nexport function formatPeso(amount: number): string\n\nRules:\n  • Always prefix the peso symbol ₱.\n  • Always show exactly 2 decimal places.\n  • Use comma thousands separators (1234.5 → \"₱1,234.50\").\n  • Negative amounts put the minus before the symbol (-5 → \"-₱5.00\").\nThe `Intl.NumberFormat` API handles thousands separators and fixed decimals out of the box — paired with a sign check for the negative case.",
                 order: 3,
               },
               {
@@ -148,7 +154,7 @@ export const levels = [
               {
                 title: "Practice Lab: Round to Cents",
                 content:
-                  "Warm up by writing a tiny helper that rounds a number to two decimals before you tackle the real formatter.",
+                  "Warm up by writing a tiny helper that rounds a number to two decimals before tackling the real formatter.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
@@ -181,7 +187,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "`Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })` gives you the thousands separators and 2-decimal padding for free.",
+                  "`Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })` provides thousands separators and 2-decimal padding for free.",
                 order: 1,
               },
               {
@@ -237,11 +243,11 @@ export const levels = [
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Cashiers can't tell at a glance which products are low on stock, and the cart summary recomputes totals inline using whatever price the client happens to send. Replace both with server actions backed by Prisma so the database is the source of truth. The graders mock `@/lib/prisma`, so you write real Prisma queries — no DB calls execute during the test.",
+      "Mission Briefing: Cashiers cannot tell at a glance which products are low on stock, and the cart summary recomputes totals inline using whatever price the client happens to send. Both must be replaced with server actions backed by Prisma so the database is the source of truth. The graders mock `@/lib/prisma`, so real Prisma queries are written — no DB calls execute during the test.",
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
-      "Server actions in the Next.js App Router are async functions exported from files under `src/app/actions/`. They run on the server, can read `@/lib/prisma` directly, and are imported into client components just like any other function. Putting the stock-status rule and the cart math behind server actions means the client can't disagree with the database.\n\nMoney math is unforgiving: round once at the end. Sum at full precision, then round the three outgoing fields. Always handle the empty-input case before you touch Prisma — querying for an empty `in` list is wasted work.",
+      "Server actions in the Next.js App Router are async functions exported from files under `src/app/actions/`. They run on the server, can read `@/lib/prisma` directly, and are imported into client components just like any other function. Putting the stock-status rule and the cart math behind server actions means the client cannot disagree with the database.\n\nMoney math is unforgiving: round once at the end. Sum at full precision, then round the three outgoing fields. The empty-input case must be handled before Prisma is touched — querying for an empty `in` list is wasted work.",
     scenario_id: "nextjs-postgres-prisma-1",
     tasks: {
       create: [
@@ -273,13 +279,13 @@ export const levels = [
               {
                 title: "Why Mocked Prisma in Tests",
                 content:
-                  "The grader replaces `@/lib/prisma` with `vi.mock(...)` so the unit test exercises your code without touching a real database. That means you write real Prisma calls — they just resolve to whatever the test injected. Don't shortcut around the Prisma client by reading from a JSON file or hardcoding rows.",
+                  "The grader replaces `@/lib/prisma` with `vi.mock(...)` so the unit test exercises the action code without touching a real database. Real Prisma calls are written — they just resolve to whatever the test injected. Shortcutting around the Prisma client by reading from a JSON file or hardcoding rows should be avoided.",
                 order: 4,
               },
               {
                 title: "Practice Lab: Classify Stock",
                 content:
-                  "Warm up by writing the pure classifier in isolation. In the real action you'll use this same rule after the Prisma fetch.",
+                  "Warm up by writing the pure classifier in isolation. In the real action this same rule is used after the Prisma fetch.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
@@ -380,7 +386,7 @@ export const levels = [
                 order: 2,
               },
               {
-                title: "Edge Cases You Must Handle",
+                title: "Edge Cases",
                 content:
                   "Empty `items` → return `{ subtotal: 0, discount: 0, total: 0 }` WITHOUT querying Prisma. Missing `discountPercent` → treat as 0. Round only the three outgoing values; summing already-rounded line subtotals can drift by a cent on long carts.",
                 order: 3,
@@ -459,11 +465,11 @@ export const levels = [
     order: 3,
     deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Cashiers can't tell whether the cart is safe to submit, and the on-screen order summary is duplicated across two pages with slightly different markup. Build two presentational React components — one that surfaces every checkout error at once, and one that renders the live order summary with totals. Both are graded with `@testing-library/react` in jsdom.",
+      "Mission Briefing: Cashiers cannot tell whether the cart is safe to submit, and the on-screen order summary is duplicated across two pages with slightly different markup. Build two presentational React components — one that surfaces every checkout error at once, and one that renders the live order summary with totals. Both are graded with `@testing-library/react` in jsdom.",
     xp_reward: 200,
     coin_reward: 200,
     key_takeaways:
-      "Presentational React components map props to ARIA roles and `data-testid` hooks — the grader doesn't care about your CSS, it cares whether `getByRole('alert')` finds the right element. Designing components against the testing-library queries is how you make sure a screen reader can use them too.\n\nWhen the same UI block is rendered in two places, make one component and reuse it. The order summary on the cart page and the receipt page should be the same `<OrderSummary />` so the totals always line up.",
+      "Presentational React components map props to ARIA roles and `data-testid` hooks — the grader doesn't inspect CSS; it checks whether `getByRole('alert')` finds the right element. Designing components against the testing-library queries ensures screen readers can also use them.\n\nWhen the same UI block is rendered in two places, create one component and reuse it. The order summary on the cart page and the receipt page should be the same `<OrderSummary />` so the totals always line up.",
     scenario_id: "nextjs-postgres-prisma-1",
     tasks: {
       create: [
@@ -584,7 +590,7 @@ export const levels = [
     xp_reward: 250,
     coin_reward: 300,
     key_takeaways:
-      "Mixed levels combine the muscles you built in Levels 2 and 3: presentational components for what the user touches, server actions for what the database decides. The boundary between them is exactly the props/return shape — design it deliberately.\n\nA Prisma schema change is a three-step rhythm: edit `schema.prisma`, run `prisma migrate dev --name <change>`, then teach every action that reads the model about the new field. Optional columns (`DateTime?`) ship cleanly because existing rows just default to NULL.",
+      "Mixed levels combine the muscles built in Levels 2 and 3: presentational components for what the user touches, server actions for what the database decides. The boundary between them is exactly the props/return shape — designed deliberately.\n\nA Prisma schema change is a three-step rhythm: edit `schema.prisma`, run `prisma migrate dev --name <change>`, then teach every action that reads the model about the new field. Optional columns (`DateTime?`) ship cleanly because existing rows just default to NULL.",
     scenario_id: "nextjs-postgres-prisma-1",
     tasks: {
       create: [
@@ -711,7 +717,7 @@ export const levels = [
     xp_reward: 300,
     coin_reward: 400,
     key_takeaways:
-      "Reporting pages mix two kinds of code: a presentational component that totals what's already on the page, and a server action that aggregates rows the page hasn't seen yet. Returning the four summary numbers from one component (instead of four scattered spans) means they can't drift apart.\n\nA leaderboard server action is three steps: query with `include` to pull the related model, fold into a `Map` keyed by id, sort with an explicit tie-breaker, then slice to `limit`. The grader mocks Prisma, so the loaded rows are whatever the test injects — your code just has to aggregate them correctly.",
+      "Reporting pages mix two kinds of code: a presentational component that totals what's already on the page, and a server action that aggregates rows the page hasn't seen yet. Returning the four summary numbers from one component (instead of four scattered spans) means they cannot drift apart.\n\nA leaderboard server action is three steps: query with `include` to pull the related model, fold into a `Map` keyed by id, sort with an explicit tie-breaker, then slice to `limit`. The grader mocks Prisma, so the loaded rows are whatever the test injects — the code has to aggregate them correctly.",
     scenario_id: "nextjs-postgres-prisma-1",
     tasks: {
       create: [
@@ -783,7 +789,7 @@ export const levels = [
               },
               {
                 description:
-                  "`include` the related product if you want its name on the result row.",
+                  "`include` the related product to carry its name on the result row.",
                 order: 2,
               },
               {
