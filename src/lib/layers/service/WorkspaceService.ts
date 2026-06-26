@@ -55,8 +55,9 @@ export class WorkspaceService {
       mode,
     } = params;
 
-    const currentScenarioId = await this.getScenarioId(scenarioId, stackName);
-    const workspaceStatus = mode === "tutorial" ? "tutorial" : "created";
+    const isSandbox = mode === "sandbox";
+    const currentScenarioId = isSandbox ? null : await this.getScenarioId(scenarioId, stackName);
+    const workspaceStatus = isSandbox ? "sandbox" : (mode === "tutorial" ? "tutorial" : "created");
 
     // Validate user exists before creating any container
     const user = await this.user.findUserById(userId);
@@ -67,10 +68,20 @@ export class WorkspaceService {
     }
 
     // Validate scenario exists before creating any container
-    if (scenarioId && !currentScenarioId) {
+    if (!isSandbox && scenarioId && !currentScenarioId) {
       throw new Error(
         `Scenario '${scenarioId}' not found in database. The database may have been reseeded — please refresh the page and try again.`,
       );
+    }
+
+    // Sandbox concurrency check
+    if (isSandbox) {
+      const existing = await prisma.workspace.findFirst({
+        where: { user_id: userId, status: "sandbox", is_archived: false }
+      });
+      if (existing) {
+        throw new Error("You already have an active sandbox. Archive it first.");
+      }
     }
 
     // Convert stacks (frontend/backend/database/services) to array format
@@ -83,99 +94,102 @@ export class WorkspaceService {
       stackName: string;
     }>;
 
-    // check if workspace already exists in DB (must match stacks)
-    const existing = await this.workspace.findActiveWorkspaceByStacks(userId, level, stacksArray);
+    // Skip existing workspace checks for sandbox — always create fresh
+    if (!isSandbox) {
+      // check if workspace already exists in DB (must match stacks)
+      const existing = await this.workspace.findActiveWorkspaceByStacks(userId, level, stacksArray);
 
-    // Tutorial workspaces are asynchronously destroyed (bgCleanup removes the
-    // Docker container in the background).  Reusing a tutorial container for a
-    // regular workspace races with the background destroy — the container would
-    // be removed from under the workspace page.  Skip the existing record and
-    // create a fresh container instead.
-    const existingIsReusable =
-      existing &&
-      !(mode === "workspace" && existing.status === "tutorial");
+      // Tutorial workspaces are asynchronously destroyed (bgCleanup removes the
+      // Docker container in the background).  Reusing a tutorial container for a
+      // regular workspace races with the background destroy — the container would
+      // be removed from under the workspace page.  Skip the existing record and
+      // create a fresh container instead.
+      const existingIsReusable =
+        existing &&
+        !(mode === "workspace" && existing.status === "tutorial");
 
-    if (existingIsReusable) {
-      try {
-        await this.container.ensureRunning(existing.containerId);
+      if (existingIsReusable) {
+        try {
+          await this.container.ensureRunning(existing.containerId);
 
-        if (mode === "tutorial") {
-          await this.workspace.updateWorkspaceStatus(
-            existing.id,
-            "tutorial",
-            false,
-          );
+          if (mode === "tutorial") {
+            await this.workspace.updateWorkspaceStatus(
+              existing.id,
+              "tutorial",
+              false,
+            );
+          }
+
+          return {
+            alreadyExists: true,
+            containerId: existing.containerId,
+            dbContainerId: existing.id,
+          };
+        } catch {
+          // fall through → recreate
         }
-
-        return {
-          alreadyExists: true,
-          containerId: existing.containerId,
-          dbContainerId: existing.id,
-        };
-      } catch {
-        // fall through → recreate
       }
-    }
 
-    // 2. Docker fallback
-    const dockerMatch = await this.container.findByLabels(
-      userId,
-      stackName,
-      level,
-    );
-
-    if (dockerMatch) {
-      const dbRecord = await this.workspace.findWorkspaceByContainerId(
+      // 2. Docker fallback
+      const dockerMatch = await this.container.findByLabels(
         userId,
-        dockerMatch.Id,
+        stackName,
+        level,
       );
 
-      // Same guard as above: never reuse a tutorial container for a workspace.
-      if (dbRecord && !(mode === "workspace" && dbRecord.status === "tutorial")) {
-        await this.container.ensureRunning(dockerMatch.Id);
-
-        const { dbContainerId } = await saveUserContainer({
+      if (dockerMatch) {
+        const dbRecord = await this.workspace.findWorkspaceByContainerId(
           userId,
-          containerId: dockerMatch.Id,
-          currentScenarioId: currentScenarioId || "",
-          stacks,
-          level,
-          status: workspaceStatus,
-        });
+          dockerMatch.Id,
+        );
 
-        return {
-          alreadyExists: true,
-          containerId: dockerMatch.Id,
-          dbContainerId,
-        };
+        // Same guard as above: never reuse a tutorial container for a workspace.
+        if (dbRecord && !(mode === "workspace" && dbRecord.status === "tutorial")) {
+          await this.container.ensureRunning(dockerMatch.Id);
+
+          const { dbContainerId } = await saveUserContainer({
+            userId,
+            containerId: dockerMatch.Id,
+            currentScenarioId: currentScenarioId ?? undefined,
+            stacks,
+            level,
+            status: workspaceStatus,
+          });
+
+          return {
+            alreadyExists: true,
+            containerId: dockerMatch.Id,
+            dbContainerId,
+          };
+        }
+
+        if (dbRecord && mode === "workspace" && dbRecord.status === "tutorial") {
+          try {
+            await this.container.stopAndRemove(dockerMatch.Id);
+          } catch {
+            // container may already be gone (bgCleanup)
+          }
+          try {
+            await this.workspace.deleteWorkspace(dbRecord.id);
+          } catch {
+            // may already be deleted by bgCleanup
+          }
+        }
       }
 
-      if (dbRecord && mode === "workspace" && dbRecord.status === "tutorial") {
+      // If we're skipping a tutorial workspace, clean up its DB record
+      // so we don't end up with duplicate workspace records for the same level.
+      if (!existingIsReusable && existing) {
         try {
-          await this.container.stopAndRemove(dockerMatch.Id);
+          await this.container.stopAndRemove(existing.containerId);
         } catch {
           // container may already be gone (bgCleanup)
         }
         try {
-          await this.workspace.deleteWorkspace(dbRecord.id);
+          await this.workspace.deleteWorkspace(existing.id);
         } catch {
           // may already be deleted by bgCleanup
         }
-      }
-    }
-
-    // If we're skipping a tutorial workspace, clean up its DB record
-    // so we don't end up with duplicate workspace records for the same level.
-    if (!existingIsReusable && existing) {
-      try {
-        await this.container.stopAndRemove(existing.containerId);
-      } catch {
-        // container may already be gone (bgCleanup)
-      }
-      try {
-        await this.workspace.deleteWorkspace(existing.id);
-      } catch {
-        // may already be deleted by bgCleanup
       }
     }
 
@@ -185,15 +199,15 @@ export class WorkspaceService {
       stackName,
       level,
       stacks: stacksArray,
-      scenarioId,
-      projectFolder,
-      mode,
+      scenarioId: isSandbox ? undefined : scenarioId,
+      projectFolder: isSandbox ? undefined : projectFolder,
+      mode: isSandbox ? "sandbox" : mode,
     });
 
     const { dbContainerId } = await saveUserContainer({
       userId,
       containerId: created.id,
-      currentScenarioId: currentScenarioId || "",
+      currentScenarioId: currentScenarioId ?? undefined,
       stacks,
       level,
       status: workspaceStatus,

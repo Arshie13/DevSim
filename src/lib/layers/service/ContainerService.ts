@@ -343,6 +343,11 @@ export class ContainerService {
    */
   async createContainer(params: CreateContainerParams): Promise<CreateContainerResult> {
     const { userId, stackName, level, stacks, scenarioId, projectFolder, mode } = params;
+    const isSandbox = mode === "sandbox";
+
+    if (isSandbox) {
+      return this.createSandboxContainer(userId);
+    }
 
     const resolved = await this.resolveImageAndVolume(stackName, level, scenarioId, projectFolder, mode);
 
@@ -448,6 +453,57 @@ export class ContainerService {
     return {
       id: container.id,
       ports: returnPorts,
+    };
+  }
+
+  private async createSandboxContainer(userId: string): Promise<CreateContainerResult> {
+    const containerName = `devsim-sandbox-${userId}`;
+    const dbPassword = crypto.randomBytes(16).toString('hex');
+
+    const previewPorts = ['3000/tcp', '5000/tcp', '5173/tcp'];
+    const exposedPorts: Record<string, {}> = {};
+    const portBindings: Record<string, Array<{ HostPort: string }>> = {};
+    for (const p of previewPorts) {
+      exposedPorts[p] = {};
+      portBindings[p] = [{ HostPort: '' }];
+    }
+
+    const container = await docker.createContainer({
+      Image: 'devsim-workspace:latest',
+      name: containerName,
+      Cmd: ['tail', '-f', '/dev/null'],
+      WorkingDir: '/workspace',
+      ExposedPorts: exposedPorts,
+      Env: [
+        'POSTGRES_USER=devsim',
+        `POSTGRES_PASSWORD=${dbPassword}`,
+        'POSTGRES_DB=devsim',
+        `DATABASE_URL=postgresql://devsim:${dbPassword}@localhost:5432/devsim`,
+      ],
+      HostConfig: {
+        Memory: 512 * 1024 * 1024,
+        AutoRemove: false,
+        PortBindings: portBindings,
+      },
+      Labels: {
+        'devsim.userId': userId,
+        'devsim.mode': 'sandbox'
+      }
+    });
+    await docker.getContainer(container.id).start();
+
+    const inspect = await docker.getContainer(container.id).inspect();
+
+    const extractPort = (port: string) =>
+      inspect.NetworkSettings.Ports[port]?.[0]?.HostPort;
+
+    return {
+      id: container.id,
+      ports: {
+        frontend: extractPort('3000/tcp') || extractPort('5173/tcp') || undefined,
+        backend: extractPort('5000/tcp') || undefined,
+        database: undefined,
+      },
     };
   }
 

@@ -232,6 +232,7 @@
           </div>
           <ArrowRight class="w-4 h-4 text-obsidian-bg group-hover:translate-x-1 transition-transform ml-2" />
         </button>
+
       </div>
     </div>
 

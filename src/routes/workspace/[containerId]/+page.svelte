@@ -1759,7 +1759,15 @@ $effect(() => {
           bind:iframeRef
         />
 
-        {#if activeTab === "board"}
+        {#if data.isSandbox && activeTab === "board"}
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center">
+              <p class="[font-family:var(--font-mono)] text-sm text-[var(--text-muted)]">
+                Sandbox mode — this workspace has no tasks.
+              </p>
+            </div>
+          </div>
+        {:else if activeTab === "board"}
           <div class="absolute inset-0 overflow-hidden">
             <BoardPanel
               scenario={actualLevelConfig.scenario}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Code, Coins, ChartBar, Plus } from "lucide-svelte";
+  import { Code, Coins, ChartBar, Plus, GitBranch } from "lucide-svelte";
   import type { UserData } from "$types";
   import { goto } from "$app/navigation";
   import ProfileDropDown from "$components/ProfileDropDown.svelte";
@@ -54,6 +54,15 @@
           <span class="text-sm font-orbitron">Stats</span>
         </button>
       {/if}
+
+      <!-- Sandbox -->
+      <button
+        on:click={() => goto("/sandbox")}
+        class="btn-cyber btn-cyber-outline flex items-center gap-2 !px-4 !py-2 group"
+      >
+        <GitBranch class="w-4 h-4 text-obsidian-accent group-hover:text-obsidian-bg" />
+        <span class="text-sm font-orbitron">Sandbox</span>
+      </button>
       
       <!-- Coins -->
       <button 

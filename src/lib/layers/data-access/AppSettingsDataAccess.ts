@@ -2,7 +2,8 @@ import prisma from "$lib/server/client";
 
 export type SettingValue = boolean | string | number | Record<string, unknown>;
 const DEFAULT_SETTINGS: Record<string, { value: SettingValue; type: string }> = {
-  mastery_checkpoint_enabled: { value: true, type: 'boolean' }
+  mastery_checkpoint_enabled: { value: true, type: 'boolean' },
+  sandbox_enabled: { value: false, type: 'boolean' }
 };
 
 function parseValue(value: string, type: string): SettingValue {

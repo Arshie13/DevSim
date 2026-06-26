@@ -23,11 +23,17 @@ export const load: PageServerLoad = async ({ locals }) => {
   const masteryEnabled = await prisma.app_setting.findUnique({
     where: { key: 'mastery_checkpoint_enabled' }
   });
+  const sandboxEnabled = await prisma.app_setting.findUnique({
+    where: { key: 'sandbox_enabled' }
+  });
 
   const settings = {
     mastery_checkpoint_enabled: masteryEnabled 
       ? masteryEnabled.value === 'true'
-      : true
+      : true,
+    sandbox_enabled: sandboxEnabled
+      ? sandboxEnabled.value === 'true'
+      : false
   };
 
   const scenarios = await prisma.scenario.findMany({

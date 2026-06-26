@@ -61,6 +61,27 @@ export const POST: RequestHandler = async (event) => {
         }
       }
     }
+
+    if (metadata?.type === "sandbox_purchase" && metadata?.userId) {
+      try {
+        const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+        await prisma.sandbox_access.upsert({
+          where: { user_id: metadata.userId },
+          update: { payment_id: paymentIntent.id, expires_at: expiresAt },
+          create: {
+            user_id: metadata.userId,
+            payment_id: paymentIntent.id,
+            expires_at: expiresAt,
+          },
+        });
+
+        console.log(`Sandbox access granted for user ${metadata.userId}`);
+      } catch (err) {
+        console.error("Failed to grant sandbox access:", err);
+        return json({ error: "Failed to grant sandbox access" }, { status: 500 });
+      }
+    }
   }
 
   return json({ received: true });

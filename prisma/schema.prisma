@@ -43,6 +43,7 @@ model user {
   rewardClaims           user_reward_claim[]
   seasonProgressions     user_season_progression[]
   workspaces             workspace[]
+  sandboxAccess          sandbox_access?
   // Durable, append-only log of task completions, normalized into its own
   // table (task_activity). Survives the per-level completed_task wipe, so it
   // backs the dashboard weekly chart, activity feed, and lifetime task count.
@@ -60,7 +61,7 @@ model workspace {
   status              String
   container_id        String
   volume_name         String?
-  current_scenario_id String
+  current_scenario_id String?
   is_archived         Boolean             @default(false)
   created_at          DateTime            @default(now())
   started_at          DateTime            @default(now())
@@ -68,7 +69,7 @@ model workspace {
   updated_at          DateTime            @updatedAt
   completed_tasks     completed_task[]
   file_changes        user_file_changes[]
-  scenario            scenario            @relation(fields: [current_scenario_id], references: [id])
+  scenario            scenario?           @relation(fields: [current_scenario_id], references: [id])
   user                user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
   workspace_stacks    workspace_stack[]
   
@@ -498,6 +499,16 @@ model user_project_access {
   @@index([project_id])
   @@index([source])
   user          user     @relation("userProjectAccess", fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model sandbox_access {
+  id         String   @id @default(cuid())
+  user_id    String   @unique
+  payment_id String?
+  expires_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {

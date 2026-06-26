@@ -3,7 +3,7 @@
   import { Loader2, Trash2, AlertTriangle, Crown, Lock } from "lucide-svelte";
   import { enhance } from "$app/forms";
 
-  type SettingKey = "mastery_checkpoint_enabled";
+  type SettingKey = "mastery_checkpoint_enabled" | "sandbox_enabled";
 
   interface ScenarioItem {
     id: string;
@@ -15,6 +15,7 @@
 
   interface Settings {
     mastery_checkpoint_enabled: boolean;
+    sandbox_enabled: boolean;
   }
 
   export let data: {
@@ -134,6 +135,58 @@
             : 'text-[var(--text-muted)]'}"
         >
           {settings.mastery_checkpoint_enabled ? "ENABLED" : "DISABLED"}
+        </span>
+      </div>
+    </div>
+
+    <!-- Sandbox Toggle -->
+    <div
+      class="rounded border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.72)] p-4"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <h2
+            class="[font-family:var(--font-heading)] text-lg text-[var(--text-primary)]"
+          >
+            Sandbox
+          </h2>
+          <p
+            class="mt-1 [font-family:var(--font-mono)] text-sm text-[var(--text-muted)]"
+          >
+            When enabled, users can purchase one-time sandbox access to clone GitHub repos into a workspace.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          on:click={() => toggleSetting("sandbox_enabled")}
+          disabled={isLoading}
+          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgba(7,165,201,0.5)] focus:ring-offset-2 disabled:opacity-50 {settings.sandbox_enabled
+            ? 'bg-[rgba(0,229,160,0.3)]'
+            : 'bg-[rgba(136,146,160,0.3)]'}"
+          role="switch"
+          aria-checked={settings.sandbox_enabled}
+        >
+          <span
+            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {settings.sandbox_enabled
+              ? 'translate-x-6'
+              : 'translate-x-1'}"
+          ></span>
+          {#if isLoading}
+            <div class="absolute inset-0 flex items-center justify-center">
+              <Loader2 class="h-4 w-4 animate-spin text-[var(--accent)]" />
+            </div>
+          {/if}
+        </button>
+      </div>
+
+      <div class="mt-3 flex items-center gap-2">
+        <span
+          class="[font-family:var(--font-mono)] text-xs uppercase tracking-[0.1em] {settings.sandbox_enabled
+            ? 'text-[var(--success)]'
+            : 'text-[var(--text-muted)]'}"
+        >
+          {settings.sandbox_enabled ? "ENABLED" : "DISABLED"}
         </span>
       </div>
     </div>

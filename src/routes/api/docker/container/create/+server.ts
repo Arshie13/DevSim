@@ -27,8 +27,35 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
     console.log("[docker create] mode: ", mode);
 
+    // Sandbox validation
+    if (mode === "sandbox") {
+      const sandboxSetting = await prisma.app_setting.findUnique({
+        where: { key: 'sandbox_enabled' }
+      });
+      if (sandboxSetting?.value !== 'true') {
+        return json({ success: false, error: 'Sandbox is currently disabled.' }, { status: 403 });
+      }
+
+      const access = await prisma.sandbox_access.findUnique({
+        where: { user_id: userId }
+      });
+      if (!access) {
+        return json({ success: false, error: 'Sandbox access not purchased.' }, { status: 403 });
+      }
+      if (access.expires_at < new Date()) {
+        return json({ success: false, error: 'Sandbox access has expired. Purchase again to continue.' }, { status: 403 });
+      }
+
+      const existing = await prisma.workspace.findFirst({
+        where: { user_id: userId, status: "sandbox", is_archived: false }
+      });
+      if (existing) {
+        return json({ success: false, error: 'You already have an active sandbox. Archive it first.' }, { status: 409 });
+      }
+    }
+
     // Paywall check — per-scenario
-    if (scenarioId) {
+    if (scenarioId && mode !== "sandbox") {
       const dbId = resolveScenarioId(stackName, scenarioId);
       const scenario = await prisma.scenario.findUnique({
         where: { id: dbId },
@@ -51,10 +78,10 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       stackName,
       level,
       stacks,
-      scenarioId: scenarioId || undefined,
-      projectFolder: projectFolder || undefined,
-      scenarioTitle: scenarioTitle || "",
-      mode: mode === "tutorial" ? "tutorial" : "workspace",
+      scenarioId: mode === "sandbox" ? undefined : (scenarioId || undefined),
+      projectFolder: mode === "sandbox" ? undefined : (projectFolder || undefined),
+      scenarioTitle: mode === "sandbox" ? "" : (scenarioTitle || ""),
+      mode: mode === "sandbox" ? "sandbox" : (mode === "tutorial" ? "tutorial" : "workspace"),
     });
 
     return json({ success: true, ...result });
