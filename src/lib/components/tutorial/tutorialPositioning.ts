@@ -69,6 +69,8 @@ export function resolvePlacement(
     step.id === "read-readme" ||
     step.id === "search-works-confirm" ||
     step.id === codeEditStepId ||
+    step.id === "task-two-schema-edit" ||
+    step.id === "terminal-stop-server" ||
     step.id === "shadcn-intro" ||
     step.id === "shadcn-init-wait" ||
     step.id === "shadcn-add" ||
