@@ -80,6 +80,7 @@ model scenario {
   name        String
   description String
   difficulty  String
+  paywall     Boolean     @default(false)
   epics       epic[]
   levels      level[]
   workspaces  workspace[]

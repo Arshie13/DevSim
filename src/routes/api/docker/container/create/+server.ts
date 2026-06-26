@@ -1,6 +1,9 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { WorkspaceService } from "$lib/layers/service/WorkspaceService";
+import prisma from "$lib/server/client";
+import { resolveScenarioId } from "$lib/utils/scenario-mapping";
+import { hasProjectAccess } from "$lib/server/access/hasProjectAccess";
 
 export const POST: RequestHandler = async ({ locals, request }) => {
   try {
@@ -23,6 +26,24 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     } = req;
 
     console.log("[docker create] mode: ", mode);
+
+    // Paywall check — per-scenario
+    if (scenarioId) {
+      const dbId = resolveScenarioId(stackName, scenarioId);
+      const scenario = await prisma.scenario.findUnique({
+        where: { id: dbId },
+        select: { paywall: true }
+      });
+      if (scenario?.paywall) {
+        const hasAccess = await hasProjectAccess(userId, dbId, false);
+        if (!hasAccess) {
+          return json(
+            { success: false, error: 'This scenario requires an active Learner Pass.', locked: true },
+            { status: 403 }
+          );
+        }
+      }
+    }
 
     const service = new WorkspaceService();
     const result = await service.createOrReuseWorkspace({

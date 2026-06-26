@@ -16,14 +16,8 @@ export async function hasProjectAccess(
     },
   });
 
-  if (enrollment && enrollment.expires_at && new Date() <= enrollment.expires_at) {
-    const access = await prisma.user_project_access.findFirst({
-      where: {
-        user_id: userId,
-        project_id: projectId,
-      },
-    });
-    return !!access;
+  if (enrollment && (!enrollment.expires_at || new Date() <= enrollment.expires_at)) {
+    return true;
   }
 
   const access = await prisma.user_project_access.findFirst({

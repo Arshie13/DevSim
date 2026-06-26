@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
+import { resolveStackName } from '$lib/utils/scenario-mapping';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const session = await locals.auth();
@@ -29,9 +30,20 @@ export const load: PageServerLoad = async ({ locals }) => {
       : true
   };
 
+  const scenarios = await prisma.scenario.findMany({
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true, description: true, paywall: true }
+  });
+
+  const scenariosWithStack = scenarios.map(s => ({
+    ...s,
+    stackName: resolveStackName(s.id) ?? 'Unknown'
+  }));
+
   return {
     user: session.user,
-    settings
+    settings,
+    scenarios: scenariosWithStack
   };
 };
 
@@ -44,6 +56,45 @@ import type { Actions } from './$types';
 const execAsync = promisify(exec);
 
 export const actions: Actions = {
+  toggleScenarioPaywall: async ({ locals, request }) => {
+    const session = await locals.auth();
+    
+    if (!session?.user) {
+      throw redirect(303, '/login');
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    if (!dbUser || dbUser.role !== 'ADMIN') {
+      throw redirect(303, '/');
+    }
+
+    const formData = await request.formData();
+    const scenarioId = formData.get('scenarioId') as string;
+
+    if (!scenarioId) {
+      return fail(400, { message: 'Missing scenario ID' });
+    }
+
+    const scenario = await prisma.scenario.findUnique({
+      where: { id: scenarioId },
+      select: { paywall: true }
+    });
+
+    if (!scenario) {
+      return fail(404, { message: 'Scenario not found' });
+    }
+
+    await prisma.scenario.update({
+      where: { id: scenarioId },
+      data: { paywall: !scenario.paywall }
+    });
+
+    return { success: true };
+  },
   resetDocker: async ({ locals }) => {
     const session = await locals.auth();
     

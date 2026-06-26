@@ -46,3 +46,16 @@ export function resolveScenarioId(
 ): string {
   return SCENARIO_ID_MAP[stackName]?.[scenarioId] ?? scenarioId;
 }
+
+/**
+ * Reverse map: given a DB scenario id, return the tech stack name it belongs to.
+ * Returns null if the scenario id is not found in any stack.
+ */
+export function resolveStackName(dbScenarioId: string): string | null {
+  for (const [stackName, scenarioMap] of Object.entries(SCENARIO_ID_MAP)) {
+    if (Object.values(scenarioMap).includes(dbScenarioId)) {
+      return stackName;
+    }
+  }
+  return null;
+}
