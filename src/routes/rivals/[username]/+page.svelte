@@ -8,7 +8,6 @@
   } from "lucide-svelte";
   import type { PageData } from "./$types";
   import type { UserData, ProfileMetricsData, RivalEntry } from "$types";
-  import Header from "$lib/components/Header.svelte";
 
   // ── Modular profile components ────────────────────────────────────────────
   import ProfileCard from "$components/profile/ProfileCard.svelte";
@@ -84,11 +83,6 @@
       goto('/dashboard');
     }
   }
-
-  $: headerUserData = {
-    ...data.user,
-    coins: data.userCoins,
-  };
 </script>
 
 <svelte:head>
@@ -98,7 +92,6 @@
 <div
   class="h-screen flex flex-col bg-obsidian-bg bg-grid-cyber text-obsidian-text-primary text-sm overflow-hidden"
 >
-  <Header userData={headerUserData} />
 
   <!-- Back button bar -->
   {#if canGoBack}

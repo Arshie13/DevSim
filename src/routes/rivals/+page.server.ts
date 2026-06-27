@@ -1,7 +1,6 @@
 import { error, redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 import prisma from "$lib/server/client";
-import { computeLevel } from "$lib/utils/level";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -58,19 +57,16 @@ export const load: PageServerLoad = async (event) => {
       }
     }
 
-    const rivals = sorted.map((u, index) => {
-      const levelData = computeLevel(u.xp);
+    const rivals = sorted.map((u) => {
       return {
         id: u.id,
         username: u.username,
         name: u.name,
         image: u.owned_avatars[0] || u.image || "",
         xp: u.xp,
-        level: levelData.level,
         completedProjects: u.workspaces.length,
         achievementsCount: u.achievements.length,
         isCurrentUser: u.id === session.user?.id,
-        rank: index + 1,
       };
     });
 

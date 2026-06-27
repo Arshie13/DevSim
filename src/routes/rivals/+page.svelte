@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Trophy, Search, Users, Filter, ArrowLeft } from "lucide-svelte";
+  import { Search, Users, ArrowLeft, ArrowUpDown } from "lucide-svelte";
   import { fade, fly } from "svelte/transition";
   import Header from "$lib/components/Header.svelte";
   import RivalCard from "$lib/components/rivals/RivalCard.svelte";
@@ -12,12 +12,20 @@
   };
 
   let searchQuery = "";
-  let filterType: "all" | "top" | "friends" = "all";
+  let sortBy: "xp_desc" | "xp_asc" | "name_asc" = "xp_desc";
 
-  $: filteredRivals = data.rivals.filter(r => 
-    r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    r.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  $: filteredRivals = (() => {
+    let result = data.rivals.filter(r =>
+      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    switch (sortBy) {
+      case "xp_desc": result.sort((a, b) => b.xp - a.xp); break;
+      case "xp_asc": result.sort((a, b) => a.xp - b.xp); break;
+      case "name_asc": result.sort((a, b) => a.name.localeCompare(b.name)); break;
+    }
+    return result;
+  })();
 
   let headerUserData: UserData = {
     ...data.user,
@@ -60,7 +68,7 @@
           </div>
         </div>
 
-        <!-- Search & Filter -->
+        <!-- Search & Sort -->
         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto" in:fade={{ delay: 100, duration: 400 }}>
           <div class="relative flex-1 sm:w-64 lg:w-80">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-obsidian-text-primary/30" size={18} />
@@ -71,19 +79,17 @@
               class="w-full bg-obsidian-bg-light/60 border border-obsidian-accent/20 rounded-card py-3 pl-10 pr-4 text-sm text-obsidian-text-muted focus:outline-none focus:border-obsidian-accent/50 focus:ring-1 focus:ring-obsidian-accent/30 transition-all font-rajdhani"
             />
           </div>
-          <div class="flex border border-obsidian-accent/20 rounded-card overflow-hidden h-[46px]">
-             <button 
-               class="px-4 text-xs font-orbitron transition-all {filterType === 'all' ? 'bg-obsidian-accent text-obsidian-bg' : 'text-obsidian-text-primary/60 hover:bg-obsidian-accent/10'}"
-               on:click={() => filterType = 'all'}
-             >
-               GLOBAL
-             </button>
-             <button 
-               class="px-4 text-xs font-orbitron transition-all {filterType === 'top' ? 'bg-obsidian-accent text-obsidian-bg' : 'text-obsidian-text-primary/60 hover:bg-obsidian-accent/10'}"
-               on:click={() => filterType = 'top'}
-             >
-               TOP 10
-             </button>
+          <!-- Sort dropdown -->
+          <div class="relative">
+            <select
+              bind:value={sortBy}
+              class="appearance-none bg-obsidian-bg-light/60 border border-obsidian-accent/20 rounded-card py-3 pl-4 pr-10 text-xs text-obsidian-text-muted focus:outline-none focus:border-obsidian-accent/50 focus:ring-1 focus:ring-obsidian-accent/30 transition-all font-orbitron cursor-pointer h-[46px]"
+            >
+              <option value="xp_desc">XP: Highest</option>
+              <option value="xp_asc">XP: Lowest</option>
+              <option value="name_asc">Name: A-Z</option>
+            </select>
+            <ArrowUpDown size={14} class="absolute right-3 top-1/2 -translate-y-1/2 text-obsidian-text-primary/40 pointer-events-none" />
           </div>
         </div>
       </div>

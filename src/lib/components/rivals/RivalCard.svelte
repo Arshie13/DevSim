@@ -1,21 +1,11 @@
 <script lang="ts">
-  import { Award, Code, Zap, Trophy, TrendingUp } from "lucide-svelte";
+  import { Award, Code, Zap, Trophy } from "lucide-svelte";
   import type { RivalEntry } from "$lib/types/dashboard";
-  import { computeLevel } from "$lib/utils/level";
 
   export let rival: RivalEntry & {
     completedProjects: number;
     achievementsCount: number;
     isCurrentUser?: boolean;
-    rank: number;
-  };
-
-  const levelData = computeLevel(rival.xp);
-  const getRankColor = (rank: number) => {
-    if (rank === 1) return "from-yellow-400 to-yellow-600";
-    if (rank === 2) return "from-slate-300 to-slate-500";
-    if (rank === 3) return "from-amber-600 to-amber-800";
-    return "from-obsidian-accent to-cyber-bright";
   };
 </script>
 
@@ -48,12 +38,7 @@
               </span>
             {/if}
           </div>
-          <!-- Rank Badge -->
-          <div
-            class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br {getRankColor(rival.rank)} flex items-center justify-center border-2 border-obsidian-bg shadow-lg"
-          >
-            <span class="text-[0.65rem] font-orbitron font-bold text-obsidian-bg">#{rival.rank}</span>
-          </div>
+
         </div>
 
         <div>
@@ -71,9 +56,6 @@
         <div class="flex items-center gap-1.5 text-cyber-cyan">
           <Zap size={14} fill="currentColor" />
           <span class="text-sm font-orbitron font-bold">{rival.xp.toLocaleString()} XP</span>
-        </div>
-        <div class="text-[0.65rem] font-mono text-obsidian-text-primary/40 mt-1 uppercase tracking-widest text-right">
-          Level {levelData.level} Developer
         </div>
       </div>
     </div>
