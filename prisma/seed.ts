@@ -320,13 +320,31 @@ async function main() {
   for (const level of levels) {
     const existing = await prisma.level.findUnique({ where: { id: level.id } });
     if (existing) {
-      // Replace learning content (tasks, criteria, hints, sections)
+      // Upsert tasks by (level_id, task_name) — only deepest nested
+      // content (sections, criteria, hints) gets cycled since they
+      // don't have deterministic IDs in the seed data.
       const { tasks, ...levelData } = level;
-      await prisma.level_task.deleteMany({ where: { level_id: level.id } });
-      await prisma.level.update({
-        where: { id: level.id },
-        data: { ...levelData, tasks: { create: tasks.create } },
-      });
+      await prisma.level.update({ where: { id: level.id }, data: levelData });
+      for (const task of tasks.create) {
+        const { acceptance_criteria, hints, ...taskData } = task;
+        const learning_sections = (task as any).learning_sections;
+        await prisma.level_task.upsert({
+          where: { level_id_task_name: { level_id: level.id, task_name: taskData.task_name } },
+          update: {
+            ...taskData,
+            learning_sections: { deleteMany: {}, create: learning_sections?.create ?? [] },
+            acceptance_criteria: { deleteMany: {}, create: acceptance_criteria?.create ?? [] },
+            hints: { deleteMany: {}, create: hints?.create ?? [] },
+          },
+          create: {
+            ...taskData,
+            level_id: level.id,
+            learning_sections: learning_sections ?? {},
+            acceptance_criteria: acceptance_criteria ?? {},
+            hints: hints ?? {},
+          },
+        });
+      }
       console.log(`🔄 Updated level: ${level.title}`);
       continue;
     }

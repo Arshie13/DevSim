@@ -59,13 +59,13 @@ export const levels = [
               {
                 title: "Prisma Migrate & Generate",
                 content:
-                  "pnpm prisma:migrate (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to the database.\n  2. Regenerates the Prisma Client (the typed API imported as `prisma`) so it matches the schema.\nWhen schema.prisma is changed, this command should be re-run — migrations keep every developer's DB in lockstep.",
+                  "The 'pnpm prisma:migrate' (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to the database.\n  2. Regenerates the Prisma Client (the typed API imported as `prisma`) so it matches the schema.\nWhen schema.prisma is changed, this command should be re-run — migrations keep every developer's DB in lockstep.",
                 order: 5,
               },
               {
                 title: "Seeding and Running the Dev Server",
                 content:
-                  "pnpm prisma:seed runs prisma/seed.ts, which clears the relevant tables and inserts sample products, coupons, and orders. Then pnpm dev boots the Next.js dev server on http://localhost:3000 with hot module replacement — saving a file triggers an instant page update without a full refresh.",
+                  "The 'pnpm prisma:seed' runs prisma/seed.ts, which clears the relevant tables and inserts sample products, coupons, and orders. Then 'pnpm dev' boots the Next.js dev server on http://localhost:3000 with hot module replacement — saving a file triggers an instant page update without a full refresh.",
                 order: 6,
               },
               {
