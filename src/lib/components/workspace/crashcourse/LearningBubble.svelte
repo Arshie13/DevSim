@@ -16,92 +16,149 @@
   accentRgb="7,165,201"
   width={750}
   viewBox="0 0 600 440"
-  contentX={65}
-  contentY={70}
-  contentWidth={360}
-  contentHeight={206}
-  contentPadding="12px 20px 10px"
+  contentX={30}
+  contentY={36}
+  contentWidth={544}
+  contentHeight={360}
+  contentPadding="20px 28px 14px"
 >
-  <p class="eyebrow">{eyebrow}</p>
-  <h3 class="title">{title}</h3>
-  <Scrollbar className="body-scrollbar">
-    <p class="body">{body}</p>
-  </Scrollbar>
-
-  {#if showAction}
-    <div class="action-row">
-      <button type="button" class="action-btn" on:click={onAction}>{actionLabel || "Start Lab"}</button>
+  <div class="board-inner">
+    <div class="sys-header">
+      <span class="sys-indicator"></span>
+      <p class="eyebrow">{eyebrow}</p>
     </div>
-  {/if}
+    <h3 class="title">{title}</h3>
+    <Scrollbar className="body-scrollbar">
+      <p class="body">{body}</p>
+    </Scrollbar>
+
+    {#if showAction}
+      <div class="action-row">
+        <button type="button" class="action-btn" on:click={onAction}>
+          <span class="btn-arrow">&#9654;</span> {actionLabel || "Start Lab"}
+        </button>
+      </div>
+    {/if}
+  </div>
 </BubbleCloud>
 
 <style>
   :global(.learning-bubble) {
-    filter: drop-shadow(0 0 26px rgba(7, 165, 201, 0.2));
+    --board-neon: #07a5c9;
+  }
+
+  .board-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 0;
+  }
+
+  .sys-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sys-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--board-neon);
+    box-shadow: 0 0 6px var(--board-neon);
+    flex-shrink: 0;
+    animation: sys-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes sys-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
   }
 
   .eyebrow {
-    margin: 0 0 0.3rem;
+    margin: 0 0 2px;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
     font-family: "Share Tech Mono", monospace;
-    font-size: 0.72rem;
-    color: #07a5c9;
+    font-size: 0.85rem;
+    color: rgba(7, 165, 201, 0.7);
     text-align: center;
   }
 
   .title {
-    margin: 0 0 1rem;
+    margin: 0 0 0.6rem;
     font-family: "Orbitron", monospace;
-    font-size: 0.94rem;
+    font-size: 1.3rem;
     line-height: 1.35;
     color: #e4f8ff;
     text-align: center;
     white-space: pre-line;
+    text-shadow: 0 0 12px rgba(7, 165, 201, 0.2);
+    flex-shrink: 0;
   }
 
   :global(.body-scrollbar) {
-    max-height: 206px;
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    margin: 0 auto;
     box-sizing: border-box;
-    padding: 0 0.85rem 0 0.35rem;
+    padding: 0 0.5rem 0 0;
     scrollbar-gutter: stable;
   }
-  
+
   .body {
     margin: 0;
     font-family: "Exo 2", sans-serif;
-    font-size: 0.8rem;
-    line-height: 1.42;
-    color: #d0d7dd;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #c8d4de;
     text-align: start;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
-    white-space: break-spaces;
   }
 
   .action-row {
-    margin-top: 0.7rem;
+    flex-shrink: 0;
+    margin-top: 0.5rem;
     display: flex;
     justify-content: center;
   }
 
   .action-btn {
-    border: 1px solid rgba(7, 165, 201, 0.5);
-    background: rgba(7, 165, 201, 0.14);
-    color: #e6fbff;
-    padding: 0.36rem 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(7, 165, 201, 0.4);
+    background: rgba(7, 165, 201, 0.08);
+    color: #c6f0ff;
+    padding: 0.5rem 1rem;
     font-family: "Share Tech Mono", monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.18s ease;
+    position: relative;
+  }
+
+  .action-btn::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border: 1px solid rgba(7, 165, 201, 0.1);
+    pointer-events: none;
   }
 
   .action-btn:hover {
-    background: rgba(7, 165, 201, 0.22);
-    border-color: rgba(7, 165, 201, 0.7);
+    background: rgba(7, 165, 201, 0.16);
+    border-color: rgba(7, 165, 201, 0.65);
+    box-shadow: 0 0 14px rgba(7, 165, 201, 0.15), inset 0 0 14px rgba(7, 165, 201, 0.04);
+    color: #e6fbff;
+  }
+
+  .btn-arrow {
+    font-size: 0.6rem;
   }
 </style>
