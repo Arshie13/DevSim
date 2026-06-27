@@ -59,13 +59,13 @@ export const levels = [
               {
                 title: "Prisma Migrate & Generate",
                 content:
-                  "pnpm prisma:migrate (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to the database.\n  2. Regenerates the Prisma Client (the typed API imported as `prisma`) so it matches the schema.\nWhen schema.prisma is changed, this command should be re-run — migrations keep every developer's DB in lockstep.",
+                  "The 'pnpm prisma:migrate' (an alias for `prisma migrate dev`) does two jobs:\n  1. Reads prisma/schema.prisma and applies any pending SQL migrations to the database.\n  2. Regenerates the Prisma Client (the typed API imported as `prisma`) so it matches the schema.\nWhen schema.prisma is changed, this command should be re-run — migrations keep every developer's DB in lockstep.",
                 order: 5,
               },
               {
                 title: "Seeding and Running the Dev Server",
                 content:
-                  "pnpm prisma:seed runs prisma/seed.ts, which clears the relevant tables and inserts sample products, coupons, and orders. Then pnpm dev boots the Next.js dev server on http://localhost:3000 with hot module replacement — saving a file triggers an instant page update without a full refresh.",
+                  "The 'pnpm prisma:seed' runs prisma/seed.ts, which clears the relevant tables and inserts sample products, coupons, and orders. Then 'pnpm dev' boots the Next.js dev server on http://localhost:3000 with hot module replacement — saving a file triggers an instant page update without a full refresh.",
                 order: 6,
               },
               {
@@ -101,21 +101,15 @@ export const levels = [
               },
               {
                 description:
-                  ".env exists at the project root with a working DATABASE_URL pointing at a local PostgreSQL instance",
+                  "Prisma migrations applied and seed data inserted (`pnpm prisma:migrate` and `pnpm prisma:seed` succeed)",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Prisma migrations applied and seed data inserted (`pnpm prisma:migrate` and `pnpm prisma:seed` succeed)",
-                is_required: true,
-                order: 3,
-              },
-              {
-                description:
                   "`pnpm dev` boots the app on http://localhost:3000 without errors",
                 is_required: true,
-                order: 4,
+                order: 3,
               },
             ],
           },
@@ -478,6 +472,70 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a cashier, I want a banner that either confirms the cart is ready or lists every problem at once so that I can fix them before the customer waits.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nPresentational Components and ARIA Live Regions",
+                content:
+                  "This section covers presentational React components that render one of two visual states based on a single condition. The pattern appears in form validation banners, status indicators, confirmation messages, and any UI that toggles between success and error views. The component receives data purely through props and produces markup without side effects or state management.",
+                order: 1,
+              },
+              {
+                title: "Default Exports in ES6 Modules",
+                content:
+                  "A default export is the primary export from a module — the value that callers receive when they import without curly braces. Each module can have at most one default export, which is the convention for 'this file exports one main component.' The import does not need to match the exported name, though matching names improves readability:\n\nimport CheckoutErrors from './CheckoutErrors';\n\nGrader tests import the default export, so the component must be declared with `export default function` rather than a named export followed by a separate default statement.",
+                order: 2,
+              },
+              {
+                title: "Conditional Rendering with Props",
+                content:
+                  "When a component displays one of two mutually exclusive views, a single top-level conditional is used. An order-status badge on a restaurant display board shows either 'Preparing' or 'Ready' — never both. The condition is evaluated once at the top of the render function:\n\nif (orders.length === 0) {\n  return <EmptyState />;\n}\nreturn <OrderList items={orders} />;\n\nBoth branches are never reached simultaneously, keeping the control flow flat and avoiding deeply nested ternaries that are harder to test and debug.",
+                order: 3,
+              },
+              {
+                title: "ARIA Live Regions: Alert vs. Status",
+                content:
+                  "ARIA live regions announce content changes to assistive technology without requiring the user to move focus. Two roles apply to status banners:\n\n`role=\"alert\"` — assertive: the screen reader interrupts its current announcement to read this content immediately. Used for messages that demand attention, such as submission rejections or validation failures.\n\n`role=\"status\"` — polite: the screen reader finishes its current announcement before reading this update. Used for confirmations that can wait, such as success messages or completion statuses.\n\nA flight-status board at an airport gate illustrates the difference: a gate change announcement (`alert`) interrupts the boarding call, while a 'Boarding in 5 minutes' update (`status`) waits until the current announcement finishes. The component renders one role or the other, depending on whether errors are present.",
+                order: 4,
+              },
+              {
+                title: "Testing with getByRole",
+                content:
+                  "Testing libraries query the DOM using selectors that mirror how users and assistive technology interact with the page. `getByRole('alert')` finds the error banner when problems exist; `getByRole('status')` finds the confirmation banner when everything is clean. Designing a component against these queries means it is accessible by default — the ARIA role serves both the test assertion and the screen reader simultaneously.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Status Banner Conditionals",
+                content:
+                  "Practice rendering one of two banners based on whether an alerts array is empty or populated.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return a success banner ('No alerts') when the alerts array is empty; return an error-list banner when it contains messages.",
+                  language: "javascript",
+                  starter_code:
+                    "function renderBanner(alerts) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "renderBanner",
+                  test_cases: [
+                    { input: [[]], expected: "No alerts", label: "empty alerts → success banner" },
+                    { input: [['Expired card']], expected: "Error: Expired card", label: "one alert → error banner" },
+                    { input: [['Bad input', 'Missing field']], expected: "Error: Bad input, Missing field", label: "multiple alerts → error banner" },
+                  ],
+                },
+                order: 6,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "One component, two branches, one role per view. The `alert` role communicates urgency for error states; the `status` role communicates completion for confirmation states. testing-library role queries validate both correctness and accessibility together.",
+                order: 7,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -526,6 +584,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a cashier, I want the order summary to show the customer name, every line, the total, and (when applied) the coupon discount so that the receipt and the cart agree before I confirm the sale.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nData-Driven List Components with Conditional Sections",
+                content:
+                  "This section covers rendering a list of items from an array prop alongside conditional sections that appear only when relevant data is supplied. The pattern is common in order summaries, invoices, receipts, and any interface that iterates over line items while optionally displaying applied modifiers like discounts or taxes.",
+                order: 1,
+              },
+              {
+                title: "Rendering Lists with data-testid Attributes",
+                content:
+                  "React renders collections by mapping each array element to a DOM node. Each element requires a stable `key` prop — typically a unique identifier from the data — so React can reconcile the list efficiently. The `data-testid` attribute on each row provides a stable anchor for test queries without relying on CSS classes or DOM nesting. A weather alert dashboard that lists active warnings per city uses this pattern: each city gets a row tagged with a test ID, and tests assert row counts and content directly.",
+                order: 2,
+              },
+              {
+                title: "Conditional Sections with Logical AND",
+                content:
+                  "When markup must render only when a prop was passed, the logical AND short-circuit evaluates the condition once and renders nothing when the left side is falsy. A shipping label that includes a 'Fragile' badge only when the package is marked as breakable follows this pattern: the badge DOM node exists only when the condition is met. Tests assert the badge's absence with `queryByTestId` rather than `getByTestId` — the former returns `null` when the element is absent.",
+                order: 3,
+              },
+              {
+                title: "Reusing Shared Formatting Helpers",
+                content:
+                  "Monetary values, dates, and other formatted output are delegated to imported helper functions. The component passes the raw value to a formatter and renders the returned string. A billing dashboard that reuses the same currency formatter across all invoice rows, summary cards, and export views guarantees visual consistency. Changing the currency format requires editing one file, not every component.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Render Line Items with Conditional Discount",
+                content:
+                  "Practice rendering a list of items with an optional discount row that appears only when a discount prop is provided.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Render each item as 'NAME × QTY — $PRICE' and conditionally show a discount row when discount > 0. Return the result as a newline-joined string.",
+                  language: "javascript",
+                  starter_code:
+                    "function renderReceipt(items, discount) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "renderReceipt",
+                  test_cases: [
+                    { input: [[{ name: 'Coffee', qty: 2, price: 3.50 }], 0], expected: "Coffee × 2 — $3.50", label: "single item, no discount" },
+                    { input: [[{ name: 'Coffee', qty: 2, price: 3.50 }, { name: 'Donut', qty: 1, price: 2.00 }], 1.00], expected: "Coffee × 2 — $3.50\nDonut × 1 — $2.00\nDiscount: -$1.00", label: "two items with discount row" },
+                    { input: [[], 0], expected: "", label: "empty items returns empty" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "A list component maps array props to rows, shows optional sections with conditional rendering, and delegates formatting to shared helpers. When the same UI block appears on multiple pages, a single component ensures consistent layout and data display.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -599,6 +715,65 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a cashier, I want the coupon input to ignore stray whitespace and case so that the lookup matches whether the customer typed \"save10\" or \"  SAVE 10  \".",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nControlled Input Components with Normalization",
+                content:
+                  "This section covers controlled form inputs that preprocess user text before emitting it. Normalization — trimming, case folding, and whitespace stripping — transforms freeform input into a canonical form suitable for lookups, search queries, and code entry. The input component owns the normalization logic; the parent receives only clean, predictable values.",
+                order: 1,
+              },
+              {
+                title: "React Controlled Components",
+                content:
+                  "A controlled input stores its value in React state and updates it via an `onChange` handler. Every keystroke flows through the state variable, giving the component full authority over what the input displays. A ticket-booking kiosk that formats a confirmation number as the user types — inserting dashes at fixed positions — requires controlled input because the displayed value does not match the raw keystrokes. Controlled inputs are the right choice when raw text must be transformed, validated, or restricted during typing.",
+                order: 2,
+              },
+              {
+                title: "Input Normalization Strategies",
+                content:
+                  "Normalization transforms raw user input into a consistent format before it leaves the component. Three transformations commonly apply to code-entry fields:\n\nTrimming — removing leading and trailing whitespace so that `\"  CODE789  \"` becomes `\"CODE789\"`.\n\nCase folding — converting to uppercase or lowercase so that `\"code789\"` and `\"CODE789\"` are treated identically.\n\nInternal whitespace stripping — collapsing or removing spaces within the text so that `\"CODE 789\"` becomes `\"CODE789\"`.\n\nA parking-validation kiosk applies the same transformations: a code typed as `\"  a b c 1 2 3  \"` is normalized to `\"ABC123\"` before being checked against the database. These transformations are applied in sequence at the moment of submission.",
+                order: 3,
+              },
+              {
+                title: "Derived Disabled State",
+                content:
+                  "The Apply button's disabled state is derived from the current input value during render rather than stored in separate state. Checking `value.trim().length` on every render determines whether the button should be clickable:\n\nconst isDisabled = value.trim().length === 0;\n\nAn elevator call button that lights up only when a floor number is entered follows the same principle — the button state is a direct function of the input, never an independent variable. Deriving disabled state from the value guarantees the button state is always consistent with the input field.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Normalize a Promo Code Input",
+                content:
+                  "Practice writing a function that normalizes a freeform input string by trimming, uppercasing, and stripping internal whitespace.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Normalize the input: trim outer whitespace, convert to uppercase, and remove all internal spaces so the result is a compact code.",
+                  language: "javascript",
+                  starter_code:
+                    "function normalizePromoCode(raw) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "normalizePromoCode",
+                  test_cases: [
+                    { input: ["  save20  "], expected: "SAVE20", label: "trims outer whitespace" },
+                    { input: ["SAVE 20"], expected: "SAVE20", label: "strips internal space" },
+                    { input: ["  Save  20  "], expected: "SAVE20", label: "trims, uppercases, and strips internal spaces" },
+                    { input: ["hello"], expected: "HELLO", label: "uppercases lowercase input" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Controlled inputs with normalization produce clean, predictable values regardless of how users type them. Derive disabled state from the value during render; reset after successful submission. The component normalizes on the way out — the parent never sees raw input text.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -653,6 +828,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a customer, I want the POS to automatically apply whichever valid coupon gives me the biggest discount so that I don't have to remember which code stacks best.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nServer-Side Filtering and Ranking with Date Validation",
+                content:
+                  "This section covers a server action that filters records by date-based validity, then ranks the survivors to select the optimal candidate. The two concerns — filtering and ranking — are handled sequentially: records that fail the validity gate are discarded, and among those that pass, the one with the highest value wins.",
+                order: 1,
+              },
+              {
+                title: "Schema Migrations with Optional Fields",
+                content:
+                  "Adding a new column to a Prisma model follows a three-step rhythm. First, the column is added to `schema.prisma` with its type — `DateTime?` for an optional date field. Second, `pnpm prisma migrate dev` generates and applies the migration. Third, every query that reads the model is updated to account for the new field. Optional fields — those declared with `?` — carry the benefit that existing rows default to `NULL` with no backfill required. A warehouse system adding an optional `recalled_at` timestamp to a Product model follows the same process: add field, migrate, update queries.",
+                order: 2,
+              },
+              {
+                title: "Date-Based Validity Gates",
+                content:
+                  "Filtering records by expiry requires comparing a stored timestamp against a reference point. The pattern is straightforward: fetch all candidates, compare each candidate's expiry date to the reference point, and discard those in the past. A concert venue checks tickets at the gate using the same logic — tickets for past shows are rejected regardless of seat quality or price paid. The date check happens first and is absolute; nothing overrides an expired entry. The same gate applies to promotional codes, event registrations, and subscription-based access.",
+                order: 3,
+              },
+              {
+                title: "Ranking by Maximum Value with Prisma Filtering",
+                content:
+                  "After invalid records are discarded, the remaining candidates are ranked by a numeric field — discount percentage, reward amount, or priority score. The highest value wins. Prisma's `where` clause with `findMany` fetches only active records, and the ranking pass discards expired ones. Keeping filtering and ranking as separate passes produces code that is easier to audit: the filter declares what is eligible, the ranking declares what is best.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Filter and Rank by Expiry",
+                content:
+                  "Practice writing a function that filters out expired items and returns the one with the highest value, or null when nothing qualifies.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Filter out items whose expiresAt is before now, then return the item with the highest value. Return null when nothing qualifies.",
+                  language: "javascript",
+                  starter_code:
+                    "function selectBest(entries, now) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "selectBest",
+                  test_cases: [
+                    { input: [[{ value: 10, expiresAt: '2025-12-31' }, { value: 20, expiresAt: '2024-01-01' }], '2025-06-01'], expected: { value: 10, expiresAt: '2025-12-31' }, label: "expired excluded, active wins" },
+                    { input: [[{ value: 10, expiresAt: '2024-01-01' }, { value: 5, expiresAt: '2023-06-01' }], '2025-06-01'], expected: null, label: "all expired → null" },
+                    { input: [[{ value: 5, expiresAt: '2026-01-01' }, { value: 8, expiresAt: '2026-06-01' }], '2025-06-01'], expected: { value: 8, expiresAt: '2026-06-01' }, label: "both active, highest value wins" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Filter first, rank second. Validity is a gate, not a tiebreaker. Expiry checks use absolute comparisons against a reference point. Returning null for the empty-result case lets the caller handle that state gracefully without conflating it with an error.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -726,6 +959,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As an owner, I want one card showing total revenue, total discount, order count, and average order value so that I can see daily performance at a glance.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nMulti-Aggregate Summary Cards with Safe Division",
+                content:
+                  "This section covers components that receive an array of records, derive several aggregates — sums, counts, and averages — and display each in a labelled slot. The pattern appears in dashboards, summary cards, budget trackers, and any view that condenses raw rows into a handful of key metrics. The critical edge case is computing an average when the denominator may be zero.",
+                order: 1,
+              },
+              {
+                title: "Presentational Components for Aggregated Data",
+                content:
+                  "A presentational component receives data through props and derives aggregate values during render. A sports scoreboard that receives a list of match results and displays total wins, losses, and win percentage follows this pattern — every number displayed is a function of the input array. No state, no data fetching, no side effects. The component computes sums with `reduce`, counts with `length`, and averages with division guarded by a zero check. All values are derived in a single render pass, guaranteeing they are internally consistent.",
+                order: 2,
+              },
+              {
+                title: "Division by Zero Prevention",
+                content:
+                  "Computing an average requires dividing a sum by the record count. When the array is empty, the count is zero and division produces `NaN` or `Infinity`. A shipping-cost calculator that averages per-package weight across a batch must handle the empty-batch case — a guard clause sets the average to zero when no packages exist:\n\nconst avg = records.length === 0 ? 0 : total / records.length;\n\nThe guard evaluates to zero for empty inputs, which is the correct business value: no orders means an average order value of zero. Without this guard, `NaN` appears in the UI, which is never a valid display value.",
+                order: 3,
+              },
+              {
+                title: "Formatting Through Shared Helpers",
+                content:
+                  "Monetary aggregates flow through the same formatting helper used by every other component. A restaurant POS that displays subtotals, kitchen display screens, and nightly close-out reports all use the same currency formatter — guaranteeing that every dollar amount looks identical regardless of where it is shown.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Compute Summary with Safe Average",
+                content:
+                  "Practice computing total, count, and average from an array of numeric values, handling the empty case safely.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return { total, count, average } from an array of numbers. Average must be 0 (not NaN) when the array is empty.",
+                  language: "javascript",
+                  starter_code:
+                    "function summarize(values) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "summarize",
+                  test_cases: [
+                    { input: [[10, 20, 30]], expected: { total: 60, count: 3, average: 20 }, label: "three values" },
+                    { input: [[]], expected: { total: 0, count: 0, average: 0 }, label: "empty array → average is 0" },
+                    { input: [[5]], expected: { total: 5, count: 1, average: 5 }, label: "single value" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Derive aggregates from props in a single render pass. Guard division with a count check so empty input never produces `NaN`. Delegate all formatting to shared helpers for visual consistency across every display of the same data type.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -780,6 +1071,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As an owner, I want a server-side ranking of the best-selling products so that the leaderboard reflects the true database state without trusting client-side aggregation.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nServer-Side Aggregation and Leaderboard Ranking",
+                content:
+                  "This section covers server actions that aggregate detail rows into per-entity summaries, then rank those summaries by a numeric metric. The pattern appears in leaderboards, top-N reports, sales dashboards, and any view that answers 'which X has the most Y.' The server fetches, folds, sorts, and slices — the client receives a clean, ranked list.",
+                order: 1,
+              },
+              {
+                title: "Prisma Eager Loading with include",
+                content:
+                  "Prisma's `include` option pulls related records in the same query, avoiding the N+1 problem. Instead of fetching detail rows, then querying per entity ID to fetch names, a single query with `include: { related: true }` returns each row with its parent data already attached. A library catalog that shows book titles alongside borrow counts uses `include: { book: true }` on the borrow records — one round-trip produces everything needed for the display. Without include, a follow-up query per row multiplies database load as the dataset grows.",
+                order: 2,
+              },
+              {
+                title: "Aggregation with JavaScript Map",
+                content:
+                  "Grouping detail rows into per-entity summaries uses a Map — each entity ID maps to an accumulator object that tracks quantity and value. As each detail row is processed, its contribution is added to the appropriate entry:\n\nfor (const row of rows) {\n  const entry = map.get(row.entityId) || { totalQty: 0, totalValue: 0 };\n  entry.totalQty += row.qty;\n  entry.totalValue += row.qty * row.unitPrice;\n  map.set(row.entityId, entry);\n}\n\nA shipping manifest that groups packages by destination uses the same pattern — each destination accumulates weight and package count from every row that matches it. The fold happens entirely in memory after the database round-trip completes.",
+                order: 3,
+              },
+              {
+                title: "Sorting with Tiebreakers and Slicing",
+                content:
+                  "After aggregation, entries are sorted by the primary metric in descending order. When two entries tie, a secondary metric resolves the order deterministically. Without an explicit tiebreaker, the sort order depends on the runtime's internal iteration order, which can change between runs. A sports league table that sorts by points and breaks ties with goal difference follows this exact two-key pattern.\n\nFinally, `Array.prototype.slice(0, limit)` truncates the sorted array. Slicing happens after sorting — truncating earlier would omit entries that might rank higher than those already seen.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Aggregate and Rank Leaderboard",
+                content:
+                  "Practice aggregating score entries by player, then ranking players by total score with an alphabetical tiebreaker.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Group entries by playerId, sum scores, then return players sorted by totalScore desc with playerId asc as tiebreaker. Limit to top 3.",
+                  language: "javascript",
+                  starter_code:
+                    "function topPlayers(entries) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "topPlayers",
+                  test_cases: [
+                    { input: [[{ playerId: 'A', score: 10 }, { playerId: 'B', score: 20 }, { playerId: 'A', score: 5 }]], expected: [{ playerId: 'A', totalScore: 15 }, { playerId: 'B', totalScore: 20 }], label: "groups and sums, sorted desc" },
+                    { input: [[{ playerId: 'X', score: 5 }, { playerId: 'Y', score: 5 }, { playerId: 'Z', score: 10 }]], expected: [{ playerId: 'Z', totalScore: 10 }, { playerId: 'X', totalScore: 5 }, { playerId: 'Y', totalScore: 5 }], label: "tiebreaker by playerId asc" },
+                    { input: [[]], expected: [], label: "empty → empty array" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Query with `include` to avoid N+1. Fold rows into a Map keyed by entity ID for per-entity aggregation. Sort by primary metric descending with a deterministic tiebreaker. Slice after sorting — never before.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {

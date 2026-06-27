@@ -115,10 +115,10 @@
         accentRgb="7,165,201"
         width={540}
         viewBox="0 0 520 370"
-        contentX={92}
-        contentY={70}
-        contentWidth={312}
-        contentHeight={214}
+        contentX={28}
+        contentY={28}
+        contentWidth={464}
+        contentHeight={314}
       >
         <p class="coach-eyebrow">{coachEyebrow}</p>
         <h2 class="coach-title">{coachTitle}</h2>
@@ -170,7 +170,6 @@
     position: relative;
     z-index: 1;
     transform: translate(-120px, -100px);
-    filter: drop-shadow(0 0 26px rgba(7, 165, 201, 0.2));
   }
 
   .coach-eyebrow {

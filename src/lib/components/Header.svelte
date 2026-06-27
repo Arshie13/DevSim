@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { Code, Coins, ChartBar, Plus } from "lucide-svelte";
+  import { Coins, ChartBar, Plus } from "lucide-svelte";
   import type { UserData } from "$types";
   import { goto } from "$app/navigation";
   import ProfileDropDown from "$components/ProfileDropDown.svelte";
+  import favicon from "$lib/assets/devsim-logo.svg";
 
   export let userData: Partial<UserData>;
   export let onOpenStats: (() => void) | undefined = undefined;
@@ -25,15 +26,13 @@
 <header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50" data-tour="dashboard-header">
   <div class="w-full max-w-[1200px] px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between mx-auto">
     <!-- Logo -->
-    <div class="flex items-center gap-3">
-      <div class="relative">
-        <button on:click={navigateToDashboard} class="relative z-10">
-        <div class="bg-gradient-to-br from-obsidian-accent to-cyber-bright p-2 rounded-card shadow-accent-glow">
-          <Code class="w-5 h-5 text-obsidian-bg" />
-        </div>
+    <div class="flex items-center gap-2">
+      <div class="relative w-14 h-14">
+        <button on:click={navigateToDashboard} class="relative z-10 w-full h-full">
+           <img src={favicon} alt="DevSim Logo" class="w-full h-full" />
         </button>
         <!-- Animated pulse -->
-        <div class="absolute inset-0 bg-obsidian-accent rounded-card animate-ping opacity-20"></div>
+        <div class="absolute inset-0 bg-obsidian-accent rounded-full animate-ping opacity-20"></div>
       </div>
       <div>
         <h1 class="text-xl font-orbitron font-bold text-obsidian-text-muted tracking-tight">DEVSIM</h1>

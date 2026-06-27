@@ -21,7 +21,7 @@ export const load: PageServerLoad = async (event) => {
     }),
   ]);
 
-  const currentContainers = allContainers.filter((c) => !c.is_archived);
+  const currentContainers = allContainers.filter((c) => !c.isArchived);
 
   return {
     user: {

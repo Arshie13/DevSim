@@ -87,7 +87,7 @@
   }
 
   function goBack() {
-    window.history.back();
+    goto("/dashboard");
   }
 
   export let data: PageData;
@@ -267,22 +267,5 @@
     font-family: 'Rajdhani', sans-serif;
     font-size: 0.9rem;
     color: rgba(208, 215, 221, 0.55);
-  }
-
-  .page-stat-num {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #07a5c9;
-    line-height: 1;
-  }
-
-  .page-stat-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: rgba(208, 215, 221, 0.40);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-top: 0.15rem;
   }
 </style>

@@ -125,13 +125,8 @@ export const levels = [
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions - look for sections about environment configuration, the `.env` file, and the Prisma migrate/seed commands.",
+                  "The README.md contains step-by-step setup instructions, follow them carefully.",
                 order: 2,
-              },
-              {
-                description:
-                  "PostgreSQL must be running before Prisma can connect. The README contains instructions for starting PostgreSQL on the local platform (local install or Docker).",
-                order: 3,
               },
             ],
           },
@@ -144,24 +139,19 @@ export const levels = [
                 order: 1,
               },
               {
-                description: ".env file created with valid DATABASE_URL pointing to PostgreSQL",
+                description: "Prisma migrations applied successfully (pnpm exec prisma migrate dev)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Prisma migrations applied successfully (pnpm exec prisma migrate dev)",
+                description: "Seed script runs successfully and populates the database",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description: "NestJS dev server starts without errors",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description: "NestJS dev server starts at http://localhost:4000 without errors",
-                is_required: true,
-                order: 5,
               },
             ],
           },

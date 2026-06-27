@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import favicon from '$lib/assets/favicon.svg';
+  import favicon from '$lib/assets/devsim-logo.svg';
   import Toast from '$lib/components/ui/Toast.svelte';
   import { page } from '$app/state';
   import SessionExpiredModal from '$lib/components/ui/SessionExpiredModal.svelte';
@@ -136,7 +136,7 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href={favicon} />
+  <link rel="icon" type="image/svg+xml" href={favicon} sizes="any" />
 </svelte:head>
 
 {@render children()}

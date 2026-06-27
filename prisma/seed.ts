@@ -49,26 +49,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("🌱 Starting database seed...\n");
 
-  // Clear existing data
-  await prisma.completed_task.deleteMany();
-  await prisma.workspace_stack.deleteMany();
-  await prisma.user_file_changes.deleteMany();
-  await prisma.workspace.deleteMany();
-  await prisma.acceptance_criteria.deleteMany();
-  await prisma.hint.deleteMany();
-  await prisma.learning_section.deleteMany();
-  await prisma.level_task.deleteMany();
-  await prisma.level.deleteMany();
-  await prisma.scenario.deleteMany();
-  await prisma.achievement_tier.deleteMany();
-  await prisma.user_achievement.deleteMany();
-  await prisma.achievement.deleteMany();
-  await prisma.learner_pass_day_claim.deleteMany();
-  await prisma.learner_pass_enrollment.deleteMany();
-  await prisma.learner_pass_reward.deleteMany();
-  await prisma.user_project_access.deleteMany();
-
-  console.log("🗑️  Cleared existing data\n");
+  console.log("ℹ️  Existing data will be preserved — new records only\n");
 
   // Define scenarios for each tech stack
   const scenarios = [
@@ -325,6 +306,11 @@ async function main() {
   // Insert scenarios first
   console.log("\n📦 Creating scenarios...\n");
   for (const scenario of scenarios) {
+    const existing = await prisma.scenario.findUnique({ where: { id: scenario.id } });
+    if (existing) {
+      console.log(`⏭️  Skipped scenario: ${scenario.name} (already exists)`);
+      continue;
+    }
     await prisma.scenario.create({ data: scenario });
     console.log(`✅ Created scenario: ${scenario.name}`);
   }
@@ -332,6 +318,42 @@ async function main() {
   // Insert levels
   console.log("\n🎯 Creating levels...\n");
   for (const level of levels) {
+    const existing = await prisma.level.findUnique({ where: { id: level.id } });
+    if (existing) {
+      // Upsert tasks by (level_id, task_name).  Nested relations
+      // (learning_sections, acceptance_criteria, hints) are cycled only
+      // when new data is present so existing rows are preserved when the
+      // seed omits them (e.g. a task with no learning_sections block).
+      const { tasks, ...levelData } = level;
+      await prisma.level.update({ where: { id: level.id }, data: levelData });
+      for (const task of tasks.create) {
+        const { acceptance_criteria, hints, ...taskData } = task;
+        const learning_sections = (task as any).learning_sections;
+        const updateData: any = { ...taskData };
+        if (learning_sections?.create?.length) {
+          updateData.learning_sections = { deleteMany: {}, create: learning_sections.create };
+        }
+        if (acceptance_criteria?.create?.length) {
+          updateData.acceptance_criteria = { deleteMany: {}, create: acceptance_criteria.create };
+        }
+        if (hints?.create?.length) {
+          updateData.hints = { deleteMany: {}, create: hints.create };
+        }
+        await prisma.level_task.upsert({
+          where: { level_id_task_name: { level_id: level.id, task_name: taskData.task_name } },
+          update: updateData,
+          create: {
+            ...taskData,
+            level_id: level.id,
+            learning_sections: learning_sections ?? {},
+            acceptance_criteria: acceptance_criteria ?? {},
+            hints: hints ?? {},
+          },
+        });
+      }
+      console.log(`🔄 Updated level: ${level.title}`);
+      continue;
+    }
     await prisma.level.create({ data: level });
     console.log(`✅ Created level: ${level.title}`);
   }
@@ -339,6 +361,11 @@ async function main() {
   // Insert achievements + tiers
   console.log("\n🏅 Creating achievements...\n");
   for (const family of achievements) {
+    const existing = await prisma.achievement.findUnique({ where: { name: family.name } });
+    if (existing) {
+      console.log(`⏭️  Skipped achievement: ${family.name} (already exists)`);
+      continue;
+    }
     await prisma.achievement.create({
       data: {
         name: family.name,
@@ -398,10 +425,15 @@ async function main() {
   ];
 
   for (const reward of learnerPassRewards) {
+    const existing = await prisma.learner_pass_reward.findUnique({ where: { day_number: reward.day_number } });
+    if (existing) {
+      console.log(`⏭️  Skipped learner pass reward day ${reward.day_number} (already exists)`);
+      continue;
+    }
     await prisma.learner_pass_reward.create({ data: reward });
   }
 
-  console.log("✅ Created 30 learner pass rewards\n");
+  console.log("✅ Created learner pass rewards\n");
 
   console.log("\n🎉 Database seeded successfully!\n");
 

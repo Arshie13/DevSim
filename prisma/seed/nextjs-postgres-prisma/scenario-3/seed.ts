@@ -101,21 +101,15 @@ export const levels = [
               },
               {
                 description:
-                  ".env exists with a working DATABASE_URL",
+                  "Prisma migrations applied and seed data inserted",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Prisma migrations applied and seed data inserted",
-                is_required: true,
-                order: 3,
-              },
-              {
-                description:
                   "`pnpm dev` boots the dashboard on http://localhost:3000",
                 is_required: true,
-                order: 4,
+                order: 3,
               },
             ],
           },
@@ -446,6 +440,65 @@ export const levels = [
           test_type: "both",
           user_story:
             "As an employee, I want a request form that rejects backward dates and non-positive hours so that I can't accidentally submit a malformed request to HR.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nValidated Form Components with Submit-Time Validation",
+                content:
+                  "This section covers form components that validate input at submission time — comparing multiple fields together — and render an error message when validation fails. The pattern applies to request forms, checkout flows, search forms, and any interface where cross-field rules must be satisfied before the submission is accepted.",
+                order: 1,
+              },
+              {
+                title: "React Controlled Components",
+                content:
+                  "A controlled input stores its value in React state and updates via `onChange`. Every keystroke flows through the state variable, giving the component full authority over what the input displays. A hotel check-in kiosk that auto-formats a reservation number as the guest types requires controlled input because the displayed value differs from the raw keystrokes. The form state is owned by the component; the parent receives a clean payload only on successful submission.",
+                order: 2,
+              },
+              {
+                title: "Accessible Labels with htmlFor and id",
+                content:
+                  "Each input field is paired with a `<label>` element linked via the `htmlFor` attribute matching the input's `id`. This association ensures that clicking the label text focuses the corresponding input, and screen readers announce the label when the input is focused. Testing libraries use `getByLabelText` to locate inputs, which simultaneously validates the label-input pairing and finds the element.",
+                order: 3,
+              },
+              {
+                title: "Client-Side Validation",
+                content:
+                  "Validation runs in the submit handler before the `onSubmit` callback is called. Cross-field rules — such as end date must not precede start date — require both fields to be evaluated together. When validation fails, an error element appears with a `data-testid` attribute, and the callback is never invoked. The form state is preserved so the user can correct the input without losing data.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Validate a Date Range Form",
+                content:
+                  "Practice implementing cross-field validation that checks a date range and returns either the payload or an error.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return { valid: true, data: { start, end, days } } when end >= start and days > 0. Otherwise return { valid: false, error: 'Invalid input' }.",
+                  language: "javascript",
+                  starter_code:
+                    "function validateRequest(start, end, days) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "validateRequest",
+                  test_cases: [
+                    { input: ['2025-06-01', '2025-06-05', 3], expected: { valid: true, data: { start: '2025-06-01', end: '2025-06-05', days: 3 } }, label: "valid range" },
+                    { input: ['2025-06-05', '2025-06-01', 3], expected: { valid: false, error: 'Invalid input' }, label: "end before start" },
+                    { input: ['2025-06-01', '2025-06-05', 0], expected: { valid: false, error: 'Invalid input' }, label: "zero days" },
+                    { input: ['2025-06-01', '2025-06-01', 1], expected: { valid: true, data: { start: '2025-06-01', end: '2025-06-01', days: 1 } }, label: "same-day is valid" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Validate on submit, not on every keystroke. Cross-field rules evaluate multiple inputs together. Pair labels with inputs via `htmlFor`/`id` for accessibility. The callback fires only when validation passes — the form state is preserved for correction when it fails.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -500,6 +553,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As an employee, I want a panel that shows my used, pending, and remaining time-off hours so that I can plan the rest of the year without phoning HR.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nDerived Balance Panels with Filtered Aggregation",
+                content:
+                  "This section covers components that receive a dataset and an allowance, then derive three values — used, pending, and remaining — from the same input. The pattern applies to time-off balances, budget trackers, credit systems, and any view where an allowance is consumed by filtered subsets of records.",
+                order: 1,
+              },
+              {
+                title: "Derived State from Props",
+                content:
+                  "Derived state is computed directly from props during render rather than being stored in component state or refs. A bank account summary that computes available balance from posted transactions follows this pattern — the balance is a function of the transactions, never an independent variable. Deriving values from props guarantees they are always consistent with the input data: used, pending, and remaining are all computed from the same requests array in one pass.",
+                order: 2,
+              },
+              {
+                title: "Filtered Aggregation by Status",
+                content:
+                  "The used total sums only approved records of qualifying types. A construction budget tracker that sums only approved expenses — excluding pending and denied — uses the same approach. Filtering first, then reducing, produces a clear, auditable aggregation:\n\nconst approved = requests.filter(r => r.status === 'APPROVED' && r.category !== 'EXCLUDED');\nconst used = approved.reduce((sum, r) => sum + r.amount, 0);\n\nPending items are summed separately and do not reduce the remaining balance. The remaining formula is `allowance - used` — pending does not appear in the subtraction.",
+                order: 3,
+              },
+              {
+                title: "Testing with data-testid",
+                content:
+                  "Each derived value occupies a dedicated DOM element with a `data-testid` attribute. A test can assert `used-hours` equals a specific number by querying that element directly, without navigating sibling relationships or CSS selectors. All values are computed from the same input in one pass, guaranteeing they add up consistently.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Filter and Sum by Status",
+                content:
+                  "Practice filtering records by status and type, then computing used and pending totals separately.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return { used, pending, remaining } where used sums approved + non-unpaid, pending sums pending, remaining = allowance - used.",
+                  language: "javascript",
+                  starter_code:
+                    "function computeBalance(requests, allowance) {\n  // requests: [{ status, type, hours }]\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "computeBalance",
+                  test_cases: [
+                    { input: [[{ status: 'APPROVED', type: 'VACATION', hours: 8 }, { status: 'PENDING', type: 'SICK', hours: 4 }, { status: 'APPROVED', type: 'UNPAID', hours: 8 }], 40], expected: { used: 8, pending: 4, remaining: 32 }, label: "unpaid excluded from used, pending separate" },
+                    { input: [[], 40], expected: { used: 0, pending: 0, remaining: 40 }, label: "empty → full allowance remaining" },
+                    { input: [[{ status: 'APPROVED', type: 'VACATION', hours: 20 }, { status: 'APPROVED', type: 'SICK', hours: 20 }], 40], expected: { used: 40, pending: 0, remaining: 0 }, label: "all used up" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Filter by status and category before summing. Keep pending separate — it does not reduce the remaining balance. Compute all derived values from the same input in one pass to guarantee internal consistency.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -573,6 +684,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a payroll clerk, I want a row that visibly splits each employee's hours into regular and overtime so that I can audit the threshold at a glance.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nThreshold-Based Split Components with Default Parameters",
+                content:
+                  "This section covers components that divide a total into two buckets — regular and overtime — at a configurable threshold. Default prop values allow the threshold to be overridden without defining a second component. The pattern applies to billing tiers, tax brackets, usage limits, and any threshold-based allocation.",
+                order: 1,
+              },
+              {
+                title: "Clamping with Math.min and Math.max",
+                content:
+                  "Regular hours are the portion of total hours below the threshold, computed as `Math.min(totalHours, threshold)`. This caps the regular bucket at the threshold even when total hours exceed it. Overtime hours are the portion above the threshold, computed as `Math.max(0, totalHours - threshold)`. The `Math.max` clamping prevents negative overtime when total hours are below the threshold. A utility billing system that splits usage into a base tier and a premium tier uses the same min/max pattern — the base tier is capped at the allowance, and the remainder flows into the premium tier.",
+                order: 2,
+              },
+              {
+                title: "Default Parameters in React Props",
+                content:
+                  "Destructuring with default values lets a component accept an optional prop that falls back to a standard value when omitted:\n\nfunction Breakdown({ totalHours, threshold = 40 }) {\n  ...\n}\n\nA shipping calculator that defaults to a standard box size unless the caller passes a custom dimension uses the same pattern. One component handles both cases — standard and configured — without conditional logic or component variants.",
+                order: 3,
+              },
+              {
+                title: "Guaranteeing the Split Adds Up",
+                content:
+                  "The invariant `regular + overtime === totalHours` holds for all non-negative inputs regardless of the threshold. This is guaranteed by the math: `Math.min(h, t) + Math.max(0, h - t) = h` for any `h ≥ 0` and `t > 0`. A payroll auditor can trust that the split never misrepresents, drops, or duplicates hours.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Split at a Threshold",
+                content:
+                  "Practice splitting a total into regular (≤ threshold) and overtime (> threshold) portions.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return { regular, overtime } where regular ≤ threshold and overtime = total - regular. Threshold defaults to 40.",
+                  language: "javascript",
+                  starter_code:
+                    "function splitHours(total, threshold = 40) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "splitHours",
+                  test_cases: [
+                    { input: [35], expected: { regular: 35, overtime: 0 }, label: "below threshold → no overtime" },
+                    { input: [45], expected: { regular: 40, overtime: 5 }, label: "above threshold → overtime present" },
+                    { input: [50, 35], expected: { regular: 35, overtime: 15 }, label: "custom threshold overrides default" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Default prop values via destructuring let one component serve multiple thresholds. Clamp minimum with `Math.min` and maximum floor with `Math.max`. The split invariant — regular plus overtime always equals the input — is mathematically guaranteed.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -627,6 +796,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a payroll clerk, I want the server to compute gross pay using the employee's stored hourly rate so that the dashboard can't accidentally pay a different rate than the database says.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nServer-Side Payroll Computation with Database-Sourced Rates",
+                content:
+                  "This section covers server actions that fetch a rate from the database and compute a monetary result. The rate lives in the database — the client sends only hours. The pattern applies to payroll, billing engines, pricing systems, and any computation where the database owns the multiplier.",
+                order: 1,
+              },
+              {
+                title: "Fetching with Prisma findUnique",
+                content:
+                  "`findUnique` retrieves a single record by its primary key. It is the correct choice when the caller has the exact identifier — an employee ID, an order number, or an account code. `findUnique` returns `null` when no record matches, which the action handles with an explicit error rather than silently returning zero.",
+                order: 2,
+              },
+              {
+                title: "Overtime Pay Calculation",
+                content:
+                  "The standard overtime rate in many jurisdictions is 1.5× the regular hourly rate — commonly called 'time and a half.' The formula is:\n\nconst grossPay = regular × rate + overtime × rate × 1.5;\n\nThe multiplication happens at full precision; rounding is deferred to a single `Math.round(pay * 100) / 100` at the end. Rounding intermediate values introduces cumulative floating-point error. This is the payroll standard: compute with full precision, round once at the boundary where the number becomes money.",
+                order: 3,
+              },
+              {
+                title: "Error Handling for Missing Data",
+                content:
+                  "When the database returns no employee record or the employee has no `hourly_rate`, the action throws an error with `throw new Error(...)`. Returning zero would be indistinguishable from a genuine zero-pay scenario and could result in an underpayment without detection. The caller catches the error and renders an appropriate message, keeping the error path separate from the success path.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Compute Gross Pay from Rate",
+                content:
+                  "Practice computing gross pay using regular hours, overtime hours, and an hourly rate with a 1.5× overtime multiplier.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Compute gross pay: regular × rate + overtime × rate × 1.5. Round result to 2 decimals. Return null if rate is missing.",
+                  language: "javascript",
+                  starter_code:
+                    "function computeGrossPay(regular, overtime, rate) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "computeGrossPay",
+                  test_cases: [
+                    { input: [40, 5, 20], expected: 950, label: "40 regular + 5 overtime at $20/hr" },
+                    { input: [40, 0, 15], expected: 600, label: "no overtime" },
+                    { input: [40, 10, null], expected: null, label: "missing rate → null" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "The rate lives in the database; the client sends only hours. Compute overtime at 1.5×. Round once at the end. Throw on missing data — zero is never a safe default for payroll computations.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -700,6 +927,58 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a manager, I want one summary card showing total regular, overtime, total hours, total gross, and average gross so that I can sign off the payroll period at a glance.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nMulti-Aggregate Summary Cards with Safe Averages",
+                content:
+                  "This section covers components that receive an array of records, derive several aggregates — sums, combined totals, and averages — and display each in a labelled slot. The pattern applies to payroll summaries, expense reports, budget dashboards, and any view that compresses raw rows into summary figures with a per-row average.",
+                order: 1,
+              },
+              {
+                title: "Average Computation with Division Guard",
+                content:
+                  "The average gross pay is total gross divided by the record count. When the array is empty, division by zero produces `Infinity` or `NaN`. A restaurant tip-pooling calculator that divides tips among staff must handle the case where no staff worked a shift — the average is zero, not `NaN`. The guard is:\n\nconst avg = records.length === 0 ? 0 : total / records.length;\n\nApplying the guard once, immediately after the sums are computed, guarantees every consumer of the average value receives a valid number.",
+                order: 2,
+              },
+              {
+                title: "Reusing Shared Formatting Helpers",
+                content:
+                  "All monetary aggregates flow through the same `formatCurrency` helper used by other components. A corporate payroll dashboard that reuses the same dollar formatter across employee detail rows, department summaries, and the executive overview guarantees visual consistency. The component passes raw numbers to the formatter and renders the returned string — it never concatenates `$` directly.",
+                order: 3,
+              },
+              {
+                title: "Practice Lab: Compute Payroll Summary with Safe Average",
+                content:
+                  "Practice computing total hours, total pay, and average pay from an array of records, handling the empty case safely.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return { totalHours, totalPay, averagePay } from an array of { hours, pay } records. averagePay is 0 when records is empty.",
+                  language: "javascript",
+                  starter_code:
+                    "function payrollSummary(records) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "payrollSummary",
+                  test_cases: [
+                    { input: [[{ hours: 40, pay: 800 }, { hours: 30, pay: 600 }]], expected: { totalHours: 70, totalPay: 1400, averagePay: 700 }, label: "two records" },
+                    { input: [[]], expected: { totalHours: 0, totalPay: 0, averagePay: 0 }, label: "empty → all zeroes" },
+                    { input: [[{ hours: 20, pay: 500 }]], expected: { totalHours: 20, totalPay: 500, averagePay: 500 }, label: "single record" },
+                  ],
+                },
+                order: 4,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Accumulate sums in one pass. Guard the average with a count check so empty input produces zero rather than `NaN`. Delegate all formatting to the shared currency helper for visual consistency across every view.",
+                order: 5,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -748,6 +1027,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a manager, I want a server-side per-department report (headcount, total hours, total gross) so that I can compare departments at a glance without trusting client-side joins.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nGrouping by a Derived Key with Distinct Counting",
+                content:
+                  "This section covers server actions that join models via `include`, group rows by a derived category key, and produce per-category aggregates including distinct entity counts. The pattern applies to departmental reports, regional breakdowns, team dashboards, and any grouping where the category is computed from a field rather than stored directly.",
+                order: 1,
+              },
+              {
+                title: "Prisma Eager Loading with include",
+                content:
+                  "`include` fetches related records in the same query, avoiding N+1. `prisma.detail.findMany({ include: { parent: true } })` returns detail rows with their parent entities pre-populated in one database round-trip. Without include, a follow-up query per row to fetch parent names multiplies database load.",
+                order: 2,
+              },
+              {
+                title: "Distinct Counting with JavaScript Set",
+                content:
+                  "A `Set` stores only unique values — adding the same value twice has no effect. For headcount reporting, each department bucket maintains a Set of employee identifiers:\n\nemployees.add(record.employee.id);\nconst headcount = employees.size;\n\nA volunteer registration system that counts unique volunteers per event uses the same pattern. The headcount is `Set.size`, not the number of detail rows. A single employee with multiple rows contributes exactly one to the headcount.",
+                order: 3,
+              },
+              {
+                title: "Grouping Values with a Map and Sorting",
+                content:
+                  "Rows are folded into a Map keyed by department name. Each entry accumulates total hours, total gross pay, and a Set of employee IDs. After all rows are processed, the Map is converted to an array and sorted alphabetically by department name using `Array.prototype.sort` with `localeCompare`. Alphabetical sorting is deterministic — the same departments always appear in the same order.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Group and Count Distinctly",
+                content:
+                  "Practice grouping records by a derived category and counting distinct contributors per category.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Group entries by dept (derived from name: first 2 chars). Return { dept, totalAmount, distinctNames } sorted by dept asc.",
+                  language: "javascript",
+                  starter_code:
+                    "function groupByDept(entries) {\n  // entries: [{ name, amount }]\n  // dept = name.slice(0, 2)\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "groupByDept",
+                  test_cases: [
+                    { input: [[{ name: 'Alice', amount: 100 }, { name: 'Alvin', amount: 50 }, { name: 'Bob', amount: 200 }]], expected: [{ dept: 'Al', totalAmount: 150, distinctNames: 2 }, { dept: 'Bo', totalAmount: 200, distinctNames: 1 }], label: "two departments, distinct counting" },
+                    { input: [[{ name: 'Al', amount: 10 }, { name: 'Al', amount: 20 }]], expected: [{ dept: 'Al', totalAmount: 30, distinctNames: 1 }], label: "same name twice → distinct count 1" },
+                    { input: [[]], expected: [], label: "empty → empty array" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Query with `include` to avoid N+1. Derive the category key inside the action. Use a `Set` for distinct counting. Fold rows into a Map, then sort alphabetically at the end for deterministic output.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {

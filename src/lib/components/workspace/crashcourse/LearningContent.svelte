@@ -684,8 +684,9 @@
     position: relative;
     width: min(980px, calc(100vw - 1.8rem));
     min-height: auto;
-    display: grid;
-    justify-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 0.1rem;
   }
 
@@ -707,8 +708,8 @@
 
   .saz-avatar-wrap {
     position: absolute;
-    right: 110px;
-    top: 400px;
+    right: 20px;
+    top: 370px;
     z-index: 2;
     background: transparent;
     border: 0;
@@ -718,7 +719,7 @@
   }
 
   .saz-avatar {
-    width: 150px;
+    width: 180px;
     height: auto;
     object-fit: contain;
     display: block;
