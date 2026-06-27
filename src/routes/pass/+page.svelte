@@ -36,20 +36,6 @@
     return `${minutes}m ${seconds}s`;
   }
 
-  function getStatusColor(): string {
-    if (!enrollment) return "text-orange-400";
-    if (enrollment.status === "COMPLETED") return "text-green-400";
-    if (enrollment.status === "EXPIRED") return "text-red-400";
-    return "text-cyber-cyan";
-  }
-
-  function getStatusBadge(): string {
-    if (!enrollment) return "NOT ENROLLED";
-    if (enrollment.status === "COMPLETED") return "COMPLETED";
-    if (enrollment.status === "EXPIRED") return "EXPIRED";
-    return "ACTIVE";
-  }
-
   // Each avatar and badge has its own unique icon, keyed by its exact reward name.
   const AVATAR_ICONS: Record<string, string> = {
     "blue neon avatar": "avatar-blue-neon.svg",
@@ -230,46 +216,7 @@
   <main class="relative z-10 py-8">
     <div class="max-w-[1400px] mx-auto px-6">
       <!-- Status Section -->
-      {#if enrollment}
-        <div class="mb-8 p-6 rounded-card border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 backdrop-blur">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h2 class="text-lg font-orbitron font-semibold text-obsidian-text-primary mb-2">Your Progress</h2>
-              <div class="flex gap-6">
-                <div class="flex flex-col">
-                  <span class="text-3xl font-orbitron font-bold text-cyber-cyan">{enrollment.currentDay}</span>
-                  <span class="text-xs font-rajdhani text-obsidian-text-muted">/ 30 Days</span>
-                </div>
-                <div class="h-12 w-px bg-cyan-500/20"></div>
-                <div class="flex flex-col">
-                  <span class="text-2xl font-orbitron font-bold text-rose-500">🔥 {enrollment.streak}</span>
-                  <span class="text-xs font-rajdhani text-obsidian-text-muted">Day Streak</span>
-                </div>
-                <div class="h-12 w-px bg-cyan-500/20"></div>
-                <div class="flex flex-col">
-                  <span class="text-2xl font-orbitron font-bold text-green-400">✓ {enrollment.totalClaimedDays}</span>
-                  <span class="text-xs font-rajdhani text-obsidian-text-muted">Claimed</span>
-                </div>
-              </div>
-            </div>
-            <div class="text-right">
-              <span
-                class="inline-block px-4 py-2 rounded-full text-sm font-orbitron font-semibold {getStatusColor()} border border-current/30 bg-current/5"
-              >
-                {getStatusBadge()}
-              </span>
-            </div>
-          </div>
-
-          <!-- Progress Bar -->
-          <div class="mt-6 bg-obsidian-bg/40 rounded-full h-2 overflow-hidden border border-cyan-500/10">
-            <div
-              class="h-full bg-gradient-to-r from-cyber-cyan to-blue-600 transition-all duration-500"
-              style="width: {(enrollment.totalClaimedDays / 30) * 100}%"
-            ></div>
-          </div>
-        </div>
-      {:else}
+      {#if !enrollment}
         <div class="mb-8 p-6 rounded-card border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 backdrop-blur">
           <div class="flex items-center justify-between">
             <div>
