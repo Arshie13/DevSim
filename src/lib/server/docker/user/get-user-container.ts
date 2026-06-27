@@ -62,7 +62,17 @@ export async function getAllUserContainer(userId: string) {
     }
   });
 
-  return userContainers
+  return userContainers.map((row) => ({
+    id: row.id,
+    containerId: row.container_id,
+    status: row.status,
+    level: row.level,
+    scenario: row.scenario,
+    workspace_stacks: row.workspace_stacks,
+    isArchived: row.is_archived,
+    volumeName: row.volume_name,
+    updated_at: row.updated_at,
+  }));
 }
 
 export async function getUserContainer(data: GetUserContainerRequest) {

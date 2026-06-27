@@ -8,6 +8,7 @@ export interface IContainer {
   workspace_stacks?: IContainerStack[];
   isArchived?: boolean;
   volumeName?: string;
+  updated_at?: Date;
 }
 
 export interface IScenario {

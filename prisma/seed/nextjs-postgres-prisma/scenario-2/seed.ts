@@ -440,6 +440,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a member, I want each class card to show how many spots are left and a 'Class Full' badge when none remain so that I don't waste time tapping a class I can't join.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nClamped Counters and Conditional Badges",
+                content:
+                  "This section covers components that display a derived count alongside a conditional badge that appears when the count hits a threshold. The pattern applies to inventory indicators, capacity displays, seat availability counters, and any UI that shows remaining quantity with a visual warning at zero.",
+                order: 1,
+              },
+              {
+                title: "Clamping with Math.max",
+                content:
+                  "A remaining count is computed by subtracting occupancy from capacity. When subtraction yields a negative number — more bookings than capacity — `Math.max(0, difference)` clamps the display to zero. A hotel booking system uses this same pattern: displaying '-3 rooms available' is incorrect and confusing. Clamping ensures the counter never shows a negative value. The calculation is deterministic: given the same inputs it always produces the same output, making it safe to recompute on every render.",
+                order: 2,
+              },
+              {
+                title: "Conditional Badge Visibility with React Conditional Rendering",
+                content:
+                  "The 'at capacity' badge renders only when occupancy matches or exceeds capacity. The logical AND `&&` operator evaluates the condition once: `{occupancy >= capacity && <Badge />}`. When the condition is false, React renders nothing and the badge DOM node does not exist. A parking garage sign that displays 'FULL' only when every space is occupied works identically — the sign is either present or absent, never display:none.",
+                order: 3,
+              },
+              {
+                title: "Default Exports",
+                content:
+                  "A default export is the primary value a module exports — the value callers receive when importing without curly braces. Each module has at most one default export, matching the convention that a component file exports one main component. Graders import the default export, so the component must be declared as `export default function`.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Clamp and Conditionally Badge",
+                content:
+                  "Practice computing remaining spots and conditionally adding a full badge.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return { spotsLeft, badge } where spotsLeft is clamped to 0 and badge is 'FULL' when booked >= capacity, otherwise null.",
+                  language: "javascript",
+                  starter_code:
+                    "function getSpotDisplay(capacity, booked) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "getSpotDisplay",
+                  test_cases: [
+                    { input: [10, 4], expected: { spotsLeft: 6, badge: null }, label: "capacity > booked, no badge" },
+                    { input: [10, 10], expected: { spotsLeft: 0, badge: "FULL" }, label: "full → badge shown" },
+                    { input: [10, 12], expected: { spotsLeft: 0, badge: "FULL" }, label: "overbooked → clamped to 0, badge shown" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Clamp the displayed count with `Math.max` so negative values never appear. Show the badge conditionally — the DOM node exists only when the threshold is met. The default export convention makes the component testable by grading tools.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -488,6 +546,65 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a member, I want the Book button to say why it's disabled (\"Already booked\" or \"Class full\") so that I know whether to wait or pick a different class.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nMulti-State Buttons with Priority-Ranked Conditions",
+                content:
+                  "This section covers button components that render one of several visual states based on an ordered chain of conditions. When multiple conditions can be true simultaneously — someone can have already applied AND the resource can be full — the order of checks determines which label and disabled state appear. The pattern applies to any action button that explains why it is unavailable.",
+                order: 1,
+              },
+              {
+                title: "Logical AND for Conditional Rendering",
+                content:
+                  "The `&&` operator short-circuits: when the left side is falsy, the right side never evaluates and nothing renders. This is the standard pattern for conditionally emitting JSX. A concert seat selector that shows a 'Reserved' label only when a seat is already taken uses `{isReserved && <ReservedLabel />}` — the label element exists in the DOM only when the condition is met.",
+                order: 2,
+              },
+              {
+                title: "The Disabled Attribute",
+                content:
+                  "The HTML `disabled` attribute prevents user interaction with a form element. A disabled button cannot be clicked, focused, or submitted. Assistive technology announces the disabled state. The attribute is a boolean that is either present or absent — there is no 'partially disabled' state. The button's click handler is attached only when disabled is false; an enabled button with a handler that returns early is unreliable because focus and keyboard events are not suppressed.",
+                order: 3,
+              },
+              {
+                title: "Priority-Based Condition Chains",
+                content:
+                  "When a button has more than two possible states, conditions are checked in priority order rather than as independent booleans. The first matching condition wins. A museum ticket kiosk illustrates the priority: if a visitor already holds a ticket for a time slot, it shows 'Already Reserved' regardless of whether the slot is sold out. The user-specific condition takes priority over the resource-wide condition because it answers the most relevant question: 'Why can't *I* proceed?' rather than 'Why can't *anyone* proceed?'\n\nif (alreadyBooked) {\n  label = 'Already reserved';\n  disabled = true;\n} else if (atCapacity) {\n  label = 'Sold out';\n  disabled = true;\n} else {\n  label = 'Reserve';\n  disabled = false;\n}",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Multi-State Button Logic",
+                content:
+                  "Practice implementing a button label and disabled state based on priority-ordered conditions.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return { label, disabled } where: alreadyOwned → 'Owned'/true, soldOut → 'Sold Out'/true, else → 'Buy'/false. Note: alreadyOwned > soldOut priority.",
+                  language: "javascript",
+                  starter_code:
+                    "function getButtonState(alreadyOwned, soldOut) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "getButtonState",
+                  test_cases: [
+                    { input: [false, false], expected: { label: "Buy", disabled: false }, label: "neither → enabled Buy" },
+                    { input: [false, true], expected: { label: "Sold Out", disabled: true }, label: "sold out → disabled Sold Out" },
+                    { input: [true, true], expected: { label: "Owned", disabled: true }, label: "alreadyOwned wins over soldOut" },
+                    { input: [true, false], expected: { label: "Owned", disabled: true }, label: "alreadyOwned alone" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Check conditions in priority order, not as independent booleans. User-specific states win over resource-wide states. The disabled attribute blocks all interaction — the click handler is attached only when the button is enabled.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -561,6 +678,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a studio manager, I want a per-class list of booking counts so that I can spot which sessions are growing and which are stagnant.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nGrouping Flat Arrays into Counted Summaries",
+                content:
+                  "This section covers components that receive a flat array of records, group them by category, count occurrences per category, and render a sorted list. The pattern applies to booking dashboards, tag clouds, category breakdowns, and any view that transforms raw event rows into per-category tallies.",
+                order: 1,
+              },
+              {
+                title: "Grouping with JavaScript Map",
+                content:
+                  "A Map stores key-value pairs where keys can be any type — strings, numbers, or objects — and iteration order matches insertion order. For grouping flat rows into per-category counts, the category identifier serves as the key and a running total as the value:\n\nconst counts = new Map();\nfor (const row of input) {\n  counts.set(row.category, (counts.get(row.category) || 0) + 1);\n}\n\nA vote-tallying system that groups ballots by candidate uses the same approach — the Map accumulates per-candidate totals as ballots are processed. After the loop, the Map holds one entry per distinct category with its total count.",
+                order: 2,
+              },
+              {
+                title: "Sorting by Category Identifier",
+                content:
+                  "The grouped entries are sorted by the category identifier (ID, name, or code) in ascending order. Sorting by identifier rather than by count produces a stable, predictable list — the order depends on what the entity is called, not on how many times it appeared. `Array.prototype.sort` accepts a comparator function that returns a negative, zero, or positive number based on the desired order.",
+                order: 3,
+              },
+              {
+                title: "Empty State Design",
+                content:
+                  "When the input array is empty, the component renders an empty-state message rather than an empty list container. A blank list looks like a loading state or rendering error; an explicit message like 'No bookings yet' communicates that data is absent for a valid reason. The empty state is tagged with a test ID so automated tests can confirm the component handles this case correctly.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Group and Sort Category Counts",
+                content:
+                  "Practice grouping records by category, counting them, and returning entries sorted by category ascending.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Count records per category. Return array sorted by category asc: [{ category, count }]. Empty input → [].",
+                  language: "javascript",
+                  starter_code:
+                    "function countByCategory(records) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "countByCategory",
+                  test_cases: [
+                    { input: [[{ cat: 'A' }, { cat: 'B' }, { cat: 'A' }]], expected: [{ cat: 'A', count: 2 }, { cat: 'B', count: 1 }], label: "groups and sorts ascending" },
+                    { input: [[{ cat: 'Z' }, { cat: 'A' }]], expected: [{ cat: 'A', count: 1 }, { cat: 'Z', count: 1 }], label: "sorts by category, not count" },
+                    { input: [[]], expected: [], label: "empty → empty array" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Fold a flat array into a Map keyed by category for per-category counts. Sort by category identifier ascending for stable output. Render an explicit empty-state element when the input is empty.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -609,6 +784,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a studio manager, I want a server-side attendance-per-month aggregation so that the dashboard reflects the true database state without trusting client-side bucketing.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nTime-Based Bucketing with ISO Month Keys",
+                content:
+                  "This section covers server actions that group timestamped records into month buckets for trend analysis. Records are sorted into `YYYY-MM` labels, producing a time series that is naturally chronological — sorting the labels alphabetically produces the correct timeline. The pattern applies to attendance tracking, login analytics, sales trends, and any reporting where events are grouped by calendar month.",
+                order: 1,
+              },
+              {
+                title: "Querying with Prisma findMany",
+                content:
+                  "`findMany` retrieves all records matching a filter — in this case, attendance records for a specific user. Unlike `findFirst` or `findUnique`, `findMany` returns an array that may be empty, which the action handles gracefully. The filter is applied at the database level via the `where` clause, reducing the data transferred to only relevant rows.",
+                order: 2,
+              },
+              {
+                title: "YYYY-MM Bucketing with toISOString",
+                content:
+                  "Month-level grouping uses the `YYYY-MM` format, extracted by slicing the first seven characters of an ISO 8601 string: `new Date(timestamp).toISOString().slice(0, 7)`. The `.toISOString()` method produces a UTC-based string, making the month boundary consistent regardless of the server's local timezone. This is critical for systems with distributed users — 'March 2025' means the same thing whether the server is in New York or Tokyo.\n\nnew Date('2025-03-15').toISOString().slice(0, 7) // '2025-03'\n\nA global conference platform tracking registrations by month uses this format so all dashboards agree on what 'this month' means.",
+                order: 3,
+              },
+              {
+                title: "UTC Date Handling",
+                content:
+                  "Using UTC-based date methods avoids timezone offset surprises. A record timestamped at 2025-03-01 01:00 in UTC+8 is actually February 28th in UTC — and `toISOString()` correctly reports it as '2025-02'. Month bucketing via UTC ensures every record falls into the same bucket regardless of where the computation runs or who views the report.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Bucket Dates by YYYY-MM",
+                content:
+                  "Practice grouping date strings by their YYYY-MM label and returning sorted month-count pairs.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Group timestamps by YYYY-MM, count per month, return array sorted by month ascending. Empty input → [].",
+                  language: "javascript",
+                  starter_code:
+                    "function bucketByMonth(timestamps) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "bucketByMonth",
+                  test_cases: [
+                    { input: [['2025-01-15', '2025-01-20', '2025-02-10']], expected: [{ month: '2025-01', count: 2 }, { month: '2025-02', count: 1 }], label: "two months, sorted ascending" },
+                    { input: [['2025-12-01', '2025-01-01']], expected: [{ month: '2025-01', count: 1 }, { month: '2025-12', count: 1 }], label: "out-of-order input sorted by month" },
+                    { input: [[]], expected: [], label: "empty → empty array" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Bucket timestamps into `YYYY-MM` labels via `toISOString().slice(0, 7)`. UTC-based bucketing eliminates timezone ambiguity. Sort output by month key ascending — the ISO format is naturally chronological. Return an empty array for empty input.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -682,6 +915,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As a member, I want a card showing my total bookings, attended count, attendance rate, and favourite class so that I can see how I'm using my membership.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nMulti-Metric Profile Cards with Safe Percentages and Fallbacks",
+                content:
+                  "This section covers components that display several derived metrics from the same input data, including a percentage and a 'most frequent' value. Every computed value must handle the empty-data case without producing `NaN`, null references, or undefined display slots. The pattern applies to profile stats, usage dashboards, and any view where metrics share a common data source.",
+                order: 1,
+              },
+              {
+                title: "Safe Percentage Computation",
+                content:
+                  "A rate is computed by dividing the attended count by the total booking count, then multiplying by 100. When total bookings are zero, division produces `NaN`. The guard is an explicit check:\n\nconst rate = totalBooked === 0 ? 0 : Math.round((attended / totalBooked) * 100);\n\nA fitness-tracker summary computing 'workout completion rate' uses the same guard — zero planned workouts means a 0% completion rate, not `NaN`. The guard is applied once, and the resulting value is used everywhere the rate is displayed.",
+                order: 2,
+              },
+              {
+                title: "Finding the Most Frequent Value (Mode)",
+                content:
+                  "The 'favourite' item is the category that appears most frequently in the data. Frequency analysis tracks each category's count and selects the category with the highest count. When two categories tie, a deterministic tiebreaker — lowest identifier — resolves the tie. A music streaming dashboard that shows 'most played genre' from listening history calculates this by counting plays per genre and selecting the genre with the highest count, breaking ties alphabetically. The calculation is deterministic: identical input always produces the same favourite.",
+                order: 3,
+              },
+              {
+                title: "Fallback UI for Missing Data",
+                content:
+                  "When no attendance data exists, the favourite field displays a fallback character such as '—' instead of leaving the slot empty or showing an error. A delivery tracking card that shows '—' for average delivery time when there are no deliveries yet follows the same pattern — the slot is occupied, the layout is stable, and the meaning is clear. Every metric slot has a defined value for every input scenario.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Mode Finder with Fallback",
+                content:
+                  "Practice finding the most frequent value in an array with a fallback when the array is empty.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return the most frequent value. Tiebreaker: lowest value. Empty array → '—'.",
+                  language: "javascript",
+                  starter_code:
+                    "function findMode(values) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "findMode",
+                  test_cases: [
+                    { input: [['A', 'B', 'A', 'C', 'B', 'A']], expected: 'A', label: "A appears most" },
+                    { input: [['X', 'Y', 'X', 'Y']], expected: 'X', label: "tie → lowest value wins" },
+                    { input: [[]], expected: '—', label: "empty → fallback" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Guard percentage division to prevent `NaN`. Break ties deterministically with the lowest identifier. Provide fallback characters for every metric slot when data is absent — the card layout stays stable regardless of input.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {
@@ -730,6 +1021,64 @@ export const levels = [
           test_type: "both",
           user_story:
             "As an owner, I want a server-side leaderboard of every member ordered by attendance so that the dashboard surfaces both the most engaged and the least active without trusting client-side joins.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nInclusive Leaderboards from the Parent Model",
+                content:
+                  "This section covers server actions that build a leaderboard starting from the parent entity rather than the detail records, ensuring entities with zero activity appear alongside the most active. The pattern applies to member rankings, usage dashboards, contribution scores, and any leaderboard where the absence of activity is itself meaningful data.",
+                order: 1,
+              },
+              {
+                title: "Prisma Eager Loading and N+1 Prevention",
+                content:
+                  "`include` fetches related records in the same query as the parent model. `prisma.parent.findMany({ include: { children: true } })` produces one round-trip that returns parents with their children arrays pre-populated. Without include, iterating over parents and querying children per parent produces the N+1 problem — one query for the parent list plus N queries for children — multiplying database load as the dataset grows.",
+                order: 2,
+              },
+              {
+                title: "Inclusive Zero-Count Reporting",
+                content:
+                  "Querying from the parent model ensures every entity appears, including those with zero related records. A constituency report that lists every voter alongside their town-hall attendance includes non-attendees — their presence on the list is as important as the attendees' counts. Querying from attendance records alone would silently drop anyone with zero attendance, creating a blind spot that looks like a bug.",
+                order: 3,
+              },
+              {
+                title: "Sorting with Deterministic Tiebreakers",
+                content:
+                  "The leaderboard is sorted by attendance count descending. Entities with the same count are tiebroken alphabetically by name ascending. `Array.prototype.sort` with a comparator that checks the primary key first, then the secondary key, produces a stable, reproducible order. Without a tiebreaker, tied entries shuffle based on runtime internals — tests break, dashboards look glitchy, and debugging is unreliable.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Inclusive Leaderboard from Parent List",
+                content:
+                  "Practice building a leaderboard that includes every entity, even those with zero activity.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Return all players sorted by score desc, name asc as tiebreaker. Players without entries in scores must appear with score: 0.",
+                  language: "javascript",
+                  starter_code:
+                    "function rankPlayers(players, scores) {\n  // scores is [{ playerName, points }]\n  // players is [{ name }] — every player must appear\n  // TODO\n}\n",
+                  editable_regions: [
+                    { placeholder: "// TODO", case_sensitive: true },
+                  ],
+                  entry_point: "rankPlayers",
+                  test_cases: [
+                    { input: [[{ name: 'Alice' }, { name: 'Bob' }], [{ playerName: 'Alice', points: 10 }]], expected: [{ name: 'Alice', score: 10 }, { name: 'Bob', score: 0 }], label: "Bob appears with zero" },
+                    { input: [[{ name: 'Zoe' }, { name: 'Ava' }], [{ playerName: 'Zoe', points: 5 }, { playerName: 'Ava', points: 5 }]], expected: [{ name: 'Ava', score: 5 }, { name: 'Zoe', score: 5 }], label: "tie → name ascending" },
+                    { input: [[{ name: 'Solo' }], []], expected: [{ name: 'Solo', score: 0 }], label: "no scores → everyone at zero" },
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "Query the parent model with `include`, not the detail model, to prevent N+1. Count via the included array length. Sort by activity descending with a deterministic tiebreaker. Include zero-activity members — a leaderboard that hides absence also hides disengagement.",
+                order: 6,
+              },
+            ],
+          },
           hints: {
             create: [
               {

@@ -25,7 +25,7 @@ export const load: PageServerLoad = async (event) => {
       getAchievementFeedItems(userData.id, 5),
     ]);
 
-  const userContainerList = allContainers.filter((c) => !c.is_archived);
+  const userContainerList = allContainers.filter((c) => !c.isArchived);
 
   return {
     user: {

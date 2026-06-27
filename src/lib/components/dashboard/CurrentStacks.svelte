@@ -9,14 +9,21 @@
 
   $: visibleContainers = containers.slice(0, maxVisible);
 
-  function formatLastActive(date: Date | string): string {
+  function formatLastActive(date: Date | string | undefined): string {
+    if (!date) return 'Just now';
     const d = new Date(date);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (Number.isNaN(d.getTime())) return 'Just now';
+    const now = new Date().getTime();
+    const diff = now - d.getTime();
+    if (diff < 0) return 'Just now';
+
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
     return 'Just now';
   }
 </script>
@@ -75,7 +82,7 @@
                 </div>
                 <div class="flex items-center gap-1 font-mono text-xs text-[var(--text-muted)]">
                   <Clock class="w-3 h-3" />
-                  <span>{formatLastActive(container.status)}</span>
+                  <span>{formatLastActive(container.updated_at)}</span>
                 </div>
               </div>
 

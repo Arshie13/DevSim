@@ -320,22 +320,28 @@ async function main() {
   for (const level of levels) {
     const existing = await prisma.level.findUnique({ where: { id: level.id } });
     if (existing) {
-      // Upsert tasks by (level_id, task_name) — only deepest nested
-      // content (sections, criteria, hints) gets cycled since they
-      // don't have deterministic IDs in the seed data.
+      // Upsert tasks by (level_id, task_name).  Nested relations
+      // (learning_sections, acceptance_criteria, hints) are cycled only
+      // when new data is present so existing rows are preserved when the
+      // seed omits them (e.g. a task with no learning_sections block).
       const { tasks, ...levelData } = level;
       await prisma.level.update({ where: { id: level.id }, data: levelData });
       for (const task of tasks.create) {
         const { acceptance_criteria, hints, ...taskData } = task;
         const learning_sections = (task as any).learning_sections;
+        const updateData: any = { ...taskData };
+        if (learning_sections?.create?.length) {
+          updateData.learning_sections = { deleteMany: {}, create: learning_sections.create };
+        }
+        if (acceptance_criteria?.create?.length) {
+          updateData.acceptance_criteria = { deleteMany: {}, create: acceptance_criteria.create };
+        }
+        if (hints?.create?.length) {
+          updateData.hints = { deleteMany: {}, create: hints.create };
+        }
         await prisma.level_task.upsert({
           where: { level_id_task_name: { level_id: level.id, task_name: taskData.task_name } },
-          update: {
-            ...taskData,
-            learning_sections: { deleteMany: {}, create: learning_sections?.create ?? [] },
-            acceptance_criteria: { deleteMany: {}, create: acceptance_criteria?.create ?? [] },
-            hints: { deleteMany: {}, create: hints?.create ?? [] },
-          },
+          update: updateData,
           create: {
             ...taskData,
             level_id: level.id,
