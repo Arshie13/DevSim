@@ -219,7 +219,7 @@
     loadingFileChanges = true;
     try {
       const response = await fetch(
-        `/api/docker/container/${dbContainerId}/file-changes?containerId=${dbContainerId}&summary=true`,
+        `/api/docker/container/${dbContainerId}/file-changes?summary=true`,
       );
       const data = await response.json();
       if (data.success && data.data) {
