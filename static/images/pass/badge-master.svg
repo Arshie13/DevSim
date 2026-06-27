@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="mst" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd34e"/>
+      <stop offset="1" stop-color="#f0990d"/>
+    </linearGradient>
+  </defs>
+  <!-- ribbons -->
+  <path d="M180 296l-46 154 66-34 30 50 30-86z" fill="#e8412f"/>
+  <path d="M332 296l46 154-66-34-30 50-30-86z" fill="#e8412f"/>
+  <!-- scalloped medal -->
+  <g transform="translate(256 196)">
+    <g fill="url(#mst)">
+      <circle cx="0" cy="0" r="142"/>
+      <g id="p2"><circle cx="0" cy="-142" r="24"/></g>
+      <use href="#p2" transform="rotate(36)"/>
+      <use href="#p2" transform="rotate(72)"/>
+      <use href="#p2" transform="rotate(108)"/>
+      <use href="#p2" transform="rotate(144)"/>
+      <use href="#p2" transform="rotate(180)"/>
+      <use href="#p2" transform="rotate(216)"/>
+      <use href="#p2" transform="rotate(252)"/>
+      <use href="#p2" transform="rotate(288)"/>
+      <use href="#p2" transform="rotate(324)"/>
+    </g>
+    <circle cx="0" cy="0" r="112" fill="#f3a514"/>
+    <!-- laurel -->
+    <g stroke="#e0900c" stroke-width="9" fill="none" stroke-linecap="round">
+      <path d="M-58 70C-92 30 -92 -28 -58 -68"/>
+      <path d="M58 70C92 30 92 -28 58 -68"/>
+    </g>
+    <g fill="#e0900c">
+      <ellipse cx="-78" cy="20" rx="11" ry="6" transform="rotate(60 -78 20)"/>
+      <ellipse cx="-82" cy="-14" rx="11" ry="6" transform="rotate(40 -82 -14)"/>
+      <ellipse cx="-76" cy="-46" rx="11" ry="6" transform="rotate(20 -76 -46)"/>
+      <ellipse cx="78" cy="20" rx="11" ry="6" transform="rotate(-60 78 20)"/>
+      <ellipse cx="82" cy="-14" rx="11" ry="6" transform="rotate(-40 82 -14)"/>
+      <ellipse cx="76" cy="-46" rx="11" ry="6" transform="rotate(-20 76 -46)"/>
+    </g>
+    <path d="M0 -58l20 41 46 6-33 32 8 46-41-22-41 22 8-46-33-32 46-6z" fill="#f6b427"/>
+  </g>
+</svg>

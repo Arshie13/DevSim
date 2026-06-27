@@ -6,11 +6,12 @@
 -->
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { X, Coins, Lock, CheckCircle } from "lucide-svelte";
+  import { X, Coins, Lock, CheckCircle, Crown } from "lucide-svelte";
   import PurchaseSuccessModal from "$components/ui/PurchaseSuccessModal.svelte";
   import {
     DEFAULT_AVATARS,
     PREMIUM_AVATARS,
+    PASS_AVATARS,
     type AvatarDefinition,
     type PremiumAvatarDefinition,
   } from "$lib/utils/avatar";
@@ -26,7 +27,7 @@
   export let coins: number = 0;
 
   // ── Internal state ───────────────────────────────────────────────────────────
-  type Tab = "owned" | "premium";
+  type Tab = "owned" | "premium" | "pass";
   let activeTab: Tab = "owned";
   let pendingSelection: string = currentAvatar;
 
@@ -36,6 +37,9 @@
   ];
 
   $: premiumList = PREMIUM_AVATARS.filter((a) => !ownedAvatars.includes(a.path));
+
+  // Learner Pass avatars are unlocked & equipped via the pass, never bought here.
+  $: passList = PASS_AVATARS;
 
   // ── Purchase state ────────────────────────────────────────────────────────────
   let purchasingPath: string | null = null;
@@ -170,6 +174,11 @@
           on:click={() => (activeTab = "premium")}>
           Premium <span class="ml-1 text-[0.55rem] opacity-60">({premiumList.length})</span>
         </button>
+        <button
+          class="flex-1 py-2.5 text-xs font-mono uppercase tracking-widest transition-colors duration-200 border-b-2 {activeTab === 'pass' ? 'border-obsidian-accent text-obsidian-accent' : 'border-transparent text-obsidian-text-primary/40 hover:text-obsidian-text-primary/70'}"
+          on:click={() => (activeTab = "pass")}>
+          Pass <span class="ml-1 text-[0.55rem] opacity-60">({passList.length})</span>
+        </button>
       </div>
 
       <!-- Grid area -->
@@ -229,7 +238,7 @@
             {/each}
           </div>
 
-        {:else}
+        {:else if activeTab === "premium"}
           <!-- ── Premium avatars ────────────────────────────────────────────── -->
           {#if premiumList.length === 0}
             <div class="flex flex-col items-center justify-center h-32 gap-2 text-obsidian-text-primary/30">
@@ -303,6 +312,55 @@
               {/each}
             </div>
           {/if}
+
+        {:else}
+          <!-- ── Learner Pass avatars (unlocked & equipped via the pass) ─────── -->
+          <p class="mb-3 text-[0.6rem] font-mono uppercase tracking-widest text-obsidian-text-primary/40 flex items-center gap-1.5">
+            <Crown class="w-3 h-3 text-obsidian-accent" />
+            Exclusive to the Learner Pass — claim & equip them on the pass
+          </p>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            {#each passList as avatar (avatar.id)}
+              {@const isEquipped = currentAvatar === avatar.path}
+              <div
+                class="group relative flex flex-col items-center gap-2 p-3 rounded-card border border-obsidian-accent/25 bg-obsidian-bg-light cursor-default"
+              >
+                <!-- Pass-exclusive marker -->
+                <div class="absolute top-1.5 right-1.5 text-obsidian-accent/70">
+                  <Crown class="w-3.5 h-3.5" />
+                </div>
+
+                <!-- Avatar image -->
+                <div
+                  class="w-14 h-14 rounded-card flex items-center justify-center overflow-hidden border-2"
+                  style="border-color: {isEquipped ? avatar.color : 'rgba(7,165,201,0.3)'}; box-shadow: {isEquipped ? `0 0 16px ${avatar.color}55` : 'none'};"
+                >
+                  <img
+                    src={avatar.path}
+                    alt={avatar.name}
+                    class="w-full h-full object-contain"
+                    on:error={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                  />
+                </div>
+
+                <!-- Name -->
+                <span class="text-[0.6rem] font-mono uppercase tracking-wide text-obsidian-text-primary/60">
+                  {avatar.name}
+                </span>
+
+                <!-- Equipped state, otherwise the pass-only tag -->
+                {#if isEquipped}
+                  <span class="text-[0.5rem] font-mono uppercase tracking-widest text-obsidian-accent bg-obsidian-accent/10 border border-obsidian-accent/30 rounded px-1.5 py-0.5 whitespace-nowrap">
+                    Equipped
+                  </span>
+                {:else}
+                  <span class="flex items-center gap-1 text-[0.5rem] font-mono uppercase tracking-widest text-obsidian-accent/70 bg-obsidian-accent/10 border border-obsidian-accent/20 rounded px-1.5 py-0.5 whitespace-nowrap">
+                    <Lock class="w-2.5 h-2.5" /> Pass only
+                  </span>
+                {/if}
+              </div>
+            {/each}
+          </div>
         {/if}
       </div>
 

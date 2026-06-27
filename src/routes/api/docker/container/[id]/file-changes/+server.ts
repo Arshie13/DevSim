@@ -2,18 +2,19 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getFileChanges, getFileChangeSummary } from '$lib/server/fileChangeLogger';
 
-export const GET: RequestHandler = async ({ url, locals }) => {
+export const GET: RequestHandler = async ({ params, url, locals }) => {
   try {
     // --- Auth check ---
     const session = await locals.auth();
     if (!session?.user?.id) {
-      return json({ 
-        success: false, 
-        error: 'Unauthorized' 
+      return json({
+        success: false,
+        error: 'Unauthorized'
       }, { status: 401 });
     }
 
-    const containerId = url.searchParams.get('id');
+    // The container id comes from the route path (/container/[id]/file-changes).
+    const containerId = params.id;
     const summary = url.searchParams.get('summary') === 'true';
 
     if (!containerId) {

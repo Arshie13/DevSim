@@ -25,7 +25,18 @@ export interface PremiumAvatarDefinition {
   price: number;
 }
 
-export type AnyAvatar = AvatarDefinition | PremiumAvatarDefinition;
+export interface PassAvatarDefinition {
+  id: string;
+  name: string;
+  path: string;
+  color: string;
+  /** Identifies this as a Learner Pass reward avatar */
+  source: "pass";
+  /** Pass day on which this avatar is unlocked */
+  passDay: number;
+}
+
+export type AnyAvatar = AvatarDefinition | PremiumAvatarDefinition | PassAvatarDefinition;
 
 // ─── Free default avatars (always owned) ─────────────────────────────────────
 
@@ -47,7 +58,29 @@ export const PREMIUM_AVATARS: PremiumAvatarDefinition[] = [
   { id: "premium_glitch",  name: "Glitch Idol",        path: "/avatars/premiumglitchidol.svg",  color: "#94a3b8", isPremium: true, price: 2000 },
 ];
 
-export const ALL_AVATARS: AnyAvatar[] = [...DEFAULT_AVATARS, ...PREMIUM_AVATARS];
+// ─── Learner Pass avatars (unlocked & equippable only via the pass) ───────────
+// These are NOT purchasable in the profile; they are claimed on the pass and
+// equipped from the pass page. Listed here so the avatar API recognises their
+// paths as valid for equipping.
+
+export const PASS_AVATARS: PassAvatarDefinition[] = [
+  { id: "pass_blue_neon",    name: "Blue Neon Avatar",    path: "/images/pass/avatar-blue-neon.svg",    color: "#38bdf8", source: "pass", passDay: 3 },
+  { id: "pass_cyber",        name: "Cyber Avatar",        path: "/images/pass/avatar-cyber.svg",        color: "#34d399", source: "pass", passDay: 6 },
+  { id: "pass_shadow",       name: "Shadow Avatar",       path: "/images/pass/avatar-shadow.svg",       color: "#7c3aed", source: "pass", passDay: 10 },
+  { id: "pass_legend",       name: "Legend Avatar",       path: "/images/pass/avatar-legend.svg",       color: "#fbbf24", source: "pass", passDay: 15 },
+  { id: "pass_galaxy",       name: "Galaxy Avatar",       path: "/images/pass/avatar-galaxy.svg",       color: "#a855f7", source: "pass", passDay: 18 },
+  { id: "pass_nova",         name: "Nova Avatar",         path: "/images/pass/avatar-nova.svg",         color: "#f97316", source: "pass", passDay: 21 },
+  { id: "pass_royal",        name: "Royal Avatar",        path: "/images/pass/avatar-royal.svg",        color: "#9333ea", source: "pass", passDay: 25 },
+  { id: "pass_neon_warrior", name: "Neon Warrior Avatar", path: "/images/pass/avatar-neon-warrior.svg", color: "#ec4899", source: "pass", passDay: 28 },
+  { id: "pass_mythic",       name: "Mythic Avatar",       path: "/images/pass/avatar-mythic.svg",       color: "#c084fc", source: "pass", passDay: 30 },
+];
+
+export const ALL_AVATARS: AnyAvatar[] = [...DEFAULT_AVATARS, ...PREMIUM_AVATARS, ...PASS_AVATARS];
+
+/** Returns the pass avatar unlocked on a given pass day, if any. */
+export function getPassAvatarByDay(day: number): PassAvatarDefinition | undefined {
+  return PASS_AVATARS.find((a) => a.passDay === day);
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

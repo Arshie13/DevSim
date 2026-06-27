@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="brz" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d6a373"/>
+      <stop offset="1" stop-color="#b97f4a"/>
+    </linearGradient>
+  </defs>
+  <!-- ribbons -->
+  <path d="M196 300l-44 150 56-30 30 46 30-90z" fill="#e8485f"/>
+  <path d="M316 300l44 150-56-30-30 46-30-90z" fill="#e8485f"/>
+  <path d="M214 320l-26 96 36-20 18 30 18-58z" fill="#f4f6f8"/>
+  <!-- medal -->
+  <polygon points="256,96 322,128 388,160 388,232 388,304 322,336 256,368 190,336 124,304 124,232 124,160 190,128" fill="url(#brz)"/>
+  <polygon points="256,96 322,128 388,160 388,232 388,304 322,336 256,368 190,336 124,304 124,232 124,160 190,128" fill="none" stroke="#a86c3a" stroke-width="10" opacity="0.6"/>
+  <path d="M256 158l22 45 50 7-36 35 8 50-44-23-44 23 8-50-36-35 50-7z" fill="#9c6233"/>
+</svg>

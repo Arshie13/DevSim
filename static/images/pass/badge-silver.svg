@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="slv" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9edf2"/>
+      <stop offset="1" stop-color="#aab3bd"/>
+    </linearGradient>
+  </defs>
+  <!-- ribbons -->
+  <path d="M204 300l-26 150 78-44 78 44-26-150z" fill="#2f7bff"/>
+  <path d="M236 320h40l-8 130-12 20-12-20z" fill="#cfd6de"/>
+  <!-- medal -->
+  <circle cx="256" cy="208" r="132" fill="url(#slv)"/>
+  <g fill="#cdd4dc">
+    <path d="M256 76l18 30-36 0z" opacity="0.5"/>
+  </g>
+  <circle cx="256" cy="208" r="132" fill="none" stroke="#9aa3ad" stroke-width="6"/>
+  <circle cx="256" cy="208" r="96" fill="#bcc4cd"/>
+  <path d="M256 130l24 49 54 8-39 38 9 54-48-25-48 25 9-54-39-38 54-8z" fill="#7f8893"/>
+</svg>

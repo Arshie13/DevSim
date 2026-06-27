@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="aiHead" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7cb2ec"/>
+      <stop offset="1" stop-color="#5a90d6"/>
+    </linearGradient>
+    <linearGradient id="aiBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef3fb"/>
+      <stop offset="1" stop-color="#d6e2f3"/>
+    </linearGradient>
+  </defs>
+  <!-- Robot — centered, same footprint & 12px outline as the coins icon -->
+  <g stroke="#2d3a52" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+    <!-- antennae -->
+    <line x1="214" y1="150" x2="214" y2="120"/>
+    <line x1="298" y1="150" x2="298" y2="120"/>
+    <circle cx="214" cy="110" r="12" fill="#ff5a6e"/>
+    <circle cx="298" cy="110" r="12" fill="#ff5a6e"/>
+    <!-- body dome -->
+    <path d="M150 400c0-62 46-92 106-92s106 30 106 92z" fill="url(#aiBody)"/>
+    <!-- neck -->
+    <rect x="236" y="286" width="40" height="26" fill="#5a90d6"/>
+    <!-- head -->
+    <rect x="164" y="150" width="184" height="140" rx="42" fill="url(#aiHead)"/>
+    <!-- screen -->
+    <rect x="196" y="176" width="120" height="88" rx="28" fill="#eef3fb"/>
+  </g>
+  <text x="256" y="248" font-family="Arial, sans-serif" font-size="58" font-weight="700" fill="#2d3a52" text-anchor="middle">AI</text>
+  <!-- circuit dots on the dome -->
+  <g fill="#ff5a6e">
+    <circle cx="256" cy="350" r="9"/>
+    <circle cx="212" cy="384" r="9"/>
+    <circle cx="300" cy="384" r="9"/>
+  </g>
+  <g stroke="#2d3a52" stroke-width="7" fill="none">
+    <path d="M256 350v22M212 384h88"/>
+  </g>
+</svg>

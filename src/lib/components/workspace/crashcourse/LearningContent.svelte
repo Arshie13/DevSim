@@ -583,7 +583,7 @@
 
       <div class="course-controls">
         <p class="meta">
-          Task {taskIndex + 1} • Section {sectionIndex + 1}/{activeSections.length}
+          Task {activeTask?.order ?? taskIndex + 1} • Section {sectionIndex + 1}/{activeSections.length}
         </p>
         {#if sectionLockFeedback}
           <p class="section-lock-feedback">{sectionLockFeedback}</p>

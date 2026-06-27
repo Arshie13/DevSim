@@ -25,6 +25,17 @@
   $: remainingCount = Math.max(totalTasks - completedCount, 0);
   const layerOptions = ['frontend', 'backend', 'database', 'infra/testing'];
 
+  // Paths the user has clicked to reveal in full (otherwise truncated to fit the box).
+  let expandedFiles = new Set<string>();
+  function toggleFile(file: string) {
+    if (expandedFiles.has(file)) {
+      expandedFiles.delete(file);
+    } else {
+      expandedFiles.add(file);
+    }
+    expandedFiles = expandedFiles; // trigger Svelte reactivity
+  }
+
    function toggleLayer(layer: string) {
      if (impactedLayers.includes(layer)) {
        impactedLayers = impactedLayers.filter((item) => item !== layer);
@@ -90,24 +101,39 @@
         {#if fileChanges.created.length > 0}
           {#each fileChanges.created as file}
             <li class="flex items-center gap-2 [font-family:var(--font-mono)] text-[0.7rem]">
-              <span class="text-[var(--success)]">+</span>
-              <span class="truncate text-[var(--text-primary)] text-[0.7rem]">{file}</span>
+              <span class="shrink-0 text-[var(--success)]">+</span>
+              <button
+                type="button"
+                on:click={() => toggleFile(file)}
+                title={file}
+                class="min-w-0 flex-1 cursor-pointer text-left text-[var(--text-primary)] text-[0.7rem] {expandedFiles.has(file) ? 'break-all' : 'truncate'}"
+              >{file}</button>
             </li>
           {/each}
         {/if}
         {#if fileChanges.modified.length > 0}
           {#each fileChanges.modified as file}
             <li class="flex items-center gap-2 [font-family:var(--font-mono)] text-[0.7rem]">
-              <span class="text-[var(--warn)]">•</span>
-              <span class="truncate text-[var(--text-primary)]">{file}</span>
+              <span class="shrink-0 text-[var(--warn)]">•</span>
+              <button
+                type="button"
+                on:click={() => toggleFile(file)}
+                title={file}
+                class="min-w-0 flex-1 cursor-pointer text-left text-[var(--text-primary)] {expandedFiles.has(file) ? 'break-all' : 'truncate'}"
+              >{file}</button>
             </li>
           {/each}
         {/if}
         {#if fileChanges.renamed.length > 0}
           {#each fileChanges.renamed as rename}
             <li class="flex items-center gap-2 [font-family:var(--font-mono)] text-[0.78rem]">
-              <span class="text-[var(--accent)]">→</span>
-              <span class="truncate text-[var(--text-primary)]">{rename.from} → {rename.to}</span>
+              <span class="shrink-0 text-[var(--accent)]">→</span>
+              <button
+                type="button"
+                on:click={() => toggleFile(`${rename.from} → ${rename.to}`)}
+                title={`${rename.from} → ${rename.to}`}
+                class="min-w-0 flex-1 cursor-pointer text-left text-[var(--text-primary)] {expandedFiles.has(`${rename.from} → ${rename.to}`) ? 'break-all' : 'truncate'}"
+              >{rename.from} → {rename.to}</button>
             </li>
           {/each}
         {/if}
