@@ -130,18 +130,13 @@ export const levels = [
             create: [
               {
                 description:
-                  "Three folders contain a `package.json` — install in each. Mongoose also needs a running MongoDB before the app boots.",
+                  "Three folders contain a `package.json` — install in each. ",
                 order: 1,
               },
               {
                 description:
-                  "`server/.env` is gitignored on purpose — copy `.env.example` to `.env` and fill in the local Mongo connection URI.",
-                order: 2,
-              },
-              {
-                description:
                   "Run `pnpm run db:seed` inside `server/` after Mongo is up; the dev server will fetch zero recipes until the DB has data.",
-                order: 3,
+                order: 2,
               },
             ],
           },
@@ -155,19 +150,14 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "MONGO_URI configured in `server/.env` and pointing to a running MongoDB instance",
+                description: "App seed script populates at least 10 recipes and 5 users",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "App seed script populates at least 10 recipes and 5 users",
+                description: "Both client and server start via `pnpm run dev` without crashes",
                 is_required: true,
                 order: 3,
-              },
-              {
-                description: "Both client (5173) and server (4000) start via `pnpm run dev` without crashes",
-                is_required: true,
-                order: 4,
               },
             ],
           },

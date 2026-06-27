@@ -101,21 +101,15 @@ export const levels = [
               },
               {
                 description:
-                  ".env exists with a working DATABASE_URL",
+                  "Prisma migrations applied and seed data inserted",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Prisma migrations applied and seed data inserted",
-                is_required: true,
-                order: 3,
-              },
-              {
-                description:
                   "`pnpm dev` boots the dashboard on http://localhost:3000",
                 is_required: true,
-                order: 4,
+                order: 3,
               },
             ],
           },

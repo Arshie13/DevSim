@@ -136,12 +136,12 @@ export const levels = [
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions — look for sections about environment configuration, the `.env` file, and the seed command.",
+                  "The README.md contains step-by-step setup instructions.",
                 order: 2,
               },
               {
                 description:
-                  "MongoDB must be running before the seed script can insert data. Check the README for how to start MongoDB on the current platform (local install or Docker).",
+                  "Run the seed script to insert data into the database.",
                 order: 3,
               },
             ],
@@ -155,22 +155,17 @@ export const levels = [
                 order: 1,
               },
               {
-                description: ".env file created from .env.example with valid MongoDB URI",
-                is_required: true,
-                order: 2,
-              },
-              {
                 description: "Seed script runs successfully and populates the database",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Client dev server starts at http://localhost:5173 without errors",
+                description: "Client dev server starts without errors",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Server starts at http://localhost:4000 without errors",
+                description: "Server starts without errors",
                 is_required: true,
                 order: 5,
               },

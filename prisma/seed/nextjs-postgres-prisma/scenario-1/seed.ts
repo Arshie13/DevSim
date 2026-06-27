@@ -101,21 +101,15 @@ export const levels = [
               },
               {
                 description:
-                  ".env exists at the project root with a working DATABASE_URL pointing at a local PostgreSQL instance",
+                  "Prisma migrations applied and seed data inserted (`pnpm prisma:migrate` and `pnpm prisma:seed` succeed)",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Prisma migrations applied and seed data inserted (`pnpm prisma:migrate` and `pnpm prisma:seed` succeed)",
-                is_required: true,
-                order: 3,
-              },
-              {
-                description:
                   "`pnpm dev` boots the app on http://localhost:3000 without errors",
                 is_required: true,
-                order: 4,
+                order: 3,
               },
             ],
           },
