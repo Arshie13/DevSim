@@ -236,13 +236,24 @@ async function buildProjectImage(
   let dockerignoreWasModified = false;
 
   try {
+    // openssl + libstdc++ are required by Prisma's query/schema engine on Alpine (musl)
+    // for the nestjs stack only. Without them Prisma fails to detect libssl, falls back
+    // to the openssl-1.1.x engine, and crashes with "Could not parse schema engine
+    // response" at migrate/seed. We add it here per-stack instead of in the base
+    // Dockerfile so the shared devsim-workspace base stays lean and the other stacks'
+    // images don't get invalidated/rebuilt when this fix changes.
+    const needsOpenssl = /nestjs/i.test(stackName);
+    const opensslLayer = needsOpenssl
+      ? "\nRUN apk add --no-cache openssl libstdc++\n"
+      : "";
+
     const dockerfileContent = `
 FROM devsim-workspace:latest
 
 LABEL devsim.stack="${stackName}"
 LABEL devsim.project="${projectPath}"
 LABEL devsim.image.version="1.0.0"
-
+${opensslLayer}
 COPY --chown=postgres:postgres . /workspace/
 
 WORKDIR /workspace
