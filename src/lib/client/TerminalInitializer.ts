@@ -81,7 +81,7 @@ export class TerminalInitializer {
       this.connectSocket();
 
       window.addEventListener("resize", () => {
-        this.fitAddon?.fit();
+        this.fit();
         this.sendResize();
       });
 
@@ -229,7 +229,9 @@ export class TerminalInitializer {
   }
 
   fit() {
-    this.fitAddon?.fit();
+    if (!this.terminal || !this.fitAddon) return;
+    this.fitAddon.fit();
+    this.terminal.refresh(0, this.terminal.rows - 1);
   }
 
   dispose() {

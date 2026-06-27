@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Play, Clock, ChevronRight, Container } from "lucide-svelte";
+  import { invalidateAll } from "$app/navigation";
+  import { Play, Clock, ChevronRight, Container, Archive } from "lucide-svelte";
   import { parseStackName } from '$lib/utils/stacks';
   import type { IContainer } from "$types";
 
@@ -7,7 +8,29 @@
   export let currentStacks: IContainer[];
   export let maxVisible: number = 2;
 
-  $: visibleContainers = containers.slice(0, maxVisible);
+  let archivedIds = new Set<string>();
+
+  $: visibleContainers = containers.filter(c => !archivedIds.has(c.id)).slice(0, maxVisible);
+
+  let archivingId: string | null = null;
+
+  async function handleArchive(container: IContainer) {
+    archivingId = container.id;
+    archivedIds.add(container.id);
+    try {
+      await fetch(`/api/docker/container/${container.id}/archive`, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isComplete: false })
+      });
+    } catch {
+      // ponytail: network errors (HMR, etc.) don't matter — server still processed it
+    }
+    archivingId = null;
+    await invalidateAll();
+  }
 
   function formatLastActive(date: Date | string): string {
     const d = new Date(date);
@@ -98,6 +121,21 @@
                 <Play class="w-3 h-3" />
                 Continue Sprint
               </a>
+
+              <!-- Archive Button -->
+              <button
+                on:click={() => handleArchive(container)}
+                disabled={archivingId === container.id}
+                class="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-cyber-warn/10 border border-cyber-warn/25 text-cyber-warn text-xs rounded hover:bg-cyber-warn/20 hover:border-cyber-warn/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {#if archivingId === container.id}
+                  <span class="inline-block w-3 h-3 border-2 border-cyber-warn/40 border-t-cyber-warn rounded-full animate-spin"></span>
+                  Archiving...
+                {:else}
+                  <Archive class="w-3 h-3" />
+                  Archive
+                {/if}
+              </button>
             </div>
           </div>
         {/each}

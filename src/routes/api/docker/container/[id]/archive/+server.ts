@@ -5,7 +5,7 @@ import { detectNewlyUnlockedAchievements } from '$lib/server/achievements/unlock
 
 const workspaceService = new WorkspaceService();
 
-export const POST: RequestHandler = async ({ params, locals }) => {
+export const POST: RequestHandler = async ({ params, locals, request }) => {
   const session = await locals.auth();
 
   if (!session?.user?.id) {
@@ -13,12 +13,17 @@ export const POST: RequestHandler = async ({ params, locals }) => {
   }
 
   try {
+    const body = await request.json().catch(() => ({}));
+    const isComplete = body.isComplete ?? false;
+
     const result = await workspaceService.archiveWorkspace({
       dbContainerId: params.id,
       userId: session.user.id
     });
 
-    const newlyUnlocked = await detectNewlyUnlockedAchievements(session.user.id);
+    const newlyUnlocked = isComplete
+      ? await detectNewlyUnlockedAchievements(session.user.id)
+      : [];
 
     return json({
       success: true,

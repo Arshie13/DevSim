@@ -259,7 +259,9 @@
     activeTerminalId = id;
     activeTab = "terminal";
     requestAnimationFrame(() => {
-      terminalSessions.find((s) => s.id === id)?.instance?.fit();
+      requestAnimationFrame(() => {
+        terminalSessions.find((s) => s.id === id)?.instance?.fit();
+      });
     });
   }
 

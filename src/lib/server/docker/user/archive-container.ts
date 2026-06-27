@@ -27,10 +27,6 @@ export async function archiveContainer(
 		throw new Error('You do not own this container.');
 	}
 
-	if (record.status !== 'completed') {
-		throw new Error('Only completed containers can be archived.');
-	}
-
 	if (record.is_archived) {
 		throw new Error('Container is already archived.');
 	}
