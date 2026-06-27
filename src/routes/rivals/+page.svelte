@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Search, Users, ArrowLeft, ArrowUpDown } from "lucide-svelte";
+  import { Search, Users, ArrowLeft } from "lucide-svelte";
   import { fade, fly } from "svelte/transition";
   import Header from "$lib/components/Header.svelte";
   import RivalCard from "$lib/components/rivals/RivalCard.svelte";
@@ -79,17 +79,37 @@
               class="w-full bg-obsidian-bg-light/60 border border-obsidian-accent/20 rounded-card py-3 pl-10 pr-4 text-sm text-obsidian-text-muted focus:outline-none focus:border-obsidian-accent/50 focus:ring-1 focus:ring-obsidian-accent/30 transition-all font-rajdhani"
             />
           </div>
-          <!-- Sort dropdown -->
-          <div class="relative">
-            <select
-              bind:value={sortBy}
-              class="appearance-none bg-obsidian-bg-light/60 border border-obsidian-accent/20 rounded-card py-3 pl-4 pr-10 text-xs text-obsidian-text-muted focus:outline-none focus:border-obsidian-accent/50 focus:ring-1 focus:ring-obsidian-accent/30 transition-all font-orbitron cursor-pointer h-[46px]"
-            >
-              <option value="xp_desc">XP: Highest</option>
-              <option value="xp_asc">XP: Lowest</option>
-              <option value="name_asc">Name: A-Z</option>
-            </select>
-            <ArrowUpDown size={14} class="absolute right-3 top-1/2 -translate-y-1/2 text-obsidian-text-primary/40 pointer-events-none" />
+          <!-- Sort -->
+          <div class="flex items-center gap-2 h-[46px]">
+            <div class="flex border border-obsidian-accent/20 rounded-full overflow-hidden bg-obsidian-bg-light/40">
+              <button
+                class="px-3.5 py-2 text-[0.65rem] font-orbitron tracking-wide transition-all duration-200
+                  {sortBy === 'xp_desc'
+                    ? 'bg-obsidian-accent text-obsidian-bg shadow-[0_0_10px_rgba(7,165,201,0.3)]'
+                    : 'text-obsidian-text-primary/50 hover:text-obsidian-text-primary/80 hover:bg-obsidian-accent/5'}"
+                on:click={() => sortBy = 'xp_desc'}
+              >
+                Top XP
+              </button>
+              <button
+                class="px-3.5 py-2 text-[0.65rem] font-orbitron tracking-wide transition-all duration-200 border-x border-obsidian-accent/20
+                  {sortBy === 'xp_asc'
+                    ? 'bg-obsidian-accent text-obsidian-bg shadow-[0_0_10px_rgba(7,165,201,0.3)]'
+                    : 'text-obsidian-text-primary/50 hover:text-obsidian-text-primary/80 hover:bg-obsidian-accent/5'}"
+                on:click={() => sortBy = 'xp_asc'}
+              >
+                Low XP
+              </button>
+              <button
+                class="px-3.5 py-2 text-[0.65rem] font-orbitron tracking-wide transition-all duration-200
+                  {sortBy === 'name_asc'
+                    ? 'bg-obsidian-accent text-obsidian-bg shadow-[0_0_10px_rgba(7,165,201,0.3)]'
+                    : 'text-obsidian-text-primary/50 hover:text-obsidian-text-primary/80 hover:bg-obsidian-accent/5'}"
+                on:click={() => sortBy = 'name_asc'}
+              >
+                A-Z
+              </button>
+            </div>
           </div>
         </div>
       </div>
