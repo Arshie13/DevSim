@@ -13,6 +13,11 @@ export const load: PageServerLoad = async (event) => {
 
   const userId = session.user.id;
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { image: true },
+  });
+
   const enrollment = await prisma.learner_pass_enrollment.findFirst({
     where: { user_id: userId },
     orderBy: { created_at: "desc" },
@@ -40,6 +45,7 @@ export const load: PageServerLoad = async (event) => {
         }
       : null,
     rewards,
+    currentAvatar: dbUser?.image ?? null,
     freeClaimedDays: claimedDays.filter(d => d.claim_type === "FREE").map((d) => d.day_number),
     premiumClaimedDays: claimedDays.filter(d => d.claim_type === "PREMIUM").map((d) => d.day_number),
   };

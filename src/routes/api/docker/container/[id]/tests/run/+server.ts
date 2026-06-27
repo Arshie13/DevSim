@@ -8,6 +8,7 @@ import { PassThrough } from 'stream';
 import type { TestResult, TestRunRequest, TestRunResponse, TaskTestResult } from '$lib/types';
 import { getLevelConfig } from '$lib/tests/levels';
 import { docker } from '$lib/server/docker/client';
+import prisma from '$lib/server/client';
 
 const TEST_TIMEOUT = 5 * 60 * 1000;
 
@@ -31,7 +32,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, passed: false, summary: { total: 0, passed: 0, failed: 0, duration: 0 }, results: [], output: '', message: 'Container not found or not running' } as TestRunResponse, { status: 404 });
     }
 
-    if (containerInfo.mode === 'tutorial') {
+    // Tutorial projects ship no automated tests, so the Test step is a guided
+    // demo pass. Detect tutorial sessions via the docker label, but fall back to
+    // the authoritative DB workspace status because the label goes stale when an
+    // existing workspace container is reused for a tutorial (it stays 'workspace').
+    if (containerInfo.mode === 'tutorial' || (await isTutorialWorkspace(containerId))) {
       return json(buildTutorialDemoPassResponse(body));
     }
 
@@ -328,6 +333,23 @@ function isGroundTruthNameFailed(normalizedGroundTruthName: string, failedNames:
 // ---------------------------------------------------------------------------
 // Docker helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Authoritative tutorial check via the DB workspace status. Used as a fallback
+ * because the docker `devsim.mode` label is not updated when an existing
+ * workspace container is reused for a tutorial session.
+ */
+async function isTutorialWorkspace(containerId: string): Promise<boolean> {
+  try {
+    const workspace = await prisma.workspace.findFirst({
+      where: { container_id: containerId },
+      select: { status: true }
+    });
+    return workspace?.status === 'tutorial';
+  } catch {
+    return false;
+  }
+}
 
 async function getContainerInfo(containerId: string): Promise<{ id: string; state: string; projectFolder?: string; mode?: string } | null> {
   try {

@@ -25,8 +25,8 @@ export const rewards: Reward[] = [
   {
     level: 2,
     free: {
-      type: 'badge',
-      value: 'Starter Badge'
+      type: 'coins',
+      value: '150 Coins'
     },
     premium: {
       type: 'coins',
@@ -58,8 +58,8 @@ export const rewards: Reward[] = [
   {
     level: 5,
     free: {
-      type: 'badge',
-      value: 'Common Badge'
+      type: 'help',
+      value: '+2 AI Helps'
     },
     premium: {
       type: 'coins',
@@ -95,8 +95,8 @@ export const rewards: Reward[] = [
       value: '350 Coins'
     },
     premium: {
-      type: 'badge',
-      value: 'Elite Badge'
+      type: 'coins',
+      value: '600 Coins'
     }
   },
   {
@@ -113,8 +113,8 @@ export const rewards: Reward[] = [
   {
     level: 10,
     free: {
-      type: 'badge',
-      value: 'Silver Badge'
+      type: 'coins',
+      value: '400 Coins'
     },
     premium: {
       type: 'avatar',
@@ -150,15 +150,15 @@ export const rewards: Reward[] = [
       value: '500 Coins'
     },
     premium: {
-      type: 'badge',
-      value: 'Diamond Badge'
+      type: 'help',
+      value: '+11 AI Helps'
     }
   },
   {
     level: 14,
     free: {
-      type: 'badge',
-      value: 'Helper Badge'
+      type: 'help',
+      value: '+3 AI Helps'
     },
     premium: {
       type: 'help',
@@ -190,8 +190,8 @@ export const rewards: Reward[] = [
   {
     level: 17,
     free: {
-      type: 'badge',
-      value: 'Bronze Crown'
+      type: 'coins',
+      value: '680 Coins'
     },
     premium: {
       type: 'help',
@@ -223,8 +223,8 @@ export const rewards: Reward[] = [
   {
     level: 20,
     free: {
-      type: 'badge',
-      value: 'Gold Badge'
+      type: 'help',
+      value: '+4 AI Helps'
     },
     premium: {
       type: 'help',
@@ -249,8 +249,8 @@ export const rewards: Reward[] = [
       value: '+5 AI Helps'
     },
     premium: {
-      type: 'badge',
-      value: 'Premium Crest'
+      type: 'coins',
+      value: '2000 Coins'
     }
   },
   {
@@ -267,8 +267,8 @@ export const rewards: Reward[] = [
   {
     level: 24,
     free: {
-      type: 'badge',
-      value: 'Expert Badge'
+      type: 'coins',
+      value: '1100 Coins'
     },
     premium: {
       type: 'coins',
@@ -300,8 +300,8 @@ export const rewards: Reward[] = [
   {
     level: 27,
     free: {
-      type: 'badge',
-      value: 'Master Badge'
+      type: 'help',
+      value: '+6 AI Helps'
     },
     premium: {
       type: 'coins',
@@ -333,8 +333,8 @@ export const rewards: Reward[] = [
   {
     level: 30,
     free: {
-      type: 'badge',
-      value: 'Season Finale Badge'
+      type: 'coins',
+      value: '1500 Coins'
     },
     premium: {
       type: 'avatar',

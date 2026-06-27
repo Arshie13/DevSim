@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="myBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f472b6"/>
+      <stop offset="0.4" stop-color="#a855f7"/>
+      <stop offset="0.7" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="200" fill="url(#myBg)"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#ffffff" stroke-width="10" opacity="0.8"/>
+  <!-- gem core -->
+  <polygon points="256,128 326,196 296,300 216,300 186,196" fill="#ffffff" opacity="0.92"/>
+  <polygon points="256,128 326,196 256,228 186,196" fill="#fef9ff"/>
+  <polygon points="186,196 256,228 216,300" fill="#e9d5ff"/>
+  <polygon points="326,196 256,228 296,300" fill="#c4b5fd"/>
+  <polygon points="216,300 296,300 256,372" fill="#a78bfa"/>
+  <!-- sparkles -->
+  <g fill="#ffffff">
+    <path d="M150 150l8 22 22 8-22 8-8 22-8-22-22-8 22-8z"/>
+    <path d="M372 320l6 16 16 6-16 6-6 16-6-16-16-6 16-6z"/>
+  </g>
+</svg>

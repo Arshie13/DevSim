@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="coinG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd34e"/>
+      <stop offset="1" stop-color="#f3a712"/>
+    </linearGradient>
+  </defs>
+  <!-- Stacked coins — centered, outlined to match the AI icon -->
+  <g stroke="#a9690f" stroke-width="12" stroke-linejoin="round">
+    <ellipse cx="256" cy="332" rx="120" ry="46" fill="url(#coinG)"/>
+    <ellipse cx="256" cy="260" rx="120" ry="46" fill="url(#coinG)"/>
+    <ellipse cx="256" cy="188" rx="120" ry="46" fill="url(#coinG)"/>
+  </g>
+  <g fill="none" stroke="#ffe58a" stroke-width="9">
+    <ellipse cx="256" cy="332" rx="90" ry="28"/>
+    <ellipse cx="256" cy="260" rx="90" ry="28"/>
+    <ellipse cx="256" cy="188" rx="90" ry="28"/>
+  </g>
+</svg>

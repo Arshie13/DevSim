@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="exG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f87171"/>
+      <stop offset="1" stop-color="#b91c1c"/>
+    </linearGradient>
+  </defs>
+  <!-- ribbons -->
+  <path d="M196 300l-40 150 60-34 36 44 18-110z" fill="#7f1d1d"/>
+  <path d="M316 300l40 150-60-34-36 44-18-110z" fill="#7f1d1d"/>
+  <circle cx="256" cy="200" r="142" fill="url(#exG)"/>
+  <circle cx="256" cy="200" r="142" fill="none" stroke="#fecaca" stroke-width="8"/>
+  <circle cx="256" cy="200" r="108" fill="#dc2626"/>
+  <!-- laurel -->
+  <g stroke="#fca5a5" stroke-width="9" fill="none" stroke-linecap="round">
+    <path d="M198 268C166 230 166 174 198 134"/>
+    <path d="M314 268C346 230 346 174 314 134"/>
+  </g>
+  <path d="M256 138l22 46 50 7-36 35 9 50-45-24-45 24 9-50-36-35 50-7z" fill="#fee2e2"/>
+</svg>

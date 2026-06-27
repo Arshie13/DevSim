@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="fnG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="0.5" stop-color="#a855f7"/>
+      <stop offset="1" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="fnStar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <!-- ribbons -->
+  <path d="M196 300l-40 156 60-36 36 46 18-114z" fill="#9333ea"/>
+  <path d="M316 300l40 156-60-36-36 46-18-114z" fill="#9333ea"/>
+  <!-- starburst medal -->
+  <g transform="translate(256 196)">
+    <polygon fill="url(#fnG)" points="0,-150 34,-46 144,-46 56,20 90,124 0,60 -90,124 -56,20 -144,-46 -34,-46"/>
+    <circle r="96" fill="#1e1b4b"/>
+    <circle r="96" fill="none" stroke="#c4b5fd" stroke-width="6"/>
+    <path d="M0 -62l22 46 50 7-36 35 9 50-45-24-45 24 9-50-36-35 50-7z" fill="url(#fnStar)"/>
+    <text x="0" y="84" font-family="Arial, sans-serif" font-size="34" font-weight="800" fill="#c4b5fd" text-anchor="middle">30</text>
+  </g>
+</svg>

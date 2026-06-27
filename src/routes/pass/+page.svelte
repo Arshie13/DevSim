@@ -13,6 +13,8 @@
   let premiumClaimedDays = data.premiumClaimedDays || [];
   let nextAvailableAt: string | null = null;
   let isClaiming = false;
+  let currentAvatar = data.currentAvatar ?? null;
+  let equippingDay: number | null = null;
 
   $: currentLevel = enrollment?.currentDay || 1;
   $: timeUntilNext = nextAvailableAt ? getTimeUntilNext(nextAvailableAt) : "";
@@ -46,6 +48,52 @@
     if (enrollment.status === "COMPLETED") return "COMPLETED";
     if (enrollment.status === "EXPIRED") return "EXPIRED";
     return "ACTIVE";
+  }
+
+  // Each avatar and badge has its own unique icon, keyed by its exact reward name.
+  const AVATAR_ICONS: Record<string, string> = {
+    "blue neon avatar": "avatar-blue-neon.svg",
+    "cyber avatar": "avatar-cyber.svg",
+    "shadow avatar": "avatar-shadow.svg",
+    "legend avatar": "avatar-legend.svg",
+    "galaxy avatar": "avatar-galaxy.svg",
+    "nova avatar": "avatar-nova.svg",
+    "royal avatar": "avatar-royal.svg",
+    "neon warrior avatar": "avatar-neon-warrior.svg",
+    "mythic avatar": "avatar-mythic.svg",
+  };
+
+  const BADGE_ICONS: Record<string, string> = {
+    "starter badge": "badge-starter.svg",
+    "common badge": "badge-bronze.svg",
+    "elite badge": "badge-elite.svg",
+    "silver badge": "badge-silver.svg",
+    "diamond badge": "diamond.svg",
+    "helper badge": "badge-helper.svg",
+    "bronze crown": "crown.svg",
+    "gold badge": "badge-gold.svg",
+    "premium crest": "badge-premium-crest.svg",
+    "expert badge": "badge-expert.svg",
+    "master badge": "badge-master.svg",
+    "season finale badge": "badge-finale.svg",
+  };
+
+  // Map a reward entry to its icon asset based on type and (for avatars/badges) name.
+  function getRewardIcon(entry: { type: string; value: string }): string {
+    const base = "/images/pass";
+    const key = entry.value.toLowerCase().trim();
+    switch (entry.type) {
+      case "coins":
+        return `${base}/coins.svg`;
+      case "help":
+        return `${base}/ai-help.svg`;
+      case "avatar":
+        return `${base}/${AVATAR_ICONS[key] ?? "avatar.svg"}`;
+      case "badge":
+        return `${base}/${BADGE_ICONS[key] ?? "badge-bronze.svg"}`;
+      default:
+        return `${base}/crown.svg`;
+    }
   }
 
   function isClaimable(reward: Reward, type: 'FREE' | 'PREMIUM') {
@@ -103,6 +151,29 @@
       .catch(console.error)
       .finally(() => {
         isClaiming = false;
+      });
+  }
+
+  // Equip a pass avatar reward as the user's profile avatar.
+  function handleEquipAvatar(level: number, entry: { type: string; value: string }) {
+    if (equippingDay !== null) return;
+    const path = getRewardIcon(entry);
+    equippingDay = level;
+
+    fetch("/api/user/avatar", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatarPath: path }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success) {
+          currentAvatar = res.image;
+        }
+      })
+      .catch(console.error)
+      .finally(() => {
+        equippingDay = null;
       });
   }
 
@@ -243,7 +314,7 @@
 
               <!-- Free Reward Card - Always Claimable -->
               <div class="relative bg-gradient-to-br from-blue-600/10 to-cyan-600/5 rounded-card border border-blue-500/20 hover:border-blue-500/40 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-blue-500/10 min-h-[100px] flex flex-col items-center justify-center">
-                <div class="text-2xl mb-2">💎</div>
+                <img src={getRewardIcon(reward.free)} alt={reward.free.value} class="w-10 h-10 mb-2 object-contain drop-shadow" loading="lazy" />
                 <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
                   {reward.free.value}
                 </div>
@@ -277,7 +348,7 @@
 
               <!-- Premium Reward Card - Only with Pass -->
               <div class="relative bg-gradient-to-br from-amber-500/15 to-orange-500/10 rounded-card border border-amber-500/30 hover:border-amber-500/50 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-amber-500/10 min-h-[100px] flex flex-col items-center justify-center mt-2">
-                <div class="text-2xl mb-2">👑</div>
+                <img src={getRewardIcon(reward.premium)} alt={reward.premium.value} class="w-10 h-10 mb-2 object-contain drop-shadow" loading="lazy" />
                 <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
                   {reward.premium.value}
                 </div>
@@ -286,7 +357,26 @@
                   <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
                     <Check class="w-3 h-3 text-green-400" />
                   </div>
-                  <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
+                  {#if reward.premium.type === 'avatar'}
+                    {#if currentAvatar === getRewardIcon(reward.premium)}
+                      <span class="text-[0.6rem] px-2 py-1 rounded bg-cyber-cyan/20 text-cyber-cyan font-semibold flex items-center gap-1">
+                        <Check class="w-3 h-3" /> Equipped
+                      </span>
+                    {:else}
+                      <button
+                        on:click={() => handleEquipAvatar(reward.level, reward.premium)}
+                        disabled={equippingDay !== null}
+                        class="text-[0.65rem] px-2 py-1 rounded bg-cyber-cyan/80 hover:bg-cyber-cyan text-obsidian-bg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      >
+                        {#if equippingDay === reward.level}
+                          <Loader2 class="w-3 h-3 animate-spin" />
+                        {/if}
+                        Equip
+                      </button>
+                    {/if}
+                  {:else}
+                    <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
+                  {/if}
                 {:else if isWaitingForNext && enrollment && reward.level === currentLevel}
                   <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
                     {timeUntilNext}

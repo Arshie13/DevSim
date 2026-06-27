@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="stG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="180" fill="url(#stG)"/>
+  <!-- scalloped yellow inner -->
+  <g transform="translate(256 256)" fill="#fde047">
+    <circle r="120"/>
+    <g id="sp"><circle cx="0" cy="-120" r="20"/></g>
+    <use href="#sp" transform="rotate(40)"/><use href="#sp" transform="rotate(80)"/>
+    <use href="#sp" transform="rotate(120)"/><use href="#sp" transform="rotate(160)"/>
+    <use href="#sp" transform="rotate(200)"/><use href="#sp" transform="rotate(240)"/>
+    <use href="#sp" transform="rotate(280)"/><use href="#sp" transform="rotate(320)"/>
+  </g>
+  <!-- ribbon banner -->
+  <path d="M120 232h272v52H120z" fill="#f472b6"/>
+  <path d="M120 232l-34 26 34 26zM392 232l34 26-34 26z" fill="#db2777"/>
+  <text x="256" y="272" font-family="Arial, sans-serif" font-size="42" font-weight="800" fill="#ffffff" text-anchor="middle">NEW</text>
+  <g fill="#facc15">
+    <path d="M180 196l5 12 12 5-12 5-5 12-5-12-12-5 12-5z"/>
+    <path d="M332 196l5 12 12 5-12 5-5 12-5-12-12-5 12-5z"/>
+  </g>
+</svg>

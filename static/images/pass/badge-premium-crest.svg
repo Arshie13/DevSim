@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="pcG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fcd34d"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <!-- crest shield -->
+  <path d="M256 76l140 40v110c0 96-66 156-140 200-74-44-140-104-140-200V116z" fill="url(#pcG)"/>
+  <path d="M256 76l140 40v110c0 96-66 156-140 200z" fill="#b45309" opacity="0.3"/>
+  <path d="M256 116l104 30v92c0 78-54 128-104 154-50-26-104-76-104-154v-92z" fill="none" stroke="#fef3c7" stroke-width="8"/>
+  <!-- crown emblem -->
+  <path d="M198 210l24 30 34-48 34 48 24-30-10 60H208z" fill="#fffbeb"/>
+  <rect x="208" y="276" width="96" height="14" rx="4" fill="#fef3c7"/>
+  <g fill="#fde68a"><circle cx="256" cy="160" r="10"/></g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Clasped hands / solidarity handshake — light line art for dark UI -->
+  <g fill="none" stroke="#e8edf2" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <!-- lower-left forearm cuff -->
+    <path d="M60 388l74-74 72 72-74 74z"/>
+    <!-- upper-right forearm cuff -->
+    <path d="M452 124l-74 74-72-72 74-74z"/>
+    <!-- left hand gripping toward upper-right -->
+    <path d="M134 314c30 -14 44 -20 64 -40c16 -16 30 -32 50 -30c16 2 30 12 40 22l66 66c9 9 9 23 0 32c-9 9 -23 9 -32 0l-28 -28"/>
+    <!-- right hand gripping toward lower-left -->
+    <path d="M378 198c-30 14 -44 20 -64 40c-16 16 -30 32 -50 30c-16 -2 -30 -12 -40 -22l-66 -66c-9 -9 -9 -23 0 -32c9 -9 23 -9 32 0l28 28"/>
+    <!-- finger ridges across the grip -->
+    <path d="M236 222l46 46"/>
+    <path d="M272 192l44 44"/>
+  </g>
+</svg>

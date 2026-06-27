@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="shBg" cx="0.5" cy="0.4" r="0.8">
+      <stop offset="0" stop-color="#3b3551"/>
+      <stop offset="1" stop-color="#0b0a14"/>
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="200" fill="url(#shBg)"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#7c3aed" stroke-width="10"/>
+  <!-- hood -->
+  <path d="M256 110c-78 0-120 70-120 150 0 60 30 120 120 120s120-60 120-120c0-80-42-150-120-150z" fill="#16121f"/>
+  <path d="M256 150c-58 0-92 54-92 116 0 0 36-26 92-26s92 26 92 26c0-62-34-116-92-116z" fill="#231b33"/>
+  <!-- glowing eyes -->
+  <g fill="#a855f7">
+    <ellipse cx="222" cy="244" rx="16" ry="10" transform="rotate(20 222 244)"/>
+    <ellipse cx="290" cy="244" rx="16" ry="10" transform="rotate(-20 290 244)"/>
+  </g>
+</svg>
