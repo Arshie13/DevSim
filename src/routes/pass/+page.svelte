@@ -1,20 +1,31 @@
 <script lang="ts">
-  import { rewards } from "./rewards";
   import { goto } from "$app/navigation";
   import { ArrowRight, Crown, Lock, Check, Loader2, Info } from "lucide-svelte";
   import type { PageData } from "./$types";
-  import { type Reward } from "./rewards";
   import { onMount } from "svelte";
 
   export let data: PageData;
 
   let enrollment = data.enrollment;
-  let freeClaimedDays = data.freeClaimedDays || [];
-  let premiumClaimedDays = data.premiumClaimedDays || [];
+  let claimedDays: number[] = enrollment?.claimedDays ?? [];
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   let isClaiming = false;
   let currentAvatar = data.currentAvatar ?? null;
   let equippingDay: number | null = null;
+
+  type RewardEntry = { type: string; value: string };
+  type DayReward = { day: number; rewards: RewardEntry };
+
+  let rewards: DayReward[] = (data.rewards ?? []).map((r) => {
+    const j = r.rewards as Record<string, unknown>;
+    return {
+      day: r.day_number,
+      rewards: {
+        type: (j.displayType as string) ?? "",
+        value: (j.displayValue as string) ?? "",
+      },
+    };
+  });
 
   $: currentLevel = enrollment?.currentDay || 1;
   $: nextAvailableAt = enrollment?.lastClaimedAt
@@ -39,7 +50,6 @@
     return `${minutes}m ${seconds}s`;
   }
 
-  // Each avatar and badge has its own unique icon, keyed by its exact reward name.
   const AVATAR_ICONS: Record<string, string> = {
     "blue neon avatar": "avatar-blue-neon.svg",
     "cyber avatar": "avatar-cyber.svg",
@@ -67,8 +77,7 @@
     "season finale badge": "badge-finale.svg",
   };
 
-  // Map a reward entry to its icon asset based on type and (for avatars/badges) name.
-  function getRewardIcon(entry: { type: string; value: string }): string {
+  function getRewardIcon(entry: RewardEntry): string {
     const base = "/images/pass";
     const key = entry.value.toLowerCase().trim();
     switch (entry.type) {
@@ -85,15 +94,12 @@
     }
   }
 
-  function isClaimable(reward: Reward, type: 'FREE' | 'PREMIUM') {
-    if (type === 'FREE' && (freeClaimedDays.includes(reward.level) || premiumClaimedDays.includes(reward.level))) return false;
-    if (type === 'PREMIUM' && premiumClaimedDays.includes(reward.level)) return false;
-    
-    if (reward.level > currentLevel) return false; // ponytail: allow back-claiming missed days
+  function isClaimable(reward: DayReward) {
+    if (claimedDays.includes(reward.day)) return false;
 
-    if (!enrollment) {
-      return type === 'FREE' && reward.level === 1;
-    }
+    if (reward.day > currentLevel) return false;
+
+    if (!enrollment) return false;
 
     if (enrollment.status !== "ACTIVE") return false;
 
@@ -105,25 +111,20 @@
     return lastClaimDate !== today;
   }
 
-  function handleClaim(dayNumber: number = enrollment?.currentDay || 1, claimType: 'FREE' | 'PREMIUM' = 'FREE') {
+  function handleClaim(dayNumber: number = enrollment?.currentDay || 1) {
     if (isClaiming) return;
     isClaiming = true;
 
     fetch("/api/user/learner-pass/claim", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dayNumber, claimType }),
+      body: JSON.stringify({ dayNumber }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          if (data.claimType === "PREMIUM") {
-            premiumClaimedDays = [...premiumClaimedDays, dayNumber];
-          } else {
-            freeClaimedDays = [...freeClaimedDays, dayNumber];
-          }
+          claimedDays = [...claimedDays, dayNumber];
 
-          // ponytail: update enrollment for any claim type (FREE also increments streak now)
           if (enrollment && data.streak !== undefined) {
             enrollment = {
               ...enrollment,
@@ -131,10 +132,9 @@
               streak: data.streak,
               totalClaimedDays: data.totalClaimedDays,
               status: data.status ?? enrollment.status,
-              // only set lastClaimedAt for PREMIUM to avoid locking the other track
-              lastClaimedAt: data.claimType === 'PREMIUM' ? new Date().toISOString() : enrollment.lastClaimedAt,
+              lastClaimedAt: new Date().toISOString(),
             };
-            if (data.claimType === 'PREMIUM') startTimer();
+            startTimer();
           }
         }
       })
@@ -144,8 +144,7 @@
       });
   }
 
-  // Equip a pass avatar reward as the user's profile avatar.
-  function handleEquipAvatar(level: number, entry: { type: string; value: string }) {
+  function handleEquipAvatar(level: number, entry: RewardEntry) {
     if (equippingDay !== null) return;
     const path = getRewardIcon(entry);
     equippingDay = level;
@@ -242,11 +241,11 @@
           <div class="flex items-start gap-2 mt-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10">
             <Info class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
             <p class="text-xs font-rajdhani text-amber-200/90">
-              Your Day Streak and Claimed progress only count once you've purchased the Learner Pass. Get the pass to start earning rewards toward your streak.
+              Purchase the Learner Pass to unlock premium daily rewards and build your streak.
             </p>
           </div>
           <div class="flex items-center justify-between mt-4">
-            <p class="text-sm font-rajdhani text-obsidian-text-muted">Claim daily free rewards every day. Unlock premium rewards by enrolling in the Learner Pass.</p>
+            <p class="text-sm font-rajdhani text-obsidian-text-muted">Enroll in the Learner Pass to claim rewards every day.</p>
             <button
               on:click={handleUpgradeMembership}
               class="btn-cyber btn-cyber-solid inline-flex items-center gap-2 !px-6 !py-2 whitespace-nowrap ml-4"
@@ -262,81 +261,32 @@
       <div class="mb-8">
         <h2 class="text-lg font-orbitron font-semibold text-obsidian-text-primary mb-6">Daily Rewards</h2>
 
-        <!-- Track Labels -->
-        <div class="flex gap-6 mb-4 px-4">
-          <div class="flex items-center gap-2 text-xs font-rajdhani text-obsidian-text-muted">
-            <div class="w-4 h-4 rounded border border-cyan-500/30 bg-cyan-500/5"></div>
-            Free Rewards
-          </div>
-          <div class="flex items-center gap-2 text-xs font-rajdhani text-obsidian-text-muted">
-            <Crown class="w-4 h-4 text-amber-400" />
-            Premium Rewards
-          </div>
-        </div>
-
-        <!-- Rewards Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {#each rewards as reward (reward.level)}
+          {#each rewards as reward (reward.day)}
             <div class="group">
-              <!-- Level Header -->
               <div class="text-center mb-2 px-2">
-                <span class="text-xs font-orbitron font-bold text-obsidian-text-muted">DAY {reward.level}</span>
+                <span class="text-xs font-orbitron font-bold text-obsidian-text-muted">DAY {reward.day}</span>
               </div>
 
-              <!-- Free Reward Card - Always Claimable -->
-              <div class="relative bg-gradient-to-br from-blue-600/10 to-cyan-600/5 rounded-card border border-blue-500/20 hover:border-blue-500/40 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-blue-500/10 min-h-[100px] flex flex-col items-center justify-center">
-                <img src={getRewardIcon(reward.free)} alt={reward.free.value} class="w-10 h-10 mb-2 object-contain drop-shadow" loading="lazy" />
+              <div class="relative bg-gradient-to-br from-amber-500/15 to-orange-500/10 rounded-card border border-amber-500/30 hover:border-amber-500/50 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-amber-500/10 min-h-[100px] flex flex-col items-center justify-center">
+                <img src={getRewardIcon(reward.rewards)} alt={reward.rewards.value} class="w-10 h-10 mb-2 object-contain drop-shadow" loading="lazy" />
                 <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
-                  {reward.free.value}
+                  {reward.rewards.value}
                 </div>
 
-                {#if freeClaimedDays.includes(reward.level) || premiumClaimedDays.includes(reward.level)}
+                {#if claimedDays.includes(reward.day)}
                   <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
                     <Check class="w-3 h-3 text-green-400" />
                   </div>
                   <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
-                {:else if isWaitingForNext && reward.level === currentLevel}
-                  <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
-                    {timeUntilNext}
-                  </span>
-                {:else if isClaimable(reward, 'FREE')}
-                  <button
-                    on:click={() => handleClaim(reward.level, 'FREE')}
-                    disabled={isClaiming}
-                    class="text-[0.65rem] px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                  >
-                    {#if isClaiming && reward.level === currentLevel}
-                      <Loader2 class="w-3 h-3 animate-spin" />
-                    {/if}
-                    Claim
-                  </button>
-                {:else}
-                  <div class="text-lg opacity-50">
-                    <Lock class="w-3 h-3" />
-                  </div>
-                {/if}
-              </div>
-
-              <!-- Premium Reward Card - Only with Pass -->
-              <div class="relative bg-gradient-to-br from-amber-500/15 to-orange-500/10 rounded-card border border-amber-500/30 hover:border-amber-500/50 p-3 text-center transition-all duration-200 group-hover:shadow-lg group-hover:shadow-amber-500/10 min-h-[100px] flex flex-col items-center justify-center mt-2">
-                <img src={getRewardIcon(reward.premium)} alt={reward.premium.value} class="w-10 h-10 mb-2 object-contain drop-shadow" loading="lazy" />
-                <div class="text-xs font-orbitron font-semibold text-obsidian-text-primary mb-2">
-                  {reward.premium.value}
-                </div>
-
-                {#if premiumClaimedDays.includes(reward.level)}
-                  <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
-                    <Check class="w-3 h-3 text-green-400" />
-                  </div>
-                  <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
-                {:else if enrollment && reward.level === currentLevel}
+                {:else if enrollment && reward.day === currentLevel}
                   {#if isWaitingForNext}
                     <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
                       {timeUntilNext}
                     </span>
-                  {:else if isClaimable(reward, 'PREMIUM')}
+                  {:else if isClaimable(reward)}
                     <button
-                      on:click={() => handleClaim(reward.level, 'PREMIUM')}
+                      on:click={() => handleClaim(reward.day)}
                       disabled={isClaiming}
                       class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                     >
@@ -351,14 +301,14 @@
                     </div>
                   {:else}
                     <button
-                      on:click={() => handleClaim(reward.level, 'PREMIUM')}
+                      on:click={() => handleClaim(reward.day)}
                       disabled={isClaiming}
                       class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                     >
                       Claim
                     </button>
                   {/if}
-                {:else if enrollment && reward.level > enrollment.currentDay}
+                {:else if enrollment && reward.day > enrollment.currentDay}
                   <div class="text-lg opacity-50">
                     <Lock class="w-3 h-3" />
                   </div>
@@ -369,9 +319,9 @@
                   >
                     Upgrade
                   </button>
-                {:else if isClaimable(reward, 'PREMIUM')}
+                {:else if isClaimable(reward)}
                   <button
-                    on:click={() => handleClaim(reward.level, 'PREMIUM')}
+                    on:click={() => handleClaim(reward.day)}
                     disabled={isClaiming}
                     class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
@@ -392,7 +342,7 @@
       <!-- Completion Banner -->
       {#if enrollment && enrollment.status === "COMPLETED"}
         <div class="p-6 rounded-card border border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5 text-center">
-          <h3 class="text-2xl font-orbitron font-bold text-green-400 mb-2">🎉 Pass Completed!</h3>
+          <h3 class="text-2xl font-orbitron font-bold text-green-400 mb-2">Pass Completed!</h3>
           <p class="text-sm font-rajdhani text-obsidian-text-muted">You've claimed all 30 days and unlocked all rewards.</p>
         </div>
       {/if}
@@ -401,9 +351,7 @@
 
   <!-- Ambient Background Effects -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <!-- Cyan glow -->
     <div class="absolute top-1/3 -right-40 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(7,165,201,0.1);"></div>
-    <!-- Purple glow -->
     <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(168,85,247,0.08);"></div>
   </div>
 </div>

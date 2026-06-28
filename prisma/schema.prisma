@@ -20,7 +20,8 @@ model user {
   owned_avatars          String[]                  @default([])
   createdAt              DateTime                  @default(now())
   updatedAt              DateTime                  @updatedAt
-  role                   UserRole                  @default(USER)
+  role                   String                    @default("USER")
+  titles                 String[]                  @default([])
   has_completed_tutorial Boolean                   @default(false)
   trivia_correct_count   Int                       @default(0)
   // Dashboard onboarding
@@ -43,7 +44,6 @@ model user {
   task_activity          task_activity[]
   achievements           user_achievement[]
   learnerPassEnrollments learner_pass_enrollment[] @relation("learnerPassEnrollments")
-  learnerPassDayClaims   learner_pass_day_claim[]  @relation("learnerPassDayClaims")
   userProjectAccess      user_project_access[]     @relation("userProjectAccess")
 }
 
@@ -137,8 +137,8 @@ model learning_section {
   title              String
   content            String
   order              Int                      @default(0)
-  section_type       LearningSectionType      @default(PLAIN_TEXT)
-  interactive_mode   LearningInteractiveMode?
+  section_type       String      @default("PLAIN_TEXT")
+  interactive_mode   String?
   interactive_config Json?
   task               level_task               @relation(fields: [task_id], references: [id], onDelete: Cascade)
   
@@ -194,7 +194,7 @@ model achievement {
 model achievement_tier {
   id             String                 @id @default(cuid())
   achievement_id String
-  tier           achievement_tier_level
+  tier           String
   description    String
   icon           String?
   criteria       Json
@@ -213,7 +213,7 @@ model user_achievement {
   id             String                 @id @default(cuid()) @map("id")
   user_id        String                 @map("user_id")
   achievement_id String
-  tier           achievement_tier_level
+  tier           String
   description    String
   icon           String?
   criteria       Json
@@ -296,21 +296,20 @@ model ai_help_daily_usage {
 
 // Learner Pass System Models
 model learner_pass_enrollment {
-  id              String   @id @default(cuid())
-  user_id         String
-  status          String   // ACTIVE, COMPLETED, EXPIRED, CANCELED
-  started_at      DateTime?
-  expires_at      DateTime?
-  current_day     Int      @default(1)
-  streak          Int      @default(0)
-  last_claimed_at DateTime?
-  total_claimed_days Int   @default(0)
-  payment_id      String?  @unique
-  payment_provider String  @default("stripe")
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-  user            user     @relation("learnerPassEnrollments", fields: [user_id], references: [id], onDelete: Cascade)
-  claims          learner_pass_day_claim[] @relation("learnerPassEnrollmentClaims")
+  id               String   @id @default(cuid())
+  user_id          String
+  status           String   // ACTIVE, COMPLETED, EXPIRED, CANCELED
+  started_at       DateTime?
+  expires_at       DateTime?
+  streak           Int      @default(0)
+  claimed_days     Int[]    @default([])
+  last_claimed_at  DateTime?
+  total_claimed_days Int    @default(0)
+  payment_id       String?  @unique
+  payment_provider String   @default("stripe")
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  user             user     @relation("learnerPassEnrollments", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([status])
@@ -318,30 +317,13 @@ model learner_pass_enrollment {
   @@index([payment_id])
 }
 
-model learner_pass_day_claim {
-  id          String   @id @default(cuid())
-  enrollment_id String?
-  user_id     String
-  day_number  Int    // 1..30
-  claim_type  String? @default("FREE") // FREE or PREMIUM
-  claimed_at  DateTime @default(now())
-
-  @@unique([user_id, day_number, claim_type])
-  @@index([user_id, claimed_at])
-  @@index([enrollment_id])
-  user        user     @relation("learnerPassDayClaims", fields: [user_id], references: [id], onDelete: Cascade)
-  enrollment  learner_pass_enrollment? @relation("learnerPassEnrollmentClaims", fields: [enrollment_id], references: [id])
-}
-
 model learner_pass_reward {
-  id              String   @id @default(cuid())
-  day_number      Int      @unique // 1..30
-  coins_reward    Int
-  xp_reward       Int
-  unlock_project_ids String[] // scenario_id array
-  is_active       Boolean  @default(true)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  id         String   @id @default(cuid())
+  day_number Int      @unique // 1..30
+  rewards    Json     @default("{}")
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model user_project_access {
@@ -360,39 +342,11 @@ model user_project_access {
   user          user     @relation("userProjectAccess", fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-enum UserRole {
-  USER
-  ADMIN
-}
-
-enum LearningSectionType {
-  PLAIN_TEXT
-  INTERACTIVE
-}
-
-enum LearningInteractiveMode {
-  TERMINAL_CD
-  CODE_EDITOR
-  TERMINAL_CMD
-}
-
-enum achievement_tier_level {
-  ROOKIE
-  AMATEUR
-  PRO
-}
-
-enum PassType {
-  FREE
-  PREMIUM
-}
-
-enum RewardType {
-  COINS
-  XP_BOOST
-  AI_HELP_CREDITS
-  AVATAR
-  TITLE
-  BORDER
-  BADGE
+model app_setting {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  value      String
+  type       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }

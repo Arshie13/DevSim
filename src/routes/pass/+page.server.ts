@@ -35,25 +35,23 @@ export const load: PageServerLoad = async (event) => {
     orderBy: { day_number: "asc" },
   });
 
-  const claimedDays = await prisma.learner_pass_day_claim.findMany({
-    where: { user_id: userId },
-    select: { day_number: true, claim_type: true },
-  });
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  const start = enrollment?.started_at ?? new Date();
+  const currentDay = Math.min(30, Math.floor((Date.now() - start.getTime()) / ONE_DAY_MS) + 1);
 
   return {
     enrollment: enrollment
       ? {
           status: enrollment.status,
-          currentDay: enrollment.current_day,
+          currentDay,
           streak: enrollment.streak,
           totalClaimedDays: enrollment.total_claimed_days,
           lastClaimedAt: enrollment.last_claimed_at?.toISOString() ?? null,
           expiresAt: enrollment.expires_at?.toISOString(),
+          claimedDays: enrollment.claimed_days,
         }
       : null,
     rewards,
     currentAvatar: dbUser?.image ?? null,
-    freeClaimedDays: claimedDays.filter(d => d.claim_type === "FREE").map((d) => d.day_number),
-    premiumClaimedDays: claimedDays.filter(d => d.claim_type === "PREMIUM").map((d) => d.day_number),
   };
 };

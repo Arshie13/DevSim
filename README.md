@@ -40,10 +40,14 @@ DevSim provides an immersive learning environment where users can:
 
 ```
 devsim/
-├── prisma/                  # Database schema and migrations
-│   └── schema.prisma        # Prisma schema definition
+├── prisma/
+│   ├── schema.prisma        # Prisma schema definition
+│   └── seed/                # Database seed scripts for scenarios
 ├── scripts/                 # Utility scripts
-│   └── reset-docker-containers.ts
+│   ├── reset-docker-containers.ts
+│   ├── create-image.ts
+│   ├── setup-shared-postgres.ts
+│   └── create-volumes.ts
 ├── src/
 │   ├── app.css              # Global styles
 │   ├── app.html             # HTML template
@@ -60,54 +64,84 @@ devsim/
 │   │   │   └── TerminalInitializer.ts
 │   │   ├── components/      # Reusable UI components
 │   │   │   ├── dashboard/   # Dashboard components
-│   │   │   │   ├── ActivityFeed.svelte
-│   │   │   │   ├── CurrentStacks.svelte
-│   │   │   │   ├── FinishedStacks.svelte
-│   │   │   │   ├── KPIs.svelte
-│   │   │   │   ├── LeaderboardSnapshot.svelte
-│   │   │   │   ├── StatsDrawer.svelte
-│   │   │   │   └── WeeklyStats.svelte
-│   │   │   ├── devSidebar/  # IDE sidebar components
-│   │   │   │   ├── AiHelp.svelte
-│   │   │   │   ├── Explorer.svelte
-│   │   │   │   ├── PrimarySidebar.svelte
-│   │   │   │   ├── Search.svelte
-│   │   │   │   └── SprintTask.svelte
+│   │   │   ├── workspace/   # IDE workspace components
+│   │   │   │   ├── crashcourse/          # Learning crash course components
+│   │   │   │   ├── SubmitSprintModal.svelte
+│   │   │   │   ├── TerminalManagerPanel.svelte
+│   │   │   │   ├── FileTabBar.svelte
+│   │   │   │   ├── KeyTakeawaysModal.svelte
+│   │   │   │   ├── TakeawayCard.svelte
+│   │   │   │   ├── TakeawayContent.svelte
+│   │   │   │   ├── TakeawayHeader.svelte
+│   │   │   │   ├── TakeawayNavigation.svelte
+│   │   │   │   ├── WorkspaceBootScreen.svelte
+│   │   │   │   ├── WorkspaceHeader.svelte
+│   │   │   │   ├── WorkspaceTabs.svelte
+│   │   │   │   ├── EditorPanel.svelte
+│   │   │   │   ├── PreviewPanel.svelte
+│   │   │   │   └── TerminalPanel.svelte
 │   │   │   ├── stacks/      # Tech stack selection components
-│   │   │   │   ├── CategorySection.svelte
-│   │   │   │   ├── PopularCombos.svelte
-│   │   │   │   ├── StackInfoModal.svelte
-│   │   │   │   ├── StackSummary.svelte
-│   │   │   │   └── TechOptionCard.svelte
 │   │   │   ├── ui/          # Reusable UI components
-│   │   │   └── workspace/   # IDE workspace components
-│   │   │       ├── EditorPanel.svelte
-│   │   │       ├── PreviewPanel.svelte
-│   │   │       ├── TerminalPanel.svelte
-│   │   │       ├── WorkspaceBootScreen.svelte
-│   │   │       ├── WorkspaceHeader.svelte
-│   │   │       └── WorkspaceTabs.svelte
+│   │   │   ├── scenario/    # Scenario components
+│   │   │   ├── tutorial/    # Tutorial components
+│   │   │   ├── onboarding/  # Onboarding components
+│   │   │   ├── achievements/ # Achievement components
+│   │   │   ├── rivals/      # Rival comparison components
+│   │   │   ├── dailyRewards/ # Daily rewards components
+│   │   │   ├── projects/    # Project components
+│   │   │   └── aiHelp/      # AI assistance components
+│   │   ├── layers/          # Service and data access layer
+│   │   │   ├── service/
+│   │   │   └── data-access/
 │   │   ├── mocks/           # Mock data for development
 │   │   ├── server/          # Server-side logic
+│   │   │   ├── docker/      # Docker container management
+│   │   │   ├── stats/       # Statistics and analytics
+│   │   │   ├── achievements/ # Achievement system
+│   │   │   ├── access/      # Project access control
+│   │   │   ├── app-settings.ts
 │   │   │   ├── accounts/    # User account management
-│   │   │   └── docker/      # Docker container management
+│   │   │   ├── websocket/   # WebSocket handlers
+│   │   │   ├── keyTakeaways.ts
+│   │   │   ├── ratelimit.ts
+│   │   │   └── fileChangeLogger.ts
 │   │   ├── stores/          # Svelte stores
 │   │   ├── styles/          # Additional styles
 │   │   └── types/           # TypeScript type definitions
 │   └── routes/              # SvelteKit routes
 │       ├── api/             # API endpoints
-│       │   ├── ai/          # AI hint endpoints
-│       │   └── docker/      # Docker management endpoints
+│       │   ├── ai/          # AI endpoints (hint, score, stack-description)
+│       │   ├── docker/      # Docker management endpoints
+│       │   ├── user/        # User management endpoints
+│       │   ├── level/       # Level key takeaways
+│       │   ├── stripe/      # Payment processing
+│       │   ├── admin/       # Admin settings
+│       │   ├── tests/       # Test runner
+│       │   └── app-settings/ # Application settings
 │       ├── dashboard/       # User dashboard
 │       ├── login/           # Authentication
 │       ├── profile/         # User profile
 │       ├── stacks/          # Tech stack selection
-│       └── workspace/       # Interactive workspace
+│       ├── workspace/       # Interactive workspace
+│       ├── rivals/          # Rival comparison
+│       ├── achievements/    # Achievement display
+│       ├── leaderboards/    # Leaderboard
+│       ├── tutorial/        # Tutorial workspace
+│       ├── scenario/        # Scenario selection
+│       ├── projects/        # Project management
+│       ├── pass/            # Learner pass system
+│       ├── pretest/         # Pre-assessment
+│       ├── postassessment/  # Post-assessment
+│       ├── marketplace/     # Coin marketplace
+│       └── admin/           # Admin panel
 ├── submodules/              # Git submodules for project templates
 │   └── projects/
 │       └── tech-stacks/     # Pre-configured tech stack templates
-│           ├── nextjs/
+│           ├── nextjs-postgres-prisma/
 │           ├── nextjs-postgres-supabase/
+│           ├── nextjs-shadcn-ui/
+│           ├── nestjs-postgres-prisma/
+│           ├── react-express-mongodb/
 │           └── react-express-postgres-prisma/
 └── static/                  # Static assets
 ```
@@ -120,6 +154,7 @@ devsim/
 - **Current Stacks**: Active learning sessions
 - **Finished Stacks**: Completed projects with rewards
 - **Stats Drawer**: Detailed statistics and weekly activity
+- **Activity Feed**: User's recent task completions
 
 ### 2. Tech Stack Selection
 Users can build custom technology combinations:
@@ -127,8 +162,8 @@ Users can build custom technology combinations:
 | Category | Options |
 |----------|---------|
 | Frontend | Next.js, React |
-| Backend | Express, Next.js API Routes |
-| Database | PostgreSQL, Prisma ORM |
+| Backend | Express, NestJS, Next.js API Routes |
+| Database | PostgreSQL, MongoDB, Prisma ORM |
 | Services | Supabase (Auth & Database) |
 
 ### 3. Interactive Workspace
@@ -140,19 +175,34 @@ The core learning environment featuring:
 - **File Explorer**: Navigate and manage project files
 - **Task Panel**: View and track sprint tasks
 - **AI Help**: Get contextual assistance with coding challenges
+- **Test Runner**: Execute tests and view results
+- **Key Takeaways**: Learning summaries and insights
 
 ### 4. Gamification System
 - **XP (Experience Points)**: Earn by completing tasks
 - **Coins**: Virtual currency for hints and features
 - **Levels**: Progress through levels as you learn
 - **Achievements**: Unlock achievements for milestones
+- **Daily Rewards**: Claim daily login rewards
+- **Learner Pass**: 30-day challenge pass with premium rewards
 
 ### 5. Docker Integration
 Each user session runs in an isolated Docker container:
 - Create new containers from pre-built images
 - Archive and restore container states
-- File management (read, write, rename, delete)
+- File management (read, write, create, delete, rename)
+- Terminal access via WebSocket
 - Submit completed sprints for evaluation
+- Run automated tests in containers
+
+### 6. Assessment System
+- **Pretest**: Assess initial skill level
+- **Post-assessment**: Measure learning progress
+- **Topic-based scoring**: Track improvement by topic
+
+### 7. Social Features
+- **Leaderboards**: Compare progress with other learners
+- **Rivals**: Challenge friends or compete with others
 
 ## Getting Started
 
@@ -161,7 +211,7 @@ Each user session runs in an isolated Docker container:
 - Node.js 18+
 - PostgreSQL database
 - Docker (for containerized development environments)
-- pnpm or yarn
+- pnpm
 
 ### Installation
 
@@ -185,6 +235,7 @@ cp .env.example .env
 ```bash
 pnpm run db:generate
 pnpm run db:push
+pnpm run db:seed
 ```
 
 5. Start the development server:
@@ -202,7 +253,16 @@ pnpm run dev
 | `pnpm run db:generate` | Generate Prisma client |
 | `pnpm run db:push` | Push schema to database |
 | `pnpm run db:studio` | Open Prisma Studio |
-| `pnpm run docker:container-reset` | Reset all Docker containers (Warning! this will remove all existing docker containers even outside this project! Use with caution!)|
+| `pnpm run db:seed` | Seed database with initial data |
+| `pnpm run db:reset` | Reset database |
+| `pnpm run docker:container-reset` | Reset all Docker containers (Warning! removes all existing docker containers) |
+| `pnpm run docker:build-image` | Build Docker image |
+| `pnpm run docker:rebuild-image` | Rebuild Docker image without cache |
+| `pnpm run docker:create-project-images` | Create project images |
+| `pnpm run docker:setup-shared-postgres` | Setup shared PostgreSQL for containers |
+| `pnpm run validate` | Run TypeScript type checking |
+| `pnpm run check` | Run Svelte check |
+| `pnpm run test` | Run tests |
 
 ## API Endpoints
 
@@ -210,10 +270,14 @@ pnpm run dev
 - `POST /api/docker/container/create` - Create new container
 - `GET /api/docker/container/[id]/status` - Get container status
 - `POST /api/docker/container/[id]/start` - Start container
+- `POST /api/docker/container/[id]/stop` - Stop container
 - `POST /api/docker/container/[id]/archive` - Archive container
 - `POST /api/docker/container/[id]/restore` - Restore container
 - `POST /api/docker/container/[id]/destroy` - Destroy container
 - `POST /api/docker/container/[id]/submit` - Submit sprint
+- `GET /api/docker/container/[id]/logs` - Get container logs
+- `POST /api/docker/container/[id]/clear-logs` - Clear container logs
+- `POST /api/docker/container/[id]/download` - Download workspace files
 
 ### File Operations
 - `GET /api/docker/container/[id]/files/list` - List files
@@ -222,32 +286,47 @@ pnpm run dev
 - `POST /api/docker/container/[id]/files/create` - Create file
 - `POST /api/docker/container/[id]/files/delete` - Delete file
 - `POST /api/docker/container/[id]/files/rename` - Rename file
+- `GET /api/docker/container/[id]/files/search` - Search files
 
 ### AI Assistance
 - `POST /api/ai/hint` - Get AI-powered hints
+- `POST /api/ai/score` - Get AI scoring for submissions
+- `POST /api/ai/stack-description` - Get stack descriptions
+
+### User Management
+- `POST /api/user/onboarding` - Update onboarding status
+- `POST /api/user/pretest` - Submit pretest answers
+- `POST /api/user/postassessment` - Submit post-assessment
+- `POST /api/user/daily-rewards/claim` - Claim daily rewards
+- `GET /api/user/rivals` - Get rival users
+- `POST /api/user/avatar` - Update user avatar
+- `POST /api/user/username/update` - Update username
+
+### Test Operations
+- `POST /api/docker/container/[id]/tests/run` - Run tests in container
+- `POST /api/docker/container/[id]/tests/cancel` - Cancel running tests
+
+### Admin
+- `GET /api/admin/settings` - Get admin settings
+- `POST /api/admin/settings` - Update admin settings
 
 ## Supported Tech Stack Templates
 
 The platform includes pre-configured project templates as submodules:
 
-- **Next.js** - Next.js full-stack application
-- **Next.js + PostgreSQL + Supabase** - Full-stack with auth and database
-- **React + Express + PostgreSQL + Prisma** - MERN-style stack with Prisma
+- **Next.js + PostgreSQL + Prisma** - Full-stack with Prisma ORM
+- **Next.js + PostgreSQL + Supabase** - Full-stack with Supabase auth/database
+- **Next.js + shadcn/ui** - Modern UI components
+- **React + Express + MongoDB** - MERN-style stack
+- **React + Express + PostgreSQL + Prisma** - PERN-style stack with Prisma
+- **NestJS + PostgreSQL + Prisma** - Structured backend with Prisma
 
-### Setting Up Sample Projects
-
-Each sample project template requires environment variables to function properly. You need to create a `.env` file in each project directory:
-
-1. Copy the example file or create a new `.env` file:
-```bash
-# For nextjs-postgres-supabase example:
-cp submodules/projects/tech-stacks/nextjs-postgres-supabase/scenario-1/pos-system/.env.example \
-   submodules/projects/tech-stacks/nextjs-postgres-supabase/scenario-1/pos-system/.env
-```
-
-2. Fill in the required values for each technology in your stack.
-
-When adding new tech stacks, always include a `.env.example` file with placeholder values (never real secrets) so users know what environment variables are required.
+### Structure
+Each tech stack template includes:
+- Complete project boilerplate
+- Database migrations and seeding
+- Test files for automated evaluation
+- Scenario-specific learning tasks
 
 ## Development
 
@@ -255,15 +334,18 @@ When adding new tech stacks, always include a `.env.example` file with placehold
 
 1. Create a new directory in `submodules/projects/tech-stacks/`
 2. Add your project template with necessary configuration
-3. Update the stack selection components to include new options
-4. Add scenario definitions for learning paths
+3. Include a `project.md` file describing the project
+4. Add test files under `tests/server/` for evaluation
+5. Add scenario seed data if needed in `prisma/seed/`
+6. Update the stack selection components to include new options
 
-### Customizing the Workspace
+### Key Directories
 
-The workspace components in `src/lib/components/workspace/` can be customized:
-- Editor themes and configurations
-- Terminal shell preferences
-- Preview panel settings
+- `src/lib/layers/service/` - Business logic layer
+- `src/lib/layers/data-access/` - Database access layer
+- `src/lib/server/` - Server utilities and services
+- `src/lib/components/` - Reusable Svelte components
+- `prisma/seed/` - Database seed scripts by tech stack
 
 ## License
 

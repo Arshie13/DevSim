@@ -80,7 +80,6 @@ export const PUT: RequestHandler = async (event) => {
           status: "ACTIVE",
           started_at: now,
           expires_at: expiresAt,
-          current_day: 1,
           streak: 0,
           total_claimed_days: 0,
           payment_id: paymentIntentId,

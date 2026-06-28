@@ -59,7 +59,7 @@ export async function detectNewlyUnlockedAchievements(
       rows.push({
         user_id: userId,
         achievement_id: a.id,
-        tier: t.tier,
+        tier: t.tier as achievement_tier_level,
         description: t.description,
         icon: t.icon,
         criteria: t.criteria,
@@ -70,7 +70,7 @@ export async function detectNewlyUnlockedAchievements(
         achievementId: a.id,
         name: a.name,
         icon: a.icon,
-        tier: t.tier,
+        tier: t.tier as achievement_tier_level,
         tierDescription: t.description,
         xpReward: t.xp_reward,
         coinReward: t.coin_reward,

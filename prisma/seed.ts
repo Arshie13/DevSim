@@ -18,6 +18,7 @@
 // @ts-ignore - Prisma client path
 import { PrismaClient, type Prisma } from "$prismaclient";
 import { PrismaPg } from "@prisma/adapter-pg";
+import type { RewardJson } from "../src/lib/types/reward-json";
 import "dotenv/config";
 
 import { levels as pernScenario1Levels, scenarios as pernScenario1Scenarios } from "./seed/react-express-postgres-prisma/scenario-1/seed";
@@ -391,37 +392,37 @@ async function main() {
   // Insert learner pass rewards
   console.log("\n🎁 Creating learner pass rewards...\n");
 
-  const learnerPassRewards: { day_number: number; coins_reward: number; xp_reward: number; unlock_project_ids: string[] }[] = [
-    { day_number: 1, coins_reward: 100, xp_reward: 50, unlock_project_ids: [] },
-    { day_number: 2, coins_reward: 400, xp_reward: 80, unlock_project_ids: [] },
-    { day_number: 3, coins_reward: 50, xp_reward: 100, unlock_project_ids: [] },
-    { day_number: 4, coins_reward: 200, xp_reward: 70, unlock_project_ids: [] },
-    { day_number: 5, coins_reward: 500, xp_reward: 90, unlock_project_ids: [] },
-    { day_number: 6, coins_reward: 300, xp_reward: 120, unlock_project_ids: [] },
-    { day_number: 7, coins_reward: 80, xp_reward: 150, unlock_project_ids: [] },
-    { day_number: 8, coins_reward: 350, xp_reward: 100, unlock_project_ids: [] },
-    { day_number: 9, coins_reward: 750, xp_reward: 110, unlock_project_ids: [] },
-    { day_number: 10, coins_reward: 200, xp_reward: 130, unlock_project_ids: [] },
-    { day_number: 11, coins_reward: 450, xp_reward: 80, unlock_project_ids: [] },
-    { day_number: 12, coins_reward: 1000, xp_reward: 100, unlock_project_ids: [] },
-    { day_number: 13, coins_reward: 500, xp_reward: 120, unlock_project_ids: [] },
-    { day_number: 14, coins_reward: 100, xp_reward: 160, unlock_project_ids: [] },
-    { day_number: 15, coins_reward: 150, xp_reward: 180, unlock_project_ids: [] },
-    { day_number: 16, coins_reward: 1500, xp_reward: 100, unlock_project_ids: [] },
-    { day_number: 17, coins_reward: 200, xp_reward: 200, unlock_project_ids: [] },
-    { day_number: 18, coins_reward: 700, xp_reward: 150, unlock_project_ids: [] },
-    { day_number: 19, coins_reward: 1800, xp_reward: 120, unlock_project_ids: [] },
-    { day_number: 20, coins_reward: 300, xp_reward: 250, unlock_project_ids: [] },
-    { day_number: 21, coins_reward: 900, xp_reward: 180, unlock_project_ids: [] },
-    { day_number: 22, coins_reward: 250, xp_reward: 150, unlock_project_ids: [] },
-    { day_number: 23, coins_reward: 1000, xp_reward: 200, unlock_project_ids: [] },
-    { day_number: 24, coins_reward: 2200, xp_reward: 150, unlock_project_ids: [] },
-    { day_number: 25, coins_reward: 300, xp_reward: 200, unlock_project_ids: [] },
-    { day_number: 26, coins_reward: 1200, xp_reward: 220, unlock_project_ids: [] },
-    { day_number: 27, coins_reward: 2500, xp_reward: 200, unlock_project_ids: [] },
-    { day_number: 28, coins_reward: 1400, xp_reward: 250, unlock_project_ids: [] },
-    { day_number: 29, coins_reward: 350, xp_reward: 300, unlock_project_ids: [] },
-    { day_number: 30, coins_reward: 500, xp_reward: 400, unlock_project_ids: [] },
+  const learnerPassRewards: { day_number: number; rewards: RewardJson }[] = [
+    { day_number: 1,  rewards: { coins: 0,   xp: 0,  aiHelps: 3,  unlocks: [], displayType: "help",   displayValue: "+3 AI Helps" } },
+    { day_number: 2,  rewards: { coins: 400, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "400 Coins" } },
+    { day_number: 3,  rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Blue Neon Avatar" } },
+    { day_number: 4,  rewards: { coins: 0,   xp: 0,  aiHelps: 5,  unlocks: [], displayType: "help",   displayValue: "+5 AI Helps" } },
+    { day_number: 5,  rewards: { coins: 500, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "500 Coins" } },
+    { day_number: 6,  rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Cyber Avatar" } },
+    { day_number: 7,  rewards: { coins: 0,   xp: 0,  aiHelps: 8,  unlocks: [], displayType: "help",   displayValue: "+8 AI Helps" } },
+    { day_number: 8,  rewards: { coins: 600, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "600 Coins" } },
+    { day_number: 9,  rewards: { coins: 750, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "750 Coins" } },
+    { day_number: 10, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Shadow Avatar" } },
+    { day_number: 11, rewards: { coins: 0,   xp: 0,  aiHelps: 10, unlocks: [], displayType: "help",   displayValue: "+10 AI Helps" } },
+    { day_number: 12, rewards: { coins: 1000,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "1000 Coins" } },
+    { day_number: 13, rewards: { coins: 0,   xp: 0,  aiHelps: 11, unlocks: [], displayType: "help",   displayValue: "+11 AI Helps" } },
+    { day_number: 14, rewards: { coins: 0,   xp: 0,  aiHelps: 12, unlocks: [], displayType: "help",   displayValue: "+12 AI Helps" } },
+    { day_number: 15, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Legend Avatar" } },
+    { day_number: 16, rewards: { coins: 1500,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "1500 Coins" } },
+    { day_number: 17, rewards: { coins: 0,   xp: 0,  aiHelps: 15, unlocks: [], displayType: "help",   displayValue: "+15 AI Helps" } },
+    { day_number: 18, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Galaxy Avatar" } },
+    { day_number: 19, rewards: { coins: 1800,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "1800 Coins" } },
+    { day_number: 20, rewards: { coins: 0,   xp: 0,  aiHelps: 20, unlocks: [], displayType: "help",   displayValue: "+20 AI Helps" } },
+    { day_number: 21, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Nova Avatar" } },
+    { day_number: 22, rewards: { coins: 2000,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "2000 Coins" } },
+    { day_number: 23, rewards: { coins: 0,   xp: 0,  aiHelps: 25, unlocks: [], displayType: "help",   displayValue: "+25 AI Helps" } },
+    { day_number: 24, rewards: { coins: 2200,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "2200 Coins" } },
+    { day_number: 25, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Royal Avatar" } },
+    { day_number: 26, rewards: { coins: 0,   xp: 0,  aiHelps: 30, unlocks: [], displayType: "help",   displayValue: "+30 AI Helps" } },
+    { day_number: 27, rewards: { coins: 2500,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "2500 Coins" } },
+    { day_number: 28, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Neon Warrior Avatar" } },
+    { day_number: 29, rewards: { coins: 0,   xp: 0,  aiHelps: 35, unlocks: [], displayType: "help",   displayValue: "+35 AI Helps" } },
+    { day_number: 30, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Mythic Avatar" } },
   ];
 
   for (const reward of learnerPassRewards) {
