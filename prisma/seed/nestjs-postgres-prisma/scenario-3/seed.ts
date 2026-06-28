@@ -32,7 +32,7 @@ export const levels = [
       create: [
         {
           task_name: "Prepare Development Environment",
-          test_type: "none",
+          test_type: "both",
           user_story:
             "As a developer, I want to set up my local development environment so that I can run and modify the IPPO POS application.",
           learning_sections: {
@@ -158,7 +158,7 @@ export const levels = [
         },
         {
           task_name: "Add a phoneNumber Field to Store Settings",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want to store the shop's phone number in settings so customers can call for support.",
           learning_sections: {
@@ -311,7 +311,7 @@ export const levels = [
       create: [
         {
           task_name: "Inventory Integrity Guards",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want inventory updates to be safe so that stock levels never go negative and low-stock alerts catch items at the threshold.",
           learning_sections: {
@@ -418,7 +418,7 @@ export const levels = [
         },
         {
           task_name: "Paginated Product Listing",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want to browse products with pagination and search so I can find what I need without loading the entire catalog.",
           learning_sections: {
@@ -554,7 +554,7 @@ export const levels = [
       create: [
         {
           task_name: "Transactional Checkout: Tax, Discount & Inventory",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want to place an order knowing that stock is deducted atomically, tax is calculated correctly, discount is applied, and invalid payment methods are rejected.",
           learning_sections: {
@@ -688,7 +688,7 @@ export const levels = [
         },
         {
           task_name: "Payment Method Validation",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want to restrict payment methods to only CASH and CARD so that unsupported methods are rejected.",
           learning_sections: {
@@ -829,7 +829,7 @@ export const levels = [
       create: [
         {
           task_name: "Daily Sales Report",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want to see today's total revenue, order count, and top-selling products so I can track daily performance.",
           learning_sections: {
@@ -952,7 +952,7 @@ export const levels = [
         },
         {
           task_name: "Weekly Sales Report",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want to see weekly sales trends so I can identify patterns and adjust staffing.",
           learning_sections: {
@@ -1078,7 +1078,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix Oversell, Decimal Drift & Timezone",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want the checkout to be reliable: no overselling, correct totals, and consistent reports regardless of when I view them.",
           learning_sections: {
@@ -1208,7 +1208,7 @@ export const levels = [
         },
         {
           task_name: "Postmortem Document",
-          test_type: "none",
+          test_type: "both",
           user_story:
             "As an engineering team member, I want to document the root causes of the three production bugs so we can prevent them in future projects.",
           learning_sections: {

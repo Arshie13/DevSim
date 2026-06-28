@@ -32,7 +32,7 @@ export const levels = [
       create: [
         {
           task_name: "Prepare Development Environment",
-          test_type: "none",
+          test_type: "both",
           user_story:
             "As a developer, I want to set up my local development environment so that I can run and modify the BrewHaven application.",
           learning_sections: {
@@ -159,7 +159,7 @@ export const levels = [
 
         {
           task_name: "Add a Roast Level Field to Products",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want to tag each coffee product with its roast level so customers can browse by Light, Medium, or Dark roasts.",
           learning_sections: {
@@ -318,7 +318,7 @@ export const levels = [
       create: [
         {
           task_name: "Paginated & Filterable Product List",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want to browse products with pagination and filters so I can find specific coffees and equipment without loading the entire catalog.",
           learning_sections: {
@@ -454,7 +454,7 @@ export const levels = [
 
         {
           task_name: "Soft-Deleted Categories Visibility",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want inactive categories to be hidden from the storefront so I don't see products from discontinued lines.",
           learning_sections: {
@@ -592,7 +592,7 @@ export const levels = [
       create: [
         {
           task_name: "Checkout: Stock, Tax & Payment Validation",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want to place an order knowing that stock is deducted atomically, tax is calculated correctly, and invalid payment methods are rejected.",
           learning_sections: {
@@ -733,7 +733,7 @@ export const levels = [
 
         {
           task_name: "Order Lifecycle State Machine",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want orders to move through a controlled lifecycle so I can track fulfillment and prevent invalid status changes.",
           learning_sections: {
@@ -891,7 +891,7 @@ export const levels = [
       create: [
         {
           task_name: "Daily & Weekly Sales Reports",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want to see daily and weekly sales reports so I can track revenue trends and best-selling products.",
           learning_sections: {
@@ -1026,7 +1026,7 @@ export const levels = [
 
         {
           task_name: "Low-Stock Alert Endpoint",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a store admin, I want to see which products are running low on stock so I can reorder before we run out.",
           learning_sections: {
@@ -1175,7 +1175,7 @@ export const levels = [
       create: [
         {
           task_name: "Fix Oversell, Decimal Drift & Timezone",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a customer, I want the checkout to be reliable: no overselling, correct totals, and consistent reports regardless of when I view them.",
           learning_sections: {
@@ -1306,7 +1306,7 @@ export const levels = [
 
         {
           task_name: "Write a Postmortem Document",
-          test_type: "none",
+          test_type: "both",
           user_story:
             "As an engineering team member, I want to document the root causes of the three production bugs so we can prevent them in future projects.",
           learning_sections: {

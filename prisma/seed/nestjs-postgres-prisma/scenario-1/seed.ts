@@ -36,7 +36,7 @@ export const levels = [
         // ── L1-T1: Prepare Development Environment ──────────────
         {
           task_name: "Prepare Development Environment",
-          test_type: "none",
+          test_type: "both",
           user_story:
             "As a developer, I want to set up my local development environment so that I can run and modify the FlexiSpend application.",
           learning_sections: {
@@ -164,7 +164,7 @@ export const levels = [
         // ── L1-T2: Add a Note Field to Transactions ─────────────────
         {
           task_name: "Add a Note Field to Transactions",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want to attach a note to each transaction so I can remember what a purchase or deposit was for.",
           learning_sections: {
@@ -327,7 +327,7 @@ export const levels = [
         // ── L2-T1: Paginated & Filterable Transactions ────────────
         {
           task_name: "Paginated & Filterable Transaction List",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want to browse my transactions with pagination and filters so I can find specific records without loading the entire history.",
           learning_sections: {
@@ -464,7 +464,7 @@ export const levels = [
         // ── L2-T2: Soft-Deleted Categories Visibility ─────────────
         {
           task_name: "Soft-Deleted Categories Visibility",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want inactive categories to be hidden from my category list so I don't accidentally use them, but I don't want to lose historical transactions tied to them.",
           learning_sections: {
@@ -606,7 +606,7 @@ export const levels = [
         // ── L3-T1: Atomic Balance, Funds Guard & Field Validation ──
         {
           task_name: "Atomic Balance Updates, Funds Guard & Field Validation",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want my account balance to update accurately when I record transactions, and I want the app to prevent me from spending more than I have unless I explicitly allow negative balances.",
           learning_sections: {
@@ -748,7 +748,7 @@ export const levels = [
         // ── L3-T2: Budget-vs-Actual Tracking ──────────────────────
         {
           task_name: "Budget-vs-Actual Tracking",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want to see how much of my monthly budget I've spent so I can adjust my spending before I exceed the limit.",
           learning_sections: {
@@ -901,7 +901,7 @@ export const levels = [
         // ── L4-T1: Monthly Summary & Trend Reports ────────────────
         {
           task_name: "Monthly Summary & Trend Reports",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want to see my total income, expenses, and net savings for any month, and I want a trend report showing my financial health over the last several months.",
           learning_sections: {
@@ -1033,7 +1033,7 @@ export const levels = [
         // ── L4-T2: Category Breakdown & Budget Alerts ──────────────
         {
           task_name: "Category Breakdown & Budget Alerts",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want to see how my spending breaks down by category and receive alerts when I'm close to exceeding any budget.",
           learning_sections: {
@@ -1181,7 +1181,7 @@ export const levels = [
         // ── L5-T1: Fix Balance Drift, Timezone & Budget Math ───────
         {
           task_name: "Fix Balance Drift, Timezone & Budget Math",
-          test_type: "server",
+          test_type: "both",
           user_story:
             "As a user, I want my account balance to be accurate even after rapid edits, and I want my monthly reports to be consistent regardless of when I view them.",
           learning_sections: {
@@ -1308,7 +1308,7 @@ export const levels = [
         // ── L5-T2: Postmortem Document ────────────────────────────
         {
           task_name: "Write a Postmortem Document",
-          test_type: "none",
+          test_type: "both",
           user_story:
             "As an engineering team member, I want to document the root causes of the three production bugs so we can prevent them in future projects.",
           learning_sections: {
