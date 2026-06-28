@@ -1,7 +1,7 @@
 <script lang="ts">
   import { rewards } from "./rewards";
   import { goto } from "$app/navigation";
-  import { ArrowRight, Crown, Lock, Check, Loader2 } from "lucide-svelte";
+  import { ArrowRight, Crown, Lock, Check, Loader2, Info } from "lucide-svelte";
   import type { PageData } from "./$types";
   import { type Reward } from "./rewards";
   import { onMount } from "svelte";
@@ -239,6 +239,12 @@
           </div>
         </div>
         {#if !enrollment}
+          <div class="flex items-start gap-2 mt-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10">
+            <Info class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <p class="text-xs font-rajdhani text-amber-200/90">
+              Your Day Streak and Claimed progress only count once you've purchased the Learner Pass. Get the pass to start earning rewards toward your streak.
+            </p>
+          </div>
           <div class="flex items-center justify-between mt-4">
             <p class="text-sm font-rajdhani text-obsidian-text-muted">Claim daily free rewards every day. Unlock premium rewards by enrolling in the Learner Pass.</p>
             <button
