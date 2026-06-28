@@ -14,6 +14,7 @@
     resolvePath,
     simulateTerminalNavigation,
   } from "$lib/components/workspace/crashcourse/lab/labValidation";
+  import { formatLearningContent } from "$lib/ai";
   import type { ILearningSection, ILearningTask } from "$lib/types";
 
   let {
@@ -81,11 +82,14 @@
 
     typingInterval = setInterval(() => {
       if (typingIndex >= text.length) {
+        const formatted = formatLearningContent(text);
+        typedMessage = formatted;
         completedTypedSections = new Set(completedTypedSections).add(sectionKey);
         clearTyping();
         return;
       }
-      typedMessage = text.slice(0, typingIndex + 1);
+      const partial = text.slice(0, typingIndex + 1);
+      typedMessage = formatLearningContent(partial);
       typingIndex += 1;
     }, 12);
   }
@@ -481,13 +485,13 @@
     if (open) {
       if (isInteractiveSection) {
         clearTyping();
-        typedMessage = activeSection.content;
+        typedMessage = formatLearningContent(activeSection.content);
       } else if (isCompleted) {
         clearTyping();
-        typedMessage = activeSection.content;
+        typedMessage = formatLearningContent(activeSection.content);
       } else if (completedTypedSections.has(activeSectionTypingKey)) {
         clearTyping();
-        typedMessage = activeSection.content;
+        typedMessage = formatLearningContent(activeSection.content);
       } else {
         startTyping(activeSection.content, activeSectionTypingKey);
       }
