@@ -33,14 +33,14 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
     category: a.category as AchievementCategory,
     tiers: a.tiers
       .slice()
-      .sort((x, y) => TIER_ORDER[x.tier] - TIER_ORDER[y.tier])
+      .sort((x, y) => TIER_ORDER[x.tier as achievement_tier_level] - TIER_ORDER[y.tier as achievement_tier_level])
       .map((t) => {
         const { current, target } = evaluateCriterion(t.criteria, snapshot);
         const ratio = target > 0 ? Math.min(1, current / target) : 0;
         const unlocked = unlockedTiers.has(`${a.id}:${t.tier}`);
         return {
           id: t.id,
-          tier: t.tier,
+          tier: t.tier as achievement_tier_level,
           description: t.description,
           xpReward: t.xp_reward,
           coinReward: t.coin_reward,

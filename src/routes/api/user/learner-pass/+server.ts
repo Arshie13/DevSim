@@ -34,10 +34,9 @@ export const GET: RequestHandler = async (event) => {
     enrollment.status = "EXPIRED";
   }
 
-  const claimedDays = await prisma.learner_pass_day_claim.findMany({
-    where: { enrollment_id: enrollment.id },
-    select: { day_number: true, claimed_at: true },
-  });
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  const start = enrollment.started_at ?? now;
+  const currentDay = Math.min(30, Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1);
 
   const canClaimNow =
     enrollment.status === "ACTIVE" &&
@@ -70,10 +69,10 @@ export const GET: RequestHandler = async (event) => {
   });
 
   const currentDayReward = rewards.find(
-    (r) => r.day_number === enrollment.current_day,
+    (r) => r.day_number === currentDay,
   );
   const upcomingRewards = rewards
-    .filter((r) => r.day_number > enrollment.current_day && r.day_number <= enrollment.current_day + 3)
+    .filter((r) => r.day_number > currentDay && r.day_number <= currentDay + 3)
     .slice(0, 3);
 
   const unlockedProjects = await prisma.user_project_access.findMany({
@@ -84,10 +83,10 @@ export const GET: RequestHandler = async (event) => {
   return Response.json({
     status: enrollment.status,
     hasEnrollment: true,
-    currentDay: enrollment.current_day,
+    currentDay,
     totalClaimedDays: enrollment.total_claimed_days,
     streak: enrollment.streak,
-    claimedDays: claimedDays.map((d) => d.day_number),
+    claimedDays: enrollment.claimed_days,
     canClaimNow,
     nextAvailableAt,
     expiresAt: enrollment.expires_at?.toISOString(),
