@@ -18,10 +18,17 @@ export const load: PageServerLoad = async (event) => {
     select: { image: true },
   });
 
-  const enrollment = await prisma.learner_pass_enrollment.findFirst({
-    where: { user_id: userId },
+  let enrollment = await prisma.learner_pass_enrollment.findFirst({
+    where: { user_id: userId, status: 'ACTIVE' },
     orderBy: { created_at: "desc" },
   });
+  // ponytail: fall back to most recent if no ACTIVE enrollment
+  if (!enrollment) {
+    enrollment = await prisma.learner_pass_enrollment.findFirst({
+      where: { user_id: userId },
+      orderBy: { created_at: "desc" },
+    });
+  }
 
   const rewards = await prisma.learner_pass_reward.findMany({
     where: { is_active: true },

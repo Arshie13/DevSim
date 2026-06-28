@@ -23,7 +23,7 @@ export const POST: RequestHandler = async (event) => {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const enrollment = await tx.learner_pass_enrollment.findFirst({
-        where: { user_id: userId, status: 'ACTIVE' },
+        where: { user_id: userId },
         orderBy: { created_at: 'desc' },
       });
 
@@ -75,17 +75,37 @@ export const POST: RequestHandler = async (event) => {
           select: { coins: true, xp: true },
         });
 
+        // ponytail: FREE claims also increment streak
+        let updatedEnrollment = null;
+        if (enrollment && enrollment.status === 'ACTIVE') {
+          const isConsecutive = enrollment.last_claimed_at
+            ? new Date(enrollment.last_claimed_at).toDateString() ===
+              new Date(now.getTime() - ONE_DAY_MS).toDateString()
+            : true;
+          const newStreak = isConsecutive ? enrollment.streak + 1 : 1;
+          const newTotalClaimed = enrollment.total_claimed_days + 1;
+
+          updatedEnrollment = await tx.learner_pass_enrollment.update({
+            where: { id: enrollment.id },
+            data: {
+              last_claimed_at: now,
+              streak: newStreak,
+              total_claimed_days: newTotalClaimed,
+            },
+          });
+        }
+
         return {
           claim,
           updatedUser,
-          updatedEnrollment: null,
+          updatedEnrollment,
           reward,
           projectGrants: [],
         };
       }
 
       // --- PREMIUM claim path (requires active enrollment) ---
-      if (!enrollment) {
+      if (!enrollment || enrollment.status !== 'ACTIVE') {
         throw error(400, 'No active learner pass');
       }
 
@@ -97,17 +117,22 @@ export const POST: RequestHandler = async (event) => {
         throw error(410, 'Pass has expired');
       }
 
-      if (dayNumber !== enrollment.current_day) {
-        throw error(400, 'Can only claim the current day');
+      // ponytail: allow back-claiming missed days, not just the current day
+      if (dayNumber > enrollment.current_day) {
+        throw error(400, 'Can only claim up to the current day');
       }
 
-      if (enrollment.last_claimed_at) {
-        const lastClaimDate = new Date(enrollment.last_claimed_at);
-        const today = new Date();
-
-        if (lastClaimDate.toDateString() === today.toDateString()) {
-          throw error(429, 'Already claimed today');
-        }
+      // ponytail: only block duplicate PREMIUM claims today (FREE claims don't gate PREMIUM)
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const alreadyClaimedPremiumToday = await tx.learner_pass_day_claim.findFirst({
+        where: {
+          user_id: userId,
+          claim_type: 'PREMIUM',
+          claimed_at: { gte: startOfToday },
+        },
+      });
+      if (alreadyClaimedPremiumToday) {
+        throw error(429, 'Already claimed premium today');
       }
 
       const claim = await tx.learner_pass_day_claim.create({
@@ -136,7 +161,11 @@ export const POST: RequestHandler = async (event) => {
 
       const newStreak = isConsecutive ? enrollment.streak + 1 : 1;
       const newTotalClaimed = enrollment.total_claimed_days + 1;
-      const nextDay = dayNumber >= 30 ? 31 : dayNumber + 1;
+      // ponytail: only advance current_day if claiming the current day (not back-claims)
+      const isCurrentDay = dayNumber === enrollment.current_day;
+      const nextDay = isCurrentDay
+        ? (dayNumber >= 30 ? 31 : dayNumber + 1)
+        : enrollment.current_day;
 
       let newStatus = enrollment.status;
       if (dayNumber >= 30) {
@@ -189,7 +218,7 @@ export const POST: RequestHandler = async (event) => {
       };
     });
 
-    return Response.json({
+    const baseResponse = {
       success: true,
       day: dayNumber,
       claimType: result.claim.claim_type,
@@ -200,14 +229,23 @@ export const POST: RequestHandler = async (event) => {
       },
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
-      streak: result.updatedEnrollment?.streak || 0,
-      totalClaimedDays: result.updatedEnrollment?.total_claimed_days || 0,
-      currentDay: result.updatedEnrollment?.current_day || dayNumber,
-      status: result.updatedEnrollment?.status || 'NO_PASS',
       nextAvailableAt: new Date(
         new Date().getTime() + ONE_DAY_MS,
       ).toISOString(),
-    });
+    };
+
+    // ponytail: only include enrollment fields when actually updated
+    if (result.updatedEnrollment) {
+      return Response.json({
+        ...baseResponse,
+        streak: result.updatedEnrollment.streak,
+        totalClaimedDays: result.updatedEnrollment.total_claimed_days,
+        currentDay: result.updatedEnrollment.current_day,
+        status: result.updatedEnrollment.status,
+      });
+    }
+
+    return Response.json({ ...baseResponse, status: 'NO_PASS' });
   } catch (err) {
     if (err && typeof err === 'object' && 'status' in err) {
       throw err;

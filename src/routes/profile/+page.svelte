@@ -18,9 +18,9 @@
   // ── User state ────────────────────────────────────────────────────────────
   let user: UserData = {
     id: data.user.id,
-    name: data.user?.name ?? '',
-    email: data.user.email,
-    image: data.user.image,
+    name: data.user?.name ?? 'Name not found',
+    email: data.user.email ?? 'no email found',
+    image: data.user.image ?? 'static/avatars/defaultcyan.svg',
     avatar: data.user.avatar ?? data.user.image ?? "",
     xp: data.user.xp ?? 0,
     coins: data.user.coins ?? data.userCoins ?? 0,

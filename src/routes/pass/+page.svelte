@@ -11,12 +11,15 @@
   let enrollment = data.enrollment;
   let freeClaimedDays = data.freeClaimedDays || [];
   let premiumClaimedDays = data.premiumClaimedDays || [];
-  let nextAvailableAt: string | null = null;
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   let isClaiming = false;
   let currentAvatar = data.currentAvatar ?? null;
   let equippingDay: number | null = null;
 
   $: currentLevel = enrollment?.currentDay || 1;
+  $: nextAvailableAt = enrollment?.lastClaimedAt
+    ? new Date(new Date(enrollment.lastClaimedAt).getTime() + ONE_DAY_MS).toISOString()
+    : null;
   $: timeUntilNext = nextAvailableAt ? getTimeUntilNext(nextAvailableAt) : "";
   $: isWaitingForNext = nextAvailableAt && currentTime && new Date(nextAvailableAt) > currentTime;
 
@@ -86,7 +89,7 @@
     if (type === 'FREE' && (freeClaimedDays.includes(reward.level) || premiumClaimedDays.includes(reward.level))) return false;
     if (type === 'PREMIUM' && premiumClaimedDays.includes(reward.level)) return false;
     
-    if (reward.level !== currentLevel) return false;
+    if (reward.level > currentLevel) return false; // ponytail: allow back-claiming missed days
 
     if (!enrollment) {
       return type === 'FREE' && reward.level === 1;
@@ -120,17 +123,18 @@
             freeClaimedDays = [...freeClaimedDays, dayNumber];
           }
 
-          if (enrollment && data.claimType === "PREMIUM") {
+          // ponytail: update enrollment for any claim type (FREE also increments streak now)
+          if (enrollment && data.streak !== undefined) {
             enrollment = {
               ...enrollment,
-              currentDay: data.currentDay,
+              currentDay: data.currentDay ?? enrollment.currentDay,
               streak: data.streak,
               totalClaimedDays: data.totalClaimedDays,
-              status: data.status,
-              lastClaimedAt: new Date().toISOString(),
+              status: data.status ?? enrollment.status,
+              // only set lastClaimedAt for PREMIUM to avoid locking the other track
+              lastClaimedAt: data.claimType === 'PREMIUM' ? new Date().toISOString() : enrollment.lastClaimedAt,
             };
-            nextAvailableAt = data.nextAvailableAt;
-            startTimer();
+            if (data.claimType === 'PREMIUM') startTimer();
           }
         }
       })
@@ -216,23 +220,37 @@
   <main class="relative z-10 py-8">
     <div class="max-w-[1400px] mx-auto px-6">
       <!-- Status Section -->
-      {#if !enrollment}
-        <div class="mb-8 p-6 rounded-card border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 backdrop-blur">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-lg font-orbitron font-semibold text-obsidian-text-primary mb-2">Free Rewards Available</h2>
-              <p class="text-sm font-rajdhani text-obsidian-text-muted">Claim daily free rewards every day. Unlock premium rewards by enrolling in the Learner Pass.</p>
+      <div class="mb-8 p-6 rounded-card border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 backdrop-blur">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-orbitron font-semibold text-obsidian-text-primary mb-2">Your Progress</h2>
+            <div class="flex gap-6">
+              <div class="h-12 w-px bg-cyan-500/20"></div>
+              <div class="flex flex-col">
+                <span class="text-2xl font-orbitron font-bold text-rose-500">🔥 {enrollment?.streak ?? 0}</span>
+                <span class="text-xs font-rajdhani text-obsidian-text-muted">Day Streak</span>
+              </div>
+              <div class="h-12 w-px bg-cyan-500/20"></div>
+              <div class="flex flex-col">
+                <span class="text-2xl font-orbitron font-bold text-green-400">✓ {enrollment?.totalClaimedDays ?? 0}</span>
+                <span class="text-xs font-rajdhani text-obsidian-text-muted">Claimed</span>
+              </div>
             </div>
+          </div>
+        </div>
+        {#if !enrollment}
+          <div class="flex items-center justify-between mt-4">
+            <p class="text-sm font-rajdhani text-obsidian-text-muted">Claim daily free rewards every day. Unlock premium rewards by enrolling in the Learner Pass.</p>
             <button
               on:click={handleUpgradeMembership}
-              class="btn-cyber btn-cyber-solid inline-flex items-center gap-2 !px-6 !py-2 whitespace-nowrap"
+              class="btn-cyber btn-cyber-solid inline-flex items-center gap-2 !px-6 !py-2 whitespace-nowrap ml-4"
             >
               <Crown class="w-4 h-4" />
               <span class="font-orbitron text-sm">Get Pass</span>
             </button>
           </div>
-        </div>
-      {/if}
+        {/if}
+      </div>
 
       <!-- Rewards Grid -->
       <div class="mb-8">
@@ -304,52 +322,60 @@
                   <div class="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40">
                     <Check class="w-3 h-3 text-green-400" />
                   </div>
-                  {#if reward.premium.type === 'avatar'}
-                    {#if currentAvatar === getRewardIcon(reward.premium)}
-                      <span class="text-[0.6rem] px-2 py-1 rounded bg-cyber-cyan/20 text-cyber-cyan font-semibold flex items-center gap-1">
-                        <Check class="w-3 h-3" /> Equipped
-                      </span>
-                    {:else}
-                      <button
-                        on:click={() => handleEquipAvatar(reward.level, reward.premium)}
-                        disabled={equippingDay !== null}
-                        class="text-[0.65rem] px-2 py-1 rounded bg-cyber-cyan/80 hover:bg-cyber-cyan text-obsidian-bg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                      >
-                        {#if equippingDay === reward.level}
-                          <Loader2 class="w-3 h-3 animate-spin" />
-                        {/if}
-                        Equip
-                      </button>
-                    {/if}
+                  <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
+                {:else if enrollment && reward.level === currentLevel}
+                  {#if isWaitingForNext}
+                    <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
+                      {timeUntilNext}
+                    </span>
+                  {:else if isClaimable(reward, 'PREMIUM')}
+                    <button
+                      on:click={() => handleClaim(reward.level, 'PREMIUM')}
+                      disabled={isClaiming}
+                      class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      {#if isClaiming}
+                        <Loader2 class="w-3 h-3 animate-spin" />
+                      {/if}
+                      Claim
+                    </button>
+                  {:else if enrollment.status !== 'ACTIVE'}
+                    <div class="text-lg opacity-50">
+                      <Lock class="w-3 h-3" />
+                    </div>
                   {:else}
-                    <span class="text-[0.6rem] px-2 py-1 rounded bg-green-500/20 text-green-400 font-semibold">Claimed</span>
+                    <button
+                      on:click={() => handleClaim(reward.level, 'PREMIUM')}
+                      disabled={isClaiming}
+                      class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      Claim
+                    </button>
                   {/if}
-                {:else if isWaitingForNext && enrollment && reward.level === currentLevel}
-                  <span class="text-[0.6rem] px-2 py-1 rounded bg-obsidian-bg/50 text-obsidian-text-muted font-semibold">
-                    {timeUntilNext}
-                  </span>
-                {:else if enrollment && isClaimable(reward, 'PREMIUM')}
-                  <button
-                    on:click={() => handleClaim(reward.level, 'PREMIUM')}
-                    disabled={isClaiming}
-                    class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                  >
-                    {#if isClaiming && reward.level === currentLevel}
-                      <Loader2 class="w-3 h-3 animate-spin" />
-                    {/if}
-                    Claim
-                  </button>
                 {:else if enrollment && reward.level > enrollment.currentDay}
                   <div class="text-lg opacity-50">
                     <Lock class="w-3 h-3" />
                   </div>
-                {:else}
+                {:else if !enrollment}
                   <button
                     on:click={handleUpgradeMembership}
                     class="text-[0.6rem] px-2 py-1 rounded bg-amber-600/50 hover:bg-amber-600 text-white font-semibold transition-colors"
                   >
                     Upgrade
                   </button>
+                {:else if isClaimable(reward, 'PREMIUM')}
+                  <button
+                    on:click={() => handleClaim(reward.level, 'PREMIUM')}
+                    disabled={isClaiming}
+                    class="text-[0.65rem] px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  >
+                    {#if isClaiming}
+                      <Loader2 class="w-3 h-3 animate-spin" />
+                    {/if}
+                    Claim
+                  </button>
+                {:else}
+                  <span class="text-[0.6rem] px-2 py-1 rounded bg-amber-600/50 text-white font-semibold">Missed</span>
                 {/if}
               </div>
             </div>

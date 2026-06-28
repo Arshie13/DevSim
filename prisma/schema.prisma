@@ -37,11 +37,6 @@ model user {
   aiHelpUsage            ai_help_daily_usage[]
   assessmentTopicScores  assessment_topic_score[]
   daily_login            daily_login?
-  xpLogs                 pass_xp_log[]
-  rewardClaimLogs        reward_claim_log[]
-  premiumPasses          user_premium_pass[]
-  rewardClaims           user_reward_claim[]
-  seasonProgressions     user_season_progression[]
   workspaces             workspace[]
   // Durable, append-only log of task completions, normalized into its own
   // table (task_activity). Survives the per-level completed_task wipe, so it
@@ -307,90 +302,6 @@ model assessment_topic_score {
   @@index([user_id])
 }
 
-model season {
-  id               String                    @id @default(cuid())
-  name             String
-  description      String?
-  startDate        DateTime
-  endDate          DateTime
-  isActive         Boolean                   @default(false)
-  xpReset          Boolean                   @default(false)
-  createdAt        DateTime                  @default(now())
-  updatedAt        DateTime                  @updatedAt
-  tracks           pass_reward_track[]
-  passes           user_premium_pass[]
-  seasonRewards    user_reward_claim[]
-  user_progression user_season_progression[]
-  
-  @@index([isActive])
-  @@index([startDate, endDate])
-}
-
-model user_premium_pass {
-  id              String   @id @default(cuid())
-  user_id         String
-  season_id       String
-  purchasedAt     DateTime @default(now())
-  expiresAt       DateTime
-  isActive        Boolean  @default(true)
-  paymentId       String?
-  paymentProvider String?
-  season          season   @relation(fields: [season_id], references: [id], onDelete: Cascade)
-  user            user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@unique([user_id, season_id])
-  @@index([user_id])
-  @@index([expiresAt])
-}
-
-model pass_reward_track {
-  id          String              @id @default(cuid())
-  season_id   String
-  passType    PassType
-  level       Int
-  rewardType  RewardType
-  rewardValue Json?
-  xpRequired  Int
-  isClaimable Boolean             @default(true)
-  season      season              @relation(fields: [season_id], references: [id], onDelete: Cascade)
-  claimLogs   reward_claim_log[]
-  claims      user_reward_claim[]
-  
-  @@unique([season_id, passType, level])
-  @@index([season_id])
-  @@index([xpRequired])
-}
-
-model user_season_progression {
-  id           String @id @default(cuid())
-  user_id      String
-  season_id    String
-  currentLevel Int    @default(1)
-  premiumLevel Int?   @default(0)
-  seasonXp     Int    @default(0)
-  totalXp      Int?
-  season       season @relation(fields: [season_id], references: [id], onDelete: Cascade)
-  user         user   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@unique([user_id, season_id])
-  @@index([user_id])
-}
-
-model user_reward_claim {
-  id        String            @id @default(cuid())
-  user_id   String
-  reward_id String
-  season_id String
-  claimedAt DateTime          @default(now())
-  reward    pass_reward_track @relation(fields: [reward_id], references: [id])
-  season    season            @relation(fields: [season_id], references: [id], onDelete: Cascade)
-  user      user              @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@unique([user_id, reward_id])
-  @@index([user_id])
-  @@index([season_id])
-}
-
 model ai_help_daily_usage {
   id      String   @id @default(cuid())
   user_id String
@@ -400,38 +311,6 @@ model ai_help_daily_usage {
   
   @@unique([user_id, date])
   @@index([user_id, date])
-}
-
-model pass_xp_log {
-  id        String   @id @default(cuid())
-  user_id   String
-  amount    Int
-  source    String
-  metadata  Json?
-  createdAt DateTime @default(now())
-  user      user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@index([user_id])
-  @@index([createdAt])
-  @@index([user_id, createdAt])
-}
-
-model reward_claim_log {
-  id        String            @id @default(cuid())
-  user_id   String
-  reward_id String
-  season_id String
-  success   Boolean           @default(true)
-  error     String?
-  createdAt DateTime          @default(now())
-  reward    pass_reward_track @relation(fields: [reward_id], references: [id])
-  user      user              @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@unique([user_id, reward_id])
-  @@index([user_id])
-  @@index([reward_id])
-  @@index([season_id])
-  @@index([createdAt])
 }
 
 // Learner Pass System Models
