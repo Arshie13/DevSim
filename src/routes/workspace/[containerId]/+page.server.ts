@@ -28,7 +28,6 @@ export const load: PageServerLoad = async (event) => {
   const container = await prisma.workspace.findFirst({
     where: { id: dbId, user_id: userId },
     include: {
-      workspace_stacks: true,
       scenario: {
         include: {
           levels: {
@@ -58,12 +57,6 @@ export const load: PageServerLoad = async (event) => {
   const scenario = await prisma.scenario.findFirst({
     where: {
       id: container?.scenario.id
-    }
-  });
-
-  const workspaceStacks = await prisma.workspace_stack.findMany({
-    where: {
-      workspace_id: container?.id
     }
   });
 
@@ -150,12 +143,8 @@ export const load: PageServerLoad = async (event) => {
      currentLevel: currentLevelV2,
      levelTasks: levelTasks,
      container: container,
-     workspaceStacks: workspaceStacks.map((stack) => ({
-      id: stack.id,
-      workspaceId: stack.workspace_id,
-      stackName: stack.stack_name,
-      stackVersion: stack.stack_version,
-     })),
+     stackName: container?.stack_name ?? null,
+     stackVersion: container?.stack_version ?? null,
      scenario,
      scenarioLevels: level,
      hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],

@@ -40,7 +40,7 @@
   const tutorialLaunchContext = {
     stackName:
       page.url.searchParams.get("stackName") ||
-      data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean).join("-") ||
+      data.container?.stackName ||
       "",
     scenarioId: page.url.searchParams.get("scenarioId"),
     projectFolder: page.url.searchParams.get("projectFolder"),
@@ -50,7 +50,7 @@
   };
 
   const stack =
-    data.container?.containerStacks?.map((entry) => entry.stackName).filter(Boolean).join(" + ") || "PERN";
+    data.container?.stackName?.split('-').join(' + ') || "PERN";
   const normalizedTutorialStack = stack.toLowerCase();
   const tutorialData = normalizedTutorialStack.includes("nest")
     ? NESTJS_POSTGRES_PRISMA_TUTORIAL_DATA

@@ -9,7 +9,7 @@ export async function getLandingStats(): Promise<LandingStats> {
 
   const [activeDevs, stackGroups, scenarios] = await Promise.all([
     prisma.user.count(),
-    prisma.workspace_stack.groupBy({ by: ["stack_name"] }),
+    prisma.workspace.groupBy({ by: ["stack_name"] }),
     prisma.scenario.count(),
   ]);
 

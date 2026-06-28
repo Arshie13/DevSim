@@ -12,16 +12,13 @@
   export let container: ContainerWithDates;
   export let variant: "current" | "finished" = "current";
 
-  $: stacks = container.workspace_stacks ?? container.containerStacks ?? [];
-  $: stackLabel = parseStackName(stacks);
+  $: stackName = container.stackName ?? '';
+  $: stackLabel = parseStackName(stackName);
   $: chipNames = [...new Set(
-    stacks.flatMap((s) => {
-      const raw = ('stackName' in s && s.stackName) || ('stack_name' in s && (s as any).stack_name) || '';
-      return raw.split('-').map((p: string) => {
-        const slug = p.trim().toLowerCase();
-        return TECH_NAME_MAP[slug] ?? slug;
-      }).filter(Boolean);
-    })
+    stackName.split('-').map((p: string) => {
+      const slug = p.trim().toLowerCase();
+      return TECH_NAME_MAP[slug] ?? slug;
+    }).filter(Boolean)
   )];
 
   const RELATIVE_FORMATTER = new Intl.RelativeTimeFormat("en", { numeric: "auto" });

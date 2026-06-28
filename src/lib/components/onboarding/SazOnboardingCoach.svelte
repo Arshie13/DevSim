@@ -2,8 +2,6 @@
   import { onDestroy, onMount, tick } from 'svelte';
   import BubbleCloud from '$lib/components/ui/BubbleCloud.svelte';
   import { parseStackName } from '$lib/utils/stacks';
-  import type { IContainerStack } from '$lib/types/IContainer';
-
   export let open: boolean = false;
   export let accentColor: string = '#07a5c9';
   export let stackName: string = 'your project';
@@ -36,14 +34,7 @@
 
   function normalizeStackLabel(raw: string): string {
     if (!raw?.trim()) return 'Unknown Stack';
-
-    const stackTokens = raw
-      .split(/\+|,|\//g)
-      .map((token) => token.trim().toLowerCase().replace(/\s+/g, ''))
-      .filter(Boolean);
-
-    const stackEntries = stackTokens.map((token) => ({ stackName: token }) as IContainerStack);
-    return parseStackName(stackEntries);
+    return parseStackName(raw.trim());
   }
 
   function clamp(val: number, min: number, max: number) {

@@ -30,7 +30,6 @@ model user {
   currentSeasonId        String?
   dailyAiHelpUsed        Int                       @default(0)
   premiumPassExpiresAt   DateTime?
-  titles                 String[]                  @default([])
   aiHelpCredits          Int                       @default(0)
   xpBoostExpiresAt       DateTime?
   xpBoostPercent         Int                       @default(0)
@@ -61,11 +60,12 @@ model workspace {
   started_at          DateTime            @default(now())
   stopped_at          DateTime?
   updated_at          DateTime            @updatedAt
+  stack_name          String?
+  stack_version       String?
   completed_tasks     completed_task[]
   file_changes        user_file_changes[]
   scenario            scenario            @relation(fields: [current_scenario_id], references: [id])
   user                user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  workspace_stacks    workspace_stack[]
   
   @@index([user_id])
 }
@@ -267,25 +267,6 @@ model task_activity {
   user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id, completed_at])
-}
-
-model workspace_stack {
-  id            String    @id @default(cuid())
-  workspace_id  String
-  stack_name    String
-  stack_version String?
-  workspace     workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-  
-  @@index([workspace_id])
-}
-
-model app_setting {
-  id         String   @id @default(uuid())
-  key        String   @unique
-  value      String
-  type       String   @default("boolean")
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
 }
 
 model assessment_topic_score {

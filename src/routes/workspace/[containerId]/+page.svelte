@@ -54,7 +54,7 @@
   }
 
   let workspaceScenario = $derived(data.scenario ?? null);
-  let stackNames = $derived([...new Set(data.workspaceStacks?.map((entry) => entry.stackName).filter(Boolean) ?? [])]);
+  let stackNames = $derived([...new Set(data.stackName?.split('-').filter(Boolean) ?? [])]);
   let currentLevelRecord = $derived(getLevelByOrder(data.currentLevel.map((level) => ({
     id: level.id,
     title: level.title,

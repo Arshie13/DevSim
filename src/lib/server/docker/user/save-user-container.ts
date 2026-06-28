@@ -38,32 +38,17 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
     const stackName = stacks.map(stack => typeof stack === 'object' ? stack?.stackName : stack).join('-');
 
     if (isExisting && stacks && stacks.length > 0) {
-      // Update existing container - delete old stacks and create new ones
-      await prisma.workspace_stack.deleteMany({
-        where: { workspace_id: isExisting.id }
-      });
-
       await prisma.workspace.update({
         data: {
           user_id: data.userId,
           container_id: data.containerId,
           level: data.level,
           status: data.status,
+          stack_name: stackName,
+          stack_version: '1.0.0',
         },
         where: { id: isExisting.id }
       });
-
-      // Create new stack records
-      if (stacks && stacks.length > 0) {
-
-        await prisma.workspace_stack.createMany({
-          data: stacks.map(_ => ({
-            workspace_id: isExisting.id,
-            stack_name: stackName,
-            stack_version: '1.0.0'
-          }))
-        });
-      }
 
       return { dbContainerId: isExisting.id };
     }
@@ -75,12 +60,8 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
         current_scenario_id: data.currentScenarioId,
         level: data.level,
         status: data.status,
-        workspace_stacks: {
-          create: stacks.map(_ => ({
-            stack_name: stackName,
-            stack_version: '1.0.0'
-          }))
-        }
+        stack_name: stackName,
+        stack_version: '1.0.0',
       },
       select: { id: true }
     });

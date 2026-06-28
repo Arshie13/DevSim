@@ -11,11 +11,6 @@ export interface WorkspaceRow {
   is_archived: boolean;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface WorkspaceStackRow {
-  id: string;
-  workspace_id: string;
-  stackName: string;
-  stackVersion: string | null;
+  stack_name: string | null;
+  stack_version: string | null;
 }

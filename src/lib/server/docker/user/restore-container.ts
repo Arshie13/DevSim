@@ -51,11 +51,8 @@ export async function restoreContainer(
 	}
 
 	// --- 3. Create the new container WITHOUT a volume mount ---
-	// Get stacks from ContainerStack relation for the label
-	const containerStacks = await prisma.workspace_stack.findMany({
-		where: { workspace_id: req.dbContainerId }
-	});
-	const stackNames = containerStacks.map(s => s.stack_name);
+	// Get stack name from workspace for the label
+	const stackNames = record.stack_name ? [record.stack_name] : [];
 
 	// We intentionally do NOT bind the volume here. If we mount the volume directly
 	// into the running container, Docker will refuse to delete it (volume in use).

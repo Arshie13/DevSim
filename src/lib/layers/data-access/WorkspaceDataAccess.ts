@@ -1,7 +1,7 @@
 import prisma from '$lib/server/client';
-import type { WorkspaceRow, WorkspaceStackRow } from '$lib/interface/Workspace';
+import type { WorkspaceRow } from '$lib/interface/Workspace';
 
-function mapWorkspace(row: WorkspaceRow & { workspace_stacks?: WorkspaceStackRow[] }) {
+function mapWorkspace(row: WorkspaceRow) {
   return {
     id: row.id,
     userId: row.user_id,
@@ -15,12 +15,8 @@ function mapWorkspace(row: WorkspaceRow & { workspace_stacks?: WorkspaceStackRow
     isArchived: row.is_archived,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-    workspaceStacks: row.workspace_stacks?.map((s) => ({
-      id: s.id,
-      workspaceId: s.workspace_id,
-      stackName: s.stackName,
-      stackVersion: s.stackVersion
-    }))
+    stackName: row.stack_name,
+    stackVersion: row.stack_version,
   };
 }
 
@@ -34,11 +30,8 @@ export class WorkspaceDataAccess {
         level,
         is_archived: false
       },
-      include: {
-        workspace_stacks: true
-      }
     });
-    return row ? mapWorkspace(row as unknown as WorkspaceRow & { workspace_stacks: WorkspaceStackRow[] }) : null;
+    return row ? mapWorkspace(row as unknown as WorkspaceRow) : null;
   }
 
   async findWorkspaceByContainerId(userId: string, containerId: string) {
@@ -52,25 +45,18 @@ export class WorkspaceDataAccess {
   }
 
   async findActiveWorkspaceByStacks(userId: string, level: number, stacks: Array<{ stackName: string }>) {
+    const stackName = stacks.map(s => s.stackName).join('-');
     const activeWorkspaces = await prisma.workspace.findMany({
       where: {
         user_id: userId,
         level,
-        is_archived: false
-      },
-      include: {
-        workspace_stacks: true
+        is_archived: false,
+        stack_name: stackName,
       }
     });
 
-    const stackNames = stacks.map(s => s.stackName);
-    for (const ws of activeWorkspaces) {
-      const existingStackNames = (ws.workspace_stacks || []).map(s => s.stack_name);
-      const stacksMatch = stackNames.length === existingStackNames.length &&
-        stackNames.every(sn => existingStackNames.includes(sn));
-      if (stacksMatch) {
-        return mapWorkspace(ws as unknown as WorkspaceRow & { workspace_stacks: WorkspaceStackRow[] });
-      }
+    if (activeWorkspaces.length > 0) {
+      return mapWorkspace(activeWorkspaces[0] as unknown as WorkspaceRow);
     }
     return null;
   }
@@ -82,9 +68,11 @@ export class WorkspaceDataAccess {
   }
 
   async findWorkspaceStacks(workspaceId: string) {
-    return prisma.workspace_stack.findMany({
-      where: { workspace_id: workspaceId }
+    const ws = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { stack_name: true, stack_version: true }
     });
+    return ws ? [{ stack_name: ws.stack_name ?? '', stack_version: ws.stack_version }] : [];
   }
 
   async archiveWorkspace(workspaceId: string, volumeName: string) {
@@ -100,9 +88,6 @@ export class WorkspaceDataAccess {
 
   async deleteWorkspace(workspaceId: string) {
     try {
-      await prisma.workspace_stack.deleteMany({
-        where: { workspace_id: workspaceId }
-      });
       await prisma.workspace.delete({
         where: { id: workspaceId }
       });

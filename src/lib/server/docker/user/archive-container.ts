@@ -36,11 +36,8 @@ export async function archiveContainer(
 	}
 
 	// --- 2. Build a deterministic volume name ---
-	// Get stacks from ContainerStack relation
-	const containerStacks = await prisma.workspace_stack.findMany({
-		where: { workspace_id: record.id }
-	});
-	const stackNames = containerStacks.map(s => s.stack_name);
+	// Get stack name from workspace
+	const stackNames = record.stack_name ? [record.stack_name] : [];
 	const stackSlug = stackNames.join('-').toLowerCase().replace(/\s+/g, '-');
 	const randomSuffix = crypto.randomBytes(4).toString('hex'); // 8 chars for uniqueness
 	const volumeName = `devsim-${record.user_id}-${stackSlug}-${randomSuffix}`;

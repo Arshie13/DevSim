@@ -20,7 +20,6 @@ export const load: PageServerLoad = async (event) => {
     prisma.workspace.findFirst({
       where: { id: dbId, user_id: userId },
       include: {
-        workspace_stacks: true,
         scenario: true,
       },
     }),
@@ -42,10 +41,8 @@ export const load: PageServerLoad = async (event) => {
     container: {
       ...container,
       containerId: container.container_id,
-      containerStacks: container.workspace_stacks.map((s) => ({
-        stackName: s.stack_name,
-        stackVersion: s.stack_version,
-      })),
+      stackName: container.stack_name,
+      stackVersion: container.stack_version,
     },
   };
 };

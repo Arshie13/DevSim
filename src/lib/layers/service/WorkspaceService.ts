@@ -249,10 +249,8 @@ export class WorkspaceService {
 
     // Build volume name
     const stacks = await this.workspace.findWorkspaceStacks(record.id);
-
-    const stackSlug = stacks
-      .map((s) => s.stack_name)
-      .join("-")
+    const stackRow = stacks[0];
+    const stackSlug = (stackRow?.stack_name ?? 'unknown')
       .toLowerCase()
       .replace(/\s+/g, "-");
 

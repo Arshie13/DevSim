@@ -4,8 +4,8 @@ export interface IContainer {
   status: string;
   level: number;
   scenario: IScenario;
-  containerStacks?: IContainerStack[];
-  workspace_stacks?: IContainerStack[];
+  stackName?: string;
+  stackVersion?: string;
   isArchived?: boolean;
   volumeName?: string;
   updated_at?: Date;
@@ -19,11 +19,6 @@ export interface IScenario {
   levels: ILevel[];
 }
 
-export interface IContainerStack {
-  id: string;
-  stackName: string;
-  stackVersion?: string;
-}
 
 export interface IEpic {
   id: string;
