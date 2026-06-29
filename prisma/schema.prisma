@@ -21,28 +21,23 @@ model user {
   coins                         Int                       @default(0) @map("coins")
   level                         Int                       @default(1) @map("level")
   owned_avatars                 String[]                  @default([]) @map("owned_avatars")
-  createdAt                     DateTime                  @default(now()) @map("created_at")
-  updatedAt                     DateTime                  @updatedAt @map("updated_at")
+  created_at                    DateTime                  @default(now()) @map("created_at")
+  updated_at                    DateTime                  @updatedAt @map("updated_at")
   role                          String                    @default("USER") @map("role")
   titles                        String[]                  @default([]) @map("titles")
   has_completed_tutorial        Boolean                   @default(false) @map("has_completed_tutorial")
   trivia_correct_count          Int                       @default(0) @map("trivia_correct_count")
   has_seen_dashboard_onboarding Boolean                   @default(false) @map("has_seen_dashboard_onboarding")
-  badges                        String[]                  @default([]) @map("badges")
-  borders                       String[]                  @default([]) @map("borders")
-  dailyAiHelpUsed               Int                       @default(0) @map("daily_ai_help_used")
-  premiumPassExpiresAt          DateTime?                 @map("premium_pass_expires_at")
-  aiHelpCredits                 Int                       @default(0) @map("ai_help_credits")
-  xpBoostExpiresAt              DateTime?                 @map("xp_boost_expires_at")
-  xpBoostPercent                Int                       @default(0) @map("xp_boost_percent")
+  daily_ai_help_used            Int                       @default(0) @map("daily_ai_help_used")
+  ai_help_credits               Int                       @default(0) @map("ai_help_credits")
   daily_login                   daily_login?              @relation
   workspaces                    workspace[]
   task_activity                 task_activity[]
   achievements                  user_achievement[]
-  learnerPassEnrollments        learner_pass_enrollment[] @relation("learnerPassEnrollments")
-  userProjectAccess             user_project_access[]     @relation("userProjectAccess")
-  coinPurchases                 coin_purchase[]           @relation("coinPurchases")
-  assessmentTopicScores         assessment_topic_score[]
+  learner_pass_enrollments      learner_pass_enrollment[] @relation("learner_pass_enrollments")
+  user_project_access           user_project_access[]     @relation("user_project_access")
+  assessment_topic_scores       assessment_topic_score[]
+  coin_purchases                coin_purchase[]           @relation("coin_purchases")
 
   @@map("users")
 }
@@ -72,8 +67,8 @@ model workspace {
   completed_tasks String[] @default([]) @map("completed_tasks")
 
   file_changes file_changes[]
-  scenario     scenario            @relation(fields: [current_scenario_id], references: [id], onDelete: Restrict)
-  user         user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  scenario     scenario       @relation(fields: [current_scenario_id], references: [id], onDelete: Restrict)
+  user         user           @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([current_scenario_id])
@@ -85,13 +80,13 @@ model workspace {
 // ────────────────────────────────────────────────────────────────────────────
 
 model scenario {
-  id          String      @id @default(cuid()) @map("id")
-  name        String      @map("name")
-  description String      @map("description")
-  difficulty  String      @map("difficulty")
-  isPaywalled Boolean     @default(false) @map("is_paywalled")
-  levels      level[]
-  workspaces  workspace[]
+  id           String      @id @default(cuid()) @map("id")
+  name         String      @map("name")
+  description  String      @map("description")
+  difficulty   String      @map("difficulty")
+  is_paywalled Boolean     @default(false) @map("is_paywalled")
+  levels       level[]
+  workspaces   workspace[]
 
   @@map("scenarios")
 }
@@ -193,15 +188,15 @@ model daily_login {
 
   /// Actual claim timestamps for each day claimed this cycle (Monday–Sunday).
   /// Replaces the old Int[] day-indices. Use getDay() to recover the weekday.
-  claimedDays DateTime[] @default([]) @map("claimed_days")
+  claimed_days DateTime[] @default([]) @map("claimed_days")
 
   /// Cycle position (1-7). NOT a date — this is an integer counter tracking
   /// which day of the 7-day cycle the user is on. Resets after day 7.
   /// Distinct from streak (consecutive login days).
-  currentDay Int @default(1) @map("current_day")
+  current_day Int @default(1) @map("current_day")
 
-  lastClaimedAt DateTime? @map("last_claimed_at")
-  user          user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  last_claimed_at DateTime? @map("last_claimed_at")
+  user            user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("daily_logins")
 }
@@ -347,7 +342,7 @@ model learner_pass_enrollment {
 
   created_at DateTime @default(now()) @map("created_at")
   updated_at DateTime @updatedAt @map("updated_at")
-  user       user     @relation("learnerPassEnrollments", fields: [user_id], references: [id], onDelete: Cascade)
+  user       user     @relation("learner_pass_enrollments", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([expires_at])
@@ -356,16 +351,16 @@ model learner_pass_enrollment {
 }
 
 model learner_pass_reward {
-  id              String   @id @default(cuid()) @map("id")
-  reward_index    Int      @unique @map("reward_index") // 1..30
-  coins           Int      @default(0) @map("coins")
-  xp              Int      @default(0) @map("xp")
-  ai_helps        Int      @default(0) @map("ai_helps")
+  id                String   @id @default(cuid()) @map("id")
+  reward_index      Int      @unique @map("reward_index") // 1..30
+  coins             Int      @default(0) @map("coins")
+  xp                Int      @default(0) @map("xp")
+  ai_helps          Int      @default(0) @map("ai_helps")
   unlocked_scenario String[] @default([]) @map("unlocked_scenario")
-  display_type    String   @default("") @map("display_type")
-  display_value   String   @default("") @map("display_value")
-  created_at      DateTime @default(now()) @map("created_at")
-  updated_at      DateTime @updatedAt @map("updated_at")
+  display_type      String   @default("") @map("display_type")
+  display_value     String   @default("") @map("display_value")
+  created_at        DateTime @default(now()) @map("created_at")
+  updated_at        DateTime @updatedAt @map("updated_at")
 
   @@map("learner_pass_rewards")
 }
@@ -382,7 +377,7 @@ model user_project_access {
   source_ref_id String    @map("source_ref_id") // e.g., learner_pass_enrollment.id or coin_purchase.id
   granted_at    DateTime  @default(now()) @map("granted_at")
   expires_at    DateTime? @map("expires_at") // null = permanent unlock
-  user          user      @relation("userProjectAccess", fields: [user_id], references: [id], onDelete: Cascade)
+  user          user      @relation("user_project_access", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, project_id, source])
   @@index([user_id])
@@ -401,7 +396,7 @@ model coin_purchase {
   payment_id  String   @unique @map("payment_id")
   coin_amount Int      @map("coin_amount")
   created_at  DateTime @default(now()) @map("created_at")
-  user        user     @relation("coinPurchases", fields: [user_id], references: [id], onDelete: Cascade)
+  user        user     @relation("coin_purchases", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@map("coin_purchases")
