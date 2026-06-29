@@ -98,11 +98,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Return exact Prisma string.",
-                  "return \"note String?\";",
-                  "return \"___ ___?\";"
-                ],},
+                  hints: [
+                    "Return exact Prisma string.",
+                    "return \"note String?\";",
+                    "return \"___ ___?\";"
+                  ],
+                },
                 order: 6,
               },
               {
@@ -247,11 +248,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check if exists and not empty.",
-                  "if (!note || note === \"\") return undefined; return note;",
-                  "if (___ || note === \"\") return undefined; return ___;"
-                ],},
+                  hints: [
+                    "Check if exists and not empty.",
+                    "if (!note || note === \"\") return undefined; return note;",
+                    "if (___ || note === \"\") return undefined; return ___;"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -410,11 +412,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Compute totalPages with Math.ceil, handle zero.",
-  "You need a running total that accumulates across all elements. Which array method takes an accumulator function and a starting value?",
-  "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
-  ],},
+                  hints: [
+    "Compute totalPages with Math.ceil, handle zero.",
+    "You need a running total that accumulates across all elements. Which array method takes an accumulator function and a starting value?",
+    "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
+    ],
+                },
                 order: 7,
               },
               {
@@ -546,11 +549,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Filter then map.",
-                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                  "return items.filter(i => ___.___).map(i => ___.___);"
-                  ],},
+                  hints: [
+                    "Filter then map.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return items.filter(i => ___.___).map(i => ___.___);"
+                    ],
+                },
                 order: 6,
               },
               {
@@ -699,11 +703,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check type, return appropriate sign.",
-                  "if (type === \"INCOME\") return amount; return -amount;",
-                  "if (type === \"___\") return ___; return ___;"
-                ],},
+                  hints: [
+                    "Check type, return appropriate sign.",
+                    "if (type === \"INCOME\") return amount; return -amount;",
+                    "if (type === \"___\") return ___; return ___;"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -846,11 +851,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Guard division.",
-  "The dangerous case is a specific input that breaks the calculation. Check for that case FIRST before dividing, and return a safe fallback number.",
-  "if (budgetAmount === ___) return ___; return (spent / budgetAmount) * ___;"
-  ],},
+                  hints: [
+    "Guard division.",
+    "The dangerous case is a specific input that breaks the calculation. Check for that case FIRST before dividing, and return a safe fallback number.",
+    "if (budgetAmount === ___) return ___; return (spent / budgetAmount) * ___;"
+    ],
+                },
                 order: 7,
               },
               {
@@ -1004,11 +1010,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Subtract.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "return income ___ expense;"
-],},
+                  hints: [
+    "Subtract.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return income ___ expense;"
+  ],
+                },
                 order: 7,
               },
               {
@@ -1136,11 +1143,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Filter >= 80, sort descending.",
-                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                  "return budgets.filter(b => b.___ >= ___).sort((a,b) => b.___ - a.___);"
-                  ],},
+                  hints: [
+                    "Filter >= 80, sort descending.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return budgets.filter(b => b.___ >= ___).sort((a,b) => b.___ - a.___);"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1294,11 +1302,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check denominator first.",
-                  "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
-                  "if (denominator === ___) return ___; return numerator / denominator;"
-                  ],},
+                  hints: [
+                    "Check denominator first.",
+                    "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                    "if (denominator === ___) return ___; return numerator / denominator;"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1415,11 +1424,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Think about systemic cause, not surface symptom.",
-                  "Relates to missing zero-input test coverage.",
-                  "return \"___\" — what kind of tests?"
-                ],},
+                  hints: [
+                    "Think about systemic cause, not surface symptom.",
+                    "Relates to missing zero-input test coverage.",
+                    "return \"___\" — what kind of tests?"
+                  ],
+                },
                 order: 6,
               },
               {

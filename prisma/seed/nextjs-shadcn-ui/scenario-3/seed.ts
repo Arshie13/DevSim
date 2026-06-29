@@ -180,11 +180,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Simple text replacement.",
-                  "Replace \"Sign In\" with \"Log In\".",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Simple text replacement.",
+                    "Replace \"Sign In\" with \"Log In\".",
+                    "return \"___\";"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -305,11 +306,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check first character of grade.",
-                  "const t=grade[0]; if(t===\"A\")return\"bg-green-100 text-green-800\"; else if(t===\"B\")return\"bg-blue-100 text-blue-800\"; else if(t===\"C\")return\"bg-yellow-100 text-yellow-800\"; else return\"bg-red-100 text-red-800\";",
-                  "const t=grade[___]; if(t===\"A\")return\"___\"; else if(t===\"B\")return\"___\"; else if(t===\"C\")return\"___\"; else return\"___\";"
-                ],},
+                  hints: [
+                    "Check first character of grade.",
+                    "const t=grade[0]; if(t===\"A\")return\"bg-green-100 text-green-800\"; else if(t===\"B\")return\"bg-blue-100 text-blue-800\"; else if(t===\"C\")return\"bg-yellow-100 text-yellow-800\"; else return\"bg-red-100 text-red-800\";",
+                    "const t=grade[___]; if(t===\"A\")return\"___\"; else if(t===\"B\")return\"___\"; else if(t===\"C\")return\"___\"; else return\"___\";"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -420,11 +422,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Delegate to StatCard.",
-                  "Call StatCard.",
-                  "return ___;"
-                ],},
+                  hints: [
+                    "Delegate to StatCard.",
+                    "Call StatCard.",
+                    "return ___;"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -561,11 +564,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Chain two filters.",
-                  "let r=grades; if(query) r=r.filter(g=>g.courseCode.toLowerCase().includes(query.toLowerCase())); if(semester!==\"all\") r=r.filter(g=>g.semester===semester); return r;",
-                  "if (___) r = r.filter(...); if (semester !== \"___\") r = r.filter(g => g.semester === semester);"
-                ],},
+                  hints: [
+                    "Chain two filters.",
+                    "let r=grades; if(query) r=r.filter(g=>g.courseCode.toLowerCase().includes(query.toLowerCase())); if(semester!==\"all\") r=r.filter(g=>g.semester===semester); return r;",
+                    "if (___) r = r.filter(...); if (semester !== \"___\") r = r.filter(g => g.semester === semester);"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -800,11 +804,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Use regex.",
-                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                  "return /^___/.test(id);"
-                  ],},
+                  hints: [
+                    "Use regex.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return /^___/.test(id);"
+                    ],
+                },
                 order: 6,
               },
               {
@@ -925,11 +930,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Return parameter as-is.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "return ___;"
-],},
+                  hints: [
+    "Return parameter as-is.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return ___;"
+  ],
+                },
                 order: 6,
               },
               {
@@ -1157,11 +1163,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Compute day diff with Math.ceil, return appropriate string.",
-                  "const diff=Math.ceil((new Date(dueDate)-new Date())/86400000); if(diff===0)return\"Due Today\"; if(diff===1)return\"Due Tomorrow\"; if(diff>0)return`Due in ${diff} days`; return`Overdue by ${Math.abs(diff)} days`;",
-                  "const diff=Math.ceil((new Date(dueDate)-new Date())/___); if(diff===___)return\"Due Today\"; if(diff===___)return\"Due Tomorrow\"; ..."
-                ],},
+                  hints: [
+                    "Compute day diff with Math.ceil, return appropriate string.",
+                    "const diff=Math.ceil((new Date(dueDate)-new Date())/86400000); if(diff===0)return\"Due Today\"; if(diff===1)return\"Due Tomorrow\"; if(diff>0)return`Due in ${diff} days`; return`Overdue by ${Math.abs(diff)} days`;",
+                    "const diff=Math.ceil((new Date(dueDate)-new Date())/___); if(diff===___)return\"Due Today\"; if(diff===___)return\"Due Tomorrow\"; ..."
+                  ],
+                },
                 order: 5,
               },
               {

@@ -179,11 +179,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Simple text replacement.",
-                  "Replace \"Sign In\" with \"Login\".",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Simple text replacement.",
+                    "Replace \"Sign In\" with \"Login\".",
+                    "return \"___\";"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -299,11 +300,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Map status to classes.",
-                  "return {active:\"bg-green-100 text-green-800\",waiting:\"bg-yellow-100 text-yellow-800\",resolved:\"bg-gray-100 text-gray-800\"}[status];",
-                  "return {active:\"___\",waiting:\"___\",resolved:\"___\"}[___];"
-                ],},
+                  hints: [
+                    "Map status to classes.",
+                    "return {active:\"bg-green-100 text-green-800\",waiting:\"bg-yellow-100 text-yellow-800\",resolved:\"bg-gray-100 text-gray-800\"}[status];",
+                    "return {active:\"___\",waiting:\"___\",resolved:\"___\"}[___];"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -409,11 +411,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Delegate to existing component.",
-                  "Call MessageBubble.",
-                  "return ___;"
-                ],},
+                  hints: [
+                    "Delegate to existing component.",
+                    "Call MessageBubble.",
+                    "return ___;"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -550,11 +553,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Chain two filters.",
-                  "let r=conversations; if(query) r=r.filter(c=>c.customer.fullName.toLowerCase().includes(query.toLowerCase())); if(status!==\"all\") r=r.filter(c=>c.status===status); return r;",
-                  "if (___) r = r.filter(...); if (status !== \"___\") r = r.filter(c => c.status === status);"
-                ],},
+                  hints: [
+                    "Chain two filters.",
+                    "let r=conversations; if(query) r=r.filter(c=>c.customer.fullName.toLowerCase().includes(query.toLowerCase())); if(status!==\"all\") r=r.filter(c=>c.status===status); return r;",
+                    "if (___) r = r.filter(...); if (status !== \"___\") r = r.filter(c => c.status === status);"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -782,11 +786,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check each field, collect errors.",
-                  "const e={}; if(fullName.length<2) e.fullName=\"...\"; if(zipCode.length!==5) e.zipCode=\"...\"; if(complaint.length<10) e.complaint=\"...\"; return e;",
-                  "if(fullName.length<___)e.fullName=\"...\"; if(zipCode.length!==___)e.zipCode=\"...\"; if(complaint.length<___)e.complaint=\"...\";"
-                ],},
+                  hints: [
+                    "Check each field, collect errors.",
+                    "const e={}; if(fullName.length<2) e.fullName=\"...\"; if(zipCode.length!==5) e.zipCode=\"...\"; if(complaint.length<10) e.complaint=\"...\"; return e;",
+                    "if(fullName.length<___)e.fullName=\"...\"; if(zipCode.length!==___)e.zipCode=\"...\"; if(complaint.length<___)e.complaint=\"...\";"
+                  ],
+                },
                 order: 6,
               },
               {
@@ -907,11 +912,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Return parameter as-is.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "return ___;"
-],},
+                  hints: [
+    "Return parameter as-is.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return ___;"
+  ],
+                },
                 order: 6,
               },
               {
@@ -1121,11 +1127,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Compute elapsed ms, convert to appropriate unit.",
-                  "const e=Date.now()-new Date(date).getTime(); if(e<60000)return\"Just now\"; if(e<3600000)return`${Math.floor(e/60000)}m ago`; return`${Math.floor(e/3600000)}h ago`;",
-                  "const e=Date.now()-new Date(date).getTime(); if(e<___)return\"Just now\"; ..."
-                ],},
+                  hints: [
+                    "Compute elapsed ms, convert to appropriate unit.",
+                    "const e=Date.now()-new Date(date).getTime(); if(e<60000)return\"Just now\"; if(e<3600000)return`${Math.floor(e/60000)}m ago`; return`${Math.floor(e/3600000)}h ago`;",
+                    "const e=Date.now()-new Date(date).getTime(); if(e<___)return\"Just now\"; ..."
+                  ],
+                },
                 order: 5,
               },
               {

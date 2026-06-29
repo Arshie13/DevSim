@@ -238,11 +238,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Simple text replacement.",
-                  "Replace \"Hello World\" with \"Welcome Back\".",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Simple text replacement.",
+                    "Replace \"Hello World\" with \"Welcome Back\".",
+                    "return \"___\";"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -386,11 +387,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Use template literal or concatenation.",
-                  "JavaScript has a way to embed values directly into a string without using + for each piece. Think about what syntax lets you write a string template with placeholders.",
-                  "return `${___} by ${___}`;"
-                  ],},
+                  hints: [
+                    "Use template literal or concatenation.",
+                    "JavaScript has a way to embed values directly into a string without using + for each piece. Think about what syntax lets you write a string template with placeholders.",
+                    "return `${___} by ${___}`;"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -553,11 +555,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check \"all\" first, then filter.",
-                  "if (category === \"all\") return items; return items.filter(i => i.category === category);",
-                  "if (category === \"___\") return items; return items.filter(i => i.___ === category);"
-                ],},
+                  hints: [
+                    "Check \"all\" first, then filter.",
+                    "if (category === \"all\") return items; return items.filter(i => i.category === category);",
+                    "if (category === \"___\") return items; return items.filter(i => i.___ === category);"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -712,12 +715,12 @@ export const levels = [
                       label: "returns a Date object roughly 7 days ago",
                     },
                   ],
-                },
                 hints: [
                   "Break this into smaller steps and think about what each piece of your input becomes in the output.",
                   "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
                   "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
                 ],
+                },
                 order: 7,
               },
               {
@@ -856,11 +859,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Return object literal.",
-                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                  "return { ___: true, ___: payload };"
-                  ],},
+                  hints: [
+                    "Return object literal.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return { ___: true, ___: payload };"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1036,11 +1040,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check action. Increment or decrement with floor.",
-                  "if (action === \"cheer\") return current + 1; return Math.max(0, current - 1);",
-                  "if (action === \"___\") return current + 1; return Math.___(0, current - 1);"
-                ],},
+                  hints: [
+                    "Check action. Increment or decrement with floor.",
+                    "if (action === \"cheer\") return current + 1; return Math.max(0, current - 1);",
+                    "if (action === \"___\") return current + 1; return Math.___(0, current - 1);"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -1193,11 +1198,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Parse dates, ms diff, divide by 86400000, Math.abs.",
-                  "Before you can check the number, you need to convert it from its string form. Then you need to decide: is this a valid number, and is it within the allowed range?",
-                  "return Math.abs(new Date(a) - new Date(b)) / ___;"
-                  ],},
+                  hints: [
+                    "Parse dates, ms diff, divide by 86400000, Math.abs.",
+                    "Before you can check the number, you need to convert it from its string form. Then you need to decide: is this a valid number, and is it within the allowed range?",
+                    "return Math.abs(new Date(a) - new Date(b)) / ___;"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1379,11 +1385,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Check err.code === 11000.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "return ___.___ === ___;"
-],},
+                  hints: [
+    "Check err.code === 11000.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return ___.___ === ___;"
+  ],
+                },
                 order: 7,
               },
               {
@@ -1524,12 +1531,12 @@ export const levels = [
                       label: "UTC baseline unchanged",
                     },
                   ],
-                },
                 hints: [
                   "Break this into smaller steps and think about what each piece of your input becomes in the output.",
                   "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
                   "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
                 ],
+                },
                 order: 7,
               },
               {

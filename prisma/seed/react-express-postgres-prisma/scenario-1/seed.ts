@@ -218,11 +218,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Simple text change. Find the current string and swap it.",
-                    "The return statement has \"Hello World\". Replace it with \"Welcome Back\".",
-                    "return \"___\" — what string?"
-                  ],},
+                    hints: [
+                      "Simple text change. Find the current string and swap it.",
+                      "The return statement has \"Hello World\". Replace it with \"Welcome Back\".",
+                      "return \"___\" — what string?"
+                    ],
+                  },
                   order: 7,
                 },
                 {
@@ -357,11 +358,12 @@ export const levels = [
                       { input: [5], expected: 6, label: "five copies" },
                     ],
                   
-                  hints: [
-                    "Add 1 to the input.",
-                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                    "return currentCopies + ___;"
-                    ],},
+                    hints: [
+                      "Add 1 to the input.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return currentCopies + ___;"
+                      ],
+                  },
                   order: 7,
                 },
                 {
@@ -514,11 +516,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Pass the record to getBorrowBadgeLabel.",
-                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                    "return ___(record);"
-                    ],},
+                    hints: [
+                      "Pass the record to getBorrowBadgeLabel.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return ___(record);"
+                      ],
+                  },
                   order: 7,
                 },
                 {
@@ -700,12 +703,12 @@ export const levels = [
                         label: "checkpoint log order and content",
                       },
                     ],
+                    hints: [
+                      "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                      "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                      "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                    ],
                   },
-                  hints: [
-                    "Break this into smaller steps and think about what each piece of your input becomes in the output.",
-                    "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
-                    "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
-                  ],
                   order: 7,
                 },
                 {
@@ -849,11 +852,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Check if sender has enough funds. If not, return unchanged.",
-                    "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
-                    "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
-                    ],},
+                    hints: [
+                      "Check if sender has enough funds. If not, return unchanged.",
+                      "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                      "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
+                      ],
+                  },
                   order: 7,
                 },
                 {
@@ -1024,11 +1028,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Check typeof and > 0 for both fields.",
-                    "typeof body.bookId === \"number\" && body.bookId > 0 && typeof body.memberId === \"number\" && body.memberId > 0;",
-                    "return typeof body.___ === \"number\" && body.___ > 0 && ..."
-                  ],},
+                    hints: [
+                      "Check typeof and > 0 for both fields.",
+                      "typeof body.bookId === \"number\" && body.bookId > 0 && typeof body.memberId === \"number\" && body.memberId > 0;",
+                      "return typeof body.___ === \"number\" && body.___ > 0 && ..."
+                    ],
+                  },
                   order: 8,
                 },
                 {
@@ -1248,11 +1253,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Map each row, join with \" | \". Handle empty first.",
-                    "if (rows.length === 0) return \"(empty queue)\"; return rows.map(r => `#${r.queuePosition} ${r.memberName} [${r.status}]`).join(\" | \");",
-                    "if (rows.length === 0) return \"___\"; return rows.map(...).join(\"___\");"
-                  ],},
+                    hints: [
+                      "Map each row, join with \" | \". Handle empty first.",
+                      "if (rows.length === 0) return \"(empty queue)\"; return rows.map(r => `#${r.queuePosition} ${r.memberName} [${r.status}]`).join(\" | \");",
+                      "if (rows.length === 0) return \"___\"; return rows.map(...).join(\"___\");"
+                    ],
+                  },
                   order: 6,
                 },
                 {
@@ -1472,11 +1478,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Check returnedAt first. If not null, ON_TIME. Otherwise compare dates.",
-                    "if (returnedAt != null) return \"ON_TIME\"; if (new Date(dueDate) < new Date()) return \"OVERDUE\"; return \"ON_TIME\";",
-                    "if (returnedAt != ___) return \"___\"; if (new Date(dueDate) < new Date()) return \"___\"; return \"___\";"
-                  ],},
+                    hints: [
+                      "Check returnedAt first. If not null, ON_TIME. Otherwise compare dates.",
+                      "if (returnedAt != null) return \"ON_TIME\"; if (new Date(dueDate) < new Date()) return \"OVERDUE\"; return \"ON_TIME\";",
+                      "if (returnedAt != ___) return \"___\"; if (new Date(dueDate) < new Date()) return \"___\"; return \"___\";"
+                    ],
+                  },
                   order: 7,
                 },
                 {
@@ -1614,11 +1621,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Build 4 strings, join with \\n.",
-                    "[\"- Detection: ...\", \"- Impact Window: ...\", \"- Mitigation: ...\", \"- Verification: ...\"].join(\"\\n\");",
-                    "return [\"- Detection: ___\", \"- Impact Window: ___\", \"- Mitigation: ___\", \"- Verification: ___\"].join(\"___\");"
-                  ],},
+                    hints: [
+                      "Build 4 strings, join with \\n.",
+                      "[\"- Detection: ...\", \"- Impact Window: ...\", \"- Mitigation: ...\", \"- Verification: ...\"].join(\"\\n\");",
+                      "return [\"- Detection: ___\", \"- Impact Window: ___\", \"- Mitigation: ___\", \"- Verification: ___\"].join(\"___\");"
+                    ],
+                  },
                   order: 6,
                 },
                 {

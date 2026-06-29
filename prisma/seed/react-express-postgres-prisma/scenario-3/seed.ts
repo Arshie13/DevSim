@@ -371,11 +371,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-  "Multiply.",
-  "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
-  "return price ___ quantity;"
-],},
+                    hints: [
+    "Multiply.",
+    "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
+    "return price ___ quantity;"
+  ],
+                  },
                   order: 7,
                 },
                 {
@@ -532,11 +533,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Compare ranks.",
-                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                    "return players.filter(p => tierRank[p.___] >= tierRank[___]);"
-                    ],},
+                    hints: [
+                      "Compare ranks.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return players.filter(p => tierRank[p.___] >= tierRank[___]);"
+                      ],
+                  },
                   order: 7,
                 },
                 {
@@ -701,11 +703,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    ".filter() on required.",
-                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                    "return required.filter(item => !actions.___(item));"
-                    ],},
+                    hints: [
+                      ".filter() on required.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                      "return required.filter(item => !actions.___(item));"
+                      ],
+                  },
                   order: 5,
                 },
                 {
@@ -836,11 +839,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Check sender balance.",
-                    "An atomic transfer either fully completes or does nothing at all. If the sender doesn't have enough, return both accounts unchanged. Otherwise, subtract from sender and add to receiver.",
-                    "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
-                    ],},
+                    hints: [
+                      "Check sender balance.",
+                      "An atomic transfer either fully completes or does nothing at all. If the sender doesn't have enough, return both accounts unchanged. Otherwise, subtract from sender and add to receiver.",
+                      "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
+                      ],
+                  },
                   order: 7,
                 },
                 {
@@ -1058,12 +1062,12 @@ export const levels = [
                         label: "exhausted coupon",
                       },
                     ],
-                  
-                  hints: [
-                    "Combine with &&.",
-                    "A coupon is valid only when ALL three conditions are true: it's active, it hasn't expired yet, and there are still uses remaining. Use the logical AND operator to join them.",
-                    "return coupon.isActive ___ coupon.expiresAt > now ___ coupon.usedCount < coupon.maxUses;"
-                    ],},
+                    hints: [
+                      "Combine with &&.",
+                      "A coupon is valid only when ALL three conditions are true: it's active, it hasn't expired yet, and there are still uses remaining. Use the logical AND operator to join them.",
+                      "return coupon.isActive ___ coupon.expiresAt > now ___ coupon.usedCount < coupon.maxUses;"
+                    ],
+                  },
                   order: 7,
                 },
                 {
@@ -1213,11 +1217,12 @@ export const levels = [
                       { input: [11, 10], expected: false, label: "over limit" },
                     ],
                   
-                  hints: [
-  "Strict less-than.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "return usedCount ___ maxUses;"
-],},
+                    hints: [
+    "Strict less-than.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return usedCount ___ maxUses;"
+  ],
+                  },
                   order: 7,
                 },
                 {
@@ -1398,11 +1403,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    ".filter() checking the canceledAt field.",
-                    "Walk through the array and build a new one keeping only the items that pass your check. Think about which field tells the truth — the immutable timestamp, not the mutable status.",
-                    "return subscriptions.filter(s => s.___ === ___);"
-                    ],},
+                    hints: [
+                      ".filter() checking the canceledAt field.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. Think about which field tells the truth — the immutable timestamp, not the mutable status.",
+                      "return subscriptions.filter(s => s.___ === ___);"
+                      ],
+                  },
                   order: 6,
                 },
                 {
@@ -1545,11 +1551,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Check canceledAt only.",
-                    "Ignore the status field entirely — it can lie. The only field that tells you whether a subscription was actually canceled is the timestamp that was set at the moment of cancellation.",
-                    "return sub.___ === ___;"
-                    ],},
+                    hints: [
+                      "Check canceledAt only.",
+                      "Ignore the status field entirely — it can lie. The only field that tells you whether a subscription was actually canceled is the timestamp that was set at the moment of cancellation.",
+                      "return sub.___ === ___;"
+                      ],
+                  },
                   order: 6,
                 },
                 {

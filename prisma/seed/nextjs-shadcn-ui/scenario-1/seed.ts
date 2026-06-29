@@ -191,11 +191,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Simple text replacement.",
-                  "Replace \"Hello World\" with \"Welcome Back\".",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Simple text replacement.",
+                    "Replace \"Hello World\" with \"Welcome Back\".",
+                    "return \"___\";"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -311,11 +312,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Map status to class.",
-                  "return {available:\"bg-green-100 text-green-800\",borrowed:\"bg-blue-100 text-blue-800\",overdue:\"bg-red-100 text-red-800\"}[status];",
-                  "return {available:\"___\",borrowed:\"___\",overdue:\"___\"}[___];"
-                ],},
+                  hints: [
+                    "Map status to class.",
+                    "return {available:\"bg-green-100 text-green-800\",borrowed:\"bg-blue-100 text-blue-800\",overdue:\"bg-red-100 text-red-800\"}[status];",
+                    "return {available:\"___\",borrowed:\"___\",overdue:\"___\"}[___];"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -427,11 +429,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Multiply by 2.",
-  "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
-  "return value * ___;"
-],},
+                  hints: [
+    "Multiply by 2.",
+    "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
+    "return value * ___;"
+  ],
+                },
                 order: 6,
               },
               {
@@ -571,11 +574,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Filter on both fields, lowercase.",
-                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                  "return books.filter(b => b.___.toLowerCase().includes(query.toLowerCase()) || b.___.toLowerCase().includes(query.toLowerCase()));"
-                  ],},
+                  hints: [
+                    "Filter on both fields, lowercase.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return books.filter(b => b.___.toLowerCase().includes(query.toLowerCase()) || b.___.toLowerCase().includes(query.toLowerCase()));"
+                    ],
+                },
                 order: 6,
               },
               {
@@ -776,11 +780,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Use getFullYear, getMonth+1, getDate, padStart.",
-                  "const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,\"0\"); const d=String(date.getDate()).padStart(2,\"0\"); return `${y}-${m}-${d}`;",
-                  "const m=String(date.getMonth()+___).padStart(2,\"0\"); const d=String(date.___()).padStart(2,\"0\");"
-                ],},
+                  hints: [
+                    "Use getFullYear, getMonth+1, getDate, padStart.",
+                    "const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,\"0\"); const d=String(date.getDate()).padStart(2,\"0\"); return `${y}-${m}-${d}`;",
+                    "const m=String(date.getMonth()+___).padStart(2,\"0\"); const d=String(date.___()).padStart(2,\"0\");"
+                  ],
+                },
                 order: 5,
               },
               {
@@ -1051,11 +1056,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Parse and check NaN.",
-                  "Before you can check the number, you need to convert it from its string form. Then you need to decide: is this a valid number, and is it within the allowed range?",
-                  "const num = parseInt(value); return ___(num) ? ___ : num;"
-                  ],},
+                  hints: [
+                    "Parse and check NaN.",
+                    "Before you can check the number, you need to convert it from its string form. Then you need to decide: is this a valid number, and is it within the allowed range?",
+                    "const num = parseInt(value); return ___(num) ? ___ : num;"
+                    ],
+                },
                 order: 5,
               },
               {

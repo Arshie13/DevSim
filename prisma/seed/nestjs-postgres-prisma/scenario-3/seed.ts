@@ -95,11 +95,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Return Prisma string.",
-                  "return \"phoneNumber String?\";",
-                  "return \"___ ___?\";"
-                ],},
+                  hints: [
+                    "Return Prisma string.",
+                    "return \"phoneNumber String?\";",
+                    "return \"___ ___?\";"
+                  ],
+                },
                 order: 6,
               },
               {
@@ -236,11 +237,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check if exists and not empty.",
-                  "if (!phoneNumber || phoneNumber === \"\") return null; return phoneNumber;",
-                  "if (___ || phoneNumber === \"\") return ___; return ___;"
-                ],},
+                  hints: [
+                    "Check if exists and not empty.",
+                    "if (!phoneNumber || phoneNumber === \"\") return null; return phoneNumber;",
+                    "if (___ || phoneNumber === \"\") return ___; return ___;"
+                  ],
+                },
                 order: 6,
               },
               {
@@ -372,11 +374,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Filter by stock.",
-                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                  "return products.filter(p => p.___ <= ___);"
-                  ],},
+                  hints: [
+                    "Filter by stock.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return products.filter(p => p.___ <= ___);"
+                    ],
+                },
                 order: 4,
               },
               {
@@ -489,11 +492,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Compute totalPages.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
-],},
+                  hints: [
+    "Compute totalPages.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
+  ],
+                },
                 order: 4,
               },
               {
@@ -642,11 +646,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Compute tax, clamp total, round.",
-  "JavaScript has built-in functions for common mathematical operations. Think about which one picks the larger of two numbers, or rounds to the nearest integer.",
-  "const t = subtotal * taxRate; const raw = subtotal + t - discount; const total = Math.___(___, raw);"
-],},
+                  hints: [
+    "Compute tax, clamp total, round.",
+    "JavaScript has built-in functions for common mathematical operations. Think about which one picks the larger of two numbers, or rounds to the nearest integer.",
+    "const t = subtotal * taxRate; const raw = subtotal + t - discount; const total = Math.___(___, raw);"
+  ],
+                },
                 order: 6,
               },
               {
@@ -774,11 +779,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check both valid options.",
-                  "return method === \"CASH\" || method === \"CARD\";",
-                  "return method === \"___\" || method === \"___\";"
-                ],},
+                  hints: [
+                    "Check both valid options.",
+                    "return method === \"CASH\" || method === \"CARD\";",
+                    "return method === \"___\" || method === \"___\";"
+                  ],
+                },
                 order: 4,
               },
               {
@@ -921,11 +927,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Sum with .reduce().",
-                  "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
-                  "return orders.reduce((sum, o) => sum + o.___, ___);"
-                  ],},
+                  hints: [
+                    "Sum with .reduce().",
+                    "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
+                    "return orders.reduce((sum, o) => sum + o.___, ___);"
+                    ],
+                },
                 order: 5,
               },
               {
@@ -1043,11 +1050,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Sum with .reduce().",
-                  "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
-                  "return days.reduce((sum, d) => sum + d.___, ___);"
-                  ],},
+                  hints: [
+                    "Sum with .reduce().",
+                    "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
+                    "return days.reduce((sum, d) => sum + d.___, ___);"
+                    ],
+                },
                 order: 4,
               },
               {
@@ -1192,11 +1200,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Multiply by 100, round, divide.",
-                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                  "return Math.round(value * ___) / ___;"
-                  ],},
+                  hints: [
+                    "Multiply by 100, round, divide.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return Math.round(value * ___) / ___;"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1316,11 +1325,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Think about systemic cause.",
-                  "Relates to missing concurrent access tests.",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Think about systemic cause.",
+                    "Relates to missing concurrent access tests.",
+                    "return \"___\";"
+                  ],
+                },
                 order: 6,
               },
               {

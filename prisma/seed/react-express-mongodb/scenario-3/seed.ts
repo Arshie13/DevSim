@@ -245,11 +245,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Simple return.",
-                  "return \"Welcome Back\";",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Simple return.",
+                    "return \"Welcome Back\";",
+                    "return \"___\";"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -394,11 +395,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Use template literal.",
-                  "JavaScript has a way to embed values directly into a string without using + for each piece. Think about what syntax lets you write a string template with placeholders.",
-                  "return `${___} in ${___}`;"
-                  ],},
+                  hints: [
+                    "Use template literal.",
+                    "JavaScript has a way to embed values directly into a string without using + for each piece. Think about what syntax lets you write a string template with placeholders.",
+                    "return `${___} in ${___}`;"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -557,11 +559,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check \"all\" first, then filter.",
-                  "if (dayKey === \"all\") return stops; return stops.filter(s => s.dayKey === dayKey);",
-                  "if (dayKey === \"___\") return stops; return stops.filter(s => s.___ === dayKey);"
-                ],},
+                  hints: [
+                    "Check \"all\" first, then filter.",
+                    "if (dayKey === \"all\") return stops; return stops.filter(s => s.dayKey === dayKey);",
+                    "if (dayKey === \"___\") return stops; return stops.filter(s => s.___ === dayKey);"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -715,12 +718,12 @@ export const levels = [
                       label: "returns a Date 1ms before startDate",
                     },
                   ],
-                },
                 hints: [
                   "Break this into smaller steps and think about what each piece of your input becomes in the output.",
                   "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
                   "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
                 ],
+                },
                 order: 7,
               },
               {
@@ -863,11 +866,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Return object literal.",
-                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                  "return { ___: true, ___: payload };"
-                  ],},
+                  hints: [
+                    "Return object literal.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return { ___: true, ___: payload };"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1044,11 +1048,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check action.",
-                  "if (action === \"vote\") return current + 1; return Math.max(0, current - 1);",
-                  "if (action === \"___\") return current + 1; return Math.___(0, current - 1);"
-                ],},
+                  hints: [
+                    "Check action.",
+                    "if (action === \"vote\") return current + 1; return Math.max(0, current - 1);",
+                    "if (action === \"___\") return current + 1; return Math.___(0, current - 1);"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -1208,11 +1213,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Divide and round with Math.round.",
-                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                  "return Math.round((amount / splitCount) * ___) / ___;"
-                  ],},
+                  hints: [
+                    "Divide and round with Math.round.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return Math.round((amount / splitCount) * ___) / ___;"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1383,11 +1389,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Check err.code === 11000.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "return ___.___ === ___;"
-],},
+                  hints: [
+    "Check err.code === 11000.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return ___.___ === ___;"
+  ],
+                },
                 order: 7,
               },
               {
@@ -1540,12 +1547,12 @@ export const levels = [
                       label: "13:00 UTC = 21:00 Manila same day",
                     },
                   ],
-                },
                 hints: [
                   "Break this into smaller steps and think about what each piece of your input becomes in the output.",
                   "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
                   "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
                 ],
+                },
                 order: 8,
               },
               {

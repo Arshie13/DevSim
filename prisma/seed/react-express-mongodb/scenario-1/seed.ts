@@ -231,11 +231,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Simple text replacement.",
-                  "Replace \"Hello World\" with \"Cook. Share. Inspire.\"",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Simple text replacement.",
+                    "Replace \"Hello World\" with \"Cook. Share. Inspire.\"",
+                    "return \"___\";"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -377,11 +378,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Build \"/recipes/\" + id.",
-                  "return \"/recipes/\" + id;",
-                  "return \"/recipes/\" + ___;"
-                ],},
+                  hints: [
+                    "Build \"/recipes/\" + id.",
+                    "return \"/recipes/\" + id;",
+                    "return \"/recipes/\" + ___;"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -517,11 +519,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Use .filter() with .toLowerCase(). Handle empty prefix.",
-                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                  "return items.filter(item => item.___().startsWith(prefix.___()));"
-                  ],},
+                  hints: [
+                    "Use .filter() with .toLowerCase(). Handle empty prefix.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return items.filter(item => item.___().startsWith(prefix.___()));"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -692,12 +695,12 @@ export const levels = [
                       label: "canonical 6-stage pipeline",
                     },
                   ],
-                },
                 hints: [
                   "Break this into smaller steps and think about what each piece of your input becomes in the output.",
                   "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
                   "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
                 ],
+                },
                 order: 9,
               },
               {
@@ -819,11 +822,12 @@ export const levels = [
                     { input: ["50"], expected: { ok: true, value: 50 }, label: "boundary upper" },
                   ],
                 
-                hints: [
-                  "Parse string, check NaN, check range.",
-                  "const num = parseInt(value); if (isNaN(num)) return {ok:false,error:\"not a number\"}; if (num<1||num>50) return {ok:false,error:\"out of range\"}; return {ok:true,value:num};",
-                  "const num = parseInt(value); if (___) return {ok:false,error:\"not a number\"}; if (num<___||num>___) return {ok:false,error:\"out of range\"}; return {ok:true,value:num};"
-                ],},
+                  hints: [
+                    "Parse string, check NaN, check range.",
+                    "const num = parseInt(value); if (isNaN(num)) return {ok:false,error:\"not a number\"}; if (num<1||num>50) return {ok:false,error:\"out of range\"}; return {ok:true,value:num};",
+                    "const num = parseInt(value); if (___) return {ok:false,error:\"not a number\"}; if (num<___||num>___) return {ok:false,error:\"out of range\"}; return {ok:true,value:num};"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -990,11 +994,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Return object literal with two keys.",
-  "Construct a value with a specific shape. Think about what keys the output needs and what values go with them.",
-  "return { ___, ___ };"
-],},
+                  hints: [
+    "Return object literal with two keys.",
+    "Construct a value with a specific shape. Think about what keys the output needs and what values go with them.",
+    "return { ___, ___ };"
+  ],
+                },
                 order: 9,
               },
               {
@@ -1120,11 +1125,12 @@ export const levels = [
                     { input: [10, 5], expected: 10, label: "non-zero min" },
                   ],
                 
-                hints: [
-  "Use Math.max.",
-  "JavaScript has built-in functions for common mathematical operations. Think about which one picks the larger of two numbers, or rounds to the nearest integer.",
-  "return Math.max(___, ___);"
-],},
+                  hints: [
+    "Use Math.max.",
+    "JavaScript has built-in functions for common mathematical operations. Think about which one picks the larger of two numbers, or rounds to the nearest integer.",
+    "return Math.max(___, ___);"
+  ],
+                },
                 order: 8,
               },
               {
@@ -1285,12 +1291,12 @@ export const levels = [
                       label: "single call returns void; state.x is incremented to 1",
                     },
                   ],
-                },
                 hints: [
                   "Break this into smaller steps and think about what each piece of your input becomes in the output.",
                   "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
                   "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
                 ],
+                },
                 order: 9,
               },
               {
@@ -1452,11 +1458,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Compute ms diff, check < 24h, floor days.",
-                  "const diff = new Date(now) - new Date(postedAt); if (diff < 86400000) return \"Posted today\"; const days = Math.floor(diff / 86400000); return `Posted ${days} day(s) ago`;",
-                  "const diff = new Date(now) - new Date(postedAt); if (diff < ___) return \"Posted today\"; const days = Math.floor(diff / ___);"
-                ],},
+                  hints: [
+                    "Compute ms diff, check < 24h, floor days.",
+                    "const diff = new Date(now) - new Date(postedAt); if (diff < 86400000) return \"Posted today\"; const days = Math.floor(diff / 86400000); return `Posted ${days} day(s) ago`;",
+                    "const diff = new Date(now) - new Date(postedAt); if (diff < ___) return \"Posted today\"; const days = Math.floor(diff / ___);"
+                  ],
+                },
                 order: 9,
               },
               {

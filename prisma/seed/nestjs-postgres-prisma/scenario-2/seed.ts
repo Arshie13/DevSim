@@ -94,11 +94,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Return Prisma string.",
-                  "The instructions already show the exact string to return. It's in quotes after the word 'returning' — copy it exactly.",
-                  "return \"___ ___?\";"
-                ],},
+                  hints: [
+                    "Return Prisma string.",
+                    "The instructions already show the exact string to return. It's in quotes after the word 'returning' — copy it exactly.",
+                    "return \"___ ___?\";"
+                  ],
+                },
                 order: 6,
               },
               {
@@ -242,11 +243,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Check if exists and not empty.",
-                  "You need to handle two cases that should return null: when roastLevel is falsy (null/undefined), and when it's an empty string. Otherwise return the input as-is.",
-                  "if (___ || roastLevel === \"\") return ___; return ___;"
-                ],},
+                  hints: [
+                    "Check if exists and not empty.",
+                    "You need to handle two cases that should return null: when roastLevel is falsy (null/undefined), and when it's an empty string. Otherwise return the input as-is.",
+                    "if (___ || roastLevel === \"\") return ___; return ___;"
+                  ],
+                },
                 order: 7,
               },
               {
@@ -401,11 +403,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-  "Compute totalPages.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
-],},
+                  hints: [
+    "Compute totalPages.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
+  ],
+                },
                 order: 7,
               },
               {
@@ -536,11 +539,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Filter then map.",
-                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                  "return items.filter(i => ___.___).map(i => ___.___);"
-                  ],},
+                  hints: [
+                    "Filter then map.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return items.filter(i => ___.___).map(i => ___.___);"
+                    ],
+                },
                 order: 6,
               },
               {
@@ -685,11 +689,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Compute tax then total, round both.",
-                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                  "const t = subtotal * taxRate; return {subtotal,tax:Math.round(t*100)/100,total:Math.round((subtotal+t)*___)/___};"
-                  ],},
+                  hints: [
+                    "Compute tax then total, round both.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "const t = subtotal * taxRate; return {subtotal,tax:Math.round(t*100)/100,total:Math.round((subtotal+t)*___)/___};"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -830,11 +835,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Define allowed map, check if target in list.",
-                  "Create an object mapping each state to its allowed next states as an array. Look up the from-state in this object (defaulting to empty array if missing), then check whether the to-state appears in that array.",
-                  "const allowed={...}; return (allowed[___]||[]).___(___);"
-                ],},
+                  hints: [
+                    "Define allowed map, check if target in list.",
+                    "Create an object mapping each state to its allowed next states as an array. Look up the from-state in this object (defaulting to empty array if missing), then check whether the to-state appears in that array.",
+                    "const allowed={...}; return (allowed[___]||[]).___(___);"
+                  ],
+                },
                 order: 6,
               },
               {
@@ -988,11 +994,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Sum with .reduce().",
-                  "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
-                  "return orders.reduce((sum, o) => sum + o.___, ___);"
-                  ],},
+                  hints: [
+                    "Sum with .reduce().",
+                    "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
+                    "return orders.reduce((sum, o) => sum + o.___, ___);"
+                    ],
+                },
                 order: 6,
               },
               {
@@ -1129,11 +1136,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Filter then sort ascending.",
-                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                  "return products.filter(p => p.___ <= ___).sort((a,b) => a.___ - b.___);"
-                  ],},
+                  hints: [
+                    "Filter then sort ascending.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return products.filter(p => p.___ <= ___).sort((a,b) => a.___ - b.___);"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1288,11 +1296,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Multiply by 100, round, divide by 100.",
-                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                  "return Math.round(value * ___) / ___;"
-                  ],},
+                  hints: [
+                    "Multiply by 100, round, divide by 100.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return Math.round(value * ___) / ___;"
+                    ],
+                },
                 order: 7,
               },
               {
@@ -1413,11 +1422,12 @@ export const levels = [
                     },
                   ],
                 
-                hints: [
-                  "Think about systemic cause.",
-                  "Ask yourself: what kind of test was never written that would have caught the oversell bug before it hit production? Frame your answer around what was missing.",
-                  "return \"___\";"
-                ],},
+                  hints: [
+                    "Think about systemic cause.",
+                    "Ask yourself: what kind of test was never written that would have caught the oversell bug before it hit production? Frame your answer around what was missing.",
+                    "return \"___\";"
+                  ],
+                },
                 order: 6,
               },
               {

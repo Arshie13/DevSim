@@ -219,12 +219,12 @@ export const levels = [
                         label: "updated text",
                       },
                     ],
-                  },
                   hints: [
                     "Break this into smaller steps and think about what each piece of your input becomes in the output.",
                     "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
                     "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
                   ],
+                  },
                   order: 7,
                 },
                 {
@@ -370,11 +370,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-  "Multiply the two arguments.",
-  "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
-  "return price ___ quantity;"
-],},
+                    hints: [
+    "Multiply the two arguments.",
+    "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
+    "return price ___ quantity;"
+  ],
+                  },
                   order: 7,
                 },
                 {
@@ -524,11 +525,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Pass product to getProductBadge.",
-                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                    "return ___(product);"
-                    ],},
+                    hints: [
+                      "Pass product to getProductBadge.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return ___(product);"
+                      ],
+                  },
                   order: 7,
                 },
                 {
@@ -688,11 +690,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Use .filter() on required — keep items not in actions.",
-                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                    "return required.filter(item => !actions.___(item));"
-                    ],},
+                    hints: [
+                      "Use .filter() on required — keep items not in actions.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                      "return required.filter(item => !actions.___(item));"
+                      ],
+                  },
                   order: 5,
                 },
                 {
@@ -829,11 +832,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Check sender balance.",
-                    "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
-                    "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
-                    ],},
+                    hints: [
+                      "Check sender balance.",
+                      "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                      "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
+                      ],
+                  },
                   order: 7,
                 },
                 {
@@ -1039,12 +1043,12 @@ export const levels = [
                         label: "exhausted coupon",
                       },
                     ],
-                  
-                  hints: [
-                    "Combine three conditions with &&.",
-                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                    "return coupon.isActive ___ coupon.expiresAt > now ___ coupon.usedCount < coupon.maxUses;"
-                    ],},
+                    hints: [
+                      "Combine three conditions with &&.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return coupon.isActive ___ coupon.expiresAt > now ___ coupon.usedCount < coupon.maxUses;"
+                    ],
+                  },
                   order: 7,
                 },
                 {
@@ -1195,11 +1199,12 @@ export const levels = [
                       { input: [11, 10], expected: false, label: "over limit" },
                     ],
                   
-                  hints: [
-  "Strict less-than.",
-  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-  "return usedCount ___ maxUses;"
-],},
+                    hints: [
+    "Strict less-than.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return usedCount ___ maxUses;"
+  ],
+                  },
                   order: 7,
                 },
                 {
@@ -1358,11 +1363,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Use .filter() with cancelledAt === null.",
-                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                    "return orders.filter(o => o.___ === ___);"
-                    ],},
+                    hints: [
+                      "Use .filter() with cancelledAt === null.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                      "return orders.filter(o => o.___ === ___);"
+                      ],
+                  },
                   order: 6,
                 },
                 {
@@ -1511,11 +1517,12 @@ export const levels = [
                       },
                     ],
                   
-                  hints: [
-                    "Check cancelledAt only.",
-                    "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
-                    "return order.___ === ___;"
-                    ],},
+                    hints: [
+                      "Check cancelledAt only.",
+                      "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                      "return order.___ === ___;"
+                      ],
+                  },
                   order: 6,
                 },
                 {
