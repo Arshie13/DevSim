@@ -1,6 +1,7 @@
 <script lang='ts'>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from '$env/static/public';
   import {
     loadStripe,
@@ -21,10 +22,12 @@
   let isStripeLoading = false;
   let errorMessage = '';
   let stripeInitialized = false;
+  let modalTitle = 'PAYMENT COMPLETE';
   // Shows the success popup; closing it returns the user to the dashboard.
   let purchaseComplete = false;
-
   const product = data.product;
+  
+  let modalMessage = `${product.amount.toLocaleString()} coins have been added to your account!`;
 
   onMount(async () => {
     console.log('Checkout: Initializing Stripe with key:', PUBLIC_STRIPE_PUBLISHABLE_KEY);
@@ -91,75 +94,54 @@
     }
   });
 
-  async function handleSubmit() {
-    console.log('Checkout: handleSubmit triggered');
-    
-    if (!stripe || !cardElement) {
-      errorMessage = 'Payment system not ready. Please wait.';
-      console.warn('Checkout: Stripe or CardElement not ready', { stripe, cardElement });
-      return;
-    }
-
+  function handleEnhance() {
     isSubmitting = true;
     errorMessage = '';
+    return async ({ result }: { result: { type: string; data?: Record<string, any> } }) => {
+      if (result.type === 'failure') {
+        errorMessage = (result.data?.error as string) ?? 'Payment failed.';
+        isSubmitting = false;
+        return;
+      }
 
-    try {
-      console.log('Checkout: Step 1 - Creating Payment Intent for:', product.id);
-      const response = await fetch('/api/marketplace/coins', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          packageId: product.id === 'custom' ? null : product.id, 
-          customAmount: product.id === 'custom' ? product.amount : null 
-        }),
-      });
+      const { clientSecret } = result.data as { clientSecret: string };
 
-      const intentData = await response.json();
-      console.log('Checkout: Step 1 Response:', intentData);
-      
-      if (intentData.error) throw new Error(intentData.error);
-      if (!intentData.clientSecret) throw new Error('Server failed to provide authorization secret');
+      try {
+        const { error: confirmError, paymentIntent } =
+          await stripe!.confirmCardPayment(clientSecret, {
+            payment_method: { card: cardElement! },
+          });
 
-      const { clientSecret } = intentData;
+        if (confirmError) throw new Error(confirmError.message);
+        cardElement!.clear();
 
-      console.log('Checkout: Step 2 - Confirming Card Payment...');
-      const { error: confirmError, paymentIntent } =
-        await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardElement,
-          },
+        const fd = new FormData();
+        fd.append('paymentIntentId', paymentIntent!.id);
+        const res = await fetch('?/confirmPayment', {
+          method: 'POST',
+          body: fd,
         });
+        const confirmResult = await res.json();
 
-      if (confirmError) {
-        console.error('Checkout: Stripe Confirmation Error:', confirmError);
-        throw new Error(confirmError.message);
+        if (confirmResult.type === 'failure') {
+          errorMessage = (confirmResult.data?.error as string) ?? 'Confirmation failed.';
+        } else {
+          if (confirmResult.data?.status === 'pending_webhook') {
+            modalTitle = 'PAYMENT RECEIVED';
+            modalMessage = `${product.amount.toLocaleString()} coins will be added once Stripe finalizes your payment.`;
+          } else {
+            modalTitle = 'PAYMENT COMPLETE';
+            modalMessage = `${product.amount.toLocaleString()} coins have been added to your account!`;
+          }
+
+          purchaseComplete = true;
+        }
+      } catch (err: any) {
+        errorMessage = err.message || 'An unexpected error occurred during processing.';
+      } finally {
+        isSubmitting = false;
       }
-
-      console.log('Checkout: Step 2 Success - PaymentIntent status:', paymentIntent?.status);
-      cardElement.clear();
-
-      console.log('Checkout: Step 3 - Finalizing Core Injection on server...');
-      const finalizeResponse = await fetch('/api/marketplace/coins', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentIntentId: paymentIntent.id }),
-      });
-
-      const finalizeData = await finalizeResponse.json();
-      console.log('Checkout: Step 3 Response:', finalizeData);
-
-      if (!finalizeResponse.ok || finalizeData.error) {
-        throw new Error(finalizeData.error || 'Failed to finalize coin injection. Please contact support.');
-      }
-
-      console.log('Checkout: Purchase Complete!');
-      purchaseComplete = true;
-    } catch (err: any) {
-      console.error('Checkout: Payment loop error:', err);
-      errorMessage = err.message || 'An unexpected error occurred during processing.';
-    } finally {
-      isSubmitting = false;
-    }
+    };
   }
 
   function goBack() {
@@ -259,7 +241,12 @@
             <p class='text-sm font-orbitron text-obsidian-text-primary/50 animate-pulse uppercase tracking-widest'>Initializing secure gateway...</p>
           </div>
         {:else}
-          <form on:submit|preventDefault={handleSubmit} class='flex flex-col flex-1'>
+          <form method="POST" action="?/createPaymentIntent" use:enhance={handleEnhance} class='flex flex-col flex-1'>
+            {#if product.id === 'custom'}
+              <input type="hidden" name="customAmount" value={product.amount} />
+            {:else}
+              <input type="hidden" name="packageId" value={product.id} />
+            {/if}
             <div class='mb-8'>
               <label class='block text-[0.65rem] font-orbitron font-bold text-obsidian-text-primary/40 uppercase tracking-[0.2em] mb-3' for='card-element'>
                 Neural-Link Card Authorization
@@ -310,14 +297,11 @@
   <!-- Purchase success popup — closing it heads back to the dashboard -->
   <PurchaseSuccessModal
     open={purchaseComplete}
-    title='PAYMENT COMPLETE'
+    title={modalTitle}
     closeLabel='Go to Dashboard'
     onClose={() => goto('/dashboard')}
   >
-    <p>
-      <span class='font-orbitron font-bold text-cyber-warn'>{product.amount.toLocaleString()} coins</span>
-      have been added to your account!
-    </p>
+    <p>{modalMessage}</p>
   </PurchaseSuccessModal>
 </div>
 

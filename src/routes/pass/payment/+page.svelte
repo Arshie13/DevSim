@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
+  import { enhance } from "$app/forms";
   import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from "$env/static/public";
   import {
     loadStripe,
@@ -18,6 +19,8 @@
   let isStripeLoading = false;
   let errorMessage = "";
   let stripeInitialized = false;
+  let modalTitle = "PASS ACTIVATED";
+  let modalMessage = "Your Learner Pass is now active — premium rewards are unlocked!";
   // Shows the success popup; closing it heads to the pass rewards page.
   let purchaseComplete = false;
 
@@ -86,55 +89,54 @@
     }
   });
 
-  async function handleSubmit(event: SubmitEvent) {
-    event.preventDefault();
-
-    if (!stripe || !cardElement) {
-      errorMessage = "Payment system not ready. Please wait.";
-      return;
-    }
-
+  function handleEnhance() {
     isSubmitting = true;
     errorMessage = "";
-
-    try {
-      const response = await fetch("/api/stripe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "learner_pass_30d" }),
-      });
-
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-
-      const { clientSecret } = data;
-
-      const { error: confirmError, paymentIntent } =
-        await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardElement,
-          },
-        });
-
-      if (confirmError) {
-        throw new Error(confirmError.message);
+    return async ({ result }: { result: { type: string; data?: Record<string, any> } }) => {
+      if (result.type === "failure") {
+        errorMessage = (result.data?.error as string) ?? "Payment failed.";
+        isSubmitting = false;
+        return;
       }
 
-      cardElement.clear();
+      const { clientSecret } = result.data as { clientSecret: string };
 
-      await fetch("/api/stripe", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentIntentId: paymentIntent.id }),
-      });
+      try {
+        const { error: confirmError, paymentIntent } =
+          await stripe!.confirmCardPayment(clientSecret, {
+            payment_method: { card: cardElement! },
+          });
 
-      purchaseComplete = true;
-    } catch (err: any) {
-      console.error("Payment error:", err);
-      errorMessage = err.message;
-    } finally {
-      isSubmitting = false;
-    }
+        if (confirmError) throw new Error(confirmError.message);
+        cardElement!.clear();
+
+        const fd = new FormData();
+        fd.append("paymentIntentId", paymentIntent!.id);
+        const res = await fetch("?/confirmPayment", {
+          method: "POST",
+          body: fd,
+        });
+        const confirmResult = await res.json();
+
+        if (confirmResult.type === "failure") {
+          errorMessage = (confirmResult.data?.error as string) ?? "Confirmation failed.";
+        } else {
+          if (confirmResult.data?.status === "pending_webhook") {
+            modalTitle = "PAYMENT RECEIVED";
+            modalMessage = "Your payment is confirmed. We are activating your Learner Pass now.";
+          } else {
+            modalTitle = "PASS ACTIVATED";
+            modalMessage = "Your Learner Pass is now active — premium rewards are unlocked!";
+          }
+
+          purchaseComplete = true;
+        }
+      } catch (err: any) {
+        errorMessage = err.message;
+      } finally {
+        isSubmitting = false;
+      }
+    };
   }
 </script>
 
@@ -192,7 +194,7 @@
         {#if isStripeLoading}
           <div class="loading-state">Preparing secure checkout...</div>
         {:else}
-          <form on:submit={handleSubmit} class="form">
+          <form method="POST" action="?/createPaymentIntent" use:enhance={handleEnhance} class="form">
             <label class="label" for="card-element">Card Details</label>
             <div class="card-container">
               <div id="card-element">
@@ -217,14 +219,11 @@
 <!-- Purchase success popup — closing it heads to the pass rewards page -->
 <PurchaseSuccessModal
   open={purchaseComplete}
-  title="PASS ACTIVATED"
+  title={modalTitle}
   closeLabel="View Rewards"
   onClose={() => goto("/pass")}
 >
-  <p>
-    Your <span class="font-orbitron font-bold text-cyber-cyan">Learner Pass</span> is now active —
-    premium rewards are unlocked!
-  </p>
+  <p>{modalMessage}</p>
 </PurchaseSuccessModal>
 
 <style>

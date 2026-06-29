@@ -1,7 +1,10 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import prisma from "$lib/server/client";
 import Stripe from "stripe";
+import {
+  ensureLearnerPassEnrollmentForPayment,
+  ensureCoinPurchaseForPayment,
+} from "$lib/server/learnerPass";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -33,30 +36,40 @@ export const POST: RequestHandler = async (event) => {
 
     if (metadata?.product === "learner_pass_30d" && metadata?.userId) {
       try {
-        const now = new Date();
-        const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-        await prisma.learner_pass_enrollment.create({
-          data: {
-            user_id: metadata.userId,
-            status: "ACTIVE",
-            started_at: now,
-            expires_at: expiresAt,
-            streak: 0,
-            total_claimed_days: 0,
-            payment_id: paymentIntent.id,
-            payment_provider: "stripe",
-          },
+        const { created } = await ensureLearnerPassEnrollmentForPayment({
+          userId: metadata.userId,
+          paymentId: paymentIntent.id,
         });
 
-        console.log(`Learner pass activated for user ${metadata.userId}`);
-      } catch (err) {
-        // P2002 = unique constraint violation — duplicate, safe to ignore
-        if ((err as any)?.code === "P2002") {
-          console.log(`Enrollment already exists for payment ${paymentIntent.id}`);
+        if (created) {
+          console.log(`Learner pass activated for user ${metadata.userId}`);
         } else {
-          console.error("Failed to activate learner pass:", err);
-          return json({ error: "Failed to activate learner pass" }, { status: 500 });
+          console.log(`Enrollment already exists for payment ${paymentIntent.id}`);
+        }
+      } catch (err) {
+        console.error("Failed to activate learner pass:", err);
+        return json({ error: "Failed to activate learner pass" }, { status: 500 });
+      }
+    } else if (metadata?.type === "coin_purchase" && metadata?.userId && metadata?.coinAmount) {
+      const coinAmount = parseInt(metadata.coinAmount, 10);
+      if (Number.isNaN(coinAmount) || coinAmount <= 0) {
+        console.error("Invalid coin amount in webhook metadata:", metadata.coinAmount);
+      } else {
+        try {
+          const { created } = await ensureCoinPurchaseForPayment({
+            userId: metadata.userId,
+            paymentId: paymentIntent.id,
+            coinAmount,
+          });
+
+          if (created) {
+            console.log(`Coin purchase credited for user ${metadata.userId}: ${coinAmount} coins`);
+          } else {
+            console.log(`Coin purchase already processed for payment ${paymentIntent.id}`);
+          }
+        } catch (err) {
+          console.error("Failed to credit coins:", err);
+          return json({ error: "Failed to credit coins" }, { status: 500 });
         }
       }
     }

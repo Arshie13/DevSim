@@ -84,8 +84,8 @@
         content: section.content,
         order: section.order,
         taskId: section.task_id,
-        sectionType: section.section_type,
-        interactiveMode: section.interactive_mode,
+        sectionType: section.section_type as "PLAIN_TEXT" | "INTERACTIVE",
+        interactiveMode: section.interactive_mode as "TERMINAL_CD" | "CODE_EDITOR" | "TERMINAL_CMD" | null,
         interactiveConfig: section.interactive_config as IInteractiveConfig | null,
       })),
       acceptanceCriteria: task.acceptance_criteria.map((criteria) => ({
