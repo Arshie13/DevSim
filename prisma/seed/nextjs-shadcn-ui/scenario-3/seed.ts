@@ -160,7 +160,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Update the function output from "Sign In" to "Log In" for the login button label.',
+                    "Update function to return \"Log In\" instead of \"Sign In\".",
                   language: "typescript",
                   starter_code:
                     'export function getLoginButtonLabel() {\n  return "Sign In";\n}\n',
@@ -178,7 +178,12 @@ export const levels = [
                       label: "updated login label",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Simple text replacement.",
+                  "Replace \"Sign In\" with \"Log In\".",
+                  "return \"___\";"
+                ],},
                 order: 5,
               },
               {
@@ -265,7 +270,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getGradeClass(grade) that returns the correct Tailwind classes for A, B, C, and D/F tiers.",
+                    "Implement getGradeClass(grade) returning Tailwind classes by tier: A→green, B→blue, C→yellow, D/F→red.\n\nExamples: getGradeClass(\"A\")→\"bg-green-100 text-green-800\", getGradeClass(\"B+\")→\"bg-blue-100 text-blue-800\".",
                   language: "javascript",
                   starter_code:
                     "export function getGradeClass(grade) {\n  // TODO\n}\n",
@@ -298,7 +303,12 @@ export const levels = [
                       label: "D grade",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check first character of grade.",
+                  "const t=grade[0]; if(t===\"A\")return\"bg-green-100 text-green-800\"; else if(t===\"B\")return\"bg-blue-100 text-blue-800\"; else if(t===\"C\")return\"bg-yellow-100 text-yellow-800\"; else return\"bg-red-100 text-red-800\";",
+                  "const t=grade[___]; if(t===\"A\")return\"___\"; else if(t===\"B\")return\"___\"; else if(t===\"C\")return\"___\"; else return\"___\";"
+                ],},
                 order: 5,
               },
               {
@@ -390,7 +400,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Refactor the inline stat card to use the StatCard component.",
+                    "Refactor to use StatCard component instead of inline rendering.",
                   language: "tsx",
                   starter_code:
                     "import { StatCard } from '../components/StatCard';\nimport { DollarSign } from 'lucide-react';\n\nexport function renderTotalCard(value) {\n  return (\n    <div>\n      <h3>Total</h3>\n      <DollarSign />\n      <p>{value}</p>\n      <p>All fees</p>\n    </div>\n  );\n}\n",
@@ -408,7 +418,12 @@ export const levels = [
                       label: "uses StatCard",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Delegate to StatCard.",
+                  "Call StatCard.",
+                  "return ___;"
+                ],},
                 order: 5,
               },
               {
@@ -513,7 +528,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement filterGrades(grades, query, semester) that filters by course code/name text and semester.",
+                    "Implement filterGrades(grades, query, semester) filtering by code/name text and semester. \"all\" skips semester. Case-insensitive.",
                   language: "javascript",
                   starter_code:
                     "export function filterGrades(grades, query, semester) {\n  // TODO\n}\n",
@@ -544,7 +559,12 @@ export const levels = [
                       label: "filters by semester",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Chain two filters.",
+                  "let r=grades; if(query) r=r.filter(g=>g.courseCode.toLowerCase().includes(query.toLowerCase())); if(semester!==\"all\") r=r.filter(g=>g.semester===semester); return r;",
+                  "if (___) r = r.filter(...); if (semester !== \"___\") r = r.filter(g => g.semester === semester);"
+                ],},
                 order: 5,
               },
               {
@@ -750,7 +770,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement isValidStudentId(id) that returns true for IDs matching XX-XXX-XX.",
+                    "Implement isValidStudentId(id) returning true for pattern XX-XXX-XX (digits only).\n\nExamples: isValidStudentId(\"12-346-78\")→true, isValidStudentId(\"123-46-78\")→false.",
                   language: "javascript",
                   starter_code:
                     "export function isValidStudentId(id) {\n  // TODO\n}\n",
@@ -778,7 +798,12 @@ export const levels = [
                       label: "too long",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Use regex.",
+                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                  "return /^___/.test(id);"
+                  ],},
                 order: 6,
               },
               {
@@ -875,7 +900,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getStoredOrDefault(key, initialValue) that returns initialValue when no value is stored.",
+                    "Implement getStoredOrDefault(key, initialValue) returning initialValue.",
                   language: "javascript",
                   starter_code:
                     "export function getStoredOrDefault(key, initialValue) {\n  // TODO\n}\n",
@@ -898,7 +923,12 @@ export const levels = [
                       label: "returns custom initial value",
                     },
                   ],
-                },
+                
+                hints: [
+  "Return parameter as-is.",
+  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+  "return ___;"
+],},
                 order: 6,
               },
               {
@@ -1097,7 +1127,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatDueDate(dueDate) that returns 'Due Today', 'Due Tomorrow', 'Due in N days', or 'Overdue by N days'.",
+                    "Implement formatDueDate(dueDate): today→\"Due Today\", tomorrow→\"Due Tomorrow\", future→\"Due in N days\", past→\"Overdue by N days\".\n\nExample: dueDate 5 days ahead→\"Due in 5 days\".",
                   language: "javascript",
                   starter_code:
                     "export function formatDueDate(dueDate) {\n  // TODO\n}\n",
@@ -1125,7 +1155,12 @@ export const levels = [
                       label: "due today",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Compute day diff with Math.ceil, return appropriate string.",
+                  "const diff=Math.ceil((new Date(dueDate)-new Date())/86400000); if(diff===0)return\"Due Today\"; if(diff===1)return\"Due Tomorrow\"; if(diff>0)return`Due in ${diff} days`; return`Overdue by ${Math.abs(diff)} days`;",
+                  "const diff=Math.ceil((new Date(dueDate)-new Date())/___); if(diff===___)return\"Due Today\"; if(diff===___)return\"Due Tomorrow\"; ..."
+                ],},
                 order: 5,
               },
               {

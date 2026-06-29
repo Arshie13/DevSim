@@ -4,6 +4,7 @@
   export let title: string = "Interactive Lab";
   export let instructions: string = "";
   export let isPassed: boolean = false;
+  export let hint: string | null = null;
 
   const dispatch = createEventDispatcher<{ close: void }>();
 </script>
@@ -16,6 +17,13 @@
     </div>
 
     <p class="interactive-instructions">{instructions || "Interactive practice mode"}</p>
+
+    {#if hint}
+      <div class="lab-hint-bar" role="status">
+        <span class="lab-hint-icon" aria-hidden="true">💡</span>
+        <span class="lab-hint-text">{hint}</span>
+      </div>
+    {/if}
 
     <div class="interactive-status-row">
       <span class={`interactive-status-pill ${isPassed ? "pass" : "pending"}`}>
@@ -82,6 +90,7 @@
     font-family: "Exo 2", sans-serif;
     font-size: 0.8rem;
     line-height: 1.35;
+    white-space: pre-line;
   }
 
   .interactive-status-row {
@@ -98,6 +107,30 @@
     font-size: 0.64rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+  }
+
+  .lab-hint-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin: 0 0 0.7rem;
+    padding: 0.45rem 0.55rem;
+    background: rgba(255, 200, 87, 0.1);
+    border: 1px solid rgba(255, 184, 28, 0.35);
+    border-radius: 2px;
+  }
+
+  .lab-hint-icon {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    flex: none;
+  }
+
+  .lab-hint-text {
+    color: #ffdca8;
+    font-family: "Exo 2", sans-serif;
+    font-size: 0.74rem;
+    line-height: 1.4;
   }
 
   .interactive-status-pill.pass {

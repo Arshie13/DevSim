@@ -153,7 +153,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatHours(hours) that always returns one decimal place with an `h` suffix.",
+                    "Implement formatHours(hours) that takes a number and returns a string\nwith exactly one decimal place followed by the letter \"h\".\n\nExamples:\n  formatHours(8)     → \"8.0h\"\n  formatHours(40.5)  → \"40.5h\"\n  formatHours(0)     → \"0.0h\"\n  formatHours(12.34) → \"12.3h\"",
                   language: "javascript",
                   starter_code:
                     "export function formatHours(hours) {\n  // TODO\n}\n",
@@ -166,6 +166,11 @@ export const levels = [
                     { input: [40.5], expected: "40.5h", label: "half hour" },
                     { input: [0], expected: "0.0h", label: "zero" },
                     { input: [12.34], expected: "12.3h", label: "rounds to one decimal" },
+                  ],
+                  hints: [
+                    "You need a method that formats a number to a fixed number of decimal places, then append the letter. Look at what the crashcourse just taught you.",
+                    "The built-in method for fixed decimal places is called .toFixed(). Call it with the right argument, then add the suffix.",
+                    "return hours.toFixed(___) + \"___\" — what precision and what suffix?"
                   ],
                 },
                 order: 5,
@@ -488,6 +493,11 @@ export const levels = [
                     { input: ['2025-06-01', '2025-06-05', 0], expected: { valid: false, error: 'Invalid input' }, label: "zero days" },
                     { input: ['2025-06-01', '2025-06-01', 1], expected: { valid: true, data: { start: '2025-06-01', end: '2025-06-01', days: 1 } }, label: "same-day is valid" },
                   ],
+                  hints: [
+                    "You need to check two conditions at once — use the logical AND operator (&&). Both conditions must be true.",
+                    "Check if end is at least start, AND days is greater than zero. If both pass, wrap the three inputs into a data object under valid: true. Otherwise return the error object.",
+                    "if (end >= start && days > ___) return { valid: true, data: { start, end, days } }; return { valid: ___, error: \"Invalid input\" };"
+                  ],
                 },
                 order: 5,
               },
@@ -599,6 +609,11 @@ export const levels = [
                     { input: [[{ status: 'APPROVED', type: 'VACATION', hours: 8 }, { status: 'PENDING', type: 'SICK', hours: 4 }, { status: 'APPROVED', type: 'UNPAID', hours: 8 }], 40], expected: { used: 8, pending: 4, remaining: 32 }, label: "unpaid excluded from used, pending separate" },
                     { input: [[], 40], expected: { used: 0, pending: 0, remaining: 40 }, label: "empty → full allowance remaining" },
                     { input: [[{ status: 'APPROVED', type: 'VACATION', hours: 20 }, { status: 'APPROVED', type: 'SICK', hours: 20 }], 40], expected: { used: 40, pending: 0, remaining: 0 }, label: "all used up" },
+                  ],
+                  hints: [
+                    "Use .filter() twice — once for used (approved, not unpaid) and once for pending. Then .reduce() each filtered list to sum the hours.",
+                    "For used: keep items where status is APPROVED AND type is NOT UNPAID. For pending: keep items where status is PENDING. remaining is allowance minus used.",
+                    "const used = requests.filter(r => r.status === \"APPROVED\" && r.type !== \"___\").reduce((s, r) => s + r.hours, 0);\nconst pending = requests.filter(r => r.___ === \"___\").reduce((s, r) => s + r.hours, 0);\nreturn { used, pending, remaining: ___ - used };"
                   ],
                 },
                 order: 5,
@@ -731,6 +746,11 @@ export const levels = [
                     { input: [45], expected: { regular: 40, overtime: 5 }, label: "above threshold → overtime present" },
                     { input: [50, 35], expected: { regular: 35, overtime: 15 }, label: "custom threshold overrides default" },
                   ],
+                  hints: [
+                    "Use Math.min to find regular hours (capped at threshold) and subtract from total for overtime.",
+                    "regular = Math.min(total, threshold) — this picks the smaller of the two. overtime is whatever is left: total minus regular.",
+                    "const regular = Math.min(total, ___);\nreturn { regular, overtime: total - ___ };"
+                  ],
                 },
                 order: 5,
               },
@@ -842,6 +862,11 @@ export const levels = [
                     { input: [40, 5, 20], expected: 950, label: "40 regular + 5 overtime at $20/hr" },
                     { input: [40, 0, 15], expected: 600, label: "no overtime" },
                     { input: [40, 10, null], expected: null, label: "missing rate → null" },
+                  ],
+                  hints: [
+                    "Check rate first — if it's null, return null immediately. Otherwise compute regular and overtime pay, sum them, and round.",
+                    "Overtime pay uses 1.5× the rate. Round the final result with Math.round(pay * 100) / 100 for 2 decimal places.",
+                    "if (rate === null) return ___;\nconst raw = regular * rate + overtime * rate * ___;\nreturn Math.round(raw * ___) / 100;"
                   ],
                 },
                 order: 5,
@@ -968,6 +993,11 @@ export const levels = [
                     { input: [[]], expected: { totalHours: 0, totalPay: 0, averagePay: 0 }, label: "empty → all zeroes" },
                     { input: [[{ hours: 20, pay: 500 }]], expected: { totalHours: 20, totalPay: 500, averagePay: 500 }, label: "single record" },
                   ],
+                  hints: [
+                    "Use .reduce() to accumulate totalHours and totalPay in a single pass. Guard the division so empty arrays produce 0 average.",
+                    "Protect against dividing by zero: if records.length is 0, averagePay must be 0 not NaN. Otherwise divide totalPay by records.length.",
+                    "const totalHours = records.reduce((s, r) => s + r.___, 0);\nconst totalPay = records.reduce((s, r) => s + r.___, 0);\nconst averagePay = records.length === 0 ? ___ : totalPay / records.length;"
+                  ],
                 },
                 order: 4,
               },
@@ -1073,6 +1103,11 @@ export const levels = [
                     { input: [[{ name: 'Alice', amount: 100 }, { name: 'Alvin', amount: 50 }, { name: 'Bob', amount: 200 }]], expected: [{ dept: 'Al', totalAmount: 150, distinctNames: 2 }, { dept: 'Bo', totalAmount: 200, distinctNames: 1 }], label: "two departments, distinct counting" },
                     { input: [[{ name: 'Al', amount: 10 }, { name: 'Al', amount: 20 }]], expected: [{ dept: 'Al', totalAmount: 30, distinctNames: 1 }], label: "same name twice → distinct count 1" },
                     { input: [[]], expected: [], label: "empty → empty array" },
+                  ],
+                  hints: [
+                    "Use a Map keyed by department (name.slice(0, 2)). For each entry, accumulate totalAmount and track distinct names using a Set.",
+                    "For each entry, compute dept. If the Map already has this dept, add to totalAmount and add name to the Set. If not, create a new entry. At the end, convert Map values to an array and sort by dept.",
+                    "const map = new Map();\nentries.forEach(e => {\n  const dept = e.name.slice(0, ___);\n  if (!map.has(dept)) map.set(dept, { totalAmount: 0, names: new Set() });\n  const g = map.get(dept);\n  g.totalAmount += e.___;\n  g.names.add(e.name);\n});\nreturn [...map.entries()].map(([dept, g]) => ({ dept, totalAmount: g.totalAmount, distinctNames: g.names.size })).sort((a, b) => a.dept.localeCompare(b.dept));"
                   ],
                 },
                 order: 5,

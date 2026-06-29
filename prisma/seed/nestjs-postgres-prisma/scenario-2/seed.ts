@@ -75,7 +75,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getRoastLevelFieldDefinition() that returns the Prisma field definition for an optional roastLevel string field.",
+                    "Implement getRoastLevelFieldDefinition() returning \"roastLevel String?\".",
                   language: "javascript",
                   starter_code:
                     "export function getRoastLevelFieldDefinition() {\n  // TODO\n}\n",
@@ -93,7 +93,12 @@ export const levels = [
                       label: "optional roastLevel field",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Return Prisma string.",
+                  "The instructions already show the exact string to return. It's in quotes after the word 'returning' — copy it exactly.",
+                  "return \"___ ___?\";"
+                ],},
                 order: 6,
               },
               {
@@ -208,7 +213,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete getRoastLevel(roastLevel) so it returns the roastLevel string when provided, or null when roastLevel is null or empty.',
+                    "Implement getRoastLevel(roastLevel) returning string when provided/non-empty, null otherwise.\n\nExamples: getRoastLevel(\"Light\")→\"Light\", getRoastLevel(\"\")→null.",
                   language: "javascript",
                   starter_code:
                     'export function getRoastLevel(roastLevel) {\n  // TODO: return roastLevel if non-empty, otherwise null\n}\n',
@@ -236,7 +241,12 @@ export const levels = [
                       label: "null returns null",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check if exists and not empty.",
+                  "You need to handle two cases that should return null: when roastLevel is falsy (null/undefined), and when it's an empty string. Otherwise return the input as-is.",
+                  "if (___ || roastLevel === \"\") return ___; return ___;"
+                ],},
                 order: 7,
               },
               {
@@ -367,7 +377,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete paginate(data, total, page, limit) so it returns { data, total, page, limit, totalPages } where totalPages is Math.ceil(total / limit).",
+                    "Implement paginate(data, total, page, limit) returning {data,total,page,limit,totalPages}. Handle zero total.",
                   language: "javascript",
                   starter_code:
                     'export function paginate(data, total, page, limit) {\n  // TODO: return the paginated envelope\n}\n',
@@ -390,7 +400,12 @@ export const levels = [
                       label: "page 2 of 13 items",
                     },
                   ],
-                },
+                
+                hints: [
+  "Compute totalPages.",
+  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+  "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
+],},
                 order: 7,
               },
               {
@@ -497,7 +512,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete getActiveNames(items) so it returns only the names of items where item.isActive === true.',
+                    "Implement getActiveNames(items) returning names of active items.",
                   language: "javascript",
                   starter_code:
                     'export function getActiveNames(items) {\n  // TODO: return names of active items only\n}\n',
@@ -520,7 +535,12 @@ export const levels = [
                       label: "all active",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Filter then map.",
+                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                  "return items.filter(i => ___.___).map(i => ___.___);"
+                  ],},
                 order: 6,
               },
               {
@@ -641,7 +661,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete computeOrderTotal(subtotal, taxRate) so it returns { subtotal, tax, total } with tax and total rounded to 2 decimal places.',
+                    "Implement computeOrderTotal(subtotal, taxRate) returning {subtotal,tax,total}. tax = subtotal × taxRate, total = subtotal + tax. Both rounded to 2 decimals.\n\nExample: computeOrderTotal(100,0.08)→{subtotal:100,tax:8,total:108}.",
                   language: "javascript",
                   starter_code:
                     'export function computeOrderTotal(subtotal, taxRate) {\n  // TODO: return subtotal, tax, total (rounded to 2 decimals)\n}\n',
@@ -664,7 +684,12 @@ export const levels = [
                       label: "8% tax on $99.99",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Compute tax then total, round both.",
+                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                  "const t = subtotal * taxRate; return {subtotal,tax:Math.round(t*100)/100,total:Math.round((subtotal+t)*___)/___};"
+                  ],},
                 order: 7,
               },
               {
@@ -776,7 +801,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete canTransition(from, to) using the transition matrix: PENDING -> [PROCESSING, CANCELLED], PROCESSING -> [SHIPPED, CANCELLED], SHIPPED -> [DELIVERED, CANCELLED], DELIVERED -> [], CANCELLED -> []. Return true if the transition is valid.',
+                    "Implement canTransition(from, to) using state machine: PENDING→[PROCESSING,CANCELLED], PROCESSING→[SHIPPED,CANCELLED], SHIPPED→[DELIVERED,CANCELLED], DELIVERED→[], CANCELLED→[].\n\nExamples: canTransition(\"PENDING\",\"PROCESSING\")→true, canTransition(\"PENDING\",\"DELIVERED\")→false.",
                   language: "javascript",
                   starter_code:
                     'export function canTransition(from, to) {\n  // TODO: return true if transition is valid\n}\n',
@@ -804,7 +829,12 @@ export const levels = [
                       label: "invalid from delivered",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Define allowed map, check if target in list.",
+                  "Create an object mapping each state to its allowed next states as an array. Look up the from-state in this object (defaulting to empty array if missing), then check whether the to-state appears in that array.",
+                  "const allowed={...}; return (allowed[___]||[]).___(___);"
+                ],},
                 order: 6,
               },
               {
@@ -934,7 +964,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete computeTotalRevenue(orders) so it returns the sum of all order.total values.',
+                    "Implement computeTotalRevenue(orders) returning sum of order.total values.\n\nExamples: computeTotalRevenue([{total:50},{total:75}])→125.",
                   language: "javascript",
                   starter_code:
                     'export function computeTotalRevenue(orders) {\n  // TODO: return sum of order.total\n}\n',
@@ -957,7 +987,12 @@ export const levels = [
                       label: "empty array",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Sum with .reduce().",
+                  "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
+                  "return orders.reduce((sum, o) => sum + o.___, ___);"
+                  ],},
                 order: 6,
               },
               {
@@ -1075,7 +1110,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete getLowStockProducts(products, threshold) so it returns only products where product.stock <= threshold, sorted by stock ascending.',
+                    "Implement getLowStockProducts(products, threshold) returning products where stock <= threshold, sorted by stock ascending.\n\nExamples: getLowStockProducts([{name:\"A\",stock:3},{name:\"B\",stock:15}],10)→[{name:\"A\",stock:3}].",
                   language: "javascript",
                   starter_code:
                     'export function getLowStockProducts(products, threshold) {\n  // TODO: filter and sort\n}\n',
@@ -1093,7 +1128,12 @@ export const levels = [
                       label: "filters and sorts",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Filter then sort ascending.",
+                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                  "return products.filter(p => p.___ <= ___).sort((a,b) => a.___ - b.___);"
+                  ],},
                 order: 7,
               },
               {
@@ -1224,7 +1264,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete round2(value) so it returns the value rounded to 2 decimal places.',
+                    "Implement round2(value) returning value rounded to 2 decimal places as a number. Use Math.round, not toFixed.\n\nExamples: round2(27.03)→27.03, round2(10)→10.",
                   language: "javascript",
                   starter_code:
                     'export function round2(value) {\n  // TODO: round to 2 decimal places\n}\n',
@@ -1247,7 +1287,12 @@ export const levels = [
                       label: "integer unchanged",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Multiply by 100, round, divide by 100.",
+                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                  "return Math.round(value * ___) / ___;"
+                  ],},
                 order: 7,
               },
               {
@@ -1349,7 +1394,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Given a bug description, return the deepest root cause from the options. This is a conceptual exercise - return the string "missing tests for concurrent access".',
+                    "Implement identifyRootCause() returning deepest root cause string.",
                   language: "javascript",
                   starter_code:
                     'export function identifyRootCause() {\n  // TODO: return the deepest root cause\n}\n',
@@ -1367,7 +1412,12 @@ export const levels = [
                       label: "returns root cause",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Think about systemic cause.",
+                  "Ask yourself: what kind of test was never written that would have caught the oversell bug before it hit production? Frame your answer around what was missing.",
+                  "return \"___\";"
+                ],},
                 order: 6,
               },
               {

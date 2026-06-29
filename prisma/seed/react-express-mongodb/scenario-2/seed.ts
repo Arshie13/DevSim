@@ -219,7 +219,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Update the function output from "Hello World" to "Welcome Back".',
+                    "Update the function to return \"Welcome Back\" instead of \"Hello World\".",
                   language: "tsx",
                   starter_code:
                     'export function getUpdatedHeadingText() {\n  return "Hello World";\n}\n',
@@ -237,7 +237,12 @@ export const levels = [
                       label: "updated heading text",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Simple text replacement.",
+                  "Replace \"Hello World\" with \"Welcome Back\".",
+                  "return \"___\";"
+                ],},
                 order: 7,
               },
               {
@@ -357,7 +362,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete the function so it returns a string like "Leg Day by tomh".',
+                    "Implement formatWorkoutSummary({title, authorUsername}) returning \"TITLE by AUTHOR\".\n\nExamples: formatWorkoutSummary({title:\"Leg Day\",authorUsername:\"tomh\"})→\"Leg Day by tomh\".",
                   language: "javascript",
                   starter_code:
                     'export function formatWorkoutSummary(workout) {\n  // TODO: return "{title} by {authorUsername}"\n}\n',
@@ -380,7 +385,12 @@ export const levels = [
                       label: "different workout",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Use template literal or concatenation.",
+                  "JavaScript has a way to embed values directly into a string without using + for each piece. Think about what syntax lets you write a string template with placeholders.",
+                  "return `${___} by ${___}`;"
+                  ],},
                 order: 7,
               },
               {
@@ -503,7 +513,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete filterByCategory so it returns all items when category is "all", and only items matching the category otherwise.',
+                    "Implement filterByCategory(items, category) returning filtered array. \"all\" → all items, else filter by category.\n\nExamples: filterByCategory(items,\"all\")→all, filterByCategory(items,\"strength\")→only strength.",
                   language: "javascript",
                   starter_code:
                     "export function filterByCategory(items, category) {\n  // TODO: return all items when category === 'all'\n  // return only matching items otherwise\n}\n",
@@ -542,7 +552,12 @@ export const levels = [
                       label: "filter by strength",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check \"all\" first, then filter.",
+                  "if (category === \"all\") return items; return items.filter(i => i.category === category);",
+                  "if (category === \"___\") return items; return items.filter(i => i.___ === category);"
+                ],},
                 order: 7,
               },
               {
@@ -698,6 +713,11 @@ export const levels = [
                     },
                   ],
                 },
+                hints: [
+                  "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                  "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                  "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                ],
                 order: 7,
               },
               {
@@ -812,7 +832,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete wrapSuccess(payload) so it returns { success: true, data: payload }.",
+                    "Implement wrapSuccess(payload) returning {success:true, data:payload}.\n\nExamples: wrapSuccess([])→{success:true,data:[]}.",
                   language: "javascript",
                   starter_code:
                     "export function wrapSuccess(payload) {\n  // TODO: return the success envelope\n}\n",
@@ -835,7 +855,12 @@ export const levels = [
                       label: "object payload",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Return object literal.",
+                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                  "return { ___: true, ___: payload };"
+                  ],},
                 order: 7,
               },
               {
@@ -976,7 +1001,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete nextCheerCount(current, action) where action is "cheer" or "uncheer". Never return a count below 0.',
+                    "Implement nextCheerCount(current, action): \"cheer\"→+1, \"uncheer\"→-1 but never below 0.\n\nExamples: nextCheerCount(0,\"cheer\")→1, nextCheerCount(0,\"uncheer\")→0.",
                   language: "javascript",
                   starter_code:
                     "export function nextCheerCount(current, action) {\n  // TODO: return current + 1 for 'cheer', current - 1 for 'uncheer' (min 0)\n}\n",
@@ -1010,7 +1035,12 @@ export const levels = [
                       label: "uncheer clamped at 0",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check action. Increment or decrement with floor.",
+                  "if (action === \"cheer\") return current + 1; return Math.max(0, current - 1);",
+                  "if (action === \"___\") return current + 1; return Math.___(0, current - 1);"
+                ],},
                 order: 7,
               },
               {
@@ -1133,7 +1163,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete daysBetween(a, b) that returns the whole-number of calendar days between two ISO date strings (e.g. '2026-01-10' and '2026-01-12' → 2).",
+                    "Implement daysBetween(a, b) returning whole-number days between two ISO date strings.\n\nExamples: daysBetween(\"2026-01-10\",\"2026-01-12\")→2.",
                   language: "javascript",
                   starter_code:
                     "export function daysBetween(a, b) {\n  // TODO: return the number of calendar days between dates a and b\n  // Example: daysBetween('2026-01-10', '2026-01-12') === 2\n}\n",
@@ -1162,7 +1192,12 @@ export const levels = [
                       label: "two days apart",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Parse dates, ms diff, divide by 86400000, Math.abs.",
+                  "Before you can check the number, you need to convert it from its string form. Then you need to decide: is this a valid number, and is it within the allowed range?",
+                  "return Math.abs(new Date(a) - new Date(b)) / ___;"
+                  ],},
                 order: 7,
               },
               {
@@ -1315,7 +1350,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete isDuplicateKeyError(err) that returns true when the error represents a MongoDB duplicate-key error (code 11000).",
+                    "Implement isDuplicateKeyError(err) returning true for MongoDB duplicate-key error (code 11000).\n\nExamples: isDuplicateKeyError({code:11000})→true.",
                   language: "javascript",
                   starter_code:
                     "export function isDuplicateKeyError(err) {\n  // TODO: return true if err.code === 11000\n}\n",
@@ -1343,7 +1378,12 @@ export const levels = [
                       label: "error without code",
                     },
                   ],
-                },
+                
+                hints: [
+  "Check err.code === 11000.",
+  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+  "return ___.___ === ___;"
+],},
                 order: 7,
               },
               {
@@ -1485,6 +1525,11 @@ export const levels = [
                     },
                   ],
                 },
+                hints: [
+                  "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                  "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                  "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                ],
                 order: 7,
               },
               {

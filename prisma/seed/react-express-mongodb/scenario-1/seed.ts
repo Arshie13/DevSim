@@ -215,7 +215,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Update the function output from "Hello World" to "Cook. Share. Inspire.".',
+                    "Update the function to return \"Cook. Share. Inspire.\" instead of \"Hello World\".",
                   language: "tsx",
                   starter_code:
                     'export function getUpdatedHeadingText() {\n  return "Hello World";\n}\n',
@@ -230,7 +230,12 @@ export const levels = [
                       label: "updated brand subtitle",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Simple text replacement.",
+                  "Replace \"Hello World\" with \"Cook. Share. Inspire.\"",
+                  "return \"___\";"
+                ],},
                 order: 7,
               },
               {
@@ -348,7 +353,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getRecipePath(id) that returns the route path string for a recipe detail page (e.g. '/recipes/abc123').",
+                    "Implement getRecipePath(id) returning a route path like \"/recipes/abc123\".\n\nExamples: getRecipePath(\"abc123\")→\"/recipes/abc123\".",
                   language: "javascript",
                   starter_code:
                     "export function getRecipePath(id) {\n  // TODO\n}\n",
@@ -371,7 +376,12 @@ export const levels = [
                       label: "slug-style id",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Build \"/recipes/\" + id.",
+                  "return \"/recipes/\" + id;",
+                  "return \"/recipes/\" + ___;"
+                ],},
                 order: 7,
               },
               {
@@ -478,7 +488,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement filterByPrefix(prefix, items) that returns items starting with the prefix (case-insensitive). Empty prefix returns all.",
+                    "Implement filterByPrefix(prefix, items) returning items starting with prefix (case-insensitive). Empty prefix returns all.\n\nExamples: filterByPrefix(\"AP\",[\"apple\",\"apricot\"])→[\"apple\",\"apricot\"].",
                   language: "javascript",
                   starter_code:
                     "export function filterByPrefix(prefix, items) {\n  // TODO\n}\n",
@@ -506,7 +516,12 @@ export const levels = [
                       label: "exact prefix wins",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Use .filter() with .toLowerCase(). Handle empty prefix.",
+                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                  "return items.filter(item => item.___().startsWith(prefix.___()));"
+                  ],},
                 order: 7,
               },
               {
@@ -678,6 +693,11 @@ export const levels = [
                     },
                   ],
                 },
+                hints: [
+                  "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                  "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                  "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                ],
                 order: 9,
               },
               {
@@ -785,7 +805,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement validateLimit(value): {ok: true, value: number} for integers in [1,50], otherwise {ok: false, error: string}.",
+                    "Implement validateLimit(value) returning {ok:true,value:number} for integers in [1,50], or {ok:false,error:string}. Input is a STRING.\n\nExamples: validateLimit(\"3\")→{ok:true,value:3}, validateLimit(\"0\")→{ok:false,error:\"out of range\"}.",
                   language: "javascript",
                   starter_code:
                     "export function validateLimit(value) {\n  // TODO\n}\n",
@@ -798,7 +818,12 @@ export const levels = [
                     { input: ["abc"], expected: { ok: false, error: "not a number" }, label: "non-numeric" },
                     { input: ["50"], expected: { ok: true, value: 50 }, label: "boundary upper" },
                   ],
-                },
+                
+                hints: [
+                  "Parse string, check NaN, check range.",
+                  "const num = parseInt(value); if (isNaN(num)) return {ok:false,error:\"not a number\"}; if (num<1||num>50) return {ok:false,error:\"out of range\"}; return {ok:true,value:num};",
+                  "const num = parseInt(value); if (___) return {ok:false,error:\"not a number\"}; if (num<___||num>___) return {ok:false,error:\"out of range\"}; return {ok:true,value:num};"
+                ],},
                 order: 7,
               },
               {
@@ -941,7 +966,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Return an object literal { userId, recipeId } from the two arguments.",
+                    "Implement buildUpsertFilter(userId, recipeId) returning {userId, recipeId}.\n\nExamples: buildUpsertFilter(\"u_alice\",\"r_lemon\")→{userId:\"u_alice\",recipeId:\"r_lemon\"}.",
                   language: "javascript",
                   starter_code:
                     "export function buildUpsertFilter(userId, recipeId) {\n  // TODO\n}\n",
@@ -964,7 +989,12 @@ export const levels = [
                       label: "empty strings still get keys",
                     },
                   ],
-                },
+                
+                hints: [
+  "Return object literal with two keys.",
+  "Construct a value with a specific shape. Think about what keys the output needs and what values go with them.",
+  "return { ___, ___ };"
+],},
                 order: 9,
               },
               {
@@ -1077,7 +1107,7 @@ export const levels = [
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
-                  instructions: "Implement clamp(value, min) returning Math.max(value, min).",
+                  instructions: "Implement clamp(value, min) returning the larger of value and min. Use Math.max.\n\nExamples: clamp(5,0)→5, clamp(-3,0)→0.",
                   language: "javascript",
                   starter_code:
                     "export function clamp(value, min) {\n  // TODO\n}\n",
@@ -1089,7 +1119,12 @@ export const levels = [
                     { input: [-3, 0], expected: 0, label: "below min" },
                     { input: [10, 5], expected: 10, label: "non-zero min" },
                   ],
-                },
+                
+                hints: [
+  "Use Math.max.",
+  "JavaScript has built-in functions for common mathematical operations. Think about which one picks the larger of two numbers, or rounds to the nearest integer.",
+  "return Math.max(___, ___);"
+],},
                 order: 8,
               },
               {
@@ -1251,6 +1286,11 @@ export const levels = [
                     },
                   ],
                 },
+                hints: [
+                  "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                  "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                  "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                ],
                 order: 9,
               },
               {
@@ -1378,7 +1418,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Return "Posted today" when elapsed < 24h, otherwise "Posted N day(s) ago" with N = Math.floor(elapsedMs/86400000).',
+                    "Implement daysAgo(postedAt, now) returning \"Posted today\" when < 24h, or \"Posted N day(s) ago\". N = Math.floor(elapsedMs/86400000).\n\nExamples: daysAgo(sameInstant)→\"Posted today\", daysAgo(24h)→\"Posted 1 day ago\".",
                   language: "javascript",
                   starter_code:
                     "export function daysAgo(now, iso) {\n  // TODO — accept now (Date or ISO string) and iso (post timestamp)\n}\n",
@@ -1411,7 +1451,12 @@ export const levels = [
                       label: "48h elapsed",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Compute ms diff, check < 24h, floor days.",
+                  "const diff = new Date(now) - new Date(postedAt); if (diff < 86400000) return \"Posted today\"; const days = Math.floor(diff / 86400000); return `Posted ${days} day(s) ago`;",
+                  "const diff = new Date(now) - new Date(postedAt); if (diff < ___) return \"Posted today\"; const days = Math.floor(diff / ___);"
+                ],},
                 order: 9,
               },
               {

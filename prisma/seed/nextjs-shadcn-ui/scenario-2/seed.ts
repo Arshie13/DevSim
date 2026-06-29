@@ -160,7 +160,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Update the function output from "Sign In" to "Login" for the button label.',
+                    "Update function to return \"Login\" instead of \"Sign In\".",
                   language: "typescript",
                   starter_code:
                     'export function getAgentButtonLabel() {\n  return "Sign In";\n}\n',
@@ -178,7 +178,12 @@ export const levels = [
                       label: "updated button label",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Simple text replacement.",
+                  "Replace \"Sign In\" with \"Login\".",
+                  "return \"___\";"
+                ],},
                 order: 5,
               },
               {
@@ -265,7 +270,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getStatusPalette(status) that returns the correct Tailwind classes for 'active', 'waiting', and 'resolved'.",
+                    "Implement getStatusPalette(status) returning Tailwind classes: active→green, waiting→yellow, resolved→gray.\n\nExamples: getStatusPalette(\"active\")→\"bg-green-100 text-green-800\".",
                   language: "javascript",
                   starter_code:
                     "export function getStatusPalette(status) {\n  // TODO\n}\n",
@@ -293,7 +298,12 @@ export const levels = [
                       label: "resolved badge",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Map status to classes.",
+                  "return {active:\"bg-green-100 text-green-800\",waiting:\"bg-yellow-100 text-yellow-800\",resolved:\"bg-gray-100 text-gray-800\"}[status];",
+                  "return {active:\"___\",waiting:\"___\",resolved:\"___\"}[___];"
+                ],},
                 order: 5,
               },
               {
@@ -380,7 +390,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Refactor the inline JSX to use the MessageBubble component.",
+                    "Refactor to use MessageBubble component instead of reimplementing.",
                   language: "tsx",
                   starter_code:
                     "import { MessageBubble } from '../components/MessageBubble';\n\nexport function renderMessage(text, viewer) {\n  return (\n    <div className={`flex ${viewer === 'customer' ? 'justify-start' : 'justify-end'}`}>\n      <div className='rounded p-2'>{text}</div>\n    </div>\n  );\n}\n",
@@ -398,7 +408,12 @@ export const levels = [
                       label: "renders customer message",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Delegate to existing component.",
+                  "Call MessageBubble.",
+                  "return ___;"
+                ],},
                 order: 5,
               },
               {
@@ -503,7 +518,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement filterConversations(conversations, query, status) that filters by name/complaint text and status.",
+                    "Implement filterConversations(conversations, query, status) filtering by text and status. \"all\" skips status filter. Case-insensitive.",
                   language: "javascript",
                   starter_code:
                     "export function filterConversations(conversations, query, status) {\n  // TODO\n}\n",
@@ -534,7 +549,12 @@ export const levels = [
                       label: "filters by status",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Chain two filters.",
+                  "let r=conversations; if(query) r=r.filter(c=>c.customer.fullName.toLowerCase().includes(query.toLowerCase())); if(status!==\"all\") r=r.filter(c=>c.status===status); return r;",
+                  "if (___) r = r.filter(...); if (status !== \"___\") r = r.filter(c => c.status === status);"
+                ],},
                 order: 5,
               },
               {
@@ -734,7 +754,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement validateForm({ fullName, zipCode, complaint }) that returns an object with error messages for invalid fields.",
+                    "Implement validateForm({fullName,zipCode,complaint}) returning error object. {} when valid. name>=2 chars, zip 5 digits, complaint>=10 chars.",
                   language: "javascript",
                   starter_code:
                     "export function validateForm({ fullName, zipCode, complaint }) {\n  // TODO\n}\n",
@@ -761,7 +781,12 @@ export const levels = [
                       label: "returns empty when valid",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check each field, collect errors.",
+                  "const e={}; if(fullName.length<2) e.fullName=\"...\"; if(zipCode.length!==5) e.zipCode=\"...\"; if(complaint.length<10) e.complaint=\"...\"; return e;",
+                  "if(fullName.length<___)e.fullName=\"...\"; if(zipCode.length!==___)e.zipCode=\"...\"; if(complaint.length<___)e.complaint=\"...\";"
+                ],},
                 order: 6,
               },
               {
@@ -858,7 +883,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getStoredOrDefault(key, initialValue) that returns initialValue when no value is stored.",
+                    "Implement getStoredOrDefault(key, initialValue) returning initialValue. For this lab, return the parameter.",
                   language: "javascript",
                   starter_code:
                     "export function getStoredOrDefault(key, initialValue) {\n  // TODO\n}\n",
@@ -881,7 +906,12 @@ export const levels = [
                       label: "returns custom initial value",
                     },
                   ],
-                },
+                
+                hints: [
+  "Return parameter as-is.",
+  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+  "return ___;"
+],},
                 order: 6,
               },
               {
@@ -1067,7 +1097,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatRelativeTime(date) that returns 'Just now', '5m ago', or '2h ago' based on the input.",
+                    "Implement formatRelativeTime(date): <60s→\"Just now\", <60m→\"Xm ago\", <24h→\"Xh ago\".",
                   language: "javascript",
                   starter_code:
                     "export function formatRelativeTime(date) {\n  // TODO\n}\n",
@@ -1090,7 +1120,12 @@ export const levels = [
                       label: "five minutes ago",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Compute elapsed ms, convert to appropriate unit.",
+                  "const e=Date.now()-new Date(date).getTime(); if(e<60000)return\"Just now\"; if(e<3600000)return`${Math.floor(e/60000)}m ago`; return`${Math.floor(e/3600000)}h ago`;",
+                  "const e=Date.now()-new Date(date).getTime(); if(e<___)return\"Just now\"; ..."
+                ],},
                 order: 5,
               },
               {

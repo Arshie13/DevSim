@@ -75,7 +75,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getPhoneNumberFieldDefinition() that returns the Prisma field definition for an optional phoneNumber string field.",
+                    "Implement getPhoneNumberFieldDefinition() returning \"phoneNumber String?\".",
                   language: "javascript",
                   starter_code:
                     "export function getPhoneNumberFieldDefinition() {\n  // TODO\n}\n",
@@ -93,7 +93,12 @@ export const levels = [
                       label: "optional phoneNumber field",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Return Prisma string.",
+                  "return \"phoneNumber String?\";",
+                  "return \"___ ___?\";"
+                ],},
                 order: 6,
               },
               {
@@ -201,7 +206,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete getPhoneNumber(phoneNumber) so it returns the string when provided, or null when null or empty.",
+                    "Implement getPhoneNumber(phoneNumber) returning string when provided/non-empty, null otherwise.\n\nExamples: getPhoneNumber(\"+1-555\")→\"+1-555\", getPhoneNumber(\"\")→null.",
                   language: "javascript",
                   starter_code:
                     "export function getPhoneNumber(phoneNumber) {\n  // TODO: return phoneNumber if non-empty, otherwise null\n}\n",
@@ -229,7 +234,12 @@ export const levels = [
                       label: "null returns null",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check if exists and not empty.",
+                  "if (!phoneNumber || phoneNumber === \"\") return null; return phoneNumber;",
+                  "if (___ || phoneNumber === \"\") return ___; return ___;"
+                ],},
                 order: 6,
               },
               {
@@ -342,7 +352,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete getLowStock(products, threshold) so it returns only products where product.stock <= threshold.",
+                    "Implement getLowStock(products, threshold) returning products where stock <= threshold.",
                   language: "javascript",
                   starter_code:
                     "export function getLowStock(products, threshold) {\n  // TODO: filter products with stock <= threshold\n}\n",
@@ -360,7 +370,12 @@ export const levels = [
                       label: "filters below threshold",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Filter by stock.",
+                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                  "return products.filter(p => p.___ <= ___);"
+                  ],},
                 order: 4,
               },
               {
@@ -449,7 +464,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete paginate(data, total, page, limit) so it returns { data, total, page, limit, totalPages } where totalPages is Math.ceil(total / limit).",
+                    "Implement paginate returning {data,total,page,limit,totalPages}. Handle zero total.",
                   language: "javascript",
                   starter_code:
                     "export function paginate(data, total, page, limit) {\n  // TODO: return the paginated envelope\n}\n",
@@ -472,7 +487,12 @@ export const levels = [
                       label: "page 2 of 25 items",
                     },
                   ],
-                },
+                
+                hints: [
+  "Compute totalPages.",
+  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+  "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
+],},
                 order: 4,
               },
               {
@@ -597,7 +617,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete computeOrderTotal(subtotal, taxRate, discount) so it returns { subtotal, tax, total } with tax and total rounded to 2 decimal places. Total cannot be negative.",
+                    "Implement computeOrderTotal(subtotal, taxRate, discount) returning {subtotal,tax,total}. total = subtotal+tax-discount, never below 0.\n\nExamples: computeOrderTotal(100,0.08,5)→{subtotal:100,tax:8,total:103}, computeOrderTotal(50,0.1,100)→{subtotal:50,tax:5,total:0}.",
                   language: "javascript",
                   starter_code:
                     "export function computeOrderTotal(subtotal, taxRate, discount) {\n  // TODO: return subtotal, tax, total (rounded to 2 decimals, total >= 0)\n}\n",
@@ -620,7 +640,12 @@ export const levels = [
                       label: "discount exceeds total",
                     },
                   ],
-                },
+                
+                hints: [
+  "Compute tax, clamp total, round.",
+  "JavaScript has built-in functions for common mathematical operations. Think about which one picks the larger of two numbers, or rounds to the nearest integer.",
+  "const t = subtotal * taxRate; const raw = subtotal + t - discount; const total = Math.___(___, raw);"
+],},
                 order: 6,
               },
               {
@@ -719,7 +744,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete isValidPaymentMethod(method) so it returns true for 'CASH' and 'CARD', false for anything else.",
+                    "Implement isValidPaymentMethod(method) returning true for \"CASH\" or \"CARD\", false otherwise.\n\nExamples: isValidPaymentMethod(\"CASH\")→true, isValidPaymentMethod(\"CRYPTO\")→false.",
                   language: "javascript",
                   starter_code:
                     "export function isValidPaymentMethod(method) {\n  // TODO: return true for CASH and CARD only\n}\n",
@@ -747,7 +772,12 @@ export const levels = [
                       label: "crypto is invalid",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check both valid options.",
+                  "return method === \"CASH\" || method === \"CARD\";",
+                  "return method === \"___\" || method === \"___\";"
+                ],},
                 order: 4,
               },
               {
@@ -866,7 +896,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete computeTotalRevenue(orders) so it returns the sum of all order.total values.",
+                    "Implement computeTotalRevenue(orders) returning sum of order.total values.",
                   language: "javascript",
                   starter_code:
                     "export function computeTotalRevenue(orders) {\n  // TODO: return sum of order.total\n}\n",
@@ -889,7 +919,12 @@ export const levels = [
                       label: "empty array",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Sum with .reduce().",
+                  "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
+                  "return orders.reduce((sum, o) => sum + o.___, ___);"
+                  ],},
                 order: 5,
               },
               {
@@ -983,7 +1018,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete sumDailyRevenues(days) so it returns the sum of all day.revenue values.",
+                    "Implement sumDailyRevenues(days) returning sum of day.revenue values.",
                   language: "javascript",
                   starter_code:
                     "export function sumDailyRevenues(days) {\n  // TODO: return sum of day.revenue\n}\n",
@@ -1006,7 +1041,12 @@ export const levels = [
                       label: "empty array",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Sum with .reduce().",
+                  "You need to accumulate a running total across all elements. Think about which array method lets you carry a value forward as you visit each element.",
+                  "return days.reduce((sum, d) => sum + d.___, ___);"
+                  ],},
                 order: 4,
               },
               {
@@ -1127,7 +1167,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete round2(value) so it returns the value rounded to 2 decimal places.",
+                    "Implement round2(value) returning value rounded to 2 decimal places as a number. Use Math.round.",
                   language: "javascript",
                   starter_code:
                     "export function round2(value) {\n  // TODO: round to 2 decimal places\n}\n",
@@ -1150,7 +1190,12 @@ export const levels = [
                       label: "integer unchanged",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Multiply by 100, round, divide.",
+                  "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                  "return Math.round(value * ___) / ___;"
+                  ],},
                 order: 7,
               },
               {
@@ -1251,7 +1296,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Given a bug description, return the deepest root cause from the options. This is a conceptual exercise - return the string "missing tests for concurrent access".',
+                    "Implement identifyRootCause() returning deepest root cause string.",
                   language: "javascript",
                   starter_code:
                     "export function identifyRootCause() {\n  // TODO: return the deepest root cause\n}\n",
@@ -1269,7 +1314,12 @@ export const levels = [
                       label: "returns root cause",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Think about systemic cause.",
+                  "Relates to missing concurrent access tests.",
+                  "return \"___\";"
+                ],},
                 order: 6,
               },
               {

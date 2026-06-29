@@ -79,7 +79,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getNoteFieldDefinition() that returns the Prisma field definition for an optional note string field.",
+                    "Implement getNoteFieldDefinition() returning \"note String?\".",
                   language: "javascript",
                   starter_code:
                     "export function getNoteFieldDefinition() {\n  // TODO\n}\n",
@@ -97,7 +97,12 @@ export const levels = [
                       label: "optional note field",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Return exact Prisma string.",
+                  "return \"note String?\";",
+                  "return \"___ ___?\";"
+                ],},
                 order: 6,
               },
               {
@@ -213,7 +218,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete getTransactionNote(note) so it returns the note string when provided, or undefined when note is null or empty.',
+                    "Implement getTransactionNote(note) returning string when provided/non-empty, undefined when null/empty.\n\nExamples: getTransactionNote(\"lunch\")→\"lunch\", getTransactionNote(\"\")→undefined.",
                   language: "javascript",
                   starter_code:
                     "export function getTransactionNote(note) {\n  // TODO: return note if it's a non-empty string, otherwise undefined\n}\n",
@@ -241,7 +246,12 @@ export const levels = [
                       label: "null returns undefined",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check if exists and not empty.",
+                  "if (!note || note === \"\") return undefined; return note;",
+                  "if (___ || note === \"\") return undefined; return ___;"
+                ],},
                 order: 7,
               },
               {
@@ -376,7 +386,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete paginate(data, total, page, limit) so it returns { data, total, page, limit, totalPages } where totalPages is Math.ceil(total / limit).",
+                    "Implement paginate(data, total, page, limit) returning {data,total,page,limit,totalPages}. totalPages = Math.ceil(total/limit), 0 when total is 0.\n\nExample: paginate([],0,1,10)→{data:[],total:0,page:1,limit:10,totalPages:0}.",
                   language: "javascript",
                   starter_code:
                     "export function paginate(data, total, page, limit) {\n  // TODO: return the paginated envelope\n}\n",
@@ -399,7 +409,12 @@ export const levels = [
                       label: "page 2 of 25 items",
                     },
                   ],
-                },
+                
+                hints: [
+  "Compute totalPages with Math.ceil, handle zero.",
+  "You need a running total that accumulates across all elements. Which array method takes an accumulator function and a starting value?",
+  "const tp = total === ___ ? ___ : Math.ceil(total / ___);"
+  ],},
                 order: 7,
               },
               {
@@ -507,7 +522,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete getActiveNames(items) so it returns only the names of items where item.isActive === true.',
+                    "Implement getActiveNames(items) returning names of items where isActive is true.\n\nExamples: getActiveNames([{name:\"Food\",isActive:true},{name:\"Old\",isActive:false}])→[\"Food\"].",
                   language: "javascript",
                   starter_code:
                     "export function getActiveNames(items) {\n  // TODO: return names of active items only\n}\n",
@@ -530,7 +545,12 @@ export const levels = [
                       label: "all active",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Filter then map.",
+                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                  "return items.filter(i => ___.___).map(i => ___.___);"
+                  ],},
                 order: 6,
               },
               {
@@ -655,7 +675,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete computeDelta(type, amount) so it returns +amount for INCOME and -amount for EXPENSE.",
+                    "Implement computeDelta(type, amount): INCOME→+amount, EXPENSE→-amount.\n\nExamples: computeDelta(\"INCOME\",100)→100, computeDelta(\"EXPENSE\",50)→-50.",
                   language: "javascript",
                   starter_code:
                     "export function computeDelta(type, amount) {\n  // TODO: return +amount for INCOME, -amount for EXPENSE\n}\n",
@@ -678,7 +698,12 @@ export const levels = [
                       label: "expense subtracts",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check type, return appropriate sign.",
+                  "if (type === \"INCOME\") return amount; return -amount;",
+                  "if (type === \"___\") return ___; return ___;"
+                ],},
                 order: 7,
               },
               {
@@ -797,7 +822,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete computePercentUsed(spent, budgetAmount) that returns (spent / budgetAmount) * 100, or 0 when budgetAmount is 0. Never return NaN or Infinity.",
+                    "Implement computePercentUsed(spent, budgetAmount) returning (spent/budgetAmount)*100, but 0 when budgetAmount is 0. Never NaN.\n\nExamples: computePercentUsed(300,500)→60, computePercentUsed(0,0)→0.",
                   language: "javascript",
                   starter_code:
                     "export function computePercentUsed(spent, budgetAmount) {\n  // TODO: return percent used, guarding against division by zero\n}\n",
@@ -820,7 +845,12 @@ export const levels = [
                       label: "zero budget",
                     },
                   ],
-                },
+                
+                hints: [
+  "Guard division.",
+  "The dangerous case is a specific input that breaks the calculation. Check for that case FIRST before dividing, and return a safe fallback number.",
+  "if (budgetAmount === ___) return ___; return (spent / budgetAmount) * ___;"
+  ],},
                 order: 7,
               },
               {
@@ -950,7 +980,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete computeNetSavings(income, expense) that returns income minus expense.",
+                    "Implement computeNetSavings(income, expense) returning income minus expense.\n\nExamples: computeNetSavings(2000,600)→1400, computeNetSavings(500,800)→-300.",
                   language: "javascript",
                   starter_code:
                     "export function computeNetSavings(income, expense) {\n  // TODO: return income - expense\n}\n",
@@ -973,7 +1003,12 @@ export const levels = [
                       label: "negative savings",
                     },
                   ],
-                },
+                
+                hints: [
+  "Subtract.",
+  "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+  "return income ___ expense;"
+],},
                 order: 7,
               },
               {
@@ -1082,7 +1117,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete getHighRiskBudgets(budgets) that returns only budgets where percentUsed >= 80, sorted by percentUsed descending.",
+                    "Implement getHighRiskBudgets(budgets) returning budgets where percentUsed >= 80, sorted by percentUsed descending.\n\nExamples: getHighRiskBudgets([{name:\"Food\",percentUsed:85},{name:\"Transport\",percentUsed:40}])→[{name:\"Food\",percentUsed:85}].",
                   language: "javascript",
                   starter_code:
                     "export function getHighRiskBudgets(budgets) {\n  // TODO: filter percentUsed >= 80 and sort descending\n}\n",
@@ -1100,7 +1135,12 @@ export const levels = [
                       label: "filters and sorts",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Filter >= 80, sort descending.",
+                  "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                  "return budgets.filter(b => b.___ >= ___).sort((a,b) => b.___ - a.___);"
+                  ],},
                 order: 7,
               },
               {
@@ -1230,7 +1270,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete safeDivide(numerator, denominator) that returns numerator / denominator, or 0 when denominator is 0. Never return NaN or Infinity.",
+                    "Implement safeDivide(numerator, denominator) returning numerator/denominator, but 0 when denominator is 0. Never NaN.\n\nExamples: safeDivide(300,500)→0.6, safeDivide(100,0)→0.",
                   language: "javascript",
                   starter_code:
                     "export function safeDivide(numerator, denominator) {\n  // TODO: return numerator / denominator, or 0 if denominator is 0\n}\n",
@@ -1253,7 +1293,12 @@ export const levels = [
                       label: "zero denominator",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Check denominator first.",
+                  "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                  "if (denominator === ___) return ___; return numerator / denominator;"
+                  ],},
                 order: 7,
               },
               {
@@ -1351,7 +1396,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Given a bug description, return the deepest root cause from the options. This is a conceptual exercise — return the string "missing tests for zero input".',
+                    "Implement identifyRootCause() returning the deepest root cause string. Conceptual exercise.",
                   language: "javascript",
                   starter_code:
                     "export function identifyRootCause() {\n  // TODO: return the deepest root cause\n}\n",
@@ -1369,7 +1414,12 @@ export const levels = [
                       label: "returns root cause",
                     },
                   ],
-                },
+                
+                hints: [
+                  "Think about systemic cause, not surface symptom.",
+                  "Relates to missing zero-input test coverage.",
+                  "return \"___\" — what kind of tests?"
+                ],},
                 order: 6,
               },
               {
