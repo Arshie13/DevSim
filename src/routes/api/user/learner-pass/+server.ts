@@ -1,6 +1,7 @@
 import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
+import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
 
 export const GET: RequestHandler = async (event) => {
   const session = await event.locals.auth();
@@ -80,6 +81,19 @@ export const GET: RequestHandler = async (event) => {
     select: { project_id: true, granted_at: true },
   });
 
+  const choices = (enrollment.unlock_choices as any[]) || [];
+  const pendingUnlocks = [];
+  for (const day of enrollment.claimed_days) {
+    if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
+    if (choices.some((c: any) => c.dayNumber === day)) continue;
+    const available = getSpecialUnlocksForDay(day).filter(
+      (id) => !unlockedProjects.some((p) => p.project_id === id),
+    );
+    if (available.length > 0) {
+      pendingUnlocks.push({ day, available });
+    }
+  }
+
   return Response.json({
     status: enrollment.status,
     hasEnrollment: true,
@@ -99,5 +113,6 @@ export const GET: RequestHandler = async (event) => {
       projectId: p.project_id,
       grantedAt: p.granted_at.toISOString(),
     })),
+    pendingUnlocks,
   });
 };

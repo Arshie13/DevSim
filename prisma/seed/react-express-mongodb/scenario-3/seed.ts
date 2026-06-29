@@ -18,10 +18,11 @@
 export const scenarios = [
   {
     id: "mern-tw-scenario-3",
-    name: "TripWeaver Collaborative Travel Platform",
+    name: "TripWeaver",
     description:
-      "Build and debug a production-grade collaborative travel-planning platform for WanderMint Studios using React 19, Express, MongoDB, and Mongoose. Progress from environment setup through client UI components, MongoDB aggregation pipelines, a full-stack vote + expense-splitting feature, and two critical production bug fixes.",
+      "Build a travel itinerary planner that lets users plan trips, discover destinations, and organize their journeys. Use React + Vite for the frontend and Express + MongoDB for the backend.",
     difficulty: "expert",
+    paywall: true,
   },
 ];
 

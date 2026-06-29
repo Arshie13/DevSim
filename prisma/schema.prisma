@@ -1,3 +1,8 @@
+// merge hint and level_task as well as acceptance_criteria if possible
+// remove epic (looks unused) unless it is
+// completed_task can probably be merged in workspace
+// ai_help_daily_usage can be merged into user
+
 generator client {
   provider = "prisma-client"
   output   = "src/generated/prisma"
@@ -307,6 +312,7 @@ model learner_pass_enrollment {
   total_claimed_days Int    @default(0)
   payment_id       String?  @unique
   payment_provider String   @default("stripe")
+  unlock_choices   Json     @default("[]")
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
   user             user     @relation("learnerPassEnrollments", fields: [user_id], references: [id], onDelete: Cascade)

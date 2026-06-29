@@ -40,10 +40,18 @@ export const load: PageServerLoad = async ({ locals }) => {
     stackName: resolveStackName(s.id) ?? 'Unknown'
   }));
 
+  const adminEnrollment = await prisma.learner_pass_enrollment.findFirst({
+    where: { user_id: session.user.id, status: 'ACTIVE' },
+    select: { id: true, started_at: true }
+  });
+
   return {
     user: session.user,
     settings,
-    scenarios: scenariosWithStack
+    scenarios: scenariosWithStack,
+    adminEnrollment: adminEnrollment
+      ? { id: adminEnrollment.id, startedAt: adminEnrollment.started_at?.toISOString() ?? null }
+      : null,
   };
 };
 
@@ -122,5 +130,27 @@ export const actions: Actions = {
       console.error('Error resetting Docker containers:', error);
       return fail(500, { message: 'Failed to reset Docker containers. Check server logs.' });
     }
+  },
+  simulateNextDay: async ({ locals }) => {
+    const session = await locals.auth();
+    if (!session?.user) throw redirect(303, '/login');
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+    if (!dbUser || dbUser.role !== 'ADMIN') throw redirect(303, '/');
+
+    const enrollment = await prisma.learner_pass_enrollment.findFirst({
+      where: { user_id: session.user.id, status: 'ACTIVE' },
+    });
+    if (!enrollment) return fail(400, { message: 'No active learner pass enrollment' });
+
+    await prisma.learner_pass_enrollment.update({
+      where: { id: enrollment.id },
+      data: { started_at: new Date(enrollment.started_at!.getTime() - 24 * 60 * 60 * 1000) },
+    });
+
+    return { success: true };
   },
 };
