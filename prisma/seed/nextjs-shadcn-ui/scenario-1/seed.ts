@@ -172,7 +172,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Update the function output from "Hello World" to "Welcome Back".',
+                    "Update the function to return \"Welcome Back\" instead of \"Hello World\".",
                   language: "tsx",
                   starter_code:
                     'export function getUpdatedHeadingText() {\n  return "Hello World";\n}\n',
@@ -189,6 +189,12 @@ export const levels = [
                       expected: "Welcome Back",
                       label: "updated heading text",
                     },
+                  ],
+                
+                  hints: [
+                    "Simple text replacement.",
+                    "Replace \"Hello World\" with \"Welcome Back\".",
+                    "return \"___\";"
                   ],
                 },
                 order: 7,
@@ -277,7 +283,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getBadgeClass(status) that returns the correct Tailwind classes for 'available', 'borrowed', and 'overdue'.",
+                    "Implement getBadgeClass(status) returning Tailwind classes: available→green, borrowed→blue, overdue→red.\n\nExamples: getBadgeClass(\"available\")→\"bg-green-100 text-green-800\".",
                   language: "javascript",
                   starter_code:
                     "export function getBadgeClass(status) {\n  // TODO\n}\n",
@@ -304,6 +310,12 @@ export const levels = [
                       expected: "bg-red-100 text-red-800",
                       label: "overdue badge",
                     },
+                  ],
+                
+                  hints: [
+                    "Map status to class.",
+                    "return {available:\"bg-green-100 text-green-800\",borrowed:\"bg-blue-100 text-blue-800\",overdue:\"bg-red-100 text-red-800\"}[status];",
+                    "return {available:\"___\",borrowed:\"___\",overdue:\"___\"}[___];"
                   ],
                 },
                 order: 5,
@@ -393,7 +405,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getDoubledValue(value) that returns value * 2.",
+                    "Implement getDoubledValue(value) returning value * 2.\n\nExamples: getDoubledValue(5)→10, getDoubledValue(0)→0.",
                   language: "javascript",
                   starter_code:
                     "export function getDoubledValue(value) {\n  // TODO\n}\n",
@@ -416,6 +428,12 @@ export const levels = [
                       label: "handles zero",
                     },
                   ],
+                
+                  hints: [
+    "Multiply by 2.",
+    "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
+    "return value * ___;"
+  ],
                 },
                 order: 6,
               },
@@ -527,7 +545,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement searchBooks(books, query) that returns books whose title or author includes the query (case-insensitive).",
+                    "Implement searchBooks(books, query) returning books where title or author contains query (case-insensitive).\n\nExamples: searchBooks([{title:\"React Guide\",author:\"Dan\"}],\"react\")→matched.",
                   language: "javascript",
                   starter_code:
                     "export function searchBooks(books, query) {\n  // TODO\n}\n",
@@ -555,6 +573,12 @@ export const levels = [
                       label: "returns empty when no match",
                     },
                   ],
+                
+                  hints: [
+                    "Filter on both fields, lowercase.",
+                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                    "return books.filter(b => b.___.toLowerCase().includes(query.toLowerCase()) || b.___.toLowerCase().includes(query.toLowerCase()));"
+                    ],
                 },
                 order: 6,
               },
@@ -732,7 +756,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatDate(date) that returns a string in YYYY-MM-DD format.",
+                    "Implement formatDate(date) returning YYYY-MM-DD string.\n\nExamples: formatDate(new Date(\"2026-06-10\"))→\"2026-06-10\".",
                   language: "javascript",
                   starter_code:
                     "export function formatDate(date) {\n  // TODO\n}\n",
@@ -754,6 +778,12 @@ export const levels = [
                       expected: "2026-01-05",
                       label: "formats January date",
                     },
+                  ],
+                
+                  hints: [
+                    "Use getFullYear, getMonth+1, getDate, padStart.",
+                    "const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,\"0\"); const d=String(date.getDate()).padStart(2,\"0\"); return `${y}-${m}-${d}`;",
+                    "const m=String(date.getMonth()+___).padStart(2,\"0\"); const d=String(date.___()).padStart(2,\"0\");"
                   ],
                 },
                 order: 5,
@@ -997,7 +1027,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement safeParseInt(value) that returns parseInt(value) when valid, or 0 when invalid.",
+                    "Implement safeParseInt(value) returning parseInt when valid, 0 when invalid.\n\nExamples: safeParseInt(\"42\")→42, safeParseInt(\"abc\")→0.",
                   language: "javascript",
                   starter_code:
                     "export function safeParseInt(value) {\n  // TODO\n}\n",
@@ -1025,6 +1055,12 @@ export const levels = [
                       label: "handles null",
                     },
                   ],
+                
+                  hints: [
+                    "Parse and check NaN.",
+                    "Before you can check the number, you need to convert it from its string form. Then you need to decide: is this a valid number, and is it within the allowed range?",
+                    "const num = parseInt(value); return ___(num) ? ___ : num;"
+                    ],
                 },
                 order: 5,
               },

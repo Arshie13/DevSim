@@ -178,7 +178,8 @@
       : $aiFileContents;
   $: currentCoins =
     $aiCoins !== 1000 || initialCoins === 1000 ? $aiCoins : initialCoins;
-  $: currentAiHelps = $aiHelpCredits;
+  $: currentAiHelps =
+    lastSyncedInitialAiHelps === null ? initialAiHelps : $aiHelpCredits;
   // AI help credits are the only currency (1 = quick hint, 2 = chat message).
   // Any credits the user is short get covered by converting coins on the spot.
   $: creditCost = calculateCreditCost(mode);
@@ -188,12 +189,36 @@
     $aiChatHistory && $aiChatHistory.some((msg) => msg.role === "ai");
 
   // Initialize stores
+  // Track the last prop value so we only sync from props when the parent
+  // explicitly passes a new value (e.g. after a page reload / invalidateAll),
+  // not on every parent re-render. This keeps the live store (updated by API
+  // responses) from being overwritten by stale server data.
+  let lastSyncedInitialAiHelps: number | null = null;
+
+  function syncAiHelpsFromProps(value: number) {
+    aiHelpCredits.set(value);
+    lastSyncedInitialAiHelps = value;
+  }
+
+  // Sync once on mount (handles Svelte 5 / legacy interop where the $:
+  // reactive block may not run during initial render). Subsequent prop changes
+  // are handled by the reactive block below.
+  onMount(() => {
+    syncAiHelpsFromProps(Number(initialAiHelps ?? 0));
+  });
+
+  // Sync when the parent passes a different value (e.g. invalidateAll).
+  $: if (
+    lastSyncedInitialAiHelps !== null &&
+    initialAiHelps !== lastSyncedInitialAiHelps
+  ) {
+    syncAiHelpsFromProps(Number(initialAiHelps ?? 0));
+  }
   $: if (initialSelectedFile) aiSelectedFile.set(initialSelectedFile);
   $: if (initialFileTree.length > 0) aiFileTree.set(initialFileTree);
   $: if (Object.keys(initialFileContents).length > 0)
     aiFileContents.set(initialFileContents);
   $: if (initialCoins !== 1000) aiCoins.set(initialCoins);
-  $: aiHelpCredits.set(initialAiHelps);
 
   async function generateContext() {
     return generateContextHelper(
@@ -251,6 +276,9 @@
 
       if (result.success && result.coinsRemaining !== undefined) {
         initialCoins = result.coinsRemaining;
+      }
+      if (result.success && result.aiHelpsRemaining !== undefined) {
+        lastSyncedInitialAiHelps = result.aiHelpsRemaining;
       }
     } catch (error) {
       console.error("[AI Help] Error:", error);
@@ -330,7 +358,7 @@
         level,
         generateContext,
         // onSuccess
-        (hint: string, coinsRemaining?: number) => {
+        (hint: string, coinsRemaining?: number, aiHelpsRemaining?: number) => {
           aiChatHistory.update((msgs) => [
             ...msgs,
             createAiMessage(
@@ -341,6 +369,9 @@
           if (coinsRemaining !== undefined) {
             aiCoins.set(coinsRemaining);
             initialCoins = coinsRemaining;
+          }
+          if (aiHelpsRemaining !== undefined) {
+            lastSyncedInitialAiHelps = aiHelpsRemaining;
           }
         },
         // onError

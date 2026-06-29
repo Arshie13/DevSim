@@ -12,6 +12,7 @@ export { isAskingAboutFileContents, isGreeting, isAskingAboutProgress } from './
 // Message formatting
 export {
   formatMessage,
+  formatLearningContent,
   getMessageClasses,
   getIconClasses,
   getInsufficientCoinsMessage,

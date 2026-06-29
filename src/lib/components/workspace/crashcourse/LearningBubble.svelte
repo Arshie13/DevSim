@@ -29,7 +29,7 @@
     </div>
     <h3 class="title">{title}</h3>
     <Scrollbar className="body-scrollbar">
-      <p class="body">{body}</p>
+      <div class="body">{@html body}</div>
     </Scrollbar>
 
     {#if showAction}
@@ -160,5 +160,41 @@
 
   .btn-arrow {
     font-size: 0.6rem;
+  }
+
+  /* ---- Learning content markdown formatting ---- */
+
+  :global(.body .lc-inline) {
+    display: inline;
+    vertical-align: baseline;
+    line-height: inherit;
+    white-space: nowrap;
+  }
+
+  :global(.body .lc-pre) {
+    margin: 0.5rem 0 0.75rem;
+    line-height: 1.55;
+    box-shadow: 0 0 14px rgba(6, 182, 212, 0.1);
+  }
+
+  :global(.body .lc-pre code) {
+    display: block;
+    line-height: 1.55;
+    tab-size: 2;
+  }
+
+  :global(.body strong) {
+    color: #e2f0f5;
+    font-weight: 700;
+  }
+
+  :global(.body a) {
+    color: #22d3ee;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  :global(.body a:hover) {
+    color: #67e8f9;
   }
 </style>

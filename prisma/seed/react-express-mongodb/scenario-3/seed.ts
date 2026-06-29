@@ -226,7 +226,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete getUpdatedHeadingText() so it returns the string "Welcome Back" exactly.',
+                    "Implement getUpdatedHeadingText() returning \"Welcome Back\" exactly.",
                   language: "javascript",
                   starter_code:
                     'export function getUpdatedHeadingText() {\n  // TODO: return the string "Welcome Back"\n}\n',
@@ -243,6 +243,12 @@ export const levels = [
                       expected: "Welcome Back",
                       label: 'returns "Welcome Back"',
                     },
+                  ],
+                
+                  hints: [
+                    "Simple return.",
+                    "return \"Welcome Back\";",
+                    "return \"___\";"
                   ],
                 },
                 order: 7,
@@ -365,7 +371,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete formatStopSummary({ title, location }) so it returns a string in the format "Title in Location".',
+                    "Implement formatStopSummary({title, location}) returning \"TITLE in LOCATION\".\n\nExamples: formatStopSummary({title:\"Senso-ji\",location:\"Asakusa\"})→\"Senso-ji in Asakusa\".",
                   language: "javascript",
                   starter_code:
                     "export function formatStopSummary({ title, location }) {\n  // TODO: return a string like \"Senso-ji in Asakusa\"\n}\n",
@@ -388,6 +394,12 @@ export const levels = [
                       label: "landmark stop",
                     },
                   ],
+                
+                  hints: [
+                    "Use template literal.",
+                    "JavaScript has a way to embed values directly into a string without using + for each piece. Think about what syntax lets you write a string template with placeholders.",
+                    "return `${___} in ${___}`;"
+                    ],
                 },
                 order: 7,
               },
@@ -507,7 +519,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete filterByDay(stops, dayKey). When dayKey is "all", return all stops. Otherwise, return only stops where stop.dayKey === dayKey.',
+                    "Implement filterByDay(stops, dayKey): \"all\"→all stops, else filter by stop.dayKey.\n\nExamples: filterByDay(stops,\"all\")→all, filterByDay(stops,\"2026-04-12\")→only April 12.",
                   language: "javascript",
                   starter_code:
                     "export function filterByDay(stops, dayKey) {\n  // TODO: return all stops when dayKey === 'all'\n  // otherwise return stops matching dayKey\n}\n",
@@ -545,6 +557,12 @@ export const levels = [
                       expected: [{ title: "Senso-ji", dayKey: "2026-04-12" }],
                       label: "filters to specific day",
                     },
+                  ],
+                
+                  hints: [
+                    "Check \"all\" first, then filter.",
+                    "if (dayKey === \"all\") return stops; return stops.filter(s => s.dayKey === dayKey);",
+                    "if (dayKey === \"___\") return stops; return stops.filter(s => s.___ === dayKey);"
                   ],
                 },
                 order: 7,
@@ -700,6 +718,11 @@ export const levels = [
                       label: "returns a Date 1ms before startDate",
                     },
                   ],
+                hints: [
+                  "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                  "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                  "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                ],
                 },
                 order: 7,
               },
@@ -819,7 +842,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete wrapSuccess(payload) so it returns { success: true, data: payload }.",
+                    "Implement wrapSuccess(payload) returning {success:true, data:payload}.",
                   language: "javascript",
                   starter_code:
                     "export function wrapSuccess(payload) {\n  // TODO: return the success envelope\n}\n",
@@ -842,6 +865,12 @@ export const levels = [
                       label: "object payload",
                     },
                   ],
+                
+                  hints: [
+                    "Return object literal.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return { ___: true, ___: payload };"
+                    ],
                 },
                 order: 7,
               },
@@ -984,7 +1013,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    'Complete nextVoteCount(current, action) where action is "vote" or "unvote". Never return a count below 0.',
+                    "Implement nextVoteCount(current, action): \"vote\"→+1, \"unvote\"→-1 but never below 0.",
                   language: "javascript",
                   starter_code:
                     "export function nextVoteCount(current, action) {\n  // TODO: return current + 1 for 'vote', current - 1 for 'unvote' (min 0)\n}\n",
@@ -1017,6 +1046,12 @@ export const levels = [
                       expected: 0,
                       label: "unvote clamped at 0",
                     },
+                  ],
+                
+                  hints: [
+                    "Check action.",
+                    "if (action === \"vote\") return current + 1; return Math.max(0, current - 1);",
+                    "if (action === \"___\") return current + 1; return Math.___(0, current - 1);"
                   ],
                 },
                 order: 7,
@@ -1143,7 +1178,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete computeShare(amount, splitCount) that returns the per-member share rounded to 2 decimal places.",
+                    "Implement computeShare(amount, splitCount) returning per-member share rounded to 2 decimals as NUMBER. toFixed returns string — use Math.round.\n\nExamples: computeShare(60,3)→20, computeShare(100,3)→33.33.",
                   language: "javascript",
                   starter_code:
                     "export function computeShare(amount, splitCount) {\n  // TODO: return amount / splitCount rounded to 2 decimal places\n}\n",
@@ -1177,6 +1212,12 @@ export const levels = [
                       label: "zero amount",
                     },
                   ],
+                
+                  hints: [
+                    "Divide and round with Math.round.",
+                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                    "return Math.round((amount / splitCount) * ___) / ___;"
+                    ],
                 },
                 order: 7,
               },
@@ -1319,7 +1360,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Complete isDuplicateKeyError(err) that returns true when the error represents a MongoDB duplicate-key error (code 11000).",
+                    "Implement isDuplicateKeyError(err) returning true for MongoDB duplicate-key (code 11000).",
                   language: "javascript",
                   starter_code:
                     "export function isDuplicateKeyError(err) {\n  // TODO: return true if err.code === 11000\n}\n",
@@ -1347,6 +1388,12 @@ export const levels = [
                       label: "error without code",
                     },
                   ],
+                
+                  hints: [
+    "Check err.code === 11000.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return ___.___ === ___;"
+  ],
                 },
                 order: 7,
               },
@@ -1500,6 +1547,11 @@ export const levels = [
                       label: "13:00 UTC = 21:00 Manila same day",
                     },
                   ],
+                hints: [
+                  "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                  "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                  "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                ],
                 },
                 order: 8,
               },

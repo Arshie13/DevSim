@@ -4,8 +4,12 @@
   export let title: string = "Interactive Lab";
   export let instructions: string = "";
   export let isPassed: boolean = false;
+  export let hint: string | null = null;
+  export let hintsUsed: number = 0;
 
   const dispatch = createEventDispatcher<{ close: void }>();
+
+  $: coinReward = hintsUsed === 0 ? 20 : hintsUsed === 1 ? 15 : hintsUsed === 2 ? 10 : 5;
 </script>
 
 <div class="lab-modal-overlay" role="dialog" aria-modal="true" aria-label="Interactive lab">
@@ -16,6 +20,17 @@
     </div>
 
     <p class="interactive-instructions">{instructions || "Interactive practice mode"}</p>
+
+    {#if hint}
+      <div class="lab-hint-bar" role="status">
+        <span class="lab-hint-icon" aria-hidden="true">💡</span>
+        <span class="lab-hint-text">{hint}</span>
+      </div>
+    {/if}
+
+    {#if hintsUsed > 0}
+      <p class="coin-note">Hints used: {hintsUsed} — coin reward: {coinReward} (20 max for no hints)</p>
+    {/if}
 
     <div class="interactive-status-row">
       <span class={`interactive-status-pill ${isPassed ? "pass" : "pending"}`}>
@@ -82,6 +97,7 @@
     font-family: "Exo 2", sans-serif;
     font-size: 0.8rem;
     line-height: 1.35;
+    white-space: pre-line;
   }
 
   .interactive-status-row {
@@ -100,9 +116,41 @@
     letter-spacing: 0.08em;
   }
 
+  .lab-hint-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin: 0 0 0.7rem;
+    padding: 0.45rem 0.55rem;
+    background: rgba(255, 200, 87, 0.1);
+    border: 1px solid rgba(255, 184, 28, 0.35);
+    border-radius: 2px;
+  }
+
+  .lab-hint-icon {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    flex: none;
+  }
+
+  .lab-hint-text {
+    color: #ffdca8;
+    font-family: "Exo 2", sans-serif;
+    font-size: 0.74rem;
+    line-height: 1.4;
+  }
+
   .interactive-status-pill.pass {
     border-color: rgba(32, 197, 129, 0.5);
     color: #d8ffe9;
     background: rgba(32, 197, 129, 0.16);
+  }
+
+  .coin-note {
+    margin: 0 0 0.55rem;
+    color: #9db6c7;
+    font-family: "Exo 2", sans-serif;
+    font-size: 0.7rem;
+    font-style: italic;
   }
 </style>
