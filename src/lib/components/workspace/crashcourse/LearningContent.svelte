@@ -76,6 +76,14 @@
     return hints[index] ?? null;
   }
 
+  function getHintsUsed(sectionKey: string): number {
+    const config = activeSection.interactiveConfig ?? {};
+    const hints = config.hints as string[] | undefined;
+    if (!hints || !Array.isArray(hints) || hints.length === 0) return 0;
+    const wrong = labWrongAttempts[sectionKey] ?? 0;
+    return Math.min(wrong, hints.length);
+  }
+
   function recordWrongAttempt(sectionKey: string) {
     labWrongAttempts = { ...labWrongAttempts, [sectionKey]: (labWrongAttempts[sectionKey] ?? 0) + 1 };
   }
@@ -653,6 +661,8 @@
         title="Interactive Lab"
         instructions={activeSection.interactiveConfig?.instructions ?? "Interactive practice mode"}
         isPassed={activeInteractivePassed}
+        hint={getLabHint(activeSectionTypingKey)}
+        hintsUsed={getHintsUsed(activeSectionTypingKey)}
         on:close={closeLabModal}
       >
         {#if activeSection.interactiveMode === "TERMINAL_CD"}
