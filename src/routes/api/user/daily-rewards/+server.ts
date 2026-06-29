@@ -4,6 +4,12 @@ import prisma from '$lib/server/client';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+function dayIndexFromDate(d: Date | string): number {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  const jsDay = date.getDay();
+  return jsDay === 0 ? 6 : jsDay - 1;
+}
+
 export const GET: RequestHandler = async (event) => {
   const session = await event.locals.auth();
   if (!session?.user?.id) {
@@ -40,7 +46,7 @@ export const GET: RequestHandler = async (event) => {
 
     return Response.json({
       currentDay: dailyLogin.currentDay,
-      claimedDays: dailyLogin.claimedDays,
+      claimedDays: dailyLogin.claimedDays.map(dayIndexFromDate),
       streak: dailyLogin.streak,
       lastClaimedAt: dailyLogin.lastClaimedAt,
       hasRewards: dailyLogin.currentDay <= 7,

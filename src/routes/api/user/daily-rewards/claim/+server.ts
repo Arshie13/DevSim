@@ -16,8 +16,9 @@ const REWARD_SCHEDULE = [
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Maps a claim timestamp to the daily-reward day index (0=Mon … 6=Sun). */
-function dayIndexFromDate(d: Date): number {
-  const jsDay = d.getDay(); // 0=Sun, 1=Mon, …, 6=Sat
+function dayIndexFromDate(d: Date | string): number {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  const jsDay = date.getDay(); // 0=Sun, 1=Mon, …, 6=Sat
   return jsDay === 0 ? 6 : jsDay - 1;
 }
 
@@ -118,7 +119,7 @@ export const POST: RequestHandler = async (event) => {
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       currentDay: result.daily.currentDay,
-      claimedDays: result.daily.claimedDays,
+      claimedDays: result.daily.claimedDays.map(dayIndexFromDate),
       canClaimToday: false,
       nextAvailableAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
       cooldown: {
