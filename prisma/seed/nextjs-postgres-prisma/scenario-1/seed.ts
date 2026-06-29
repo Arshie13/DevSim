@@ -146,25 +146,31 @@ export const levels = [
                 order: 4,
               },
               {
-                title: "Practice Lab: Round to Cents",
+                title: "Practice Lab: Format to 2 Decimals",
                 content:
-                  "Warm up by writing a tiny helper that rounds a number to two decimals before tackling the real formatter.",
+                  "Warm up by writing a tiny helper that formats a number to two decimal places before tackling the real formatter.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement roundToCents(amount) that returns amount rounded to 2 decimal places (e.g. 1.005 → 1.01, 1.234 → 1.23).",
+                    "Implement formatTwoDecimals(amount) that takes a number and returns it\nas a string with exactly 2 decimal places.\n\nExamples:\n  formatTwoDecimals(1.5)    → \"1.50\"\n  formatTwoDecimals(3)      → \"3.00\"\n  formatTwoDecimals(1.234)  → \"1.23\"\n  formatTwoDecimals(0)      → \"0.00\"",
                   language: "javascript",
                   starter_code:
-                    "export function roundToCents(amount) {\n  // TODO\n}\n",
+                    "export function formatTwoDecimals(amount) {\n  // TODO\n}\n",
                   editable_regions: [
                     { placeholder: "// TODO", case_sensitive: true },
                   ],
-                  entry_point: "roundToCents",
+                  entry_point: "formatTwoDecimals",
                   test_cases: [
-                    { input: [1.005], expected: 1.01, label: "rounds halves up" },
-                    { input: [1.234], expected: 1.23, label: "rounds down" },
-                    { input: [0], expected: 0, label: "handles zero" },
+                    { input: [1.5], expected: "1.50", label: "rounds up and pads" },
+                    { input: [3], expected: "3.00", label: "pads whole numbers" },
+                    { input: [1.234], expected: "1.23", label: "truncates extra decimals" },
+                    { input: [0], expected: "0.00", label: "handles zero" },
+                  ],
+                  hints: [
+                    "The built-in method you need is called on a number and returns a string. Look at what the crashcourse just taught you about formatting prices.",
+                    "Pattern: call .toFixed(2) on the amount. The argument is how many decimal places you want in the result.",
+                    "return amount.toFixed(___) — what number goes in the parentheses to get exactly 2 decimal places?"
                   ],
                 },
                 order: 5,

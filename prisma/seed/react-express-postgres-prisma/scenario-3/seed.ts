@@ -219,6 +219,11 @@ export const levels = [
                         label: "updated text",
                       },
                     ],
+                    hints: [
+                      "This is a simple text replacement — locate the returned string and change it to match the expected output.",
+                      "Look at the return statement. The string inside the quotes is what the test sees. What word did the instructions say to output instead?",
+                      'return "___" — what word should replace "Hello"?'
+                    ],
                   },
                   order: 7,
                 },
@@ -337,7 +342,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Create calculateTotal(price, quantity) that returns the product of price and quantity.",
+                      "Implement calculateTotal(price, quantity) returning product as number.",
                     language: "javascript",
                     starter_code:
                       "export function calculateTotal(price, quantity) {\n  // TODO\n}\n",
@@ -365,6 +370,12 @@ export const levels = [
                         label: "zero price",
                       },
                     ],
+                  
+                    hints: [
+    "Multiply.",
+    "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
+    "return price ___ quantity;"
+  ],
                   },
                   order: 7,
                 },
@@ -481,7 +492,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Given an array of players and a minimum tier, return only players whose tier is at least the minimum. Tiers rank NONE < BRONZE < SILVER < GOLD.",
+                      "Implement filterByTier(players, minTier) returning players with tier rank >= minTier. Use tierRank lookup.",
                     language: "javascript",
                     starter_code:
                       "export function filterByTier(players, minTier) {\n  const tierRank = { NONE: 0, BRONZE: 1, SILVER: 2, GOLD: 3 };\n  // TODO: filter players whose tierRank[tier] >= tierRank[minTier]\n}\n",
@@ -521,6 +532,12 @@ export const levels = [
                         label: "filters NONE and BRONZE",
                       },
                     ],
+                  
+                    hints: [
+                      "Compare ranks.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return players.filter(p => tierRank[p.___] >= tierRank[___]);"
+                      ],
                   },
                   order: 7,
                 },
@@ -650,7 +667,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "A course enrollment function changes the student's enrolledCourseId but forgets other steps. Implement findMissingSteps that checks which required actions are missing.",
+                      "Implement findMissingSteps(actions) returning required actions NOT present.",
                     language: "javascript",
                     starter_code:
                       "export function findMissingSteps(actions) {\n  const required = ['SET enrolledCourseId', 'ADD to roster', 'INCREMENT course.count'];\n  // TODO: Return array of required actions that are NOT present in the actions array\n}\n",
@@ -685,6 +702,12 @@ export const levels = [
                         label: "all steps present — no issues",
                       },
                     ],
+                  
+                    hints: [
+                      ".filter() on required.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                      "return required.filter(item => !actions.___(item));"
+                      ],
                   },
                   order: 5,
                 },
@@ -790,7 +813,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Given senderBalance, receiverBalance, and amount, return [newSender, newReceiver]. Deduct and credit atomically — if sender has insufficient funds, return the original balances untouched.",
+                      "Implement atomicTransfer returning [newSender, newReceiver]. Insufficient → unchanged.",
                     language: "javascript",
                     starter_code:
                       "function atomicTransfer(senderBalance, receiverBalance, amount) {\n  // TODO\n}\n",
@@ -815,6 +838,12 @@ export const levels = [
                         label: "exact funds — full transfer completes",
                       },
                     ],
+                  
+                    hints: [
+                      "Check sender balance.",
+                      "An atomic transfer either fully completes or does nothing at all. If the sender doesn't have enough, return both accounts unchanged. Otherwise, subtract from sender and add to receiver.",
+                      "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
+                      ],
                   },
                   order: 7,
                 },
@@ -967,7 +996,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Return true only if all three conditions pass.",
+                      "Implement isCouponValid(coupon, now) returning boolean: isActive && expiresAt > now && usedCount < maxUses.",
                     language: "javascript",
                     starter_code:
                       "export function isCouponValid(coupon, now) {\n  // isActive, not expired, has remaining uses\n}\n",
@@ -1032,6 +1061,11 @@ export const levels = [
                         expected: false,
                         label: "exhausted coupon",
                       },
+                    ],
+                    hints: [
+                      "Combine with &&.",
+                      "A coupon is valid only when ALL three conditions are true: it's active, it hasn't expired yet, and there are still uses remaining. Use the logical AND operator to join them.",
+                      "return coupon.isActive ___ coupon.expiresAt > now ___ coupon.usedCount < coupon.maxUses;"
                     ],
                   },
                   order: 7,
@@ -1161,7 +1195,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Return true only if usedCount is strictly less than maxUses.",
+                      "Implement canUseCoupon(usedCount, maxUses) returning boolean: strict <.",
                     language: "javascript",
                     starter_code:
                       "export function canUseCoupon(usedCount, maxUses) {\n  // TODO\n}\n",
@@ -1182,6 +1216,12 @@ export const levels = [
                       },
                       { input: [11, 10], expected: false, label: "over limit" },
                     ],
+                  
+                    hints: [
+    "Strict less-than.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return usedCount ___ maxUses;"
+  ],
                   },
                   order: 7,
                 },
@@ -1321,7 +1361,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Filter subscriptions to only include those with canceledAt === null or undefined. Do not look at status.",
+                      "Implement getActiveSubscriptions(subscriptions) returning subs where canceledAt is null. Do NOT filter by status.",
                     language: "javascript",
                     starter_code:
                       "export function getActiveSubscriptions(subscriptions) {\n  // TODO: return only subscriptions where canceledAt is null\n}\n",
@@ -1362,6 +1402,12 @@ export const levels = [
                           "excludes stale-status with canceledAt set",
                       },
                     ],
+                  
+                    hints: [
+                      ".filter() checking the canceledAt field.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. Think about which field tells the truth — the immutable timestamp, not the mutable status.",
+                      "return subscriptions.filter(s => s.___ === ___);"
+                      ],
                   },
                   order: 6,
                 },
@@ -1461,7 +1507,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Return true only if the subscription's canceledAt is null — this means the subscription was never canceled and should count toward revenue.",
+                      "Implement isEligibleForRevenue(sub) returning boolean: canceledAt === null. Do NOT check status.",
                     language: "javascript",
                     starter_code:
                       "export function isEligibleForRevenue(sub) {\n  // Return true if subscription was never canceled\n}\n",
@@ -1504,6 +1550,12 @@ export const levels = [
                         label: "stale status canceled — not eligible",
                       },
                     ],
+                  
+                    hints: [
+                      "Check canceledAt only.",
+                      "Ignore the status field entirely — it can lie. The only field that tells you whether a subscription was actually canceled is the timestamp that was set at the moment of cancellation.",
+                      "return sub.___ === ___;"
+                      ],
                   },
                   order: 6,
                 },

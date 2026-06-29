@@ -84,6 +84,7 @@ export interface IInteractiveConfig {
     initial_directory?: string;
     directory_tree?: Record<string, string[]>;
     language?: string;
+    hints?: string[];
   };
 
   export interface ILearningTask  {

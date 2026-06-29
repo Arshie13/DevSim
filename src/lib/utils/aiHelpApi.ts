@@ -242,7 +242,7 @@ export async function sendChatMessage(
   currentCredits: number,
   generateContextFn: () => Promise<string>,
   model?: string
-): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
+): Promise<{ success: boolean; error?: string; coinsRemaining?: number; aiHelpsRemaining?: number }> {
   if (isAskingForCode(message)) {
     aiChatHistory.update((msgs) => [
       ...msgs,
@@ -297,7 +297,7 @@ export async function sendChatMessage(
       if (data.aiHelpsRemaining !== undefined) {
         aiHelpCredits.set(data.aiHelpsRemaining);
       }
-      return { success: true, coinsRemaining: data.coinsRemaining };
+      return { success: true, coinsRemaining: data.coinsRemaining, aiHelpsRemaining: data.aiHelpsRemaining };
     } else {
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: getApiErrorMessage(data.error) }]);
       return { success: false, error: data.error };
@@ -318,10 +318,10 @@ export async function requestQuickHintBubble(
   userId: string,
   level: number,
   generateContextFn: () => Promise<string>,
-  onSuccess?: (hint: string, coinsRemaining?: number) => void,
+  onSuccess?: (hint: string, coinsRemaining?: number, aiHelpsRemaining?: number) => void,
   onError?: (error: string) => void,
   model?: string
-): Promise<{ success: boolean; hint?: string; error?: string; coinsRemaining?: number }> {
+): Promise<{ success: boolean; hint?: string; error?: string; coinsRemaining?: number; aiHelpsRemaining?: number }> {
   try {
     const response = await fetch("/api/ai/hint", {
       method: "POST",
@@ -349,9 +349,9 @@ export async function requestQuickHintBubble(
         aiHelpCredits.set(data.aiHelpsRemaining);
       }
       if (onSuccess) {
-        onSuccess(data.hint, data.coinsRemaining);
+        onSuccess(data.hint, data.coinsRemaining, data.aiHelpsRemaining);
       }
-      return { success: true, hint: data.hint, coinsRemaining: data.coinsRemaining };
+      return { success: true, hint: data.hint, coinsRemaining: data.coinsRemaining, aiHelpsRemaining: data.aiHelpsRemaining };
     } else {
       const errorMsg = getApiErrorMessage(data.error);
       if (onError) {
@@ -385,7 +385,7 @@ export async function sendBubbleChatMessage(
   onSuccess?: (hint: string, coinsRemaining?: number) => void,
   onError?: (error: string) => void,
   model?: string
-): Promise<{ success: boolean; error?: string; coinsRemaining?: number }> {
+): Promise<{ success: boolean; error?: string; coinsRemaining?: number; aiHelpsRemaining?: number }> {
   if (isAskingForCode(message)) {
     const warningMsg = getCodeWarningMessage();
     aiChatHistory.update((msgs) => [
@@ -450,7 +450,7 @@ export async function sendBubbleChatMessage(
       if (onSuccess) {
         onSuccess(data.hint, data.coinsRemaining);
       }
-      return { success: true, coinsRemaining: data.coinsRemaining };
+      return { success: true, coinsRemaining: data.coinsRemaining, aiHelpsRemaining: data.aiHelpsRemaining };
     } else {
       const errorMsg = getApiErrorMessage(data.error);
       aiChatHistory.update((msgs) => [...msgs, { role: "ai", content: errorMsg }]);

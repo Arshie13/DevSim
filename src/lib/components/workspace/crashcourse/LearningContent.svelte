@@ -14,6 +14,7 @@
     resolvePath,
     simulateTerminalNavigation,
   } from "$lib/components/workspace/crashcourse/lab/labValidation";
+  import { formatLearningContent } from "$lib/ai";
   import type { ILearningSection, ILearningTask } from "$lib/types";
 
   let {
@@ -62,7 +63,36 @@
   let labCongratsMessage = $state("");
   let sectionLockFeedback = $state("");
   let completedInteractiveSections: Set<string> = $state(new Set());
+  let labWrongAttempts: Record<string, number> = $state({});
   let hasLoadedLabProgress = $state(false);
+
+  function getLabHint(sectionKey: string): string | null {
+    const config = activeSection.interactiveConfig ?? {};
+    const hints = config.hints as string[] | undefined;
+    if (!hints || !Array.isArray(hints) || hints.length === 0) return null;
+    const wrong = labWrongAttempts[sectionKey] ?? 0;
+    if (wrong === 0) return null;
+    const index = Math.min(wrong - 1, hints.length - 1);
+    return hints[index] ?? null;
+  }
+
+  function getHintsUsed(sectionKey: string): number {
+    const config = activeSection.interactiveConfig ?? {};
+    const hints = config.hints as string[] | undefined;
+    if (!hints || !Array.isArray(hints) || hints.length === 0) return 0;
+    const wrong = labWrongAttempts[sectionKey] ?? 0;
+    return Math.min(wrong, hints.length);
+  }
+
+  function recordWrongAttempt(sectionKey: string) {
+    labWrongAttempts = { ...labWrongAttempts, [sectionKey]: (labWrongAttempts[sectionKey] ?? 0) + 1 };
+  }
+
+  function resetWrongAttempts(sectionKey: string) {
+    const next = { ...labWrongAttempts };
+    delete next[sectionKey];
+    labWrongAttempts = next;
+  }
 
   function getSectionTypingKey(taskId: string, sectionId: string): string {
     return `${taskId}:${sectionId}`;
@@ -81,11 +111,14 @@
 
     typingInterval = setInterval(() => {
       if (typingIndex >= text.length) {
+        const formatted = formatLearningContent(text);
+        typedMessage = formatted;
         completedTypedSections = new Set(completedTypedSections).add(sectionKey);
         clearTyping();
         return;
       }
-      typedMessage = text.slice(0, typingIndex + 1);
+      const partial = text.slice(0, typingIndex + 1);
+      typedMessage = formatLearningContent(partial);
       typingIndex += 1;
     }, 12);
   }
@@ -286,6 +319,7 @@
 
     if (missingVisited.length > 0 || finalPathMismatch) {
       terminalPracticePassed = false;
+      recordWrongAttempt(activeSectionTypingKey);
       const details: string[] = [];
 
       if (missingVisited.length > 0) {
@@ -302,6 +336,7 @@
 
     terminalPracticePassed = true;
     completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+    resetWrongAttempts(activeSectionTypingKey);
     terminalFeedback = "Great work. Lab passed based on navigation output state (visited paths and final location).";
     sectionLockFeedback = "";
     if (!wasAlreadyCompleted) {
@@ -366,6 +401,7 @@
 
     if (mismatches.length > 0) {
       cmdPracticePassed = false;
+      recordWrongAttempt(activeSectionTypingKey);
       cmdCommands = [];
       cmdHistory = [];
       cmdFeedback = `Command check failed: ${mismatches.join(" | ")}`;
@@ -374,6 +410,7 @@
 
     cmdPracticePassed = true;
     completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+    resetWrongAttempts(activeSectionTypingKey);
     cmdFeedback = "Great work. All commands matched in the expected order.";
     if (!wasAlreadyCompleted) {
       labCongratsMessage = `You passed \"${activeSection.title}\". Progress saved.`;
@@ -395,6 +432,7 @@
 
       if (passed) {
         completedInteractiveSections = new Set(completedInteractiveSections).add(activeSectionTypingKey);
+        resetWrongAttempts(activeSectionTypingKey);
         sectionLockFeedback = "";
         codeFeedback = successMessage;
         if (!wasAlreadyCompleted) {
@@ -403,6 +441,8 @@
         }
         return;
       }
+
+      recordWrongAttempt(activeSectionTypingKey);
 
       if (completedInteractiveSections.has(activeSectionTypingKey)) {
         const nextCompleted = new Set(completedInteractiveSections);
@@ -481,13 +521,13 @@
     if (open) {
       if (isInteractiveSection) {
         clearTyping();
-        typedMessage = activeSection.content;
+        typedMessage = formatLearningContent(activeSection.content);
       } else if (isCompleted) {
         clearTyping();
-        typedMessage = activeSection.content;
+        typedMessage = formatLearningContent(activeSection.content);
       } else if (completedTypedSections.has(activeSectionTypingKey)) {
         clearTyping();
-        typedMessage = activeSection.content;
+        typedMessage = formatLearningContent(activeSection.content);
       } else {
         startTyping(activeSection.content, activeSectionTypingKey);
       }
@@ -621,6 +661,8 @@
         title="Interactive Lab"
         instructions={activeSection.interactiveConfig?.instructions ?? "Interactive practice mode"}
         isPassed={activeInteractivePassed}
+        hint={getLabHint(activeSectionTypingKey)}
+        hintsUsed={getHintsUsed(activeSectionTypingKey)}
         on:close={closeLabModal}
       >
         {#if activeSection.interactiveMode === "TERMINAL_CD"}

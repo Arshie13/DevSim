@@ -146,26 +146,31 @@ export const levels = [
                 order: 4,
               },
               {
-                title: "Practice Lab: Member Name",
+                title: "Practice Lab: Format First Name",
                 content:
-                  "Try the trimmed-join behaviour before writing it in the real file.",
+                  "Try the trim behaviour before writing the real formatter.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatMemberName(first, last) that trims both inputs and joins them with a single space. If one is empty, return the other without a stray space.",
+                    "Implement formatFirstName(first) that takes a string and returns it with\nleading and trailing whitespace removed.\n\nExamples:\n  formatFirstName(\"Jordan\")        → \"Jordan\"\n  formatFirstName(\"  Jordan  \")    → \"Jordan\"\n  formatFirstName(\"\\tJordan \")     → \"Jordan\"\n  formatFirstName(\"\")              → \"\"",
                   language: "javascript",
                   starter_code:
-                    "export function formatMemberName(first, last) {\n  // TODO\n}\n",
+                    "export function formatFirstName(first) {\n  // TODO\n}\n",
                   editable_regions: [
                     { placeholder: "// TODO", case_sensitive: true },
                   ],
-                  entry_point: "formatMemberName",
+                  entry_point: "formatFirstName",
                   test_cases: [
-                    { input: ["Jordan", "Rivera"], expected: "Jordan Rivera", label: "both parts" },
-                    { input: ["  Jordan  ", "Rivera"], expected: "Jordan Rivera", label: "trims whitespace" },
-                    { input: ["", "Rivera"], expected: "Rivera", label: "missing first" },
-                    { input: ["Jordan", ""], expected: "Jordan", label: "missing last" },
+                    { input: ["Jordan"], expected: "Jordan", label: "no whitespace" },
+                    { input: ["  Jordan  "], expected: "Jordan", label: "trims spaces" },
+                    { input: ["\\tJordan "], expected: "Jordan", label: "trims tabs" },
+                    { input: [""], expected: "", label: "empty string" },
+                  ],
+                  hints: [
+                    "There's a built-in string method that removes whitespace from both ends. Think about what the crashcourse just taught you about cleaning up input.",
+                    "The method is called .trim(). Call it on the input string — it handles spaces, tabs, and newlines.",
+                    "return first.___() — what string method removes leading and trailing whitespace?"
                   ],
                 },
                 order: 5,

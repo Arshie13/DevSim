@@ -219,6 +219,11 @@ export const levels = [
                         label: "updated text",
                       },
                     ],
+                  hints: [
+                    "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                    "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                    "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                  ],
                   },
                   order: 7,
                 },
@@ -336,7 +341,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Create calculateTotal(price, quantity) that returns the product of price and quantity.",
+                      "Implement calculateTotal(price, quantity) returning the product as a number.",
                     language: "javascript",
                     starter_code:
                       "export function calculateTotal(price, quantity) {\n  // TODO\n}\n",
@@ -364,6 +369,12 @@ export const levels = [
                         label: "zero price",
                       },
                     ],
+                  
+                    hints: [
+    "Multiply the two arguments.",
+    "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
+    "return price ___ quantity;"
+  ],
                   },
                   order: 7,
                 },
@@ -486,7 +497,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Refactor the page logic to use the helper. The helper is shown below for reference as if it came from another file, and this section represents the page where you should import and use it.",
+                      "Refactor to call getProductBadge helper instead of reimplementing. Do not reimplement.",
                     language: "javascript",
                     starter_code:
                       '// helper file (shown for context; this lives in another file)\nfunction getProductBadge(product) {\n  return product.isFeatured ? "Featured" : "Standard";\n}\n\n// page file section (this is where you refactor)\nimport { getProductBadge } from \'../utils/formatters\';\n\nexport function getBadgeForProduct(product) {\n  return product.isFeatured ? "Featured" : "Standard";\n}\n',
@@ -513,6 +524,12 @@ export const levels = [
                         label: "standard product badge",
                       },
                     ],
+                  
+                    hints: [
+                      "Pass product to getProductBadge.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return ___(product);"
+                      ],
                   },
                   order: 7,
                 },
@@ -637,7 +654,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "A course enrollment function changes the student's enrolledCourseId but forgets other steps. Implement findMissingSteps that checks which required actions are missing.",
+                      "Implement findMissingSteps(actions) returning required actions NOT present in actions.\n\nExample: findMissingSteps([\"SET enrolledCourseId\"]) → [\"ADD to roster\", \"INCREMENT course.count\"].",
                     language: "javascript",
                     starter_code:
                       "export function findMissingSteps(actions) {\n  const required = ['SET enrolledCourseId', 'ADD to roster', 'INCREMENT course.count'];\n  // TODO: Return array of required actions that are NOT present in the actions array\n}\n",
@@ -672,6 +689,12 @@ export const levels = [
                         label: "all steps present — no issues",
                       },
                     ],
+                  
+                    hints: [
+                      "Use .filter() on required — keep items not in actions.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                      "return required.filter(item => !actions.___(item));"
+                      ],
                   },
                   order: 5,
                 },
@@ -783,7 +806,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Given senderBalance, receiverBalance, and amount, return [newSender, newReceiver]. Deduct and credit atomically — if sender has insufficient funds, return the original balances untouched.",
+                      "Implement atomicTransfer(senderBalance, receiverBalance, amount) returning [newSender, newReceiver]. Insufficient → unchanged.",
                     language: "javascript",
                     starter_code:
                       "function atomicTransfer(senderBalance, receiverBalance, amount) {\n  // TODO\n}\n",
@@ -808,6 +831,12 @@ export const levels = [
                         label: "exact funds — full transfer completes",
                       },
                     ],
+                  
+                    hints: [
+                      "Check sender balance.",
+                      "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                      "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
+                      ],
                   },
                   order: 7,
                 },
@@ -948,7 +977,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Return true only if all three conditions pass.",
+                      "Implement isCouponValid(coupon, now) returning boolean. True only when: isActive, expiresAt > now, AND usedCount < maxUses. At maxUses → false.",
                     language: "javascript",
                     starter_code:
                       "export function isCouponValid(coupon, now) {\n  // isActive, not expired, has remaining uses\n}\n",
@@ -1013,6 +1042,11 @@ export const levels = [
                         expected: false,
                         label: "exhausted coupon",
                       },
+                    ],
+                    hints: [
+                      "Combine three conditions with &&.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return coupon.isActive ___ coupon.expiresAt > now ___ coupon.usedCount < coupon.maxUses;"
                     ],
                   },
                   order: 7,
@@ -1143,7 +1177,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Return true only if usedCount is strictly less than maxUses.",
+                      "Implement canUseCoupon(usedCount, maxUses) returning boolean: usedCount < maxUses (strict). At limit → false.",
                     language: "javascript",
                     starter_code:
                       "export function canUseCoupon(usedCount, maxUses) {\n  // TODO\n}\n",
@@ -1164,6 +1198,12 @@ export const levels = [
                       },
                       { input: [11, 10], expected: false, label: "over limit" },
                     ],
+                  
+                    hints: [
+    "Strict less-than.",
+    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
+    "return usedCount ___ maxUses;"
+  ],
                   },
                   order: 7,
                 },
@@ -1298,7 +1338,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Filter orders to only include those with cancelledAt === null.",
+                      "Implement getRevenueOrders(orders) returning only orders where cancelledAt is null. Filter by cancelledAt, NOT status.",
                     language: "javascript",
                     starter_code:
                       "export function getRevenueOrders(orders) {\n  // TODO: return only non-cancelled orders\n}\n",
@@ -1322,6 +1362,12 @@ export const levels = [
                         label: "excludes cancelled",
                       },
                     ],
+                  
+                    hints: [
+                      "Use .filter() with cancelledAt === null.",
+                      "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
+                      "return orders.filter(o => o.___ === ___);"
+                      ],
                   },
                   order: 6,
                 },
@@ -1427,7 +1473,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Return true only if the order's cancelledAt is null — this means the order was never cancelled and should count toward revenue.",
+                      "Implement isEligibleForRevenue(order) returning boolean: cancelledAt === null. Do NOT check status.",
                     language: "javascript",
                     starter_code:
                       "export function isEligibleForRevenue(order) {\n  // Return true if order was never cancelled\n}\n",
@@ -1470,6 +1516,12 @@ export const levels = [
                         label: "stale status cancelled — not eligible",
                       },
                     ],
+                  
+                    hints: [
+                      "Check cancelledAt only.",
+                      "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                      "return order.___ === ___;"
+                      ],
                   },
                   order: 6,
                 },

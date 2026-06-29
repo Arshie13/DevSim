@@ -199,7 +199,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      'Update the function output from "Hello World" to "Welcome Back".',
+                      "Update the function to return \"Welcome Back\" instead of \"Hello World\". Return type: string.",
                     language: "tsx",
                     starter_code:
                       'export function getUpdatedHeadingText() {\n  return "Hello World";\n}\n',
@@ -216,6 +216,12 @@ export const levels = [
                         expected: "Welcome Back",
                         label: "updated heading text",
                       },
+                    ],
+                  
+                    hints: [
+                      "Simple text change. Find the current string and swap it.",
+                      "The return statement has \"Hello World\". Replace it with \"Welcome Back\".",
+                      "return \"___\" — what string?"
                     ],
                   },
                   order: 7,
@@ -335,7 +341,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Create getNextCopyCount(currentCopies) that returns currentCopies + 1.",
+                      "Implement getNextCopyCount(currentCopies) that returns the next copy count as a number.\n\nExamples:\n  getNextCopyCount(0) → 1\n  getNextCopyCount(1) → 2\n  getNextCopyCount(5) → 6\n\nA single arithmetic expression.",
                     language: "javascript",
                     starter_code:
                       "export function getNextCopyCount(currentCopies) {\n  // TODO\n}\n",
@@ -351,6 +357,12 @@ export const levels = [
                       { input: [1], expected: 2, label: "one copy" },
                       { input: [5], expected: 6, label: "five copies" },
                     ],
+                  
+                    hints: [
+                      "Add 1 to the input.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return currentCopies + ___;"
+                      ],
                   },
                   order: 7,
                 },
@@ -476,7 +488,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Refactor the page logic to use the helper. The helper is shown below for reference as if it came from another file, and this section represents the page where you should import and use it.",
+                      "Refactor to call getBorrowBadgeLabel helper instead of reimplementing. Do not reimplement — call the existing function.",
                     language: "javascript",
                     starter_code:
                       '// helper file (shown for context; this lives in another file)\nfunction getBorrowBadgeLabel(record) {\n  if (record.returnedAt) return "Returned";\n  return "Active";\n}\n\n// page file section (this is where you refactor)\nimport { getBorrowBadgeLabel } from \'../utils/helpers\';\n\nexport function getBadgeForRecord(record) {\n  return record.returnedAt ? "Returned" : "Active";\n}\n',
@@ -503,6 +515,12 @@ export const levels = [
                         label: "returned record badge output",
                       },
                     ],
+                  
+                    hints: [
+                      "Pass the record to getBorrowBadgeLabel.",
+                      "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
+                      "return ___(record);"
+                      ],
                   },
                   order: 7,
                 },
@@ -685,6 +703,11 @@ export const levels = [
                         label: "checkpoint log order and content",
                       },
                     ],
+                    hints: [
+                      "Break this into smaller steps and think about what each piece of your input becomes in the output.",
+                      "Focus on the transformation itself — what operation changes your input value into the form the test expects?",
+                      "You are close — look at the examples again. What pattern do you see in how the input maps to the expected output?"
+                    ],
                   },
                   order: 7,
                 },
@@ -795,7 +818,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Given senderBalance, receiverBalance, and amount, return [newSender, newReceiver]. Deduct and credit atomically — if sender has insufficient funds, return the original balances untouched.",
+                      "Implement atomicTransfer(senderBalance, receiverBalance, amount) that returns [newSender, newReceiver].\n\nIf sender has insufficient funds, return original balances unchanged.\n\nExamples:\n  atomicTransfer(100, 50, 30) → [70, 80]\n  atomicTransfer(10, 50, 30) → [10, 50]   (insufficient)",
                     language: "javascript",
                     starter_code:
                       "function atomicTransfer(senderBalance, receiverBalance, amount) {\n  // TODO\n}\n",
@@ -828,6 +851,12 @@ export const levels = [
                         label: "zero balance — transfer rejected atomically",
                       },
                     ],
+                  
+                    hints: [
+                      "Check if sender has enough funds. If not, return unchanged.",
+                      "For each field, you need to ask two questions: is it the right type, and is its value above the minimum? Both checks must pass for each field.",
+                      "if (senderBalance < ___) return [senderBalance, receiverBalance]; return [senderBalance - ___, receiverBalance + ___];"
+                      ],
                   },
                   order: 7,
                 },
@@ -964,7 +993,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Validate required fields and return early errors before calling database logic.",
+                      "Implement validateReservationPayload(body) returning boolean. True only when both bookId and memberId are positive numbers — not zero, negative, or string.\n\nExamples:\n  validateReservationPayload({ bookId: 4, memberId: 2 }) → true\n  validateReservationPayload({ bookId: 0, memberId: 2 }) → false\n  validateReservationPayload({ bookId: \"9\", memberId: 2 }) → false",
                     language: "javascript",
                     starter_code:
                       "function validateReservationPayload(body) {\n  // return true only when both IDs are positive numbers\n}\n",
@@ -997,6 +1026,12 @@ export const levels = [
                         expected: false,
                         label: "string bookId",
                       },
+                    ],
+                  
+                    hints: [
+                      "Check typeof and > 0 for both fields.",
+                      "typeof body.bookId === \"number\" && body.bookId > 0 && typeof body.memberId === \"number\" && body.memberId > 0;",
+                      "return typeof body.___ === \"number\" && body.___ > 0 && ..."
                     ],
                   },
                   order: 8,
@@ -1179,7 +1214,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Map reservation rows into readable summary lines with position + member + status.",
+                      "Implement formatQueueSnapshot(rows) returning a string. Each row: \"#POSITION NAME [STATUS]\". Join with \" | \". Empty → \"(empty queue)\".\n\nExamples:\n  formatQueueSnapshot([{ queuePosition: 1, memberName: \"Ari\", status: \"RESERVED\" }]) → \"#1 Ari [RESERVED]\"\n  formatQueueSnapshot([]) → \"(empty queue)\"",
                     language: "javascript",
                     starter_code:
                       'function formatQueueSnapshot(rows) {\n  // Return one summary string joined by " | "\n}\n',
@@ -1216,6 +1251,12 @@ export const levels = [
                         expected: "(empty queue)",
                         label: "empty queue",
                       },
+                    ],
+                  
+                    hints: [
+                      "Map each row, join with \" | \". Handle empty first.",
+                      "if (rows.length === 0) return \"(empty queue)\"; return rows.map(r => `#${r.queuePosition} ${r.memberName} [${r.status}]`).join(\" | \");",
+                      "if (rows.length === 0) return \"___\"; return rows.map(...).join(\"___\");"
                     ],
                   },
                   order: 6,
@@ -1405,7 +1446,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      'Create a helper that returns "OVERDUE" or "ON_TIME" from dueDate + returnedAt.',
+                      "Implement getOverdueLabel(dueDate, returnedAt) returning \"OVERDUE\" or \"ON_TIME\".\n\nTwo cases:\n  1. returnedAt is NOT null → \"ON_TIME\" (already returned)\n  2. returnedAt IS null → past dueDate → \"OVERDUE\", future → \"ON_TIME\"\n\nExamples:\n  getOverdueLabel(\"2024-01-01\", null) → \"OVERDUE\"\n  getOverdueLabel(\"2024-01-01\", \"2024-01-02\") → \"ON_TIME\"",
                     language: "javascript",
                     starter_code:
                       "function getOverdueLabel(dueDate, returnedAt) {\n  // TODO\n}\n",
@@ -1435,6 +1476,12 @@ export const levels = [
                         expected: "ON_TIME",
                         label: "already returned",
                       },
+                    ],
+                  
+                    hints: [
+                      "Check returnedAt first. If not null, ON_TIME. Otherwise compare dates.",
+                      "if (returnedAt != null) return \"ON_TIME\"; if (new Date(dueDate) < new Date()) return \"OVERDUE\"; return \"ON_TIME\";",
+                      "if (returnedAt != ___) return \"___\"; if (new Date(dueDate) < new Date()) return \"___\"; return \"___\";"
                     ],
                   },
                   order: 7,
@@ -1542,7 +1589,7 @@ export const levels = [
                   interactive_mode: "CODE_EDITOR" as const,
                   interactive_config: {
                     instructions:
-                      "Write a 4-line timeline: detection, impact window, mitigation, and final verification.",
+                      "Implement formatIncidentTimeline() returning a 4-line timeline string. Each line: \"- Section: detail\" joined by \\n.",
                     language: "javascript",
                     starter_code:
                       'export function formatIncidentTimeline() {\n  return [\n    "- Detection: [detection detail]",\n    "- Impact Window: [impact window]",\n    "- Mitigation: [mitigation step]",\n    "- Verification: [verification result]",\n  ].join("\\n");\n}\n',
@@ -1572,6 +1619,12 @@ export const levels = [
                           "- Detection: Alert from overdue report\n- Impact Window: 09:00-11:00 UTC\n- Mitigation: query patched\n- Verification: regression test passed",
                         label: "required incident timeline output",
                       },
+                    ],
+                  
+                    hints: [
+                      "Build 4 strings, join with \\n.",
+                      "[\"- Detection: ...\", \"- Impact Window: ...\", \"- Mitigation: ...\", \"- Verification: ...\"].join(\"\\n\");",
+                      "return [\"- Detection: ___\", \"- Impact Window: ___\", \"- Mitigation: ___\", \"- Verification: ___\"].join(\"___\");"
                     ],
                   },
                   order: 6,
