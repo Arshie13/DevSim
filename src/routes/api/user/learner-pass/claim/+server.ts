@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
-import type { RewardJson } from '$lib/types/reward-json';
 import { SCENARIO_3_IDS } from '$lib/utils/reward-constants';
+import { getRewardUnlockIds } from '$lib/server/learnerPassRewards';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -28,40 +28,41 @@ export const POST: RequestHandler = async (event) => {
         orderBy: { created_at: 'desc' },
       });
 
-      if (!enrollment || enrollment.status !== 'ACTIVE') {
+      const now = new Date();
+
+      if (!enrollment || !enrollment.started_at) {
         throw error(400, 'No active learner pass');
       }
 
-      const now = new Date();
-
       if (enrollment.expires_at && now > enrollment.expires_at) {
-        await tx.learner_pass_enrollment.update({
-          where: { id: enrollment.id },
-          data: { status: 'EXPIRED' },
-        });
         throw error(410, 'Pass has expired');
       }
 
       const start = enrollment.started_at ?? now;
-      const currentDay = Math.min(30, Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1);
+      const daysSinceStart = Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1;
+      const currentDay = Math.min(30, Math.max(1, daysSinceStart));
+
+      // Guard: block claiming rewards for future pass days.
+      // dayNumber is a pass day (1–30), keyed to calendar days since started_at.
+      if (dayNumber > daysSinceStart) {
+        throw error(400, 'Cannot claim rewards for future days');
+      }
 
       if (dayNumber > currentDay) {
         throw error(400, 'Can only claim up to the current day');
       }
 
-      if (enrollment.claimed_days.includes(dayNumber)) {
+      if (enrollment.claimed_day_numbers.includes(dayNumber)) {
         throw error(409, 'Reward already claimed for this day');
       }
 
       const reward = await tx.learner_pass_reward.findUnique({
-        where: { day_number: dayNumber },
+        where: { reward_index: dayNumber },
       });
 
       if (!reward) {
         throw error(500, 'Reward not configured');
       }
-
-      const r = reward.rewards as RewardJson;
 
       const isConsecutive = enrollment.last_claimed_at
         ? new Date(enrollment.last_claimed_at).toDateString() ===
@@ -70,12 +71,7 @@ export const POST: RequestHandler = async (event) => {
 
       const newStreak = isConsecutive ? enrollment.streak + 1 : 1;
       const newTotalClaimed = enrollment.total_claimed_days + 1;
-      const newClaimedDays = [...enrollment.claimed_days, dayNumber];
-
-      let newStatus = enrollment.status;
-      if (dayNumber >= 30) {
-        newStatus = 'COMPLETED';
-      }
+      const newClaimedDays = [...enrollment.claimed_day_numbers, dayNumber];
 
       const updatedEnrollment = await tx.learner_pass_enrollment.update({
         where: { id: enrollment.id },
@@ -83,26 +79,26 @@ export const POST: RequestHandler = async (event) => {
           last_claimed_at: now,
           streak: newStreak,
           total_claimed_days: newTotalClaimed,
-          claimed_days: newClaimedDays,
-          status: newStatus,
+          claimed_day_numbers: newClaimedDays,
         },
       });
 
       const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
-          coins: { increment: r.coins ?? 0 },
-          xp: { increment: r.xp ?? 0 },
-          aiHelpCredits: { increment: r.aiHelps ?? 0 },
+          coins: { increment: reward.coins },
+          xp: { increment: reward.xp },
+          aiHelpCredits: { increment: reward.ai_helps },
         },
         select: { coins: true, xp: true, aiHelpCredits: true },
       });
 
       const projectGrants: string[] = [];
       const pendingUnlocks: { day: number; available: string[] }[] = [];
-      if (r.unlocks && r.unlocks.length > 0) {
-        const normalUnlocks = r.unlocks.filter((id) => !SCENARIO_3_IDS.has(id));
-        const specialUnlocks = r.unlocks.filter((id) => SCENARIO_3_IDS.has(id));
+      const rewardUnlocks = getRewardUnlockIds(reward);
+      if (rewardUnlocks.length > 0) {
+        const normalUnlocks = rewardUnlocks.filter((id) => !SCENARIO_3_IDS.has(id));
+        const specialUnlocks = rewardUnlocks.filter((id) => SCENARIO_3_IDS.has(id));
 
         for (const projectId of normalUnlocks) {
           const existingAccess = await tx.user_project_access.findFirst({
@@ -131,7 +127,7 @@ export const POST: RequestHandler = async (event) => {
       return {
         updatedUser,
         updatedEnrollment,
-        reward: r,
+        reward,
         projectGrants,
         pendingUnlocks,
         currentDay,
@@ -142,9 +138,9 @@ export const POST: RequestHandler = async (event) => {
       success: true,
       day: dayNumber,
       reward: {
-        coins: result.reward.coins ?? 0,
-        xp: result.reward.xp ?? 0,
-        aiHelps: result.reward.aiHelps ?? 0,
+        coins: result.reward.coins,
+        xp: result.reward.xp,
+        aiHelps: result.reward.ai_helps,
         unlocks: result.projectGrants,
       },
       pendingUnlocks: result.pendingUnlocks,
@@ -154,7 +150,6 @@ export const POST: RequestHandler = async (event) => {
       streak: result.updatedEnrollment.streak,
       totalClaimedDays: result.updatedEnrollment.total_claimed_days,
       currentDay: result.currentDay,
-      status: result.updatedEnrollment.status,
     });
   } catch (err) {
     if (err && typeof err === 'object' && 'status' in err) {

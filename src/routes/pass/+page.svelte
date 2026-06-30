@@ -7,7 +7,7 @@
   export let data: PageData;
 
   let enrollment = data.enrollment;
-  let claimedDays: number[] = enrollment?.claimedDays ?? [];
+  let claimedDays: number[] = enrollment?.claimedDayNumbers ?? [];
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   let isClaiming = false;
   let currentAvatar = data.currentAvatar ?? null;
@@ -31,12 +31,11 @@
   type DayReward = { day: number; rewards: RewardEntry };
 
   let rewards: DayReward[] = (data.rewards ?? []).map((r) => {
-    const j = r.rewards as Record<string, unknown>;
     return {
-      day: r.day_number,
+      day: r.reward_index,
       rewards: {
-        type: (j.displayType as string) ?? "",
-        value: (j.displayValue as string) ?? "",
+        type: r.display_type ?? "",
+        value: r.display_value ?? "",
       },
     };
   });
@@ -117,6 +116,10 @@
 
     if (enrollment.status !== "ACTIVE") return false;
 
+    // Past missed days are always claimable (no cooldown).
+    if (reward.day < currentLevel) return true;
+
+    // Current day: enforce one-claim-per-real-day cooldown.
     if (!enrollment.lastClaimedAt) return true;
 
     const lastClaimDate = new Date(enrollment.lastClaimedAt).toDateString();
@@ -145,8 +148,11 @@
               currentDay: claimData.currentDay ?? enrollment.currentDay,
               streak: claimData.streak,
               totalClaimedDays: claimData.totalClaimedDays,
-              status: claimData.status ?? enrollment.status,
-              lastClaimedAt: new Date().toISOString(),
+              status: claimData.totalClaimedDays >= 30 ? "COMPLETED" : enrollment.status,
+              lastClaimedAt:
+                dayNumber === enrollment.currentDay
+                  ? new Date().toISOString()
+                  : enrollment.lastClaimedAt,
             };
             startTimer();
           }

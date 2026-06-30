@@ -185,9 +185,9 @@ export const load: PageServerLoad = async (event) => {
 	const dbIds = Object.values(folderIdToDbId);
 	const dbScenarios = dbIds.length > 0 ? await prisma.scenario.findMany({
 		where: { id: { in: dbIds } },
-		select: { id: true, paywall: true }
+		select: { id: true, isPaywalled: true }
 	}) : [];
-	const paywallMap = new Map(dbScenarios.map(s => [s.id, s.paywall]));
+	const paywallMap = new Map(dbScenarios.map(s => [s.id, s.isPaywalled]));
 
 	for (const dir of scenarioDirs) {
 		const scenarioPath = path.join(stackDir, dir.name);

@@ -18,7 +18,6 @@
 // @ts-ignore - Prisma client path
 import { PrismaClient, type Prisma } from "$prismaclient";
 import { PrismaPg } from "@prisma/adapter-pg";
-import type { RewardJson } from "../src/lib/types/reward-json";
 import "dotenv/config";
 
 import { levels as pernScenario1Levels, scenarios as pernScenario1Scenarios } from "./seed/react-express-postgres-prisma/scenario-1/seed";
@@ -392,46 +391,67 @@ async function main() {
   // Insert learner pass rewards
   console.log("\n🎁 Creating learner pass rewards...\n");
 
-  const learnerPassRewards: { day_number: number; rewards: RewardJson }[] = [
-    { day_number: 1,  rewards: { coins: 0,   xp: 0,  aiHelps: 3,  unlocks: [], displayType: "help",   displayValue: "+3 AI Helps" } },
-    { day_number: 2,  rewards: { coins: 400, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "400 Coins" } },
-    { day_number: 3,  rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Blue Neon Avatar" } },
-    { day_number: 4,  rewards: { coins: 0,   xp: 0,  aiHelps: 5,  unlocks: [], displayType: "help",   displayValue: "+5 AI Helps" } },
-    { day_number: 5,  rewards: { coins: 500, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "500 Coins" } },
-    { day_number: 6,  rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: ["pern-pos-scenario-3"], displayType: "scenario_unlock", displayValue: "PERN Scenario 3" } },
-    { day_number: 7,  rewards: { coins: 0,   xp: 0,  aiHelps: 8,  unlocks: [], displayType: "help",   displayValue: "+8 AI Helps" } },
-    { day_number: 8,  rewards: { coins: 600, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "600 Coins" } },
-    { day_number: 9,  rewards: { coins: 750, xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "750 Coins" } },
-    { day_number: 10, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Shadow Avatar" } },
-    { day_number: 11, rewards: { coins: 0,   xp: 0,  aiHelps: 10, unlocks: [], displayType: "help",   displayValue: "+10 AI Helps" } },
-    { day_number: 12, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: ["mern-tw-scenario-3"], displayType: "scenario_unlock", displayValue: "MERN Scenario 3" } },
-    { day_number: 13, rewards: { coins: 0,   xp: 0,  aiHelps: 11, unlocks: [], displayType: "help",   displayValue: "+11 AI Helps" } },
-    { day_number: 14, rewards: { coins: 0,   xp: 0,  aiHelps: 12, unlocks: [], displayType: "help",   displayValue: "+12 AI Helps" } },
-    { day_number: 15, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Legend Avatar" } },
-    { day_number: 16, rewards: { coins: 1500,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "1500 Coins" } },
-    { day_number: 17, rewards: { coins: 0,   xp: 0,  aiHelps: 15, unlocks: [], displayType: "help",   displayValue: "+15 AI Helps" } },
-    { day_number: 18, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: ["nestjs-pos-scenario-3"], displayType: "scenario_unlock", displayValue: "NestJS Scenario 3" } },
-    { day_number: 19, rewards: { coins: 1800,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "1800 Coins" } },
-    { day_number: 20, rewards: { coins: 0,   xp: 0,  aiHelps: 20, unlocks: [], displayType: "help",   displayValue: "+20 AI Helps" } },
-    { day_number: 21, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Nova Avatar" } },
-    { day_number: 22, rewards: { coins: 2000,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "2000 Coins" } },
-    { day_number: 23, rewards: { coins: 0,   xp: 0,  aiHelps: 25, unlocks: [], displayType: "help",   displayValue: "+25 AI Helps" } },
-    { day_number: 24, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: ["nextjs-postgres-prisma-3"], displayType: "scenario_unlock", displayValue: "Next.js + Prisma Scenario 3" } },
-    { day_number: 25, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Royal Avatar" } },
-    { day_number: 26, rewards: { coins: 0,   xp: 0,  aiHelps: 30, unlocks: [], displayType: "help",   displayValue: "+30 AI Helps" } },
-    { day_number: 27, rewards: { coins: 2500,xp: 0,  aiHelps: 0,  unlocks: [], displayType: "coins",  displayValue: "2500 Coins" } },
-    { day_number: 28, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: [], displayType: "avatar", displayValue: "Neon Warrior Avatar" } },
-    { day_number: 29, rewards: { coins: 0,   xp: 0,  aiHelps: 35, unlocks: [], displayType: "help",   displayValue: "+35 AI Helps" } },
-    { day_number: 30, rewards: { coins: 0,   xp: 0,  aiHelps: 0,  unlocks: ["nextjs-shadcn-ui-scenario-3"], displayType: "scenario_unlock", displayValue: "Next.js Shadcn Scenario 3" } },
+  const learnerPassRewards: { reward_index: number; coins: number; xp: number; ai_helps: number; unlocks: string[]; display_type: string; display_value: string }[] = [
+    { reward_index: 1,  coins: 0,   xp: 0,  ai_helps: 3,  unlocks: [], display_type: "help",   display_value: "+3 AI Helps" },
+    { reward_index: 2,  coins: 400, xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "400 Coins" },
+    { reward_index: 3,  coins: 0,   xp: 0,  ai_helps: 0,  unlocks: [], display_type: "avatar", display_value: "Blue Neon Avatar" },
+    { reward_index: 4,  coins: 0,   xp: 0,  ai_helps: 5,  unlocks: [], display_type: "help",   display_value: "+5 AI Helps" },
+    { reward_index: 5,  coins: 500, xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "500 Coins" },
+    { reward_index: 6,  coins: 0,   xp: 0,  ai_helps: 0,  unlocks: ["pern-pos-scenario-3"], display_type: "scenario_unlock", display_value: "PERN Scenario 3" },
+    { reward_index: 7,  coins: 0,   xp: 0,  ai_helps: 8,  unlocks: [], display_type: "help",   display_value: "+8 AI Helps" },
+    { reward_index: 8,  coins: 600, xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "600 Coins" },
+    { reward_index: 9,  coins: 750, xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "750 Coins" },
+    { reward_index: 10, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: [], display_type: "avatar", display_value: "Shadow Avatar" },
+    { reward_index: 11, coins: 0,   xp: 0,  ai_helps: 10, unlocks: [], display_type: "help",   display_value: "+10 AI Helps" },
+    { reward_index: 12, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: ["mern-tw-scenario-3"], display_type: "scenario_unlock", display_value: "MERN Scenario 3" },
+    { reward_index: 13, coins: 0,   xp: 0,  ai_helps: 11, unlocks: [], display_type: "help",   display_value: "+11 AI Helps" },
+    { reward_index: 14, coins: 0,   xp: 0,  ai_helps: 12, unlocks: [], display_type: "help",   display_value: "+12 AI Helps" },
+    { reward_index: 15, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: [], display_type: "avatar", display_value: "Legend Avatar" },
+    { reward_index: 16, coins: 1500,xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "1500 Coins" },
+    { reward_index: 17, coins: 0,   xp: 0,  ai_helps: 15, unlocks: [], display_type: "help",   display_value: "+15 AI Helps" },
+    { reward_index: 18, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: ["nestjs-pos-scenario-3"], display_type: "scenario_unlock", display_value: "NestJS Scenario 3" },
+    { reward_index: 19, coins: 1800,xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "1800 Coins" },
+    { reward_index: 20, coins: 0,   xp: 0,  ai_helps: 20, unlocks: [], display_type: "help",   display_value: "+20 AI Helps" },
+    { reward_index: 21, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: [], display_type: "avatar", display_value: "Nova Avatar" },
+    { reward_index: 22, coins: 2000,xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "2000 Coins" },
+    { reward_index: 23, coins: 0,   xp: 0,  ai_helps: 25, unlocks: [], display_type: "help",   display_value: "+25 AI Helps" },
+    { reward_index: 24, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: ["nextjs-postgres-prisma-3"], display_type: "scenario_unlock", display_value: "Next.js + Prisma Scenario 3" },
+    { reward_index: 25, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: [], display_type: "avatar", display_value: "Royal Avatar" },
+    { reward_index: 26, coins: 0,   xp: 0,  ai_helps: 30, unlocks: [], display_type: "help",   display_value: "+30 AI Helps" },
+    { reward_index: 27, coins: 2500,xp: 0,  ai_helps: 0,  unlocks: [], display_type: "coins",  display_value: "2500 Coins" },
+    { reward_index: 28, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: [], display_type: "avatar", display_value: "Neon Warrior Avatar" },
+    { reward_index: 29, coins: 0,   xp: 0,  ai_helps: 35, unlocks: [], display_type: "help",   display_value: "+35 AI Helps" },
+    { reward_index: 30, coins: 0,   xp: 0,  ai_helps: 0,  unlocks: ["nextjs-shadcn-ui-scenario-3"], display_type: "scenario_unlock", display_value: "Next.js Shadcn Scenario 3" },
   ];
 
   for (const reward of learnerPassRewards) {
-    const existing = await prisma.learner_pass_reward.findUnique({ where: { day_number: reward.day_number } });
+    const existing = await prisma.learner_pass_reward.findUnique({ where: { reward_index: reward.reward_index } });
     if (existing) {
-      console.log(`⏭️  Skipped learner pass reward day ${reward.day_number} (already exists)`);
+      await prisma.learner_pass_reward.update({
+        where: { reward_index: reward.reward_index },
+        data: {
+          coins: reward.coins,
+          xp: reward.xp,
+          ai_helps: reward.ai_helps,
+          unlocked_scenario: reward.unlocks,
+          display_type: reward.display_type,
+          display_value: reward.display_value,
+        },
+      });
+      console.log(`🔄 Updated learner pass reward day ${reward.reward_index}`);
       continue;
     }
-    await prisma.learner_pass_reward.create({ data: reward });
+    await prisma.learner_pass_reward.create({
+      data: {
+        reward_index: reward.reward_index,
+        coins: reward.coins,
+        xp: reward.xp,
+        ai_helps: reward.ai_helps,
+        unlocked_scenario: reward.unlocks,
+        display_type: reward.display_type,
+        display_value: reward.display_value,
+      },
+    });
   }
 
   console.log("✅ Created learner pass rewards\n");

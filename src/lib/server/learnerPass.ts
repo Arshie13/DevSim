@@ -31,7 +31,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
     select: {
       id: true,
       user_id: true,
-      status: true,
       started_at: true,
       expires_at: true,
       payment_id: true,
@@ -49,7 +48,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
     const enrollment = await prisma.learner_pass_enrollment.create({
       data: {
         user_id: userId,
-        status: 'ACTIVE',
         started_at: now,
         expires_at: expiresAt,
         streak: 0,
@@ -60,7 +58,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
       select: {
         id: true,
         user_id: true,
-        status: true,
         started_at: true,
         expires_at: true,
         payment_id: true,
@@ -75,7 +72,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
         select: {
           id: true,
           user_id: true,
-          status: true,
           started_at: true,
           expires_at: true,
           payment_id: true,

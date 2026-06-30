@@ -25,8 +25,8 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
       select: { xp: true, coins: true, has_completed_tutorial: true, trivia_correct_count: true },
     }),
     prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
-    prisma.completed_task.count({ where: { workspace: { user_id: userId } } }),
-    prisma.user_file_changes.count({
+    prisma.task_activity.count({ where: { user_id: userId } }),
+    prisma.file_changes.count({
       where: {
         workspace: { user_id: userId },
         action: { in: ["WRITE", "RENAME"] },

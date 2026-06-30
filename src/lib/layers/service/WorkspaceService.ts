@@ -539,7 +539,7 @@ export class WorkspaceService {
   // so the dashboard "Weekly Activity" reflects it immediately instead of only
   // on a full Submit Sprint. Idempotent per (workspace, task): re-running a
   // passing test won't double-count, and a later Submit Sprint reuses the same
-  // completed_task guard so it won't record the task a second time.
+  // guard so it won't record the task a second time.
   async recordTaskCompletion(params: {
     containerId: string;
     userId: string;

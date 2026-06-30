@@ -3,23 +3,23 @@ import prisma from '$lib/server/client';
 export class TasksDataAccess {
   async getCurrentCompletedTasks(workspaceId: string) {
     try {
-      const completedTasks = await prisma.completed_task.findMany({
-        where: { workspace_id: workspaceId },
-        select: { task_name: true }
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { completed_tasks: true }
       });
-  
-      if (!completedTasks) {
+
+      if (!workspace) {
         return {
           success: false,
           status: 404,
-          error: 'No completed tasks found'
+          error: 'Workspace not found'
         }
       }
-  
+
       return {
         success: true,
-        completedTasks: completedTasks.map(task => ({
-          taskName: task.task_name
+        completedTasks: workspace.completed_tasks.map(taskName => ({
+          taskName
         }))
       };
     } catch (error) {
@@ -33,26 +33,20 @@ export class TasksDataAccess {
   }
 
   async createCompletedTask(workspaceId: string, taskId: string, userId: string, level: number) {
-    // Board state — idempotent per (workspace, task) so re-running a passing
-    // test doesn't trip the @@unique([workspace_id, task_name]) constraint.
     try {
-      await prisma.completed_task.upsert({
-        where: {
-          workspace_id_task_name: { workspace_id: workspaceId, task_name: taskId }
-        },
-        create: { workspace_id: workspaceId, task_name: taskId },
-        update: {}
+      await prisma.workspace.update({
+        where: { id: workspaceId },
+        data: {
+          completed_tasks: {
+            push: taskId
+          }
+        }
       });
     } catch (error) {
-      console.error('Error creating completed_task row:', error);
+      console.error('Error adding completed task to workspace:', error);
       return { success: false, error };
     }
 
-    // Durable activity log in its own table — survives deleteCompletedTasks,
-    // which wipes completed_task rows on every level advance. Isolated in its
-    // own try/catch so a failure here is reported distinctly instead of being
-    // masked by (or masking) the completed_task write above. Backs the dashboard
-    // weekly chart, activity feed, and lifetime tasks-completed stat.
     try {
       const existing = await prisma.task_activity.findFirst({
         where: { user_id: userId, task_name: taskId }
@@ -72,13 +66,14 @@ export class TasksDataAccess {
 
   async deleteCompletedTasks(workspaceId: string) {
     try {
-      await prisma.completed_task.deleteMany({
-        where: { workspace_id: workspaceId }
+      await prisma.workspace.update({
+        where: { id: workspaceId },
+        data: { completed_tasks: [] }
       });
 
       return { success: true };
     } catch (error) {
-      console.log('Error deleting completed tasks: ', error);
+      console.log('Error clearing completed tasks: ', error);
       return {
         success: false,
         error: error

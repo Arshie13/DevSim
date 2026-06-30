@@ -19,25 +19,17 @@ export const load: PageServerLoad = async (event) => {
     select: { image: true },
   });
 
-  let enrollment = await prisma.learner_pass_enrollment.findFirst({
-    where: { user_id: userId, status: 'ACTIVE' },
+  const enrollment = await prisma.learner_pass_enrollment.findFirst({
+    where: { user_id: userId },
     orderBy: { created_at: "desc" },
   });
-  // ponytail: fall back to most recent if no ACTIVE enrollment
-  if (!enrollment) {
-    enrollment = await prisma.learner_pass_enrollment.findFirst({
-      where: { user_id: userId },
-      orderBy: { created_at: "desc" },
-    });
-  }
 
   const rewards = await prisma.learner_pass_reward.findMany({
-    where: { is_active: true },
-    orderBy: { day_number: "asc" },
+    orderBy: { reward_index: "asc" },
   });
 
-  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const start = enrollment?.started_at ?? new Date();
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const currentDay = Math.min(30, Math.floor((Date.now() - start.getTime()) / ONE_DAY_MS) + 1);
 
   let pendingUnlocks: { day: number; available: string[] }[] = [];
@@ -47,10 +39,11 @@ export const load: PageServerLoad = async (event) => {
       select: { project_id: true },
     });
     const unlockedIds = new Set(unlockedProjects.map((p) => p.project_id));
-    const choices = (enrollment.unlock_choices as any[]) || [];
-    for (const day of enrollment.claimed_days) {
+    const choices = (enrollment.unlock_choices as string[]) || [];
+    for (const day of enrollment.claimed_day_numbers) {
       if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
-      if (choices.some((c: any) => c.dayNumber === day)) continue;
+      const dayScenario = getSpecialUnlocksForDay(day)[0];
+      if (!dayScenario || choices.includes(dayScenario)) continue;
       const available = getSpecialUnlocksForDay(day).filter((id) => !unlockedIds.has(id));
       if (available.length > 0) {
         pendingUnlocks.push({ day, available });
@@ -58,16 +51,23 @@ export const load: PageServerLoad = async (event) => {
     }
   }
 
+  const claimedDayNumbers: number[] = enrollment?.claimed_day_numbers ?? [];
+
+  const now = new Date();
+  const isExpired = enrollment?.expires_at && now > enrollment.expires_at;
+  const isCompleted = (enrollment?.total_claimed_days ?? 0) >= 30;
+  const isActive = !!enrollment?.started_at && !isExpired && !isCompleted;
+
   return {
     enrollment: enrollment
       ? {
-          status: enrollment.status,
+          status: isCompleted ? "COMPLETED" : isExpired ? "EXPIRED" : isActive ? "ACTIVE" : "ACTIVE",
           currentDay,
           streak: enrollment.streak,
           totalClaimedDays: enrollment.total_claimed_days,
           lastClaimedAt: enrollment.last_claimed_at?.toISOString() ?? null,
           expiresAt: enrollment.expires_at?.toISOString(),
-          claimedDays: enrollment.claimed_days,
+          claimedDayNumbers,
         }
       : null,
     rewards,

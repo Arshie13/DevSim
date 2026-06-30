@@ -58,12 +58,10 @@ export class LevelDataAccess {
         xpReward: data?.xp_reward,
         coinReward: data?.coin_reward,
         keyTakeaways: data?.key_takeaways,
-        epicId: data?.epic_id ?? null,
         scenarioId: data?.scenario_id,
         tasks: data?.tasks.map((task) => ({
           id: task.id,
           order: task.order,
-          epicId: task.epic_id,
           levelId: task.level_id,
           taskName: task.task_name,
           userStory: task.user_story,

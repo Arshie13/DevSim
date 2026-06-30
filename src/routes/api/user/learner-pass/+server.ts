@@ -26,22 +26,15 @@ export const GET: RequestHandler = async (event) => {
 
   const now = new Date();
   const isExpired = enrollment.expires_at && now > enrollment.expires_at;
-
-  if (isExpired && enrollment.status === "ACTIVE") {
-    await prisma.learner_pass_enrollment.update({
-      where: { id: enrollment.id },
-      data: { status: "EXPIRED" },
-    });
-    enrollment.status = "EXPIRED";
-  }
+  const isCompleted = enrollment.total_claimed_days >= 30;
+  const isActive = !!enrollment.started_at && !isExpired && !isCompleted;
 
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const start = enrollment.started_at ?? now;
   const currentDay = Math.min(30, Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1);
 
   const canClaimNow =
-    enrollment.status === "ACTIVE" &&
-    !isExpired &&
+    isActive &&
     (enrollment.last_claimed_at === null ||
       new Date().toDateString() !==
         new Date(enrollment.last_claimed_at).toDateString());
@@ -65,15 +58,14 @@ export const GET: RequestHandler = async (event) => {
       : null;
 
   const rewards = await prisma.learner_pass_reward.findMany({
-    where: { is_active: true },
-    orderBy: { day_number: "asc" },
+    orderBy: { reward_index: "asc" },
   });
 
   const currentDayReward = rewards.find(
-    (r) => r.day_number === currentDay,
+    (r) => r.reward_index === currentDay,
   );
   const upcomingRewards = rewards
-    .filter((r) => r.day_number > currentDay && r.day_number <= currentDay + 3)
+    .filter((r) => r.reward_index > currentDay && r.reward_index <= currentDay + 3)
     .slice(0, 3);
 
   const unlockedProjects = await prisma.user_project_access.findMany({
@@ -81,11 +73,12 @@ export const GET: RequestHandler = async (event) => {
     select: { project_id: true, granted_at: true },
   });
 
-  const choices = (enrollment.unlock_choices as any[]) || [];
+  const choices = (enrollment.unlock_choices as string[]) || [];
   const pendingUnlocks = [];
-  for (const day of enrollment.claimed_days) {
+  for (const day of enrollment.claimed_day_numbers) {
     if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
-    if (choices.some((c: any) => c.dayNumber === day)) continue;
+    const dayScenario = getSpecialUnlocksForDay(day)[0];
+    if (!dayScenario || choices.includes(dayScenario)) continue;
     const available = getSpecialUnlocksForDay(day).filter(
       (id) => !unlockedProjects.some((p) => p.project_id === id),
     );
@@ -95,12 +88,12 @@ export const GET: RequestHandler = async (event) => {
   }
 
   return Response.json({
-    status: enrollment.status,
+    status: isCompleted ? "COMPLETED" : isExpired ? "EXPIRED" : isActive ? "ACTIVE" : "ACTIVE",
     hasEnrollment: true,
     currentDay,
     totalClaimedDays: enrollment.total_claimed_days,
     streak: enrollment.streak,
-    claimedDays: enrollment.claimed_days,
+    claimedDays: enrollment.claimed_day_numbers,
     canClaimNow,
     nextAvailableAt,
     expiresAt: enrollment.expires_at?.toISOString(),

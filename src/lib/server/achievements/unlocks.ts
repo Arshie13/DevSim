@@ -28,43 +28,28 @@ export async function detectNewlyUnlockedAchievements(
     prisma.achievement.findMany({ include: { tiers: true } }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true, tier: true },
+      select: { achievement_tier_id: true },
     }),
     getUserProgressSnapshot(userId),
   ]);
 
   const alreadyUnlocked = new Set(
-    existing.map((e) => `${e.achievement_id}:${e.tier}`),
+    existing.map((e) => e.achievement_tier_id),
   );
 
   const newlyUnlocked: UnlockedAchievement[] = [];
-  const rows: {
-    user_id: string;
-    achievement_id: string;
-    tier: achievement_tier_level;
-    description: string;
-    icon: string | null;
-    criteria: unknown;
-    xp_reward: number;
-    coin_reward: number;
-  }[] = [];
+  const rows: { user_id: string; achievement_tier_id: string }[] = [];
 
   for (const a of achievements) {
     for (const t of a.tiers) {
-      if (alreadyUnlocked.has(`${a.id}:${t.tier}`)) continue;
+      if (alreadyUnlocked.has(t.id)) continue;
 
       const { current, target } = evaluateCriterion(t.criteria, snapshot);
       if (current < target) continue;
 
       rows.push({
         user_id: userId,
-        achievement_id: a.id,
-        tier: t.tier as achievement_tier_level,
-        description: t.description,
-        icon: t.icon,
-        criteria: t.criteria,
-        xp_reward: t.xp_reward,
-        coin_reward: t.coin_reward,
+        achievement_tier_id: t.id,
       });
       newlyUnlocked.push({
         achievementId: a.id,
@@ -80,13 +65,12 @@ export async function detectNewlyUnlockedAchievements(
 
   if (rows.length > 0) {
     await prisma.user_achievement.createMany({
-      // criteria is a Json column; cast away the readonly JsonValue typing.
-      data: rows as never,
+      data: rows,
       skipDuplicates: true,
     });
 
-    const totalXp = rows.reduce((sum, r) => sum + r.xp_reward, 0);
-    const totalCoins = rows.reduce((sum, r) => sum + r.coin_reward, 0);
+    const totalXp = newlyUnlocked.reduce((sum, r) => sum + r.xpReward, 0);
+    const totalCoins = newlyUnlocked.reduce((sum, r) => sum + r.coinReward, 0);
 
     if (totalXp > 0 || totalCoins > 0) {
       await prisma.user.update({

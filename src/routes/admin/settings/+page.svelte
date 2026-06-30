@@ -9,7 +9,7 @@
     id: string;
     name: string;
     description: string;
-    paywall: boolean;
+    isPaywalled: boolean;
     stackName: string;
   }
 
@@ -181,9 +181,9 @@
                   togglingScenario = null;
                   if (result.type === "success") {
                     scenarios = scenarios.map(s =>
-                      s.id === scenario.id ? { ...s, paywall: !s.paywall } : s
+                      s.id === scenario.id ? { ...s, isPaywalled: !s.isPaywalled } : s
                     );
-                    message = { type: "success", text: `Paywall ${!scenario.paywall ? 'enabled' : 'disabled'} for ${scenario.name}` };
+                    message = { type: "success", text: `Paywall ${!scenario.isPaywalled ? 'enabled' : 'disabled'} for ${scenario.name}` };
                   } else if (result.type === "failure") {
                     message = { type: "error", text: (result.data?.message as string) || "Failed to update scenario paywall" };
                   }
@@ -196,15 +196,15 @@
               <button
                 type="submit"
                 disabled={togglingScenario === scenario.id}
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgba(7,165,201,0.5)] focus:ring-offset-2 disabled:opacity-50 {scenario.paywall
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgba(7,165,201,0.5)] focus:ring-offset-2 disabled:opacity-50 {scenario.isPaywalled
                   ? 'bg-[rgba(0,229,160,0.3)]'
                   : 'bg-[rgba(136,146,160,0.3)]'}"
                 role="switch"
-                aria-checked={scenario.paywall}
+                aria-checked={scenario.isPaywalled}
                 aria-label="Toggle paywall for {scenario.name}"
               >
                 <span
-                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {scenario.paywall
+                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {scenario.isPaywalled
                     ? 'translate-x-6'
                     : 'translate-x-1'}"
                 ></span>

@@ -16,14 +16,12 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
     }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true, tier: true },
+      select: { achievement_tier_id: true },
     }),
     getUserProgressSnapshot(userId),
   ]);
 
-  // Keyed per tier (not per family) so persisting one tier doesn't mark the
-  // whole achievement's higher tiers as unlocked.
-  const unlockedTiers = new Set(unlocked.map((u) => `${u.achievement_id}:${u.tier}`));
+  const unlockedTierIds = new Set(unlocked.map((u) => u.achievement_tier_id));
 
   return achievements.map((a) => ({
     id: a.id,
@@ -37,14 +35,14 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
       .map((t) => {
         const { current, target } = evaluateCriterion(t.criteria, snapshot);
         const ratio = target > 0 ? Math.min(1, current / target) : 0;
-        const unlocked = unlockedTiers.has(`${a.id}:${t.tier}`);
+        const isUnlocked = unlockedTierIds.has(t.id);
         return {
           id: t.id,
           tier: t.tier as achievement_tier_level,
           description: t.description,
           xpReward: t.xp_reward,
           coinReward: t.coin_reward,
-          unlocked,
+          unlocked: isUnlocked,
           currentValue: current,
           targetValue: target,
           progress: ratio,
@@ -62,11 +60,13 @@ export async function getAchievementFeedItems(userId: string, limit = 5): Promis
     getAchievementsForUser(userId),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true, tier: true, created_at: true },
+      select: { achievement_tier_id: true, created_at: true },
     }),
   ]);
 
-  const earnedAtMap = new Map(userAchievements.map((ua) => [`${ua.achievement_id}:${ua.tier}`, ua.created_at]));
+  const earnedAtMap = new Map(
+    userAchievements.map((ua) => [ua.achievement_tier_id, ua.created_at]),
+  );
 
   type Ranked = AchievementFeedItem & { _earnedAt: Date };
   const ranked: Ranked[] = [];
@@ -78,7 +78,7 @@ export async function getAchievementFeedItems(userId: string, limit = 5): Promis
     const lockedTiers = a.tiers.filter((t) => !t.unlocked);
     const isCompleted = lockedTiers.length === 0;
     const highestUnlocked = unlockedTiers[unlockedTiers.length - 1];
-    const earnedAt = earnedAtMap.get(`${a.id}:${highestUnlocked.tier}`) ?? new Date(0);
+    const earnedAt = earnedAtMap.get(highestUnlocked.id) ?? new Date(0);
 
     if (isCompleted) {
       ranked.push({

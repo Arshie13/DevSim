@@ -12,7 +12,7 @@ export async function hasProjectAccess(
 
   if (!SCENARIO_3_IDS.has(projectId)) {
     const enrollment = await prisma.learner_pass_enrollment.findFirst({
-      where: { user_id: userId, status: "ACTIVE" },
+      where: { user_id: userId },
     });
 
     if (enrollment && (!enrollment.expires_at || new Date() <= enrollment.expires_at)) {
@@ -31,7 +31,6 @@ export async function hasActiveLearnerPass(userId: string): Promise<boolean> {
   const enrollment = await prisma.learner_pass_enrollment.findFirst({
     where: {
       user_id: userId,
-      status: "ACTIVE",
     },
   });
 

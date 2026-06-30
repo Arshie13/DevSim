@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const scenarios = await prisma.scenario.findMany({
     orderBy: { name: 'asc' },
-    select: { id: true, name: true, description: true, paywall: true }
+    select: { id: true, name: true, description: true, isPaywalled: true }
   });
 
   const scenariosWithStack = scenarios.map(s => ({
@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   }));
 
   const adminEnrollment = await prisma.learner_pass_enrollment.findFirst({
-    where: { user_id: session.user.id, status: 'ACTIVE' },
+    where: { user_id: session.user.id },
     select: { id: true, started_at: true }
   });
 
@@ -89,7 +89,7 @@ export const actions: Actions = {
 
     const scenario = await prisma.scenario.findUnique({
       where: { id: scenarioId },
-      select: { paywall: true }
+      select: { isPaywalled: true }
     });
 
     if (!scenario) {
@@ -98,7 +98,7 @@ export const actions: Actions = {
 
     await prisma.scenario.update({
       where: { id: scenarioId },
-      data: { paywall: !scenario.paywall }
+      data: { isPaywalled: !scenario.isPaywalled }
     });
 
     return { success: true };
@@ -142,7 +142,7 @@ export const actions: Actions = {
     if (!dbUser || dbUser.role !== 'ADMIN') throw redirect(303, '/');
 
     const enrollment = await prisma.learner_pass_enrollment.findFirst({
-      where: { user_id: session.user.id, status: 'ACTIVE' },
+      where: { user_id: session.user.id },
     });
     if (!enrollment) return fail(400, { message: 'No active learner pass enrollment' });
 

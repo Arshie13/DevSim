@@ -31,7 +31,7 @@ export async function logFileChange(params: FileChangeLogParams) {
       return null
     }
 
-    const fileChange = await prisma.user_file_changes.create({
+    const fileChange = await prisma.file_changes.create({
       data: {
         workspace_id: prismaContainer?.id,
         file_path: params.filePath,
@@ -74,7 +74,7 @@ export async function getFileChanges(containerId: string): Promise<{
       return [];
     }
 
-    const changes = await prisma.user_file_changes.findMany({
+    const changes = await prisma.file_changes.findMany({
       where: { workspace_id: prismaContainer.id },
       orderBy: { timestamp: 'asc' },
     });
@@ -117,7 +117,7 @@ export async function getFileChangeSummary(containerId: string) {
       };
     }
 
-    const changes = await prisma.user_file_changes.findMany({
+    const changes = await prisma.file_changes.findMany({
       where: { workspace_id: prismaContainer.id },
       select: {
         action: true,
@@ -156,7 +156,7 @@ export async function clearFileLogs(containerId: string) {
     return;
   }
 
-  await prisma.user_file_changes.deleteMany({
+  await prisma.file_changes.deleteMany({
     where: {
       workspace_id: prismaContainer.id
     }

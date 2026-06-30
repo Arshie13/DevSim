@@ -2,7 +2,7 @@ import prisma from "$lib/server/client";
 
 export class FileChangesDataAccess {
   async getFileLogs(workspaceId: string) {
-    const files = await prisma.user_file_changes.findMany({
+    const files = await prisma.file_changes.findMany({
       where: {
         workspace_id: workspaceId
       },
@@ -17,7 +17,7 @@ export class FileChangesDataAccess {
   }
 
   async clearUserFileChanges(workspaceId: string) {
-    const res = await prisma.user_file_changes.deleteMany({
+    const res = await prisma.file_changes.deleteMany({
       where: {
         workspace_id: workspaceId
       }
@@ -27,7 +27,7 @@ export class FileChangesDataAccess {
   }
 
   async createFileChange(workspaceId: string, filePath: string) {
-    const res = await prisma.user_file_changes.create({
+    const res = await prisma.file_changes.create({
       data: {
         workspace_id: workspaceId,
         file_path: filePath,

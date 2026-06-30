@@ -22,7 +22,7 @@ export const scenarios = [
     description:
       "Build a travel itinerary planner that lets users plan trips, discover destinations, and organize their journeys. Use React + Vite for the frontend and Express + MongoDB for the backend.",
     difficulty: "expert",
-    paywall: true,
+    isPaywalled: true,
   },
 ];
 

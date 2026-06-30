@@ -67,13 +67,8 @@ export const load: PageServerLoad = async (event) => {
     }
   });
 
-  // Get completed tasks from the CompletedTask table
-  // id might be wrong
-  const completedTaskRecords = await prisma.completed_task.findMany({
-    where: { workspace_id: container?.id },
-    select: { id: true, task_name: true }
-  });
-  const completedTaskNames = completedTaskRecords.map(r => r.task_name);
+  // Board state stored directly on workspace — no separate DB query needed
+  const completedTaskNames = container?.completed_tasks ?? [];
 
   // Extract level tasks - try record.scenario first, fallback to direct level query
   let currentLevel = container?.scenario.levels?.find(l => l.order === container.level);

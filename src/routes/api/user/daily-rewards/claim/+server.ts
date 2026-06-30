@@ -15,6 +15,12 @@ const REWARD_SCHEDULE = [
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Maps a claim timestamp to the daily-reward day index (0=Mon … 6=Sun). */
+function dayIndexFromDate(d: Date): number {
+  const jsDay = d.getDay(); // 0=Sun, 1=Mon, …, 6=Sat
+  return jsDay === 0 ? 6 : jsDay - 1;
+}
+
 export const POST: RequestHandler = async (event) => {
   const session = await event.locals.auth();
   if (!session?.user?.id) {
@@ -47,7 +53,7 @@ export const POST: RequestHandler = async (event) => {
             date: now,
             streak: 1,
             currentDay: 2,
-            claimedDays: [dayIndex],
+            claimedDays: [now],
             lastClaimedAt: now,
           }
         });
@@ -66,11 +72,11 @@ export const POST: RequestHandler = async (event) => {
           throw error(400, 'Reward not yet available — claim previous days first');
         }
 
-        if (daily.claimedDays.includes(dayIndex)) {
+        if (daily.claimedDays.some((d) => dayIndexFromDate(d) === dayIndex)) {
           throw error(400, 'Reward already claimed');
         }
 
-        const newClaimed = [...daily.claimedDays, dayIndex];
+        const newClaimed = [...daily.claimedDays, now];
         const nextCurrentDay = Math.max(daily.currentDay, dayIndex + 2);
         const newStreak = daily.streak + 1;
 

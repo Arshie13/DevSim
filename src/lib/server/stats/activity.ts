@@ -4,8 +4,6 @@ import { formatRelativeTime } from "./format";
 
 export async function getRecentActivity(userId: string, limit = 8): Promise<ActivityItem[]> {
   const [tasks, achievements] = await Promise.all([
-    // Recent task completions, newest-first, from the durable task_activity
-    // table (not wiped on level advance, so the feed keeps full history).
     prisma.task_activity.findMany({
       where: { user_id: userId },
       select: { id: true, task_name: true, level: true, completed_at: true },
@@ -14,7 +12,7 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
     }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      include: { achievement: true },
+      include: { tier: { include: { achievement: true } } },
       orderBy: { created_at: "desc" },
       take: limit,
     }),
@@ -32,14 +30,13 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
   const achievementItems: ActivityItem[] = achievements.map((a) => ({
     id: a.id,
     type: "achievement" as const,
-    title: a.achievement.name,
-    description: a.achievement.description,
+    title: a.tier.achievement.name,
+    description: a.tier.achievement.description,
     timestamp: formatRelativeTime(a.created_at),
-    icon: a.achievement.icon ?? "🏅",
-    xp: a.achievement.xp_reward,
+    icon: a.tier.achievement.icon ?? "🏅",
+    xp: a.tier.achievement.xp_reward,
   }));
 
-  // Interleave both lists (each already ordered desc by date) then slice to limit
   const interleaved: ActivityItem[] = [];
   const maxLen = Math.max(taskItems.length, achievementItems.length);
   for (let i = 0; i < maxLen; i++) {

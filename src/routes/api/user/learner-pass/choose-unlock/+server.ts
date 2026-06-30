@@ -23,16 +23,21 @@ export const POST: RequestHandler = async (event) => {
         orderBy: { created_at: 'desc' },
       });
 
-      if (!enrollment || enrollment.status !== 'ACTIVE') throw error(400, 'No active pass');
+      if (!enrollment || !enrollment.started_at) throw error(400, 'No active pass');
 
       if (enrollment.expires_at && new Date() > enrollment.expires_at) throw error(410, 'Pass expired');
 
-      if (!enrollment.claimed_days.includes(dayNumber)) throw error(400, 'Day not claimed');
+      const start = enrollment.started_at;
+      if (!start) throw error(400, 'Enrollment missing start date');
+
+      if (!enrollment.claimed_day_numbers.includes(dayNumber)) {
+        throw error(400, 'Day not claimed');
+      }
 
       if (!SPECIAL_UNLOCK_DAYS.includes(dayNumber)) throw error(400, 'Not a special unlock day');
 
-      const choices = (enrollment.unlock_choices as any[]) || [];
-      if (choices.some((c: any) => c.dayNumber === dayNumber)) throw error(409, 'Choice already made for this day');
+      const choices = (enrollment.unlock_choices as string[]) || [];
+      if (choices.includes(scenarioId)) throw error(409, 'Choice already made for this day');
 
       const available = getSpecialUnlocksForDay(dayNumber);
       if (!available.includes(scenarioId)) throw error(400, 'Invalid scenario for this day');
@@ -52,7 +57,7 @@ export const POST: RequestHandler = async (event) => {
         },
       });
 
-      const newChoices = [...choices, { dayNumber, scenarioId, grantedAt: new Date().toISOString() }];
+      const newChoices = [...choices, scenarioId];
       await tx.learner_pass_enrollment.update({
         where: { id: enrollment.id },
         data: { unlock_choices: newChoices },

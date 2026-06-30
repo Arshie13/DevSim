@@ -11,7 +11,7 @@ export const scenarios = [
     description:
       "Build and debug a production-grade Point-of-Sale system for a coffee shop using NestJS, PostgreSQL, and Prisma. Progress from environment setup through inventory guards, transactional checkout with tax and discount, sales reporting, and critical production bug fixes including overselling, decimal precision, and timezone inconsistency.",
     difficulty: "expert",
-    paywall: true,
+    isPaywalled: true,
   },
 ];
 
