@@ -8,7 +8,7 @@ interface User {
 
 interface PrismaCreateUserResponse {
   ok: boolean;
-  data: User & { createdAt: Date, updatedAt: Date } | null
+  data: User & { created_at: Date, updated_at: Date } | null
   error: Error | null
 }
 

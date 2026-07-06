@@ -88,9 +88,9 @@ export const POST: RequestHandler = async (event) => {
         data: {
           coins: { increment: reward.coins },
           xp: { increment: reward.xp },
-          aiHelpCredits: { increment: reward.ai_helps },
+          ai_help_credits: { increment: reward.ai_helps },
         },
-        select: { coins: true, xp: true, aiHelpCredits: true },
+        select: { coins: true, xp: true, ai_help_credits: true },
       });
 
       const projectGrants: string[] = [];
@@ -146,7 +146,7 @@ export const POST: RequestHandler = async (event) => {
       pendingUnlocks: result.pendingUnlocks,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
-      newAiHelpCredits: result.updatedUser.aiHelpCredits,
+      newAiHelpCredits: result.updatedUser.ai_help_credits,
       streak: result.updatedEnrollment.streak,
       totalClaimedDays: result.updatedEnrollment.total_claimed_days,
       currentDay: result.currentDay,

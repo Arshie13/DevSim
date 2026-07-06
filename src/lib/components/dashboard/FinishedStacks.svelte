@@ -105,7 +105,7 @@
       </div>
       <div>
         <h3 class="text-sm font-orbitron font-bold text-obsidian-text-muted">Completed</h3>
-        <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''} mastered</p>
+        <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
     <a
@@ -123,12 +123,7 @@
       <div class="space-y-3">
         {#each visibleContainers as container}
           {@const canRestore = container.isArchived && container.volumeName}
-          <div class="group relative bg-obsidian-bg border border-[var(--card-border)] rounded-card p-4 hover:border-cyber-warn/40 transition-all duration-300 hover:translate-x-1">
-            <!-- Top shimmer -->
-            <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyber-warn to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <!-- Success gradient overlay -->
-            <div class="absolute inset-0 rounded-card bg-gradient-to-r from-cyber-warn/5 to-cyber-success/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            
+          <div class="bg-obsidian-bg border border-[var(--card-border)] rounded-card p-4 hover:border-cyber-warn/40 transition-colors duration-300">
             <div class="relative">
               <div class="flex items-start justify-between mb-3">
                 <div class="flex items-center gap-3">
@@ -148,7 +143,7 @@
                       </p>
                     {/if}
                     <p class="text-xs font-mono text-[var(--text-muted)] mt-0.5">
-                      Level {container.level} • Completed
+                      Level {container.level}
                     </p>
                   </div>
                 </div>
@@ -174,10 +169,7 @@
       </div>
     {:else}
       <div class="flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <p class="text-lg font-orbitron text-obsidian-text-primary/40">No completed stacks yet</p>
-          <p class="text-md font-rajdhani text-[var(--text-muted)] mt-1">Complete your first stack to see it here!</p>
-        </div>
+        <p class="text-lg font-orbitron text-obsidian-text-primary/40">No completed stacks yet</p>
       </div>
     {/if}
   </div>

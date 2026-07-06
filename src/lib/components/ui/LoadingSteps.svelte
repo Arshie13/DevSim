@@ -10,6 +10,7 @@
 
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from 'svelte';
+  import Logo from '$components/ui/Logo.svelte';
 
   /** Currently active step index (0-based). */
   export let step: number = 0;
@@ -21,6 +22,8 @@
   export let subtitle: string = '';
   /** Decorative icon displayed above the title. */
   export let icon: string = '⟨/⟩';
+  /** Render the shared DevSim logo lockup instead of icon + title (brand screens like boot). */
+  export let brand: boolean = false;
   /** Non-empty string triggers the error panel. */
   export let error: string = '';
   /** Prefix label inside the error panel (e.g. "Boot failed"). */
@@ -80,8 +83,14 @@
 <!-- ─── Inner content (reused across configurations) ──────────────────────── -->
 {#snippet content()}
   <div class="ls-header">
-    <span class="ls-icon">{icon}</span>
-    <h2 class="ls-title">{title}</h2>
+    {#if brand}
+      <div class="ls-logo">
+        <Logo stacked markClass="w-20 h-20" textClass="text-2xl" />
+      </div>
+    {:else}
+      <span class="ls-icon">{icon}</span>
+      <h2 class="ls-title">{title}</h2>
+    {/if}
     {#if subtitle}
       <p class="ls-subtitle">{subtitle}</p>
     {/if}
@@ -134,8 +143,10 @@
 
 <!-- ─── Rendering modes ────────────────────────────────────────────────────── -->
 {#if overlay}
-  <div class="ls-overlay">
-    <div class="ls-scanlines" aria-hidden="true"></div>
+  <div class="ls-overlay bg-grid-cyber scanlines ambient-glow">
+    <!-- Floating orbs (mirrors the login / dashboard backgrounds) -->
+    <div class="ls-orb ls-orb--cyan" aria-hidden="true"></div>
+    <div class="ls-orb ls-orb--purple" aria-hidden="true"></div>
     <div class="ls-card ls-card--overlay">
       <div class="ls-card-glow" aria-hidden="true"></div>
       {@render content()}
@@ -159,7 +170,8 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: var(--bg, #0a0e1a);
+    /* background-color (not the shorthand) so the bg-grid-cyber texture survives */
+    background-color: var(--bg, #0a0e1a);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -168,19 +180,37 @@
     overflow: hidden;
   }
 
-  /* CRT scanline texture (from design guide: repeating-gradient every 4px) */
-  .ls-scanlines {
+  /* Floating orbs (same treatment as the login page hero) */
+  .ls-orb {
     position: absolute;
-    inset: 0;
+    border-radius: 50%;
     pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.015) 2px,
-      rgba(0, 0, 0, 0.015) 4px
-    );
-    z-index: 200;
+  }
+  .ls-orb--cyan {
+    top: 8%;
+    left: -8%;
+    width: 520px;
+    height: 520px;
+    background: rgba(7, 165, 201, 0.10);
+    filter: blur(150px);
+    animation: ls-orb-drift-1 9s ease-in-out infinite alternate;
+  }
+  .ls-orb--purple {
+    bottom: 6%;
+    right: -8%;
+    width: 460px;
+    height: 460px;
+    background: rgba(168, 85, 247, 0.08);
+    filter: blur(130px);
+    animation: ls-orb-drift-2 11s ease-in-out infinite alternate;
+  }
+  @keyframes ls-orb-drift-1 {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(28px, 22px); }
+  }
+  @keyframes ls-orb-drift-2 {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(-22px, 28px); }
   }
 
   /* ── Card ─────────────────────────────────────────────────────────────── */
@@ -230,6 +260,27 @@
     to   { filter: drop-shadow(0 0 18px var(--accent, #07a5c9)); }
   }
 
+  /* Overlay mode: reveal like the login card */
+  .ls-card--overlay {
+    animation: ls-card-reveal 0.55s ease both;
+  }
+  @keyframes ls-card-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ls-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.4rem;
+  }
+
   /* Overlay mode: larger uppercase title */
   .ls-card--overlay .ls-title {
     font-size: 1.55rem;
@@ -239,7 +290,7 @@
 
   .ls-title {
     margin: 0.3rem 0 0;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
+    font-family: var(--font-heading, 'Chakra Petch', sans-serif);
     font-size: 1.28rem;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -248,7 +299,7 @@
 
   .ls-subtitle {
     margin: 0.3rem 0 0;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-family: var(--font-mono, 'Space Mono', monospace);
     font-size: 0.8rem;
     color: rgba(7, 165, 201, 0.7);
     letter-spacing: 0.08em;
@@ -272,7 +323,7 @@
   }
   .ls-progress-pct {
     text-align: right;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-family: var(--font-mono, 'Space Mono', monospace);
     font-size: 0.74rem;
     color: var(--accent, #07a5c9);
     margin: 0 0 1.25rem;
@@ -292,7 +343,7 @@
     display: flex;
     align-items: flex-start;
     gap: 0.7rem;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-family: var(--font-mono, 'Space Mono', monospace);
     font-size: 0.85rem;
     transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
     border: 1px solid rgba(136, 146, 160, 0.22);
@@ -388,7 +439,7 @@
     border: 1px solid rgba(255, 56, 96, 0.35);
     border-radius: 4px;
     color: #fca5a5;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-family: var(--font-mono, 'Space Mono', monospace);
     font-size: 0.75rem;
     display: flex;
     align-items: center;
@@ -398,7 +449,7 @@
   .ls-retry-btn {
     flex-shrink: 0;
     padding: 0.3rem 0.85rem;
-    font-family: var(--font-head, 'Orbitron', sans-serif);
+    font-family: var(--font-heading, 'Chakra Petch', sans-serif);
     font-size: 0.62rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -416,7 +467,7 @@
   .ls-footer {
     position: relative;
     z-index: 1;
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-family: var(--font-mono, 'Space Mono', monospace);
     font-size: 0.7rem;
     color: rgba(7, 165, 201, 0.8);
     letter-spacing: 0.1em;

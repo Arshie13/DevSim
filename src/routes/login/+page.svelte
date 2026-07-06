@@ -1,73 +1,135 @@
 <script lang="ts">
-    import { signIn } from '@auth/sveltekit/client';
+	import { signIn } from '@auth/sveltekit/client';
+	import Logo from '$components/ui/Logo.svelte';
 </script>
 
+<svelte:head>
+	<title>Sign in | DevSim</title>
+</svelte:head>
+
 <section
-	class="min-h-screen flex items-center justify-center text-zinc-100 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8 relative overflow-hidden"
-	style="font-family: 'Poppins', 'Segoe UI', Roboto, system-ui, -apple-system, 'Helvetica Neue', Arial;"
+	class="relative min-h-screen flex items-center justify-center overflow-hidden px-6 py-12
+	       bg-obsidian-bg text-[var(--text-primary)] antialiased bg-grid-cyber scanlines ambient-glow"
 >
-	<div class="absolute inset-0 overflow-hidden pointer-events-none">
-		<div
-			class="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"
-		>
-		</div>
-		<div
-			class="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"
-			style="animation-delay: 1s;"
-		>
-		</div>
-	</div>
+	<!-- Floating orbs (mirrors the landing hero) -->
+	<div
+		class="absolute pointer-events-none orb-1"
+		style="top:8%;left:-8%;width:520px;height:520px;background:rgba(7,165,201,0.10);border-radius:50%;filter:blur(150px);"
+	></div>
+	<div
+		class="absolute pointer-events-none orb-2"
+		style="bottom:6%;right:-8%;width:460px;height:460px;background:rgba(168,85,247,0.08);border-radius:50%;filter:blur(130px);"
+	></div>
 
-	<div class="w-full flex justify-center px-4 relative z-10">
-		<div
-			class="relative bg-slate-900/90 backdrop-blur-md p-12 rounded-2xl shadow-2xl border border-zinc-700/50"
-			style="width: 32rem; max-width: 100%;"
-		>
+	<!-- Auth card -->
+	<div class="relative z-10 w-full max-w-md card-cyber login-reveal">
+		<div class="px-8 py-10 sm:px-10">
+			<!-- Platform badge -->
+			<div
+				class="inline-flex items-center gap-2 mb-8 px-4 py-2 border border-[var(--card-border)] bg-[var(--accent-dim)]"
+			>
+				<span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)] dot-pulse"></span>
+				<span class="font-label text-[0.6rem] tracking-[0.15em] text-[var(--accent)] uppercase">
+					Secure Access · DevSim
+				</span>
+			</div>
+
+			<!-- Logo -->
 			<div class="flex justify-center mb-8">
-				<img
-					src="/images/DevSim.svg"
-					alt="DevSim logo"
-					class="h-80 w-auto max-h-80 object-contain"
-				/>
+				<Logo stacked markClass="w-24 h-24" textClass="text-2xl" subtitle="Developer Simulation" />
 			</div>
 
+			<!-- Heading -->
 			<div class="text-center mb-8">
-				<h1 class="text-3xl font-bold mb-2">
-					Welcome to <span
-						class="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent"
-						>DevSim</span
-					>
+				<h1 class="font-heading font-bold text-2xl leading-tight text-[var(--text-primary)]">
+					Welcome, developer.
 				</h1>
-				<p class="text-zinc-400">Sign up to start your learning journey!</p>
+				<p class="mt-3 font-body text-sm text-[var(--text-muted)]">
+					Sign up to start your learning journey.
+				</p>
 			</div>
 
-			<div class="mt-6">
-				<button
-					onclick={() => signIn("google", { redirectTo: "/auth" })}
-					type="button"
-					class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-lg font-semibold shadow-lg shadow-blue-500/25 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/30"
-				>
-					Sign up with Google
-				</button>
-			</div>
+			<!-- Google sign-in -->
+			<button
+				onclick={() => signIn('google', { redirectTo: '/auth' })}
+				type="button"
+				class="btn-cyber btn-cyber-solid group w-full !py-3.5 flex items-center justify-center gap-3"
+			>
+				<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+					<path
+						d="M23.06 12.25c0-.78-.07-1.53-.2-2.25H12v4.51h6.2a5.3 5.3 0 0 1-2.3 3.48v2.9h3.72c2.18-2 3.44-4.96 3.44-8.64z"
+					/>
+					<path
+						d="M12 24c3.1 0 5.7-1.03 7.6-2.78l-3.72-2.9c-1.03.7-2.35 1.1-3.88 1.1-2.98 0-5.5-2.01-6.4-4.72H1.75v2.98A11.99 11.99 0 0 0 12 24z"
+					/>
+					<path d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6V7.13H1.75a12 12 0 0 0 0 10.55L5.6 14.7z" />
+					<path
+						d="M12 4.75c1.68 0 3.19.58 4.38 1.72l3.28-3.28C17.7 1.2 15.1 0 12 0 7.35 0 3.34 2.66 1.75 6.55l3.85 2.98C6.5 6.76 9.02 4.75 12 4.75z"
+					/>
+				</svg>
+				Sign up with Google
+				<span class="inline-block group-hover:translate-x-1 transition-transform duration-200">→</span>
+			</button>
+
+			<!-- Footer note -->
+			<p class="mt-6 text-center font-label text-[0.6rem] tracking-widest text-[var(--text-muted)] uppercase">
+				Interactive Simulation Platform
+			</p>
 		</div>
 	</div>
 </section>
 
 <style>
-	@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
-
-	@keyframes pulse {
-		0%,
-		100% {
-			opacity: 0.3;
+	@keyframes loginReveal {
+		from {
+			opacity: 0;
+			transform: translateY(16px);
 		}
-		50% {
-			opacity: 0.6;
+		to {
+			opacity: 1;
+			transform: translateY(0);
 		}
 	}
+	.login-reveal {
+		animation: loginReveal 0.55s ease both;
+	}
 
-	.animate-pulse {
-		animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	@keyframes orb1 {
+		from {
+			transform: translate(0, 0);
+		}
+		to {
+			transform: translate(28px, 22px);
+		}
+	}
+	@keyframes orb2 {
+		from {
+			transform: translate(0, 0);
+		}
+		to {
+			transform: translate(-22px, 28px);
+		}
+	}
+	.orb-1 {
+		animation: orb1 9s ease-in-out infinite alternate;
+	}
+	.orb-2 {
+		animation: orb2 11s ease-in-out infinite alternate;
+	}
+
+	@keyframes pulseDot {
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.35;
+			transform: scale(0.7);
+		}
+	}
+	.dot-pulse {
+		animation: pulseDot 2s ease-in-out infinite;
+		display: inline-block;
 	}
 </style>

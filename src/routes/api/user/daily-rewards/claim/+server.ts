@@ -53,14 +53,14 @@ export const POST: RequestHandler = async (event) => {
             user_id: userId,
             date: now,
             streak: 1,
-            currentDay: 2,
-            claimedDays: [now],
-            lastClaimedAt: now,
+            current_day: 2,
+            claimed_days: [now],
+            last_claimed_at: now,
           }
         });
       } else {
-        if (daily.lastClaimedAt) {
-          const timeSinceLast = now.getTime() - daily.lastClaimedAt.getTime();
+        if (daily.last_claimed_at) {
+          const timeSinceLast = now.getTime() - daily.last_claimed_at.getTime();
           if (timeSinceLast < ONE_DAY_MS) {
             const remainingMs = ONE_DAY_MS - timeSinceLast;
             const hours = Math.floor(remainingMs / (1000 * 60 * 60));
@@ -69,25 +69,25 @@ export const POST: RequestHandler = async (event) => {
           }
         }
 
-        if (dayIndex >= daily.currentDay) {
+        if (dayIndex >= daily.current_day) {
           throw error(400, 'Reward not yet available — claim previous days first');
         }
 
-        if (daily.claimedDays.some((d) => dayIndexFromDate(d) === dayIndex)) {
+        if (daily.claimed_days.some((d) => dayIndexFromDate(d) === dayIndex)) {
           throw error(400, 'Reward already claimed');
         }
 
-        const newClaimed = [...daily.claimedDays, now];
-        const nextCurrentDay = Math.max(daily.currentDay, dayIndex + 2);
+        const newClaimed = [...daily.claimed_days, now];
+        const nextCurrentDay = Math.max(daily.current_day, dayIndex + 2);
         const newStreak = daily.streak + 1;
 
         daily = await tx.daily_login.update({
           where: { user_id: userId },
           data: {
-            claimedDays: newClaimed,
-            currentDay: nextCurrentDay,
+            claimed_days: newClaimed,
+            current_day: nextCurrentDay,
             streak: newStreak,
-            lastClaimedAt: now,
+            last_claimed_at: now,
           }
         });
       }
@@ -118,8 +118,8 @@ export const POST: RequestHandler = async (event) => {
       xp: result.reward.xp,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
-      currentDay: result.daily.currentDay,
-      claimedDays: result.daily.claimedDays.map(dayIndexFromDate),
+      currentDay: result.daily.current_day,
+      claimedDays: result.daily.claimed_days.map(dayIndexFromDate),
       canClaimToday: false,
       nextAvailableAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
       cooldown: {

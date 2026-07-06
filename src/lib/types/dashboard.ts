@@ -21,12 +21,12 @@ export interface KPIData {
   id: string;
   label: string;
   value: number | string;
-  icon: string;
+  icon?: string;
   trend?: {
     value: number;
     isPositive: boolean;
   };
-  color: string;
+  color?: string;
 }
 
 export interface LeaderboardEntry {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import Logo from "$components/ui/Logo.svelte";
 
   let { session }: { session: any } = $props();
 
@@ -39,7 +40,7 @@
 
     <!-- Logo + tagline -->
     <a href="/" class="flex-shrink-0 group">
-      <div class="nav-logo font-heading text-xl font-bold tracking-widest leading-none">DEVSIM</div>
+      <Logo markClass="w-8 h-8" textClass="text-xl" />
     </a>
 
     <!-- Center nav links -->
@@ -71,13 +72,6 @@
 </nav>
 
 <style>
-  .nav-logo {
-    background: linear-gradient(90deg, #fff 0%, var(--accent) 50%, var(--cyan-bright) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
   @keyframes activeBar {
     from { transform: scaleX(0); transform-origin: left; }
     to   { transform: scaleX(1); transform-origin: left; }

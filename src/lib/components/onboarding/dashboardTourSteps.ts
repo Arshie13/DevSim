@@ -26,7 +26,7 @@ export const DASHBOARD_TOUR_STEPS: DashboardTourStep[] = [
     id: 'dashboard-header',
     title: 'Navigation Bar',
     description:
-      'Your command center. Access stats, check your coins, and manage your profile from here.',
+      'Your command center. Claim daily rewards, check your coins, and manage your profile from here.',
     target: 'dashboard-header',
     preferSide: 'bottom',
   },

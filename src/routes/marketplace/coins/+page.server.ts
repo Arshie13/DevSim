@@ -22,7 +22,7 @@ export const load: PageServerLoad = async (event) => {
       coins: true,
       xp: true,
       level: true,
-      aiHelpCredits: true,
+      ai_help_credits: true,
       owned_avatars: true,
       has_completed_tutorial: true,
     }
@@ -35,6 +35,7 @@ export const load: PageServerLoad = async (event) => {
   return {
     user: {
       ...user,
+      aiHelpCredits: user.ai_help_credits,
       ownedAvatars: user.owned_avatars,
       hasCompletedTutorial: user.has_completed_tutorial,
     }

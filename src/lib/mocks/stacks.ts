@@ -2,7 +2,7 @@ import type { TechCategory, TechOption, StackSelection } from "$types";
 
 const DEFAULT_PREVIEW_IMAGES = ["/images/DevSim.svg"];
 
-// Mix-and-match technology options
+// Technology options for stack selection
 export const FRONTEND_OPTIONS: TechOption[] = [
   {
     id: "react",
