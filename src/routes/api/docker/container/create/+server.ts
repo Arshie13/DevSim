@@ -32,9 +32,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
       const dbId = resolveScenarioId(stackName, scenarioId);
       const scenario = await prisma.scenario.findUnique({
         where: { id: dbId },
-        select: { isPaywalled: true }
+        select: { is_paywalled: true }
       });
-      if (scenario?.isPaywalled) {
+      if (scenario?.is_paywalled) {
         const hasAccess = await hasProjectAccess(userId, dbId, false);
         if (!hasAccess) {
           return json(

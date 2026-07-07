@@ -32,11 +32,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const scenarios = await prisma.scenario.findMany({
     orderBy: { name: 'asc' },
-    select: { id: true, name: true, description: true, isPaywalled: true }
+    select: { id: true, name: true, description: true, is_paywalled: true }
   });
 
   const scenariosWithStack = scenarios.map(s => ({
     ...s,
+    isPaywalled: s.is_paywalled,
     stackName: resolveStackName(s.id) ?? 'Unknown'
   }));
 
@@ -89,7 +90,7 @@ export const actions: Actions = {
 
     const scenario = await prisma.scenario.findUnique({
       where: { id: scenarioId },
-      select: { isPaywalled: true }
+      select: { is_paywalled: true }
     });
 
     if (!scenario) {
@@ -98,7 +99,7 @@ export const actions: Actions = {
 
     await prisma.scenario.update({
       where: { id: scenarioId },
-      data: { isPaywalled: !scenario.isPaywalled }
+      data: { is_paywalled: !scenario.is_paywalled }
     });
 
     return { success: true };

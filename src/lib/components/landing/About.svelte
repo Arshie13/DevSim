@@ -1,7 +1,7 @@
 ﻿<script lang="ts">
   const items = [
     { label: "PROJECT-BASED", desc: "Every session is a real scenario — no random exercises or isolated theory modules." },
-    { label: "MULTI-STACK",   desc: "Mix and match 12+ technologies across frontend, backend, database, and services." },
+    { label: "MULTI-STACK",   desc: "Go from tutorial to production-ready across MERN, Next.js, NestJS, and many more." },
     { label: "XP SYSTEM",     desc: "Earn XP, unlock achievements, and track growth across every sprint you complete." },
   ];
 </script>
@@ -18,7 +18,6 @@
         through sprint simulations that integrate all aspects of full-stack development.
       </p>
     </div>
-
     <div class="grid sm:grid-cols-3 gap-4">
       {#each items as item}
         <div class="card-cyber p-6">

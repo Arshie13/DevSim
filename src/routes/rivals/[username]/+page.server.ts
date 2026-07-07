@@ -28,7 +28,7 @@ export const load: PageServerLoad = async (event) => {
       owned_avatars: true, 
       has_completed_tutorial: true, 
       username: true,
-      createdAt: true
+      created_at: true
     },
   });
 
