@@ -32,11 +32,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const scenarios = await prisma.scenario.findMany({
     orderBy: { name: 'asc' },
-    select: { id: true, name: true, description: true, isPaywalled: true }
+    select: { id: true, name: true, description: true, is_paywalled: true }
   });
 
   const scenariosWithStack = scenarios.map(s => ({
     ...s,
+    isPaywalled: s.is_paywalled,
     stackName: resolveStackName(s.id) ?? 'Unknown'
   }));
 

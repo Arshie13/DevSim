@@ -22,11 +22,11 @@
 
 <LoadingSteps
   overlay
+  brand
   {step}
   {steps}
   {error}
   footer={levelLabel}
-  title="DevSim"
   subtitle="Initialising workspace environment…"
   errorPrefix="Boot failed"
   on:retry
