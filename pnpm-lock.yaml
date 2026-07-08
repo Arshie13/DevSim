@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@auth/sveltekit':
         specifier: ^1.11.1
-        version: 1.11.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.9)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(svelte@5.53.9)(typescript@5.9.3)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(svelte@5.53.9)
+        version: 1.11.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.9)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(svelte@5.53.9)(typescript@5.9.3)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(nodemailer@9.0.3)(svelte@5.53.9)
       '@monaco-editor/loader':
         specifier: ^1.7.0
         version: 1.7.0
@@ -56,6 +56,9 @@ importers:
       node-cron:
         specifier: ^4.2.1
         version: 4.2.1
+      nodemailer:
+        specifier: ^9.0.3
+        version: 9.0.3
       stripe:
         specifier: ^22.1.1
         version: 22.1.1(@types/node@24.12.2)
@@ -87,6 +90,9 @@ importers:
       '@types/node':
         specifier: ^24
         version: 24.12.2
+      '@types/nodemailer':
+        specifier: ^8.0.1
+        version: 8.0.1
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.27(postcss@8.5.8)
@@ -1343,6 +1349,9 @@ packages:
 
   '@types/node@24.12.2':
     resolution: {integrity: sha512-A1sre26ke7HDIuY/M23nd9gfB+nrmhtYyMINbjI1zHJxYteKR6qSMX56FsmjMcDb3SMcjJg5BiRRgOCC/yBD0g==}
+
+  '@types/nodemailer@8.0.1':
+    resolution: {integrity: sha512-PxpaInm8V1JQDd4j0ds5HfvWQk8JupS1C0Picb96QJsrrRDjBH+DlK7L4ZdNSqNULhiZRQHc40nLVShaGxXAMw==}
 
   '@types/react@19.2.14':
     resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
@@ -2657,6 +2666,10 @@ packages:
   node-releases@2.0.36:
     resolution: {integrity: sha512-TdC8FSgHz8Mwtw9g5L4gR/Sh9XhSP/0DEkQxfEFXOpiul5IiHgHan2VhYYb6agDSfp4KuvltmGApc8HMgUrIkA==}
 
+  nodemailer@9.0.3:
+    resolution: {integrity: sha512-n+YP+NKwR5zRWa60k3GiQ6Q3B4KXCoAw40dAKeCtYn020iNN74aWK2liXIC3ZEATeGql7we3tE3t8QwhY0eskw==}
+    engines: {node: '>=6.0.0'}
+
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
@@ -3609,20 +3622,24 @@ snapshots:
 
   '@asamuzakjp/nwsapi@2.3.9': {}
 
-  '@auth/core@0.41.1':
+  '@auth/core@0.41.1(nodemailer@9.0.3)':
     dependencies:
       '@panva/hkdf': 1.2.1
       jose: 6.2.1
       oauth4webapi: 3.8.5
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
+    optionalDependencies:
+      nodemailer: 9.0.3
 
-  '@auth/sveltekit@1.11.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.9)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(svelte@5.53.9)(typescript@5.9.3)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(svelte@5.53.9)':
+  '@auth/sveltekit@1.11.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.9)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(svelte@5.53.9)(typescript@5.9.3)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(nodemailer@9.0.3)(svelte@5.53.9)':
     dependencies:
-      '@auth/core': 0.41.1
+      '@auth/core': 0.41.1(nodemailer@9.0.3)
       '@sveltejs/kit': 2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.9)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4)))(svelte@5.53.9)(typescript@5.9.3)(vite@7.3.1(@types/node@24.12.2)(jiti@1.21.7)(tsx@4.22.4))
       set-cookie-parser: 2.7.2
       svelte: 5.53.9
+    optionalDependencies:
+      nodemailer: 9.0.3
 
   '@babel/code-frame@7.29.0':
     dependencies:
@@ -4729,6 +4746,10 @@ snapshots:
   '@types/node@24.12.2':
     dependencies:
       undici-types: 7.16.0
+
+  '@types/nodemailer@8.0.1':
+    dependencies:
+      '@types/node': 24.12.2
 
   '@types/react@19.2.14':
     dependencies:
@@ -6217,6 +6238,8 @@ snapshots:
   node-int64@0.4.0: {}
 
   node-releases@2.0.36: {}
+
+  nodemailer@9.0.3: {}
 
   normalize-path@3.0.0: {}
 

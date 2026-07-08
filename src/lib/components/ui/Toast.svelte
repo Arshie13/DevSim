@@ -1,5 +1,6 @@
 <script lang="ts">
   import { toast, type Toast } from '$lib/stores/toast';
+  import { helpTrigger } from '$lib/stores/helpTrigger';
   import { fly, fade } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { X, AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-svelte';
@@ -12,6 +13,12 @@
   } as const;
 
   function meta(t: Toast) { return variantMeta[t.variant]; }
+
+  function handleHelpClick(helpAction: Toast['helpAction']) {
+    if (helpAction) {
+      helpTrigger.trigger(helpAction.category, '');
+    }
+  }
 </script>
 
 <!-- Portal: fixed stack at bottom-right -->
@@ -47,11 +54,19 @@
         <div class="toast-text">
           <span class="toast-label">{meta(t).label}</span>
           <span class="toast-message">{t.message}</span>
+          {#if t.helpAction}
+            <button
+              class="toast-help-action"
+              onclick={() => handleHelpClick(t.helpAction)}
+            >
+              {t.helpAction.label} →
+            </button>
+          {/if}
         </div>
       </div>
 
       <!-- Dismiss button -->
-      <button class="toast-close" on:click={() => toast.remove(t.id)} aria-label="Dismiss">
+      <button class="toast-close" onclick={() => toast.remove(t.id)} aria-label="Dismiss">
         <X size={13} />
       </button>
 
@@ -163,6 +178,27 @@
     color: #d0d7dd;
     line-height: 1.45;
     word-break: break-word;
+  }
+
+  .toast-help-action {
+    font-family: 'Chakra Petch', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 0.25rem;
+    text-align: left;
+    transition: color 0.15s;
+    align-self: flex-start;
+  }
+
+  .toast-help-action:hover {
+    color: #00f5ff;
   }
 
   /* Close button */

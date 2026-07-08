@@ -15,12 +15,18 @@
     Zap,
     Download,
     MessageSquare,
+    HelpCircle,
   } from "lucide-svelte";
+
+  import { createEventDispatcher } from 'svelte';
+  const dispatch = createEventDispatcher<{ help: void }>();
+
+  export let showSurvey = false;
+  export let helpMinimized = false;
 
   // Satisfaction survey shown in the workspace header centre.
   // Only enabled in the workspace, not the tutorial.
   const SATISFACTION_SURVEY_URL = "https://forms.gle/F73Atv249AkYCnpL8";
-  export let showSurvey = false;
 
   export let data: Props;
   let level: number;
@@ -123,6 +129,27 @@
       <!-- Debug Button Slot -->
       <slot name="debug-button" />
     </div>
+
+    <!-- Help Button -->
+    {#if helpMinimized}
+      <button
+        on:click={() => dispatch('help')}
+        class="px-3 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[#ffb400] border border-[rgba(255,180,0,0.4)] bg-[rgba(255,180,0,0.06)] hover:bg-[rgba(255,180,0,0.12)] transition-all"
+        style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+        title="Help is minimized — click to restore"
+      >
+        <HelpCircle class="w-3.5 h-3.5" />Help ◈
+      </button>
+    {:else}
+      <button
+        on:click={() => dispatch('help')}
+        class="px-3 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[#8892a0] border border-[rgba(136,146,160,0.4)] bg-transparent hover:bg-[rgba(136,146,160,0.08)] transition-all"
+        style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+        title="Help &amp; Troubleshooting"
+      >
+        <HelpCircle class="w-3.5 h-3.5" />Help
+      </button>
+    {/if}
 
     <!-- Download Project -->
     <button

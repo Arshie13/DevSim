@@ -89,7 +89,7 @@ export const actions: Actions = {
 
     const scenario = await prisma.scenario.findUnique({
       where: { id: scenarioId },
-      select: { isPaywalled: true }
+      select: { is_paywalled: true }
     });
 
     if (!scenario) {
@@ -98,7 +98,7 @@ export const actions: Actions = {
 
     await prisma.scenario.update({
       where: { id: scenarioId },
-      data: { isPaywalled: !scenario.isPaywalled }
+      data: { is_paywalled: !scenario.is_paywalled }
     });
 
     return { success: true };

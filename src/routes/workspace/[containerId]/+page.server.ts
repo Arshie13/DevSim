@@ -12,7 +12,7 @@ export const load: PageServerLoad = async (event) => {
   // Get user data including coins and username
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true, coins: true, name: true, username: true, aiHelpCredits: true },
+    select: { id: true, coins: true, name: true, username: true, ai_help_credits: true },
   });
 
   // Validate that username from subdomain matches the user's actual username
@@ -123,7 +123,7 @@ export const load: PageServerLoad = async (event) => {
    const masteryCheckpointEnabled = masterySetting ? masterySetting.value === 'true' : true;
 
    // AI help credits — these are spent before coins are charged.
-   const userAiHelps = user?.aiHelpCredits ?? 0;
+   const userAiHelps = user?.ai_help_credits?? 0;
 
    return {
      user: session.user,
