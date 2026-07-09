@@ -123,7 +123,7 @@ export const load: PageServerLoad = async (event) => {
    const masteryCheckpointEnabled = masterySetting ? masterySetting.value === 'true' : true;
 
    // AI help credits — these are spent before coins are charged.
-   const userAiHelps = user?.ai_help_credits ?? 0;
+   const userAiHelps = user?.ai_help_credits?? 0;
 
    return {
      user: session.user,

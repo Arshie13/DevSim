@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack, tick } from "svelte";
+  import { HelpCircle } from "lucide-svelte";
   import { type PageData } from "./$types";
   import { browser } from "$app/environment";
   import { page } from "$app/state";
@@ -23,6 +24,8 @@
   import LevelIntroCard from "$lib/components/workspace/LevelIntroCard.svelte";
   import LearningContent from "$lib/components/workspace/crashcourse/LearningContent.svelte";
   import TriviaModal from "$lib/components/ui/TriviaModal.svelte";
+  import HelpPanel from "$lib/components/help/HelpPanel.svelte";
+  import { helpTrigger } from "$lib/stores/helpTrigger";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -255,6 +258,25 @@
   let showAiHelper: boolean = $state(false);
   let isDownloading: boolean = $state(false);
 
+  // Help panel state
+  let helpMounted = $state(false);
+  let helpMinimized = $state(false);
+  let helpPrefillCategory: string = $state("");
+  let helpPrefillDescription: string = $state("");
+  let helpStartOnLimitations: boolean = $state(false);
+
+  onMount(() => {
+    return helpTrigger.subscribe((payload) => {
+      if (payload) {
+        helpPrefillCategory = payload.category;
+        helpPrefillDescription = payload.description;
+        helpMinimized = false;
+        helpMounted = true;
+        helpTrigger.clear();
+      }
+    });
+  });
+
   let backModalOpen: boolean = $state(false);
   let isLeavingWorkspace: boolean = $state(false);
 
@@ -281,7 +303,6 @@
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
   let showDockerDisclaimer = $state(true);
-  let showDockerDisclaimerModal = $state(false);
   const dockerDisclaimerLimitations = [
     "The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.",
     "File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.",
@@ -950,7 +971,7 @@ $effect(() => {
       }
     } catch (error) {
       console.error("Error saving file:", error);
-      toast.error("Failed to save file");
+      toast.error("Failed to save file", undefined, { helpAction: { label: "Get Help", category: "File System" } });
     }
   }
 
@@ -1399,6 +1420,33 @@ $effect(() => {
     submitSprintModal.open();
   }
 
+  function handleOpenHelp(category?: string, description?: string, startOnLimitations = false) {
+    helpPrefillCategory = category || '';
+    helpPrefillDescription = description || '';
+    helpStartOnLimitations = startOnLimitations;
+    // If already open, don't reset — just un-minimize and update prefill
+    if (!helpMounted) {
+      helpMounted = true;
+    }
+    helpMinimized = false;
+  }
+
+  function handleHelpPanelAction(handler: string) {
+    switch (handler) {
+      case 'refreshFiles':
+        refreshFiles();
+        break;
+      case 'openTerminal':
+        activeTab = 'terminal';
+        break;
+      case 'openCrashCourse': {
+        const manualTask = getManualCrashCourseTask();
+        if (manualTask) openCrashCourseForTask(manualTask.id);
+        break;
+      }
+    }
+  }
+
   async function handleDownload() {
     isDownloading = true;
     try {
@@ -1536,7 +1584,7 @@ $effect(() => {
       }
     } catch (error) {
       console.error("Error refreshing files:", error);
-      toast.error("Failed to refresh files");
+      toast.error("Failed to refresh files", undefined, { helpAction: { label: "Get Help", category: "File System" } });
     }
   }
 
@@ -1689,6 +1737,7 @@ $effect(() => {
   <!-- Header -->
   <WorkspaceHeader
     showSurvey
+    {helpMinimized}
     data={{
       level: currentLevel,
       title: actualLevelConfig.title,
@@ -1699,6 +1748,7 @@ $effect(() => {
       onSubmit: handleSubmitSprint,
       onDownload: handleDownload,
     }}
+    on:help={() => handleOpenHelp()}
   >
     <svelte:fragment slot="test-button">
       <TestCase
@@ -1719,15 +1769,16 @@ $effect(() => {
       role="status"
     >
       <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <p class="leading-6">
+        <p class="leading-6 text-[14px]" style="font-family:'Exo 2',sans-serif;">
           ⚠️ This workspace runs inside a Docker container to simulate a development environment. Some behavior may differ from a full local setup, and file or terminal actions are scoped to this container only.
         </p>
 
         <div class="flex flex-wrap items-center gap-2 shrink-0">
           <button
             type="button"
-            class="text-[#07a5c9] hover:text-[#00f5ff] underline underline-offset-2 text-[0.78rem] font-semibold"
-            onclick={() => (showDockerDisclaimerModal = true)}
+            class="px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
+            style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
+            onclick={() => handleOpenHelp(undefined, undefined, true)}
           >
             Learn more →
           </button>
@@ -1738,48 +1789,6 @@ $effect(() => {
             aria-label="Dismiss container disclaimer"
           >
             ✕
-          </button>
-        </div>
-      </div>
-    </div>
-  {/if}
-
-  {#if showDockerDisclaimerModal}
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div class="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#0f1725] p-6 text-[#d0d7dd] shadow-2xl shadow-black/30">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h2 class="text-xl font-semibold text-white">Docker Container Workspace Limitations</h2>
-            <p class="mt-2 text-sm text-[#9aa8b8]">
-              This workspace uses a container-backed environment. The experience is intentionally simulated and may not match a full native development setup.
-            </p>
-          </div>
-          <button
-            type="button"
-            class="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-1 text-sm text-[#d0d7dd] hover:bg-[rgba(255,255,255,0.08)]"
-            onclick={() => (showDockerDisclaimerModal = false)}
-            aria-label="Close disclaimer details"
-          >
-            ✕
-          </button>
-        </div>
-
-        <ul class="mt-6 space-y-3 text-sm leading-6 text-[#cbd5e1]">
-          {#each dockerDisclaimerLimitations as limitation}
-            <li class="flex gap-3">
-              <span class="mt-1 text-[#07a5c9]">•</span>
-              <span>{limitation}</span>
-            </li>
-          {/each}
-        </ul>
-
-        <div class="mt-6 flex justify-end">
-          <button
-            type="button"
-            class="rounded border border-[#07a5c9] bg-[#07a5c9] px-4 py-2 text-sm font-semibold text-[#0a0e1a] hover:bg-[#00f5ff] hover:text-[#0a0e1a]"
-            onclick={() => (showDockerDisclaimerModal = false)}
-          >
-            Close
           </button>
         </div>
       </div>
@@ -2039,6 +2048,29 @@ $effect(() => {
   onClose={handleCrashCourseClose}
   onComplete={handleCrashCourseComplete}
 />
+
+<!-- Help Panel — always mounted once opened, visibility via minimized prop -->
+{#if helpMounted}
+  <HelpPanel
+    {containerId}
+    prefillCategory={helpPrefillCategory}
+    prefillDescription={helpPrefillDescription}
+    limitations={dockerDisclaimerLimitations}
+    startOnLimitations={helpStartOnLimitations}
+    minimized={helpMinimized}
+    onClose={() => {
+      helpMounted = false;
+      helpMinimized = false;
+      helpPrefillCategory = '';
+      helpPrefillDescription = '';
+      helpStartOnLimitations = false;
+    }}
+    onMinimize={() => {
+      helpMinimized = true;
+    }}
+    onAction={handleHelpPanelAction}
+  />
+{/if}
 
 <style>
   :global(body) {
