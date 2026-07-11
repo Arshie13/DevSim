@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { ArrowRight, Crown, Lock, Check, Loader2, Info } from "lucide-svelte";
+  import { ArrowRight, Crown, Lock, Check, Loader2, Info, Zap } from "lucide-svelte";
   import type { PageData } from "./$types";
   import { onMount } from "svelte";
 
@@ -12,6 +12,20 @@
   let isClaiming = false;
   let currentAvatar = data.currentAvatar ?? null;
   let equippingDay: number | null = null;
+
+  let showUnlockPicker = false;
+  let pickerDay = 0;
+  let pickerAvailable: string[] = [];
+  let isChoosing = false;
+  let pendingUnlocks = data.pendingUnlocks ?? [];
+
+  const SCENARIO_NAMES: Record<string, string> = {
+    "pern-pos-scenario-3": "IPPO POS (PERN)",
+    "mern-tw-scenario-3": "TripWeaver (MERN)",
+    "nestjs-pos-scenario-3": "IPPO POS (NestJS)",
+    "nextjs-postgres-prisma-3": "Employee Time Tracking",
+    "nextjs-shadcn-ui-scenario-3": "Student Portal",
+  };
 
   type RewardEntry = { type: string; value: string };
   type DayReward = { day: number; rewards: RewardEntry };
@@ -121,26 +135,56 @@
       body: JSON.stringify({ dayNumber }),
     })
       .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
+      .then((claimData) => {
+        if (claimData.success) {
           claimedDays = [...claimedDays, dayNumber];
 
-          if (enrollment && data.streak !== undefined) {
+          if (enrollment && claimData.streak !== undefined) {
             enrollment = {
               ...enrollment,
-              currentDay: data.currentDay ?? enrollment.currentDay,
-              streak: data.streak,
-              totalClaimedDays: data.totalClaimedDays,
-              status: data.status ?? enrollment.status,
+              currentDay: claimData.currentDay ?? enrollment.currentDay,
+              streak: claimData.streak,
+              totalClaimedDays: claimData.totalClaimedDays,
+              status: claimData.status ?? enrollment.status,
               lastClaimedAt: new Date().toISOString(),
             };
             startTimer();
+          }
+
+          if (claimData.pendingUnlocks && claimData.pendingUnlocks.length > 0) {
+            showUnlockPicker = true;
+            pickerDay = claimData.pendingUnlocks[0].day;
+            pickerAvailable = claimData.pendingUnlocks[0].available;
+            pendingUnlocks = [...pendingUnlocks, ...claimData.pendingUnlocks];
           }
         }
       })
       .catch(console.error)
       .finally(() => {
         isClaiming = false;
+      });
+  }
+
+  function handleChooseUnlock(scenarioId: string) {
+    if (isChoosing) return;
+    isChoosing = true;
+
+    fetch("/api/user/learner-pass/choose-unlock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dayNumber: pickerDay, scenarioId }),
+    })
+      .then((res) => res.json())
+      .then((resp) => {
+        if (resp.success) {
+          showUnlockPicker = false;
+          // TODO: add type for response
+          pendingUnlocks = pendingUnlocks.filter((p: any) => p.day !== pickerDay);
+        }
+      })
+      .catch(console.error)
+      .finally(() => {
+        isChoosing = false;
       });
   }
 
@@ -339,6 +383,32 @@
         </div>
       </div>
 
+      <!-- Pending Unlock Choices -->
+      {#if pendingUnlocks.length > 0}
+        <div class="mb-8 p-4 rounded-card border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/5">
+          <h3 class="text-sm font-orbitron font-bold text-cyan-400 mb-3">Unlock a Scenario</h3>
+          <p class="text-xs font-rajdhani text-obsidian-text-muted mb-3">
+            You have unclaimed scenario unlocks from your learner pass rewards.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            {#each pendingUnlocks as pending}
+              {#each pending.available as scenarioId}
+                <button
+                  on:click={() => {
+                    pickerDay = pending.day;
+                    pickerAvailable = pending.available;
+                    showUnlockPicker = true;
+                  }}
+                  class="text-xs px-3 py-1.5 rounded bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 transition-colors"
+                >
+                  {SCENARIO_NAMES[scenarioId] ?? scenarioId}
+                </button>
+              {/each}
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Completion Banner -->
       {#if enrollment && enrollment.status === "COMPLETED"}
         <div class="p-6 rounded-card border border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5 text-center">
@@ -348,6 +418,39 @@
       {/if}
     </div>
   </main>
+
+  <!-- Unlock Picker Modal -->
+  {#if showUnlockPicker}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" on:click={() => showUnlockPicker = false}>
+      <div class="w-full max-w-md mx-4 p-6 rounded-card border border-cyan-500/30 bg-gradient-to-br from-[#0f1525] to-[#1a1f35]" on:click|stopPropagation>
+        <h3 class="text-md font-orbitron font-bold text-cyan-400 mb-2">Choose Your Unlock</h3>
+        <p class="text-xs font-rajdhani text-obsidian-text-muted mb-4">
+          Pick a scenario to unlock. This choice is permanent for this reward day.
+        </p>
+        <div class="space-y-2">
+          {#each pickerAvailable as scenarioId}
+            <button
+              on:click={() => handleChooseUnlock(scenarioId)}
+              disabled={isChoosing}
+              class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyan-500/20 bg-cyan-500/5 hover:bg-cyan-500/10 hover:border-cyan-500/40 transition-colors disabled:opacity-50 text-left"
+            >
+              <Zap class="w-4 h-4 text-cyan-400 flex-shrink-0" />
+              <div>
+                <p class="text-sm font-orbitron text-obsidian-text-primary">{SCENARIO_NAMES[scenarioId] ?? scenarioId}</p>
+                <p class="text-xs font-rajdhani text-obsidian-text-muted">{scenarioId}</p>
+              </div>
+            </button>
+          {/each}
+        </div>
+        <button
+          on:click={() => showUnlockPicker = false}
+          class="mt-4 w-full text-xs font-rajdhani text-obsidian-text-muted hover:text-obsidian-text-primary transition-colors py-2"
+        >
+          Skip for now
+        </button>
+      </div>
+    </div>
+  {/if}
 
   <!-- Ambient Background Effects -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">

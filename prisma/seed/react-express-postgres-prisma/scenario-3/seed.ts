@@ -5,6 +5,7 @@ export const scenarios = [
     description:
       "Build and debug a production-grade Point-of-Sale system for IPPO Software Solutions using React 18, Express, Prisma, and PostgreSQL. Progress from environment setup through cashier UI helpers, transactional inventory/void flows, a full-stack promo-code feature, and a critical revenue-reporting bug.",
     difficulty: "expert",
+    paywall: true,
   },
 ];
 

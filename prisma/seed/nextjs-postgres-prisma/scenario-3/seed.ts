@@ -5,6 +5,7 @@ export const scenarios = [
     description:
       "Build a time tracking manager dashboard where employees clock in/out, log their work hours, and request time off using Next.js, PostgreSQL, and Prisma.",
     difficulty: "expert",
+    paywall: true,
   },
 ];
 

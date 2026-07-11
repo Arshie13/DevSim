@@ -1,5 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import prisma from "$lib/server/client";
+import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -39,6 +40,24 @@ export const load: PageServerLoad = async (event) => {
   const start = enrollment?.started_at ?? new Date();
   const currentDay = Math.min(30, Math.floor((Date.now() - start.getTime()) / ONE_DAY_MS) + 1);
 
+  let pendingUnlocks: { day: number; available: string[] }[] = [];
+  if (enrollment) {
+    const unlockedProjects = await prisma.user_project_access.findMany({
+      where: { user_id: userId, source: 'LEARNER_PASS' },
+      select: { project_id: true },
+    });
+    const unlockedIds = new Set(unlockedProjects.map((p) => p.project_id));
+    const choices = (enrollment.unlock_choices as any[]) || [];
+    for (const day of enrollment.claimed_days) {
+      if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
+      if (choices.some((c: any) => c.dayNumber === day)) continue;
+      const available = getSpecialUnlocksForDay(day).filter((id) => !unlockedIds.has(id));
+      if (available.length > 0) {
+        pendingUnlocks.push({ day, available });
+      }
+    }
+  }
+
   return {
     enrollment: enrollment
       ? {
@@ -53,5 +72,6 @@ export const load: PageServerLoad = async (event) => {
       : null,
     rewards,
     currentAvatar: dbUser?.image ?? null,
+    pendingUnlocks,
   };
 };

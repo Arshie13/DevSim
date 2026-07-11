@@ -5,6 +5,7 @@
     description:
       "Build a student portal for Riverside University using Next.js and shadcn/ui. Students view grades, schedule, fees, and write personal notes with client-side persistence.",
     difficulty: "intermediate",
+    paywall: true,
   },
 ];
 

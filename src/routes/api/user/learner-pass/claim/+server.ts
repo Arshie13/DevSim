@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 import type { RewardJson } from '$lib/types/reward-json';
+import { SCENARIO_3_IDS } from '$lib/utils/reward-constants';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -98,14 +99,14 @@ export const POST: RequestHandler = async (event) => {
       });
 
       const projectGrants: string[] = [];
+      const pendingUnlocks: { day: number; available: string[] }[] = [];
       if (r.unlocks && r.unlocks.length > 0) {
-        for (const projectId of r.unlocks) {
+        const normalUnlocks = r.unlocks.filter((id) => !SCENARIO_3_IDS.has(id));
+        const specialUnlocks = r.unlocks.filter((id) => SCENARIO_3_IDS.has(id));
+
+        for (const projectId of normalUnlocks) {
           const existingAccess = await tx.user_project_access.findFirst({
-            where: {
-              user_id: userId,
-              project_id: projectId,
-              source: 'LEARNER_PASS',
-            },
+            where: { user_id: userId, project_id: projectId, source: 'LEARNER_PASS' },
           });
 
           if (!existingAccess) {
@@ -121,6 +122,10 @@ export const POST: RequestHandler = async (event) => {
             projectGrants.push(projectId);
           }
         }
+
+        if (specialUnlocks.length > 0) {
+          pendingUnlocks.push({ day: dayNumber, available: specialUnlocks });
+        }
       }
 
       return {
@@ -128,6 +133,7 @@ export const POST: RequestHandler = async (event) => {
         updatedEnrollment,
         reward: r,
         projectGrants,
+        pendingUnlocks,
         currentDay,
       };
     });
@@ -141,6 +147,7 @@ export const POST: RequestHandler = async (event) => {
         aiHelps: result.reward.aiHelps ?? 0,
         unlocks: result.projectGrants,
       },
+      pendingUnlocks: result.pendingUnlocks,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.aiHelpCredits,
