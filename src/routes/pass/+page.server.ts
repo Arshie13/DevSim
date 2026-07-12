@@ -55,7 +55,7 @@ export const load: PageServerLoad = async (event) => {
 
   const now = new Date();
   const isExpired = enrollment?.expires_at && now > enrollment.expires_at;
-  const isCompleted = (enrollment?.total_claimed_days ?? 0) >= 30;
+  const isCompleted = (enrollment?.claimed_day_numbers.length ?? 0) >= 30;
   const isActive = !!enrollment?.started_at && !isExpired && !isCompleted;
 
   return {
@@ -64,7 +64,7 @@ export const load: PageServerLoad = async (event) => {
           status: isCompleted ? "COMPLETED" : isExpired ? "EXPIRED" : isActive ? "ACTIVE" : "ACTIVE",
           currentDay,
           streak: enrollment.streak,
-          totalClaimedDays: enrollment.total_claimed_days,
+          totalClaimedDays: enrollment.claimed_day_numbers.length,
           lastClaimedAt: enrollment.last_claimed_at?.toISOString() ?? null,
           expiresAt: enrollment.expires_at?.toISOString(),
           claimedDayNumbers,

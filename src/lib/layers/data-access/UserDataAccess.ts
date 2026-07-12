@@ -24,8 +24,7 @@ export class UserDataAccess {
           where: { id: userId },
           data: {
             xp: { increment: xp },
-            coins: { increment: coins },
-            level: { increment: 1 }
+            coins: { increment: coins }
           }
         });
       }
@@ -104,10 +103,10 @@ export class UserDataAccess {
     try {
       const user = await prisma.user.update({
         where: { id: userId },
-        data: { aiHelpCredits: { decrement: count } },
-        select: { aiHelpCredits: true }
+        data: { ai_help_credits: { decrement: count } },
+        select: { ai_help_credits: true }
       });
-      return user.aiHelpCredits;
+      return user.ai_help_credits;
     } catch (error) {
       console.error('Error consuming AI help credits:', error);
       throw error;
@@ -124,7 +123,7 @@ export class UserDataAccess {
         where: { id: userId, coins: { gte: coinCost } },
         data: {
           coins: { decrement: coinCost },
-          aiHelpCredits: { increment: credits }
+          ai_help_credits: { increment: credits }
         }
       });
 
@@ -134,9 +133,9 @@ export class UserDataAccess {
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { coins: true, aiHelpCredits: true }
+        select: { coins: true, ai_help_credits: true }
       });
-      return { success: true, coins: user?.coins ?? 0, aiHelpCredits: user?.aiHelpCredits ?? 0 };
+      return { success: true, coins: user?.coins ?? 0, ai_help_credits: user?.ai_help_credits ?? 0 };
     } catch (error) {
       console.error('Error converting coins to AI help credits:', error);
       return { success: false, error: 'Failed to convert coins' };

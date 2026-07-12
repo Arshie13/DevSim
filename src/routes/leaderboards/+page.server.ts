@@ -22,7 +22,6 @@ export const load: PageServerLoad = async (event) => {
         image: true,
         owned_avatars: true,
         xp: true,
-        level: true,
       },
     });
 
@@ -32,7 +31,7 @@ export const load: PageServerLoad = async (event) => {
       name: u.name ?? undefined,
       avatar: u.image || u.owned_avatars[0] || "",
       xp: u.xp,
-      level: u.level,
+      level: 1,
       isCurrentUser: u.id === session.user!.id,
     }));
 
@@ -48,7 +47,6 @@ export const load: PageServerLoad = async (event) => {
           image: true,
           owned_avatars: true,
           xp: true,
-          level: true,
         },
       });
 
@@ -62,7 +60,7 @@ export const load: PageServerLoad = async (event) => {
           name: me.name ?? undefined,
           avatar: me.image || me.owned_avatars[0] || "",
           xp: me.xp,
-          level: me.level,
+          level: 1,
           isCurrentUser: true,
         };
       }

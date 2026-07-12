@@ -51,7 +51,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
         started_at: now,
         expires_at: expiresAt,
         streak: 0,
-        total_claimed_days: 0,
         payment_id: paymentId,
         payment_provider: paymentProvider,
       },

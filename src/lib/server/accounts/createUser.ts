@@ -17,7 +17,13 @@ export async function createUser(userDetails: User): Promise<PrismaCreateUserRes
     const user = await prisma.user.create({
       data: userDetails
     });
-    return { ok: true, data: user, error: null }
+    return {
+      ok: true,
+      data: {
+        ...user,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at
+    }, error: null }
   } catch (e) {
     return { ok: false, data: null, error: e as Error}
   }

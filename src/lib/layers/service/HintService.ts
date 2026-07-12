@@ -84,7 +84,7 @@ export class HintService {
 
     // AI help credits are the only currency: 1 credit per quick hint, 2 per chat message.
     const creditCost = hintType === 'chat' ? CHAT_HINT_CREDIT_COST : QUICK_HINT_CREDIT_COST;
-    const helpCredits = userResult.user.aiHelpCredits ?? 0;
+    const helpCredits = userResult.user.ai_help_credits ?? 0;
     const coinBalance = userResult.coins ?? 0;
 
     // Any credits the user is short are covered by converting coins on the spot.

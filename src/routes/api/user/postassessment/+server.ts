@@ -192,18 +192,15 @@ async function savePostScores(userId: string, scores: Record<string, unknown>) {
   await Promise.all(
     topics.map((topic) => {
       const postScore = Math.round(scores[topic] as number);
-      const preScore = preByTopic.get(topic) ?? null;
-      const improvement = preScore != null ? postScore - preScore : null;
 
       return prisma.assessment_topic_score.upsert({
         where: { user_id_topic: { user_id: userId, topic } },
-        update: { post_score: postScore, improvement, assessed_at: new Date() },
+        update: { post_score: postScore, assessed_at: new Date() },
         create: {
           id: `${userId}_${topic}_post`,
           user_id: userId,
           topic,
           post_score: postScore,
-          improvement,
           assessed_at: new Date(),
         },
       });
@@ -235,7 +232,7 @@ export const GET: RequestHandler = async (event) => {
     preScores[record.topic] = {
       pre: record.pre_score,
       post: record.post_score,
-      improvement: record.improvement
+      improvement: record.post_score != null && record.pre_score != null ? record.post_score - record.pre_score : null
     };
   }
   

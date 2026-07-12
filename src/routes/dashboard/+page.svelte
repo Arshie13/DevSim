@@ -132,8 +132,8 @@
     isDailyRewardsModalOpen = false;
   }
 
-  function handleRewardClaim(e: CustomEvent<{ day: number; coins: number; xp: number; newCoins?: number; newXp?: number }>) {
-    console.log(`Reward claimed: Day ${e.detail.day}, +${e.detail.coins} coins, +${e.detail.xp} XP`);
+  function handleRewardClaim(e: CustomEvent<{ day: number; coins: number; xp: number; aiHelps: number; newCoins?: number; newXp?: number; newAiHelpCredits?: number }>) {
+    console.log(`Reward claimed: Day ${e.detail.day}, +${e.detail.coins} coins, +${e.detail.xp} XP, +${e.detail.aiHelps} AI helps`);
 
     // Update header values if API returned new totals
     if (e.detail.newCoins !== undefined) {

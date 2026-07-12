@@ -19,7 +19,7 @@ export const GET: RequestHandler = async (event) => {
   try {
     const dailyLogin = await prisma.daily_login.findUnique({
       where: { user_id: session.user.id },
-      select: { currentDay: true, claimedDays: true, streak: true, lastClaimedAt: true }
+      select: { current_day: true, claimed_days: true, streak: true, last_claimed_at: true }
     });
 
     if (!dailyLogin) {
@@ -35,7 +35,7 @@ export const GET: RequestHandler = async (event) => {
 
     // Compute cooldown
     const now = Date.now();
-    const lastClaimTime = dailyLogin.lastClaimedAt?.getTime() || 0;
+    const lastClaimTime = dailyLogin.last_claimed_at?.getTime() || 0;
     const timeSinceLast = now - lastClaimTime;
     const remainingMs = Math.max(0, ONE_DAY_MS - timeSinceLast);
     const canClaimToday = timeSinceLast >= ONE_DAY_MS;
@@ -45,11 +45,11 @@ export const GET: RequestHandler = async (event) => {
     const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
 
     return Response.json({
-      currentDay: dailyLogin.currentDay,
-      claimedDays: dailyLogin.claimedDays.map(dayIndexFromDate),
+      currentDay: dailyLogin.current_day,
+      claimedDays: dailyLogin.claimed_days.map(dayIndexFromDate),
       streak: dailyLogin.streak,
-      lastClaimedAt: dailyLogin.lastClaimedAt,
-      hasRewards: dailyLogin.currentDay <= 7,
+      lastClaimedAt: dailyLogin.last_claimed_at,
+      hasRewards: dailyLogin.current_day <= 7,
       canClaimToday,
       nextAvailableAt: canClaimToday ? null : new Date(now + remainingMs).toISOString(),
       cooldown: {
