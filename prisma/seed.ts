@@ -40,6 +40,8 @@ import { levels as nextjsShadcnScenario1Levels, scenarios as nextjsShadcnScenari
 import { levels as nextjsShadcnScenario2Levels, scenarios as nextjsShadcnScenario2Scenarios } from "./seed/nextjs-shadcn-ui/scenario-2/seed";
 import { levels as nextjsShadcnScenario3Levels, scenarios as nextjsShadcnScenario3Scenarios } from "./seed/nextjs-shadcn-ui/scenario-3/seed";
 
+// import { levels as svelteDrizzleScenario1Levels, scenarios as svelteDrizzleScenario1Scenarios } from "./seed/svelte-drizzle/scenario-1/seed";
+
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL ?? "",
 });
@@ -68,6 +70,8 @@ async function main() {
     ...nextjsShadcnScenario1Scenarios,
     ...nextjsShadcnScenario2Scenarios,
     ...nextjsShadcnScenario3Scenarios,
+
+    // ...svelteDrizzleScenario1Scenarios,
   ];
 
   // Define levels with progressive difficulty
@@ -87,6 +91,8 @@ async function main() {
     ...nextjsShadcnScenario1Levels,
     ...nextjsShadcnScenario2Levels,
     ...nextjsShadcnScenario3Levels,
+
+    // ...svelteDrizzleScenario1Levels,
   ];
 
   // ──────────────────────────────────────────────────────────────────────────

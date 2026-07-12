@@ -1,11 +1,5 @@
 <script lang="ts">
   import type { StackSelection, TechOption } from "$types";
-  import {
-    FRONTEND_OPTIONS,
-    BACKEND_OPTIONS,
-    DATABASE_OPTIONS,
-    SERVICES_OPTIONS,
-  } from "$mocks";
   import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
   import {
     X,
@@ -22,15 +16,16 @@
 
   export let selection: StackSelection;
   export let onClose: () => void;
+  export let techOptions: TechOption[] = [];
 
   let activeTab: "layers" | "analysis" | "ai" = "layers";
   let aiLoading = false;
   let aiDescription = "";
   let aiError = false;
 
-  function getOption(options: TechOption[], id: string | null): TechOption | null {
+  function getOption(id: string | null): TechOption | null {
     if (!id) return null;
-    return options.find((o) => o.id === id) || null;
+    return techOptions.find((o) => o.id === id) || null;
   }
 
   const ICON_OVERRIDE: Record<string, string> = {
@@ -47,19 +42,19 @@
   function buildLayers(combo: StackSelection): Layer[] {
     const out: Layer[] = [];
     if (combo.frontend) {
-      const t = getOption(FRONTEND_OPTIONS, combo.frontend);
+      const t = getOption(combo.frontend);
       if (t) out.push({ id: combo.frontend, icon: ICON_OVERRIDE[combo.frontend] ?? t.icon, name: t.name, role: "FRONTEND", desc: t.description });
     }
     if (combo.backend) {
-      const t = getOption(BACKEND_OPTIONS, combo.backend);
+      const t = getOption(combo.backend);
       if (t) out.push({ id: combo.backend, icon: ICON_OVERRIDE[combo.backend] ?? t.icon, name: t.name, role: "BACKEND", desc: t.description });
     }
     if (combo.database) {
-      const t = getOption(DATABASE_OPTIONS, combo.database);
+      const t = getOption(combo.database);
       if (t) out.push({ id: combo.database, icon: ICON_OVERRIDE[combo.database] ?? t.icon, name: t.name, role: "DATABASE", desc: t.description });
     }
     if (combo.services) {
-      const t = getOption(SERVICES_OPTIONS, combo.services);
+      const t = getOption(combo.services);
       if (t) out.push({ id: combo.services, icon: ICON_OVERRIDE[combo.services] ?? t.icon, name: t.name, role: "SERVICE", desc: t.description });
     }
     return out;
@@ -69,10 +64,10 @@
 
   function getPreviewDescription(combo: StackSelection): string {
     const parts: string[] = [];
-    const fe = getOption(FRONTEND_OPTIONS, combo.frontend);
-    const be = getOption(BACKEND_OPTIONS,  combo.backend);
-    const db = getOption(DATABASE_OPTIONS, combo.database);
-    const sv = getOption(SERVICES_OPTIONS, combo.services);
+    const fe = getOption(combo.frontend);
+    const be = getOption( combo.backend);
+    const db = getOption(combo.database);
+    const sv = getOption(combo.services);
     if (fe?.finalProjectDescription) parts.push(fe.finalProjectDescription);
     if (be?.finalProjectDescription) parts.push(be.finalProjectDescription);
     if (db?.finalProjectDescription) parts.push(db.finalProjectDescription);
@@ -91,10 +86,10 @@
     let synergy = "";
 
     const selectedOptions = [
-      getOption(FRONTEND_OPTIONS, sel.frontend),
-      getOption(BACKEND_OPTIONS, sel.backend),
-      getOption(DATABASE_OPTIONS, sel.database),
-      getOption(SERVICES_OPTIONS, sel.services),
+      getOption(sel.frontend),
+      getOption(sel.backend),
+      getOption(sel.database),
+      getOption(sel.services),
     ].filter(Boolean) as TechOption[];
 
     if (sel.frontend === "react") {
@@ -484,7 +479,7 @@
     <div class="modal-footer">
       <div class="footer-pills">
         {#if selection.frontend}
-          {@const opt = getOption(FRONTEND_OPTIONS, selection.frontend)}
+          {@const opt = getOption(selection.frontend)}
           {#if opt}
             <div class="stack-pill">
               <span class="pill-icon">{opt.icon}</span>
@@ -496,7 +491,7 @@
         {/if}
 
         {#if selection.backend}
-          {@const opt = getOption(BACKEND_OPTIONS, selection.backend)}
+          {@const opt = getOption(selection.backend)}
           {#if opt}
             <div class="stack-pill">
               <span class="pill-icon">{opt.icon}</span>
@@ -508,7 +503,7 @@
         {/if}
 
         {#if selection.database}
-          {@const opt = getOption(DATABASE_OPTIONS, selection.database)}
+          {@const opt = getOption(selection.database)}
           {#if opt}
             <div class="stack-pill">
               <span class="pill-icon">{opt.icon}</span>
@@ -520,7 +515,7 @@
         {/if}
 
         {#if selection.services}
-          {@const opt = getOption(SERVICES_OPTIONS, selection.services)}
+          {@const opt = getOption(selection.services)}
           {#if opt}
             <div class="stack-pill">
               <span class="pill-icon">{opt.icon}</span>

@@ -1,30 +1,25 @@
 <script lang="ts">
-  import type { StackSelection } from "$types";
+  import type { StackSelection, TechOption } from "$types";
   import { X, Loader } from "lucide-svelte";
   import { formatMessage } from "$lib/ai";
   import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
-  import {
-    FRONTEND_OPTIONS,
-    BACKEND_OPTIONS,
-    DATABASE_OPTIONS,
-    SERVICES_OPTIONS,
-  } from "$mocks";
 
   export let show: boolean = false;
   export let selection: StackSelection;
   export let description: string = "";
   export let isLoading: boolean = false;
   export let onClose: () => void = () => {};
+  export let techOptions: TechOption[] = [];
 
-  function getOption(options: any[], id: string | null): any | null {
+  function getOption(id: string | null): TechOption | null {
     if (!id) return null;
-    return options.find((o) => o.id === id) || null;
+    return techOptions.find((o) => o.id === id) || null;
   }
 
-  $: frontendOption = getOption(FRONTEND_OPTIONS, selection.frontend);
-  $: backendOption = getOption(BACKEND_OPTIONS, selection.backend);
-  $: databaseOption = getOption(DATABASE_OPTIONS, selection.database);
-  $: servicesOption = getOption(SERVICES_OPTIONS, selection.services);
+  $: frontendOption = getOption(selection.frontend);
+  $: backendOption = getOption(selection.backend);
+  $: databaseOption = getOption(selection.database);
+  $: servicesOption = getOption(selection.services);
 
   // ✅ Count tags
   $: tagCount = [

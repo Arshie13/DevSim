@@ -1,12 +1,6 @@
 <script lang="ts">
   import type { StackSelection, TechOption } from "$types";
   import {
-    FRONTEND_OPTIONS,
-    BACKEND_OPTIONS,
-    DATABASE_OPTIONS,
-    SERVICES_OPTIONS,
-  } from "$mocks";
-  import {
     Rocket,
     X,
     Zap,
@@ -20,12 +14,13 @@
   export let onClear: (category: keyof StackSelection) => void;
   export let onStart: () => Promise<void>;
   export let onViewAnalysis: () => void;
+  export let techOptions: TechOption[] = [];
 
   let isLoading = false;
 
-  function getOption(options: TechOption[], id: string | null): TechOption | null {
+  function getOption(id: string | null): TechOption | null {
     if (!id) return null;
-    return options.find((o) => o.id === id) || null;
+    return techOptions.find((o) => o.id === id) || null;
   }
 
   const ICON_OVERRIDE: Record<string, string> = {
@@ -42,19 +37,19 @@
   function buildLayers(combo: StackSelection): Layer[] {
     const out: Layer[] = [];
     if (combo.frontend) {
-      const t = getOption(FRONTEND_OPTIONS, combo.frontend);
+      const t = getOption(combo.frontend);
       if (t) out.push({ id: combo.frontend, icon: ICON_OVERRIDE[combo.frontend] ?? t.icon, name: t.name, role: "FRONTEND", category: "frontend" });
     }
     if (combo.backend) {
-      const t = getOption(BACKEND_OPTIONS, combo.backend);
+      const t = getOption(combo.backend);
       if (t) out.push({ id: combo.backend, icon: ICON_OVERRIDE[combo.backend] ?? t.icon, name: t.name, role: "BACKEND", category: "backend" });
     }
     if (combo.database) {
-      const t = getOption(DATABASE_OPTIONS, combo.database);
+      const t = getOption(combo.database);
       if (t) out.push({ id: combo.database, icon: ICON_OVERRIDE[combo.database] ?? t.icon, name: t.name, role: "DATABASE", category: "database" });
     }
     if (combo.services) {
-      const t = getOption(SERVICES_OPTIONS, combo.services);
+      const t = getOption(combo.services);
       if (t) out.push({ id: combo.services, icon: ICON_OVERRIDE[combo.services] ?? t.icon, name: t.name, role: "SERVICE", category: "services" });
     }
     return out;
