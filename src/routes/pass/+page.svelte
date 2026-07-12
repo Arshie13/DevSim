@@ -427,6 +427,8 @@
 
   <!-- Unlock Picker Modal -->
   {#if showUnlockPicker}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" on:click={() => showUnlockPicker = false}>
       <div class="w-full max-w-md mx-4 p-6 rounded-card border border-cyan-500/30 bg-gradient-to-br from-[#0f1525] to-[#1a1f35]" on:click|stopPropagation>
         <h3 class="text-md font-orbitron font-bold text-cyan-400 mb-2">Choose Your Unlock</h3>

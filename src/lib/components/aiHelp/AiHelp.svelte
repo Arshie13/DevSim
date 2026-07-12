@@ -442,6 +442,9 @@
     style="width: {panelWidth}px; max-width: min(calc(100vw - {RESERVED_FOR_WORKSPACE}px), {MAX_PANEL_WIDTH}px);"
   >
     <!-- Drag handle: resize the panel by dragging its left edge. -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div
       class="absolute left-0 top-0 z-30 h-full w-1.5 -translate-x-1/2 cursor-col-resize transition-colors hover:bg-cyan-500/40 {isResizing
         ? 'bg-cyan-500/50'

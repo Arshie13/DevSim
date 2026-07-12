@@ -37,6 +37,7 @@ model user {
   user_project_access           user_project_access[]     @relation("user_project_access")
   assessment_topic_scores       assessment_topic_score[]
   coin_purchases                coin_purchase[]           @relation("coin_purchases")
+  help_requests                 help_request[]
 
   @@map("users")
 }
@@ -419,4 +420,25 @@ model app_setting {
   updated_at DateTime @updatedAt @map("updated_at")
 
   @@map("app_settings")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Help Requests
+// ────────────────────────────────────────────────────────────────────────────
+
+model help_request {
+  id          String   @id @default(cuid()) @map("id")
+  userId      String   @map("user_id")
+  user        user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String?  @map("category")
+  subject     String   @map("subject")
+  description String   @map("description")
+  context     Json?    @map("context")
+  status      String   @default("open") @map("status")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@map("help_requests")
 }

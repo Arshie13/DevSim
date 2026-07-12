@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, type Snippet } from 'svelte';
 
   // ── Props ──────────────────────────────────────────────────────────────────
 
@@ -40,6 +40,10 @@
     closeOnBackdropClick = true,
     /** Optional data-tour attribute forwarded to the backdrop element for tutorial spotlight targeting. */
     tourId = undefined as string | undefined,
+    /** Content rendered in the default slot. */
+    children = undefined as Snippet | undefined,
+    /** Content rendered in the named "success" slot. */
+    success = undefined as Snippet | undefined,
   } = $props();
 
   // ── Events ─────────────────────────────────────────────────────────────────
@@ -102,7 +106,7 @@
 </script>
 
 {#if open}
-  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
     class="cm-backdrop"
     role="dialog"
@@ -118,13 +122,15 @@
       <div class="cm-card-glow" aria-hidden="true"></div>
 
       {#if showSuccess}
-        <slot name="success">
+        {#if success}
+          {@render success()}
+        {:else}
           <div class="cm-success-wrap">
             <div class="cm-success-burst" aria-hidden="true">✅</div>
             <h2 class="cm-success-title">Done!</h2>
             <p class="cm-success-sub">The action completed successfully.</p>
           </div>
-        </slot>
+        {/if}
 
       {:else}
         {#if !hideHeader && title}
@@ -149,7 +155,7 @@
           <p class="cm-description">{@html description}</p>
         {/if}
 
-        <slot />
+        {@render children?.()}
 
         {#if error}
           <div class="cm-error-box">

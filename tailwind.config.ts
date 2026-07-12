@@ -6,9 +6,17 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        orbitron: ['Orbitron', 'sans-serif'],
-        mono: ['Share Tech Mono', 'monospace'],
-        rajdhani: ['Rajdhani', 'sans-serif'],
+        // Map the app's font utilities onto the DevSim design-system fonts
+        // that are actually loaded in app.html (Chakra Petch · Exo 2 · Space
+        // Mono). Orbitron/Rajdhani/Share Tech Mono were never loaded, so these
+        // classes previously fell back to the system font — leaving the app's
+        // typography out of sync with the landing page. Keeping the utility
+        // names means no component markup has to change.
+        heading: ['Chakra Petch', 'sans-serif'],
+        orbitron: ['Chakra Petch', 'sans-serif'],
+        rajdhani: ['Exo 2', 'sans-serif'],
+        body: ['Exo 2', 'sans-serif'],
+        mono: ['Space Mono', 'monospace'],
       },
       colors: {
         // DevSim Obsidian Terminal palette

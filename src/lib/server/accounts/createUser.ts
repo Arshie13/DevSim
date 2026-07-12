@@ -8,7 +8,7 @@ interface User {
 
 interface PrismaCreateUserResponse {
   ok: boolean;
-  data: User & { createdAt: Date, updatedAt: Date } | null
+  data: User & { created_at: Date, updated_at: Date } | null
   error: Error | null
 }
 
@@ -21,8 +21,8 @@ export async function createUser(userDetails: User): Promise<PrismaCreateUserRes
       ok: true,
       data: {
         ...user,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at
+        created_at: user.created_at,
+        updated_at: user.updated_at
     }, error: null }
   } catch (e) {
     return { ok: false, data: null, error: e as Error}

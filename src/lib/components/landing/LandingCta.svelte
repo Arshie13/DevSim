@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Logo from "$components/ui/Logo.svelte";
+
   let { session }: { session: any } = $props();
 </script>
 
@@ -39,7 +41,9 @@
 <!-- ◈ Footer -->
 <footer class="border-t border-[rgba(7,165,201,0.08)] py-12 px-6">
   <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-    <a href="/" class="footer-logo font-heading text-xl font-bold tracking-widest">DEVSIM</a>
+    <a href="/" class="flex-shrink-0">
+      <Logo markClass="w-7 h-7" textClass="text-xl" />
+    </a>
     <p class="font-label text-[0.65rem] tracking-widest text-[var(--text-muted)]">
       &copy; 2026 DEVSIM. ALL RIGHTS RESERVED.
     </p>
@@ -55,12 +59,3 @@
     </ul>
   </div>
 </footer>
-
-<style>
-  .footer-logo {
-    background: linear-gradient(90deg, #fff 0%, var(--accent) 50%, var(--cyan-bright) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-</style>

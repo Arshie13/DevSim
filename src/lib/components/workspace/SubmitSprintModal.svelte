@@ -988,7 +988,7 @@
   {/if}
 
   <!-- Success slot -->
-  <svelte:fragment slot="success">
+  {#snippet success()}
     <SubmitSprintSuccessContent
       {advancingToNextLevel}
       {aiScoring}
@@ -998,7 +998,7 @@
       on:done={handleDone}
       on:continue={handleContinueWorking}
     />
-  </svelte:fragment>
+  {/snippet}
 </ConfirmationModal>
 
 

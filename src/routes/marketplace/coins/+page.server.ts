@@ -34,6 +34,7 @@ export const load: PageServerLoad = async (event) => {
   return {
     user: {
       ...user,
+      aiHelpCredits: user.ai_help_credits,
       ownedAvatars: user.owned_avatars,
       hasCompletedTutorial: user.has_completed_tutorial,
     }

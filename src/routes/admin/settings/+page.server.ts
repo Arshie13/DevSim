@@ -37,6 +37,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const scenariosWithStack = scenarios.map(s => ({
     ...s,
+    isPaywalled: s.is_paywalled,
     stackName: resolveStackName(s.id) ?? 'Unknown'
   }));
 

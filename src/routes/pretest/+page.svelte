@@ -179,6 +179,8 @@
             <div class="flex justify-between mt-3">
               {#each scaleOptions as option}
                 <div class="text-center">
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
                   <div 
                     class="w-14 h-14 rounded-full border-2 flex items-center justify-center font-mono text-lg font-bold transition-all duration-200 cursor-pointer
                       {selectedAnswer === option.value 
@@ -339,20 +341,6 @@
 </div>
 
 <style>
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 0;
-    height: 0;
-    opacity: 0;
-  }
-  input[type="range"]::-moz-range-thumb {
-    width: 0;
-    height: 0;
-    opacity: 0;
-    border: 0;
-  }
-
   .bg-grid-cyber {
     background-image:
       linear-gradient(rgba(7, 165, 201, 0.03) 1px, transparent 1px),

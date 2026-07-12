@@ -107,6 +107,7 @@ export class UserDataAccess {
         select: { ai_help_credits: true }
       });
       return user.ai_help_credits;
+      return user.ai_help_credits;
     } catch (error) {
       console.error('Error consuming AI help credits:', error);
       throw error;

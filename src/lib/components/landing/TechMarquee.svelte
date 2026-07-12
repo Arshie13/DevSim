@@ -1,7 +1,7 @@
 <script lang="ts">
   const badges = [
-    "React", "Next.js", "Svelte", "Node.js", "NestJS", "Express",
-    "PostgreSQL", "Prisma", "Supabase", "Docker", "TypeScript",
+    "React", "Next.js", "NestJS", "Express",
+    "PostgreSQL", "MongoDB", "Prisma", "shadcn/ui",
   ];
   const tripled = [...badges, ...badges, ...badges];
 </script>
