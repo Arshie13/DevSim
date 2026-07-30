@@ -5,6 +5,7 @@
   import PopularCombos from "$components/stacks/PopularCombos.svelte";
   import StackPreviewPanel from "$components/stacks/StackPreviewPanel.svelte";
   import StackInfoModal from "$components/stacks/StackInfoModal.svelte";
+  import PrerequisitesModal from "$components/stacks/PrerequisitesModal.svelte";
   import { Layers, ArrowLeft } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import type { UserData } from "$types";
@@ -19,6 +20,7 @@
 
   let showInfoModal = false;
   let previewSelection: StackSelection | null = null;
+  let showPrereqModal = false;
 
   function handleClearSelection(category: keyof StackSelection) {
     selection = {
@@ -84,6 +86,10 @@
     const stackName = buildStackName(selection);
     const encoded = encodeURIComponent(JSON.stringify(selection));
     await goto(`/scenario?stack=${stackName}&selection=${encoded}`);
+  }
+
+  function handlePrereqConfirm() {
+    handleViewScenarios();
   }
 
   function goBack() {
@@ -183,8 +189,8 @@
           <StackPreviewPanel
             {selection}
             onClear={handleClearSelection}
-            onStart={handleViewScenarios}
             onViewAnalysis={handleViewAnalysis}
+            onShowPrerequisites={() => (showPrereqModal = true)}
           />
         </div>
       </div>
@@ -195,6 +201,15 @@
       <StackInfoModal
         selection={previewSelection}
         onClose={() => (showInfoModal = false)}
+      />
+    {/if}
+
+    <!-- Prerequisites Modal -->
+    {#if showPrereqModal && selection}
+      <PrerequisitesModal
+        {selection}
+        onConfirm={handlePrereqConfirm}
+        onCancel={() => (showPrereqModal = false)}
       />
     {/if}
   </div>

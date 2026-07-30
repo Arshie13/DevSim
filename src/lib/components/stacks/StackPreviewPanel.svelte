@@ -18,8 +18,8 @@
 
   export let selection: StackSelection;
   export let onClear: (category: keyof StackSelection) => void;
-  export let onStart: () => Promise<void>;
   export let onViewAnalysis: () => void;
+  export let onShowPrerequisites: () => void = () => {};
 
   let isLoading = false;
 
@@ -62,12 +62,7 @@
 
   async function handleStart() {
     if (isLoading || !hasValidStack) return;
-    isLoading = true;
-    try {
-      await onStart();
-    } finally {
-      isLoading = false;
-    }
+    onShowPrerequisites();
   }
 
   $: selectedCount = [

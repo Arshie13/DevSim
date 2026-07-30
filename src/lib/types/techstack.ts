@@ -8,6 +8,8 @@ export interface TechOption {
   previewImages?: string[];
   /** Brief description of what learners will build */
   finalProjectDescription?: string;
+  /** Prerequisites the learner should know before starting this technology */
+  prerequisites?: string[];
 }
 
 export interface TechCategory {

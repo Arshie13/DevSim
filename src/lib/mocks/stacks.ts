@@ -12,6 +12,12 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     color: "from-cyan-500 to-blue-600",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Build interactive user interfaces, single-page applications, and component-based UI systems",
+    prerequisites: [
+      "HTML & CSS fundamentals",
+      "JavaScript ES6+ (arrow functions, destructuring, modules)",
+      "DOM manipulation basics",
+      "Basic understanding of how the web works (HTTP, client-server model)",
+    ],
   },
   {
     id: "nextjs",
@@ -21,15 +27,12 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     color: "from-zinc-700 to-zinc-900",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Create full-stack web applications with server-side rendering, API routes, and optimized routing",
-  },
-  {
-    id: "vue",
-    name: "Vue.js",
-    icon: "💚",
-    description: "The progressive JavaScript framework",
-    color: "from-emerald-500 to-green-600",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Build reactive single-page applications with Vue's intuitive composition API and templates",
+    prerequisites: [
+      "React fundamentals (components, props, state, hooks)",
+      "JavaScript ES6+ and async/await",
+      "Basic Node.js and npm/yarn knowledge",
+      "Understanding of client-side vs server-side rendering",
+    ],
   },
   {
     id: "svelte",
@@ -39,15 +42,12 @@ export const FRONTEND_OPTIONS: TechOption[] = [
     color: "from-orange-500 to-red-600",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Create high-performance web apps with Svelte's compiler-based approach and reactive stores",
-  },
-  {
-    id: "angular",
-    name: "Angular",
-    icon: "🅰️",
-    description: "Platform for building mobile and desktop apps",
-    color: "from-red-500 to-pink-600",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Build enterprise-scale applications with TypeScript, dependency injection, and modular architecture",
+    prerequisites: [
+      "HTML & CSS fundamentals",
+      "JavaScript ES6+ basics",
+      "Basic understanding of reactivity and state management",
+      "Familiarity with component-based architecture",
+    ],
   },
 ];
 
@@ -60,15 +60,12 @@ export const BACKEND_OPTIONS: TechOption[] = [
     color: "from-zinc-600 to-zinc-800",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Build RESTful APIs and server-side applications with Node.js and Express middleware",
-  },
-  {
-    id: "fastify",
-    name: "Fastify",
-    icon: "⚡",
-    description: "Fast and low overhead web framework",
-    color: "from-zinc-500 to-zinc-700",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Create high-performance web services with Fastify's schema-based approach and low overhead",
+    prerequisites: [
+      "JavaScript ES6+ (callbacks, promises, async/await)",
+      "Node.js fundamentals (modules, npm, file system)",
+      "HTTP protocol basics (methods, status codes, headers)",
+      "Basic understanding of REST API concepts",
+    ],
   },
   {
     id: "nestjs",
@@ -78,24 +75,12 @@ export const BACKEND_OPTIONS: TechOption[] = [
     color: "from-red-600 to-pink-700",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Build scalable, testable enterprise applications with NestJS's modular architecture",
-  },
-  {
-    id: "django",
-    name: "Django",
-    icon: "🐍",
-    description: "High-level Python web framework",
-    color: "from-green-700 to-emerald-800",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Create full-stack Python web applications with Django's batteries-included approach",
-  },
-  {
-    id: "flask",
-    name: "Flask",
-    icon: "🧪",
-    description: "Lightweight WSGI web application framework",
-    color: "from-zinc-600 to-zinc-800",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Build lightweight Python APIs and web applications with Flask's flexible micro-framework",
+    prerequisites: [
+      "TypeScript fundamentals (types, decorators, classes)",
+      "JavaScript ES6+ and Node.js basics",
+      "Understanding of dependency injection and modular architecture",
+      "Basic knowledge of Express.js (NestJS is built on Express)",
+    ],
   },
 ];
 
@@ -108,6 +93,12 @@ export const DATABASE_OPTIONS: TechOption[] = [
     color: "from-blue-600 to-indigo-700",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Design and manage relational data with PostgreSQL's advanced features and SQL capabilities",
+    prerequisites: [
+      "SQL fundamentals (SELECT, INSERT, UPDATE, DELETE, JOIN)",
+      "Understanding of relational database concepts (tables, keys, relationships)",
+      "Basic data modeling and normalization principles",
+      "Familiarity with database clients (pgAdmin, DBeaver, or psql CLI)",
+    ],
   },
   {
     id: "mongodb",
@@ -117,33 +108,12 @@ export const DATABASE_OPTIONS: TechOption[] = [
     color: "from-green-600 to-emerald-700",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Store and query flexible JSON-like documents with MongoDB's document model",
-  },
-  {
-    id: "mysql",
-    name: "MySQL",
-    icon: "🐬",
-    description: "World's most popular open source database",
-    color: "from-orange-500 to-amber-600",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Build reliable relational database solutions with MySQL's widely-used architecture",
-  },
-  {
-    id: "sqlite",
-    name: "SQLite",
-    icon: "📦",
-    description: "Self-contained SQL database engine",
-    color: "from-sky-500 to-blue-600",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Create lightweight, embedded database solutions with SQLite's serverless architecture",
-  },
-  {
-    id: "redis",
-    name: "Redis",
-    icon: "🔴",
-    description: "In-memory data structure store",
-    color: "from-red-600 to-rose-700",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Implement caching, session storage, and real-time data with Redis in-memory structures",
+    prerequisites: [
+      "JSON fundamentals (objects, arrays, nested structures)",
+      "Basic understanding of NoSQL concepts vs relational databases",
+      "JavaScript basics (MongoDB uses JSON-like BSON documents)",
+      "Understanding of when to use document-based storage",
+    ],
   },
 ];
 
@@ -156,24 +126,12 @@ export const SERVICES_OPTIONS: TechOption[] = [
     color: "from-indigo-600 to-purple-700",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Type-safely query and manage your database with Prisma's modern ORM approach",
-  },
-  {
-    id: "firebase",
-    name: "Firebase",
-    icon: "🔥",
-    description: "Google's app development platform",
-    color: "from-amber-500 to-orange-600",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Build serverless applications with Firebase's authentication, database, and cloud functions",
-  },
-  {
-    id: "supabase",
-    name: "Supabase",
-    icon: "⚡",
-    description: "Open source Firebase alternative",
-    color: "from-emerald-500 to-green-600",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Create open-source backend solutions with Supabase's PostgreSQL, auth, and real-time features",
+    prerequisites: [
+      "TypeScript or JavaScript fundamentals",
+      "Basic understanding of ORM concepts",
+      "SQL basics (Prisma generates SQL queries)",
+      "Node.js and npm/yarn familiarity",
+    ],
   },
   {
     id: "docker",
@@ -183,15 +141,12 @@ export const SERVICES_OPTIONS: TechOption[] = [
     color: "from-blue-500 to-cyan-600",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Package and deploy applications in portable Docker containers",
-  },
-  {
-    id: "graphql",
-    name: "GraphQL",
-    icon: "◈",
-    description: "Query language for your API",
-    color: "from-pink-500 to-fuchsia-600",
-    previewImages: DEFAULT_PREVIEW_IMAGES,
-    finalProjectDescription: "Build flexible, type-safe APIs with GraphQL's query language and schema definition",
+    prerequisites: [
+      "Command line basics (terminal, bash, PowerShell)",
+      "Basic understanding of virtualization concepts",
+      "Familiarity with application deployment concepts",
+      "Understanding of processes and ports",
+    ],
   },
   {
     id: "shadcn-ui",
@@ -201,6 +156,12 @@ export const SERVICES_OPTIONS: TechOption[] = [
     color: "from-zinc-600 to-zinc-800",
     previewImages: DEFAULT_PREVIEW_IMAGES,
     finalProjectDescription: "Build accessible, beautiful React UIs with shadcn/ui's copy-paste component library",
+    prerequisites: [
+      "React fundamentals (components, props, state, hooks)",
+      "TypeScript basics (shadcn/ui is TypeScript-first)",
+      "Understanding of component composition",
+      "Basic CSS/Tailwind CSS familiarity",
+    ],
   },
 ];
 
