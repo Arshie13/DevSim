@@ -1,151 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `achievement` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `ai_help_daily_usage` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `app_setting` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `assessment_topic_score` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `coin_purchase` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `completed_task` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `daily_login` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `epic` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `hint` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `learner_pass_enrollment` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `learner_pass_reward` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `learning_section` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `level` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `level_task` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `scenario` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `task_activity` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `user` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `user_achievement_tiers` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `user_file_changes` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `workspace` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "acceptance_criteria" DROP CONSTRAINT "acceptance_criteria_task_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "achievement_tiers" DROP CONSTRAINT "achievement_tiers_achievement_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "ai_help_daily_usage" DROP CONSTRAINT "ai_help_daily_usage_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "assessment_topic_score" DROP CONSTRAINT "assessment_topic_score_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "coin_purchase" DROP CONSTRAINT "coin_purchase_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "completed_task" DROP CONSTRAINT "completed_task_workspace_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "daily_login" DROP CONSTRAINT "daily_login_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "epic" DROP CONSTRAINT "epic_scenario_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "hint" DROP CONSTRAINT "hint_task_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "learner_pass_enrollment" DROP CONSTRAINT "learner_pass_enrollment_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "learning_section" DROP CONSTRAINT "learning_section_task_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "level" DROP CONSTRAINT "level_epic_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "level" DROP CONSTRAINT "level_scenario_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "level_task" DROP CONSTRAINT "level_task_level_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "task_activity" DROP CONSTRAINT "task_activity_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "user_achievement_tiers" DROP CONSTRAINT "user_achievement_tiers_achievement_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "user_achievement_tiers" DROP CONSTRAINT "user_achievement_tiers_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "user_file_changes" DROP CONSTRAINT "user_file_changes_workspace_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "user_project_access" DROP CONSTRAINT "user_project_access_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "workspace" DROP CONSTRAINT "workspace_current_scenario_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "workspace" DROP CONSTRAINT "workspace_user_id_fkey";
-
--- DropTable
-DROP TABLE "achievement";
-
--- DropTable
-DROP TABLE "ai_help_daily_usage";
-
--- DropTable
-DROP TABLE "app_setting";
-
--- DropTable
-DROP TABLE "assessment_topic_score";
-
--- DropTable
-DROP TABLE "coin_purchase";
-
--- DropTable
-DROP TABLE "completed_task";
-
--- DropTable
-DROP TABLE "daily_login";
-
--- DropTable
-DROP TABLE "epic";
-
--- DropTable
-DROP TABLE "hint";
-
--- DropTable
-DROP TABLE "learner_pass_enrollment";
-
--- DropTable
-DROP TABLE "learner_pass_reward";
-
--- DropTable
-DROP TABLE "learning_section";
-
--- DropTable
-DROP TABLE "level";
-
--- DropTable
-DROP TABLE "level_task";
-
--- DropTable
-DROP TABLE "scenario";
-
--- DropTable
-DROP TABLE "task_activity";
-
--- DropTable
-DROP TABLE "user";
-
--- DropTable
-DROP TABLE "user_achievement_tiers";
-
--- DropTable
-DROP TABLE "user_file_changes";
-
--- DropTable
-DROP TABLE "workspace";
-
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -155,7 +7,6 @@ CREATE TABLE "users" (
     "username" TEXT NOT NULL,
     "xp" INTEGER NOT NULL DEFAULT 0,
     "coins" INTEGER NOT NULL DEFAULT 0,
-    "level" INTEGER NOT NULL DEFAULT 1,
     "owned_avatars" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -164,13 +15,8 @@ CREATE TABLE "users" (
     "has_completed_tutorial" BOOLEAN NOT NULL DEFAULT false,
     "trivia_correct_count" INTEGER NOT NULL DEFAULT 0,
     "has_seen_dashboard_onboarding" BOOLEAN NOT NULL DEFAULT false,
-    "badges" TEXT[] DEFAULT ARRAY[]::TEXT[],
-    "borders" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "daily_ai_help_used" INTEGER NOT NULL DEFAULT 0,
-    "premium_pass_expires_at" TIMESTAMP(3),
     "ai_help_credits" INTEGER NOT NULL DEFAULT 0,
-    "xp_boost_expires_at" TIMESTAMP(3),
-    "xp_boost_percent" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -252,6 +98,17 @@ CREATE TABLE "learning_sections" (
 );
 
 -- CreateTable
+CREATE TABLE "acceptance_criteria" (
+    "id" TEXT NOT NULL,
+    "task_id" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "is_required" BOOLEAN NOT NULL DEFAULT false,
+    "order" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "acceptance_criteria_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "hints" (
     "id" TEXT NOT NULL,
     "task_id" TEXT NOT NULL,
@@ -287,6 +144,22 @@ CREATE TABLE "achievements" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "achievements_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "achievement_tiers" (
+    "id" TEXT NOT NULL,
+    "achievement_id" TEXT NOT NULL,
+    "tier" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "icon" TEXT,
+    "criteria" JSONB NOT NULL,
+    "xp_reward" INTEGER NOT NULL DEFAULT 100,
+    "coin_reward" INTEGER NOT NULL DEFAULT 50,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "achievement_tiers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -331,7 +204,6 @@ CREATE TABLE "assessment_topic_scores" (
     "topic" TEXT NOT NULL,
     "pre_score" INTEGER,
     "post_score" INTEGER,
-    "improvement" INTEGER,
     "assessed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "assessment_topic_scores_pkey" PRIMARY KEY ("id")
@@ -346,7 +218,6 @@ CREATE TABLE "learner_pass_enrollments" (
     "streak" INTEGER NOT NULL DEFAULT 0,
     "claimed_days" INTEGER[] DEFAULT ARRAY[]::INTEGER[],
     "last_claimed_at" TIMESTAMP(3),
-    "total_claimed_days" INTEGER NOT NULL DEFAULT 0,
     "payment_id" TEXT,
     "payment_provider" TEXT NOT NULL DEFAULT 'stripe',
     "unlock_choices" JSONB NOT NULL DEFAULT '[]',
@@ -373,6 +244,20 @@ CREATE TABLE "learner_pass_rewards" (
 );
 
 -- CreateTable
+CREATE TABLE "user_project_access" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "project_id" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "learner_pass_enrollment_id" TEXT,
+    "coin_purchase_id" TEXT,
+    "granted_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMP(3),
+
+    CONSTRAINT "user_project_access_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "coin_purchases" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
@@ -393,6 +278,21 @@ CREATE TABLE "app_settings" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "app_settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "help_requests" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "category" TEXT,
+    "subject" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "context" JSONB,
+    "status" TEXT NOT NULL DEFAULT 'open',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "help_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -423,6 +323,9 @@ CREATE UNIQUE INDEX "level_tasks_level_id_task_name_key" ON "level_tasks"("level
 CREATE INDEX "learning_sections_task_id_idx" ON "learning_sections"("task_id");
 
 -- CreateIndex
+CREATE INDEX "acceptance_criteria_task_id_idx" ON "acceptance_criteria"("task_id");
+
+-- CreateIndex
 CREATE INDEX "hints_task_id_idx" ON "hints"("task_id");
 
 -- CreateIndex
@@ -430,6 +333,12 @@ CREATE UNIQUE INDEX "daily_logins_user_id_key" ON "daily_logins"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "achievements_name_key" ON "achievements"("name");
+
+-- CreateIndex
+CREATE INDEX "achievement_tiers_achievement_id_idx" ON "achievement_tiers"("achievement_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "achievement_tiers_achievement_id_tier_key" ON "achievement_tiers"("achievement_id", "tier");
 
 -- CreateIndex
 CREATE INDEX "user_achievements_user_id_idx" ON "user_achievements"("user_id");
@@ -468,6 +377,24 @@ CREATE INDEX "learner_pass_enrollments_payment_id_idx" ON "learner_pass_enrollme
 CREATE UNIQUE INDEX "learner_pass_rewards_reward_index_key" ON "learner_pass_rewards"("reward_index");
 
 -- CreateIndex
+CREATE INDEX "user_project_access_user_id_idx" ON "user_project_access"("user_id");
+
+-- CreateIndex
+CREATE INDEX "user_project_access_project_id_idx" ON "user_project_access"("project_id");
+
+-- CreateIndex
+CREATE INDEX "user_project_access_source_idx" ON "user_project_access"("source");
+
+-- CreateIndex
+CREATE INDEX "user_project_access_learner_pass_enrollment_id_idx" ON "user_project_access"("learner_pass_enrollment_id");
+
+-- CreateIndex
+CREATE INDEX "user_project_access_coin_purchase_id_idx" ON "user_project_access"("coin_purchase_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_project_access_user_id_project_id_source_key" ON "user_project_access"("user_id", "project_id", "source");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "coin_purchases_payment_id_key" ON "coin_purchases"("payment_id");
 
 -- CreateIndex
@@ -475,6 +402,12 @@ CREATE INDEX "coin_purchases_user_id_idx" ON "coin_purchases"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "app_settings_key_key" ON "app_settings"("key");
+
+-- CreateIndex
+CREATE INDEX "help_requests_user_id_idx" ON "help_requests"("user_id");
+
+-- CreateIndex
+CREATE INDEX "help_requests_status_idx" ON "help_requests"("status");
 
 -- AddForeignKey
 ALTER TABLE "workspaces" ADD CONSTRAINT "workspaces_current_scenario_id_fkey" FOREIGN KEY ("current_scenario_id") REFERENCES "scenarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -525,4 +458,13 @@ ALTER TABLE "learner_pass_enrollments" ADD CONSTRAINT "learner_pass_enrollments_
 ALTER TABLE "user_project_access" ADD CONSTRAINT "user_project_access_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "user_project_access" ADD CONSTRAINT "user_project_access_learner_pass_enrollment_id_fkey" FOREIGN KEY ("learner_pass_enrollment_id") REFERENCES "learner_pass_enrollments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_project_access" ADD CONSTRAINT "user_project_access_coin_purchase_id_fkey" FOREIGN KEY ("coin_purchase_id") REFERENCES "coin_purchases"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "coin_purchases" ADD CONSTRAINT "coin_purchases_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "help_requests" ADD CONSTRAINT "help_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
