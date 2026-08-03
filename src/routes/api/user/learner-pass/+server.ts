@@ -26,7 +26,7 @@ export const GET: RequestHandler = async (event) => {
 
   const now = new Date();
   const isExpired = enrollment.expires_at && now > enrollment.expires_at;
-  const isCompleted = enrollment.total_claimed_days >= 30;
+  const isCompleted = enrollment.claimed_day_numbers.length >= 30;
   const isActive = !!enrollment.started_at && !isExpired && !isCompleted;
 
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -91,7 +91,7 @@ export const GET: RequestHandler = async (event) => {
     status: isCompleted ? "COMPLETED" : isExpired ? "EXPIRED" : isActive ? "ACTIVE" : "ACTIVE",
     hasEnrollment: true,
     currentDay,
-    totalClaimedDays: enrollment.total_claimed_days,
+    totalClaimedDays: enrollment.claimed_day_numbers.length,
     streak: enrollment.streak,
     claimedDays: enrollment.claimed_day_numbers,
     canClaimNow,

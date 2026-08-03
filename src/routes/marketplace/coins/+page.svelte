@@ -17,7 +17,7 @@
 
   // AI help credit exchange (coins → credits)
   let creditAmount = 1;
-  let userCredits = data.user.aiHelpCredits;
+  let userCredits = data.user.ai_help_credits;
   let isExchanging = false;
   let exchangeError: string | null = null;
   // A completed exchange shown in the success popup (null = popup hidden).
@@ -234,7 +234,7 @@
                 isExchanging = false;
                 if (result.type === 'success' && result.data) {
                   userCoins = result.data.coins as number;
-                  userCredits = result.data.aiHelpCredits as number;
+                  userCredits = result.data.ai_help_credits as number;
                   exchangeResult = {
                     credits: result.data.credits as number,
                     coinCost: result.data.coinCost as number

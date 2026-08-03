@@ -70,7 +70,6 @@ export const POST: RequestHandler = async (event) => {
         : true;
 
       const newStreak = isConsecutive ? enrollment.streak + 1 : 1;
-      const newTotalClaimed = enrollment.total_claimed_days + 1;
       const newClaimedDays = [...enrollment.claimed_day_numbers, dayNumber];
 
       const updatedEnrollment = await tx.learner_pass_enrollment.update({
@@ -78,7 +77,6 @@ export const POST: RequestHandler = async (event) => {
         data: {
           last_claimed_at: now,
           streak: newStreak,
-          total_claimed_days: newTotalClaimed,
           claimed_day_numbers: newClaimedDays,
         },
       });
@@ -111,7 +109,7 @@ export const POST: RequestHandler = async (event) => {
                 user_id: userId,
                 project_id: projectId,
                 source: 'LEARNER_PASS',
-                source_ref_id: enrollment.id,
+                learner_pass_enrollment_id: enrollment.id,
                 granted_at: now,
               },
             });
@@ -148,7 +146,7 @@ export const POST: RequestHandler = async (event) => {
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,
       streak: result.updatedEnrollment.streak,
-      totalClaimedDays: result.updatedEnrollment.total_claimed_days,
+      totalClaimedDays: result.updatedEnrollment.claimed_day_numbers.length,
       currentDay: result.currentDay,
     });
   } catch (err) {

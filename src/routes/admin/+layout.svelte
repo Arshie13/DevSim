@@ -6,9 +6,9 @@
   // Admin navigation items
   const navItems = [
     { label: 'Settings', href: '/admin/settings' },
-    // Add more admin sections here as needed
-    // { label: 'Users', href: '/admin/users' },
-    // { label: 'Workspaces', href: '/admin/workspaces' },
+    { label: 'Learner Pass', href: '/admin/learners-pass' },
+    { label: 'Achievements', href: '/admin/achievements' },
+    { label: 'Scenarios', href: '/admin/scenarios' },
   ];
 
   let isClient = false;

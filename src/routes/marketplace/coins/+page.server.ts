@@ -21,7 +21,6 @@ export const load: PageServerLoad = async (event) => {
       image: true,
       coins: true,
       xp: true,
-      level: true,
       ai_help_credits: true,
       owned_avatars: true,
       has_completed_tutorial: true,
@@ -71,7 +70,7 @@ export const actions: Actions = {
       credits,
       coinCost,
       coins: result.coins,
-      aiHelpCredits: result.aiHelpCredits
+      aiHelpCredits: result.ai_help_credits
     };
   }
 };

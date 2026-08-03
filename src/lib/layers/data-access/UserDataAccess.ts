@@ -24,8 +24,7 @@ export class UserDataAccess {
           where: { id: userId },
           data: {
             xp: { increment: xp },
-            coins: { increment: coins },
-            level: { increment: 1 }
+            coins: { increment: coins }
           }
         });
       }
@@ -108,6 +107,7 @@ export class UserDataAccess {
         select: { ai_help_credits: true }
       });
       return user.ai_help_credits;
+      return user.ai_help_credits;
     } catch (error) {
       console.error('Error consuming AI help credits:', error);
       throw error;
@@ -136,7 +136,7 @@ export class UserDataAccess {
         where: { id: userId },
         select: { coins: true, ai_help_credits: true }
       });
-      return { success: true, coins: user?.coins ?? 0, aiHelpCredits: user?.ai_help_credits ?? 0 };
+      return { success: true, coins: user?.coins ?? 0, ai_help_credits: user?.ai_help_credits ?? 0 };
     } catch (error) {
       console.error('Error converting coins to AI help credits:', error);
       return { success: false, error: 'Failed to convert coins' };

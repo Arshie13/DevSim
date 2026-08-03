@@ -16,7 +16,7 @@ export const load: PageServerLoad = async (event) => {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: userSession.id },
-    select: { image: true, coins: true, xp: true, level: true, owned_avatars: true, has_completed_tutorial: true, username: true },
+    select: { image: true, coins: true, xp: true, owned_avatars: true, has_completed_tutorial: true, username: true },
   });
 
   const [metrics, rivals, topAchievements] = await Promise.all([

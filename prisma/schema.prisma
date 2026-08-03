@@ -19,7 +19,6 @@ model user {
   username                      String                    @unique @map("username")
   xp                            Int                       @default(0) @map("xp")
   coins                         Int                       @default(0) @map("coins")
-  level                         Int                       @default(1) @map("level")
   owned_avatars                 String[]                  @default([]) @map("owned_avatars")
   created_at                    DateTime                  @default(now()) @map("created_at")
   updated_at                    DateTime                  @updatedAt @map("updated_at")
@@ -38,7 +37,7 @@ model user {
   user_project_access           user_project_access[]     @relation("user_project_access")
   assessment_topic_scores       assessment_topic_score[]
   coin_purchases                coin_purchase[]           @relation("coin_purchases")
-  help_requests                 HelpRequest[]
+  help_requests                 help_request[]
 
   @@map("users")
 }
@@ -310,7 +309,6 @@ model assessment_topic_score {
   topic       String   @map("topic")
   pre_score   Int?     @map("pre_score")
   post_score  Int?     @map("post_score")
-  improvement Int?     @map("improvement")
   assessed_at DateTime @default(now()) @map("assessed_at")
   user        user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -334,7 +332,6 @@ model learner_pass_enrollment {
   claimed_day_numbers Int[] @default([]) @map("claimed_days")
 
   last_claimed_at    DateTime? @map("last_claimed_at")
-  total_claimed_days Int       @default(0) @map("total_claimed_days")
   payment_id         String?   @unique @map("payment_id")
   payment_provider   String    @default("stripe") @map("payment_provider")
 
@@ -343,7 +340,8 @@ model learner_pass_enrollment {
 
   created_at DateTime @default(now()) @map("created_at")
   updated_at DateTime @updatedAt @map("updated_at")
-  user       user     @relation("learner_pass_enrollments", fields: [user_id], references: [id], onDelete: Cascade)
+  user                user                    @relation("learner_pass_enrollments", fields: [user_id], references: [id], onDelete: Cascade)
+  project_access      user_project_access[]   @relation("learner_pass_project_access")
 
   @@index([user_id])
   @@index([expires_at])
@@ -371,19 +369,24 @@ model learner_pass_reward {
 // ────────────────────────────────────────────────────────────────────────────
 
 model user_project_access {
-  id            String    @id @default(cuid()) @map("id")
-  user_id       String    @map("user_id")
-  project_id    String    @map("project_id") // references scenario.id
-  source        String    @map("source") // LEARNER_PASS, COIN_PURCHASE, ADMIN_GRANT
-  source_ref_id String    @map("source_ref_id") // e.g., learner_pass_enrollment.id or coin_purchase.id
-  granted_at    DateTime  @default(now()) @map("granted_at")
-  expires_at    DateTime? @map("expires_at") // null = permanent unlock
-  user          user      @relation("user_project_access", fields: [user_id], references: [id], onDelete: Cascade)
+  id                         String                     @id @default(cuid()) @map("id")
+  user_id                    String                     @map("user_id")
+  project_id                 String                     @map("project_id") // references scenario.id
+  source                     String                     @map("source") // LEARNER_PASS, COIN_PURCHASE, ADMIN_GRANT
+  learner_pass_enrollment_id String?                    @map("learner_pass_enrollment_id")
+  coin_purchase_id           String?                    @map("coin_purchase_id")
+  granted_at                 DateTime                   @default(now()) @map("granted_at")
+  expires_at                 DateTime?                  @map("expires_at") // null = permanent unlock
+  user                       user                       @relation("user_project_access", fields: [user_id], references: [id], onDelete: Cascade)
+  learner_pass_enrollment    learner_pass_enrollment?   @relation("learner_pass_project_access", fields: [learner_pass_enrollment_id], references: [id], onDelete: Cascade)
+  coin_purchase              coin_purchase?             @relation("coin_purchase_project_access", fields: [coin_purchase_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, project_id, source])
   @@index([user_id])
   @@index([project_id])
   @@index([source])
+  @@index([learner_pass_enrollment_id])
+  @@index([coin_purchase_id])
   @@map("user_project_access")
 }
 
@@ -397,7 +400,8 @@ model coin_purchase {
   payment_id  String   @unique @map("payment_id")
   coin_amount Int      @map("coin_amount")
   created_at  DateTime @default(now()) @map("created_at")
-  user        user     @relation("coin_purchases", fields: [user_id], references: [id], onDelete: Cascade)
+  user                user                    @relation("coin_purchases", fields: [user_id], references: [id], onDelete: Cascade)
+  project_access      user_project_access[]   @relation("coin_purchase_project_access")
 
   @@index([user_id])
   @@map("coin_purchases")
@@ -422,7 +426,7 @@ model app_setting {
 // Help Requests
 // ────────────────────────────────────────────────────────────────────────────
 
-model HelpRequest {
+model help_request {
   id          String   @id @default(cuid()) @map("id")
   userId      String   @map("user_id")
   user        user     @relation(fields: [userId], references: [id], onDelete: Cascade)

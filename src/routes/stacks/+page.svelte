@@ -45,7 +45,7 @@
     previewSelection = { ...selection };
   }
 
-  // Mapping of tech IDs to folder names
+  $: allTechOptions = data.techCategories?.flatMap(c => c.options) ?? [];
   const techIdToFolderName: Record<string, string> = {
     postgresql: "postgres",
     mongodb: "mongodb",
@@ -175,6 +175,8 @@
           <PopularCombos
             onSelectCombo={handleSelectCombo}
             {selection}
+            combos={data.popularCombos}
+            techCategories={data.techCategories}
           />
         </div>
 
@@ -185,6 +187,7 @@
             onClear={handleClearSelection}
             onStart={handleViewScenarios}
             onViewAnalysis={handleViewAnalysis}
+            techOptions={allTechOptions}
           />
         </div>
       </div>
@@ -195,6 +198,7 @@
       <StackInfoModal
         selection={previewSelection}
         onClose={() => (showInfoModal = false)}
+        techOptions={allTechOptions}
       />
     {/if}
   </div>

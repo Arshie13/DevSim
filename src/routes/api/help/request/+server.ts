@@ -32,7 +32,7 @@ export const POST: RequestHandler = async (event) => {
 	}
 
 	try {
-		const helpRequest = await prisma.helpRequest.create({
+		const helpRequest = await prisma.help_request.create({
 			data: {
 				userId: session.user.id,
 				category: category ?? null,

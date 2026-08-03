@@ -24,7 +24,6 @@ export const load: PageServerLoad = async (event) => {
       email: true, 
       image: true, 
       xp: true, 
-      level: true, 
       owned_avatars: true, 
       has_completed_tutorial: true, 
       username: true,

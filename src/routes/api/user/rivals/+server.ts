@@ -25,7 +25,6 @@ export const GET: RequestHandler = async ({ locals }) => {
         owned_avatars: true, // This field is used in ProfileDropDown, but let's check schema again
         image: true,
         xp: true,
-        level: true,
         workspaces: {
           where: {
             status: "completed",
@@ -49,7 +48,7 @@ export const GET: RequestHandler = async ({ locals }) => {
       name: u.name,
       avatar: u.owned_avatars[0] || u.image || "",
       xp: u.xp,
-      level: u.level,
+      level: 1,
       completedProjects: u.workspaces.length,
       achievementsCount: u.achievements.length,
       isCurrentUser: u.id === session.user?.id,

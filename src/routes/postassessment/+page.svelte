@@ -190,6 +190,8 @@
             <div class="flex justify-between mt-3">
               {#each scaleOptions as option}
                 <div class="text-center">
+                  <!-- svelte-ignore a11y_click_events_have_key_events -->
+                  <!-- svelte-ignore a11y_no_static_element_interactions -->
                   <div
                     class="w-14 h-14 rounded-full border-2 flex items-center justify-center font-mono text-lg font-bold transition-all duration-200 cursor-pointer
                       {selectedAnswer === option.value

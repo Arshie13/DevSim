@@ -52,7 +52,7 @@ export const POST: RequestHandler = async (event) => {
           user_id: userId,
           project_id: scenarioId,
           source: 'LEARNER_PASS',
-          source_ref_id: enrollment.id,
+          learner_pass_enrollment_id: enrollment.id,
           granted_at: new Date(),
         },
       });

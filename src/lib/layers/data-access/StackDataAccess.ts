@@ -1,23 +1,17 @@
 import type { StackSelection } from '$types';
-import {
-  FRONTEND_OPTIONS,
-  BACKEND_OPTIONS,
-  DATABASE_OPTIONS,
-  SERVICES_OPTIONS
-} from '$mocks';
+import { TECH_REGISTRY } from '$lib/server/stacks/tech-registry';
 
 export class StackDataAccess {
-  getTechName(options: any[], id: string | null): string | null {
+  getTechName(id: string | null): string | null {
     if (!id) return null;
-    const option = options.find((o) => o.id === id);
-    return option ? option.name : null;
+    return TECH_REGISTRY[id]?.name ?? null;
   }
 
   buildStackDescriptionPrompt(selection: StackSelection): string {
-    const frontend = this.getTechName(FRONTEND_OPTIONS, selection.frontend);
-    const backend = this.getTechName(BACKEND_OPTIONS, selection.backend);
-    const database = this.getTechName(DATABASE_OPTIONS, selection.database);
-    const services = this.getTechName(SERVICES_OPTIONS, selection.services);
+    const frontend = this.getTechName(selection.frontend);
+    const backend = this.getTechName(selection.backend);
+    const database = this.getTechName(selection.database);
+    const services = this.getTechName(selection.services);
 
     const selectedTechs = [
       frontend && `Frontend: ${frontend}`,

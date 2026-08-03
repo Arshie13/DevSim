@@ -34,31 +34,28 @@ export class TasksDataAccess {
 
   async createCompletedTask(workspaceId: string, taskId: string, userId: string, level: number) {
     try {
-      await prisma.workspace.update({
-        where: { id: workspaceId },
-        data: {
-          completed_tasks: {
-            push: taskId
+      await prisma.$transaction(async (tx) => {
+        await tx.workspace.update({
+          where: { id: workspaceId },
+          data: {
+            completed_tasks: {
+              push: taskId
+            }
           }
+        });
+
+        const existing = await tx.task_activity.findFirst({
+          where: { user_id: userId, task_name: taskId }
+        });
+        if (!existing) {
+          await tx.task_activity.create({
+            data: { user_id: userId, task_name: taskId, level }
+          });
         }
       });
     } catch (error) {
       console.error('Error adding completed task to workspace:', error);
       return { success: false, error };
-    }
-
-    try {
-      const existing = await prisma.task_activity.findFirst({
-        where: { user_id: userId, task_name: taskId }
-      });
-      if (!existing) {
-        await prisma.task_activity.create({
-          data: { user_id: userId, task_name: taskId, level }
-        });
-      }
-    } catch (error) {
-      console.error('Error recording task_activity (weekly activity will not update):', error);
-      return { success: false, activityLogged: false, error };
     }
 
     return { success: true };

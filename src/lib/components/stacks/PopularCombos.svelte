@@ -1,16 +1,11 @@
 <script lang="ts">
   import type { StackSelection, TechOption } from "$types";
-  import {
-    POPULAR_COMBOS,
-    FRONTEND_OPTIONS,
-    BACKEND_OPTIONS,
-    DATABASE_OPTIONS,
-    SERVICES_OPTIONS,
-  } from "$mocks";
   import { CircleCheck, CircuitBoard } from "lucide-svelte";
 
   export let onSelectCombo: (combo: StackSelection) => void;
   export let selection: StackSelection = { frontend: null, backend: null, database: null, services: null };
+  export let combos: StackSelection[] = [];
+  export let techCategories: { id: string; options: TechOption[] }[] = [];
 
   const ICON_OVERRIDE: Record<string, string> = {
     express: "⬡",
@@ -19,9 +14,11 @@
     "shadcn-ui": "◻",
   };
 
-  function getOption(options: TechOption[], id: string | null): TechOption | null {
+  $: allOptions = techCategories.flatMap(c => c.options);
+
+  function getOption(id: string | null): TechOption | null {
     if (!id) return null;
-    return options.find((o) => o.id === id) ?? null;
+    return allOptions.find((o) => o.id === id) ?? null;
   }
 
   function isSelected(combo: StackSelection): boolean {
@@ -36,19 +33,19 @@
   function buildIcons(combo: StackSelection): string[] {
     const icons: string[] = [];
     if (combo.frontend) {
-      const t = getOption(FRONTEND_OPTIONS, combo.frontend);
+      const t = getOption(combo.frontend);
       if (t) icons.push(ICON_OVERRIDE[combo.frontend] ?? t.icon);
     }
     if (combo.backend) {
-      const t = getOption(BACKEND_OPTIONS, combo.backend);
+      const t = getOption(combo.backend);
       if (t) icons.push(ICON_OVERRIDE[combo.backend] ?? t.icon);
     }
     if (combo.database) {
-      const t = getOption(DATABASE_OPTIONS, combo.database);
+      const t = getOption(combo.database);
       if (t) icons.push(ICON_OVERRIDE[combo.database] ?? t.icon);
     }
     if (combo.services) {
-      const t = getOption(SERVICES_OPTIONS, combo.services);
+      const t = getOption(combo.services);
       if (t) icons.push(ICON_OVERRIDE[combo.services] ?? t.icon);
     }
     return icons;
@@ -86,7 +83,7 @@
   </div>
 
   <div class="preset-list">
-    {#each POPULAR_COMBOS as combo}
+    {#each combos as combo}
       {@const sel = isSelected(combo)}
       {@const tk = combo.stackType ?? "fullstack"}
       {@const icons = buildIcons(combo)}
@@ -131,7 +128,7 @@
   </div>
 
   <div class="preset-foot">
-    <span>{POPULAR_COMBOS.length} STACKS AVAILABLE</span>
+    <span>{combos.length} STACKS AVAILABLE</span>
   </div>
 </div>
 

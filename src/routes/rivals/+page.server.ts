@@ -26,7 +26,7 @@ export const load: PageServerLoad = async (event) => {
         take: 50,
         select: {
           id: true, username: true, name: true, image: true,
-          owned_avatars: true, xp: true, level: true,
+          owned_avatars: true, xp: true,
           workspaces: { where: { status: "completed" }, select: { id: true } },
           achievements: { select: { id: true } },
         },
@@ -37,7 +37,7 @@ export const load: PageServerLoad = async (event) => {
         take: 50,
         select: {
           id: true, username: true, name: true, image: true,
-          owned_avatars: true, xp: true, level: true,
+          owned_avatars: true, xp: true,
           workspaces: { where: { status: "completed" }, select: { id: true } },
           achievements: { select: { id: true } },
         },

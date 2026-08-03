@@ -4,13 +4,13 @@ import prisma from '$lib/server/client';
 import { detectNewlyUnlockedAchievements } from '$lib/server/achievements/unlocks';
 
 const REWARD_SCHEDULE = [
-  { day: 1, coins: 50,  xp: 10 },
-  { day: 2, coins: 75,  xp: 20 },
-  { day: 3, coins: 100, xp: 30 },
-  { day: 4, coins: 150, xp: 40 },
-  { day: 5, coins: 200, xp: 50 },
-  { day: 6, coins: 300, xp: 75 },
-  { day: 7, coins: 500, xp: 100 },
+  { day: 1, coins: 50,  xp: 10, aiHelps: 1 },
+  { day: 2, coins: 75,  xp: 20, aiHelps: 1 },
+  { day: 3, coins: 100, xp: 30, aiHelps: 2 },
+  { day: 4, coins: 150, xp: 40, aiHelps: 2 },
+  { day: 5, coins: 200, xp: 50, aiHelps: 2 },
+  { day: 6, coins: 300, xp: 75, aiHelps: 3 },
+  { day: 7, coins: 500, xp: 100, aiHelps: 5 },
 ];
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -102,8 +102,9 @@ export const POST: RequestHandler = async (event) => {
         data: {
           coins: { increment: reward.coins },
           xp: { increment: reward.xp },
+          ai_help_credits: { increment: reward.aiHelps },
         },
-        select: { coins: true, xp: true }
+        select: { coins: true, xp: true, ai_help_credits: true }
       });
 
       return { daily, updatedUser, reward };
@@ -116,8 +117,10 @@ export const POST: RequestHandler = async (event) => {
       day: dayNumber,
       coins: result.reward.coins,
       xp: result.reward.xp,
+      aiHelps: result.reward.aiHelps,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
+      newAiHelpCredits: result.updatedUser.ai_help_credits,
       currentDay: result.daily.current_day,
       claimedDays: result.daily.claimed_days.map(dayIndexFromDate),
       canClaimToday: false,

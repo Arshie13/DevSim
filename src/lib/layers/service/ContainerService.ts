@@ -24,6 +24,7 @@ const STACK_CATEGORY: Record<string, 'frontend' | 'backend' | 'database'> = {
 const STACK_DEFAULT_PORT: Record<string, number> = {
   react: 3000,
   nextjs: 3000,
+  svelte: 5173,
   express: 5000,
   nestjs: 3000,
   postgresql: 5432,

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { Calendar, Gift, Check, Lock, Coins, Zap, X, Clock } from 'lucide-svelte';
+  import { Calendar, Gift, Check, Lock, Coins, Zap, X, Clock, Bot } from 'lucide-svelte';
 
   // -- Props --------------------------------------------------------------------
   export let isOpen = false;
@@ -8,7 +8,7 @@
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{
     close: void;
-    claim: { day: number; coins: number; xp: number; newCoins: number; newXp: number };
+    claim: { day: number; coins: number; xp: number; aiHelps: number; newCoins: number; newXp: number; newAiHelpCredits: number };
   }>();
 
   // -- Types --------------------------------------------------------------------
@@ -16,17 +16,18 @@
     day: number;
     coins: number;
     xp: number;
+    aiHelps: number;
     claimed: boolean;
   }
 
   const REWARD_SCHEDULE: DailyReward[] = [
-    { day: 1, coins: 50,  xp: 10,  claimed: false },
-    { day: 2, coins: 75,  xp: 20,  claimed: false },
-    { day: 3, coins: 100, xp: 30,  claimed: false },
-    { day: 4, coins: 150, xp: 40,  claimed: false },
-    { day: 5, coins: 200, xp: 50,  claimed: false },
-    { day: 6, coins: 300, xp: 75,  claimed: false },
-    { day: 7, coins: 500, xp: 100, claimed: false },
+    { day: 1, coins: 50,  xp: 10,  aiHelps: 1, claimed: false },
+    { day: 2, coins: 75,  xp: 20,  aiHelps: 1, claimed: false },
+    { day: 3, coins: 100, xp: 30,  aiHelps: 2, claimed: false },
+    { day: 4, coins: 150, xp: 40,  aiHelps: 2, claimed: false },
+    { day: 5, coins: 200, xp: 50,  aiHelps: 2, claimed: false },
+    { day: 6, coins: 300, xp: 75,  aiHelps: 3, claimed: false },
+    { day: 7, coins: 500, xp: 100, aiHelps: 5, claimed: false },
   ];
 
   // -- State --------------------------------------------------------------------
@@ -124,8 +125,10 @@
         day: reward.day,
         coins: reward.coins,
         xp: reward.xp,
+        aiHelps: reward.aiHelps,
         newCoins: result.newCoins,
         newXp: result.newXp,
+        newAiHelpCredits: result.newAiHelpCredits,
       });
     } catch (err) {
       console.error('[DailyRewards] Claim failed:', err);
@@ -229,6 +232,10 @@
                   <div class="flex items-center gap-1 rounded-full bg-cyber-cyan/10 px-2 py-0.5">
                     <Zap class="w-3.5 h-3.5 text-cyber-cyan" />
                     <span class="font-mono text-xs font-semibold text-cyber-cyan">{reward.xp}</span>
+                  </div>
+                  <div class="flex items-center gap-1 rounded-full bg-cyber-purple/10 px-2 py-0.5">
+                    <Bot class="w-3.5 h-3.5 text-purple-400" />
+                    <span class="font-mono text-xs font-semibold text-purple-400">{reward.aiHelps}</span>
                   </div>
                 </div>
 
