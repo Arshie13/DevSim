@@ -22,6 +22,7 @@ model user {
   owned_avatars                 String[]                  @default([]) @map("owned_avatars")
   created_at                    DateTime                  @default(now()) @map("created_at")
   updated_at                    DateTime                  @updatedAt @map("updated_at")
+  last_seen_at                  DateTime?                 @map("last_seen_at")
   role                          String                    @default("USER") @map("role")
   titles                        String[]                  @default([]) @map("titles")
   has_completed_tutorial        Boolean                   @default(false) @map("has_completed_tutorial")

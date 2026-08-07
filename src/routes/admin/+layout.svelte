@@ -6,6 +6,7 @@
   // Admin navigation items
   const navItems = [
     { label: 'Settings', href: '/admin/settings' },
+    { label: 'Containers', href: '/admin/containers' },
     { label: 'Learner Pass', href: '/admin/learners-pass' },
     { label: 'Achievements', href: '/admin/achievements' },
     { label: 'Scenarios', href: '/admin/scenarios' },
