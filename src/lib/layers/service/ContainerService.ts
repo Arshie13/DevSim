@@ -214,7 +214,7 @@ export class ContainerService {
         'devsim.workspace': workspaceId
       },
       HostConfig: {
-        Memory: 1024 * 1024 * 1024,
+        Memory: 256 * 1024 * 1024,
         NetworkMode: `container:${workspaceId}`,
         AutoRemove: false
       }
@@ -399,7 +399,7 @@ export class ContainerService {
         ] : [],
       ],
       HostConfig: {
-        Memory: 512 * 1024 * 1024,
+        Memory: 1024 * 1024 * 1024,
         AutoRemove: false,
         PortBindings: portBindings,
         NetworkMode: ContainerService.SHARED_NETWORK
