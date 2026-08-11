@@ -26,6 +26,7 @@
   import TriviaModal from "$lib/components/ui/TriviaModal.svelte";
   import HelpPanel from "$lib/components/help/HelpPanel.svelte";
   import { helpTrigger } from "$lib/stores/helpTrigger";
+  import { errorCatalog } from "$lib/help/errorCatalog";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -36,8 +37,11 @@
   import type { ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
     import type { IInteractiveConfig } from "$lib/types/IContainer";
+    import type { Limitation } from "$lib/types";
 
   let { data}: { data: PageData } = $props();
+
+  const regressionToast = errorCatalog.find((entry) => entry.id === "task-regression");
 
   let userCoins = $derived(data.userCoins ?? 0);
   let userAiHelps = $derived(data.userAiHelps ?? 0);
@@ -303,17 +307,17 @@
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
   let showDockerDisclaimer = $state(true);
-  const dockerDisclaimerLimitations = [
-    "The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.",
-    "File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.",
-    "Network behavior may differ from a full local setup due to port forwarding and container networking.",
-    "Some native or GUI-dependent tools may not work inside the simulated container environment.",
-    "Performance and timing can vary from a standard local development machine.",
-    "Hot reloading and file watching may not detect changes reliably due to Docker's filesystem event propagation.",
-    "Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.",
-    "Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.",
-    "The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.",
-    "The terminal session may disconnect due to network fluctuations, interrupting running processes.",
+  const dockerDisclaimerLimitations: Limitation[] = [
+    { text: "The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.", image: "/limitations/1-isolation.png" },
+    { text: "File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.", image: "/limitations/2-filesystem.png" },
+    { text: "Network behavior may differ from a full local setup due to port forwarding and container networking.", image: "/limitations/3-networking.png" },
+    { text: "Some native or GUI-dependent tools may not work inside the simulated container environment.", image: "/limitations/4-gui-tools.png" },
+    { text: "Performance and timing can vary from a standard local development machine.", image: "/limitations/5-performance.png" },
+    { text: "Hot reloading and file watching may not detect changes reliably due to Docker's filesystem event propagation.", image: "/limitations/6-hot-reload.png" },
+    { text: "Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.", image: "/limitations/7-auth.png" },
+    { text: "Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.", image: "/limitations/8-disk-space.png" },
+    { text: "The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.", image: "/limitations/9-timeout.png" },
+    { text: "The terminal session may disconnect due to network fluctuations, interrupting running processes.", image: "/limitations/10-disconnect.png" }
   ];
   let triviaCorrectCount: number = 0;
   let triviaTotalCount: number = 0;
@@ -1076,6 +1080,12 @@ $effect(() => {
     }
   }
 
+  function handleRegressionAttempt(taskId: string, taskName: string) {
+    regressionTaskId = taskId;
+    regressionTaskName = taskName;
+    testRegressionModalOpen = true;
+  }
+
   function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
     if (status === "in-progress" || status === "in-review" || status === "done") {
       const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
@@ -1088,6 +1098,11 @@ $effect(() => {
 
         if (blockingTask) {
           toast.warn(`Finish Task ${blockingTask.order} first before moving to the next task.`);
+          if (regressionToast) {
+            toast.error(regressionToast.title, 8000, {
+              helpAction: { label: "Get Help", category: regressionToast.category },
+            });
+          }
           return;
         }
       }
@@ -1231,7 +1246,10 @@ $effect(() => {
         };
       }
 
-       if (task.boardStatus === "done" && !canManuallyMoveToDone) {
+       const wasPreviouslyCompleted =
+         task.boardStatus === "done" || task.isCompleted || task.is_complete;
+
+       if (wasPreviouslyCompleted) {
          regressions.push({
            taskId: task.id,
            taskName: task.taskName,
@@ -1260,6 +1278,11 @@ $effect(() => {
 
     if (regressions.length > 0) {
       pendingRegressionUpdates = regressions;
+      if (regressionToast) {
+        toast.error(regressionToast.title, 8000, {
+          helpAction: { label: "Get Help", category: regressionToast.category },
+        });
+      }
       showNextRegressionModal();
     }
 
@@ -1593,6 +1616,13 @@ $effect(() => {
     if (tab === "preview") {
       refreshPreview();
     }
+    if (tab === "board" && browser) {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(
+          new CustomEvent("devsim-tour-board-subtab", { detail: { subTab: "board" } }),
+        );
+      });
+    }
   }
 
   async function handleCreateFile(fullPath: string, isDirectory: boolean) {
@@ -1619,6 +1649,8 @@ $effect(() => {
           fileTree = listData.files;
           directories = listData.directories || [];
         }
+      } else {
+        toast.error(data.error || `Failed to create ${isDirectory ? "folder" : "file"}`);
       }
     } catch (error) {
       console.error("Error creating file:", error);
@@ -1871,6 +1903,7 @@ $effect(() => {
               onTaskStatusChange={handleTaskStatusChange}
               crashCourseLockedTasks={crashCourseLockedTasks}
               onTaskClickBlocked={handleBlockedTaskClick}
+              onRegressionAttempt={handleRegressionAttempt}
             />
           </div>
         {/if}

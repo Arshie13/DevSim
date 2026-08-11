@@ -199,8 +199,6 @@
 
         if (data.passed) {
           toast.success(`Tests passed for "${taskName}"`);
-        } else {
-          toast.error(`Tests failed for "${taskName}"`);
         }
       } else {
         clearRunningTaskTracking();
@@ -227,7 +225,6 @@
         output: errorMessage
       };
       clearRunningTaskTracking();
-      toast.error(`Test failed: ${errorMessage}`);
     } finally {
       if (activeTestAbortController === abortController) {
         activeTestAbortController = null;
@@ -298,8 +295,6 @@
 
         if (data.passed) {
           toast.success('All level tests passed!');
-        } else {
-          toast.error('Some tests failed. Review the results.');
         }
       } else {
         clearRunningTaskTracking();
@@ -319,7 +314,6 @@
         output: errorMessage
       };
       clearRunningTaskTracking();
-      toast.error(`Tests failed: ${errorMessage}`);
     } finally {
       if (activeTestAbortController === abortController) {
         activeTestAbortController = null;

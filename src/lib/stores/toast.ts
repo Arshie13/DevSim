@@ -22,16 +22,23 @@ export interface Toast {
 function createToastStore() {
   const { subscribe, update } = writable<Toast[]>([]);
   let nextId = 0;
+  const MAX_TOASTS = 3;
 
   function add(message: string, variant: ToastVariant, duration = 4000, options?: ToastOptions) {
-    const id = ++nextId;
-    update((toasts) => [...toasts, { id, message, variant, duration, helpAction: options?.helpAction }]);
+    const newId = ++nextId;
+    update((toasts) => {
+      const next = [...toasts, { id: newId, message, variant, duration, helpAction: options?.helpAction }];
+      if (next.length > MAX_TOASTS) {
+        next.splice(0, next.length - MAX_TOASTS);
+      }
+      return next;
+    });
 
     if (duration > 0) {
-      setTimeout(() => remove(id), duration);
+      setTimeout(() => remove(newId), duration);
     }
 
-    return id;
+    return newId;
   }
 
   function remove(id: number) {
@@ -41,8 +48,8 @@ function createToastStore() {
   return {
     subscribe,
     remove,
-    error:   (msg: string, duration?: number, options?: ToastOptions) => add(msg, 'error', duration, options),
-    warn:    (msg: string, duration?: number, options?: ToastOptions) => add(msg, 'warn',  duration, options),
+    error:   (msg: string, duration?: number, options?: ToastOptions) => add(msg, 'error', duration ?? 0, options),
+    warn:    (msg: string, duration?: number, options?: ToastOptions) => add(msg, 'warn',  duration ?? 0, options),
     success: (msg: string, duration?: number) => add(msg, 'success', duration),
     info:    (msg: string, duration?: number) => add(msg, 'info',  duration),
   };

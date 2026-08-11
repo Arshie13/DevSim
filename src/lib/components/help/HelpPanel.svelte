@@ -2,6 +2,7 @@
 	import { X, HelpCircle, ChevronRight, AlertTriangle, Send, CheckCircle, Minus } from 'lucide-svelte';
 	import { errorCatalog, errorCategoryOrder, type HelpEntry } from '$lib/help/errorCatalog';
 	import { toast } from '$lib/stores/toast';
+	import type { Limitation } from '$lib/types';
 
 	interface Props {
 		onClose: () => void;
@@ -10,7 +11,7 @@
 		containerId?: string;
 		prefillCategory?: string;
 		prefillDescription?: string;
-		limitations?: string[];
+		limitations?: Limitation[];
 		startOnLimitations?: boolean;
 		minimized?: boolean;
 	}
@@ -27,23 +28,26 @@
 		minimized = false
 	}: Props = $props();
 
-	const displayLimitations = $derived(limitations.length > 0 ? limitations : [
-		'The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.',
-		'File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.',
-		'Network behavior may differ from a full local setup due to port forwarding and container networking.',
-		'Some native or GUI-dependent tools may not work inside the simulated container environment.',
-		'Performance and timing can vary from a standard local development machine.',
-		'Hot reloading and file watching may not detect changes reliably due to Docker\'s filesystem event propagation.',
-		'Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.',
-		'Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.',
-		'The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.',
-		'The terminal session may disconnect due to network fluctuations, interrupting running processes.'
-	]);
+	const defaultLimitations: Limitation[] = [
+		{ text: 'The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.', image: '/images/limitations/1-isolation.png' },
+		{ text: 'File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.', image: '/images/limitations/2-filesystem.png' },
+		{ text: 'Network behavior may differ from a full local setup due to port forwarding and container networking.', image: '/images/limitations/3-networking.png' },
+		{ text: 'Some native or GUI-dependent tools may not work inside the simulated container environment.', image: '/images/limitations/4-gui-tools.png' },
+		{ text: 'Performance and timing can vary from a standard local development machine.', image: '/images/limitations/5-performance.png' },
+		{ text: 'Hot reloading and file watching may not detect changes reliably due to Docker\'s filesystem event propagation.', image: '/images/limitations/6-hot-reload.png' },
+		{ text: 'Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.', image: '/images/limitations/7-auth.png' },
+		{ text: 'Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.', image: '/images/limitations/8-disk-space.png' },
+		{ text: 'The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.', image: '/images/limitations/9-timeout.png' },
+		{ text: 'The terminal session may disconnect due to network fluctuations, interrupting running processes.', image: '/images/limitations/10-disconnect.png' }
+	];
+
+	const displayLimitations = $derived(limitations.length > 0 ? limitations : defaultLimitations);
 
 	let selectedCategory = $state('');
 	let selectedError = $state<HelpEntry | null>(null);
 	let showLimitations = $state(false);
 	let showRequestForm = $state(false);
+	let selectedImage = $state<string | null>(null);
 
 	$effect(() => {
 		showLimitations = startOnLimitations;
@@ -64,6 +68,20 @@
 	let selectedCategoryEntries = $derived(errorCatalog.filter((e) => e.category === selectedCategory));
 
 	const categoryNames = errorCategoryOrder;
+
+	function openImageLightbox(src: string) {
+		selectedImage = src;
+	}
+
+	function closeImageLightbox() {
+		selectedImage = null;
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && selectedImage) {
+			closeImageLightbox();
+		}
+	}
 
 	function selectError(entry: HelpEntry) {
 		selectedError = entry;
@@ -138,7 +156,7 @@
 
 <div class="help-overlay" class:help-hidden={minimized} onclick={handleClose} role="presentation"></div>
 
-<div class="help-panel" class:help-hidden={minimized}>
+<div class="help-panel" class:help-hidden={minimized} onkeydown={handleKeydown}>
 	<!-- Header -->
 	<div class="panel-header">
 		<div class="flex items-center gap-3">
@@ -288,11 +306,28 @@
 			<p class="text-sm text-gray-400 mb-4 leading-relaxed">
 				These are inherent limitations of the Docker-based workspace environment. Most issues you encounter will fall into one of these categories.
 			</p>
-			<ul class="space-y-3">
+			<ul class="space-y-4">
 				{#each displayLimitations as limit, i}
-					<li class="flex gap-3 text-sm text-gray-300 leading-relaxed">
-						<span class="text-[#07a5c9] font-bold flex-shrink-0 mt-0.5">{i + 1}.</span>
-						<span>{limit}</span>
+					<li class="text-sm text-gray-300 leading-relaxed">
+						<div class="flex gap-3">
+							<span class="text-[#07a5c9] font-bold flex-shrink-0 mt-0.5">{i + 1}.</span>
+							<div class="flex-1 min-w-0">
+								<span>{limit.text}</span>
+								{#if limit.image}
+									<button
+										onclick={() => openImageLightbox(limit.image!)}
+										class="mt-3 rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
+									>
+										<img
+											src={limit.image}
+											alt={`Screenshot illustrating: ${limit.text}`}
+											class="w-full h-auto object-cover max-h-48"
+											loading="lazy"
+										/>
+									</button>
+								{/if}
+							</div>
+						</div>
 					</li>
 				{/each}
 			</ul>
@@ -325,6 +360,20 @@
 			</span>
 			<h3 class="text-base font-bold text-gray-100 mb-2">{error.title}</h3>
 			<p class="text-sm text-gray-400 mb-5 leading-relaxed">{error.description}</p>
+
+			{#if error.image}
+				<button
+					onclick={() => openImageLightbox(error.image!)}
+					class="mb-5 rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
+				>
+					<img
+						src={error.image}
+						alt={`Screenshot illustrating: ${error.title}`}
+						class="w-full h-auto object-cover max-h-48"
+						loading="lazy"
+					/>
+				</button>
+			{/if}
 
 			<div class="mb-5">
 				<h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3">Steps to Resolve</h4>
@@ -426,6 +475,30 @@
 	{/if}
 </div>
 
+{#if selectedImage}
+	<div
+		class="image-lightbox-overlay"
+		onclick={closeImageLightbox}
+		onkeydown={handleKeydown}
+		role="presentation"
+	>
+		<div class="image-lightbox-content" onclick={(e) => e.stopPropagation()}>
+			<button
+				onclick={closeImageLightbox}
+				class="image-lightbox-close"
+				aria-label="Close image preview"
+			>
+				<X class="w-5 h-5" />
+			</button>
+			<img
+				src={selectedImage}
+				alt="Full size preview"
+				class="image-lightbox-img"
+			/>
+		</div>
+	</div>
+{/if}
+
 <style>
 	.help-overlay {
 		position: fixed;
@@ -487,5 +560,60 @@
 	/* Hidden when minimized — preserves component state */
 	.help-hidden {
 		display: none !important;
+	}
+
+	/* ── Image Lightbox ─────────────────────────────────────────────────────── */
+	.image-lightbox-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		background: rgba(0, 0, 0, 0.92);
+		backdrop-filter: blur(8px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2rem;
+		cursor: pointer;
+	}
+
+	.image-lightbox-content {
+		position: relative;
+		max-width: 90vw;
+		max-height: 90vh;
+		cursor: default;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.image-lightbox-img {
+		max-width: 100%;
+		max-height: 85vh;
+		object-fit: contain;
+		border-radius: 8px;
+		box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+		border: 1px solid rgba(7, 165, 201, 0.2);
+	}
+
+	.image-lightbox-close {
+		position: absolute;
+		top: -2.5rem;
+		right: 0;
+		background: rgba(15, 23, 42, 0.8);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		color: #fff;
+		width: 2.5rem;
+		height: 2.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.image-lightbox-close:hover {
+		background: rgba(7, 165, 201, 0.2);
+		border-color: rgba(7, 165, 201, 0.4);
 	}
 </style>

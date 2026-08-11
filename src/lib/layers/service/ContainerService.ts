@@ -259,12 +259,185 @@ export class ContainerService {
 
   private static readonly SHARED_NETWORK = 'devsim-network';
   private static readonly SHARED_POSTGRES = 'devsim-postgres';
+  private static readonly POSTGRES_VOLUME = 'devsim-postgres-data';
+  private static readonly PG_IMAGE = 'postgres:16-alpine';
+  private static readonly PG_PORT = '5432';
+  private static readonly PG_USER = 'devsim';
+  private static readonly PG_PASS = 'devsim';
+  private static readonly PG_DB = 'devsim';
 
   private async ensureDevsimNetwork() {
     try {
       await docker.getNetwork(ContainerService.SHARED_NETWORK).inspect();
     } catch {
       await docker.createNetwork({ Name: ContainerService.SHARED_NETWORK });
+    }
+  }
+
+  private async containerExists(name: string): Promise<boolean> {
+    try {
+      await docker.getContainer(name).inspect();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async isContainerRunning(name: string): Promise<boolean> {
+    try {
+      const info = await docker.getContainer(name).inspect();
+      return info.State.Running;
+    } catch {
+      return false;
+    }
+  }
+
+  private async ensureSharedPostgresContainer() {
+    const name = ContainerService.SHARED_POSTGRES;
+
+    // Ensure network exists
+    await this.ensureDevsimNetwork();
+
+    // Ensure volume exists
+    try {
+      await docker.getVolume(ContainerService.POSTGRES_VOLUME).inspect();
+    } catch {
+      await docker.createVolume({ Name: ContainerService.POSTGRES_VOLUME });
+    }
+
+    // Create container if it doesn't exist
+    if (!(await this.containerExists(name))) {
+      console.log(`[ContainerService] Creating shared postgres container '${name}'...`);
+      
+      // Remove stale volume if it exists (old container was deleted but volume remains)
+      try {
+        await docker.getVolume(ContainerService.POSTGRES_VOLUME).inspect();
+        console.log(`[ContainerService] Removing stale volume '${ContainerService.POSTGRES_VOLUME}'...`);
+        await docker.getVolume(ContainerService.POSTGRES_VOLUME).remove();
+      } catch {
+        // volume doesn't exist — that's fine
+      }
+      
+      // Create fresh volume
+      await docker.createVolume({ Name: ContainerService.POSTGRES_VOLUME });
+      
+      const container = await docker.createContainer({
+        Image: ContainerService.PG_IMAGE,
+        name,
+        Env: [
+          `POSTGRES_USER=${ContainerService.PG_USER}`,
+          `POSTGRES_PASSWORD=${ContainerService.PG_PASS}`,
+          `POSTGRES_DB=${ContainerService.PG_DB}`,
+        ],
+        HostConfig: {
+          Memory: 512 * 1024 * 1024,
+          NetworkMode: ContainerService.SHARED_NETWORK,
+          Binds: [`${ContainerService.POSTGRES_VOLUME}:/var/lib/postgresql/data`],
+          PortBindings: {
+            '5432/tcp': [{ HostPort: '' }]
+          }
+        },
+        Labels: {
+          'devsim.role': 'shared-postgres'
+        }
+      });
+      await container.start();
+      
+      // Give PostgreSQL more time to initialize (fresh container needs ~5s)
+      console.log(`[ContainerService] Waiting for PostgreSQL to initialize...`);
+      await new Promise(r => setTimeout(r, 5000));
+      
+      // Verify container is actually running
+      const isRunning = await this.isContainerRunning(name);
+      if (!isRunning) {
+        const info = await docker.getContainer(name).inspect();
+        console.error(`[ContainerService] Container '${name}' failed to start. State: ${info.State.Status}, Error: ${info.State.Error}`);
+        throw new Error(`Shared postgres container '${name}' failed to start`);
+      }
+      console.log(`[ContainerService] Container '${name}' started successfully`);
+    } else if (!(await this.isContainerRunning(name))) {
+      console.log(`[ContainerService] Starting existing shared postgres container '${name}'...`);
+      await docker.getContainer(name).start();
+      
+      // Give PostgreSQL more time to initialize
+      console.log(`[ContainerService] Waiting for PostgreSQL to initialize...`);
+      await new Promise(r => setTimeout(r, 5000));
+      
+      // Verify container is actually running
+      const isRunning = await this.isContainerRunning(name);
+      if (!isRunning) {
+        throw new Error(`Shared postgres container '${name}' failed to start`);
+      }
+      console.log(`[ContainerService] Container '${name}' started successfully`);
+    } else {
+      console.log(`[ContainerService] Container '${name}' is already running`);
+    }
+
+    // Wait for PostgreSQL to be ready using Dockerode exec (avoids child_process hanging on Windows)
+    console.log(`[ContainerService] Waiting for shared postgres to be ready...`);
+    const pgContainer = docker.getContainer(name);
+    let ready = false;
+    for (let i = 0; i < 30; i++) {
+      try {
+        const execInstance = await pgContainer.exec({
+          Cmd: ['pg_isready', '-U', ContainerService.PG_USER, '-d', ContainerService.PG_DB],
+          AttachStdout: true,
+          AttachStderr: true,
+        });
+        const stream = await execInstance.start({});
+        let stdout = '';
+        let stderr = '';
+        await new Promise<void>((resolve) => {
+          pgContainer.modem.demuxStream(
+            stream,
+            { write: (chunk: Buffer) => { stdout += chunk.toString(); } },
+            { write: (chunk: Buffer) => { stderr += chunk.toString(); } }
+          );
+          stream.on('end', resolve);
+          stream.on('error', resolve);
+        });
+        const inspect = await execInstance.inspect();
+        if (inspect.ExitCode === 0) {
+          console.log(`[ContainerService] Shared postgres is ready (attempt ${i + 1})`);
+          ready = true;
+          break;
+        }
+        console.log(`[ContainerService] pg_isready attempt ${i + 1}/30: exit ${inspect.ExitCode} — retrying in 2s...`);
+      } catch (err: any) {
+        console.log(`[ContainerService] pg_isready attempt ${i + 1}/30 failed: ${err.message?.split('\n')[0]} — retrying in 2s...`);
+      }
+      await new Promise(r => setTimeout(r, 2000));
+    }
+
+    if (!ready) {
+      // Container didn't become ready — check if it's still running and get logs
+      try {
+        const info = await pgContainer.inspect();
+        console.error(`[ContainerService] Container state after timeout: ${info.State.Status}`);
+        if (info.State.Status !== 'running') {
+          console.error(`[ContainerService] Container exited unexpectedly. Error: ${info.State.Error}`);
+        }
+      } catch {
+        // container might be gone
+      }
+      throw new Error('Shared PostgreSQL did not become ready after 60 seconds');
+    }
+
+    // Grant CREATEDB to devsim user for Prisma shadow database support
+    try {
+      const execInstance = await pgContainer.exec({
+        Cmd: ['psql', '-U', ContainerService.PG_USER, '-d', ContainerService.PG_DB, '-c', `ALTER ROLE ${ContainerService.PG_USER} CREATEDB;`],
+        AttachStdout: true,
+        AttachStderr: true,
+      });
+      const stream = await execInstance.start({});
+      await new Promise<void>((resolve) => {
+        pgContainer.modem.demuxStream(stream, { write: () => {} } as any, { write: () => {} } as any);
+        stream.on('end', resolve);
+        stream.on('error', resolve);
+      });
+    } catch {
+      // role already has CREATEDB or grant unnecessary
     }
   }
 
@@ -351,7 +524,7 @@ export class ContainerService {
     const isMongo = this.isMongoStack(stackName);
 
     const dbName = this.generateDbName(userId, stackName, level);
-    await this.ensureDevsimNetwork();
+    await this.ensureSharedPostgresContainer();
     const dbPassword = await this.ensureSharedPostgresDatabase(dbName);
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);

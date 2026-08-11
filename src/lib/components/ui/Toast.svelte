@@ -1,8 +1,7 @@
 <script lang="ts">
   import { toast, type Toast } from '$lib/stores/toast';
   import { helpTrigger } from '$lib/stores/helpTrigger';
-  import { fly, fade } from 'svelte/transition';
-  import { flip } from 'svelte/animate';
+  import { fade, scale } from 'svelte/transition';
   import { X, AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-svelte';
 
   const variantMeta = {
@@ -21,14 +20,13 @@
   }
 </script>
 
-<!-- Portal: fixed stack at bottom-right -->
+<!-- Portal: centered popup stack -->
 <div class="toast-portal" aria-live="assertive" aria-atomic="false">
   {#each $toast as t (t.id)}
     <div
-      class="toast"
-      animate:flip={{ duration: 250 }}
-      in:fly={{ x: 60, duration: 320, opacity: 0 }}
-      out:fade={{ duration: 200 }}
+      class="toast-popup"
+      in:scale={{ duration: 200, start: 0.9 }}
+      out:fade={{ duration: 150 }}
       style="
         --c: {meta(t).color};
         --glow: {meta(t).glow};
@@ -37,22 +35,16 @@
       "
       role="alert"
     >
-      <!-- Shimmer bar (top) -->
-      <div class="toast-shimmer"></div>
-
-      <!-- Left accent strip -->
-      <div class="toast-strip"></div>
+      <!-- Icon header -->
+      <div class="toast-icon-header">
+        <div class="toast-icon-circle">
+          <svelte:component this={meta(t).Icon} size={28} />
+        </div>
+      </div>
 
       <!-- Body -->
       <div class="toast-body">
-        <!-- Icon -->
-        <div class="toast-icon">
-          <svelte:component this={meta(t).Icon} size={18} />
-        </div>
-
-        <!-- Text -->
         <div class="toast-text">
-          <span class="toast-label">{meta(t).label}</span>
           <span class="toast-message">{t.message}</span>
           {#if t.helpAction}
             <button
@@ -65,9 +57,9 @@
         </div>
       </div>
 
-      <!-- Dismiss button -->
+      <!-- Close button -->
       <button class="toast-close" onclick={() => toast.remove(t.id)} aria-label="Dismiss">
-        <X size={13} />
+        <X size={14} />
       </button>
 
       <!-- Auto-dismiss progress bar -->
@@ -84,99 +76,75 @@
   /* ── Portal ── */
   .toast-portal {
     position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
+    inset: 0;
     z-index: 9999;
     display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
+    align-items: center;
+    justify-content: center;
     pointer-events: none;
-    max-width: 360px;
-    width: calc(100vw - 3rem);
+    padding: 1.5rem;
   }
 
-  /* ── Toast wrapper ── */
-  .toast {
+  /* ── Popup wrapper ── */
+  .toast-popup {
     position: relative;
     pointer-events: auto;
     display: flex;
-    align-items: stretch;
+    flex-direction: column;
+    align-items: center;
     overflow: hidden;
-
+    width: min(260px, 100%);
     background: #12192a;
     border: 1px solid var(--c);
     box-shadow:
       0 0 16px var(--glow),
-      0 4px 24px rgba(0,0,0,0.6);
-
-    /* cut-corner clip-path (matches design system) */
-    clip-path: polygon(
-      0 0,
-      calc(100% - 10px) 0,
-      100% 10px,
-      100% 100%,
-      10px 100%,
-      0 calc(100% - 10px)
-    );
+      0 8px 32px rgba(0,0,0,0.6);
+    border-radius: 8px;
   }
 
-  /* Top shimmer */
-  .toast-shimmer {
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--c), transparent);
-    opacity: 0.6;
+  /* Icon header */
+  .toast-icon-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem 1rem 0.75rem;
   }
 
-  /* Left accent strip */
-  .toast-strip {
-    width: 3px;
-    flex-shrink: 0;
-    background: var(--c);
-    box-shadow: 0 0 8px var(--glow);
+  .toast-icon-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--c);
+    color: var(--c);
+    filter: drop-shadow(0 0 8px var(--glow));
   }
 
   /* Body row */
   .toast-body {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 0.7rem 0.6rem 0.75rem 0.75rem;
+    padding: 0 1rem 1rem;
     flex: 1;
     min-width: 0;
-  }
-
-  /* Icon */
-  .toast-icon {
-    flex-shrink: 0;
-    color: var(--c);
-    filter: drop-shadow(0 0 4px var(--glow));
-    margin-top: 1px;
+    text-align: center;
   }
 
   /* Text column */
   .toast-text {
     display: flex;
     flex-direction: column;
-    gap: 0.18rem;
+    align-items: center;
+    gap: 0.2rem;
     min-width: 0;
-  }
-
-  .toast-label {
-    font-family: 'Chakra Petch', monospace;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--c);
   }
 
   .toast-message {
     font-family: 'Space Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: #d0d7dd;
-    line-height: 1.45;
+    line-height: 1.5;
     word-break: break-word;
   }
 
@@ -191,10 +159,9 @@
     border: none;
     cursor: pointer;
     padding: 0;
-    margin-top: 0.25rem;
-    text-align: left;
+    margin-top: 0.4rem;
+    text-align: center;
     transition: color 0.15s;
-    align-self: flex-start;
   }
 
   .toast-help-action:hover {
@@ -203,10 +170,10 @@
 
   /* Close button */
   .toast-close {
-    flex-shrink: 0;
-    align-self: flex-start;
-    margin: 0.55rem 0.55rem 0 0;
-    padding: 0.22rem;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.2rem;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
     color: #8892a0;
@@ -215,14 +182,7 @@
     align-items: center;
     justify-content: center;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 4px) 0,
-      100% 4px,
-      100% 100%,
-      4px 100%,
-      0 calc(100% - 4px)
-    );
+    border-radius: 3px;
   }
 
   .toast-close:hover {
@@ -235,7 +195,7 @@
   .toast-progress {
     position: absolute;
     bottom: 0;
-    left: 3px; /* align after strip */
+    left: 0;
     right: 0;
     height: 2px;
     background: rgba(255,255,255,0.06);

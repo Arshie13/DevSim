@@ -5,6 +5,7 @@ export interface HelpEntry {
 	description: string;
 	steps: string[];
 	actions?: { label: string; handler: string }[];
+	image?: string;
 }
 
 export const errorCatalog: HelpEntry[] = [
@@ -19,20 +20,21 @@ export const errorCatalog: HelpEntry[] = [
 			'Try saving again (Ctrl+S) — transient API errors sometimes resolve on their own.',
 			'If the problem persists, try refreshing the file tree from the sidebar to re-sync.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }]
+		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
+		image: '/images/limitations/files/save/cantsave.png'
 	},
 	{
 		id: 'file-create-failure',
 		category: 'File System',
 		title: 'Can\'t create files or folders',
-		description: 'File or folder creation failed. This may be caused by invalid names, permission issues, or workspace disk space limits.',
+		description: 'File or folder creation failed. This may be caused by path traversal attempts or workspace disk space limits.',
 		steps: [
-			'Avoid special characters in file and folder names (use letters, numbers, hyphens, and underscores).',
-			'Check that the parent directory exists before creating files inside it.',
+			'Path traversal (../) is not allowed — use relative paths within the workspace only.',
 			'Clear unnecessary cache folders (node_modules, .next, dist) to free up space.',
 			'Try refreshing the file tree to sync with the workspace filesystem.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }]
+		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
+		image: '/images/limitations/files/create/file.png'
 	},
 	{
 		id: 'file-delete-failure',
@@ -44,7 +46,8 @@ export const errorCatalog: HelpEntry[] = [
 			'If you\'re sure you want to delete a non-protected file, try refreshing the file tree first.',
 			'Use the terminal (rm command) as an alternative way to delete files.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }]
+		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
+		image: '/images/limitations/files/delete/fail.png'
 	},
 	{
 		id: 'terminal-disconnect',
@@ -57,7 +60,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Long-running processes may have been interrupted — you\'ll need to restart them.',
 			'You can have up to 3 terminal sessions. Close unused ones if you hit the limit.'
 		],
-		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }]
+		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }],
+		image: '/images/limitations/terminal/disconnected/disconnect.png'
 	},
 	{
 		id: 'terminal-init-failure',
@@ -69,7 +73,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Make sure you haven\'t reached the 3-terminal limit. Close unused sessions from the Terminals sidebar.',
 			'If the workspace was idle for a long time, it may have stopped. Refresh the page.',
 			'If the problem persists, try opening a new terminal with the + button in the Terminals sidebar.'
-		]
+		],
+		image: '/images/limitations/terminal/start/connecting.png'
 	},
 	{
 		id: 'preview-not-loading',
@@ -82,7 +87,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Click the Refresh button in the preview panel toolbar to retry the connection.',
 			'Check the terminal output for errors if the server fails to start.'
 		],
-		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }]
+		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }],
+		image: '/images/limitations/preview/loading.png'
 	},
 	{
 		id: 'test-failure',
@@ -96,7 +102,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Make sure your code handles edge cases (empty inputs, invalid data, error states).',
 			'Click the Beaker test button in the workspace header to re-run tests after fixing your code.'
 		],
-		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }]
+		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }],
+		image: '/images/limitations/tests/testfail.png'
 	},
 	{
 		id: 'task-order-blocked',
@@ -107,7 +114,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Complete all tasks that appear before this one in the task board.',
 			'Look for the blocking task number in the warning — that task must be moved to Done first.',
 			'If a task requires the crash course, complete the learning content before proceeding.'
-		]
+		],
+		image: '/images/limitations/task/forward/blocker.png'
 	},
 	{
 		id: 'task-regression',
@@ -118,7 +126,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Review the regression error details in the modal — it shows which task is affected.',
 			'Look at the files you recently changed — those are the likely cause.',
 			'Fix the regression before submitting your sprint — all tasks must pass together.'
-		]
+		],
+		image: '/images/limitations/task/regression/failedtest.png'
 	},
 	{
 		id: 'submit-reflection-short',
@@ -189,6 +198,116 @@ export const errorCatalog: HelpEntry[] = [
 			'Try downloading again — transient errors sometimes resolve on retry.',
 			'If the project is very large, consider downloading individual files instead.'
 		]
+	},
+	{
+		id: 'docker-isolation',
+		category: 'Docker Environment',
+		title: 'Container isolated from host machine',
+		description: 'The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.',
+		steps: [
+			'This is expected behavior — the container runs its own OS image.',
+			'Use the terminal to install tools within the container (apt-get, npm, etc.).',
+			'Check the tech stack documentation for pre-installed tools in this environment.'
+		]
+	},
+	{
+		id: 'docker-filesystem-scope',
+		category: 'Docker Environment',
+		title: 'File changes not persisting',
+		description: 'File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.',
+		steps: [
+			'Download your project files regularly using the download button.',
+			'Save important work before the container resets.',
+			'Use version control (git) inside the container to track changes.'
+		]
+	},
+	{
+		id: 'docker-networking',
+		category: 'Docker Environment',
+		title: 'Network behavior differs from local setup',
+		description: 'Network behavior may differ from a full local setup due to port forwarding and container networking.',
+		steps: [
+			'Use the preview panel to access your dev server — it handles port forwarding automatically.',
+			'Some external APIs may be blocked — check the terminal for connection errors.',
+			'Localhost inside the container refers to the container itself, not your host machine.'
+		]
+	},
+	{
+		id: 'docker-gui-tools',
+		category: 'Docker Environment',
+		title: 'Native or GUI tools not working',
+		description: 'Some native or GUI-dependent tools may not work inside the simulated container environment.',
+		steps: [
+			'Use CLI alternatives instead of GUI tools (e.g., vim instead of VS Code GUI).',
+			'Some desktop applications cannot run in a headless container.',
+			'Check the crash course for CLI equivalents of common GUI workflows.'
+		]
+	},
+	{
+		id: 'docker-performance',
+		category: 'Docker Environment',
+		title: 'Performance and timing variations',
+		description: 'Performance and timing can vary from a standard local development machine.',
+		steps: [
+			'Build times and test execution may be slower due to container overhead.',
+			'Avoid tight timing assertions in your code — use more flexible thresholds.',
+			'Close unused terminals and stop unnecessary processes to free resources.'
+		]
+	},
+	{
+		id: 'docker-hot-reload',
+		category: 'Docker Environment',
+		title: 'Hot reloading not detecting changes',
+		description: 'Hot reloading and file watching may not detect changes reliably due to Docker\'s filesystem event propagation.',
+		steps: [
+			'Try restarting your dev server if hot reload stops working.',
+			'Use the Refresh button in the preview panel to manually reload.',
+			'Save files explicitly (Ctrl+S) to ensure changes are written to the container.'
+		]
+	},
+	{
+		id: 'docker-auth',
+		category: 'Docker Environment',
+		title: 'Git credentials or SSH keys unavailable',
+		description: 'Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.',
+		steps: [
+			'Use HTTPS URLs with personal access tokens instead of SSH for git operations.',
+			'Configure git credentials inside the container if needed.',
+			'Download your code and work with local files when authentication is required.'
+		]
+	},
+	{
+		id: 'docker-disk-space',
+		category: 'Docker Environment',
+		title: 'Container disk space limited',
+		description: 'Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.',
+		steps: [
+			'Clear cache folders: rm -rf node_modules .next dist build .cache',
+			'Remove unnecessary files and large dependencies.',
+			'Download your project before cleaning to avoid losing work.'
+		]
+	},
+	{
+		id: 'docker-inactivity-timeout',
+		category: 'Docker Environment',
+		title: 'Container stopped due to inactivity',
+		description: 'The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.',
+		steps: [
+			'Save your work frequently and download project files regularly.',
+			'Refresh the page to restart the container if it has stopped.',
+			'Keep the workspace active by interacting with it periodically.'
+		]
+	},
+	{
+		id: 'docker-terminal-disconnect',
+		category: 'Docker Environment',
+		title: 'Terminal session disconnected',
+		description: 'The terminal session may disconnect due to network fluctuations, interrupting running processes.',
+		steps: [
+			'Click the Refresh button at the top of the terminal panel to re-establish the connection.',
+			'If the terminal won\'t reconnect, close it and open a new terminal session.',
+			'Long-running processes may have been interrupted — you\'ll need to restart them.'
+		]
 	}
 ];
 
@@ -200,7 +319,8 @@ export const errorCategoryOrder = [
 	'Task Ordering',
 	'Submit Sprint',
 	'AI / SAZ',
-	'Download'
+	'Download',
+	'Docker Environment'
 ];
 
 export function searchErrors(query: string): HelpEntry[] {

@@ -39,6 +39,11 @@ function isProtectedRootFilePath(inputPath: string): boolean {
   return !normalized.includes("/") && PROTECTED_ROOT_FILES.has(normalized);
 }
 
+function hasPathTraversal(inputPath: string): boolean {
+  const normalized = inputPath.replace(/\\/g, "/");
+  return normalized.includes("../") || normalized.includes("..\\");
+}
+
 export const POST: RequestHandler = async ({ params, request, locals }) => {
   try {
     // --- Auth check ---
@@ -62,6 +67,16 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
           error: "This root file is protected and cannot be modified.",
         },
         { status: 403 },
+      );
+    }
+
+    if (hasPathTraversal(path)) {
+      return json(
+        {
+          success: false,
+          error: "Path traversal (../) is not allowed. Use relative paths within the workspace.",
+        },
+        { status: 400 },
       );
     }
 
