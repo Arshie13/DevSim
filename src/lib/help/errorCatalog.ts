@@ -139,7 +139,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Explain any challenges you faced and how you solved them.',
 			'Mention specific files or components you worked on.',
 			'The reflection helps verify your mastery — be specific and technical.'
-		]
+		],
+		image: '/images/limitations/submit/reflection.png'
 	},
 	{
 		id: 'submit-mastery-not-met',

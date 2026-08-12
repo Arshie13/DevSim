@@ -370,12 +370,12 @@
 			{#if error.image}
 				<button
 					onclick={() => openImageLightbox(error.image!)}
-					class="mb-5 rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
+					class="mb-5 rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-fit max-w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
 				>
 					<img
 						src={error.image}
 						alt={`Screenshot illustrating: ${error.title}`}
-						class="w-full h-auto object-cover max-h-48"
+						class="max-w-full h-auto block"
 						loading="lazy"
 					/>
 				</button>
