@@ -96,6 +96,12 @@
 		selectedCategory = '';
 	}
 
+	function backFromError() {
+		selectedError = null;
+		showLimitations = false;
+		showRequestForm = false;
+	}
+
 	function openRequestForm(category?: string) {
 		showRequestForm = true;
 		showLimitations = false;
@@ -348,11 +354,11 @@
 		<!-- Error Detail View -->
 		<div class="panel-body">
 			<button
-				onclick={backToCategories}
+				onclick={backFromError}
 				class="flex items-center gap-1 text-xs text-[#07a5c9] hover:text-[#00f5ff] mb-4 transition-colors"
 			>
 				<ChevronRight class="w-3 h-3 rotate-180" />
-				Back to Common Issues
+				Back to {error.category}
 			</button>
 
 			<span class="text-[0.65rem] px-2 py-0.5 border border-[rgba(7,165,201,0.3)] text-[#07a5c9] font-mono uppercase tracking-wide mb-2 inline-block">
