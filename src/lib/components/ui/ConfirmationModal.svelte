@@ -22,7 +22,6 @@
     /** Text shown next to the spinner while loading. */
     loadingLabel = 'Loading…',
     error = '',
-    showSuccess = false,
     /**
      * When true the Cancel + Confirm action row is hidden.
      * Useful when the body slot already contains its own progress UI (e.g. LoadingSteps).
@@ -42,8 +41,6 @@
     tourId = undefined as string | undefined,
     /** Content rendered in the default slot. */
     children = undefined as Snippet | undefined,
-    /** Content rendered in the named "success" slot. */
-    success = undefined as Snippet | undefined,
   } = $props();
 
   // ── Events ─────────────────────────────────────────────────────────────────
@@ -121,18 +118,6 @@
       <!-- Animated gradient border glow -->
       <div class="cm-card-glow" aria-hidden="true"></div>
 
-      {#if showSuccess}
-        {#if success}
-          {@render success()}
-        {:else}
-          <div class="cm-success-wrap">
-            <div class="cm-success-burst" aria-hidden="true">✅</div>
-            <h2 class="cm-success-title">Done!</h2>
-            <p class="cm-success-sub">The action completed successfully.</p>
-          </div>
-        {/if}
-
-      {:else}
         {#if !hideHeader && title}
           <div class="cm-header">
             <button type="button" class="cm-close-btn" onclick={handleClose} aria-label="Close">
@@ -190,7 +175,6 @@
             </button>
           </div>
         {/if}
-      {/if}
     </div>
   </div>
 {/if}
@@ -463,34 +447,6 @@
     flex-shrink: 0;
   }
   @keyframes cm-spin { to { transform: rotate(360deg); } }
-
-  /* ── Default success wrap (slot fallback) ─────────────────────────────── */
-  .cm-success-wrap {
-    text-align: center;
-    padding: 0.75rem 0;
-  }
-  .cm-success-burst {
-    font-size: 3rem;
-    animation: cm-burst-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-  @keyframes cm-burst-pop {
-    from { transform: scale(0.3); opacity: 0; }
-    to   { transform: scale(1);   opacity: 1; }
-  }
-  .cm-success-title {
-    margin: 0.6rem 0 0.3rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--text-primary, #d0d7dd);
-  }
-  .cm-success-sub {
-    font-family: var(--font-mono, 'Space Mono', monospace);
-    font-size: 0.85rem;
-    color: var(--text-muted, #8892a0);
-    margin: 0;
-  }
 
   @media (max-height: 760px) {
     .cm-backdrop {

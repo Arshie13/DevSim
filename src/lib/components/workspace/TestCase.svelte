@@ -198,7 +198,7 @@
         clearRunningTaskTracking();
 
         if (data.passed) {
-          toast.success(`Tests passed for "${taskName}"`);
+          toast.success("Tests passed");
         }
       } else {
         clearRunningTaskTracking();

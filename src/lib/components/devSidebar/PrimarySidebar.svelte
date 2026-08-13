@@ -46,7 +46,7 @@
   export const levelTitle: string = "";
   export let onSelectFile: (file: string, lineNumber?: number, searchTerm?: string) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
-  export let onDeleteFile: (filePath: string) => void = () => {};
+  export let onDeleteFile: (filePath: string, isDirectory: boolean) => void = () => {};
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
   export let onRefreshFiles: () => void = () => {};
 

@@ -1,17 +1,17 @@
 <script lang="ts">
   import { toast, type Toast } from '$lib/stores/toast';
   import { helpTrigger } from '$lib/stores/helpTrigger';
-  import { fade, scale } from 'svelte/transition';
-  import { X, AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-svelte';
+  import { fly, fade } from 'svelte/transition';
+  import { X, CheckCircle, Info } from 'lucide-svelte';
 
   const variantMeta = {
-    error:   { label: 'ERROR',   color: '#FF3860', glow: 'rgba(255,56,96,0.30)',   bg: 'rgba(255,56,96,0.08)',   Icon: XCircle       },
-    warn:    { label: 'WARNING', color: '#FFB400', glow: 'rgba(255,180,0,0.30)',    bg: 'rgba(255,180,0,0.08)',   Icon: AlertTriangle  },
     success: { label: 'SUCCESS', color: '#00E5A0', glow: 'rgba(0,229,160,0.30)',    bg: 'rgba(0,229,160,0.08)',   Icon: CheckCircle    },
     info:    { label: 'INFO',    color: '#07A5C9', glow: 'rgba(7,165,201,0.30)',    bg: 'rgba(7,165,201,0.08)',   Icon: Info           },
   } as const;
 
-  function meta(t: Toast) { return variantMeta[t.variant]; }
+  function meta(t: Toast) {
+    return variantMeta[t.variant as 'success' | 'info'];
+  }
 
   function handleHelpClick(helpAction: Toast['helpAction']) {
     if (helpAction) {
@@ -20,31 +20,32 @@
   }
 </script>
 
-<!-- Portal: centered popup stack -->
-<div class="toast-portal" aria-live="assertive" aria-atomic="false">
-  {#each $toast as t (t.id)}
+<!-- Success/Info toasts: bottom-right stack -->
+<div class="toast-portal" aria-live="polite" aria-atomic="false">
+  {#each $toast.filter(t => t.variant !== 'error' && t.variant !== 'warn') as t (t.id)}
+    {@const m = meta(t)}
     <div
-      class="toast-popup"
-      in:scale={{ duration: 200, start: 0.9 }}
-      out:fade={{ duration: 150 }}
+      class="toast"
+      in:fly={{ x: 60, duration: 320, opacity: 0 }}
+      out:fade={{ duration: 200 }}
       style="
-        --c: {meta(t).color};
-        --glow: {meta(t).glow};
-        --bg: {meta(t).bg};
+        --c: {m.color};
+        --glow: {m.glow};
+        --bg: {m.bg};
         --duration: {t.duration ?? 4000}ms;
       "
       role="alert"
     >
-      <!-- Icon header -->
-      <div class="toast-icon-header">
-        <div class="toast-icon-circle">
-          <svelte:component this={meta(t).Icon} size={28} />
-        </div>
-      </div>
+      <div class="toast-shimmer"></div>
+      <div class="toast-strip"></div>
 
-      <!-- Body -->
       <div class="toast-body">
+        <div class="toast-icon">
+          <svelte:component this={m.Icon} size={18} />
+        </div>
+
         <div class="toast-text">
+          <span class="toast-label">{m.label}</span>
           <span class="toast-message">{t.message}</span>
           {#if t.helpAction}
             <button
@@ -57,12 +58,10 @@
         </div>
       </div>
 
-      <!-- Close button -->
       <button class="toast-close" onclick={() => toast.remove(t.id)} aria-label="Dismiss">
-        <X size={14} />
+        <X size={13} />
       </button>
 
-      <!-- Auto-dismiss progress bar -->
       {#if t.duration && t.duration > 0}
         <div class="toast-progress">
           <div class="toast-progress-fill"></div>
@@ -73,78 +72,92 @@
 </div>
 
 <style>
-  /* ── Portal ── */
   .toast-portal {
     position: fixed;
-    inset: 0;
+    bottom: 1.5rem;
+    right: 1.5rem;
     z-index: 9999;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    gap: 0.65rem;
     pointer-events: none;
-    padding: 1.5rem;
+    max-width: 360px;
+    width: calc(100vw - 3rem);
   }
 
-  /* ── Popup wrapper ── */
-  .toast-popup {
+  .toast {
     position: relative;
     pointer-events: auto;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     overflow: hidden;
-    width: min(260px, 100%);
     background: #12192a;
     border: 1px solid var(--c);
     box-shadow:
       0 0 16px var(--glow),
-      0 8px 32px rgba(0,0,0,0.6);
-    border-radius: 8px;
+      0 4px 24px rgba(0,0,0,0.6);
+    clip-path: polygon(
+      0 0,
+      calc(100% - 10px) 0,
+      100% 10px,
+      100% 100%,
+      10px 100%,
+      0 calc(100% - 10px)
+    );
   }
 
-  /* Icon header */
-  .toast-icon-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.25rem 1rem 0.75rem;
+  .toast-shimmer {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--c), transparent);
+    opacity: 0.6;
   }
 
-  .toast-icon-circle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 1px solid var(--c);
-    color: var(--c);
-    filter: drop-shadow(0 0 8px var(--glow));
+  .toast-strip {
+    width: 3px;
+    flex-shrink: 0;
+    background: var(--c);
+    box-shadow: 0 0 8px var(--glow);
   }
 
-  /* Body row */
   .toast-body {
-    padding: 0 1rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.7rem 0.6rem 0.75rem 0.75rem;
     flex: 1;
     min-width: 0;
-    text-align: center;
   }
 
-  /* Text column */
+  .toast-icon {
+    flex-shrink: 0;
+    color: var(--c);
+    filter: drop-shadow(0 0 4px var(--glow));
+    margin-top: 1px;
+  }
+
   .toast-text {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
+    gap: 0.18rem;
     min-width: 0;
+  }
+
+  .toast-label {
+    font-family: 'Chakra Petch', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c);
   }
 
   .toast-message {
     font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #d0d7dd;
-    line-height: 1.5;
+    line-height: 1.45;
     word-break: break-word;
   }
 
@@ -168,12 +181,11 @@
     color: #00f5ff;
   }
 
-  /* Close button */
   .toast-close {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    padding: 0.2rem;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin: 0.55rem 0.55rem 0 0;
+    padding: 0.22rem;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
     color: #8892a0;
@@ -182,7 +194,14 @@
     align-items: center;
     justify-content: center;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
-    border-radius: 3px;
+    clip-path: polygon(
+      0 0,
+      calc(100% - 4px) 0,
+      100% 4px,
+      100% 100%,
+      4px 100%,
+      0 calc(100% - 4px)
+    );
   }
 
   .toast-close:hover {
@@ -191,11 +210,10 @@
     background: var(--bg);
   }
 
-  /* Progress bar */
   .toast-progress {
     position: absolute;
     bottom: 0;
-    left: 0;
+    left: 3px;
     right: 0;
     height: 2px;
     background: rgba(255,255,255,0.06);
