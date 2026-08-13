@@ -1658,7 +1658,7 @@ $effect(() => {
     }
   }
 
-  async function handleDeleteFile(filePath: string) {
+  async function handleDeleteFile(filePath: string, isDirectory: boolean) {
     if (!containerId || !filePath) return;
 
     try {
@@ -1672,6 +1672,7 @@ $effect(() => {
       );
       const data = await response.json();
       if (data.success) {
+        toast.success(`${isDirectory ? "Folder" : "File"} deleted`);
         const wasActiveTabDeleted = activeTabId === filePath;
 
         if (selectedFile === filePath) {
