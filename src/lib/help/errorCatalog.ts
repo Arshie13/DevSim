@@ -175,7 +175,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Exchange coins for AI help credits — the conversion rate is shown in the AI panel.',
 			'You earn coins by completing levels, daily login rewards, and the Learner\'s Pass.',
 			'Check the rewards section to see when your next coin reward is available.'
-		]
+		],
+		image: '/images/limitations/ai_credits/not_enough_credits.png'
 	},
 	{
 		id: 'ai-code-blocked',
@@ -187,7 +188,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Ask about the concept or approach rather than the implementation.',
 			'Read the crash course section — it covers the concepts you need for the task.'
 		],
-		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }]
+		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }],
+		image: '/images/limitations/ai_credits/out_of_scope.png'
 	},
 	{
 		id: 'download-failure',
