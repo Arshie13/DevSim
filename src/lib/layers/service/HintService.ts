@@ -372,12 +372,13 @@ Example of CORRECT answer (based on actual file content):
   }
 
   private async getAIResponse(prompt: string, model?: string): Promise<string> {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
-      throw new Error('OPENROUTER_API_KEY is not configured. Please add it to your .env file. Get one free at https://openrouter.ai');
+    const omnirouteKey = process.env.OMNIROUTE_KEY;
+    if (!omnirouteKey) {
+      throw new Error('OMNIROUTE_KEY is not configured. Please add it to your .env file.');
     }
 
     const defaultModels = [
+      'auto/coding',
       'nvidia/nemotron-3-nano-30b-a3b:free',
       'google/gemma-3n-e2b-it:free',
       'qwen/qwen3.6-plus:free',
@@ -387,28 +388,18 @@ Example of CORRECT answer (based on actual file content):
 
     const models = model ? [model, ...defaultModels.filter((m) => m !== model)] : defaultModels;
 
-    let response = null;
     let lastError = null;
 
     for (const modelName of models) {
       console.log(`Trying model: ${modelName}`);
 
-      if (modelName === 'google/gemini-2.5-flash:direct') {
-        const geminiResult = await this.tryGeminiModel(prompt);
-        if (geminiResult.success && geminiResult.hint) {
-          return geminiResult.hint;
-        }
-        lastError = geminiResult.error;
-        continue;
+      const omnirouteResult = await this.tryOmniroute(prompt, omnirouteKey);
+      if (omnirouteResult.success && omnirouteResult.hint) {
+        return omnirouteResult.hint;
       }
+      lastError = omnirouteResult.error;
 
-      const openRouterResult = await this.tryOpenRouterModel(prompt, modelName, apiKey);
-      if (openRouterResult.success && openRouterResult.hint) {
-        return openRouterResult.hint;
-      }
-      lastError = openRouterResult.error;
-
-      if (openRouterResult.status === 429 || openRouterResult.status === 404) {
+      if (omnirouteResult.status === 429 || omnirouteResult.status === 404) {
         continue;
       } else {
         break;
@@ -418,69 +409,38 @@ Example of CORRECT answer (based on actual file content):
     throw new Error(`Failed to get response from AI: ${lastError?.error?.message || lastError?.message || 'All models unavailable'}`);
   }
 
-  private async tryGeminiModel(prompt: string): Promise<{ success: boolean; hint?: string; error?: any }> {
-    const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
-    if (!geminiApiKey) {
-      return { success: false, error: 'Google Gemini API key not configured' };
-    }
-
-    try {
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
-          })
-        }
-      );
-
-      if (geminiResponse.ok) {
-        const geminiData = await geminiResponse.json();
-        const hint = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!hint) {
-          return { success: false, error: 'No hint generated' };
-        }
-        return { success: true, hint };
-      } else {
-        const errorData = await geminiResponse.json();
-        return { success: false, error: errorData };
-      }
-    } catch (error) {
-      return { success: false, error };
-    }
-  }
-
-  private async tryOpenRouterModel(
+  private async tryOmniroute(
     prompt: string,
-    model: string,
     apiKey: string
   ): Promise<{ success: boolean; hint?: string; error?: any; status?: number }> {
     try {
-      const modelResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const modelResponse = await fetch('http://localhost:20128/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://devsim.com',
-          'X-Title': 'DevSim AI Hints'
         },
         body: JSON.stringify({
-          // Enough headroom for multi-step, hand-holdy hints (level 1-2) without
-          // getting cut off mid-sentence. Matches the Gemini fallback budget.
-          model,
+          model: 'auto/best-free',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 1000,
           temperature: 0.7,
-          reasoning: { enabled: false }
         })
       });
 
       if (modelResponse.ok) {
-        const data = await modelResponse.json();
-        const hint = data.choices?.[0]?.message?.content;
+        const text = await modelResponse.text();
+        const lines = text.split('\n').filter((line) => line.startsWith('data: '));
+        let hint = '';
+        for (const line of lines) {
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta?.content || '';
+            hint += delta;
+          } catch {}
+        }
         if (!hint) {
           return { success: false, error: 'No hint generated' };
         }

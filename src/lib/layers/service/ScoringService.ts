@@ -34,7 +34,6 @@ interface ScoringResult {
   level?: number;
   levelTitle?: string;
   error?: string;
-  isRateLimited?: boolean;
 }
 
 export class ScoringService {
@@ -44,11 +43,11 @@ export class ScoringService {
   ) {}
 
   async processScore(request: ScoringRequest): Promise<ScoringResult> {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
+    const apiKey = process.env.OMNIROUTE_KEY;
+    if (!apiKey) {
       return {
         success: false,
-        error: 'OPENROUTER_API_KEY is not configured. Please add it to your .env file. Get one free at https://openrouter.ai'
+        error: 'OMNIROUTE_KEY is not configured. Please add it to your .env file.'
       };
     }
 
@@ -103,7 +102,7 @@ export class ScoringService {
       );
 
       // Call AI for scoring
-      const aiResponse = await this.callOpenRouterAPI(apiKey, prompt);
+      const aiResponse = await this.callOmniRouteAPI(apiKey, prompt);
 
       // Parse the response
       const { stars, score, feedback, improvements, nextTime, masteryPassed, masteryGaps } = 
@@ -141,20 +140,6 @@ export class ScoringService {
     } catch (error) {
       console.error('AI Scoring error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-      // Check if it's a rate limit error
-      if (errorMessage === 'AI_RATE_LIMITED') {
-        return {
-          success: false,
-          stars: 2,
-          score: 67,
-          feedback: 'Hey there! 👋 Looks like our AI buddy is taking a quick nap. Drop by again in a moment and we\'ll get your feedback!',
-          masteryPassed: false,
-          masteryGaps: 'Mastery check unavailable right now due to AI rate limits. Please retry shortly.',
-          error: 'AI rate limit exceeded. Please try again later.',
-          isRateLimited: true
-        };
-      }
 
       return {
         success: false,
@@ -437,73 +422,67 @@ Respond ONLY using this exact format:
     return { stars, score, feedback, improvements, nextTime, masteryPassed, masteryGaps };
   }
 
-  private async callOpenRouterAPI(apiKey: string, prompt: string): Promise<string> {
-    const models = [
-      'meta-llama/llama-3.1-8b-instruct',
-      'google/gemma-2-9b-it',
-      'mistralai/mistral-7b-instruct-v0.2',
-      'google/gemini-2.5-flash-exp'
+  private async callOmniRouteAPI(apiKey: string, prompt: string, model?: string): Promise<string> {
+    const models = model ? [model] : [
+      'auto/coding',
+      'auto/best-free',
+      'nvidia/nemotron-3-nano-30b-a3b:free',
+      'google/gemma-3n-e2b-it:free'
     ];
-    let lastError = null;
-    let isRateLimited = false;
 
-    for (const model of models) {
+    let lastError = null;
+
+    for (const modelName of models) {
       try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const response = await fetch('http://localhost:20128/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://devsim.com',
-            'X-Title': 'DevSim AI Scoring'
+            Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model,
+            model: modelName,
             messages: [{ role: 'user', content: prompt }],
-            max_tokens: 200,
+            max_tokens: 1000,
+            temperature: 0.7,
           }),
         });
 
         if (response.ok) {
-          const data = await response.json();
-          const content = data.choices?.[0]?.message?.content;
+          const text = await response.text();
+          const lines = text.split('\n').filter((line) => line.startsWith('data: '));
+          let content = '';
+          for (const line of lines) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed.choices?.[0]?.delta?.content || '';
+              content += delta;
+            } catch {}
+          }
           if (!content) {
             lastError = new Error('No content in response');
             continue;
           }
           return content;
         } else {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           lastError = errorData;
-          console.log(`Model ${model} failed:`, errorData);
+          console.log(`Model ${modelName} failed:`, errorData);
 
-          const errorMessage = errorData?.message || '';
-          if (errorMessage.toLowerCase().includes('rate limit')) {
-            isRateLimited = true;
-            console.log(`Rate limited on model ${model}, trying next...`);
-            continue;
-          }
-
-          if (response.status === 429 || response.status === 404) {
-            isRateLimited = true;
+          const status = response.status;
+          if (status === 429 || status === 404 || status === 422 || status === 502 || status === 503) {
             continue;
           }
           break;
         }
       } catch (e) {
         lastError = e;
-        console.error(`Error calling OpenRouter ${model}:`, e);
-        const errorStr = String(e);
-        if (errorStr.toLowerCase().includes('rate limit')) {
-          isRateLimited = true;
-          continue;
-        }
+        console.error(`Error calling omni route ${modelName}:`, e);
       }
     }
 
-    if (isRateLimited) {
-      throw new Error('AI_RATE_LIMITED');
-    }
     throw new Error(lastError?.message || 'Failed to get response from AI');
   }
 }

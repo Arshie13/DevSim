@@ -27,11 +27,17 @@ export class MonacoInitializer {
         automaticLayout: true,
       });
 
-      // Disable TypeScript/JavaScript diagnostics (linting)
-      this.monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      // Disable TypeScript/JavaScript diagnostics and editor linting
+      const lintDisabled = {
         noSemanticValidation: true,
         noSyntaxValidation: true,
-      });
+        noSuggestionDiagnostics: true,
+        noUnusedLocals: false,
+        noUnusedParameters: false,
+      };
+
+      this.monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(lintDisabled);
+      this.monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions(lintDisabled);
 
       // Listen for editor changes
       if (onChange) {
