@@ -37,7 +37,6 @@
   import type { ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
     import type { IInteractiveConfig } from "$lib/types/IContainer";
-    import type { Limitation } from "$lib/types";
 
   let { data}: { data: PageData } = $props();
 
@@ -267,8 +266,6 @@
   let helpMinimized = $state(false);
   let helpPrefillCategory: string = $state("");
   let helpPrefillDescription: string = $state("");
-  let helpStartOnLimitations: boolean = $state(false);
-
   onMount(() => {
     return helpTrigger.subscribe((payload) => {
       if (payload) {
@@ -307,18 +304,6 @@
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
   let showDockerDisclaimer = $state(true);
-  const dockerDisclaimerLimitations: Limitation[] = [
-    { text: "The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.", image: "/limitations/1-isolation.png" },
-    { text: "File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.", image: "/limitations/2-filesystem.png" },
-    { text: "Network behavior may differ from a full local setup due to port forwarding and container networking.", image: "/limitations/3-networking.png" },
-    { text: "Some native or GUI-dependent tools may not work inside the simulated container environment.", image: "/limitations/4-gui-tools.png" },
-    { text: "Performance and timing can vary from a standard local development machine.", image: "/limitations/5-performance.png" },
-    { text: "Hot reloading and file watching may not detect changes reliably due to Docker's filesystem event propagation.", image: "/limitations/6-hot-reload.png" },
-    { text: "Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.", image: "/limitations/7-auth.png" },
-    { text: "Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.", image: "/limitations/8-disk-space.png" },
-    { text: "The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.", image: "/limitations/9-timeout.png" },
-    { text: "The terminal session may disconnect due to network fluctuations, interrupting running processes.", image: "/limitations/10-disconnect.png" }
-  ];
   let triviaCorrectCount: number = 0;
   let triviaTotalCount: number = 0;
   let triviaShownThisSession: boolean = false;
@@ -1443,10 +1428,9 @@ $effect(() => {
     submitSprintModal.open();
   }
 
-  function handleOpenHelp(category?: string, description?: string, startOnLimitations = false) {
+  function handleOpenHelp(category?: string, description?: string) {
     helpPrefillCategory = category || '';
     helpPrefillDescription = description || '';
-    helpStartOnLimitations = startOnLimitations;
     // If already open, don't reset — just un-minimize and update prefill
     if (!helpMounted) {
       helpMounted = true;
@@ -1811,7 +1795,7 @@ $effect(() => {
             type="button"
             class="px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
             style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
-            onclick={() => handleOpenHelp(undefined, undefined, true)}
+            onclick={() => handleOpenHelp()}
           >
             Learn more →
           </button>
@@ -2089,15 +2073,12 @@ $effect(() => {
     {containerId}
     prefillCategory={helpPrefillCategory}
     prefillDescription={helpPrefillDescription}
-    limitations={dockerDisclaimerLimitations}
-    startOnLimitations={helpStartOnLimitations}
     minimized={helpMinimized}
     onClose={() => {
       helpMounted = false;
       helpMinimized = false;
       helpPrefillCategory = '';
       helpPrefillDescription = '';
-      helpStartOnLimitations = false;
     }}
     onMinimize={() => {
       helpMinimized = true;

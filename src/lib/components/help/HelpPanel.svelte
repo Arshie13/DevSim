@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { X, HelpCircle, ChevronRight, AlertTriangle, Send, CheckCircle, Minus } from 'lucide-svelte';
+	import { X, HelpCircle, ChevronRight, Send, CheckCircle, Minus } from 'lucide-svelte';
 	import { errorCatalog, errorCategoryOrder, type HelpEntry } from '$lib/help/errorCatalog';
 	import { toast } from '$lib/stores/toast';
-	import type { Limitation } from '$lib/types';
 
 	interface Props {
 		onClose: () => void;
@@ -11,8 +10,6 @@
 		containerId?: string;
 		prefillCategory?: string;
 		prefillDescription?: string;
-		limitations?: Limitation[];
-		startOnLimitations?: boolean;
 		minimized?: boolean;
 	}
 
@@ -23,35 +20,13 @@
 		containerId = '',
 		prefillCategory = '',
 		prefillDescription = '',
-		limitations = [],
-		startOnLimitations = false,
 		minimized = false
 	}: Props = $props();
 
-	const defaultLimitations: Limitation[] = [
-		{ text: 'The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.', image: '/images/limitations/1-isolation.png' },
-		{ text: 'File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.', image: '/images/limitations/2-filesystem.png' },
-		{ text: 'Network behavior may differ from a full local setup due to port forwarding and container networking.', image: '/images/limitations/3-networking.png' },
-		{ text: 'Some native or GUI-dependent tools may not work inside the simulated container environment.', image: '/images/limitations/4-gui-tools.png' },
-		{ text: 'Performance and timing can vary from a standard local development machine.', image: '/images/limitations/5-performance.png' },
-		{ text: 'Hot reloading and file watching may not detect changes reliably due to Docker\'s filesystem event propagation.', image: '/images/limitations/6-hot-reload.png' },
-		{ text: 'Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.', image: '/images/limitations/7-auth.png' },
-		{ text: 'Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.', image: '/images/limitations/8-disk-space.png' },
-		{ text: 'The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.', image: '/images/limitations/9-timeout.png' },
-		{ text: 'The terminal session may disconnect due to network fluctuations, interrupting running processes.', image: '/images/limitations/10-disconnect.png' }
-	];
-
-	const displayLimitations = $derived(limitations.length > 0 ? limitations : defaultLimitations);
-
 	let selectedCategory = $state('');
 	let selectedError = $state<HelpEntry | null>(null);
-	let showLimitations = $state(false);
 	let showRequestForm = $state(false);
 	let selectedImage = $state<string | null>(null);
-
-	$effect(() => {
-		showLimitations = startOnLimitations;
-	});
 
 	// Help request form state
 	let requestSubject = $state('');
@@ -85,26 +60,22 @@
 
 	function selectError(entry: HelpEntry) {
 		selectedError = entry;
-		showLimitations = false;
 		showRequestForm = false;
 	}
 
 	function backToCategories() {
 		selectedError = null;
-		showLimitations = false;
 		showRequestForm = false;
 		selectedCategory = '';
 	}
 
 	function backFromError() {
 		selectedError = null;
-		showLimitations = false;
 		showRequestForm = false;
 	}
 
 	function openRequestForm(category?: string) {
 		showRequestForm = true;
-		showLimitations = false;
 		selectedError = null;
 		if (category) requestCategory = category;
 		if (!requestSubject && prefillDescription) {
@@ -294,61 +265,6 @@
 				</div>
 			</div>
 		</div>
-	{:else if showLimitations}
-		<!-- Known Limitations -->
-		<div class="panel-body">
-			<button
-				onclick={backToCategories}
-				class="flex items-center gap-1 text-xs text-[#07a5c9] hover:text-[#00f5ff] mb-4 transition-colors"
-			>
-				<ChevronRight class="w-3 h-3 rotate-180" />
-				Back to Help Center
-			</button>
-
-			<h3 class="text-base font-bold text-gray-100 mb-3">
-				<AlertTriangle class="w-4 h-4 inline text-[#ffb400] mr-1.5" />
-				Known Limitations
-			</h3>
-			<p class="text-sm text-gray-400 mb-4 leading-relaxed">
-				These are inherent limitations of the Docker-based workspace environment. Most issues you encounter will fall into one of these categories.
-			</p>
-			<ul class="space-y-4">
-				{#each displayLimitations as limit, i}
-					<li class="text-sm text-gray-300 leading-relaxed">
-						<div class="flex gap-3">
-							<span class="text-[#07a5c9] font-bold flex-shrink-0 mt-0.5">{i + 1}.</span>
-							<div class="flex-1 min-w-0">
-								<span>{limit.text}</span>
-								{#if limit.image}
-									<button
-										onclick={() => openImageLightbox(limit.image!)}
-										class="mt-3 rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
-									>
-										<img
-											src={limit.image}
-											alt={`Screenshot illustrating: ${limit.text}`}
-											class="w-full h-auto object-cover max-h-48"
-											loading="lazy"
-										/>
-									</button>
-								{/if}
-							</div>
-						</div>
-					</li>
-				{/each}
-			</ul>
-
-			<div class="mt-5 pt-4 border-t border-slate-700/50">
-				<button
-					onclick={() => openRequestForm()}
-					class="w-full px-4 py-2.5 text-sm font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-					style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
-				>
-					<Send class="w-3.5 h-3.5 inline mr-1.5" />
-					Still need help? Send a request
-				</button>
-			</div>
-		</div>
 	{:else if selectedError}
 		{@const error = selectedError}
 		<!-- Error Detail View -->
@@ -454,17 +370,6 @@
 						</button>
 					{/each}
 				</div>
-
-				<button
-					onclick={() => (showLimitations = true)}
-					class="w-full flex items-center justify-between px-3 py-2.5 text-sm text-[#ffb400] hover:bg-slate-800/50 border border-[rgba(255,180,0,0.2)] transition-colors mb-5"
-				>
-					<span class="flex items-center gap-2">
-						<AlertTriangle class="w-4 h-4" />
-						Known Limitations
-					</span>
-					<ChevronRight class="w-3.5 h-3.5" />
-				</button>
 
 				<div class="pt-4 border-t border-slate-700/50">
 					<button
