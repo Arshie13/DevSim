@@ -164,7 +164,7 @@ export const levels = [
                   test_cases: [
                     { input: ["Jordan"], expected: "Jordan", label: "no whitespace" },
                     { input: ["  Jordan  "], expected: "Jordan", label: "trims spaces" },
-                    { input: ["\\tJordan "], expected: "Jordan", label: "trims tabs" },
+                    { input: ["\tJordan "], expected: "Jordan", label: "trims tabs" },
                     { input: [""], expected: "", label: "empty string" },
                   ],
                   hints: [

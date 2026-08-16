@@ -17,7 +17,7 @@
 
   // -- Events -------------------------------------------------------------------
   const dispatch = createEventDispatcher<{
-    close: { source: 'x' | 'footer' | 'backdrop' | 'escape' };
+    close: { source: 'x' | 'footer' | 'backdrop' | 'escape' | 'continue' };
     rerun: void;
   }>();
 
@@ -31,7 +31,7 @@
     expandedTasks = expandedTasks;
   }
 
-  function close(source: 'x' | 'footer' | 'backdrop' | 'escape') {
+  function close(source: 'x' | 'footer' | 'backdrop' | 'escape' | 'continue') {
     // If closing via footer button (Continue Working) when tests failed, show a toast or log confirmation
     if (source === 'footer' && !allPassed) {
       console.log('[TestResultModal] User pressed Continue Working - returning to continue working on tasks');
@@ -277,9 +277,8 @@
           data-tour="test-result-continue-button"
           class="btn-cyber cursor-pointer border border-[rgba(136,146,160,0.3)] bg-transparent !px-[1.125rem] !py-[0.625rem] [font-family:var(--font-heading)] !text-[0.6875rem] font-semibold text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(136,146,160,0.5)] hover:bg-[rgba(136,146,160,0.08)] hover:text-[var(--text-primary)]"
           on:click={() => close('footer')}
-          disabled={loading}
         >
-          {allPassed ? 'Close' : 'Continue Working'}
+          Continue Working
         </button>
         {#if !loading}
           <button

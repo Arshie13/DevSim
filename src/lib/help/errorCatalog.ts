@@ -205,41 +205,41 @@ export const errorCatalog: HelpEntry[] = [
 	{
 		id: 'docker-isolation',
 		category: 'Docker Environment',
-		title: 'Container isolated from host machine',
-		description: 'The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.',
+		title: 'Workspace runs its own Linux environment',
+		description: 'Your workspace is an Alpine Linux container with Node.js, pnpm, bash, and PostgreSQL pre-installed — it does not have your host machine\'s OS, browsers, or GUI apps.',
 		steps: [
-			'This is expected behavior — the container runs its own OS image.',
-			'Use the terminal to install tools within the container (apt-get, npm, etc.).',
-			'Check the tech stack documentation for pre-installed tools in this environment.'
+			'This is expected behavior — the workspace runs its own OS image.',
+			'Use the terminal to install additional packages inside the container (pnpm add for project dependencies).',
+			'The project files live in the workspace folder and are separate from your local machine.'
 		]
 	},
 	{
 		id: 'docker-filesystem-scope',
 		category: 'Docker Environment',
-		title: 'File changes not persisting',
-		description: 'File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.',
+		title: 'Files only persist inside the workspace',
+		description: 'Files you create live in the workspace volume, not on your local disk. They are preserved while the workspace exists, but to keep them outside DevSim you must download the project.',
 		steps: [
-			'Download your project files regularly using the download button.',
-			'Save important work before the container resets.',
-			'Use version control (git) inside the container to track changes.'
+			'Download your project files using the download button if you need them outside DevSim.',
+			'Your files stay in the workspace volume and reappear when you return to the project.',
+			'Use version control (git) inside the workspace to track changes if you plan to work long-term.'
 		]
 	},
 	{
 		id: 'docker-networking',
 		category: 'Docker Environment',
-		title: 'Network behavior differs from local setup',
-		description: 'Network behavior may differ from a full local setup due to port forwarding and container networking.',
+		title: 'Networking is scoped to the workspace',
+		description: 'Each workspace runs on its own Docker network. The preview panel forwards your dev server ports, and the database is reachable by hostname from inside the workspace.',
 		steps: [
-			'Use the preview panel to access your dev server — it handles port forwarding automatically.',
-			'Some external APIs may be blocked — check the terminal for connection errors.',
-			'Localhost inside the container refers to the container itself, not your host machine.'
+			'Use the preview panel to access your dev server — it forwards the container ports automatically.',
+			'Use the database hostname from the workspace env (DATABASE_HOST, DATABASE_PORT) instead of localhost.',
+			'Inside the container, localhost refers to the container itself, not your host machine.'
 		]
 	},
 	{
 		id: 'docker-gui-tools',
 		category: 'Docker Environment',
 		title: 'Native or GUI tools not working',
-		description: 'Some native or GUI-dependent tools may not work inside the simulated container environment.',
+		description: 'Some native or GUI-dependent tools may not work inside the container environment.',
 		steps: [
 			'Use CLI alternatives instead of GUI tools (e.g., vim instead of VS Code GUI).',
 			'Some desktop applications cannot run in a headless container.',
@@ -261,7 +261,7 @@ export const errorCatalog: HelpEntry[] = [
 		id: 'docker-hot-reload',
 		category: 'Docker Environment',
 		title: 'Hot reloading not detecting changes',
-		description: 'Hot reloading and file watching may not detect changes reliably due to Docker\'s filesystem event propagation.',
+		description: 'Hot reloading and file watching may not detect changes reliably because the workspace project folder is a bind mount shared with the host filesystem.',
 		steps: [
 			'Try restarting your dev server if hot reload stops working.',
 			'Use the Refresh button in the preview panel to manually reload.',
@@ -282,8 +282,8 @@ export const errorCatalog: HelpEntry[] = [
 	{
 		id: 'docker-disk-space',
 		category: 'Docker Environment',
-		title: 'Container disk space limited',
-		description: 'Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.',
+		title: 'Workspace disk space limited',
+		description: 'Each workspace container is limited to 512MB of memory and the workspace volume can fill up with dependencies, caches, or build artifacts.',
 		steps: [
 			'Clear cache folders: rm -rf node_modules .next dist build .cache',
 			'Remove unnecessary files and large dependencies.',
@@ -291,21 +291,10 @@ export const errorCatalog: HelpEntry[] = [
 		]
 	},
 	{
-		id: 'docker-inactivity-timeout',
-		category: 'Docker Environment',
-		title: 'Container stopped due to inactivity',
-		description: 'The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.',
-		steps: [
-			'Save your work frequently and download project files regularly.',
-			'Refresh the page to restart the container if it has stopped.',
-			'Keep the workspace active by interacting with it periodically.'
-		]
-	},
-	{
 		id: 'docker-terminal-disconnect',
 		category: 'Docker Environment',
 		title: 'Terminal session disconnected',
-		description: 'The terminal session may disconnect due to network fluctuations, interrupting running processes.',
+		description: 'The terminal session may disconnect due to network fluctuations or page reloads, interrupting running processes.',
 		steps: [
 			'Click the Refresh button at the top of the terminal panel to re-establish the connection.',
 			'If the terminal won\'t reconnect, close it and open a new terminal session.',

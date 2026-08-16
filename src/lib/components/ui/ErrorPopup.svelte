@@ -74,16 +74,16 @@
 <style>
   .error-popup-portal {
     position: fixed;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
+    inset: 0;
     z-index: 9999;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.75rem;
     pointer-events: none;
     width: min(420px, calc(100% - 2rem));
+    margin: 0 auto;
   }
 
   .error-popup {
