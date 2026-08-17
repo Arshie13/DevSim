@@ -170,23 +170,23 @@
       >
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Name</label>
-            <input type="text" name="name" required
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="name">Name</label>
+            <input id="name" type="text" name="name" required
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
           </div>
           <div>
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Icon (emoji)</label>
-            <input type="text" name="icon" value="🏅"
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="icon_emoji">Icon (emoji)</label>
+            <input id="icon_emoji" type="text" name="icon" value="🏅"
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
           </div>
           <div class="col-span-2">
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Description</label>
-            <input type="text" name="description" required
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="description">Description</label>
+            <input id="description" type="text" name="description" required
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
           </div>
           <div>
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Category</label>
-            <select name="category"
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="category">Category</label>
+            <select id="category" name="category"
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]"
             >
               {#each CATEGORIES as cat}
@@ -197,20 +197,20 @@
         </div>
 
         <div>
-          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-2">Tiers</label>
+          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-2" for="tiers">Tiers</label>
           {#each Array(newTierCount) as _, i}
             <div class="mb-3 p-3 rounded border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
               <span class="text-xs font-mono text-[var(--accent)] mb-2 block">Tier {i + 1}: {TIER_NAMES[i] || 'CUSTOM'}</span>
-              <input type="hidden" name="tier_{i}_tier" value={TIER_NAMES[i] || 'ROOKIE'} />
+              <input id="tiers" type="hidden" name="tier_{i}_tier" value={TIER_NAMES[i] || 'ROOKIE'} />
               <div class="grid grid-cols-2 gap-2">
                 <div class="col-span-2">
-                  <label class="text-[var(--text-muted)] text-xs">Description</label>
-                  <input type="text" name="tier_{i}_description" required
+                  <label class="text-[var(--text-muted)] text-xs" for="description">Description</label>
+                  <input id="description" type="text" name="tier_{i}_description" required
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div class="col-span-2">
                   <div class="flex items-center justify-between mb-1">
-                    <label class="text-[var(--text-muted)] text-xs">Criteria</label>
+                    <label class="text-[var(--text-muted)] text-xs" for="criteria">Criteria</label>
                     <button type="button" on:click={() => (useRawJson[i] = !useRawJson[i])}
                       class="flex items-center gap-1 text-[0.55rem] text-[var(--accent)] hover:text-[var(--text-primary)]"
                     >
@@ -240,13 +240,13 @@
                   {/if}
                 </div>
                 <div>
-                  <label class="text-[var(--text-muted)] text-xs">XP Reward</label>
-                  <input type="number" name="tier_{i}_xp" value="100"
+                  <label class="text-[var(--text-muted)] text-xs" for="xp_reward">XP Reward</label>
+                  <input id="xp_reward" type="number" name="tier_{i}_xp" value="100"
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div>
-                  <label class="text-[var(--text-muted)] text-xs">Coin Reward</label>
-                  <input type="number" name="tier_{i}_coins" value="50"
+                  <label class="text-[var(--text-muted)] text-xs" for="coin_reward">Coin Reward</label>
+                  <input id="coin_reward" type="number" name="tier_{i}_coins" value="50"
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                 </div>
               </div>
@@ -296,23 +296,23 @@
               <input type="hidden" name="id" value={achievement.id} />
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Name</label>
-                  <input type="text" name="name" value={achievement.name} required
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="name">Name</label>
+                  <input id="name" type="text" name="name" value={achievement.name} required
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div>
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Icon</label>
-                  <input type="text" name="icon" value={achievement.icon}
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="icon">Icon</label>
+                  <input id="icon" type="text" name="icon" value={achievement.icon}
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div class="col-span-2">
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Description</label>
-                  <input type="text" name="description" value={achievement.description} required
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="description">Description</label>
+                  <input id="description" type="text" name="description" value={achievement.description} required
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div>
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Category</label>
-                  <select name="category"
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="category">Category</label>
+                  <select id="category" name="category"
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]"
                   >
                     {#each CATEGORIES as cat}
@@ -389,19 +389,19 @@
                       <input type="hidden" name="id" value={tier.id} />
                       <div class="grid grid-cols-2 gap-2">
                         <div class="col-span-2">
-                          <label class="text-[var(--text-muted)] text-xs">Description</label>
-                          <input type="text" name="description" value={tier.description}
+                          <label class="text-[var(--text-muted)] text-xs" for="description">Description</label>
+                          <input id="description" type="text" name="description" value={tier.description}
                             class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                         </div>
                         <div>
-                          <label class="text-[var(--text-muted)] text-xs">Icon</label>
-                          <input type="text" name="icon" value={tier.icon || ''}
+                          <label class="text-[var(--text-muted)] text-xs" for="icon">Icon</label>
+                          <input id="icon" type="text" name="icon" value={tier.icon || ''}
                             class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                         </div>
                         <div>
-                          <label class="text-[var(--text-muted)] text-xs">XP / Coins</label>
+                          <label class="text-[var(--text-muted)] text-xs" for="xp_coins">XP / Coins</label>
                           <div class="flex gap-1">
-                            <input type="number" name="xpReward" value={tier.xpReward}
+                            <input id="xp_coins" type="number" name="xpReward" value={tier.xpReward}
                               class="w-1/2 rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                             <input type="number" name="coinReward" value={tier.coinReward}
                               class="w-1/2 rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
@@ -409,7 +409,7 @@
                         </div>
                         <div class="col-span-2">
                           <div class="flex items-center justify-between mb-1">
-                            <label class="text-[var(--text-muted)] text-xs">Criteria</label>
+                            <label class="text-[var(--text-muted)] text-xs" for="criteria">Criteria</label>
                             <button type="button" on:click={() => (editUseRawJson = !editUseRawJson)}
                               class="flex items-center gap-1 text-[0.55rem] text-[var(--accent)] hover:text-[var(--text-primary)]"
                             >
