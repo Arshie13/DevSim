@@ -268,6 +268,65 @@ export class ContainerService {
     }
   }
 
+  private async ensureSharedPostgresRunning(): Promise<void> {
+    const containerName = ContainerService.SHARED_POSTGRES;
+    try {
+      const container = docker.getContainer(containerName);
+      const info = await container.inspect();
+      if (info.State.Running) return;
+      await container.start();
+      await new Promise(r => setTimeout(r, 3000));
+      return;
+    } catch {
+      // Container doesn't exist or can't be inspected; create it.
+    }
+
+    const network = docker.getNetwork(ContainerService.SHARED_NETWORK);
+    try { await network.inspect(); } catch { await docker.createNetwork({ Name: ContainerService.SHARED_NETWORK }); }
+
+    const volumeName = 'devsim-postgres-data';
+    let volume;
+    try { volume = await docker.getVolume(volumeName); } catch { volume = await docker.createVolume({ Name: volumeName }); }
+
+    const pgPassword = 'devsim';
+    const containerConfig: any = {
+      Image: 'postgres:16-alpine',
+      name: containerName,
+      Env: ['POSTGRES_USER=devsim', `POSTGRES_PASSWORD=${pgPassword}`, 'POSTGRES_DB=devsim'],
+      HostConfig: {
+        Memory: 256 * 1024 * 1024,
+        AutoRemove: false,
+        NetworkMode: ContainerService.SHARED_NETWORK,
+        Binds: [`${volumeName}:/var/lib/postgresql/data`],
+      },
+      Labels: { 'devsim.role': 'shared-postgres' },
+    };
+
+    const created = await docker.createContainer(containerConfig);
+    await created.start();
+    await new Promise(r => setTimeout(r, 3000));
+
+    for (let i = 0; i < 10; i++) {
+      try {
+        const check = docker.getContainer(containerName);
+        const exec = await check.exec({
+          Cmd: ['pg_isready', '-U', 'devsim', '-d', 'devsim'],
+          AttachStdout: true, AttachStderr: true,
+        });
+        const stream = await exec.start({});
+        await new Promise<void>((resolve) => {
+          check.modem.demuxStream(stream, { write: () => {} } as any, { write: () => {} } as any);
+          stream.on('end', resolve);
+        });
+        const inspect = await exec.inspect();
+        if (inspect.ExitCode === 0) break;
+      } catch {
+        // not ready yet
+      }
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+
   private async ensureSharedPostgresDatabase(dbName: string): Promise<string> {
     const container = docker.getContainer(ContainerService.SHARED_POSTGRES);
     const dbPassword = this.generateDbPassword();
@@ -352,6 +411,7 @@ export class ContainerService {
 
     const dbName = this.generateDbName(userId, stackName, level);
     await this.ensureDevsimNetwork();
+    await this.ensureSharedPostgresRunning();
     const dbPassword = await this.ensureSharedPostgresDatabase(dbName);
 
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
