@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import { Loader2, Plus, Trash2, Edit3, ChevronDown, ChevronRight, Lock, Unlock, Layers, ListTodo } from "lucide-svelte";
+  import { Loader2, Plus, Trash2, Edit3, ChevronDown, ChevronRight, Lock, Unlock, Layers, ListTodo, BookOpen, Code, Terminal, FileCode } from "lucide-svelte";
+  import type { IInteractiveConfig } from "$lib/types/IContainer";
 
   interface Task {
     id: string;
@@ -11,6 +12,7 @@
     testType: string;
     levelId: string;
     acceptanceCriteria: { id: string; description: string; isRequired: boolean; order: number }[];
+    learningSections: LearningSection[];
   }
 
   interface Level {
@@ -38,6 +40,17 @@
     levels: Level[];
   }
 
+  interface LearningSection {
+    id: string;
+    taskId: string;
+    title: string;
+    content: string;
+    order: number;
+    sectionType: 'PLAIN_TEXT' | 'INTERACTIVE';
+    interactiveMode: 'TERMINAL_CD' | 'CODE_EDITOR' | 'TERMINAL_CMD' | null;
+    interactiveConfig: IInteractiveConfig | null;
+  }
+
   export let data: {
     scenarios: Scenario[];
     availableImages: { tag: string; mappedId: string | null }[];
@@ -53,6 +66,9 @@
   let editingTaskId: string | null = null;
   let showCreateLevelForScenario: string | null = null;
   let showCreateTaskForLevel: string | null = null;
+  let expandedTaskLearningSections: string | null = null;
+  let editingLearningSectionId: string | null = null;
+  let showCreateLearningSectionForTask: string | null = null;
   let selectedImage = "";
   let manualId = "";
 
@@ -69,6 +85,9 @@
   }
 
   const TEST_TYPES = ['none', 'client', 'server', 'both'];
+  const SECTION_TYPES = ['PLAIN_TEXT', 'INTERACTIVE'] as const;
+  const INTERACTIVE_MODES = ['CODE_EDITOR', 'TERMINAL_CD', 'TERMINAL_CMD'] as const;
+  const LANGUAGES = ['javascript', 'typescript', 'python', 'java', 'cpp', 'c', 'go', 'rust', 'sql', 'bash'];
 </script>
 
 <div class="p-6">
@@ -125,7 +144,7 @@
       >
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Docker Image</label>
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="docker_image">Docker Image</label>
             <select
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)] font-mono"
               bind:value={selectedImage}
@@ -140,11 +159,11 @@
             {/if}
           </div>
           <div>
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="scenario_id">
               {selectedImage ? "ID" : "ID (manual)"}
             </label>
             {#if selectedImage}
-              <input type="text" value={scenarioIdFromImage} disabled
+              <input type="text" id="scenario_id" value={scenarioIdFromImage} disabled
                 class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)] font-mono disabled:opacity-50" />
               <input type="hidden" name="id" value={scenarioIdFromImage} />
             {:else}
@@ -153,18 +172,18 @@
             {/if}
           </div>
           <div>
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Name</label>
-            <input type="text" name="name" required
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="name">Name</label>
+            <input id="name" type="text" name="name" required
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
           </div>
           <div class="col-span-2">
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Description</label>
-            <input type="text" name="description" required
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="description">Description</label>
+            <input id="description" type="text" name="description" required
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
           </div>
           <div>
-            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Difficulty</label>
-            <input type="text" name="difficulty" value="Easy" placeholder="Easy / Medium / Hard"
+            <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="difficulty">Difficulty</label>
+            <input id="difficulty" type="text" name="difficulty" value="Easy" placeholder="Easy / Medium / Hard"
               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
           </div>
         </div>
@@ -210,23 +229,23 @@
               <input type="hidden" name="id" value={scenario.id} />
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Name</label>
-                  <input type="text" name="name" value={scenario.name} required
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="name">Name</label>
+                  <input id="name" type="text" name="name" value={scenario.name} required
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div>
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Difficulty</label>
-                  <input type="text" name="difficulty" value={scenario.difficulty}
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="difficulty">Difficulty</label>
+                  <input id="difficulty" type="text" name="difficulty" value={scenario.difficulty}
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div class="col-span-2">
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Description</label>
-                  <input type="text" name="description" value={scenario.description} required
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="description">Description</label>
+                  <input id="description" type="text" name="description" value={scenario.description} required
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]" />
                 </div>
                 <div>
-                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Paywalled</label>
-                  <select name="isPaywalled"
+                  <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="paywalled">Paywalled</label>
+                  <select id="paywalled" name="isPaywalled"
                     class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]"
                   >
                     <option value="false" selected={!scenario.isPaywalled}>No</option>
@@ -310,43 +329,43 @@
                   <input type="hidden" name="scenarioId" value={scenario.id} />
                   <div class="grid grid-cols-3 gap-2">
                     <div>
-                      <label class="text-[var(--text-muted)] text-xs">Title</label>
-                      <input type="text" name="title" required
+                      <label class="text-[var(--text-muted)] text-xs" for="title">Title</label>
+                      <input id="title" type="text" name="title" required
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <label class="text-[var(--text-muted)] text-xs">Order</label>
-                      <input type="number" name="order" value={scenario.levels.length + 1}
+                      <label class="text-[var(--text-muted)] text-xs" for="order">Order</label>
+                      <input id="order" type="number" name="order" value={scenario.levels.length + 1}
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <label class="text-[var(--text-muted)] text-xs">Sprint</label>
-                      <input type="number" name="sprintNumber" value="1"
+                      <label class="text-[var(--text-muted)] text-xs" for="sprint">Sprint</label>
+                      <input id="sprint" type="number" name="sprintNumber" value="1"
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <label class="text-[var(--text-muted)] text-xs">Deadline</label>
-                      <input type="date" name="deadline"
+                      <label class="text-[var(--text-muted)] text-xs" for="deadline">Deadline</label>
+                      <input id="deadline" type="date" name="deadline"
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <label class="text-[var(--text-muted)] text-xs">XP</label>
-                      <input type="number" name="xpReward" value="100"
+                      <label class="text-[var(--text-muted)] text-xs" for="xp">XP</label>
+                      <input id="xp" type="number" name="xpReward" value="100"
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <label class="text-[var(--text-muted)] text-xs">Coins</label>
-                      <input type="number" name="coinReward" value="50"
+                      <label class="text-[var(--text-muted)] text-xs" for="coins">Coins</label>
+                      <input id="coins" type="number" name="coinReward" value="50"
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                     <div class="col-span-3">
-                      <label class="text-[var(--text-muted)] text-xs">Description</label>
-                      <input type="text" name="levelDescription"
+                      <label class="text-[var(--text-muted)] text-xs" for="description">Description</label>
+                      <input id="description" type="text" name="levelDescription"
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                     <div class="col-span-3">
-                      <label class="text-[var(--text-muted)] text-xs">Key Takeaways</label>
-                      <input type="text" name="keyTakeaways"
+                      <label class="text-[var(--text-muted)] text-xs" for="key_takeaways">Key Takeaways</label>
+                      <input id="key_takeaways" type="text" name="keyTakeaways"
                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                     </div>
                   </div>
@@ -392,43 +411,43 @@
                         <input type="hidden" name="id" value={level.id} />
                         <div class="grid grid-cols-3 gap-2">
                           <div>
-                            <label class="text-[var(--text-muted)] text-xs">Title</label>
-                            <input type="text" name="title" value={level.title}
+                            <label class="text-[var(--text-muted)] text-xs" for="title">Title</label>
+                            <input id="title" type="text" name="title" value={level.title}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                           <div>
-                            <label class="text-[var(--text-muted)] text-xs">Order</label>
-                            <input type="number" name="order" value={level.order}
+                            <label class="text-[var(--text-muted)] text-xs" for="order">Order</label>
+                            <input id="order" type="number" name="order" value={level.order}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                           <div>
-                            <label class="text-[var(--text-muted)] text-xs">Sprint</label>
-                            <input type="number" name="sprintNumber" value={level.sprintNumber}
+                            <label class="text-[var(--text-muted)] text-xs" for="sprint">Sprint</label>
+                            <input id="sprint" type="number" name="sprintNumber" value={level.sprintNumber}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                           <div>
-                            <label class="text-[var(--text-muted)] text-xs">Deadline</label>
-                            <input type="date" name="deadline" value={level.deadline}
+                            <label class="text-[var(--text-muted)] text-xs" for="deadline">Deadline</label>
+                            <input id="deadline" type="date" name="deadline" value={level.deadline}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                           <div>
-                            <label class="text-[var(--text-muted)] text-xs">XP</label>
-                            <input type="number" name="xpReward" value={level.xpReward}
+                            <label class="text-[var(--text-muted)] text-xs" for="xp">XP</label>
+                            <input id="xp" type="number" name="xpReward" value={level.xpReward}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                           <div>
-                            <label class="text-[var(--text-muted)] text-xs">Coins</label>
-                            <input type="number" name="coinReward" value={level.coinReward}
+                            <label class="text-[var(--text-muted)] text-xs" for="coins">Coins</label>
+                            <input id="coins" type="number" name="coinReward" value={level.coinReward}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                           <div class="col-span-3">
-                            <label class="text-[var(--text-muted)] text-xs">Description</label>
-                            <input type="text" name="levelDescription" value={level.levelDescription}
+                            <label class="text-[var(--text-muted)] text-xs" for="description">Description</label>
+                            <input id="description" type="text" name="levelDescription" value={level.levelDescription}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                           <div class="col-span-3">
-                            <label class="text-[var(--text-muted)] text-xs">Key Takeaways</label>
-                            <input type="text" name="keyTakeaways" value={level.keyTakeaways}
+                            <label class="text-[var(--text-muted)] text-xs" for="key_takeaways">Key Takeaways</label>
+                            <input id="key_takeaways" type="text" name="keyTakeaways" value={level.keyTakeaways}
                               class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                           </div>
                         </div>
@@ -510,18 +529,18 @@
                             <input type="hidden" name="levelId" value={level.id} />
                             <div class="grid grid-cols-2 gap-2">
                               <div>
-                                <label class="text-[var(--text-muted)] text-xs">Task Name</label>
-                                <input type="text" name="taskName" required
+                                <label class="text-[var(--text-muted)] text-xs" for="task_name">Task Name</label>
+                                <input id="task_name" type="text" name="taskName" required
                                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                               </div>
                               <div>
-                                <label class="text-[var(--text-muted)] text-xs">Order</label>
-                                <input type="number" name="order" value={level.tasks.length + 1}
+                                <label class="text-[var(--text-muted)] text-xs" for="order">Order</label>
+                                <input id="order" type="number" name="order" value={level.tasks.length + 1}
                                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                               </div>
                               <div>
-                                <label class="text-[var(--text-muted)] text-xs">Test Type</label>
-                                <select name="testType"
+                                <label class="text-[var(--text-muted)] text-xs" for="test_type">Test Type</label>
+                                <select id="test_type" name="testType"
                                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
                                 >
                                   {#each TEST_TYPES as tt}
@@ -530,13 +549,13 @@
                                 </select>
                               </div>
                               <div class="col-span-2">
-                                <label class="text-[var(--text-muted)] text-xs">User Story</label>
-                                <input type="text" name="userStory"
+                                <label class="text-[var(--text-muted)] text-xs" for="user_story">User Story</label>
+                                <input id="user_story" type="text" name="userStory"
                                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                               </div>
                               <div class="col-span-2">
-                                <label class="text-[var(--text-muted)] text-xs">Acceptance Criteria (one per line)</label>
-                                <textarea name="acceptanceCriteria" rows="3" placeholder="A member can view all books&#10;Search filters by title&#10;Empty state when no results"
+                                <label class="text-[var(--text-muted)] text-xs" for="acceptance_criteria_one_per_line">Acceptance Criteria (one per line)</label>
+                                <textarea id="acceptance_criteria_one_per_line" name="acceptanceCriteria" rows="3" placeholder="A member can view all books&#10;Search filters by title&#10;Empty state when no results"
                                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"></textarea>
                               </div>
                             </div>
@@ -582,18 +601,18 @@
                                   <input type="hidden" name="id" value={task.id} />
                                   <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                      <label class="text-[var(--text-muted)] text-xs">Task Name</label>
-                                      <input type="text" name="taskName" value={task.taskName}
+                                      <label class="text-[var(--text-muted)] text-xs" for="task_name">Task Name</label>
+                                      <input id="task_name" type="text" name="taskName" value={task.taskName}
                                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                                     </div>
                                     <div>
-                                      <label class="text-[var(--text-muted)] text-xs">Order</label>
-                                      <input type="number" name="order" value={task.order}
+                                      <label class="text-[var(--text-muted)] text-xs" for="order">Order</label>
+                                      <input id="order" type="number" name="order" value={task.order}
                                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                                     </div>
                                     <div>
-                                      <label class="text-[var(--text-muted)] text-xs">Test Type</label>
-                                      <select name="testType"
+                                      <label class="text-[var(--text-muted)] text-xs" for="test_type">Test Type</label>
+                                      <select id="test_type" name="testType"
                                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
                                       >
                                         {#each TEST_TYPES as tt}
@@ -602,8 +621,8 @@
                                       </select>
                                     </div>
                                     <div>
-                                      <label class="text-[var(--text-muted)] text-xs">Complete</label>
-                                      <select name="isComplete"
+                                      <label class="text-[var(--text-muted)] text-xs" for="complete">Complete</label>
+                                      <select id="complete" name="isComplete"
                                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
                                       >
                                         <option value="false" selected={!task.isComplete}>No</option>
@@ -611,13 +630,13 @@
                                       </select>
                                     </div>
                                     <div class="col-span-2">
-                                      <label class="text-[var(--text-muted)] text-xs">User Story</label>
-                                      <input type="text" name="userStory" value={task.userStory}
+                                      <label class="text-[var(--text-muted)] text-xs" for="user_story">User Story</label>
+                                      <input id="user_story" type="text" name="userStory" value={task.userStory}
                                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
                                     </div>
                                     <div class="col-span-2">
-                                      <label class="text-[var(--text-muted)] text-xs">Acceptance Criteria (one per line)</label>
-                                      <textarea name="acceptanceCriteria" rows="3"
+                                      <label class="text-[var(--text-muted)] text-xs" for="acceptance_criteria_one_per_line">Acceptance Criteria (one per line)</label>
+                                      <textarea id="acceptance_criteria_one_per_line" name="acceptanceCriteria" rows="3"
                                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"
                                       >{task.acceptanceCriteria.map(ac => ac.description).join('\n')}</textarea>
                                     </div>
@@ -670,12 +689,213 @@
                                 {/if}
                               </div>
                             {/if}
+
+                            <div class="mt-3">
+                              <div class="flex items-center justify-between mb-2">
+                                <h5 class="[font-family:var(--font-mono)] text-xs text-[var(--text-muted)] uppercase tracking-wider">Learning Sections</h5>
+                                <button
+                                  on:click={() => (showCreateLearningSectionForTask = showCreateLearningSectionForTask === task.id ? null : task.id)}
+                                  class="flex items-center gap-1 rounded bg-[rgba(7,165,201,0.1)] px-2 py-0.5 text-[0.65rem] text-[var(--accent)] hover:bg-[rgba(7,165,201,0.2)]"
+                                >
+                                  <Plus class="h-3 w-3" /> Add Section
+                                </button>
+                              </div>
+
+                              {#if showCreateLearningSectionForTask === task.id}
+                                <div class="mb-2 rounded border border-[rgba(7,165,201,0.2)] bg-[rgba(7,165,201,0.05)] p-2">
+                                  <form
+                                    method="POST"
+                                    action="?/createLearningSection"
+                                    use:enhance={() => {
+                                      isSubmitting = true;
+                                      return async ({ result, update }) => {
+                                        isSubmitting = false;
+                                        showCreateLearningSectionForTask = null;
+                                        if (result.type === "success") {
+                                          message = { type: "success", text: "Learning section created" };
+                                        } else if (result.type === "failure") {
+                                          message = { type: "error", text: (result.data?.message as string) || "Failed to create learning section" };
+                                        }
+                                        await update({ reset: false });
+                                        setTimeout(() => (message = null), 3000);
+                                      };
+                                    }}
+                                    class="space-y-2"
+                                  >
+                                    <input type="hidden" name="taskId" value={task.id} />
+                                    <input type="hidden" name="order" value={task.learningSections.length + 1} />
+                                    <div class="grid grid-cols-2 gap-2">
+                                      <div class="col-span-2">
+                                        <label class="text-[var(--text-muted)] text-xs" for="title">Title</label>
+                                        <input id="title" type="text" name="title" required
+                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
+                                      </div>
+                                      <div>
+                                        <label class="text-[var(--text-muted)] text-xs" for="section_type">Section Type</label>
+                                        <select id="section_type" name="sectionType"
+                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
+                                        >
+                                          {#each SECTION_TYPES as st}
+                                            <option value={st}>{st}</option>
+                                          {/each}
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label class="text-[var(--text-muted)] text-xs" for="interactive_mode">Interactive Mode</label>
+                                        <select id="interactive_mode" name="interactiveMode"
+                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
+                                        >
+                                          <option value="">-- None --</option>
+                                          {#each INTERACTIVE_MODES as im}
+                                            <option value={im}>{im}</option>
+                                          {/each}
+                                        </select>
+                                      </div>
+                                      <div class="col-span-2">
+                                        <label class="text-[var(--text-muted)] text-xs" for="content">Content</label>
+                                        <textarea id="content" name="content" rows="3"
+                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"></textarea>
+                                      </div>
+                                      <div class="col-span-2">
+                                        <label class="text-[var(--text-muted)] text-xs" for="interactive_config_json">Interactive Config (JSON)</label>
+                                        <textarea id="interactive_config_json" name="interactiveConfig" rows="4" placeholder="Paste JSON config here"
+                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"></textarea>
+                                      </div>
+                                    </div>
+                                    <div class="flex justify-end gap-2">
+                                      <button type="button" on:click={() => (showCreateLearningSectionForTask = null)}
+                                        class="rounded bg-[rgba(136,146,160,0.15)] px-2 py-0.5 text-xs text-[var(--text-muted)]"
+                                      >Cancel</button>
+                                      <button type="submit" disabled={isSubmitting}
+                                        class="flex items-center gap-1 rounded bg-[rgba(0,229,160,0.15)] px-2 py-0.5 text-xs text-[var(--success)] disabled:opacity-50"
+                                      >
+                                        {#if isSubmitting}<Loader2 class="h-3 w-3 animate-spin" />{/if}
+                                        Create
+                                      </button>
+                                    </div>
+                                  </form>
+                                </div>
+                              {/if}
+
+                              <div class="space-y-1">
+                                {#each task.learningSections as section}
+                                  <div class="rounded border border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.01)]">
+                                    {#if editingLearningSectionId === section.id}
+                                      <div class="p-2">
+                                        <form
+                                          method="POST"
+                                          action="?/updateLearningSection"
+                                          use:enhance={() => {
+                                            isSubmitting = true;
+                                            return async ({ result, update }) => {
+                                              isSubmitting = false;
+                                              editingLearningSectionId = null;
+                                              if (result.type === "success") {
+                                                message = { type: "success", text: "Learning section updated" };
+                                              } else if (result.type === "failure") {
+                                                message = { type: "error", text: (result.data?.message as string) || "Failed to update learning section" };
+                                              }
+                                              await update({ reset: false });
+                                              setTimeout(() => (message = null), 3000);
+                                            };
+                                          }}
+                                          class="space-y-2"
+                                        >
+                                          <input type="hidden" name="id" value={section.id} />
+                                          <div class="grid grid-cols-2 gap-2">
+                                            <div class="col-span-2">
+                                              <label class="text-[var(--text-muted)] text-xs" for="title">Title</label>
+                                              <input id="title" type="text" name="title" value={section.title}
+                                                class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
+                                            </div>
+                                            <div>
+                                              <label class="text-[var(--text-muted)] text-xs" for="order">Order</label>
+                                              <input id="order" type="number" name="order" value={section.order}
+                                                class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
+                                            </div>
+                                            <div>
+                                              <label class="text-[var(--text-muted)] text-xs" for="section_type">Section Type</label>
+                                              <select id="section_type" name="sectionType"
+                                                class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
+                                              >
+                                                {#each SECTION_TYPES as st}
+                                                  <option value={st} selected={section.sectionType === st}>{st}</option>
+                                                {/each}
+                                              </select>
+                                            </div>
+                                            {#if section.sectionType === "INTERACTIVE"}
+                                              <div>
+                                                <label class="text-[var(--text-muted)] text-xs" for="interactive_mode">Interactive Mode</label>
+                                                <select id="interactive_mode" name="interactiveMode"
+                                                  class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
+                                                >
+                                                  <option value="">-- None --</option>
+                                                  {#each INTERACTIVE_MODES as im}
+                                                    <option value={im} selected={section.interactiveMode === im}>{im}</option>
+                                                  {/each}
+                                                </select>
+                                              </div>
+                                              <div>
+                                                <label class="text-[var(--text-muted)] text-xs" for="interactive_config_json">Interactive Config (JSON)</label>
+                                                <textarea id="interactive_config_json" name="interactiveConfig" rows="3"
+                                                  class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"
+                                                >{section.interactiveConfig ? JSON.stringify(section.interactiveConfig, null, 2) : ''}</textarea>
+                                              </div>
+                                            {/if}
+                                            <div class="col-span-2">
+                                              <label class="text-[var(--text-muted)] text-xs" for="content">Content</label>
+                                              <textarea id="content" name="content" rows="3"
+                                                class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"
+                                              >{section.content}</textarea>
+                                            </div>
+                                          </div>
+                                          <div class="flex justify-end gap-2">
+                                            <button type="button" on:click={() => (editingLearningSectionId = null)}
+                                              class="rounded bg-[rgba(136,146,160,0.15)] px-2 py-0.5 text-xs text-[var(--text-muted)]"
+                                            >Cancel</button>
+                                            <button type="submit" disabled={isSubmitting}
+                                              class="flex items-center gap-1 rounded bg-[rgba(0,229,160,0.15)] px-2 py-0.5 text-xs text-[var(--success)] disabled:opacity-50"
+                                            >
+                                              {#if isSubmitting}<Loader2 class="h-3 w-3 animate-spin" />{/if}
+                                              Save
+                                            </button>
+                                          </div>
+                                        </form>
+                                      </div>
+                                    {:else}
+                                      <div class="flex items-center justify-between px-2 py-1.5">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                          <BookOpen class="h-3 w-3 text-[var(--text-muted)] shrink-0" />
+                                          <span class="text-xs text-[var(--text-primary)] font-mono">{section.title}</span>
+                                          <span class="text-[0.6rem] text-[var(--text-muted)]">({section.sectionType})</span>
+                                          {#if section.interactiveMode}
+                                            <span class="text-[0.55rem] text-[var(--accent)] bg-[rgba(7,165,201,0.1)] px-1 py-0.5 rounded">{section.interactiveMode}</span>
+                                          {/if}
+                                        </div>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                          <button on:click={() => (editingLearningSectionId = section.id)}
+                                            class="rounded bg-[rgba(7,165,201,0.1)] p-0.5 text-[var(--accent)] hover:bg-[rgba(7,165,201,0.2)]"
+                                          ><Edit3 class="h-3 w-3" /></button>
+                                          <form method="POST" action="?/deleteLearningSection" use:enhance>
+                                            <input type="hidden" name="id" value={section.id} />
+                                            <button type="submit" class="rounded bg-[rgba(255,68,68,0.1)] p-0.5 text-[var(--danger)] hover:bg-[rgba(255,68,68,0.2)]"
+                                              on:click={() => confirm('Delete this learning section?')}
+                                            ><Trash2 class="h-3 w-3" /></button>
+                                          </form>
+                                        </div>
+                                      </div>
+                                    {/if}
+                                  </div>
+                                {/each}
+                              </div>
+                            </div>
                           </div>
                         {/each}
                         {#if level.tasks.length === 0}
                           <p class="text-xs text-[var(--text-muted)] italic py-1">No tasks yet</p>
                         {/if}
                       </div>
+
                     </div>
                   {/if}
                 </div>
