@@ -6,7 +6,12 @@ export interface HelpEntry {
 	steps: string[];
 	actions?: { label: string; handler: string }[];
 	image?: string;
+	stepAttachments?: StepAttachment[];
 }
+
+export type StepAttachment =
+	| { afterStep: number; type: 'image'; image: string; alt?: string }
+	| { afterStep: number; type: 'action'; label: string; handler: string };
 
 export const errorCatalog: HelpEntry[] = [
 	{
@@ -100,10 +105,35 @@ export const errorCatalog: HelpEntry[] = [
 			'Re-read the task\'s acceptance criteria in the board panel to make sure you haven\'t missed any requirements.',
 			'Open the crash course section for this task — it teaches the concepts needed to pass the tests.',
 			'Make sure your code handles edge cases (empty inputs, invalid data, error states).',
-			'Click the Beaker test button in the workspace header to re-run tests after fixing your code.'
+			'Click the test button in the workspace header to re-run tests after fixing your code.'
 		],
-		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }],
-		image: '/images/limitations/tests/testfail.png'
+		image: '/images/limitations/tests/testfail.png',
+		stepAttachments: [
+			{
+				afterStep: 1,
+				type: 'image',
+				image: '/images/limitations/tests/testresult.png',
+				alt: 'Example test results modal output'
+			},
+			{
+				afterStep: 2,
+				type: 'image',
+				image: '/images/limitations/tests/acceptance_criteria.png',
+				alt: 'Acceptance criteria shown in the board panel'
+			},
+			{
+				afterStep: 3,
+				type: 'action',
+				label: 'Open Crash Course',
+				handler: 'openCrashCourse'
+			},
+			{
+				afterStep: 5,
+				type: 'image',
+				image: '/images/limitations/tests/test_button.png',
+				alt: 'Test button in the workspace header'
+			}
+		]
 	},
 	{
 		id: 'task-order-blocked',

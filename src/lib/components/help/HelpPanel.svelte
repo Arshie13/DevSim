@@ -133,7 +133,7 @@
 
 <div class="help-overlay" class:help-hidden={minimized} onclick={handleClose} role="presentation"></div>
 
-<div class="help-panel" class:help-hidden={minimized} onkeydown={handleKeydown}>
+<div class="help-panel" class:help-hidden={minimized} onkeydown={handleKeydown} role="dialog" aria-modal="true" aria-label="Help &amp; Troubleshooting" tabindex="-1">
 	<!-- Header -->
 	<div class="panel-header">
 		<div class="flex items-center gap-3">
@@ -305,6 +305,33 @@
 							<span class="text-[#07a5c9] font-bold flex-shrink-0">{i + 1}.</span>
 							<span>{step}</span>
 						</li>
+						{#each error.stepAttachments ?? [] as attachment}
+							{#if attachment.afterStep === i + 1}
+								<li class="pl-6">
+									{#if attachment.type === 'image'}
+										<button
+											onclick={() => openImageLightbox(attachment.image)}
+											class="rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-fit max-w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
+										>
+											<img
+												src={attachment.image}
+												alt={attachment.alt ?? `Steps illustration for: ${error.title}`}
+												class="max-w-full h-auto block"
+												loading="lazy"
+											/>
+										</button>
+									{:else}
+										<button
+											onclick={() => handleAction(attachment.handler)}
+											class="px-4 py-2 text-xs font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
+											style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
+										>
+											{attachment.label}
+										</button>
+									{/if}
+								</li>
+							{/if}
+						{/each}
 					{/each}
 				</ol>
 			</div>
@@ -393,7 +420,12 @@
 		onkeydown={handleKeydown}
 		role="presentation"
 	>
-		<div class="image-lightbox-content" onclick={(e) => e.stopPropagation()}>
+		<div
+			class="image-lightbox-content"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="presentation"
+		>
 			<button
 				onclick={closeImageLightbox}
 				class="image-lightbox-close"
