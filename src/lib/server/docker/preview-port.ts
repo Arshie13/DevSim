@@ -5,6 +5,7 @@
 
 const PREFERRED_CONTAINER_PORTS = ["5173", "3000", "5000"] as const;
 const PREFERRED_KEYS = new Set<string>(PREFERRED_CONTAINER_PORTS);
+const DATABASE_PORTS = new Set(["5432", "27017", "3306", "6379"]);
 
 export function orderedHostPorts(previewPorts: Record<string, number>): number[] {
   const seen = new Set<number>();
@@ -12,14 +13,14 @@ export function orderedHostPorts(previewPorts: Record<string, number>): number[]
 
   for (const key of PREFERRED_CONTAINER_PORTS) {
     const hp = previewPorts[key];
-    if (hp != null && !seen.has(hp)) {
+    if (hp != null && !DATABASE_PORTS.has(key) && !seen.has(hp)) {
       seen.add(hp);
       out.push(hp);
     }
   }
 
   const restKeys = Object.keys(previewPorts)
-    .filter((k) => !PREFERRED_KEYS.has(k))
+    .filter((k) => !PREFERRED_KEYS.has(k) && !DATABASE_PORTS.has(k))
     .sort((a, b) => Number(a) - Number(b));
 
   for (const k of restKeys) {
