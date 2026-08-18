@@ -2,6 +2,7 @@ import { docker } from '$lib/server/docker/client';
 import { pickPreviewHostPortWithProbe } from '$lib/server/docker/preview-port';
 import * as crypto from 'crypto';
 import { Writable } from 'stream';
+import Dockerode from 'dockerode';
 
 const STACK_CATEGORY: Record<string, 'frontend' | 'backend' | 'database'> = {
   react: 'frontend',
@@ -58,6 +59,19 @@ interface InspectResult {
   };
 }
 
+export function buildMongoUserUpsertScript(dbName: string, password: string): string {
+  const safeDbName = dbName.replace(/'/g, "\\'");
+  const safePassword = password.replace(/'/g, "\\'");
+
+  return [
+    `const db = db.getSiblingDB('${safeDbName}')`,
+    `const user = '${safeDbName}'`,
+    `const roles = [{ role: 'readWrite', db: '${safeDbName}' }]`,
+    `const existing = db.getUsers().users.some((u) => u.user === user)`,
+    `if (existing) { db.updateUser(user, { pwd: '${safePassword}', roles }) } else { db.createUser({ user, pwd: '${safePassword}', roles }) }`
+  ].join('; ');
+}
+
 export class ContainerService {
   async findByLabels(userId: string, stackName: string, level: number) {
     const containers = await docker.listContainers({
@@ -80,12 +94,6 @@ export class ContainerService {
 
     if (!info.State.Running) {
       await container.start();
-    }
-
-    // The sidecar shares the workspace's namespace, so start it after the
-    // workspace is running. Works for pre-existing containers too.
-    if (this.isMongoWorkspace(info.Config?.Labels)) {
-      await this.ensureMongoSidecar(containerId);
     }
 
     return info;
@@ -153,18 +161,8 @@ export class ContainerService {
   // don't need to manage it.
   // ───────────────────────────────────────────────────────────────────────────
 
-  private static readonly MONGO_IMAGE = 'mongo:7';
-
   private isMongoStack(stackName: string | undefined): boolean {
     return !!stackName && stackName.toLowerCase().includes('mongo');
-  }
-
-  private isMongoWorkspace(labels: Record<string, string> | undefined): boolean {
-    return this.isMongoStack(labels?.['devsim.stack']);
-  }
-
-  private mongoSidecarName(workspaceId: string): string {
-    return `devsim-mongo-${workspaceId.slice(0, 12)}`;
   }
 
   private async ensureImage(image: string) {
@@ -185,68 +183,6 @@ export class ContainerService {
     });
   }
 
-  /**
-   * Ensure a MongoDB sidecar is running for the given (already-running) workspace
-   * container. The sidecar shares the workspace's network namespace, so mongod
-   * is reachable at localhost:27017 from inside the workspace.
-   */
-  private async ensureMongoSidecar(workspaceId: string) {
-    const name = this.mongoSidecarName(workspaceId);
-
-    await this.ensureImage(ContainerService.MONGO_IMAGE);
-
-    const existing = docker.getContainer(name);
-    try {
-      const info = await existing.inspect();
-      if (!info.State.Running) {
-        await existing.start();
-      }
-      return;
-    } catch {
-      // not created yet → create below
-    }
-
-    const mongo = await docker.createContainer({
-      Image: ContainerService.MONGO_IMAGE,
-      name,
-      Labels: {
-        'devsim.role': 'mongo-sidecar',
-        'devsim.workspace': workspaceId
-      },
-      HostConfig: {
-        Memory: 256 * 1024 * 1024,
-        NetworkMode: `container:${workspaceId}`,
-        AutoRemove: false
-      }
-    });
-    await mongo.start();
-  }
-
-  private async stopMongoSidecar(workspaceId: string) {
-    try {
-      const mongo = docker.getContainer(this.mongoSidecarName(workspaceId));
-      const info = await mongo.inspect();
-      if (info.State.Running) {
-        await mongo.stop({ t: 5 });
-      }
-    } catch {
-      // already stopped/removed
-    }
-  }
-
-  private async removeMongoSidecar(workspaceId: string) {
-    try {
-      const mongo = docker.getContainer(this.mongoSidecarName(workspaceId));
-      const info = await mongo.inspect();
-      if (info.State.Running) {
-        await mongo.stop({ t: 5 });
-      }
-      await mongo.remove();
-    } catch {
-      // already gone
-    }
-  }
-
   private generateDbName(userId: string, stackName: string, level: number): string {
     const safeStack = stackName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
     const safeUser = userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
@@ -259,6 +195,11 @@ export class ContainerService {
 
   private static readonly SHARED_NETWORK = 'devsim-network';
   private static readonly SHARED_POSTGRES = 'devsim-postgres';
+  private static readonly SHARED_MONGO = 'devsim-mongo';
+  private static readonly MONGO_IMAGE = 'mongo:7';
+  private static readonly MONGO_ROOT_USER = 'devsim';
+  private static readonly MONGO_ROOT_PASSWORD = 'devsim-root-password';
+  private static readonly MONGO_VOLUME = 'devsim-mongo-data';
 
   private async ensureDevsimNetwork() {
     try {
@@ -289,7 +230,7 @@ export class ContainerService {
     try { volume = await docker.getVolume(volumeName); } catch { volume = await docker.createVolume({ Name: volumeName }); }
 
     const pgPassword = 'devsim';
-    const containerConfig: any = {
+    const containerConfig: Dockerode.ContainerCreateOptions = {
       Image: 'postgres:16-alpine',
       name: containerName,
       Env: ['POSTGRES_USER=devsim', `POSTGRES_PASSWORD=${pgPassword}`, 'POSTGRES_DB=devsim'],
@@ -311,6 +252,68 @@ export class ContainerService {
         const check = docker.getContainer(containerName);
         const exec = await check.exec({
           Cmd: ['pg_isready', '-U', 'devsim', '-d', 'devsim'],
+          AttachStdout: true, AttachStderr: true,
+        });
+        const stream = await exec.start({});
+        await new Promise<void>((resolve) => {
+          check.modem.demuxStream(stream, { write: () => {} } as any, { write: () => {} } as any);
+          stream.on('end', resolve);
+        });
+        const inspect = await exec.inspect();
+        if (inspect.ExitCode === 0) break;
+      } catch {
+        // not ready yet
+      }
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+
+  private async ensureSharedMongoRunning(): Promise<void> {
+    const containerName = ContainerService.SHARED_MONGO;
+    try {
+      const container = docker.getContainer(containerName);
+      const info = await container.inspect();
+      if (info.State.Running) return;
+      await container.start();
+      await new Promise(r => setTimeout(r, 3000));
+      return;
+    } catch {
+      // Container doesn't exist or can't be inspected; create it.
+    }
+
+    const network = docker.getNetwork(ContainerService.SHARED_NETWORK);
+    try { await network.inspect(); } catch { await docker.createNetwork({ Name: ContainerService.SHARED_NETWORK }); }
+
+    const volumeName = ContainerService.MONGO_VOLUME;
+    let volume: Dockerode.Volume | Dockerode.VolumeCreateResponse;
+    try { volume = await docker.getVolume(volumeName); } catch { volume = await docker.createVolume({ Name: volumeName }); }
+
+    const containerConfig: Dockerode.ContainerCreateOptions = {
+      Image: ContainerService.MONGO_IMAGE,
+      name: containerName,
+      Cmd: ['mongod', '--auth'],
+      Env: [
+        `MONGO_INITDB_ROOT_USERNAME=${ContainerService.MONGO_ROOT_USER}`,
+        `MONGO_INITDB_ROOT_PASSWORD=${ContainerService.MONGO_ROOT_PASSWORD}`
+      ],
+      HostConfig: {
+        Memory: 256 * 1024 * 1024,
+        AutoRemove: false,
+        NetworkMode: ContainerService.SHARED_NETWORK,
+        Binds: [`${volumeName}:/data/db`],
+      },
+      Labels: { 'devsim.role': 'shared-mongo' },
+    };
+
+    const created = await docker.createContainer(containerConfig);
+    await created.start();
+    await new Promise(r => setTimeout(r, 3000));
+
+    for (let i = 0; i < 10; i++) {
+      try {
+        const check = docker.getContainer(containerName);
+        const exec = await check.exec({
+          Cmd: ['mongosh', '--eval', 'db.runCommand({ping:1})', '-u', ContainerService.MONGO_ROOT_USER, '-p', ContainerService.MONGO_ROOT_PASSWORD, '--authenticationDatabase', 'admin'],
           AttachStdout: true, AttachStderr: true,
         });
         const stream = await exec.start({});
@@ -353,6 +356,39 @@ export class ContainerService {
     }
 
     return dbPassword;
+  }
+
+  private async ensureSharedMongoDatabase(dbName: string): Promise<{ user: string; password: string }> {
+    const container = docker.getContainer(ContainerService.SHARED_MONGO);
+    const password = this.generateDbPassword();
+
+    const script = buildMongoUserUpsertScript(dbName, password);
+    await this.runMongosh(container, script);
+
+    return { user: dbName, password };
+  }
+
+  private async runMongosh(container: any, script: string): Promise<void> {
+    const exec = await container.exec({
+      Cmd: ['mongosh', '-u', ContainerService.MONGO_ROOT_USER, '-p', ContainerService.MONGO_ROOT_PASSWORD, '--authenticationDatabase', 'admin', '--eval', script],
+      AttachStdout: true, AttachStderr: true,
+    });
+    const stream = await exec.start({});
+    let errOutput = '';
+
+    await new Promise<void>((resolve) => {
+      container.modem.demuxStream(
+        stream,
+        { write: () => {} } as any,
+        { write: (chunk: Buffer) => { errOutput += chunk.toString(); } }
+      );
+      stream.on('end', resolve);
+    });
+
+    const inspect = await exec.inspect();
+    if (inspect.ExitCode !== 0) {
+      throw new Error(errOutput.trim() || `mongosh exit code ${inspect.ExitCode}`);
+    }
   }
 
   private async runPgSql(container: any, sql: string, database: string = 'devsim'): Promise<void> {
@@ -414,6 +450,15 @@ export class ContainerService {
     await this.ensureSharedPostgresRunning();
     const dbPassword = await this.ensureSharedPostgresDatabase(dbName);
 
+    let mongoUser: string | undefined;
+    let mongoPassword: string | undefined;
+    if (isMongo) {
+      await this.ensureSharedMongoRunning();
+      const mongoCreds = await this.ensureSharedMongoDatabase(dbName);
+      mongoUser = mongoCreds.user;
+      mongoPassword = mongoCreds.password;
+    }
+
     const stacksArray: Array<{ stackName: string }> = [...stacks].filter(s => s && s.stackName);
 
     // Determine ports to expose based on selected stacks
@@ -453,8 +498,10 @@ export class ContainerService {
         `DATABASE_PASSWORD=${dbPassword}`,
         `DATABASE_URL=postgresql://${dbName}:${dbPassword}@devsim-postgres:5432/${dbName}`,
         'SKIP_POSTGRES=true',
-        ...isMongo ? [
-          `MONGO_URI=mongodb://localhost:27017/${dbName}`,
+        ...isMongo && mongoUser && mongoPassword ? [
+          `MONGO_URI=mongodb://${mongoUser}:${mongoPassword}@devsim-mongo:27017/${dbName}?authSource=${dbName}`,
+          `MONGO_USER=${mongoUser}`,
+          `MONGO_PASSWORD=${mongoPassword}`,
           `JWT_SECRET=${mongoJwtSecret}`,
         ] : [],
       ],
@@ -479,13 +526,6 @@ export class ContainerService {
 
     const container = await docker.createContainer(containerConfig);
     await docker.getContainer(container.id).start();
-
-    // For Mongo stacks, start a MongoDB sidecar that shares this workspace's
-    // network namespace so mongod answers on localhost:27017 inside it. Must run
-    // after the workspace is started (the sidecar borrows its namespace).
-    if (isMongo) {
-      await this.ensureMongoSidecar(container.id);
-    }
 
     const inspect = await docker.getContainer(container.id).inspect();
 
@@ -558,12 +598,6 @@ export class ContainerService {
       const container = docker.getContainer(containerId);
       const info = await container.inspect();
 
-      // Remove the Mongo sidecar first — Docker won't remove a container whose
-      // network namespace is still in use by the sidecar.
-      if (this.isMongoWorkspace(info.Config?.Labels)) {
-        await this.removeMongoSidecar(containerId);
-      }
-
       if (info.State.Running) {
         await container.stop({ t: 5 });
       }
@@ -591,11 +625,6 @@ export class ContainerService {
     if (!info.State.Running) {
       await container.start();
       info = await container.inspect();
-    }
-
-    // Sidecar shares the workspace's namespace → start it after the workspace.
-    if (this.isMongoWorkspace(info.Config?.Labels)) {
-      await this.ensureMongoSidecar(containerId);
     }
 
     return {
@@ -628,20 +657,6 @@ export class ContainerService {
   async stopWorkspace(containerId: string) {
     try {
       const container = docker.getContainer(containerId);
-
-      let isMongo = false;
-      try {
-        const info = await container.inspect();
-        isMongo = this.isMongoWorkspace(info.Config?.Labels);
-      } catch {
-        // container already gone — nothing to stop
-      }
-
-      // Stop (but keep) the Mongo sidecar first — it shares the workspace's
-      // namespace — so it restarts with the workspace next time.
-      if (isMongo) {
-        await this.stopMongoSidecar(containerId);
-      }
 
       await container.stop();
 

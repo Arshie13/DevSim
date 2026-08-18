@@ -14,6 +14,7 @@
 		"docker:create-project-images": "pnpm exec tsx scripts/create-image.ts",
 		"docker:recreate-project-images": "pnpm exec tsx scripts/create-image.ts --force",
 		"docker:setup-shared-postgres": "pnpm exec tsx scripts/setup-shared-postgres.ts",
+		"docker:setup-shared-mongo": "pnpm exec tsx scripts/setup-shared-mongo.ts",
 		"ws:terminal": "pnpm exec tsx src/lib/server/websocket/terminal.ts",
 		"start:dev": "node server.js",
 		"start:prod": "NODE_ENV=production && pm2 start server.js",
