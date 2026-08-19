@@ -21,12 +21,19 @@ export const errorCatalog: HelpEntry[] = [
 		description: 'File save operations failed. This could be due to read-only files, workspace disk space issues, or a temporary API error.',
 		steps: [
 			'Check if the file is read-only (package.json and README files are protected from editing).',
-			'Verify you have enough disk space in the workspace. Large dependency installs can fill up space quickly.',
-			'Try saving again (Ctrl+S) — transient API errors sometimes resolve on their own.',
-			'If the problem persists, try refreshing the file tree from the sidebar to re-sync.'
+			'Check available disk space by running `df -h` in the terminal. Large dependency installs can fill up space quickly.',
+			'Try saving again (Ctrl+S) — transient API errors sometimes resolve on their own.'
 		],
 		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
-		image: '/images/limitations/files/save/cantsave.png'
+		image: '/images/limitations/files/save/failedtosave.png',
+		stepAttachments: [
+			{
+				afterStep: 1,
+				type: 'image',
+				image: '/images/limitations/files/save/cantsave.png',
+				alt: 'Read-only file protection example'
+			}
+		]
 	},
 	{
 		id: 'file-create-failure',
