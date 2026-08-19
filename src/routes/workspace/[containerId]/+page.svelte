@@ -1689,11 +1689,11 @@ $effect(() => {
         }
       } else {
         console.error("Delete failed:", data.error);
-        toast.error(`Delete failed: ${data.error}`);
+        toast.error(`Failed to delete ${isDirectory ? "folder" : "file"}: ${data.error}`);
       }
     } catch (error) {
       console.error("Error deleting file:", error);
-      toast.error("Failed to delete");
+      toast.error(`Failed to delete ${isDirectory ? "folder" : "file"}`);
     }
   }
 

@@ -41,7 +41,7 @@ export const errorCatalog: HelpEntry[] = [
 		title: 'Can\'t create files or folders',
 		description: 'File or folder creation failed. This may be caused by path traversal attempts or workspace disk space limits.',
 		steps: [
-			'Path traversal (../) is not allowed — use relative paths within the workspace only.',
+			'Parent-directory paths such as ../ are not allowed. Create the file or folder inside the workspace.',
 			'Clear unnecessary cache folders (node_modules, .next, dist) to free up space.',
 			'Try refreshing the file tree to sync with the workspace filesystem.'
 		],
@@ -164,7 +164,7 @@ export const errorCatalog: HelpEntry[] = [
 			'Look at the files you recently changed — those are the likely cause.',
 			'Fix the regression before submitting your sprint — all tasks must pass together.'
 		],
-		image: '/images/limitations/task/regression/failedtest.png'
+		image: '/images/limitations/task/regression/failedtests.png'
 	},
 	{
 		id: 'submit-reflection-short',
