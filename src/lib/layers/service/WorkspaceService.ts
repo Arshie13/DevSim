@@ -87,13 +87,24 @@ export class WorkspaceService {
     const existing = await this.workspace.findActiveWorkspaceByStacks(userId, level, stacksArray);
 
     // Tutorial workspaces are asynchronously destroyed (bgCleanup removes the
-    // Docker container in the background).  Reusing a tutorial container for a
-    // regular workspace races with the background destroy — the container would
-    // be removed from under the workspace page.  Skip the existing record and
-    // create a fresh container instead.
+    // Docker container in the background). Never reuse a tutorial container for
+    // a regular workspace; create the replacement first and clean up the old
+    // tutorial asynchronously after the replacement is persisted.
     const existingIsReusable =
       existing &&
       !(mode === "workspace" && existing.status === "tutorial");
+    const tutorialCleanup = new Map<string, { id: string; containerId: string }>();
+
+    const queueTutorialCleanup = (workspace: { id: string; containerId: string; status: string }) => {
+      if (mode === "workspace" && workspace.status === "tutorial") {
+        tutorialCleanup.set(workspace.id, {
+          id: workspace.id,
+          containerId: workspace.containerId,
+        });
+      }
+    };
+
+    if (existing) queueTutorialCleanup(existing);
 
     if (existingIsReusable) {
       try {
@@ -151,31 +162,7 @@ export class WorkspaceService {
       }
 
       if (dbRecord && mode === "workspace" && dbRecord.status === "tutorial") {
-        try {
-          await this.container.stopAndRemove(dockerMatch.Id);
-        } catch {
-          // container may already be gone (bgCleanup)
-        }
-        try {
-          await this.workspace.deleteWorkspace(dbRecord.id);
-        } catch {
-          // may already be deleted by bgCleanup
-        }
-      }
-    }
-
-    // If we're skipping a tutorial workspace, clean up its DB record
-    // so we don't end up with duplicate workspace records for the same level.
-    if (!existingIsReusable && existing) {
-      try {
-        await this.container.stopAndRemove(existing.containerId);
-      } catch {
-        // container may already be gone (bgCleanup)
-      }
-      try {
-        await this.workspace.deleteWorkspace(existing.id);
-      } catch {
-        // may already be deleted by bgCleanup
+        queueTutorialCleanup(dbRecord);
       }
     }
 
@@ -198,6 +185,22 @@ export class WorkspaceService {
       level,
       status: workspaceStatus,
     });
+
+    // Give the create response and subsequent page navigation time to finish
+    // before Docker changes the local network. The new workspace uses a unique
+    // container name, so the tutorial can remain alive briefly.
+    if (tutorialCleanup.size > 0) {
+      setTimeout(() => {
+        void Promise.all(
+          [...tutorialCleanup.values()].map(async ({ id, containerId }) => {
+            await this.container.stopAndRemove(containerId);
+            await this.workspace.deleteWorkspace(id);
+          }),
+        ).catch((error) => {
+          console.error("Tutorial workspace cleanup failed:", error);
+        });
+      }, 30_000);
+    }
 
     return {
       containerId: created.id,

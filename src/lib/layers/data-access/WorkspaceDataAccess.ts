@@ -52,7 +52,8 @@ export class WorkspaceDataAccess {
         level,
         is_archived: false,
         stack_name: stackName,
-      }
+      },
+      orderBy: { created_at: 'desc' }
     });
 
     if (activeWorkspaces.length > 0) {
@@ -88,7 +89,7 @@ export class WorkspaceDataAccess {
 
   async deleteWorkspace(workspaceId: string) {
     try {
-      await prisma.workspace.delete({
+      await prisma.workspace.deleteMany({
         where: { id: workspaceId }
       });
       return { success: true };
