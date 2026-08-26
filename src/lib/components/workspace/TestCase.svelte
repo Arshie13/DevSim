@@ -4,7 +4,7 @@
   import TestSelectionModal from '$components/workspace/TestSelectionModal.svelte';
   import TestResultModal from '$components/workspace/TestResultModal.svelte';
   import ConfirmationModal from '$lib/components/ui/ConfirmationModal.svelte';
-  import type { TestableTask, TestRunResult } from '$lib/types/test';
+  import type { TaskTestResult, TestableTask, TestRunResult } from '$lib/types/test';
   import { toast } from '$lib/stores/toast';
 
   export let containerId: string;

@@ -1239,7 +1239,7 @@ $effect(() => {
       }
 
        const wasPreviouslyCompleted =
-         task.boardStatus === "done" || task.isCompleted || task.is_complete;
+         task.boardStatus === "done" || task.isCompleted || task.isCompleted;
 
        if (wasPreviouslyCompleted) {
          regressions.push({
@@ -1895,7 +1895,6 @@ $effect(() => {
               onTaskStatusChange={handleTaskStatusChange}
               crashCourseLockedTasks={crashCourseLockedTasks}
               onTaskClickBlocked={handleBlockedTaskClick}
-              onRegressionAttempt={handleRegressionAttempt}
             />
           </div>
         {/if}
