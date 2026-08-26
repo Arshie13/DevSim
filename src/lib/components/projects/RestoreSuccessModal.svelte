@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { Play, Layers } from "lucide-svelte";
-  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
+  import { toast } from "$lib/stores/toast";
 
   export let open: boolean = false;
   export let newContainerId: string = "";
@@ -21,46 +21,12 @@
     await invalidateAll();
     busy = false;
   }
+
+  // Show toast when modal opens for success notification
+  $: if (open) {
+    toast.success("Workspace restored successfully! 🎉");
+  }
 </script>
-
-<ConfirmationModal
-  bind:open
-  icon="✅"
-  iconVariant="success"
-  title="Workspace Restored"
-  subtitle="Your saved progress has been brought back online."
-  variant="success"
-  hideActions={true}
-  closeOnBackdropClick={false}
->
-  <div class="rs-body">
-    <p class="rs-line">
-      The container is up and ready. Choose where to go next.
-    </p>
-
-    <div class="rs-buttons">
-      <button
-        type="button"
-        class="rs-btn rs-btn--primary"
-        on:click={continueToWorkspace}
-        disabled={busy}
-      >
-        <Play class="w-4 h-4" />
-        <span>Continue to Workspace</span>
-      </button>
-
-      <button
-        type="button"
-        class="rs-btn rs-btn--ghost"
-        on:click={backToProjects}
-        disabled={busy}
-      >
-        <Layers class="w-4 h-4" />
-        <span>Back to Projects</span>
-      </button>
-    </div>
-  </div>
-</ConfirmationModal>
 
 <style>
   .rs-body {

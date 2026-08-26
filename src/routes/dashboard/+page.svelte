@@ -11,6 +11,8 @@
   import DailyRewardsModal from "$lib/components/dailyRewards/DailyRewardsModal.svelte";
   import DashboardWelcomeModal from "$components/onboarding/DashboardWelcomeModal.svelte";
   import DashboardTour from "$components/onboarding/DashboardTour.svelte";
+  import HelpPanel from "$lib/components/help/HelpPanel.svelte";
+  import { helpTrigger } from "$lib/stores/helpTrigger";
 
   interface DashboardProps {
     user: UserData;
@@ -28,6 +30,27 @@
 
    let isStatsDrawerOpen = false;
    let isDailyRewardsModalOpen = false;
+
+   // Help panel state
+   let helpMounted = false;
+   let helpMinimized = false;
+   let helpPrefillCategory = '';
+   let helpPrefillDescription = '';
+
+   onMount(() => {
+     if (shouldShowOnboarding) {
+       onboardingPhase = 'welcome';
+     }
+     return helpTrigger.subscribe((payload) => {
+       if (payload) {
+         helpPrefillCategory = payload.category;
+         helpPrefillDescription = payload.description;
+         helpMinimized = false;
+         helpMounted = true;
+         helpTrigger.clear();
+       }
+     });
+   });
 
    let headerUserData: UserData = {
      id: data.user.id,
@@ -52,12 +75,6 @@
     let tourStartStep = 0;
 
     $: shouldShowOnboarding = !data.user.hasSeenDashboardOnboarding && data.userContainerList.length === 0;
-
-    onMount(() => {
-      if (shouldShowOnboarding) {
-        onboardingPhase = 'welcome';
-      }
-    });
 
     async function markOnboardingComplete() {
       try {
@@ -123,6 +140,15 @@
     isDailyRewardsModalOpen = true;
   }
 
+  function handleOpenHelp(category?: string, description?: string) {
+    helpPrefillCategory = category || '';
+    helpPrefillDescription = description || '';
+    if (!helpMounted) {
+      helpMounted = true;
+    }
+    helpMinimized = false;
+  }
+
   function closeDailyRewardsModal() {
     isDailyRewardsModalOpen = false;
   }
@@ -149,6 +175,7 @@
   <Header
     userData={headerUserData}
     onOpenDailyRewards={openDailyRewardsModal}
+    onOpenHelp={handleOpenHelp}
     showPass={true}
   />
 
@@ -238,6 +265,24 @@
           on:closeDrawer={() => { isStatsDrawerOpen = false; }}
         />
      {/if}
+   {/if}
+
+   <!-- Help Panel — always mounted once opened, visibility via minimized prop -->
+   {#if helpMounted}
+     <HelpPanel
+       prefillCategory={helpPrefillCategory}
+       prefillDescription={helpPrefillDescription}
+       minimized={helpMinimized}
+       onClose={() => {
+         helpMounted = false;
+         helpMinimized = false;
+         helpPrefillCategory = '';
+         helpPrefillDescription = '';
+       }}
+       onMinimize={() => {
+         helpMinimized = true;
+       }}
+     />
    {/if}
 
    <!-- Ambient Background Effects -->

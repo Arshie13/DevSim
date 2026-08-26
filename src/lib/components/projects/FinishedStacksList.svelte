@@ -89,6 +89,7 @@
       target = null;
 
       restoredContainerId = data.newContainerId ?? t.id;
+      toast.success("Workspace restored successfully! 🎉");
       successOpen = true;
     } catch (err) {
       stopStepTimer();

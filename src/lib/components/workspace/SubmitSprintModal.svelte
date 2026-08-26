@@ -11,6 +11,7 @@
     notifyAchievementUnlocks,
     type UnlockedAchievement,
   } from "$lib/stores/achievementToast";
+  import { toast } from "$lib/stores/toast";
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -864,6 +865,9 @@
 
       state = "success";
 
+      // Show success toast instead of inline success popup
+      toast.success("Sprint submitted successfully! 🎉");
+
       // Always show key takeaways first (fallback card handles empty content).
       hasViewedTakeaways = false;
       showKeyTakeawaysModal = true;
@@ -937,11 +941,10 @@
   $: modalError = state === "error" ? submitError : "";
   $: hideActions = state === "loading" || state === "testing";
   $: hideHeader = state === "loading" || state === "testing";
-  $: showSuccess = state === "success" && hasViewedTakeaways;
-  $: disableBackdropClose = state === "loading" || state === "testing" || state === "success";
+  $: disableBackdropClose = state === "loading" || state === "testing";
 </script>
 
-<!-- ConfirmationModal is the shell — all 4 states drive its props/slots -->
+<!-- ConfirmationModal is the shell — all states drive its props/slots -->
 <ConfirmationModal
   tourId="submit-sprint-modal"
   bind:open={showModal}
@@ -954,7 +957,6 @@
   {variant}
   {hideActions}
   {hideHeader}
-  {showSuccess}
   error={modalError}
   closeOnBackdropClick={!disableBackdropClose}
   on:confirm={handleConfirm}
@@ -987,18 +989,6 @@
     />
   {/if}
 
-  <!-- Success slot -->
-  {#snippet success()}
-    <SubmitSprintSuccessContent
-      {advancingToNextLevel}
-      {aiScoring}
-      {submitRewards}
-      {keyTakeaways}
-      {level}
-      on:done={handleDone}
-      on:continue={handleContinueWorking}
-    />
-  {/snippet}
 </ConfirmationModal>
 
 

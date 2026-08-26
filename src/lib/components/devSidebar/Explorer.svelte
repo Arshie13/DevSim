@@ -29,7 +29,7 @@
   export let projectName: string = "project";
   export let onSelectFile: (file: string) => void = () => {};
   export let onCreateFile: (parentPath: string, isDirectory: boolean) => void = () => {};
-  export let onDeleteFile: (filePath: string) => void = () => {};
+  export let onDeleteFile: (filePath: string, isDirectory: boolean) => void = () => {};
   export let onRenameFile: (oldPath: string, newPath: string) => void = () => {};
 
   let expandedFolders: Set<string> = new Set();
@@ -305,7 +305,7 @@
   }
 
   function confirmDelete() {
-    onDeleteFile(modalTargetPath);
+    onDeleteFile(modalTargetPath, modalIsDirectory);
     closeModal();
   }
 
@@ -327,7 +327,7 @@
         onRenameFile(modalTargetPath, newPath);
       }
     } else if (showModal === "delete") {
-      onDeleteFile(modalTargetPath);
+      onDeleteFile(modalTargetPath, modalIsDirectory);
     }
     
     closeModal();

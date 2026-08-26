@@ -2,11 +2,13 @@
   import '../app.css';
   import favicon from '$lib/assets/devsim-logo.svg';
   import Toast from '$lib/components/ui/Toast.svelte';
+  import ErrorPopup from '$lib/components/ui/ErrorPopup.svelte';
   import { page } from '$app/state';
   import SessionExpiredModal from '$lib/components/ui/SessionExpiredModal.svelte';
   import DisclaimerModal from '$lib/components/landing/DisclaimerModal.svelte';
   import { notifyAchievementUnlocks } from '$lib/stores/achievementToast';
   import { sessionInvalidated } from '$lib/stores/sessionInvalidated';
+  import { toast } from '$lib/stores/toast';
   import { signOut } from '@auth/sveltekit/client';
   import { onMount } from 'svelte';
   import { beforeNavigate, goto } from '$app/navigation';
@@ -140,6 +142,7 @@
 </svelte:head>
 
 {@render children()}
+<ErrorPopup toasts={$toast} />
 <Toast />
 <DisclaimerModal />
 

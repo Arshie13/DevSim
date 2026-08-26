@@ -27,6 +27,7 @@
   import TriviaModal from "$lib/components/ui/TriviaModal.svelte";
   import HelpPanel from "$lib/components/help/HelpPanel.svelte";
   import { helpTrigger } from "$lib/stores/helpTrigger";
+  import { errorCatalog } from "$lib/help/errorCatalog";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { IHints, ITask } from "$lib/types";
   import { LEVEL_CONFIG } from "$lib/mockdata/mocklevel";
@@ -39,6 +40,8 @@
     import type { IInteractiveConfig } from "$lib/types/IContainer";
 
   let { data}: { data: PageData } = $props();
+
+  const regressionToast = errorCatalog.find((entry) => entry.id === "task-regression");
 
   let userCoins = $derived(data.userCoins ?? 0);
   let userAiHelps = $derived(data.userAiHelps ?? 0);
@@ -264,8 +267,6 @@
   let helpMinimized = $state(false);
   let helpPrefillCategory: string = $state("");
   let helpPrefillDescription: string = $state("");
-  let helpStartOnLimitations: boolean = $state(false);
-
   onMount(() => {
     const stopHeartbeat = startPresenceHeartbeat();
     const unsubscribe = helpTrigger.subscribe((payload) => {
@@ -310,18 +311,6 @@
   // Trivia modal state
   let triviaModalOpen: boolean = $state(false);
   let showDockerDisclaimer = $state(true);
-  const dockerDisclaimerLimitations = [
-    "The Docker container is isolated from your host machine and may not reflect your local OS or installed tooling.",
-    "File changes are scoped to the container filesystem and might not persist outside the container unless explicitly downloaded.",
-    "Network behavior may differ from a full local setup due to port forwarding and container networking.",
-    "Some native or GUI-dependent tools may not work inside the simulated container environment.",
-    "Performance and timing can vary from a standard local development machine.",
-    "Hot reloading and file watching may not detect changes reliably due to Docker's filesystem event propagation.",
-    "Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.",
-    "Container disk space is limited and can fill up quickly with dependencies, caches, or build artifacts.",
-    "The container may be stopped or reset due to inactivity timeouts, causing loss of unsaved work.",
-    "The terminal session may disconnect due to network fluctuations, interrupting running processes.",
-  ];
   let triviaCorrectCount: number = 0;
   let triviaTotalCount: number = 0;
   let triviaShownThisSession: boolean = false;
@@ -1083,6 +1072,12 @@ $effect(() => {
     }
   }
 
+  function handleRegressionAttempt(taskId: string, taskName: string) {
+    regressionTaskId = taskId;
+    regressionTaskName = taskName;
+    testRegressionModalOpen = true;
+  }
+
   function handleTaskStatusChange(taskId: string, status: BoardTaskStatus) {
     if (status === "in-progress" || status === "in-review" || status === "done") {
       const orderedTasks = [...tasks].sort((a, b) => a.order - b.order);
@@ -1095,6 +1090,11 @@ $effect(() => {
 
         if (blockingTask) {
           toast.warn(`Finish Task ${blockingTask.order} first before moving to the next task.`);
+          if (regressionToast) {
+            toast.error(regressionToast.title, 8000, {
+              helpAction: { label: "Get Help", category: regressionToast.category },
+            });
+          }
           return;
         }
       }
@@ -1238,7 +1238,10 @@ $effect(() => {
         };
       }
 
-       if (task.boardStatus === "done" && !canManuallyMoveToDone) {
+       const wasPreviouslyCompleted =
+         task.boardStatus === "done" || task.isCompleted || task.is_complete;
+
+       if (wasPreviouslyCompleted) {
          regressions.push({
            taskId: task.id,
            taskName: task.taskName,
@@ -1267,6 +1270,11 @@ $effect(() => {
 
     if (regressions.length > 0) {
       pendingRegressionUpdates = regressions;
+      if (regressionToast) {
+        toast.error(regressionToast.title, 8000, {
+          helpAction: { label: "Get Help", category: regressionToast.category },
+        });
+      }
       showNextRegressionModal();
     }
 
@@ -1427,10 +1435,9 @@ $effect(() => {
     submitSprintModal.open();
   }
 
-  function handleOpenHelp(category?: string, description?: string, startOnLimitations = false) {
+  function handleOpenHelp(category?: string, description?: string) {
     helpPrefillCategory = category || '';
     helpPrefillDescription = description || '';
-    helpStartOnLimitations = startOnLimitations;
     // If already open, don't reset — just un-minimize and update prefill
     if (!helpMounted) {
       helpMounted = true;
@@ -1600,6 +1607,13 @@ $effect(() => {
     if (tab === "preview") {
       refreshPreview();
     }
+    if (tab === "board" && browser) {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(
+          new CustomEvent("devsim-tour-board-subtab", { detail: { subTab: "board" } }),
+        );
+      });
+    }
   }
 
   async function handleCreateFile(fullPath: string, isDirectory: boolean) {
@@ -1626,6 +1640,8 @@ $effect(() => {
           fileTree = listData.files;
           directories = listData.directories || [];
         }
+      } else {
+        toast.error(data.error || `Failed to create ${isDirectory ? "folder" : "file"}`);
       }
     } catch (error) {
       console.error("Error creating file:", error);
@@ -1633,7 +1649,7 @@ $effect(() => {
     }
   }
 
-  async function handleDeleteFile(filePath: string) {
+  async function handleDeleteFile(filePath: string, isDirectory: boolean) {
     if (!containerId || !filePath) return;
 
     try {
@@ -1647,6 +1663,7 @@ $effect(() => {
       );
       const data = await response.json();
       if (data.success) {
+        toast.success(`${isDirectory ? "Folder" : "File"} deleted`);
         const wasActiveTabDeleted = activeTabId === filePath;
 
         if (selectedFile === filePath) {
@@ -1679,11 +1696,11 @@ $effect(() => {
         }
       } else {
         console.error("Delete failed:", data.error);
-        toast.error(`Delete failed: ${data.error}`);
+        toast.error(`Failed to delete ${isDirectory ? "folder" : "file"}: ${data.error}`);
       }
     } catch (error) {
       console.error("Error deleting file:", error);
-      toast.error("Failed to delete");
+      toast.error(`Failed to delete ${isDirectory ? "folder" : "file"}`);
     }
   }
 
@@ -1785,7 +1802,7 @@ $effect(() => {
             type="button"
             class="px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
             style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
-            onclick={() => handleOpenHelp(undefined, undefined, true)}
+            onclick={() => handleOpenHelp()}
           >
             Learn more →
           </button>
@@ -1878,6 +1895,7 @@ $effect(() => {
               onTaskStatusChange={handleTaskStatusChange}
               crashCourseLockedTasks={crashCourseLockedTasks}
               onTaskClickBlocked={handleBlockedTaskClick}
+              onRegressionAttempt={handleRegressionAttempt}
             />
           </div>
         {/if}
@@ -2062,15 +2080,12 @@ $effect(() => {
     {containerId}
     prefillCategory={helpPrefillCategory}
     prefillDescription={helpPrefillDescription}
-    limitations={dockerDisclaimerLimitations}
-    startOnLimitations={helpStartOnLimitations}
     minimized={helpMinimized}
     onClose={() => {
       helpMounted = false;
       helpMinimized = false;
       helpPrefillCategory = '';
       helpPrefillDescription = '';
-      helpStartOnLimitations = false;
     }}
     onMinimize={() => {
       helpMinimized = true;
