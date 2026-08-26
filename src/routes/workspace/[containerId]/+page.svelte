@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack, tick } from "svelte";
+  import { startPresenceHeartbeat } from "$lib/client/presenceHeartbeat";
   import { HelpCircle } from "lucide-svelte";
   import { type PageData } from "./$types";
   import { browser } from "$app/environment";
@@ -267,7 +268,8 @@
   let helpPrefillCategory: string = $state("");
   let helpPrefillDescription: string = $state("");
   onMount(() => {
-    return helpTrigger.subscribe((payload) => {
+    const stopHeartbeat = startPresenceHeartbeat();
+    const unsubscribe = helpTrigger.subscribe((payload) => {
       if (payload) {
         helpPrefillCategory = payload.category;
         helpPrefillDescription = payload.description;
@@ -276,6 +278,11 @@
         helpTrigger.clear();
       }
     });
+
+    return () => {
+      stopHeartbeat();
+      unsubscribe();
+    };
   });
 
   let backModalOpen: boolean = $state(false);

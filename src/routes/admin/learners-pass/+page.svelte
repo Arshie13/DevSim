@@ -102,28 +102,28 @@
         class="grid grid-cols-2 gap-4"
       >
         <div>
-          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Price (cents)</label>
+          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="price_cents">Price (cents)</label>
           <input
             type="number" name="price" value={data.config.price}
             class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]"
           />
         </div>
         <div>
-          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Duration (days)</label>
+          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="duration_days">Duration (days)</label>
           <input
             type="number" name="durationDays" value={data.config.durationDays}
             class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)]"
           />
         </div>
         <div>
-          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Special Unlock Days (JSON array)</label>
+          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="special_unlock_days_json_array">Special Unlock Days (JSON array)</label>
           <input
             type="text" name="specialUnlockDays" value={JSON.stringify(data.config.specialUnlockDays)}
             class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)] font-mono"
           />
         </div>
         <div>
-          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1">Day → Scenario (JSON object)</label>
+          <label class="block [font-family:var(--font-mono)] text-xs text-[var(--text-muted)] mb-1" for="day_scenario_json_object">Day → Scenario (JSON object)</label>
           <input
             type="text" name="dayToScenario" value={JSON.stringify(data.config.dayToScenario)}
             class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-[var(--text-primary)] font-mono"
@@ -186,23 +186,23 @@
             <input type="hidden" name="rewardId" value={reward.id} />
             <div class="space-y-2 text-sm">
               <div>
-                <label class="text-[var(--text-muted)] text-xs">Coins</label>
-                <input type="number" name="coins" value={reward.coins}
+                <label class="text-[var(--text-muted)] text-xs" for="coins">Coins</label>
+                <input id="coins" type="number" name="coins" value={reward.coins}
                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
               </div>
               <div>
-                <label class="text-[var(--text-muted)] text-xs">XP</label>
-                <input type="number" name="xp" value={reward.xp}
+                <label class="text-[var(--text-muted)] text-xs" for="xp">XP</label>
+                <input id="xp" type="number" name="xp" value={reward.xp}
                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
               </div>
               <div>
-                <label class="text-[var(--text-muted)] text-xs">AI Helps</label>
-                <input type="number" name="aiHelps" value={reward.aiHelps}
+                <label class="text-[var(--text-muted)] text-xs" for="ai_helps">AI Helps</label>
+                <input id="ai_helps" type="number" name="aiHelps" value={reward.aiHelps}
                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
               </div>
               <div>
-                <label class="text-[var(--text-muted)] text-xs">Display Type</label>
-                <select name="displayType" value={reward.displayType}
+                <label class="text-[var(--text-muted)] text-xs" for="display_type">Display Type</label>
+                <select id="display_type" name="displayType" value={reward.displayType}
                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
                 >
                   <option value="coins">coins</option>
@@ -211,13 +211,13 @@
                 </select>
               </div>
               <div>
-                <label class="text-[var(--text-muted)] text-xs">Display Value</label>
-                <input type="text" name="displayValue" value={reward.displayValue}
+                <label class="text-[var(--text-muted)] text-xs" for="display_value">Display Value</label>
+                <input id="display_value" type="text" name="displayValue" value={reward.displayValue}
                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]" />
               </div>
               <div>
-                <label class="text-[var(--text-muted)] text-xs">Unlock Scenario</label>
-                <select name="unlockedScenario"
+                <label class="text-[var(--text-muted)] text-xs" for="unlock_scenario">Unlock Scenario</label>
+                <select id="unlock_scenario" name="unlockedScenario"
                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
                 >
                   <option value="">— None —</option>

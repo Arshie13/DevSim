@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { Prisma } from '$prismaclient';
 import prisma from '$lib/server/client';
 import { resolveStackName, resolveScenarioId } from '$lib/utils/scenario-mapping';
 import { docker } from '$lib/server/docker/client';
@@ -42,7 +43,8 @@ export const load: PageServerLoad = async () => {
           tasks: {
             orderBy: { order: 'asc' },
             include: {
-              acceptance_criteria: { orderBy: { order: 'asc' } }
+              acceptance_criteria: { orderBy: { order: 'asc' } },
+              learning_sections: { orderBy: { order: 'asc' } }
             }
           }
         }
@@ -91,6 +93,16 @@ export const load: PageServerLoad = async () => {
             description: ac.description,
             isRequired: ac.is_required,
             order: ac.order
+          })),
+          learningSections: t.learning_sections.map(ls => ({
+            id: ls.id,
+            taskId: ls.task_id,
+            title: ls.title,
+            content: ls.content,
+            order: ls.order,
+            sectionType: ls.section_type,
+            interactiveMode: ls.interactive_mode,
+            interactiveConfig: ls.interactive_config
           }))
         }))
       }))
@@ -306,6 +318,97 @@ export const actions: Actions = {
     }
 
     await prisma.level_task.delete({ where: { id } });
+    return { success: true };
+  },
+
+  createLearningSection: async ({ request }) => {
+    const formData = await request.formData();
+    const taskId = formData.get('taskId') as string;
+    const title = formData.get('title') as string;
+    const content = formData.get('content') as string;
+    const order = parseInt(formData.get('order') as string) || 0;
+    const sectionType = formData.get('sectionType') as string;
+    const interactiveModeRaw = formData.get('interactiveMode') as string;
+    const interactiveConfigRaw = formData.get('interactiveConfig') as string;
+
+    if (!taskId || !title) {
+      return fail(400, { message: 'Task ID and title are required' });
+    }
+
+    const interactiveMode = interactiveModeRaw || null;
+    let interactiveConfig: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | null = null;
+
+    if (interactiveConfigRaw) {
+      try {
+        interactiveConfig = JSON.parse(interactiveConfigRaw) as Prisma.InputJsonValue;
+      } catch {
+        return fail(400, { message: 'Invalid interactive config JSON' });
+      }
+    } else {
+      interactiveConfig = Prisma.JsonNull;
+    }
+
+    await prisma.learning_section.create({
+      data: {
+        task_id: taskId,
+        title,
+        content: content || '',
+        order,
+        section_type: sectionType || 'PLAIN_TEXT',
+        interactive_mode: interactiveMode,
+        interactive_config: interactiveConfig
+      }
+    });
+
+    return { success: true };
+  },
+
+  updateLearningSection: async ({ request }) => {
+    const formData = await request.formData();
+    const id = formData.get('id') as string;
+    const title = formData.get('title') as string;
+    const content = formData.get('content') as string;
+    const order = parseInt(formData.get('order') as string) || 0;
+    const sectionType = formData.get('sectionType') as string;
+    const interactiveModeRaw = formData.get('interactiveMode') as string;
+    const interactiveConfigRaw = formData.get('interactiveConfig') as string;
+
+    if (!id) {
+      return fail(400, { message: 'Missing learning section ID' });
+    }
+
+    const data: Record<string, unknown> = {};
+    if (title) data.title = title;
+    if (content !== null) data.content = content;
+    data.order = order;
+    if (sectionType) data.section_type = sectionType;
+
+    const interactiveMode = interactiveModeRaw || null;
+    data.interactive_mode = interactiveMode;
+
+    if (interactiveConfigRaw) {
+      try {
+        data.interactive_config = JSON.parse(interactiveConfigRaw) as Prisma.InputJsonValue;
+      } catch {
+        return fail(400, { message: 'Invalid interactive config JSON' });
+      }
+    } else {
+      data.interactive_config = Prisma.JsonNull;
+    }
+
+    await prisma.learning_section.update({ where: { id }, data });
+    return { success: true };
+  },
+
+  deleteLearningSection: async ({ request }) => {
+    const formData = await request.formData();
+    const id = formData.get('id') as string;
+
+    if (!id) {
+      return fail(400, { message: 'Missing learning section ID' });
+    }
+
+    await prisma.learning_section.delete({ where: { id } });
     return { success: true };
   }
 };

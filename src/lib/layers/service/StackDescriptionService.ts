@@ -28,32 +28,28 @@ export class StackDescriptionService {
 
     // Try models in order of preference
     const models = [
-      { name: 'google/gemini-2.5-flash:direct', type: 'gemini' as const },
-      { name: 'nvidia/nemotron-3-nano-30b-a3b:free', type: 'openrouter' as const },
-      { name: 'google/gemma-3n-e2b-it:free', type: 'openrouter' as const },
-      { name: 'qwen/qwen3.6-plus:free', type: 'openrouter' as const }
+      'auto/coding',
+      'nvidia/nemotron-3-nano-30b-a3b:free',
+      'google/gemma-3n-e2b-it:free',
+      'qwen/qwen3.6-plus:free'
     ];
+
+    const omnirouteKey = process.env.OMNIROUTE_KEY;
+    if (!omnirouteKey) {
+      return { success: false, error: 'OMNIROUTE_KEY is not configured. Please add it to your .env file.' };
+    }
 
     let lastError = null;
 
-    for (const model of models) {
+    for (const modelName of models) {
       try {
-        if (model.type === 'gemini') {
-          const result = await this.tryGeminiModel(prompt);
-          if (result.success) {
-            return { success: true, description: result.description };
-          }
-          lastError = result.error;
-          continue;
-        } else {
-          const result = await this.tryOpenRouterModel(prompt, model.name);
-          if (result.success) {
-            return { success: true, description: result.description };
-          }
-          lastError = result.error;
+        const result = await this.tryOmniroute(prompt, omnirouteKey);
+        if (result.success) {
+          return { success: true, description: result.description };
         }
+        lastError = result.error;
       } catch (error) {
-        console.log(`Model ${model.name} failed:`, error);
+        console.log(`Model ${modelName} failed:`, error);
         lastError = error;
       }
     }
@@ -138,6 +134,51 @@ export class StackDescriptionService {
       }
       const errorData = await response.json().catch(() => ({}));
       return { success: false, error: errorData };
+    } catch (error) {
+      return { success: false, error };
+    }
+  }
+
+  private async tryOmniroute(
+    prompt: string,
+    apiKey: string
+  ): Promise<{ success: boolean; description?: string; error?: any; status?: number }> {
+    try {
+      const modelResponse = await fetch('http://localhost:20128/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'auto/best-free',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 300,
+          temperature: 0.7,
+        })
+      });
+
+      if (modelResponse.ok) {
+        const text = await modelResponse.text();
+        const lines = text.split('\n').filter((line) => line.startsWith('data: '));
+        let description = '';
+        for (const line of lines) {
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta?.content || '';
+            description += delta;
+          } catch {}
+        }
+        if (!description) {
+          return { success: false, error: 'No description generated' };
+        }
+        return { success: true, description: description.trim() };
+      } else {
+        const errorData = await modelResponse.json();
+        return { success: false, error: errorData, status: modelResponse.status };
+      }
     } catch (error) {
       return { success: false, error };
     }

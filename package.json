@@ -14,12 +14,15 @@
 		"docker:create-project-images": "pnpm exec tsx scripts/create-image.ts",
 		"docker:recreate-project-images": "pnpm exec tsx scripts/create-image.ts --force",
 		"docker:setup-shared-postgres": "pnpm exec tsx scripts/setup-shared-postgres.ts",
+		"docker:setup-shared-mongo": "pnpm exec tsx scripts/setup-shared-mongo.ts",
 		"ws:terminal": "pnpm exec tsx src/lib/server/websocket/terminal.ts",
 		"start:dev": "node server.js",
 		"start:prod": "NODE_ENV=production && pm2 start server.js",
 		"prod:monitor": "pm2 monit",
 		"prod:reload": "pm2 reload all",
 		"prod:stop": "pm2 stop all",
+		"prod:prisma": "pm2 start pnpm --name prisma-studio -- exec prisma studio --browser none",
+		"prod:studio": "ngrok http 51212",
 		"db:seed": "pnpm exec tsx prisma/seed.ts",
 		"db:migrate": "pnpm prisma migrate dev",
 		"prepare": "svelte-kit sync || echo ''",
@@ -77,6 +80,7 @@
 		"monaco-editor": "^0.55.1",
 		"node-cron": "^4.2.1",
 		"nodemailer": "^9.0.3",
+		"pm2": "^7.0.3",
 		"stripe": "^22.1.1",
 		"ws": "^8.19.0"
 	}

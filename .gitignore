@@ -33,5 +33,4 @@ vite.config.ts.timestamp-*
 ROADMAP.md
 tsconfig.tsbuildinfo
 .kilo
-.agents/skills
-.github
+.agents

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { startPresenceHeartbeat } from "$lib/client/presenceHeartbeat";
   import { browser } from "$app/environment";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
@@ -672,6 +673,7 @@
   }
 
   onMount(() => {
+    const stopHeartbeat = startPresenceHeartbeat();
     initTutorialWorkspace();
     window.addEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
 
@@ -681,6 +683,7 @@
     window.addEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
 
     return () => {
+      stopHeartbeat();
       stopPreviewPoll();
       window.removeEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
       window.removeEventListener("devsim-tour-close-result-modal", handleCloseResultModal);

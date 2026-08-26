@@ -28,15 +28,13 @@ export const POST: RequestHandler = async ({ request }) => {
         nextTime: "Prepare yourself",
         masteryPassed: true,
         masteryGaps: "None whatsoever",
-        error: null,
-        isRateLimited: false,
+        error: null
       });
     }
 
     const result = await scoringService.processScore(body);
 
     if (result.error) {
-      const status = result.isRateLimited ? 429 : 500;
       return json({
         success: false,
         stars: result.stars,
@@ -45,7 +43,7 @@ export const POST: RequestHandler = async ({ request }) => {
         masteryPassed: result.masteryPassed,
         masteryGaps: result.masteryGaps,
         error: result.error
-      }, { status });
+      }, { status: 500 });
     }
 
     return json({
