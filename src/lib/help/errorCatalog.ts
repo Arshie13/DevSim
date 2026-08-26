@@ -5,7 +5,13 @@ export interface HelpEntry {
 	description: string;
 	steps: string[];
 	actions?: { label: string; handler: string }[];
+	image?: string;
+	stepAttachments?: StepAttachment[];
 }
+
+export type StepAttachment =
+	| { afterStep: number; type: 'image'; image: string; alt?: string }
+	| { afterStep: number; type: 'action'; label: string; handler: string };
 
 export const errorCatalog: HelpEntry[] = [
 	{
@@ -15,24 +21,32 @@ export const errorCatalog: HelpEntry[] = [
 		description: 'File save operations failed. This could be due to read-only files, workspace disk space issues, or a temporary API error.',
 		steps: [
 			'Check if the file is read-only (package.json and README files are protected from editing).',
-			'Verify you have enough disk space in the workspace. Large dependency installs can fill up space quickly.',
-			'Try saving again (Ctrl+S) — transient API errors sometimes resolve on their own.',
-			'If the problem persists, try refreshing the file tree from the sidebar to re-sync.'
+			'Check available disk space by running `df -h` in the terminal. Large dependency installs can fill up space quickly.',
+			'Try saving again (Ctrl+S) — transient API errors sometimes resolve on their own.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }]
+		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
+		image: '/images/limitations/files/save/failedtosave.png',
+		stepAttachments: [
+			{
+				afterStep: 1,
+				type: 'image',
+				image: '/images/limitations/files/save/cantsave.png',
+				alt: 'Read-only file protection example'
+			}
+		]
 	},
 	{
 		id: 'file-create-failure',
 		category: 'File System',
 		title: 'Can\'t create files or folders',
-		description: 'File or folder creation failed. This may be caused by invalid names, permission issues, or workspace disk space limits.',
+		description: 'File or folder creation failed. This may be caused by path traversal attempts or workspace disk space limits.',
 		steps: [
-			'Avoid special characters in file and folder names (use letters, numbers, hyphens, and underscores).',
-			'Check that the parent directory exists before creating files inside it.',
+			'Parent-directory paths such as ../ are not allowed. Create the file or folder inside the workspace.',
 			'Clear unnecessary cache folders (node_modules, .next, dist) to free up space.',
 			'Try refreshing the file tree to sync with the workspace filesystem.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }]
+		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
+		image: '/images/limitations/files/create/file.png'
 	},
 	{
 		id: 'file-delete-failure',
@@ -44,7 +58,8 @@ export const errorCatalog: HelpEntry[] = [
 			'If you\'re sure you want to delete a non-protected file, try refreshing the file tree first.',
 			'Use the terminal (rm command) as an alternative way to delete files.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }]
+		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
+		image: '/images/limitations/files/delete/fail.png'
 	},
 	{
 		id: 'terminal-disconnect',
@@ -57,7 +72,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Long-running processes may have been interrupted — you\'ll need to restart them.',
 			'You can have up to 3 terminal sessions. Close unused ones if you hit the limit.'
 		],
-		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }]
+		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }],
+		image: '/images/limitations/terminal/disconnected/disconnect.png'
 	},
 	{
 		id: 'terminal-init-failure',
@@ -69,7 +85,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Make sure you haven\'t reached the 3-terminal limit. Close unused sessions from the Terminals sidebar.',
 			'If the workspace was idle for a long time, it may have stopped. Refresh the page.',
 			'If the problem persists, try opening a new terminal with the + button in the Terminals sidebar.'
-		]
+		],
+		image: '/images/limitations/terminal/start/connecting.png'
 	},
 	{
 		id: 'preview-not-loading',
@@ -82,7 +99,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Click the Refresh button in the preview panel toolbar to retry the connection.',
 			'Check the terminal output for errors if the server fails to start.'
 		],
-		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }]
+		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }],
+		image: '/images/limitations/preview/loading.png'
 	},
 	{
 		id: 'test-failure',
@@ -94,9 +112,35 @@ export const errorCatalog: HelpEntry[] = [
 			'Re-read the task\'s acceptance criteria in the board panel to make sure you haven\'t missed any requirements.',
 			'Open the crash course section for this task — it teaches the concepts needed to pass the tests.',
 			'Make sure your code handles edge cases (empty inputs, invalid data, error states).',
-			'Click the Beaker test button in the workspace header to re-run tests after fixing your code.'
+			'Click the test button in the workspace header to re-run tests after fixing your code.'
 		],
-		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }]
+		image: '/images/limitations/tests/testfail.png',
+		stepAttachments: [
+			{
+				afterStep: 1,
+				type: 'image',
+				image: '/images/limitations/tests/testresult.png',
+				alt: 'Example test results modal output'
+			},
+			{
+				afterStep: 2,
+				type: 'image',
+				image: '/images/limitations/tests/acceptance_criteria.png',
+				alt: 'Acceptance criteria shown in the board panel'
+			},
+			{
+				afterStep: 3,
+				type: 'action',
+				label: 'Open Crash Course',
+				handler: 'openCrashCourse'
+			},
+			{
+				afterStep: 5,
+				type: 'image',
+				image: '/images/limitations/tests/test_button.png',
+				alt: 'Test button in the workspace header'
+			}
+		]
 	},
 	{
 		id: 'task-order-blocked',
@@ -107,7 +151,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Complete all tasks that appear before this one in the task board.',
 			'Look for the blocking task number in the warning — that task must be moved to Done first.',
 			'If a task requires the crash course, complete the learning content before proceeding.'
-		]
+		],
+		image: '/images/limitations/task/forward/blocker.png'
 	},
 	{
 		id: 'task-regression',
@@ -118,7 +163,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Review the regression error details in the modal — it shows which task is affected.',
 			'Look at the files you recently changed — those are the likely cause.',
 			'Fix the regression before submitting your sprint — all tasks must pass together.'
-		]
+		],
+		image: '/images/limitations/task/regression/failedtests.png'
 	},
 	{
 		id: 'submit-reflection-short',
@@ -130,7 +176,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Explain any challenges you faced and how you solved them.',
 			'Mention specific files or components you worked on.',
 			'The reflection helps verify your mastery — be specific and technical.'
-		]
+		],
+		image: '/images/limitations/submit/reflection.png'
 	},
 	{
 		id: 'submit-mastery-not-met',
@@ -165,7 +212,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Exchange coins for AI help credits — the conversion rate is shown in the AI panel.',
 			'You earn coins by completing levels, daily login rewards, and the Learner\'s Pass.',
 			'Check the rewards section to see when your next coin reward is available.'
-		]
+		],
+		image: '/images/limitations/ai_credits/not_enough_credits.png'
 	},
 	{
 		id: 'ai-code-blocked',
@@ -177,7 +225,8 @@ export const errorCatalog: HelpEntry[] = [
 			'Ask about the concept or approach rather than the implementation.',
 			'Read the crash course section — it covers the concepts you need for the task.'
 		],
-		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }]
+		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }],
+		image: '/images/limitations/ai_credits/out_of_scope.png'
 	},
 	{
 		id: 'download-failure',
@@ -188,6 +237,105 @@ export const errorCatalog: HelpEntry[] = [
 			'Clear unnecessary files and cache folders to reduce project size.',
 			'Try downloading again — transient errors sometimes resolve on retry.',
 			'If the project is very large, consider downloading individual files instead.'
+		]
+	},
+	{
+		id: 'docker-isolation',
+		category: 'Docker Environment',
+		title: 'Workspace runs its own Linux environment',
+		description: 'Your workspace is an Alpine Linux container with Node.js, pnpm, bash, and PostgreSQL pre-installed — it does not have your host machine\'s OS, browsers, or GUI apps.',
+		steps: [
+			'This is expected behavior — the workspace runs its own OS image.',
+			'Use the terminal to install additional packages inside the container (pnpm add for project dependencies).',
+			'The project files live in the workspace folder and are separate from your local machine.'
+		]
+	},
+	{
+		id: 'docker-filesystem-scope',
+		category: 'Docker Environment',
+		title: 'Files only persist inside the workspace',
+		description: 'Files you create live in the workspace volume, not on your local disk. They are preserved while the workspace exists, but to keep them outside DevSim you must download the project.',
+		steps: [
+			'Download your project files using the download button if you need them outside DevSim.',
+			'Your files stay in the workspace volume and reappear when you return to the project.',
+			'Use version control (git) inside the workspace to track changes if you plan to work long-term.'
+		]
+	},
+	{
+		id: 'docker-networking',
+		category: 'Docker Environment',
+		title: 'Networking is scoped to the workspace',
+		description: 'Each workspace runs on its own Docker network. The preview panel forwards your dev server ports, and the database is reachable by hostname from inside the workspace.',
+		steps: [
+			'Use the preview panel to access your dev server — it forwards the container ports automatically.',
+			'Use the database hostname from the workspace env (DATABASE_HOST, DATABASE_PORT) instead of localhost.',
+			'Inside the container, localhost refers to the container itself, not your host machine.'
+		]
+	},
+	{
+		id: 'docker-gui-tools',
+		category: 'Docker Environment',
+		title: 'Native or GUI tools not working',
+		description: 'Some native or GUI-dependent tools may not work inside the container environment.',
+		steps: [
+			'Use CLI alternatives instead of GUI tools (e.g., vim instead of VS Code GUI).',
+			'Some desktop applications cannot run in a headless container.',
+			'Check the crash course for CLI equivalents of common GUI workflows.'
+		]
+	},
+	{
+		id: 'docker-performance',
+		category: 'Docker Environment',
+		title: 'Performance and timing variations',
+		description: 'Performance and timing can vary from a standard local development machine.',
+		steps: [
+			'Build times and test execution may be slower due to container overhead.',
+			'Avoid tight timing assertions in your code — use more flexible thresholds.',
+			'Close unused terminals and stop unnecessary processes to free resources.'
+		]
+	},
+	{
+		id: 'docker-hot-reload',
+		category: 'Docker Environment',
+		title: 'Hot reloading not detecting changes',
+		description: 'Hot reloading and file watching may not detect changes reliably because the workspace project folder is a bind mount shared with the host filesystem.',
+		steps: [
+			'Try restarting your dev server if hot reload stops working.',
+			'Use the Refresh button in the preview panel to manually reload.',
+			'Save files explicitly (Ctrl+S) to ensure changes are written to the container.'
+		]
+	},
+	{
+		id: 'docker-auth',
+		category: 'Docker Environment',
+		title: 'Git credentials or SSH keys unavailable',
+		description: 'Git credentials, SSH keys, and other host authentication are not available inside the container unless explicitly configured.',
+		steps: [
+			'Use HTTPS URLs with personal access tokens instead of SSH for git operations.',
+			'Configure git credentials inside the container if needed.',
+			'Download your code and work with local files when authentication is required.'
+		]
+	},
+	{
+		id: 'docker-disk-space',
+		category: 'Docker Environment',
+		title: 'Workspace disk space limited',
+		description: 'Each workspace container is limited to 512MB of memory and the workspace volume can fill up with dependencies, caches, or build artifacts.',
+		steps: [
+			'Clear cache folders: rm -rf node_modules .next dist build .cache',
+			'Remove unnecessary files and large dependencies.',
+			'Download your project before cleaning to avoid losing work.'
+		]
+	},
+	{
+		id: 'docker-terminal-disconnect',
+		category: 'Docker Environment',
+		title: 'Terminal session disconnected',
+		description: 'The terminal session may disconnect due to network fluctuations or page reloads, interrupting running processes.',
+		steps: [
+			'Click the Refresh button at the top of the terminal panel to re-establish the connection.',
+			'If the terminal won\'t reconnect, close it and open a new terminal session.',
+			'Long-running processes may have been interrupted — you\'ll need to restart them.'
 		]
 	}
 ];
@@ -200,7 +348,8 @@ export const errorCategoryOrder = [
 	'Task Ordering',
 	'Submit Sprint',
 	'AI / SAZ',
-	'Download'
+	'Download',
+	'Docker Environment'
 ];
 
 export function searchErrors(query: string): HelpEntry[] {

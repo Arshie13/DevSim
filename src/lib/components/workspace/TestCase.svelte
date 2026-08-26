@@ -14,6 +14,7 @@
 
   let showSelectionModal = false;
   let showResultModal = false;
+  let testMinimized = false;
   let showCancelConfirmModal = false;
   let testLoading = false;
   let testResult: TestRunResult | null = null;
@@ -21,6 +22,8 @@
   let runningTaskIds: string[] = [];
   let runningTaskPrevStatus = new Map<string, TestableTask['testStatus']>();
   let suppressCompletionDispatch = false;
+  // taskId -> latest known pass/fail outcome for tasks that have been run
+  let taskPassedCache = new Map<string, boolean>();
 
   const dispatch = createEventDispatcher<{
     testsComplete: { success: boolean; result: TestRunResult };
@@ -29,6 +32,8 @@
 
   function openTestModal() {
     if (testLoading) {
+      // Test currently running - re-open the running test modal
+      testMinimized = false;
       showResultModal = true;
       showSelectionModal = false;
       return;
@@ -41,8 +46,18 @@
     showSelectionModal = false;
   }
 
-  function closeResultModal(event?: CustomEvent<{ source: 'x' | 'footer' | 'backdrop' | 'escape' }>) {
+  function closeResultModal(event?: CustomEvent<{ source: 'x' | 'footer' | 'backdrop' | 'escape' | 'continue' }>) {
     const source = event?.detail?.source;
+
+    if (source === 'continue') {
+      // Minimize the running test modal while tests continue in the background
+      if (testLoading) {
+        testMinimized = true;
+        restoreRunningTaskStatuses();
+      }
+      showResultModal = false;
+      return;
+    }
 
     if (testLoading && source === 'x') {
       showResultModal = false;
@@ -99,6 +114,14 @@
   function clearRunningTaskTracking() {
     runningTaskIds = [];
     runningTaskPrevStatus = new Map<string, TestableTask['testStatus']>();
+  }
+
+  function recordRunResults(taskResults: TaskTestResult[]) {
+    for (const taskResult of taskResults) {
+      if (taskResult.taskId) {
+        taskPassedCache.set(taskResult.taskId, taskResult.passed);
+      }
+    }
   }
 
   async function cancelRunningTests() {
@@ -195,12 +218,11 @@
             ? { ...t, testStatus: data.passed ? 'passed' : 'failed' }
             : t
         );
+        recordRunResults(testResult.taskResults);
         clearRunningTaskTracking();
 
         if (data.passed) {
-          toast.success(`Tests passed for "${taskName}"`);
-        } else {
-          toast.error(`Tests failed for "${taskName}"`);
+          toast.success("Tests passed");
         }
       } else {
         clearRunningTaskTracking();
@@ -227,7 +249,6 @@
         output: errorMessage
       };
       clearRunningTaskTracking();
-      toast.error(`Test failed: ${errorMessage}`);
     } finally {
       if (activeTestAbortController === abortController) {
         activeTestAbortController = null;
@@ -237,6 +258,12 @@
       if (suppressCompletionDispatch) {
         suppressCompletionDispatch = false;
         return;
+      }
+
+      // If the user minimized the modal mid-run, re-pop it once the run finishes
+      if (testMinimized) {
+        testMinimized = false;
+        showResultModal = true;
       }
 
       if (testResult) {
@@ -293,13 +320,12 @@
             const result = data.taskResults.find((r: { taskId: string }) => r.taskId === t.id);
             return result ? { ...t, testStatus: result.passed ? 'passed' : 'failed' } : t;
           });
+          recordRunResults(data.taskResults);
         }
         clearRunningTaskTracking();
 
         if (data.passed) {
           toast.success('All level tests passed!');
-        } else {
-          toast.error('Some tests failed. Review the results.');
         }
       } else {
         clearRunningTaskTracking();
@@ -319,7 +345,6 @@
         output: errorMessage
       };
       clearRunningTaskTracking();
-      toast.error(`Tests failed: ${errorMessage}`);
     } finally {
       if (activeTestAbortController === abortController) {
         activeTestAbortController = null;
@@ -329,6 +354,12 @@
       if (suppressCompletionDispatch) {
         suppressCompletionDispatch = false;
         return;
+      }
+
+      // If the user minimized the modal mid-run, re-pop it once the run finishes
+      if (testMinimized) {
+        testMinimized = false;
+        showResultModal = true;
       }
 
       if (testResult) {
@@ -408,6 +439,7 @@
           const result = data.taskResults.find((r: { taskId: string }) => r.taskId === t.id);
           return result ? { ...t, testStatus: result.passed ? 'passed' : 'failed' } : t;
         });
+        recordRunResults(data.taskResults);
       }
       clearRunningTaskTracking();
 
@@ -450,8 +482,21 @@
 
   // -- Derived ------------------------------------------------------------------
   $: hasTestableTasks = tasks.some(t => t.hasClientTest || t.hasServerTest);
-  $: passedCount = tasks.filter(t => t.testStatus === 'passed').length;
-  $: failedCount = tasks.filter(t => t.testStatus === 'failed').length;
+  $: passedTasks = tasks.filter(t => taskPassedCache.get(t.id) === true);
+  $: failedTasks = tasks.filter(t => taskPassedCache.get(t.id) === false);
+  $: untestedTasks = tasks.filter(t => !taskPassedCache.has(t.id) && (t.hasClientTest || t.hasServerTest));
+  $: testableCount = tasks.filter(t => t.hasClientTest || t.hasServerTest).length;
+  $: allTestablePassed = testableCount > 0 && passedTasks.length === testableCount;
+
+  // Seed the cache from persisted/parent-computed testStatus (e.g. after a page
+  // reload where previously passed tasks arrive as testStatus === 'passed').
+  $: if (tasks.length > 0) {
+    for (const task of tasks) {
+      if (task.testStatus === 'passed' && !taskPassedCache.has(task.id)) {
+        taskPassedCache.set(task.id, true);
+      }
+    }
+  }
 </script>
 
 <div class="relative inline-flex">
@@ -464,17 +509,29 @@
   >
     <Beaker class="w-4 h-4" />
     <span>Test</span>
-    {#if passedCount > 0 || failedCount > 0}
+    {#if untestedTasks.length === 0 && testableCount > 0}
       <span
         class="ml-1 rounded-[2px] px-1.5 py-0.5 text-[0.625rem]"
-        class:bg-[rgba(0,229,160,0.15)]={failedCount === 0}
-        class:text-[var(--success)]={failedCount === 0}
-        class:bg-[rgba(255,56,96,0.15)]={failedCount > 0}
-        class:text-[var(--danger)]={failedCount > 0}
-        class:bg-[rgba(136,146,160,0.2)]={failedCount === 0 && passedCount === 0}
-        class:text-[var(--text-muted)]={failedCount === 0 && passedCount === 0}
+        class:bg-[rgba(0,229,160,0.15)]={allTestablePassed}
+        class:text-[var(--success)]={allTestablePassed}
+        class:bg-[rgba(255,56,96,0.15)]={!allTestablePassed && failedTasks.length > 0}
+        class:text-[var(--danger)]={!allTestablePassed && failedTasks.length > 0}
+        class:bg-[rgba(136,146,160,0.2)]={!allTestablePassed && failedTasks.length === 0}
+        class:text-[var(--text-muted)]={!allTestablePassed && failedTasks.length === 0}
       >
-        {passedCount}/{passedCount + failedCount}
+        {passedTasks.length}/{testableCount}
+      </span>
+    {:else if passedTasks.length > 0 || failedTasks.length > 0}
+      <span
+        class="ml-1 rounded-[2px] px-1.5 py-0.5 text-[0.625rem]"
+        class:bg-[rgba(0,229,160,0.15)]={allTestablePassed}
+        class:text-[var(--success)]={allTestablePassed}
+        class:bg-[rgba(255,56,96,0.15)]={!allTestablePassed && failedTasks.length > 0}
+        class:text-[var(--danger)]={!allTestablePassed && failedTasks.length > 0}
+        class:bg-[rgba(136,146,160,0.2)]={!allTestablePassed && failedTasks.length === 0}
+        class:text-[var(--text-muted)]={!allTestablePassed && failedTasks.length === 0}
+      >
+        ~{passedTasks.length}/{testableCount}
       </span>
     {/if}
     <ChevronDown class="ml-0.5 h-3.5 w-3.5 opacity-70" />

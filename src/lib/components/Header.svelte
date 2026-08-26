@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Coins, ChartBar, Plus, Gift, Key } from "lucide-svelte";
+  import { Coins, ChartBar, Plus, Gift, Key, HelpCircle } from "lucide-svelte";
   import type { UserData } from "$types";
   import { goto } from "$app/navigation";
   import ProfileDropDown from "$components/ProfileDropDown.svelte";
@@ -9,6 +9,7 @@
   export let onOpenStats: (() => void) | undefined = undefined;
   export let onOpenDailyRewards: (() => void) | undefined = undefined;
   export let showPass = false;
+  export let onOpenHelp: (() => void) | undefined = undefined;
 
   function navigateToDashboard() {
     goto("/dashboard");
@@ -80,6 +81,20 @@
             <ChartBar class="w-4 h-4 text-obsidian-accent group-hover:text-obsidian-bg" />
           </button>
           <span class="nav-tooltip" aria-hidden="true">Stats</span>
+        </div>
+      {/if}
+
+      <!-- Help Button -->
+      {#if onOpenHelp}
+        <div class="tip-wrap">
+          <button
+            on:click={onOpenHelp}
+            class="btn-cyber btn-cyber-outline flex items-center justify-center !p-2.5 group"
+            aria-label="Help"
+          >
+            <HelpCircle class="w-4 h-4 text-obsidian-accent group-hover:text-obsidian-bg" />
+          </button>
+          <span class="nav-tooltip" aria-hidden="true">Help</span>
         </div>
       {/if}
 

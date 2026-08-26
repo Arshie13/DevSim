@@ -2,17 +2,16 @@
   import { toast, type Toast } from '$lib/stores/toast';
   import { helpTrigger } from '$lib/stores/helpTrigger';
   import { fly, fade } from 'svelte/transition';
-  import { flip } from 'svelte/animate';
-  import { X, AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-svelte';
+  import { X, CheckCircle, Info } from 'lucide-svelte';
 
   const variantMeta = {
-    error:   { label: 'ERROR',   color: '#FF3860', glow: 'rgba(255,56,96,0.30)',   bg: 'rgba(255,56,96,0.08)',   Icon: XCircle       },
-    warn:    { label: 'WARNING', color: '#FFB400', glow: 'rgba(255,180,0,0.30)',    bg: 'rgba(255,180,0,0.08)',   Icon: AlertTriangle  },
     success: { label: 'SUCCESS', color: '#00E5A0', glow: 'rgba(0,229,160,0.30)',    bg: 'rgba(0,229,160,0.08)',   Icon: CheckCircle    },
     info:    { label: 'INFO',    color: '#07A5C9', glow: 'rgba(7,165,201,0.30)',    bg: 'rgba(7,165,201,0.08)',   Icon: Info           },
   } as const;
 
-  function meta(t: Toast) { return variantMeta[t.variant]; }
+  function meta(t: Toast) {
+    return variantMeta[t.variant as 'success' | 'info'];
+  }
 
   function handleHelpClick(helpAction: Toast['helpAction']) {
     if (helpAction) {
@@ -21,38 +20,32 @@
   }
 </script>
 
-<!-- Portal: fixed stack at bottom-right -->
-<div class="toast-portal" aria-live="assertive" aria-atomic="false">
-  {#each $toast as t (t.id)}
+<!-- Success/Info toasts: bottom-right stack -->
+<div class="toast-portal" aria-live="polite" aria-atomic="false">
+  {#each $toast.filter(t => t.variant !== 'error' && t.variant !== 'warn') as t (t.id)}
+    {@const m = meta(t)}
     <div
       class="toast"
-      animate:flip={{ duration: 250 }}
       in:fly={{ x: 60, duration: 320, opacity: 0 }}
       out:fade={{ duration: 200 }}
       style="
-        --c: {meta(t).color};
-        --glow: {meta(t).glow};
-        --bg: {meta(t).bg};
+        --c: {m.color};
+        --glow: {m.glow};
+        --bg: {m.bg};
         --duration: {t.duration ?? 4000}ms;
       "
       role="alert"
     >
-      <!-- Shimmer bar (top) -->
       <div class="toast-shimmer"></div>
-
-      <!-- Left accent strip -->
       <div class="toast-strip"></div>
 
-      <!-- Body -->
       <div class="toast-body">
-        <!-- Icon -->
         <div class="toast-icon">
-          <svelte:component this={meta(t).Icon} size={18} />
+          <svelte:component this={m.Icon} size={18} />
         </div>
 
-        <!-- Text -->
         <div class="toast-text">
-          <span class="toast-label">{meta(t).label}</span>
+          <span class="toast-label">{m.label}</span>
           <span class="toast-message">{t.message}</span>
           {#if t.helpAction}
             <button
@@ -65,12 +58,10 @@
         </div>
       </div>
 
-      <!-- Dismiss button -->
       <button class="toast-close" onclick={() => toast.remove(t.id)} aria-label="Dismiss">
         <X size={13} />
       </button>
 
-      <!-- Auto-dismiss progress bar -->
       {#if t.duration && t.duration > 0}
         <div class="toast-progress">
           <div class="toast-progress-fill"></div>
@@ -81,7 +72,6 @@
 </div>
 
 <style>
-  /* ── Portal ── */
   .toast-portal {
     position: fixed;
     bottom: 1.5rem;
@@ -95,21 +85,17 @@
     width: calc(100vw - 3rem);
   }
 
-  /* ── Toast wrapper ── */
   .toast {
     position: relative;
     pointer-events: auto;
     display: flex;
     align-items: stretch;
     overflow: hidden;
-
     background: #12192a;
     border: 1px solid var(--c);
     box-shadow:
       0 0 16px var(--glow),
       0 4px 24px rgba(0,0,0,0.6);
-
-    /* cut-corner clip-path (matches design system) */
     clip-path: polygon(
       0 0,
       calc(100% - 10px) 0,
@@ -120,7 +106,6 @@
     );
   }
 
-  /* Top shimmer */
   .toast-shimmer {
     position: absolute;
     inset: 0 0 auto 0;
@@ -129,7 +114,6 @@
     opacity: 0.6;
   }
 
-  /* Left accent strip */
   .toast-strip {
     width: 3px;
     flex-shrink: 0;
@@ -137,7 +121,6 @@
     box-shadow: 0 0 8px var(--glow);
   }
 
-  /* Body row */
   .toast-body {
     display: flex;
     align-items: flex-start;
@@ -147,7 +130,6 @@
     min-width: 0;
   }
 
-  /* Icon */
   .toast-icon {
     flex-shrink: 0;
     color: var(--c);
@@ -155,7 +137,6 @@
     margin-top: 1px;
   }
 
-  /* Text column */
   .toast-text {
     display: flex;
     flex-direction: column;
@@ -191,17 +172,15 @@
     border: none;
     cursor: pointer;
     padding: 0;
-    margin-top: 0.25rem;
-    text-align: left;
+    margin-top: 0.4rem;
+    text-align: center;
     transition: color 0.15s;
-    align-self: flex-start;
   }
 
   .toast-help-action:hover {
     color: #00f5ff;
   }
 
-  /* Close button */
   .toast-close {
     flex-shrink: 0;
     align-self: flex-start;
@@ -231,11 +210,10 @@
     background: var(--bg);
   }
 
-  /* Progress bar */
   .toast-progress {
     position: absolute;
     bottom: 0;
-    left: 3px; /* align after strip */
+    left: 3px;
     right: 0;
     height: 2px;
     background: rgba(255,255,255,0.06);

@@ -2,6 +2,7 @@ export * from "./levelConfig";
 export * from "./techstack";
 export * from "./dashboard";
 export type { UserData } from "./userData";
+export type { Limitation } from "./help";
 export type {
   IContainer,
 
