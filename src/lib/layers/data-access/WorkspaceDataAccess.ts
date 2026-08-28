@@ -34,6 +34,18 @@ export class WorkspaceDataAccess {
     return row ? mapWorkspace(row as unknown as WorkspaceRow) : null;
   }
 
+  async findIncompleteWorkspace(userId: string) {
+    const row = await prisma.workspace.findFirst({
+      where: {
+        user_id: userId,
+        is_archived: false,
+        status: { not: 'completed' },
+      },
+      orderBy: { updated_at: 'desc' },
+    });
+    return row ? mapWorkspace(row as unknown as WorkspaceRow) : null;
+  }
+
   async findWorkspaceByContainerId(userId: string, containerId: string) {
     const row = await prisma.workspace.findFirst({
       where: {
@@ -52,6 +64,7 @@ export class WorkspaceDataAccess {
         level,
         is_archived: false,
         stack_name: stackName,
+        status: { not: 'completed' },
       }
     });
 

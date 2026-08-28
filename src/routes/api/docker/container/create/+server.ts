@@ -1,6 +1,6 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { WorkspaceService } from "$lib/layers/service/WorkspaceService";
+import { WorkspaceLaunchConflict, WorkspaceService } from "$lib/layers/service/WorkspaceService";
 import prisma from "$lib/server/client";
 import { resolveScenarioId } from "$lib/utils/scenario-mapping";
 import { hasProjectAccess } from "$lib/server/access/hasProjectAccess";
@@ -61,6 +61,13 @@ export const POST: RequestHandler = async ({ locals, request }) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("Error handling container request:", err);
+
+    if (err instanceof WorkspaceLaunchConflict) {
+      return json(
+        { success: false, error: message, code: 'WORKSPACE_IN_PROGRESS', workspace: err.workspace },
+        { status: 409 },
+      );
+    }
 
     // FK violation — stale session whose userId no longer exists in the DB
     if (
