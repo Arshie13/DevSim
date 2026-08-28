@@ -16,34 +16,62 @@
     };
   }
 
-  /** Array of image URLs to display. Single image = no navigation shown. */
-  export let images: string[] = [];
-  /** Alt text for the image(s). */
-  export let alt: string = 'Preview image';
-  /** Label shown on the trigger button. */
-  export let buttonLabel: string = 'View Preview';
-  /** Starting image index when modal opens. */
-  export let initialIndex: number = 0;
-  /** Show inline image preview instead of button */
-  export let showInline: boolean = false;
-  /** Suppress the trigger button — use when isOpen is controlled externally */
-  export let noTrigger: boolean = false;
+  interface Props {
+    /** Array of image URLs to display. Single image = no navigation shown. */
+    images?: string[];
+    /** Alt text for the image(s). */
+    alt?: string;
+    /** Label shown on the trigger button. */
+    buttonLabel?: string;
+    /** Starting image index when modal opens. */
+    initialIndex?: number;
+    /** Show inline image preview instead of button */
+    showInline?: boolean;
+    /** Suppress the trigger button — use when isOpen is controlled externally */
+    noTrigger?: boolean;
+    /** Controlled open state (two-way bindable) */
+    isOpen?: boolean;
+  }
 
-  export let isOpen: boolean;
-  // export let openModal: () => void;
-  // export let closeModal: () => void;
+  let {
+    images = [],
+    alt = 'Preview image',
+    buttonLabel = 'View Preview',
+    initialIndex = 0,
+    showInline = false,
+    noTrigger = false,
+    isOpen = $bindable(false),
+  }: Props = $props();
 
   const dispatch = createEventDispatcher<{ open: void; close: void }>();
 
-  let currentIndex = initialIndex;
+  let currentIndex = $state(initialIndex);
+
+  // Track which image URLs have finished loading so we can show a spinner until then
+  let loaded = $state<Record<string, boolean>>({});
+
+  function onImageLoad() {
+    if (src) loaded[src] = true;
+  }
+
+  function onImageError() {
+    // Mark as "loaded" so a broken image doesn't leave the spinner spinning forever
+    if (src) loaded[src] = true;
+  }
+
+  function resetLoaded() {
+    loaded = {};
+  }
 
   function openModal() {
     currentIndex = initialIndex;
+    resetLoaded();
     isOpen = true;
     dispatch('open');
   }
 
   function closeModal() {
+    resetLoaded();
     isOpen = false;
     dispatch('close');
   }
@@ -59,14 +87,21 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (!open) return;
+    if (!isOpen) return;
     if (e.key === 'Escape') closeModal();
     if (e.key === 'ArrowRight' && images.length > 1) next();
     if (e.key === 'ArrowLeft' && images.length > 1) prev();
   }
 
-  $: hasMultiple = images.length > 1;
-  $: src = images[currentIndex] ?? '';
+  const hasMultiple = $derived(images.length > 1);
+  const src = $derived(images[currentIndex] ?? '');
+
+  // Seed the loading state for the current image when it changes
+  $effect(() => {
+    if (src) {
+      loaded[src] = loaded[src] ?? false;
+    }
+  });
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -74,8 +109,20 @@
 <!-- ── Inline Image Preview ── -->
 {#if showInline && images.length > 0}
   <div class="inline-preview">
-    <button class="preview-image-wrapper" on:click={openModal} aria-haspopup="dialog">
-      <img src={images[0]} alt={alt} class="preview-image" />
+    <button class="preview-image-wrapper" onclick={openModal} aria-haspopup="dialog">
+      {#if !loaded[images[0]]}
+        <div class="inline-loading" aria-hidden="true">
+          <div class="skeleton skeleton--inline"></div>
+        </div>
+      {/if}
+      <img
+        src={images[0]}
+        {alt}
+        class="preview-image"
+        style={loaded[images[0]] ? 'opacity: 1;' : 'opacity: 0;'}
+        onload={onImageLoad}
+        onerror={onImageError}
+      />
       <div class="zoom-overlay">
         <ZoomIn class="w-6 h-6" />
       </div>
@@ -89,7 +136,7 @@
   </div>
 {:else if !noTrigger}
 <!-- ── Trigger Button ── -->
-  <button class="trigger-btn" on:click={openModal} aria-haspopup="dialog">
+  <button class="trigger-btn" onclick={openModal} aria-haspopup="dialog">
     <ZoomIn class="w-3.5 h-3.5" />
     <span>{buttonLabel}</span>
     <span class="trigger-corner tl" aria-hidden="true" ></span>
@@ -101,7 +148,7 @@
 
 <!-- ── Modal Overlay ── -->
 {#if isOpen}
-  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
     class="overlay"
     use:portal
@@ -109,19 +156,19 @@
     aria-modal="true"
     aria-label={alt}
     tabindex="-1"
-    on:click={closeModal}
-    on:keydown={handleKeydown}
+    onclick={closeModal}
+    onkeydown={handleKeydown}
     transition:fade={{ duration: 220 }}
   >
     <!-- Scanline texture overlay -->
     <div class="scanlines" aria-hidden="true" ></div>
 
     <!-- Modal panel -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="panel"
-      on:click|stopPropagation
-      on:keydown|stopPropagation
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
       transition:scale={{ duration: 280, easing: cubicOut, start: 0.92 }}
     >
       <!-- Top bar accent -->
@@ -144,7 +191,7 @@
             {/if}
           </div>
         </div>
-        <button class="close-btn" on:click={closeModal} aria-label="Close modal">
+        <button class="close-btn" onclick={closeModal} aria-label="Close modal">
           <X class="w-4 h-4" />
         </button>
       </div>
@@ -152,22 +199,30 @@
       <!-- Image area -->
       <div class="image-area">
         {#if hasMultiple}
-          <button class="nav-btn left" on:click={prev} aria-label="Previous image">
+          <button class="nav-btn left" onclick={prev} aria-label="Previous image">
             <ChevronLeft class="w-5 h-5" />
           </button>
         {/if}
 
         {#key currentIndex}
+          {#if !loaded[src]}
+            <div class="modal-loading" aria-hidden="true">
+              <div class="skeleton skeleton--modal"></div>
+            </div>
+          {/if}
           <img
             {src}
             {alt}
             class="modal-image"
+            style={loaded[src] ? 'opacity: 1;' : 'opacity: 0;'}
+            onload={onImageLoad}
+            onerror={onImageError}
             transition:fade={{ duration: 150 }}
           />
         {/key}
 
         {#if hasMultiple}
-          <button class="nav-btn right" on:click={next} aria-label="Next image">
+          <button class="nav-btn right" onclick={next} aria-label="Next image">
             <ChevronRight class="w-5 h-5" />
           </button>
         {/if}
@@ -183,7 +238,7 @@
               role="tab"
               aria-selected={i === currentIndex}
               aria-label="Go to image {i + 1}"
-              on:click|stopPropagation={() => (currentIndex = i)}
+              onclick={(e) => { e.stopPropagation(); currentIndex = i; }}
             ></button>
           {/each}
         </div>
@@ -468,6 +523,36 @@
     border: 1px solid rgba(7, 165, 201, 0.18);
     box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
     display: block;
+  }
+
+  /* ── Loading skeleton ────────────────────────────────────────────── */
+  .modal-loading,
+  .inline-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .skeleton {
+    background: rgba(10, 14, 26, 0.72);
+  }
+
+  .skeleton--modal {
+    width: min(100%, 1000px);
+    height: 60vh;
+    max-height: 80vh;
+    border-radius: 3px;
+    border: 1px solid rgba(7, 165, 201, 0.18);
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .skeleton--inline {
+    width: 100%;
+    height: 180px;
+    border-radius: 4px;
+    border: 1px solid rgba(7, 165, 201, 0.2);
   }
 
   /* ── Nav buttons ─────────────────────────────────────────────────── */
