@@ -101,7 +101,7 @@ export class WorkspaceDataAccess {
 
   async deleteWorkspace(workspaceId: string) {
     try {
-      await prisma.workspace.delete({
+      await prisma.workspace.deleteMany({
         where: { id: workspaceId }
       });
       return { success: true };

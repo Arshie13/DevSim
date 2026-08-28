@@ -38,17 +38,80 @@
 
   export let data: PageData;
 
-  const tutorialLaunchContext = {
-    stackName:
-      page.url.searchParams.get("stackName") ||
-      data.container?.stackName ||
-      "",
+  type TutorialLaunchContext = {
+    stackName: string;
+    scenarioId: string | null;
+    projectFolder: string | null;
+    scenarioTitle: string | null;
+    selectionRaw: string | null;
+    tutorialRequired: boolean;
+  };
+
+  const tutorialLaunchContext: TutorialLaunchContext = {
+    stackName: page.url.searchParams.get("stackName") || "",
     scenarioId: page.url.searchParams.get("scenarioId"),
     projectFolder: page.url.searchParams.get("projectFolder"),
     scenarioTitle: page.url.searchParams.get("scenarioTitle"),
     selectionRaw: page.url.searchParams.get("selection"),
     tutorialRequired: page.url.searchParams.get("tutorialRequired") === "1",
   };
+
+  function getStoredLaunchContext(): Partial<TutorialLaunchContext> {
+    if (!browser) return {};
+
+    try {
+      const raw = sessionStorage.getItem(`tutorial-launch:v1:${data.container.id}`);
+      if (!raw) return {};
+
+      const stored = JSON.parse(raw) as {
+        stackName?: unknown;
+        selection?: unknown;
+        scenarioId?: unknown;
+        projectFolder?: unknown;
+        scenarioTitle?: unknown;
+      };
+
+      return {
+        stackName: typeof stored.stackName === "string" ? stored.stackName : undefined,
+        selectionRaw: stored.selection ? JSON.stringify(stored.selection) : undefined,
+        scenarioId: typeof stored.scenarioId === "string" ? stored.scenarioId : null,
+        projectFolder: typeof stored.projectFolder === "string" ? stored.projectFolder : null,
+        scenarioTitle: typeof stored.scenarioTitle === "string" ? stored.scenarioTitle : null,
+      };
+    } catch {
+      return {};
+    }
+  }
+
+  function getResolvedLaunchContext(): TutorialLaunchContext {
+    const stored = getStoredLaunchContext();
+    return {
+      stackName:
+        (
+          tutorialLaunchContext.stackName ||
+          stored.stackName ||
+          data.container?.stackName ||
+          ""
+        ).replace(/postgresql/g, "postgres"),
+      scenarioId:
+        tutorialLaunchContext.scenarioId ||
+        stored.scenarioId ||
+        null,
+      projectFolder:
+        tutorialLaunchContext.projectFolder ||
+        stored.projectFolder ||
+        null,
+      scenarioTitle:
+        tutorialLaunchContext.scenarioTitle ||
+        stored.scenarioTitle ||
+        null,
+      selectionRaw:
+        tutorialLaunchContext.selectionRaw ||
+        stored.selectionRaw ||
+        null,
+      tutorialRequired: tutorialLaunchContext.tutorialRequired,
+    };
+  }
 
   const stack =
     data.container?.stackName?.split('-').join(' + ') || "PERN";
@@ -139,21 +202,50 @@
     { icon: "⚡", label: "Starting editor & terminal…", detail: "Connecting interactive tools" },
   ];
 
-  function parseSelection() {
-    const raw = tutorialLaunchContext.selectionRaw;
-    if (!raw) return null;
+  function inferSelection(stackName: string) {
+    const normalized = stackName.toLowerCase();
+    const database = normalized.includes("postgres")
+      ? "postgresql"
+      : normalized.includes("mongo")
+        ? "mongodb"
+        : null;
+    const services = normalized.includes("shadcn")
+      ? "shadcn-ui"
+      : ["prisma", "firebase", "supabase", "docker", "graphql"]
+          .find((service) => normalized.includes(service)) ?? null;
 
-    try {
-      const parsed = JSON.parse(raw);
-      return {
-        frontend: parsed?.frontend ?? null,
-        backend: parsed?.backend ?? null,
-        database: parsed?.database ?? null,
-        services: parsed?.services ?? null,
-      };
-    } catch {
-      return null;
+    const selection = {
+      frontend: ["react", "nextjs", "vue", "svelte", "angular"]
+        .find((frontend) => normalized.includes(frontend)) ?? null,
+      backend: ["express", "fastify", "nestjs", "django", "flask"]
+        .find((backend) => normalized.includes(backend)) ?? null,
+      database,
+      services,
+    };
+
+    return Object.values(selection).some(Boolean) ? selection : null;
+  }
+
+  function parseSelection(context: TutorialLaunchContext) {
+    const raw = context.selectionRaw;
+
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        const selection = {
+          frontend: parsed?.frontend ?? null,
+          backend: parsed?.backend ?? null,
+          database: parsed?.database ?? null,
+          services: parsed?.services ?? null,
+        };
+
+        if (Object.values(selection).some(Boolean)) return selection;
+      } catch {
+        // Fall through to the persisted stack context.
+      }
     }
+
+    return inferSelection(context.stackName);
   }
 
   let previewPollInterval: ReturnType<typeof setInterval> | null = null;
@@ -535,20 +627,6 @@
     tutorialCleanupLoading = true;
 
     try {
-      const cleanupRes = await fetch(`/api/docker/container/${data.container.id}/destroy`, {
-        method: "DELETE",
-      });
-
-      const cleanupPayload = await cleanupRes.json().catch(() => null);
-      if (!cleanupRes.ok || !cleanupPayload?.success) {
-        toast.error(
-          cleanupPayload?.error ||
-            "Tutorial finished, but we could not clean up the tutorial container. Please retry.",
-        );
-        if (browser) window.dispatchEvent(new CustomEvent("devsim-tutorial-proceed-failed"));
-        return;
-      }
-
       await proceedToWorkspace();
     } catch (error) {
       console.error("Tutorial cleanup failed:", error);
@@ -560,28 +638,41 @@
   }
 
   async function proceedToWorkspace() {
-    const selection = parseSelection();
+    const launchContext = getResolvedLaunchContext();
+    const selection = parseSelection(launchContext);
 
-    if (!tutorialLaunchContext.stackName || !selection) {
+    if (!launchContext.stackName || !selection) {
       toast.error("Missing stack context. Return to scenarios and launch again.");
       if (browser) window.dispatchEvent(new CustomEvent("devsim-tutorial-proceed-failed"));
       return;
     }
 
+    const createWorkspace = () => fetch("/api/docker/container/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stackName: launchContext.stackName,
+        level: 1,
+        mode: "workspace",
+        stacks: selection,
+        scenarioId: launchContext.scenarioId ?? undefined,
+        projectFolder: launchContext.projectFolder ?? undefined,
+        scenarioTitle: launchContext.scenarioTitle ?? undefined,
+      }),
+    });
+
     try {
-      const createRes = await fetch("/api/docker/container/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          stackName: tutorialLaunchContext.stackName,
-          level: 1,
-          mode: "workspace",
-          stacks: selection,
-          scenarioId: tutorialLaunchContext.scenarioId ?? undefined,
-          projectFolder: tutorialLaunchContext.projectFolder ?? undefined,
-          scenarioTitle: tutorialLaunchContext.scenarioTitle ?? undefined,
-        }),
-      });
+      let createRes: Response;
+      try {
+        createRes = await createWorkspace();
+      } catch (error) {
+        if (!(error instanceof TypeError)) throw error;
+
+        // Docker networking can briefly interrupt localhost while the first
+        // request still succeeds server-side. Retry to retrieve that workspace.
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        createRes = await createWorkspace();
+      }
 
       const createPayload = await createRes.json();
       if (!createPayload.success || !createPayload.dbContainerId) {
@@ -591,7 +682,8 @@
       }
 
       try {
-        localStorage.setItem(`tutorial-prompt:v1:${data.userId}:${tutorialLaunchContext.stackName}`, "1");
+        localStorage.setItem(`tutorial-prompt:v1:${data.userId}:${launchContext.stackName}`, "1");
+        sessionStorage.removeItem(`tutorial-launch:v1:${data.container.id}`);
       } catch {
         // Ignore localStorage failures.
       }

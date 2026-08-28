@@ -484,7 +484,7 @@ export class ContainerService {
 
     const containerConfig: any = {
       Image: resolved.imageToUse,
-      name: `devsim-${stackName}-${userId}-${level}`,
+      name: `devsim-${stackName}-${userId}-${level}-${crypto.randomBytes(4).toString('hex')}`,
       Cmd: ['/bin/sh'],
       Tty: true,
       OpenStdin: true,
@@ -594,17 +594,55 @@ export class ContainerService {
   }
 
   async stopAndRemove(containerId: string) {
-    try {
-      const container = docker.getContainer(containerId);
-      const info = await container.inspect();
+    const container = docker.getContainer(containerId);
 
-      if (info.State.Running) {
-        await container.stop({ t: 5 });
+    const waitForRemoval = async () => {
+      // Docker rejects concurrent remove calls with 409 while the first
+      // removal is still running. Wait until inspect returns 404.
+      for (let attempt = 0; attempt < 150; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        try {
+          await container.inspect();
+        } catch (inspectError: any) {
+          if (inspectError?.statusCode === 404) return;
+        }
       }
 
+      throw new Error(`Timed out waiting for Docker container ${containerId} to be removed`);
+    };
+
+    let info;
+    try {
+      info = await container.inspect();
+    } catch (error: any) {
+      if (error?.statusCode === 404) return;
+      throw error;
+    }
+
+    if (info.State.Running) {
+      try {
+        await container.stop({ t: 5 });
+      } catch (error: any) {
+        const message = error?.json?.message || error?.message || "";
+        if (error?.statusCode === 404) return;
+        if (error?.statusCode === 409 && /removal .* already in progress/i.test(message)) {
+          await waitForRemoval();
+          return;
+        }
+        if (error?.statusCode !== 304) throw error;
+      }
+    }
+
+    try {
       await container.remove();
-    } catch {
-      // ignore (already gone)
+    } catch (error: any) {
+      const message = error?.json?.message || error?.message || "";
+      if (error?.statusCode === 404) return;
+      if (error?.statusCode === 409 && /removal .* already in progress/i.test(message)) {
+        await waitForRemoval();
+        return;
+      }
+      throw error;
     }
   }
 

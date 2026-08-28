@@ -80,6 +80,25 @@
       if (activeScenario?.id) params.set('scenarioId', activeScenario.id);
       if (activeScenario?.projectFolder) params.set('projectFolder', activeScenario.projectFolder);
       if (activeScenario?.title) params.set('scenarioTitle', activeScenario.title);
+
+      // Keep the launch context available if onboarding rewrites the URL before
+      // the tutorial completion callback runs.
+      if (browser) {
+        try {
+          sessionStorage.setItem(
+            `tutorial-launch:v1:${containerId}`,
+            JSON.stringify({
+              stackName,
+              selection,
+              scenarioId: activeScenario?.id ?? null,
+              projectFolder: activeScenario?.projectFolder ?? null,
+              scenarioTitle: activeScenario?.title ?? null,
+            }),
+          );
+        } catch {
+          // Continue with the URL context when storage is unavailable.
+        }
+      }
     }
 
     const query = params.toString();

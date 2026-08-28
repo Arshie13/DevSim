@@ -8,7 +8,6 @@
   import DisclaimerModal from '$lib/components/landing/DisclaimerModal.svelte';
   import { notifyAchievementUnlocks } from '$lib/stores/achievementToast';
   import { sessionInvalidated } from '$lib/stores/sessionInvalidated';
-  import { toast } from '$lib/stores/toast';
   import { signOut } from '@auth/sveltekit/client';
   import { onMount } from 'svelte';
   import { beforeNavigate, goto } from '$app/navigation';
@@ -142,7 +141,7 @@
 </svelte:head>
 
 {@render children()}
-<ErrorPopup toasts={$toast} />
+<ErrorPopup />
 <Toast />
 <DisclaimerModal />
 

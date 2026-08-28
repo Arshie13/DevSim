@@ -1,3 +1,9 @@
 allowBuilds:
+  '@prisma/engines': true
   '@stripe/cli': true
+  cpu-features: true
   esbuild: true
+  prisma: true
+  protobufjs: true
+  ssh2: true
+  unrs-resolver: true

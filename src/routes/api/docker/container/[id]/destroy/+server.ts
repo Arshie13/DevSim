@@ -13,8 +13,8 @@
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { docker } from '$lib/server/docker/client';
 import prisma from '$lib/server/client';
+import { ContainerService } from '$lib/layers/service/ContainerService';
 
 export const DELETE: RequestHandler = async ({ params, locals }) => {
   // --- Auth check ---
@@ -56,19 +56,15 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     const containerId = record.container_id;
     const isTutorial = record.status === 'tutorial';
     const recordId = record.id;
+    const containerService = new ContainerService();
 
     const bgCleanup = async () => {
       try {
-        const container = docker.getContainer(containerId);
-        try { await container.stop({ t: 5 }); } catch { /* already stopped */ }
-        await container.remove();
+        await containerService.stopAndRemove(containerId);
         if (isTutorial) {
-          try {
-            await prisma.workspace.delete({ where: { id: recordId } });
-          } catch (err: any) {
-            // P2025 = record not found — already deleted by the create flow
-            if (err?.code !== 'P2025') throw err;
-          }
+          // deleteMany is intentionally idempotent because another cleanup
+          // request may have removed the row first.
+          await prisma.workspace.deleteMany({ where: { id: recordId } });
         }
       } catch (err) {
         console.error('Background destroy error:', err);
@@ -82,4 +78,3 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     return json({ success: false, error: String(err) }, { status: 500 });
   }
 };
-
