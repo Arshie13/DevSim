@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { Globe, Clock, X, ExternalLink } from 'lucide-svelte';
+  import { Globe, Clock, ExternalLink } from 'lucide-svelte';
 
   let {
     visible = $bindable(false),
     previewUrl = $bindable(''),
-    previewImages = $bindable([]),
     onRefresh,
     iframeRef = $bindable(null as HTMLIFrameElement | null),
     hasSwagger = $bindable(false),
@@ -12,14 +11,12 @@
   } = $props<{
     visible: boolean;
     previewUrl: string;
-    previewImages?: string[];
     onRefresh: () => void;
     iframeRef?: HTMLIFrameElement | null;
     hasSwagger?: boolean;
     apiDocsUrl?: string | null;
   }>();
 
-  let selectedImage: string | null = $state(null);
   let iframeEl: HTMLIFrameElement | null = $state(null);
 
   $effect(() => {
@@ -90,54 +87,5 @@
         {/key}
       </div>
     {/if}
-
-    {#if previewImages.length > 0}
-      <div class="bg-[#0a0e1a] border-t border-[rgba(7,165,201,0.15)] px-4 py-3">
-        <p class="text-xs text-[#07a5c9] font-semibold uppercase tracking-wider mb-2" style="font-family:'Orbitron',monospace;">
-          Scenario Previews
-        </p>
-        <div class="flex gap-3 overflow-x-auto pb-1">
-          {#each previewImages as img, i (img)}
-            <button
-              type="button"
-              class="shrink-0 w-32 h-20 rounded border border-[rgba(7,165,201,0.3)] overflow-hidden hover:border-[#07a5c9] transition-all"
-              onclick={() => (selectedImage = img)}
-              aria-label={`Preview ${i + 1}`}
-            >
-              <img
-                src={img}
-                alt={`Preview ${i + 1}`}
-                class="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </button>
-          {/each}
-        </div>
-      </div>
-    {/if}
   </div>
 </div>
-
-{#if selectedImage}
-  <div
-    role="button"
-    tabindex="0"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-    onclick={() => (selectedImage = null)}
-    onkeydown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') selectedImage = null; }}
-  >
-    <button
-      type="button"
-      class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
-      onclick={() => (selectedImage = null)}
-      aria-label="Close preview"
-    >
-      <X class="w-8 h-8" />
-    </button>
-    <img
-      src={selectedImage}
-      alt="Preview"
-      class="max-w-[90vw] max-h-[90vh] rounded shadow-2xl pointer-events-none"
-    />
-  </div>
-{/if}

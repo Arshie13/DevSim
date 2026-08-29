@@ -62,7 +62,6 @@
 
   let workspaceScenario = $derived(data.scenario ?? null);
   let stackNames = $derived([...new Set(data.stackName?.split('-').filter(Boolean) ?? [])]);
-  let previewImages = $derived(data.previewImages ?? []);
   let currentLevelRecord = $derived(getLevelByOrder(data.currentLevel.map((level) => ({
     id: level.id,
     title: level.title,
@@ -1887,7 +1886,6 @@ $effect(() => {
           {previewUrl}
           {hasSwagger}
           {apiDocsUrl}
-          {previewImages}
           onRefresh={refreshPreview}
           bind:iframeRef
         />
