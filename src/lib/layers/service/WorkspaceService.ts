@@ -36,6 +36,13 @@ interface SubmitWorkParams {
   advanceLevel?: boolean; // If true, will advance level when all tasks complete
 }
 
+export class WorkspaceLaunchConflict extends Error {
+  constructor(public readonly workspace: { id: string; stackName: string | null; level: number; status: string; currentScenarioId: string | null; scenarioTitle: string | null }) {
+    super('Complete your current workspace before starting a new scenario.');
+    this.name = 'WorkspaceLaunchConflict';
+  }
+}
+
 export class WorkspaceService {
   constructor(
     private readonly workspace = new WorkspaceDataAccess(),
@@ -86,9 +93,22 @@ export class WorkspaceService {
       stackName: string;
     }>;
 
-    // check if workspace already exists in DB (must match stacks)
     const existing = await this.workspace.findActiveWorkspaceByStacks(userId, level, stacksArray);
+    if (existing && existing.currentScenarioId !== currentScenarioId) {
+      const scenarioTitle = existing.currentScenarioId
+        ? await this.scenario.findScenarioTitleById(existing.currentScenarioId)
+        : null;
+      throw new WorkspaceLaunchConflict({
+        id: existing.id,
+        stackName: existing.stackName,
+        level: existing.level,
+        status: existing.status,
+        currentScenarioId: existing.currentScenarioId,
+        scenarioTitle,
+      });
+    }
 
+    // check if workspace already exists in DB (must match stacks)
     // Tutorial workspaces are asynchronously destroyed (bgCleanup removes the
     // Docker container in the background). Never reuse a tutorial container for
     // a regular workspace; create the replacement first and clean up the old

@@ -45,6 +45,7 @@
 
   const dispatch = createEventDispatcher<{ open: void; close: void }>();
 
+  // svelte-ignore state_referenced_locally
   let currentIndex = $state(initialIndex);
 
   // Track which image URLs have finished loading so we can show a spinner until then
@@ -63,6 +64,7 @@
     loaded = {};
   }
 
+  // svelte-ignore state_referenced_locally
   function openModal() {
     currentIndex = initialIndex;
     resetLoaded();

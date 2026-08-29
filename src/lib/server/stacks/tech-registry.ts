@@ -192,11 +192,29 @@ export const FOLDER_TO_TECH: Record<string, string> = {
   postgres: 'postgresql',
   mongodb: 'mongodb',
   prisma: 'prisma',
-  drizzle: 'drizzle',
-  supabase: 'supabase',
   // Multi-word techs normalized with underscore (handled in stack-scanner)
   shadcn_ui: 'shadcn-ui',
 };
+
+// Reverse of FOLDER_TO_TECH — maps tech id → folder-name segment.
+// Used when constructing folder paths from stack selections.
+export const TECH_TO_FOLDER: Record<string, string> = {
+  react: 'react',
+  nextjs: 'nextjs',
+  svelte: 'svelte',
+  express: 'express',
+  nestjs: 'nestjs',
+  postgresql: 'postgres',
+  mongodb: 'mongodb',
+  prisma: 'prisma',
+  'shadcn-ui': 'shadcn_ui',
+};
+
+// Convert a compound stack slug (e.g. "nestjs-postgresql-prisma") to the
+// corresponding folder name (e.g. "nestjs-postgres-prisma").
+export function stackNameToFolder(stackName: string): string {
+  return stackName.split('-').map(part => TECH_TO_FOLDER[part] || part).join('-');
+}
 
 export const MULTI_WORD_TECHS: Record<string, string> = {
   'shadcn-ui': 'shadcn_ui',

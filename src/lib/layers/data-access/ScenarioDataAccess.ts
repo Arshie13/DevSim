@@ -7,4 +7,12 @@ export class ScenarioDataAccess {
       select: { id: true }
     });
   }
+
+  async findScenarioTitleById(scenarioId: string) {
+    const scenario = await prisma.scenario.findUnique({
+      where: { id: scenarioId },
+      select: { name: true },
+    });
+    return scenario?.name ?? null;
+  }
 }

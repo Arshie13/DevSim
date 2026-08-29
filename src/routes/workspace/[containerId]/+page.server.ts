@@ -1,6 +1,45 @@
 import type { PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import prisma from "$lib/server/client";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { stackNameToFolder } from "$lib/server/stacks/tech-registry";
+
+const BASE_DIR = path.resolve("submodules/projects/tech-stacks");
+
+function getScenarioFolderName(dbScenarioId: string, stackName: string): string | null {
+  const numMatch = dbScenarioId.match(/(\d+)$/);
+  if (!numMatch) return null;
+  const folderName = `scenario-${numMatch[1]}`;
+  const folderStackName = stackNameToFolder(stackName);
+  const scenarioPath = path.join(BASE_DIR, folderStackName, folderName);
+  try {
+    fs.access(scenarioPath);
+    return folderName;
+  } catch {
+    return null;
+  }
+}
+
+async function loadPreviewImages(
+  stackName: string | null,
+  dbScenarioId: string | undefined,
+): Promise<string[]> {
+  if (!stackName || !dbScenarioId) return [];
+  const folderName = getScenarioFolderName(dbScenarioId, stackName);
+  if (!folderName) return [];
+  const folderStackName = stackNameToFolder(stackName);
+  const previewDir = path.join(BASE_DIR, folderStackName, folderName, "previews");
+  try {
+    const files = await fs.readdir(previewDir);
+    return files
+      .filter((f) => /\.(png|jpg|jpeg|svg|webp)$/i.test(f))
+      .sort()
+      .map((f) => `/images/tech-stacks/${folderStackName}/${folderName}/previews/${f}`);
+  } catch {
+    return [];
+  }
+}
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -123,26 +162,29 @@ export const load: PageServerLoad = async (event) => {
    const masteryCheckpointEnabled = masterySetting ? masterySetting.value === 'true' : true;
 
    // AI help credits — these are spent before coins are charged.
-   const userAiHelps = user?.ai_help_credits ?? 0;
+  const userAiHelps = user?.ai_help_credits ?? 0;
 
-   return {
-     user: session.user,
-     userId: user?.id || "",
-     userCoins: user?.coins || 0,
-     userAiHelps,
-     // The actual Docker container ID — used by the client for all Docker API calls
-     dockerContainerId: container?.container_id ?? null,
-     // Level info for tasks
-     level: container?.level || 1,
-     completedTasks: completedTaskNames,
-     currentLevel: currentLevelV2,
-     levelTasks: levelTasks,
-     container: container,
-     stackName: container?.stack_name ?? null,
-     stackVersion: container?.stack_version ?? null,
-     scenario,
-     scenarioLevels: level,
-     hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
-     masteryCheckpointEnabled
-   };
- };
+  const previewImages = await loadPreviewImages(container?.stack_name ?? null, scenario?.id);
+
+  return {
+    user: session.user,
+    userId: user?.id || "",
+    userCoins: user?.coins || 0,
+    userAiHelps,
+    previewImages,
+    // The actual Docker container ID — used by the client for all Docker API calls
+    dockerContainerId: container?.container_id ?? null,
+    // Level info for tasks
+    level: container?.level || 1,
+    completedTasks: completedTaskNames,
+    currentLevel: currentLevelV2,
+    levelTasks: levelTasks,
+    container: container,
+    stackName: container?.stack_name ?? null,
+    stackVersion: container?.stack_version ?? null,
+    scenario,
+    scenarioLevels: level,
+    hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
+    masteryCheckpointEnabled
+  };
+};
