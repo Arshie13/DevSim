@@ -10,6 +10,11 @@
 
   /** Bind this to the iframe element from the parent. */
   export let iframeRef: HTMLIFrameElement | null;
+
+  /** Whether Swagger UI was detected on the running container. */
+  export let hasSwagger: boolean = false;
+  /** Absolute URL to the detected Swagger docs page. */
+  export let apiDocsUrl: string | null = null;
 </script>
 
 <div class:hidden={!visible} class="h-full" data-tour="preview-panel-surface">
@@ -17,19 +22,19 @@
     <div class="bg-[#12192a] px-4 py-2 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <Globe class="w-4 h-4 text-[#d0d7dd]/40" />
-        <span class="text-sm text-[#d0d7dd]/40">{previewUrl || 'Waiting for server...'}</span>
+        <span class="text-sm text-[#d0d7dd]/40">{hasSwagger && apiDocsUrl ? apiDocsUrl : (previewUrl || 'Waiting for server...')}</span>
       </div>
       <button
         on:click={onRefresh}
         class="text-xs bg-[#2d3446] hover:bg-[#2d3446]/80 px-3 py-1 rounded transition-all flex items-center gap-1"
-        disabled={!previewUrl}
+        disabled={!previewUrl && !hasSwagger}
       >
         <Clock class="w-3 h-3" />
         Refresh
       </button>
     </div>
 
-    {#if !previewUrl}
+    {#if !previewUrl && !hasSwagger}
       <div class="flex-1 flex items-center justify-center text-[#d0d7dd]/30">
         <div class="text-center">
           <Globe class="w-16 h-16 mx-auto mb-4 opacity-30" />
@@ -39,11 +44,11 @@
       </div>
     {/if}
 
-    <div class="flex-1 w-full relative" class:hidden={!previewUrl}>
-      {#key previewUrl}
+    <div class="flex-1 w-full relative" class:hidden={!(previewUrl || (hasSwagger && apiDocsUrl))}>
+      {#key hasSwagger && apiDocsUrl ? apiDocsUrl : previewUrl}
         <iframe
           bind:this={iframeRef}
-          src={previewUrl}
+          src={hasSwagger && apiDocsUrl ? apiDocsUrl : previewUrl}
           class="absolute inset-0 w-full h-full border-0 bg-white"
           title="Preview"
         ></iframe>

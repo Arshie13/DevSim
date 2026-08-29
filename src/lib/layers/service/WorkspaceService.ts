@@ -12,6 +12,7 @@ import * as crypto from "crypto";
 import prisma from "$lib/server/client";
 import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
 import { resolveScenarioId } from "$lib/utils/scenario-mapping";
+import { isBackendStack } from "$lib/utils/stacks";
 
 interface StartContainerForPreviewParams {
   containerId: string;
@@ -24,6 +25,8 @@ interface StartContainerForPreviewResult {
   id: string;
   previewPorts: Record<string, number>;
   previewUrl: string;
+  hasSwagger: boolean;
+  apiDocsUrl: string | null;
 }
 
 interface SubmitWorkParams {
@@ -336,10 +339,16 @@ export class WorkspaceService {
       ? await this.createProductionUrl(username, hostPort)
       : this.createDevUrl(hostPort);
 
+    const stackName = info.Config.Labels["devsim.stack"];
+    const hasSwagger = isBackendStack(stackName);
+    const apiDocsUrl = hasSwagger ? previewUrl.replace(/\/$/, '') + '/api/docs' : null;
+
     return {
       id: containerId,
       previewPorts,
       previewUrl,
+      hasSwagger,
+      apiDocsUrl,
     };
   }
 

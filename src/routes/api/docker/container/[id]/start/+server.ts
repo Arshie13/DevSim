@@ -32,6 +32,8 @@ export const POST: RequestHandler = async ({ locals, params }) => {
       id: result.id,
       previewPorts: result.previewPorts,
       previewUrl: result.previewUrl,
+      hasSwagger: result.hasSwagger,
+      apiDocsUrl: result.apiDocsUrl,
     });
   } catch (err) {
     console.error('Error starting container:', err);

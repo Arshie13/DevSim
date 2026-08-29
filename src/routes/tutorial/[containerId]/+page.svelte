@@ -35,6 +35,7 @@
   import type { ITask } from "$lib/types";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { PageData } from "./$types";
+  import { isBackendStack } from "$lib/utils/stacks";
 
   export let data: PageData;
 
@@ -157,6 +158,8 @@
   let activeTabId = "";
   let editorValue = "";
   let previewUrl = "";
+  let hasSwagger: boolean = false;
+  let apiDocsUrl: string | null = null;
   let monacoEditor: MonacoInitializer | null = null;
 
   interface TermSession {
@@ -478,9 +481,11 @@
           }
           try {
             const u = new URL(finalUrl);
+            if (isBackendStack(tutorialLaunchContext.stackName) && !hasSwagger) {
+              u.pathname = u.pathname.replace(/\/$/, "") + "/api";
+            }
             u.searchParams.set("t", Date.now().toString());
             previewUrl = u.toString();
-            if (iframeRef) iframeRef.src = previewUrl;
           } catch (error) {
             console.error("Error refreshing preview:", error);
           }
@@ -491,7 +496,6 @@
               const currentUrl = new URL(previewUrl);
               currentUrl.searchParams.set("t", Date.now().toString());
               previewUrl = currentUrl.toString();
-              if (iframeRef) iframeRef.src = previewUrl;
             } catch (error) {
               console.error("Error refreshing preview:", error);
             }
@@ -506,7 +510,6 @@
             const currentUrl = new URL(previewUrl);
             currentUrl.searchParams.set("t", Date.now().toString());
             previewUrl = currentUrl.toString();
-            if (iframeRef) iframeRef.src = previewUrl;
           } catch (error) {
             console.error("Error refreshing preview:", error);
           }
@@ -548,6 +551,11 @@
       }
 
       previewUrl = startPayload.previewUrl;
+      hasSwagger = startPayload.hasSwagger ?? false;
+      apiDocsUrl = startPayload.apiDocsUrl ?? null;
+      if (isBackendStack(tutorialLaunchContext.stackName) && previewUrl && !hasSwagger) {
+        previewUrl = previewUrl.replace(/\/$/, "") + "/api";
+      }
       bootStep = 1;
 
       await refreshFiles();
@@ -878,6 +886,8 @@
         <PreviewPanel
           visible={activeTab === "preview"}
           {previewUrl}
+          {hasSwagger}
+          {apiDocsUrl}
           onRefresh={refreshPreview}
           bind:iframeRef
         />

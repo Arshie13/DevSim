@@ -137,6 +137,8 @@
   };
   let monacoEditor: MonacoInitializer | null = null;
   let previewUrl: string = $state("");
+  let hasSwagger: boolean = $state(false);
+  let apiDocsUrl: string | null = $state(null);
   let editorValue: string = "";
   let fileTree: string[] = $state([]);
   let directories: string[] = $state([]);
@@ -857,6 +859,8 @@ $effect(() => {
       const startData = await response.json();
       if (!startData.success) throw new Error(startData.error);
       previewUrl = startData.previewUrl;
+      hasSwagger = startData.hasSwagger ?? false;
+      apiDocsUrl = startData.apiDocsUrl ?? null;
 
       await advanceBootStep(1);
       try {
@@ -1535,9 +1539,9 @@ $effect(() => {
     if (!containerId?.trim()) return;
     fetch(`/api/docker/container/${containerId}/ports`)
       .then((res) => res.json())
-      .then((data: { success?: boolean; previewUrl?: string; error?: string }) => {
-        if (data.success && data.previewUrl) {
-          let finalUrl = data.previewUrl;
+      .then((portData: { success?: boolean; previewUrl?: string; error?: string }) => {
+        if (portData.success && portData.previewUrl) {
+          let finalUrl = portData.previewUrl;
           if (!finalUrl.startsWith("http://") && !finalUrl.startsWith("https://")) {
             finalUrl = "https://" + finalUrl;
           }
@@ -1545,18 +1549,16 @@ $effect(() => {
             const u = new URL(finalUrl);
             u.searchParams.set("t", Date.now().toString());
             previewUrl = u.toString();
-            if (iframeRef) iframeRef.src = previewUrl;
           } catch (error) {
             console.error("Error refreshing preview:", error);
           }
         } else {
-          if (data.error) toast.error(data.error);
+          if (portData.error) toast.error(portData.error);
           if (previewUrl) {
             try {
               const currentUrl = new URL(previewUrl);
               currentUrl.searchParams.set("t", Date.now().toString());
               previewUrl = currentUrl.toString();
-              if (iframeRef) iframeRef.src = previewUrl;
             } catch (error) {
               console.error("Error refreshing preview:", error);
             }
@@ -1571,7 +1573,6 @@ $effect(() => {
             const currentUrl = new URL(previewUrl);
             currentUrl.searchParams.set("t", Date.now().toString());
             previewUrl = currentUrl.toString();
-            if (iframeRef) iframeRef.src = previewUrl;
           } catch (error) {
             console.error("Error refreshing preview:", error);
           }
@@ -1883,6 +1884,8 @@ $effect(() => {
         <PreviewPanel
           visible={activeTab === "preview"}
           {previewUrl}
+          {hasSwagger}
+          {apiDocsUrl}
           onRefresh={refreshPreview}
           bind:iframeRef
         />

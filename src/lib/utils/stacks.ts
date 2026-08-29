@@ -50,6 +50,17 @@ export const STACK_ACRONYMS: StackAcronym[] = [
   },
 ];
 
+const ALL_BACKEND_IDS = ['express', 'fastify', 'nestjs', 'django', 'flask'];
+const ALL_FRONTEND_IDS = ['react', 'nextjs', 'svelte', 'vue', 'angular'];
+
+export function isBackendStack(stackName: string | null | undefined): boolean {
+  if (!stackName) return false;
+  const slugs = stackName.split('-').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const hasBackend = slugs.some((s) => ALL_BACKEND_IDS.includes(s));
+  const hasFrontend = slugs.some((s) => ALL_FRONTEND_IDS.includes(s));
+  return hasBackend && !hasFrontend;
+}
+
 /** Returns an acronym label (e.g. "PERN — PostgreSQL, Express, React, Node.js")
  *  when the stack matches a known pattern, otherwise a comma-joined display name list.
  *  Accepts a single compound slug like "react-express-postgresql-prisma" or an array
