@@ -107,8 +107,8 @@
 	</div>
 
 	{#if showTermsDetails}
-		<div class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/75 px-4 py-6 backdrop-blur-sm sm:py-8">
-			<div class="my-auto w-full max-w-xl rounded-2xl border border-[var(--card-border)] bg-[var(--bg-elevated)] p-6 shadow-2xl">
+		<div class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-[#020b14]/90 px-4 py-6 backdrop-blur-sm sm:py-8">
+			<div class="my-auto w-full max-w-xl rounded-2xl border border-[var(--card-border)] bg-[#07141d]/95 p-6 shadow-[0_0_0_1px_rgba(34,211,238,0.1),0_18px_50px_rgba(2,8,23,0.7)]">
 				<div class="flex items-start justify-between gap-4">
 					<div>
 						<p class="font-label text-[0.65rem] tracking-[0.18em] uppercase text-[var(--accent)]">
