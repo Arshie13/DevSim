@@ -123,26 +123,29 @@ export const load: PageServerLoad = async (event) => {
    const masteryCheckpointEnabled = masterySetting ? masterySetting.value === 'true' : true;
 
    // AI help credits — these are spent before coins are charged.
-   const userAiHelps = user?.ai_help_credits ?? 0;
+  const userAiHelps = user?.ai_help_credits ?? 0;
 
-   return {
-     user: session.user,
-     userId: user?.id || "",
-     userCoins: user?.coins || 0,
-     userAiHelps,
-     // The actual Docker container ID — used by the client for all Docker API calls
-     dockerContainerId: container?.container_id ?? null,
-     // Level info for tasks
-     level: container?.level || 1,
-     completedTasks: completedTaskNames,
-     currentLevel: currentLevelV2,
-     levelTasks: levelTasks,
-     container: container,
-     stackName: container?.stack_name ?? null,
-     stackVersion: container?.stack_version ?? null,
-     scenario,
-     scenarioLevels: level,
-     hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
-     masteryCheckpointEnabled
-   };
- };
+  const previewImages = await loadPreviewImages(container?.stack_name ?? null, scenario?.id);
+
+  return {
+    user: session.user,
+    userId: user?.id || "",
+    userCoins: user?.coins || 0,
+    userAiHelps,
+    previewImages,
+    // The actual Docker container ID — used by the client for all Docker API calls
+    dockerContainerId: container?.container_id ?? null,
+    // Level info for tasks
+    level: container?.level || 1,
+    completedTasks: completedTaskNames,
+    currentLevel: currentLevelV2,
+    levelTasks: levelTasks,
+    container: container,
+    stackName: container?.stack_name ?? null,
+    stackVersion: container?.stack_version ?? null,
+    scenario,
+    scenarioLevels: level,
+    hints: currentLevel?.tasks?.flatMap(t => t.hints) || [],
+    masteryCheckpointEnabled
+  };
+};

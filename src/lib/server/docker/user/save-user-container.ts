@@ -1,6 +1,7 @@
 import prisma from '$lib/server/client';
 import { type StackSelection } from '$lib/types/techstack';
 import { Prisma } from '$prismaclient';
+import { TECH_TO_FOLDER } from '$lib/server/stacks/tech-registry';
 
 export interface UserContainerRequest {
   userId: string;
@@ -34,8 +35,11 @@ export async function saveUserContainer(data: UserContainerRequest): Promise<{ d
       data.stacks.services && { stackName: data.stacks.services }
     ].filter(Boolean);
 
-    // normalize stack name by concatenating each name
-    const stackName = stacks.map(stack => typeof stack === 'object' ? stack?.stackName : stack).join('-');
+    // normalize stack name by concatenating each name using folder segments
+    const stackName = stacks.map(stack => {
+      const techId = typeof stack === 'object' ? stack?.stackName : stack;
+      return TECH_TO_FOLDER[techId || ''] || techId || '';
+    }).filter(Boolean).join('-');
 
     if (isExisting && stacks && stacks.length > 0) {
       await prisma.workspace.update({

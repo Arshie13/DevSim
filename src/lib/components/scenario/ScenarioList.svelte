@@ -14,6 +14,7 @@
   import EmptyState from './EmptyState.svelte';
   import ConfirmationModal from '$components/ui/ConfirmationModal.svelte';
   import ScenarioCarousel from './ScenarioCarousel.svelte';
+  import { resolveScenarioId } from '$lib/utils/scenario-mapping';
 
   export let scenarios: ScenarioMeta[];
   export let stackName: string;
@@ -31,6 +32,8 @@
 
   let withTutorial = false;
   let showSkipTutorialWarning = false;
+  let showSameStackWarning = false;
+  let sameStackWorkspaceInfo: { id: string; stackName?: string | null; level: number; status: string; scenarioId?: string; scenarioTitle?: string } | null = null;
 
   onMount(() => {
     withTutorial = !tutorialState.hasCompletedTutorial;
@@ -115,6 +118,25 @@
         return;
       }
 
+      const checkRes = await fetch(`/api/workspace/active?stackName=${encodeURIComponent(stackName)}`);
+      const checkData = await checkRes.json();
+
+      if (checkData?.hasActive && checkData?.workspace) {
+        const activeWorkspace = checkData.workspace;
+        const selectedScenarioId = resolveScenarioId(stackName, activeScenario.id);
+
+        if (activeWorkspace.scenarioId !== selectedScenarioId) {
+          const existingScenario = scenarios.find(s => resolveScenarioId(stackName, s.id) === activeWorkspace.scenarioId);
+          sameStackWorkspaceInfo = {
+            ...activeWorkspace,
+            scenarioTitle: activeWorkspace.scenarioTitle || existingScenario?.title,
+          };
+          showSameStackWarning = true;
+          isLoading = false;
+          return;
+        }
+      }
+
       const createRes = await fetch('/api/docker/container/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,6 +153,18 @@
 
       const data = await createRes.json();
 
+      if (createRes.status === 409 && data.code === 'WORKSPACE_IN_PROGRESS' && data.workspace) {
+        const existingScenario = scenarios.find(
+          (scenario) => resolveScenarioId(stackName, scenario.id) === data.workspace.scenarioId,
+        );
+        sameStackWorkspaceInfo = {
+          ...data.workspace,
+          scenarioTitle: data.workspace.scenarioTitle || existingScenario?.title,
+        };
+        showSameStackWarning = true;
+        return;
+      }
+
       if (!data.success) {
         toast.error(`Failed to create container: ${data.error}`);
         return;
@@ -138,7 +172,7 @@
 
       if (data.alreadyExists) {
         existingContainerDbId = data.dbContainerId;
-        existingContainerMessage = data.message;
+        existingContainerMessage = data.message || 'This scenario already has an active workspace. Continue to open it and pick up where you left off.';
         showExistingModal = true;
         return;
       }
@@ -205,8 +239,8 @@
   bind:open={showExistingModal}
   icon="⟨◉⟩"
   iconVariant="accent"
-  title="Active Session Detected"
-  subtitle="Existing workspace found"
+  title="Workspace Already Running"
+  subtitle="Continue where you left off"
   description={existingContainerMessage}
   confirmLabel="Continue to Workspace"
   cancelLabel="Cancel"
@@ -235,6 +269,32 @@
   on:cancel={() => {
     withTutorial = true;
     showSkipTutorialWarning = false;
+  }}
+/>
+
+  <!-- Warning when user already has an active workspace for the same tech stack -->
+  <ConfirmationModal
+    bind:open={showSameStackWarning}
+    icon="⚠️"
+    iconVariant="warning"
+    title="Scenario Already Active"
+    subtitle="Complete or archive it before starting another scenario"
+    description={sameStackWorkspaceInfo
+      ? `This tech stack (${stackDisplayName || sameStackWorkspaceInfo.stackName || 'your current stack'}) already has an active scenario: ${sameStackWorkspaceInfo.scenarioTitle || 'Current scenario'} (Level ${sameStackWorkspaceInfo.level}). Complete or archive it before starting another scenario.`
+      : 'This tech stack already has an active scenario. Complete or archive it before starting another scenario.'}
+    confirmLabel="Open Current Workspace"
+    cancelLabel="Close"
+    variant="warning"
+  on:confirm={() => {
+    showSameStackWarning = false;
+    if (sameStackWorkspaceInfo?.id) {
+      navigateToWorkspace(sameStackWorkspaceInfo.id);
+    }
+  }}
+  on:cancel={() => {
+    showSameStackWarning = false;
+    sameStackWorkspaceInfo = null;
+    isLoading = false;
   }}
 />
 

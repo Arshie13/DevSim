@@ -1,20 +1,27 @@
 <script lang="ts">
-  import { Globe, Clock } from 'lucide-svelte';
+  import { Globe, Clock, ExternalLink } from 'lucide-svelte';
 
-  /** Whether this panel is visible. */
-  export let visible: boolean;
-  /** The preview URL (empty while the server hasn't started). */
-  export let previewUrl: string;
-  /** Fired when the user clicks Refresh. */
-  export let onRefresh: () => void;
+  let {
+    visible = $bindable(false),
+    previewUrl = $bindable(''),
+    onRefresh,
+    iframeRef = $bindable(null as HTMLIFrameElement | null),
+    hasSwagger = $bindable(false),
+    apiDocsUrl = $bindable(null as string | null),
+  } = $props<{
+    visible: boolean;
+    previewUrl: string;
+    onRefresh: () => void;
+    iframeRef?: HTMLIFrameElement | null;
+    hasSwagger?: boolean;
+    apiDocsUrl?: string | null;
+  }>();
 
-  /** Bind this to the iframe element from the parent. */
-  export let iframeRef: HTMLIFrameElement | null;
+  let iframeEl: HTMLIFrameElement | null = $state(null);
 
-  /** Whether Swagger UI was detected on the running container. */
-  export let hasSwagger: boolean = false;
-  /** Absolute URL to the detected Swagger docs page. */
-  export let apiDocsUrl: string | null = null;
+  $effect(() => {
+    iframeRef = iframeEl;
+  });
 </script>
 
 <div class:hidden={!visible} class="h-full" data-tour="preview-panel-surface">
@@ -22,10 +29,18 @@
     <div class="bg-[#12192a] px-4 py-2 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <Globe class="w-4 h-4 text-[#d0d7dd]/40" />
-        <span class="text-sm text-[#d0d7dd]/40">{hasSwagger && apiDocsUrl ? apiDocsUrl : (previewUrl || 'Waiting for server...')}</span>
+        {#if hasSwagger && apiDocsUrl}
+          <a href={apiDocsUrl} target="_blank" rel="noopener noreferrer" class="text-sm text-[#07a5c9] hover:underline flex items-center gap-1">
+            {apiDocsUrl}
+            <ExternalLink class="w-3 h-3" />
+          </a>
+        {:else}
+          <span class="text-sm text-[#d0d7dd]/40">{previewUrl || 'Waiting for server...'}</span>
+        {/if}
       </div>
       <button
-        on:click={onRefresh}
+        type="button"
+        onclick={onRefresh}
         class="text-xs bg-[#2d3446] hover:bg-[#2d3446]/80 px-3 py-1 rounded transition-all flex items-center gap-1"
         disabled={!previewUrl && !hasSwagger}
       >
@@ -44,15 +59,33 @@
       </div>
     {/if}
 
-    <div class="flex-1 w-full relative" class:hidden={!(previewUrl || (hasSwagger && apiDocsUrl))}>
-      {#key hasSwagger && apiDocsUrl ? apiDocsUrl : previewUrl}
-        <iframe
-          bind:this={iframeRef}
-          src={hasSwagger && apiDocsUrl ? apiDocsUrl : previewUrl}
-          class="absolute inset-0 w-full h-full border-0 bg-white"
-          title="Preview"
-        ></iframe>
-      {/key}
-    </div>
+    {#if hasSwagger && apiDocsUrl}
+      <div class="flex-1 w-full flex items-center justify-center bg-[#f5f5f5]">
+        <div class="text-center p-8">
+          <Globe class="w-12 h-12 mx-auto mb-4 text-[#07a5c9]/50" />
+          <p class="text-sm text-[#a7b6c6] mb-2">API documentation is available</p>
+          <a
+            href={apiDocsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-[#07a5c9] text-white text-sm font-medium rounded hover:bg-[#07a5c9]/80 transition-colors"
+          >
+            Open Swagger Docs
+            <ExternalLink class="w-4 h-4" />
+          </a>
+        </div>
+      </div>
+    {:else if previewUrl}
+      <div class="flex-1 w-full relative">
+        {#key previewUrl}
+          <iframe
+            bind:this={iframeEl}
+            src={previewUrl}
+            class="absolute inset-0 w-full h-full border-0 bg-white"
+            title="Preview"
+          ></iframe>
+        {/key}
+      </div>
+    {/if}
   </div>
 </div>

@@ -1,6 +1,25 @@
 <script lang="ts">
 	import { signIn } from '@auth/sveltekit/client';
 	import Logo from '$components/ui/Logo.svelte';
+	import Scrollbar from '$lib/components/ui/Scrollbar.svelte';
+
+	let showTerms = false;
+	let acceptedTerms = false;
+
+	function openTermsScreen() {
+		showTerms = true;
+		acceptedTerms = false;
+	}
+
+	function closeTermsScreen() {
+		showTerms = false;
+		acceptedTerms = false;
+	}
+
+	function continueWithGoogle() {
+		if (!acceptedTerms) return;
+		signIn('google', { redirectTo: '/auth' });
+	}
 </script>
 
 <svelte:head>
@@ -51,7 +70,7 @@
 
 			<!-- Google sign-in -->
 			<button
-				onclick={() => signIn('google', { redirectTo: '/auth' })}
+				onclick={openTermsScreen}
 				type="button"
 				class="btn-cyber btn-cyber-solid group w-full !py-3.5 flex items-center justify-center gap-3"
 			>
@@ -77,6 +96,70 @@
 			</p>
 		</div>
 	</div>
+
+	{#if showTerms}
+		<div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 px-4 py-6 backdrop-blur-sm sm:py-8">
+			<div class="my-auto w-full max-w-lg rounded-2xl border border-[var(--card-border)] bg-[var(--bg-elevated)] p-6 shadow-2xl">
+				<div class="flex items-start justify-between gap-4">
+					<div>
+						<p class="font-label text-[0.65rem] tracking-[0.18em] uppercase text-[var(--accent)]">
+							Before you continue
+						</p>
+						<h2 class="mt-2 text-2xl font-heading font-bold text-[var(--text-primary)]">
+							Terms & Conditions
+						</h2>
+					</div>
+					<button
+						type="button"
+						onclick={closeTermsScreen}
+						class="rounded-full border border-[var(--card-border)] px-3 py-1.5 text-sm text-[var(--text-muted)] transition hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
+					>
+						Close
+					</button>
+				</div>
+
+				<Scrollbar className="mt-5 max-h-[40vh] rounded-xl border border-[var(--card-border)] bg-[var(--bg-primary)] p-4 text-sm leading-7 text-[var(--text-muted)] sm:max-h-72">
+					<p>
+						By creating an account with DevSim, you agree to use the platform for educational and
+						training purposes only. You are responsible for maintaining the security of your account,
+						representing accurate information, and complying with all applicable laws and platform
+						rules while using the simulation environment.
+					</p>
+					<p class="mt-4">
+						Your activity, progress, and learning data may be stored and used to personalize the
+						experience, track assessment outcomes, and support platform operations. We do not sell or
+						share personal data outside of the services needed to operate DevSim and provide the
+						educational experience.
+					</p>
+					<p class="mt-4">
+						DevSim may update course content, features, and policy details over time. Continued use of
+						the platform after changes are posted indicates your acceptance of those updates.
+					</p>
+				</Scrollbar>
+
+				<label class="mt-5 flex items-start gap-3 rounded-xl border border-[var(--card-border)] bg-[var(--bg-primary)] p-3 text-sm text-[var(--text-primary)]">
+					<input bind:checked={acceptedTerms} type="checkbox" class="mt-1 h-4 w-4 accent-[var(--accent)]" />
+					<span>
+						I agree to the DevSim Terms and Conditions and consent to creating an account.
+					</span>
+				</label>
+
+				<div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+					<button type="button" onclick={closeTermsScreen} class="btn-cyber w-full sm:w-auto">
+						Cancel
+					</button>
+					<button
+						type="button"
+						onclick={continueWithGoogle}
+						disabled={!acceptedTerms}
+						class="btn-cyber btn-cyber-solid w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						Continue with Google
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </section>
 
 <style>

@@ -3,6 +3,7 @@ import { pickPreviewHostPortWithProbe } from '$lib/server/docker/preview-port';
 import * as crypto from 'crypto';
 import { Writable } from 'stream';
 import Dockerode from 'dockerode';
+import { stackNameToFolder } from '$lib/server/stacks/tech-registry';
 
 const STACK_CATEGORY: Record<string, 'frontend' | 'backend' | 'database'> = {
   react: 'frontend',
@@ -129,7 +130,8 @@ export class ContainerService {
         volumeMount = `${volumeName}:/workspace`;
       } catch {
         useVolume = false;
-        const bindPath = `${process.cwd()}/submodules/projects/tech-stacks/${stackName}/${scenarioFolder}:/workspace`;
+        const folderName = stackNameToFolder(stackName);
+        const bindPath = `${process.cwd()}/submodules/projects/tech-stacks/${folderName}/${scenarioFolder}:/workspace`;
         volumeMount = bindPath.replace(/\\/g, '/');
       }
     }

@@ -6,6 +6,7 @@ import prisma from '$lib/server/client';
 import type { ScenarioMeta, StackSelection, EpicMeta } from '$lib/types/techstack';
 import { resolveScenarioId } from '$lib/utils/scenario-mapping';
 import { hasProjectAccess } from '$lib/server/access/hasProjectAccess';
+import { stackNameToFolder } from '$lib/server/stacks/tech-registry';
 
 const BASE_DIR = path.resolve('submodules/projects/tech-stacks');
 
@@ -142,8 +143,10 @@ export const load: PageServerLoad = async (event) => {
 		return emptyReturn();
 	}
 
+	const folderStackName = stackNameToFolder(stackParam);
+
 	// Resolve and verify path stays within base directory
-	const stackDir = path.resolve(BASE_DIR, stackParam);
+	const stackDir = path.resolve(BASE_DIR, folderStackName);
 	if (!stackDir.startsWith(BASE_DIR + path.sep)) {
 		return emptyReturn();
 	}
@@ -180,7 +183,7 @@ export const load: PageServerLoad = async (event) => {
 	// Resolve folder IDs to DB IDs for paywall check
 	const folderIdToDbId: Record<string, string> = {};
 	for (const dir of scenarioDirs) {
-		folderIdToDbId[dir.name] = resolveScenarioId(stackParam, dir.name);
+		folderIdToDbId[dir.name] = resolveScenarioId(folderStackName, dir.name);
 	}
 	const dbIds = Object.values(folderIdToDbId);
 	const dbScenarios = dbIds.length > 0 ? await prisma.scenario.findMany({
@@ -258,7 +261,7 @@ export const load: PageServerLoad = async (event) => {
 			previewImages = files
 				.filter(f => /\.(png|jpg|jpeg|svg|webp)$/i.test(f))
 				.sort()
-				.map(f => `/images/tech-stacks/${stackParam}/${dir.name}/previews/${f}`);
+				.map(f => `/images/tech-stacks/${folderStackName}/${dir.name}/previews/${f}`);
 		} catch {
 			// No preview images directory, continue without
 		}
