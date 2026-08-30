@@ -18,7 +18,7 @@
 
 	function continueWithGoogle() {
 		if (!acceptedTerms) return;
-		signIn('google', { redirectTo: '/auth' });
+		signIn('google', { redirectTo: '/dashboard' });
 	}
 </script>
 
