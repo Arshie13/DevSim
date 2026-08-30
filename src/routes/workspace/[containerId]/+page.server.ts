@@ -1,6 +1,32 @@
 import type { PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import prisma from "$lib/server/client";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { stackNameToFolder } from "$lib/server/stacks/tech-registry";
+
+const BASE_DIR = path.resolve("submodules/projects/tech-stacks");
+
+async function loadPreviewImages(
+  stackName: string | null,
+  dbScenarioId: string | undefined,
+): Promise<string[]> {
+  if (!stackName || !dbScenarioId) return [];
+  const numMatch = dbScenarioId.match(/(\d+)$/);
+  if (!numMatch) return [];
+  const folderName = `scenario-${numMatch[1]}`;
+  const folderStackName = stackNameToFolder(stackName);
+  const previewDir = path.join(BASE_DIR, folderStackName, folderName, "previews");
+  try {
+    const files = await fs.readdir(previewDir);
+    return files
+      .filter((f) => /\.(png|jpg|jpeg|svg|webp)$/i.test(f))
+      .sort()
+      .map((f) => `/images/tech-stacks/${folderStackName}/${folderName}/previews/${f}`);
+  } catch {
+    return [];
+  }
+}
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();

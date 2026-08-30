@@ -177,7 +177,7 @@
   let submitSprintModal: SubmitSprintModal;
   let testCaseComponent: TestCase;
   let editorRef: HTMLDivElement;
-  let iframeRef: HTMLIFrameElement;
+  let iframeRef: HTMLIFrameElement | null = null;
 
   const dbContainerId = data.container.id;
   const dockerContainerId = data.container.containerId;
