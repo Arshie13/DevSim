@@ -1,6 +1,7 @@
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import { PUBLIC_WS_URL } from "$env/static/public";
+import { checkCommandBlacklist } from "$lib/utils/terminal-command-blacklist";
 
 // Get WebSocket URL for terminal connection
 // In production, set PUBLIC_WS_URL environment variable to the WebSocket server URL
@@ -128,8 +129,38 @@ export class TerminalInitializer {
 
     // Only register the data listener once - don't add duplicate listeners on reconnect
     if (!this.dataListenerRegistered) {
+      let inputBuffer = "";
       this.terminal!.onData((data) => {
         this.trackCommandInput(data);
+
+        const sanitizedData = data
+          .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "")
+          .replace(/\[(?:200|201)~/g, "");
+
+        for (const ch of sanitizedData) {
+          if (ch === "\r") {
+            const command = inputBuffer.trim().replace(/\s+/g, " ");
+            if (command.length > 0) {
+              const result = checkCommandBlacklist(command);
+              if (result.blocked) {
+                this.terminal?.write(`\r\n\x1b[31m⚠️ ${result.reason}: ${command}\x1b[0m\r\n`);
+                this.terminal?.write('\x1b[1;32m$ \x1b[0m');
+                inputBuffer = "";
+                return;
+              }
+            }
+            inputBuffer = "";
+            if (this.socket?.readyState === WebSocket.OPEN) {
+              this.socket.send(data);
+            }
+            return;
+          }
+        }
+
+        if (sanitizedData) {
+          inputBuffer += sanitizedData;
+        }
+
         if (this.socket?.readyState === WebSocket.OPEN) {
           this.socket.send(data);
         }

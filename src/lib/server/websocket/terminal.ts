@@ -3,6 +3,7 @@ import Dockerode from 'dockerode';
 import { docker } from '$lib/server/docker/client';
 import http from 'http';
 import type { Duplex } from 'stream';
+import { checkCommandBlacklist } from '$lib/utils/terminal-command-blacklist';
 
 // Server configuration
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -28,6 +29,8 @@ function detachWs(ws: WebSocket | null, execStream: Duplex) {
 }
 
 function attachWs(ws: WebSocket, execStream: Duplex, resizeExec: (dims: { h: number; w: number }) => Promise<void>) {
+  let inputBuffer = '';
+
   ws.on('message', (data: Buffer) => {
     try {
       const msg = JSON.parse(data.toString());
@@ -36,8 +39,49 @@ function attachWs(ws: WebSocket, execStream: Duplex, resizeExec: (dims: { h: num
         return;
       }
     } catch { /* not JSON — treat as raw terminal input */ }
-    if (execStream?.writable) {
-      execStream.write(data);
+
+    const text = data.toString();
+    let output = '';
+    for (const ch of text) {
+      if (ch === '\r') {
+        const command = inputBuffer.trim().replace(/\s+/g, ' ');
+        inputBuffer = '';
+        if (command.length > 0) {
+          const result = checkCommandBlacklist(command);
+          if (result.blocked) {
+            if (execStream?.writable) {
+              execStream.write('\x15');
+            }
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(`\r\n\x1b[31m⚠️ ${result.reason}: ${command}\x1b[0m\r\n`);
+              ws.send('\x1b[1;32m$ \x1b[0m');
+            }
+            return;
+          }
+        }
+        output += ch;
+        continue;
+      }
+      if (ch === '\u007f' || ch === '\b') {
+        if (inputBuffer.length > 0) inputBuffer = inputBuffer.slice(0, -1);
+        output += ch;
+        continue;
+      }
+      if (ch === '\u0003') {
+        inputBuffer = '';
+        output += ch;
+        continue;
+      }
+      if (ch === '\u001b' || ch < ' ') {
+        output += ch;
+        continue;
+      }
+      inputBuffer += ch;
+      output += ch;
+    }
+
+    if (output && execStream?.writable) {
+      execStream.write(output);
     }
   });
 
