@@ -46,6 +46,7 @@
   let filePickerAnchorX: number | null = null;
   let filePickerAnchorY: number | null = null;
   let scrollEl: HTMLDivElement | null = null;
+  let textareaEl: HTMLTextAreaElement | null = null;
 
   // Sync local state with prop
   $: localUserMessage = userMessage;
@@ -53,9 +54,24 @@
   $: filteredFileTree = filterSourceFiles(fileTree || [], attachedFiles || []);
 
   function handleInput(event: Event) {
-    const target = event.target as HTMLInputElement;
+    const target = event.target as HTMLTextAreaElement;
     localUserMessage = target.value;
     onMessageChange(target.value);
+    autoResize();
+  }
+
+  function autoResize() {
+    if (!textareaEl) return;
+    textareaEl.style.height = "auto";
+    const newHeight = Math.min(textareaEl.scrollHeight, MAX_TEXTAREA_HEIGHT);
+    textareaEl.style.height = `${newHeight}px`;
+    textareaEl.style.overflowY = textareaEl.scrollHeight > MAX_TEXTAREA_HEIGHT ? "auto" : "hidden";
+  }
+
+  const MAX_TEXTAREA_HEIGHT = 120;
+
+  $: if (userMessage === "" && textareaEl) {
+    textareaEl.style.height = "auto";
   }
 
   function updateFilePickerAnchor() {
@@ -216,7 +232,7 @@
 
         <!-- Input Area -->
         <div class="p-2 border-t border-slate-700/50 flex-shrink-0">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-end gap-1.5">
             <button
               bind:this={attachButtonEl}
               type="button"
@@ -228,15 +244,17 @@
               <Paperclip class="w-4 h-4" />
             </button>
 
-            <input
-              type="text"
+            <textarea
+              bind:this={textareaEl}
               value={localUserMessage}
               oninput={handleInput}
               onkeydown={onKeydown}
               placeholder="Ask SAZ for a hint..."
-              class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+              rows="1"
+              class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none overflow-y-auto"
+              style="max-height: {MAX_TEXTAREA_HEIGHT}px;"
               disabled={isLoading}
-            />
+            ></textarea>
 
             <button
               type="button"
