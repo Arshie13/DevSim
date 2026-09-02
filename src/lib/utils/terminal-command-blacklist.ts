@@ -50,6 +50,14 @@ const COMMAND_BLACKLIST: Array<{ pattern: RegExp; reason: string }> = [
 
   { pattern: /:\s*\(\s*\)\s*\{.*\|.*&.*\}\s*;/, reason: 'Fork bomb not allowed' },
 
+  { pattern: /^env\b/, reason: 'Environment variables cannot be modified' },
+  { pattern: /^printenv\b/, reason: 'Environment variables cannot be modified' },
+  { pattern: /^unset\b/, reason: 'Environment variables cannot be modified' },
+  { pattern: /^export\b/, reason: 'Environment variables cannot be modified' },
+  { pattern: /^setenv\b/, reason: 'Environment variables cannot be modified' },
+  { pattern: /\benv\s+[A-Za-z_][A-Za-z0-9_]*=/, reason: 'Environment variables cannot be modified' },
+  { pattern: /\b[A-Z_][A-Z0-9_]*=[A-Za-z0-9_\-\/\.]+\s+/, reason: 'Environment variables cannot be modified' },
+
   { pattern: /^iptables\b/, reason: 'Network manipulation not allowed' },
   { pattern: /^nft\b/, reason: 'Network manipulation not allowed' },
   { pattern: /^ifconfig\b/, reason: 'Network manipulation not allowed' },
