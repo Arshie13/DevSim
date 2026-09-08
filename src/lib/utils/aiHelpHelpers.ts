@@ -211,13 +211,6 @@ export function calculateCreditCost(mode: "chat" | "quick"): number {
 }
 
 /**
- * Check if all tasks are completed
- */
-export function areAllTasksCompleted(tasks: ITask[] | undefined): boolean {
-  return !!(tasks && tasks.length > 0 && tasks.every(t => t.isCompleted));
-}
-
-/**
  * Get current task or determine hint message based on task state
  */
 export function getHintMessage(tasks: ITask[] | undefined): { currentTask: ITask | null; message: string } {

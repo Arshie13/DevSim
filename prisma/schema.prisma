@@ -119,10 +119,6 @@ model level_task {
   user_story String @map("user_story")
   order      Int    @default(0) @map("order")
 
-  /// Template default. Per-workspace board state is tracked in
-  /// workspace.completed_tasks; this column serves only as a seed/fallback.
-  is_complete Boolean @default(false) @map("is_complete")
-
   test_type           String                @default("none") @map("test_type")
   acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
   hints               hint[]                @relation("TaskHints")
