@@ -179,23 +179,28 @@ model hint {
 
 model daily_login {
   id      String   @id @default(cuid()) @map("id")
-  date    DateTime @map("date")
   streak  Int      @default(0) @map("streak")
   user_id String   @unique @map("user_id")
 
-  /// Actual claim timestamps for each day claimed this cycle (Monday–Sunday).
-  /// Replaces the old Int[] day-indices. Use getDay() to recover the weekday.
-  claimed_days DateTime[] @default([]) @map("claimed_days")
-
-  /// Cycle position (1-7). NOT a date — this is an integer counter tracking
-  /// which day of the 7-day cycle the user is on. Resets after day 7.
-  /// Distinct from streak (consecutive login days).
-  current_day Int @default(1) @map("current_day")
-
   last_claimed_at DateTime? @map("last_claimed_at")
   user            user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  claims          daily_login_claim[]
 
   @@map("daily_logins")
+}
+
+/// One row per day claimed per cycle. Unique constraint enforces idempotency
+/// at the DB level, preventing duplicate claims even under concurrent requests.
+model daily_login_claim {
+  id            String      @id @default(cuid()) @map("id")
+  daily_login_id String     @map("daily_login_id")
+  day_index     Int         @map("day_index")   // 0-6 (Mon-Sun)
+  claimed_at    DateTime    @default(now()) @map("claimed_at")
+  daily_login   daily_login @relation(fields: [daily_login_id], references: [id], onDelete: Cascade)
+
+  @@unique([daily_login_id, day_index])
+  @@index([daily_login_id])
+  @@map("daily_login_claims")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -269,7 +274,6 @@ model file_changes {
   file_path    String    @map("file_path")
   action       String    @map("action")
   old_path     String?   @map("old_path")
-  content_hash String?   @map("content_hash")
   timestamp    DateTime  @default(now()) @map("timestamp")
   workspace    workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
@@ -323,8 +327,6 @@ model learner_pass_enrollment {
   user_id    String    @map("user_id")
   started_at DateTime? @map("started_at")
   expires_at DateTime? @map("expires_at")
-  streak     Int       @default(0) @map("streak")
-
   /// Reward day numbers claimed (1-30). Allows back-filling past days.
   claimed_day_numbers Int[] @default([]) @map("claimed_days")
 

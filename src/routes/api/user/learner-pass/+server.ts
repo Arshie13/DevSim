@@ -2,6 +2,9 @@ import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
 import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
+import { computeStreak } from "$lib/utils/learnerPassStreak";
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export const GET: RequestHandler = async (event) => {
   const session = await event.locals.auth();
@@ -25,35 +28,50 @@ export const GET: RequestHandler = async (event) => {
   }
 
   const now = new Date();
-  const isExpired = enrollment.expires_at && now > enrollment.expires_at;
-  const isCompleted = enrollment.claimed_day_numbers.length >= 30;
+  const isExpired = !!enrollment.expires_at && now > enrollment.expires_at;
+
+  // Use a Set to deduplicate before comparing to 30 to avoid false positives
+  // from any legacy duplicate entries in the array.
+  const uniqueClaimedDays = new Set(enrollment.claimed_day_numbers);
+  const isCompleted = uniqueClaimedDays.size >= 30;
   const isActive = !!enrollment.started_at && !isExpired && !isCompleted;
 
-  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-  const start = enrollment.started_at ?? now;
-  const currentDay = Math.min(30, Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1);
+  // Derive status — distinguish "enrolled but not started" from "active".
+  const status = isCompleted
+    ? "COMPLETED"
+    : isExpired
+      ? "EXPIRED"
+      : isActive
+        ? "ACTIVE"
+        : enrollment.started_at
+          ? "ACTIVE"
+          : "INACTIVE";
 
+  const start = enrollment.started_at ?? now;
+  const currentDay = Math.min(
+    30,
+    Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1,
+  );
+
+  // Use 24h millisecond comparison — avoids timezone issues with toDateString().
   const canClaimNow =
     isActive &&
     (enrollment.last_claimed_at === null ||
-      new Date().toDateString() !==
-        new Date(enrollment.last_claimed_at).toDateString());
+      now.getTime() - new Date(enrollment.last_claimed_at).getTime() >= ONE_DAY_MS);
 
   const daysRemaining = enrollment.expires_at
     ? Math.max(
         0,
         Math.ceil(
-          (enrollment.expires_at.getTime() - now.getTime()) /
-            (1000 * 60 * 60 * 24),
+          (enrollment.expires_at.getTime() - now.getTime()) / ONE_DAY_MS,
         ),
       )
     : 0;
 
   const nextAvailableAt =
-    enrollment.last_claimed_at && canClaimNow === false
+    !canClaimNow && enrollment.last_claimed_at
       ? new Date(
-          new Date(enrollment.last_claimed_at).getTime() +
-            24 * 60 * 60 * 1000,
+          new Date(enrollment.last_claimed_at).getTime() + ONE_DAY_MS,
         ).toISOString()
       : null;
 
@@ -61,11 +79,11 @@ export const GET: RequestHandler = async (event) => {
     orderBy: { reward_index: "asc" },
   });
 
-  const currentDayReward = rewards.find(
-    (r) => r.reward_index === currentDay,
-  );
+  const currentDayReward = rewards.find((r) => r.reward_index === currentDay);
   const upcomingRewards = rewards
-    .filter((r) => r.reward_index > currentDay && r.reward_index <= currentDay + 3)
+    .filter(
+      (r) => r.reward_index > currentDay && r.reward_index <= currentDay + 3,
+    )
     .slice(0, 3);
 
   const unlockedProjects = await prisma.user_project_access.findMany({
@@ -73,27 +91,36 @@ export const GET: RequestHandler = async (event) => {
     select: { project_id: true, granted_at: true },
   });
 
-  const choices = (enrollment.unlock_choices as string[]) || [];
+  // Validate unlock_choices defensively — it's a JSON column, shape not guaranteed.
+  const choices: string[] = Array.isArray(enrollment.unlock_choices)
+    ? (enrollment.unlock_choices as unknown[]).filter(
+        (c): c is string => typeof c === "string",
+      )
+    : [];
+
   const pendingUnlocks = [];
-  for (const day of enrollment.claimed_day_numbers) {
+  for (const day of uniqueClaimedDays) {
     if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
-    const dayScenario = getSpecialUnlocksForDay(day)[0];
-    if (!dayScenario || choices.includes(dayScenario)) continue;
     const available = getSpecialUnlocksForDay(day).filter(
-      (id) => !unlockedProjects.some((p) => p.project_id === id),
+      (id) =>
+        !choices.includes(id) &&
+        !unlockedProjects.some((p) => p.project_id === id),
     );
     if (available.length > 0) {
       pendingUnlocks.push({ day, available });
     }
   }
 
+  // Derive streak from claimed day numbers — no stored counter needed.
+  const streak = computeStreak([...uniqueClaimedDays]);
+
   return Response.json({
-    status: isCompleted ? "COMPLETED" : isExpired ? "EXPIRED" : isActive ? "ACTIVE" : "ACTIVE",
+    status,
     hasEnrollment: true,
     currentDay,
-    totalClaimedDays: enrollment.claimed_day_numbers.length,
-    streak: enrollment.streak,
-    claimedDays: enrollment.claimed_day_numbers,
+    totalClaimedDays: uniqueClaimedDays.size,
+    streak,
+    claimedDays: [...uniqueClaimedDays],
     canClaimNow,
     nextAvailableAt,
     expiresAt: enrollment.expires_at?.toISOString(),

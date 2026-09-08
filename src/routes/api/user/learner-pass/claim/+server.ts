@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 import { SCENARIO_3_IDS } from '$lib/utils/reward-constants';
 import { getRewardUnlockIds } from '$lib/server/learnerPassRewards';
+import { computeStreak } from '$lib/utils/learnerPassStreak';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -38,12 +39,10 @@ export const POST: RequestHandler = async (event) => {
         throw error(410, 'Pass has expired');
       }
 
-      const start = enrollment.started_at ?? now;
-      const daysSinceStart = Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1;
+      const daysSinceStart =
+        Math.floor((now.getTime() - enrollment.started_at.getTime()) / ONE_DAY_MS) + 1;
       const currentDay = Math.min(30, Math.max(1, daysSinceStart));
 
-      // Guard: block claiming rewards for future pass days.
-      // dayNumber is a pass day (1–30), keyed to calendar days since started_at.
       if (dayNumber > daysSinceStart) {
         throw error(400, 'Cannot claim rewards for future days');
       }
@@ -52,7 +51,10 @@ export const POST: RequestHandler = async (event) => {
         throw error(400, 'Can only claim up to the current day');
       }
 
-      if (enrollment.claimed_day_numbers.includes(dayNumber)) {
+      // Use a Set to deduplicate and check — guards against legacy duplicate entries.
+      const uniqueClaimed = new Set(enrollment.claimed_day_numbers);
+
+      if (uniqueClaimed.has(dayNumber)) {
         throw error(409, 'Reward already claimed for this day');
       }
 
@@ -64,19 +66,12 @@ export const POST: RequestHandler = async (event) => {
         throw error(500, 'Reward not configured');
       }
 
-      const isConsecutive = enrollment.last_claimed_at
-        ? new Date(enrollment.last_claimed_at).toDateString() ===
-          new Date(now.getTime() - ONE_DAY_MS).toDateString()
-        : true;
-
-      const newStreak = isConsecutive ? enrollment.streak + 1 : 1;
-      const newClaimedDays = [...enrollment.claimed_day_numbers, dayNumber];
+      const newClaimedDays = [...uniqueClaimed, dayNumber];
 
       const updatedEnrollment = await tx.learner_pass_enrollment.update({
         where: { id: enrollment.id },
         data: {
           last_claimed_at: now,
-          streak: newStreak,
           claimed_day_numbers: newClaimedDays,
         },
       });
@@ -94,6 +89,7 @@ export const POST: RequestHandler = async (event) => {
       const projectGrants: string[] = [];
       const pendingUnlocks: { day: number; available: string[] }[] = [];
       const rewardUnlocks = getRewardUnlockIds(reward);
+
       if (rewardUnlocks.length > 0) {
         const normalUnlocks = rewardUnlocks.filter((id) => !SCENARIO_3_IDS.has(id));
         const specialUnlocks = rewardUnlocks.filter((id) => SCENARIO_3_IDS.has(id));
@@ -125,12 +121,16 @@ export const POST: RequestHandler = async (event) => {
       return {
         updatedUser,
         updatedEnrollment,
+        newClaimedDays,
         reward,
         projectGrants,
         pendingUnlocks,
         currentDay,
       };
     });
+
+    // Derive streak from the updated claimed days — no stored counter needed.
+    const streak = computeStreak(result.newClaimedDays);
 
     return Response.json({
       success: true,
@@ -145,14 +145,12 @@ export const POST: RequestHandler = async (event) => {
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,
-      streak: result.updatedEnrollment.streak,
-      totalClaimedDays: result.updatedEnrollment.claimed_day_numbers.length,
+      streak,
+      totalClaimedDays: result.newClaimedDays.length,
       currentDay: result.currentDay,
     });
   } catch (err) {
-    if (err && typeof err === 'object' && 'status' in err) {
-      throw err;
-    }
+    if (err && typeof err === 'object' && 'status' in err) throw err;
     console.error('Claim error:', err);
     throw error(500, 'Failed to claim reward');
   }

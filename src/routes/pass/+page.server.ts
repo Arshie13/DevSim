@@ -1,6 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import prisma from "$lib/server/client";
 import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
+import { computeStreak } from "$lib/utils/learnerPassStreak";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -52,22 +53,35 @@ export const load: PageServerLoad = async (event) => {
   }
 
   const claimedDayNumbers: number[] = enrollment?.claimed_day_numbers ?? [];
+  const uniqueClaimedDays = new Set(claimedDayNumbers);
 
   const now = new Date();
-  const isExpired = enrollment?.expires_at && now > enrollment.expires_at;
-  const isCompleted = (enrollment?.claimed_day_numbers.length ?? 0) >= 30;
+  const isExpired = !!(enrollment?.expires_at && now > enrollment.expires_at);
+  const isCompleted = uniqueClaimedDays.size >= 30;
   const isActive = !!enrollment?.started_at && !isExpired && !isCompleted;
+
+  const status = isCompleted
+    ? "COMPLETED"
+    : isExpired
+      ? "EXPIRED"
+      : isActive
+        ? "ACTIVE"
+        : enrollment?.started_at
+          ? "ACTIVE"
+          : "INACTIVE";
+
+  const streak = computeStreak([...uniqueClaimedDays]);
 
   return {
     enrollment: enrollment
       ? {
-          status: isCompleted ? "COMPLETED" : isExpired ? "EXPIRED" : isActive ? "ACTIVE" : "ACTIVE",
+          status,
           currentDay,
-          streak: enrollment.streak,
-          totalClaimedDays: enrollment.claimed_day_numbers.length,
+          streak,
+          totalClaimedDays: uniqueClaimedDays.size,
           lastClaimedAt: enrollment.last_claimed_at?.toISOString() ?? null,
           expiresAt: enrollment.expires_at?.toISOString(),
-          claimedDayNumbers,
+          claimedDayNumbers: [...uniqueClaimedDays],
         }
       : null,
     rewards,
