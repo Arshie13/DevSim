@@ -32,9 +32,6 @@ importers:
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
-      '@xterm/addon-fit':
-        specifier: ^0.11.0
-        version: 0.11.0
       '@xterm/addon-web-links':
         specifier: ^0.12.0
         version: 0.12.0
@@ -1400,6 +1397,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@unrs/resolver-binding-android-arm-eabi@1.11.1':
     resolution: {integrity: sha512-ppLRUgHVaGRWUx0R0Ut06Mjo9gBaBkg3v/8AxusGLhsIotbBLuRk51rAzqLC8gq6NyyAojEXglNjzf6R948DNw==}
@@ -1503,9 +1501,6 @@ packages:
     resolution: {integrity: sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==}
     cpu: [x64]
     os: [win32]
-
-  '@xterm/addon-fit@0.11.0':
-    resolution: {integrity: sha512-jYcgT6xtVYhnhgxh3QgYDnnNMYTcf8ElbxxFzX0IZo+vabQqSPAjC3c1wJrKB5E19VwQei89QCiZZP86DCPF7g==}
 
   '@xterm/addon-web-links@0.12.0':
     resolution: {integrity: sha512-4Smom3RPyVp7ZMYOYDoC/9eGJJJqYhnPLGGqJ6wOBfB8VxPViJNSKdgRYb8NpaM6YSelEKbA2SStD7lGyqaobw==}
@@ -2649,6 +2644,7 @@ packages:
 
   lucide-svelte@0.562.0:
     resolution: {integrity: sha512-kSJDH/55lf0mun/o4nqWBXOcq0fWYzPeIjbTD97ywoeumAB9kWxtM06gC7oynqjtK3XhAljWSz5RafIzPEYIQA==}
+    deprecated: Package deprecated. Please use @lucide/svelte instead.
     peerDependencies:
       svelte: ^3 || ^4 || ^5.0.0-next.42
 
@@ -3627,6 +3623,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-to-istanbul@9.3.0:
@@ -5059,8 +5056,6 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
-
-  '@xterm/addon-fit@0.11.0': {}
 
   '@xterm/addon-web-links@0.12.0': {}
 

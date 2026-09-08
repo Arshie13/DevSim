@@ -12,8 +12,9 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await stackDescriptionService.generateDescription({ selection });
 
     if (result.error) {
-      const status = result.error.includes('Invalid selection') || result.error.includes('At least 2') ? 400 : 503;
-      return json({ success: false, error: result.error }, { status });
+      const error = typeof result.error === 'string' ? result.error : String(result.error);
+      const status = error.includes('Invalid selection') || error.includes('At least 2') ? 400 : 503;
+      return json({ success: false, error }, { status });
     }
 
     return json({

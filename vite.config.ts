@@ -7,12 +7,11 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       '@xterm/xterm',
-      '@xterm/addon-fit',
       '@xterm/addon-web-links'
     ]
   },
   ssr: {
-    noExternal: ['@xterm/xterm', '@xterm/addon-fit', '@xterm/addon-web-links']
+    noExternal: ['@xterm/xterm', '@xterm/addon-web-links']
   },
   plugins: [
     sveltekit()
