@@ -106,7 +106,7 @@ export class TerminalInitializer {
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
-      this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
+      this.terminal?.writeln("\x1b[1;32mWorkspace connected\x1b[0m");
       this.sendResize();
     };
 

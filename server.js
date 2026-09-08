@@ -309,7 +309,7 @@ wss.on('connection', async (ws, request) => {
     const info = await container.inspect();
     
     if (info.State.Status !== 'running') {
-      ws.send('\x1b[31m⚠️ Container is not running.\x1b[0m\r\n');
+      ws.send('\x1b[31m⚠️ Workspace is not running properly. Please refresh the page.\x1b[0m\r\n');
       ws.close(1011, 'Container not running');
       return;
     }
