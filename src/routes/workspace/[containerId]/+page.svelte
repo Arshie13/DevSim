@@ -2057,6 +2057,7 @@ $effect(() => {
 <SazOnboardingCoach
   open={sazOnboardingOpen}
   stackName={stack}
+  aiPanelOpen={showAiHelper}
   onClose={() => { sazOnboardingOpen = false; }}
 />
 

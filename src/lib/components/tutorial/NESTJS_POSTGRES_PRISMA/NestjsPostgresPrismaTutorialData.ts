@@ -333,8 +333,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "test-task-one-result-continue",
     title: "Review Result And Continue",
-    instruction: "Review the test results. When done, click the close button on the modal.",
-    hint: "Wait for the test run to complete, then click the close button.",
+    instruction: 'Review the test results. When done, click the "Continue Working" button on the modal.',
+    hint: 'Wait for the test run to complete, then click the "Continue Working" button.',
     spotlightTarget: "test-result-modal",
     target: "test-result-continue-button",
     requireTargetClick: true,
