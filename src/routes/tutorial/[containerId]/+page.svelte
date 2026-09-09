@@ -37,6 +37,7 @@
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { PageData } from "./$types";
   import { isBackendStack } from "$lib/utils/stacks";
+  import { toFriendlyBootError } from "$lib/utils/bootError";
 
   export let data: PageData;
 
@@ -608,7 +609,7 @@
         return;
       }
 
-      bootError = message;
+      bootError = toFriendlyBootError(message, "Tutorial workspace failed to start. Please try again.");
       isBooting = true;
     }
   }

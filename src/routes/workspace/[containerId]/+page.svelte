@@ -38,6 +38,7 @@
   import type { ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
     import type { IInteractiveConfig } from "$lib/types/IContainer";
+  import { toFriendlyBootError } from "$lib/utils/bootError";
 
   let { data}: { data: PageData } = $props();
 
@@ -939,7 +940,7 @@ $effect(() => {
       isBooting = false;
     } catch (error) {
       console.error("Failed to initialize environment:", error);
-      bootError = error instanceof Error ? error.message : String(error);
+      bootError = toFriendlyBootError(error, "Workspace failed to start. Please try again.");
     }
   }
 
