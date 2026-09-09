@@ -3,6 +3,7 @@
   import { browser } from "$app/environment";
   import type { TutorialStep } from "$components/tutorial/tutorialTypes";
   import { isCommandMatch, canonicalizeCommand, sleep, registerWindowListeners } from "$components/tutorial/tutorialUtils";
+  import { getTutorialProgress, setTutorialProgress, clearTutorialProgress } from "$components/tutorial/tutorialProgress";
   import { resolvePlacement, getFallbackPlacement, type PlacementResult, type SpotlightRect } from "$components/tutorial/tutorialPositioning";
   import TutorialWelcomeModal from "$components/tutorial/TutorialWelcomeModal.svelte";
   import TutorialCalloutPanel from "$components/tutorial/TutorialCalloutPanel.svelte";
@@ -17,6 +18,8 @@
   export let onSwitchTab: ((tab: string) => void) | undefined = undefined;
   export let onRunTests: (() => void) | undefined = undefined;
   export let onSubmitSprint: (() => void) | undefined = undefined;
+  export let userId: string = "";
+  export let tutorialKey: string = "";
   export let onPrepareStep: ((step: TutorialStep) => Promise<void> | void) | undefined = undefined;
   export let codeEditStepId: string = "task-two-ui-edit";
   export let closeResultModalStepIds: string[] = ["test-task-one-result-continue", "test-task-two-result-continue"];
@@ -30,6 +33,9 @@
   let currentIdx = 0;
   let visible = false;
   let welcomeModalVisible = true;
+  let resumeModalVisible = false;
+  let resumeStepId: string | null = null;
+  let resumeStepTitle = "";
   let completionModalVisible = false;
   let showSkipConfirm = false;
   let proceedLoading = false;
@@ -57,6 +63,50 @@
   const TARGET_RETRY_DELAY_MS = 120;
 
   function getCurrentStep() { return steps[currentIdx]; }
+
+  function persistProgress() {
+    if (!userId || !tutorialKey) return;
+    const s = getCurrentStep();
+    if (s) setTutorialProgress(userId, tutorialKey, s.id);
+  }
+
+  function clearProgress() {
+    if (userId && tutorialKey) clearTutorialProgress(userId, tutorialKey);
+  }
+
+  function resolveSavedStep() {
+    if (!userId || !tutorialKey || !steps.length) return;
+    const saved = getTutorialProgress(userId, tutorialKey);
+    if (!saved) return;
+
+    const idx = steps.findIndex((s) => s.id === saved.stepId);
+    if (idx > 0) {
+      resumeStepId = saved.stepId;
+      resumeStepTitle = steps[idx].title ?? "your last step";
+      resumeModalVisible = true;
+      welcomeModalVisible = false;
+    } else {
+      clearProgress();
+    }
+  }
+
+  function resumeContinue() {
+    const idx = resumeStepId ? steps.findIndex((s) => s.id === resumeStepId) : -1;
+    resumeModalVisible = false;
+    if (idx > 0) {
+      currentIdx = idx;
+      visible = true;
+      void prepareStep();
+    } else {
+      welcomeModalVisible = true;
+    }
+  }
+
+  function resumeRestart() {
+    clearProgress();
+    resumeModalVisible = false;
+    welcomeModalVisible = true;
+  }
 
   function applyPlacement(p: PlacementResult) {
     arrowDir = p.arrowDir;
@@ -141,6 +191,7 @@
     }
     if (currentIdx >= steps.length - 1) { openCompletionModal(); return; }
     currentIdx += 1;
+    persistProgress();
     void prepareStep();
   }
 
@@ -155,6 +206,7 @@
 
   function completeTutorial() {
     if (browser) window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
+    clearProgress();
     proceedLoading = true;
     setTimeout(() => dispatch("complete"), 180);
   }
@@ -163,6 +215,7 @@
     pendingTerminalCommand = null;
     clickError = "";
     completionModalVisible = false;
+    clearProgress();
     currentIdx = 0;
     visible = true;
     void prepareStep();
@@ -323,6 +376,7 @@
 
   onMount(() => {
     applyFallback();
+    resolveSavedStep();
     removeListeners = registerWindowListeners([
       ["pointerdown", handleInteractivePointerDown as EventListener, true],
       ["click", handleInteractiveClick as EventListener, true],
@@ -397,10 +451,13 @@
 
 <TutorialModals
   {showSkipConfirm} {completionModalVisible} {proceedLoading}
+  {resumeModalVisible} {resumeStepTitle}
   on:skipConfirm={confirmSkip}
   on:skipCancel={() => { showSkipConfirm = false; }}
   on:replay={replayTutorial}
   on:proceed={completeTutorial}
+  on:resumeContinue={resumeContinue}
+  on:resumeRestart={resumeRestart}
 />
 
 <style>

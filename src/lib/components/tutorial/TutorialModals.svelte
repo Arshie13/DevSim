@@ -4,14 +4,35 @@
   export let showSkipConfirm: boolean = false;
   export let completionModalVisible: boolean = false;
   export let proceedLoading: boolean = false;
+  export let resumeModalVisible: boolean = false;
+  export let resumeStepTitle: string = "";
 
   const dispatch = createEventDispatcher<{
     skipConfirm: void;
     skipCancel: void;
     replay: void;
     proceed: void;
+    resumeContinue: void;
+    resumeRestart: void;
   }>();
 </script>
+
+{#if resumeModalVisible}
+  <div class="pt-modal-backdrop" role="presentation">
+    <div class="pt-modal-box" role="dialog" aria-modal="true" aria-label="Resume tutorial">
+      <div class="pt-modal-accent"></div>
+      <p class="pt-eyebrow">Resume Tutorial?</p>
+      <h2 class="pt-modal-title">You have progress saved.</h2>
+      <p class="pt-modal-body">
+        You left off at <strong>{resumeStepTitle}</strong>. Continue from there or restart from the beginning?
+      </p>
+      <div class="pt-modal-actions">
+        <button class="pt-btn pt-btn-ghost" on:click={() => dispatch("resumeRestart")}>Restart</button>
+        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("resumeContinue")}>Continue</button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 {#if showSkipConfirm}
   <div class="pt-modal-backdrop" role="presentation">
