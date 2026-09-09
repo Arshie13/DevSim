@@ -23,12 +23,9 @@ export const POST: RequestHandler = async (event) => {
         orderBy: { created_at: 'desc' },
       });
 
-      if (!enrollment || !enrollment.started_at) throw error(400, 'No active pass');
+      if (!enrollment) throw error(400, 'No active pass');
 
       if (enrollment.expires_at && new Date() > enrollment.expires_at) throw error(410, 'Pass expired');
-
-      const start = enrollment.started_at;
-      if (!start) throw error(400, 'Enrollment missing start date');
 
       if (!enrollment.claimed_day_numbers.includes(dayNumber)) {
         throw error(400, 'Day not claimed');

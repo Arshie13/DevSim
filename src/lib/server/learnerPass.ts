@@ -9,7 +9,6 @@ export interface PaymentConfirmationResult {
     id: string;
     user_id: string;
     status: string;
-    started_at: Date | null;
     expires_at: Date | null;
     payment_id: string | null;
   } | null;
@@ -31,7 +30,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
     select: {
       id: true,
       user_id: true,
-      started_at: true,
       expires_at: true,
       payment_id: true,
     },
@@ -48,7 +46,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
     const enrollment = await prisma.learner_pass_enrollment.create({
       data: {
         user_id: userId,
-        started_at: now,
         expires_at: expiresAt,
         payment_id: paymentId,
         payment_provider: paymentProvider,
@@ -56,7 +53,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
       select: {
         id: true,
         user_id: true,
-        started_at: true,
         expires_at: true,
         payment_id: true,
       },
@@ -70,7 +66,6 @@ export async function ensureLearnerPassEnrollmentForPayment({
         select: {
           id: true,
           user_id: true,
-          started_at: true,
           expires_at: true,
           payment_id: true,
         },

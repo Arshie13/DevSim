@@ -29,7 +29,7 @@ export const load: PageServerLoad = async (event) => {
     orderBy: { reward_index: "asc" },
   });
 
-  const start = enrollment?.started_at ?? new Date();
+  const start = enrollment?.created_at ?? new Date();
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const currentDay = Math.min(30, Math.floor((Date.now() - start.getTime()) / ONE_DAY_MS) + 1);
 
@@ -58,7 +58,7 @@ export const load: PageServerLoad = async (event) => {
   const now = new Date();
   const isExpired = !!(enrollment?.expires_at && now > enrollment.expires_at);
   const isCompleted = uniqueClaimedDays.size >= 30;
-  const isActive = !!enrollment?.started_at && !isExpired && !isCompleted;
+  const isActive = !!enrollment?.created_at && !isExpired && !isCompleted;
 
   const status = isCompleted
     ? "COMPLETED"
@@ -66,7 +66,7 @@ export const load: PageServerLoad = async (event) => {
       ? "EXPIRED"
       : isActive
         ? "ACTIVE"
-        : enrollment?.started_at
+        : enrollment
           ? "ACTIVE"
           : "INACTIVE";
 

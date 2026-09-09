@@ -31,7 +31,7 @@ export const POST: RequestHandler = async (event) => {
 
       const now = new Date();
 
-      if (!enrollment || !enrollment.started_at) {
+      if (!enrollment) {
         throw error(400, 'No active learner pass');
       }
 
@@ -40,7 +40,7 @@ export const POST: RequestHandler = async (event) => {
       }
 
       const daysSinceStart =
-        Math.floor((now.getTime() - enrollment.started_at.getTime()) / ONE_DAY_MS) + 1;
+        Math.floor((now.getTime() - enrollment.created_at.getTime()) / ONE_DAY_MS) + 1;
       const currentDay = Math.min(30, Math.max(1, daysSinceStart));
 
       if (dayNumber > daysSinceStart) {

@@ -34,20 +34,18 @@ export const GET: RequestHandler = async (event) => {
   // from any legacy duplicate entries in the array.
   const uniqueClaimedDays = new Set(enrollment.claimed_day_numbers);
   const isCompleted = uniqueClaimedDays.size >= 30;
-  const isActive = !!enrollment.started_at && !isExpired && !isCompleted;
+  const isActive = !isExpired && !isCompleted;
 
-  // Derive status — distinguish "enrolled but not started" from "active".
+  // Derive status — an enrollment always has created_at so it's always started.
   const status = isCompleted
     ? "COMPLETED"
     : isExpired
       ? "EXPIRED"
       : isActive
         ? "ACTIVE"
-        : enrollment.started_at
-          ? "ACTIVE"
-          : "INACTIVE";
+        : "INACTIVE";
 
-  const start = enrollment.started_at ?? now;
+  const start = enrollment.created_at;
   const currentDay = Math.min(
     30,
     Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1,

@@ -325,7 +325,6 @@ model assessment_topic_score {
 model learner_pass_enrollment {
   id         String    @id @default(cuid()) @map("id")
   user_id    String    @map("user_id")
-  started_at DateTime? @map("started_at")
   expires_at DateTime? @map("expires_at")
   /// Reward day numbers claimed (1-30). Allows back-filling past days.
   claimed_day_numbers Int[] @default([]) @map("claimed_days")

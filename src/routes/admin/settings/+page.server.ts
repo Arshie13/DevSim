@@ -43,7 +43,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const adminEnrollment = await prisma.learner_pass_enrollment.findFirst({
     where: { user_id: session.user.id },
-    select: { id: true, started_at: true }
+    select: { id: true, created_at: true }
   });
 
   return {
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     settings,
     scenarios: scenariosWithStack,
     adminEnrollment: adminEnrollment
-      ? { id: adminEnrollment.id, startedAt: adminEnrollment.started_at?.toISOString() ?? null }
+      ? { id: adminEnrollment.id, startedAt: adminEnrollment.created_at.toISOString() }
       : null,
   };
 };
@@ -147,10 +147,12 @@ export const actions: Actions = {
     });
     if (!enrollment) return fail(400, { message: 'No active learner pass enrollment' });
 
-    await prisma.learner_pass_enrollment.update({
-      where: { id: enrollment.id },
-      data: { started_at: new Date(enrollment.started_at!.getTime() - 24 * 60 * 60 * 1000) },
-    });
+    // Shift created_at back 24h so currentDay advances by 1.
+    await prisma.$executeRaw`
+      UPDATE learner_pass_enrollments
+      SET created_at = created_at - INTERVAL '1 day'
+      WHERE id = ${enrollment.id}
+    `;
 
     return { success: true };
   },

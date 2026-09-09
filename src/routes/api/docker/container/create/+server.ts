@@ -1,7 +1,6 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { WorkspaceLaunchConflict, WorkspaceService } from "$lib/layers/service/WorkspaceService";
-import prisma from "$lib/server/client";
 import { resolveScenarioId } from "$lib/utils/scenario-mapping";
 import { hasProjectAccess } from "$lib/server/access/hasProjectAccess";
 
@@ -30,18 +29,12 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     // Paywall check — per-scenario
     if (scenarioId) {
       const dbId = resolveScenarioId(stackName, scenarioId);
-      const scenario = await prisma.scenario.findUnique({
-        where: { id: dbId },
-        select: { is_paywalled: true }
-      });
-      if (scenario?.is_paywalled) {
-        const hasAccess = await hasProjectAccess(userId, dbId, false);
-        if (!hasAccess) {
-          return json(
-            { success: false, error: 'This scenario requires an active Learner Pass.', locked: true },
-            { status: 403 }
-          );
-        }
+      const hasAccess = await hasProjectAccess(userId, dbId);
+      if (!hasAccess) {
+        return json(
+          { success: false, error: 'This scenario requires an active Learner Pass.', locked: true },
+          { status: 403 }
+        );
       }
     }
 
