@@ -208,59 +208,37 @@ model daily_login_claim {
 // ────────────────────────────────────────────────────────────────────────────
 
 model achievement {
-  id          String             @id @default(cuid()) @map("id")
-  name        String             @unique @map("name")
-  description String             @map("description")
-  icon        String             @map("icon")
-  category    String             @map("category")
-  xp_reward   Int                @default(100) @map("xp_reward")
-  coin_reward Int                @default(50) @map("coin_reward")
-  created_at  DateTime           @default(now()) @map("created_at")
-  updated_at  DateTime           @updatedAt @map("updated_at")
-  tiers       achievement_tier[]
+  id               String             @id @default(cuid()) @map("id")
+  name             String             @map("name")
+  description      String             @map("description")
+  icon             String             @map("icon")
+  category         String             @map("category")
+  tier             String             @map("tier")
+  tier_description String             @map("tier_description")
+  criteria         Json               @map("criteria")
+  xp_reward        Int                @default(100) @map("xp_reward")
+  coin_reward      Int                @default(50) @map("coin_reward")
+  created_at       DateTime           @default(now()) @map("created_at")
+  updated_at       DateTime           @updatedAt @map("updated_at")
+  unlocks          user_achievement[]
 
+  @@unique([name, tier])
   @@map("achievements")
 }
 
-model achievement_tier {
-  id             String  @id @default(cuid()) @map("id")
-  achievement_id String  @map("achievement_id")
-  tier           String  @map("tier")
-  description    String  @map("description")
-  icon           String? @map("icon")
-
-  /// Expected shape: { type: string; count?: number; days?: number; xp?: number; coins?: number }
-  /// Known types: scenarios_in_stack, distinct_stacks, tasks_completed,
-  /// levels_completed, scenarios_completed, login_streak, xp_total,
-  /// coins_earned, file_edits, tutorial_completed, trivia_correct
-  criteria Json @map("criteria")
-
-  xp_reward   Int                @default(100) @map("xp_reward")
-  coin_reward Int                @default(50) @map("coin_reward")
-  created_at  DateTime           @default(now()) @map("created_at")
-  updated_at  DateTime           @updatedAt @map("updated_at")
-  achievement achievement        @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
-  unlocks     user_achievement[]
-
-  @@unique([achievement_id, tier])
-  @@index([achievement_id])
-  @@map("achievement_tiers")
-}
-
-/// Junction table: links a user to an unlocked achievement_tier.
-/// No duplicated tier metadata — join through `tier` instead.
+/// Junction table: links a user to an unlocked achievement row.
 model user_achievement {
-  id                  String           @id @default(cuid()) @map("id")
-  user_id             String           @map("user_id")
-  achievement_tier_id String           @map("achievement_tier_id")
-  created_at          DateTime         @default(now()) @map("created_at")
-  updated_at          DateTime         @updatedAt @map("updated_at")
-  tier                achievement_tier @relation(fields: [achievement_tier_id], references: [id], onDelete: Cascade)
-  user                user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid()) @map("id")
+  user_id       String      @map("user_id")
+  achievement_id String     @map("achievement_id")
+  created_at    DateTime    @default(now()) @map("created_at")
+  updated_at    DateTime    @updatedAt @map("updated_at")
+  achievement   achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+  user          user        @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([user_id, achievement_tier_id])
+  @@unique([user_id, achievement_id])
   @@index([user_id])
-  @@index([achievement_tier_id])
+  @@index([achievement_id])
   @@map("user_achievements")
 }
 

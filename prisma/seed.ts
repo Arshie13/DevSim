@@ -364,30 +364,26 @@ async function main() {
     console.log(`✅ Created level: ${level.title}`);
   }
 
-  // Insert achievements + tiers
+  // Insert one achievement row per tier. The name groups rows into a family.
   console.log("\n🏅 Creating achievements...\n");
   for (const family of achievements) {
-    const existing = await prisma.achievement.findUnique({ where: { name: family.name } });
+    const existing = await prisma.achievement.findFirst({ where: { name: family.name } });
     if (existing) {
       console.log(`⏭️  Skipped achievement: ${family.name} (already exists)`);
       continue;
     }
-    await prisma.achievement.create({
-      data: {
+    await prisma.achievement.createMany({
+      data: family.tiers.map((t) => ({
         name: family.name,
         description: family.description,
         icon: family.icon,
         category: family.category,
-        tiers: {
-          create: family.tiers.map((t) => ({
-            tier: t.tier,
-            description: t.description,
-            criteria: t.criteria,
-            xp_reward: t.xp_reward,
-            coin_reward: t.coin_reward,
-          })),
-        },
-      },
+        tier: t.tier,
+        tier_description: t.description,
+        criteria: t.criteria,
+        xp_reward: t.xp_reward,
+        coin_reward: t.coin_reward,
+      })),
     });
     console.log(
       `✅ Created achievement: ${family.name} (${family.tiers.length} tier${family.tiers.length === 1 ? "" : "s"})`,
