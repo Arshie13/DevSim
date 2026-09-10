@@ -54,6 +54,7 @@
   let clickError = "";
   let stepCodeSaveDone = false;
   let pendingTerminalCommand: string | null = null;
+  let backupCommandPending = false;
   let terminalOutputPollId: ReturnType<typeof setInterval> | null = null;
   let stepConfirmReady = false;
   let layerClicks: string[] = [];
@@ -226,6 +227,7 @@
 
   function resetStepState() {
     stopTerminalOutputPoll();
+    backupCommandPending = false;
     stepConfirmReady = false;
     layerClicks = [];
     reflectionInteracted = false;
@@ -300,7 +302,7 @@
     terminalOutputPollId = setInterval(() => {
       const rows = document.querySelector('[data-tour="terminal-panel"] .xterm-rows');
       const text = rows?.textContent ?? document.querySelector('[data-tour="terminal-panel"]')?.textContent ?? "";
-      if (patterns.every((p) => text.includes(p))) { stopTerminalOutputPoll(); pendingTerminalCommand = null; clickError = ""; advanceStep(); }
+      if (patterns.every((p) => text.includes(p))) { stopTerminalOutputPoll(); pendingTerminalCommand = null; backupCommandPending = false; clickError = ""; advanceStep(); }
     }, 1000);
   }
 
@@ -312,6 +314,7 @@
     if (isCommandMatch(executed, s.command)) {
       if (s.waitForCompletion === false) { pendingTerminalCommand = null; clickError = ""; advanceStep(); return; }
       pendingTerminalCommand = canonicalizeCommand(executed);
+      backupCommandPending = false;
       if (s.waitForTerminalOutput?.length) {
         clickError = "Command accepted. Waiting for client and server to start...";
         startTerminalOutputPoll(s.waitForTerminalOutput);
@@ -320,6 +323,17 @@
       clickError = "Command accepted. Waiting for terminal to finish...";
       return;
     }
+
+    // Backup: accept any command that produces the expected terminal output, so an
+    // equivalent command (e.g. `pnpm dev` instead of `pnpm run dev`) also works.
+    if (s.waitForTerminalOutput?.length && executed.trim()) {
+      pendingTerminalCommand = canonicalizeCommand(executed);
+      backupCommandPending = true;
+      clickError = "Command accepted. Checking that it produces the expected result...";
+      startTerminalOutputPoll(s.waitForTerminalOutput);
+      return;
+    }
+
     if (pendingTerminalCommand) return;
     pendingTerminalCommand = null;
     clickError = `Expected terminal command: ${s.command}`;
@@ -330,8 +344,19 @@
     if (!s.requireCommand || !s.command || !pendingTerminalCommand) return;
     const raw = (event as CustomEvent<{ command?: string }>).detail?.command ?? "";
     if (canonicalizeCommand(raw) !== pendingTerminalCommand) return;
-    if (!isCommandMatch(raw, s.command)) return;
-    pendingTerminalCommand = null; clickError = ""; advanceStep();
+
+    if (isCommandMatch(raw, s.command)) {
+      pendingTerminalCommand = null; clickError = ""; advanceStep();
+      return;
+    }
+
+    // A backup (non-matching) command finished without producing the expected output.
+    if (backupCommandPending) {
+      backupCommandPending = false;
+      pendingTerminalCommand = null;
+      stopTerminalOutputPoll();
+      clickError = `That command didn't produce the expected result. Try: ${s.command}`;
+    }
   }
 
   function handleTutorialFileSaved(event: Event) {
