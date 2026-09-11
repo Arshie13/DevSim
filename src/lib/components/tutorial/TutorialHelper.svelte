@@ -251,7 +251,9 @@
         pathHasTourTarget(path, "tutorial-search-input") ||
         pathHasTourTarget(path, "tutorial-search-result-item");
     }
-    const allowed = [s.target, ...(s.targets ?? [])].filter(Boolean) as string[];
+    const allowed = [s.target, ...(s.targets ?? [])]
+      .filter((v): v is string => Boolean(v))
+      .filter((v) => v !== s.spotlightTarget);
     const clicked = collectTourTargets(path);
     if (!clicked.length) return false;
     if (s.requireCommand) return clicked.includes("terminal-panel");
@@ -394,6 +396,16 @@
     }
   }
 
+  function handleModalEscape(event: KeyboardEvent) {
+    if (!visible) return;
+    const s = getCurrentStep();
+    if (s.spotlightTarget && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      clickError = "You can't close this modal yet. Use the highlighted action to continue.";
+    }
+  }
+
   function handleWindowResize() { if (browser && pointerReady) void positionPointerForStep(); }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -407,6 +419,7 @@
       ["click", handleInteractiveClick as EventListener, true],
       ["contextmenu", handleInteractiveClick as EventListener, true],
       ["dblclick", handleInteractiveClick as EventListener, true],
+      ["keydown", handleModalEscape as EventListener, true],
       ["devsim-tutorial-file-opened", handleTutorialFileOpened as EventListener],
       ["devsim-tutorial-file-saved", handleTutorialFileSaved as EventListener],
       ["devsim-terminal-command", handleTerminalCommand as EventListener],
