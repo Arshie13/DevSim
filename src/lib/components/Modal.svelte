@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, FilePlus, FolderPlus, Pencil, Trash2 } from "lucide-svelte";
+	import { FilePlus, FolderPlus, Pencil, Trash2 } from "lucide-svelte";
 
 	export let show: boolean = false;
 	export let title: string = "";
@@ -86,14 +86,6 @@
 					</h3>
 				</div>
 
-				<!-- Close X -->
-				<button
-					on:click={onClose}
-					class="flex-shrink-0 w-7 h-7 flex items-center justify-center text-[#8892a0] hover:text-[#ff3860] transition-colors"
-					title="Close"
-				>
-					<X class="w-4 h-4" />
-				</button>
 			</div>
 
 			<!-- Body -->

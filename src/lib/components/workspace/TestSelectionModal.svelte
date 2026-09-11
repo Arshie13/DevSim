@@ -84,12 +84,6 @@
             <p class="mt-1 [font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">Level {level} · {testableTasks.length} testable tasks</p>
           </div>
         </div>
-        <button
-          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[4px] border border-transparent bg-transparent text-[var(--text-muted)] transition-all duration-150 ease-in-out hover:border-[rgba(255,56,96,0.25)] hover:bg-[rgba(255,56,96,0.08)] hover:text-[var(--danger)]"
-          on:click={close}
-        >
-          <X class="w-5 h-5" />
-        </button>
       </div>
       <div class="relative flex-1 overflow-y-auto px-6 py-4">
         {#if !hasTestableTasks}

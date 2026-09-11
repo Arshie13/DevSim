@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { StackSelection, TechOption } from "$types";
-  import { X, Loader } from "lucide-svelte";
+  import { Loader } from "lucide-svelte";
   import { formatMessage } from "$lib/ai";
   import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
 
@@ -78,13 +78,6 @@
           </p>
         </div>
 
-        <button
-          on:click={onClose}
-          class="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#8892a0] hover:text-[#ff3860] transition-colors rounded mt-1"
-          style="background:rgba(40,55,80,0.5);"
-        >
-          <X class="w-4 h-4" />
-        </button>
       </div>
 
       <!-- ✅ TAGS -->

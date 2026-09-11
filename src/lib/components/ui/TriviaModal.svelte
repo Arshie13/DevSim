@@ -103,9 +103,11 @@
             <p class="trivia-subtitle">Test your knowledge · {question.category}</p>
           </div>
         </div>
-        <button class="trivia-close" on:click={handleClose} aria-label="Close">
-          <X class="w-5 h-5" />
-        </button>
+        {#if !hasAnswered}
+          <button class="trivia-close" on:click={handleClose} aria-label="Close">
+            <X class="w-5 h-5" />
+          </button>
+        {/if}
       </div>
 
       <!-- Content -->
@@ -175,32 +177,21 @@
   .trivia-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 9998;
-    background: rgba(0, 0, 0, 0.78);
-    backdrop-filter: blur(5px);
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    animation: trivia-fade-in 0.2s ease-out both;
-  }
-
-  .trivia-backdrop::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      repeating-linear-gradient(0deg, var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px),
-      repeating-linear-gradient(90deg, var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px);
-    background-attachment: fixed;
-    opacity: 0.35;
-    pointer-events: none;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(5px);
   }
 
   .trivia-card {
     position: relative;
+    box-sizing: border-box;
     width: min(560px, 100%);
     max-height: min(92vh, 700px);
+    overflow-x: hidden;
     overflow-y: auto;
     background: var(--bg-light, #12192a);
     border: 1px solid var(--card-border, rgba(7, 165, 201, 0.15));
@@ -349,17 +340,18 @@
   }
 
   .trivia-question {
+    margin: 0 0 1.25rem;
     font-family: var(--font-body, 'Exo 2', sans-serif);
     font-size: 1.05rem;
-    line-height: 1.6;
+    line-height: 1.5;
     color: var(--text-primary, #d0d7dd);
-    margin: 0 0 1.25rem;
   }
 
   .trivia-options {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    min-width: 0;
   }
 
   .trivia-option {
@@ -368,6 +360,8 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
+    box-sizing: border-box;
+    width: 100%;
     background: rgba(10, 14, 26, 0.72);
     border: 1px solid rgba(136, 146, 160, 0.12);
     border-radius: 4px;
