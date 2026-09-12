@@ -807,7 +807,7 @@
   />
 {/if}
 
-<div class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]" class:invisible={isBooting}>
+<div class="workspace-page h-screen min-w-0 flex flex-col overflow-hidden bg-[#0a0e1a] text-[#d0d7dd]" class:invisible={isBooting}>
   <WorkspaceHeader
     data={{
       level: tutorialLevel,
@@ -833,7 +833,7 @@
     </svelte:fragment>
   </WorkspaceHeader>
 
-  <div class="flex flex-1 overflow-hidden">
+  <div class="workspace-row flex min-w-0 flex-1 overflow-hidden">
     <PrimarySidebar
       {fileTree}
       {directories}

@@ -32,9 +32,28 @@
 }
 
 body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
   font-family: var(--font-body);
   background: var(--bg);
   color: var(--text-primary);
+}
+
+/* Let page-level content grow on larger laptop and desktop viewports while
+   leaving nested cards and dialogs at their authored widths. */
+@media (min-width: 1024px) {
+  main > div.mx-auto[class*="max-w-"],
+  main > div[class*="max-w-"][class*="mx-auto"],
+  main[class*="max-w-"] {
+    max-width: min(92vw, 1400px);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 /* ── DevSim Clip-Path Button System ── */

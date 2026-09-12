@@ -22,9 +22,9 @@
 </script>
 
 {#if isClient}
-  <div class="flex h-screen bg-[var(--bg-primary)]">
+  <div class="admin-shell flex h-screen min-w-0 bg-[var(--bg-primary)]">
     <!-- Sidebar -->
-    <aside class="w-64 border-r border-[rgba(7,165,201,0.12)] bg-[rgba(10,14,26,0.95)]">
+    <aside class="admin-sidebar w-64 shrink-0 border-r border-[rgba(7,165,201,0.12)] bg-[rgba(10,14,26,0.95)]">
       <div class="p-4">
         <h1 class="[font-family:var(--font-heading)] text-lg font-medium text-[var(--accent)]">
           Admin Panel
@@ -46,8 +46,36 @@
     </aside>
 
     <!-- Main content area -->
-    <main class="flex-1 overflow-auto">
+    <main class="min-w-0 flex-1 overflow-auto">
       <slot />
     </main>
   </div>
 {/if}
+
+<style>
+  @media (max-width: 900px) {
+    .admin-sidebar {
+      width: 12rem;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .admin-sidebar {
+      width: 3.5rem;
+    }
+
+    .admin-sidebar h1 {
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 0;
+    }
+
+    .admin-sidebar h1::first-letter {
+      font-size: 1rem;
+    }
+
+    .admin-sidebar nav span {
+      display: none;
+    }
+  }
+</style>

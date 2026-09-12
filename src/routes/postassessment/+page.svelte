@@ -157,13 +157,13 @@
   </header>
 
   <main class="pt-28 pb-12 px-6">
-    <div class="max-w-3xl mx-auto">
+    <div class="assessment-container mx-auto">
       {#if loading}
-        <div class="card-cyber p-8 text-center">
+        <div class="assessment-card card-cyber p-8 text-center">
           <p class="text-[var(--text-muted)]">Loading...</p>
         </div>
       {:else if !showResult}
-        <div class="card-cyber p-8 relative">
+        <div class="assessment-card card-cyber p-8 relative">
           <div class="mb-8">
             <div class="flex justify-between items-center mb-3">
               <span class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)]">
@@ -238,7 +238,7 @@
 
       {:else if showResult}
         {#if processingResults}
-          <div class="card-cyber p-8 text-center relative">
+          <div class="assessment-card card-cyber p-8 text-center relative">
             <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute top-5 right-5 w-7 h-7 border-t-2 border-r-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute bottom-5 left-5 w-7 h-7 border-b-2 border-l-2 border-[var(--accent)] opacity-40"></div>
@@ -267,7 +267,7 @@
             </div>
           </div>
         {:else}
-          <div class="card-cyber p-8 text-center relative">
+          <div class="assessment-card card-cyber p-8 text-center relative">
             <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute top-5 right-5 w-7 h-7 border-t-2 border-r-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute bottom-5 left-5 w-7 h-7 border-b-2 border-l-2 border-[var(--accent)] opacity-40"></div>
@@ -283,6 +283,22 @@
                   </span>
                 </div>
               </div>
+
+              <style>
+                .assessment-container {
+                  width: clamp(680px, 60vw, 960px);
+                }
+
+                @media (max-width: 760px) {
+                  .assessment-container {
+                    width: 100%;
+                  }
+
+                  .assessment-card {
+                    padding: 1.25rem;
+                  }
+                }
+              </style>
 
               {#if getPreAverage() > 0}
                 {@const delta = getAverageScore() - getPreAverage()}
