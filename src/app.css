@@ -40,20 +40,34 @@ body {
   color: var(--text-primary);
 }
 
-/* Let page-level content grow on larger laptop and desktop viewports while
-   leaving nested cards and dialogs at their authored widths. */
-@media (min-width: 1024px) {
-  main > div.mx-auto[class*="max-w-"],
-  main > div[class*="max-w-"][class*="mx-auto"],
-  main[class*="max-w-"] {
-    max-width: min(92vw, 1400px);
-  }
-}
-
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* Keep the same visual density across desktop browser zoom and laptop sizes.
+   Most application spacing and typography uses rem-based Tailwind utilities. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    zoom: 0.8;
+    width: 125%;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1399px) {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    zoom: 0.88;
+    width: 113.6364%;
+  }
 }
 
 /* ── DevSim Clip-Path Button System ── */

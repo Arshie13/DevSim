@@ -317,22 +317,6 @@
               </div>
             </div>
 
-            <style>
-              .assessment-container {
-                width: clamp(680px, 60vw, 960px);
-              }
-
-              @media (max-width: 760px) {
-                .assessment-container {
-                  width: 100%;
-                }
-
-                .assessment-card {
-                  padding: 1.25rem;
-                }
-              }
-            </style>
-
             <h2 class="font-heading text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-4">
               {getSkillLevel()} Developer
             </h2>
@@ -400,5 +384,43 @@
       transparent 70%
     );
     pointer-events: none;
+  }
+
+  .assessment-container {
+    width: min(52vw, 820px);
+  }
+
+  .assessment-card {
+    padding: clamp(1.25rem, 1.8vw, 1.75rem) !important;
+  }
+
+  .assessment-card h2 {
+    font-size: clamp(1.1rem, 1.35vw, 1.35rem);
+  }
+
+  .assessment-card .w-14 {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .assessment-card .w-32 {
+    width: 7rem;
+    height: 7rem;
+  }
+
+  @media (max-width: 900px) {
+    .assessment-container {
+      width: min(76vw, 700px);
+    }
+
+    .assessment-card {
+      padding: 1.1rem !important;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .assessment-container {
+      width: 100%;
+    }
   }
 </style>
