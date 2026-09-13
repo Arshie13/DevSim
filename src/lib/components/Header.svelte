@@ -27,7 +27,7 @@
 </script>
 
 <header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50" data-tour="dashboard-header">
-  <div class="w-full max-w-[1200px] px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between mx-auto">
+  <div class="site-header-inner w-full max-w-[1200px] min-w-0 px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between mx-auto">
     <!-- Logo -->
     <button on:click={navigateToDashboard} class="flex-shrink-0 text-left">
       <Logo markClass="w-12 h-12" textClass="text-xl" subtitle="Developer Simulation" />
@@ -158,5 +158,27 @@
   .tip-wrap:focus-within .nav-tooltip {
     opacity: 1;
     transform: translate(-50%, 0);
+  }
+
+  @media (max-width: 760px) {
+    .site-header-inner {
+      gap: 0.75rem;
+      padding-inline: 0.75rem;
+    }
+
+    .site-header-inner :global(.logo-text),
+    .site-header-inner :global(.logo-subtitle) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .site-header-inner {
+      padding-block: 0.6rem;
+    }
+
+    .site-header-inner :global(.tip-wrap:nth-last-of-type(2)) {
+      display: none;
+    }
   }
 </style>

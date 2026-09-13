@@ -11,6 +11,7 @@
 
   const dispatch = createEventDispatcher<{ complete: void; skip: void; openDrawer: void; closeDrawer: void }>();
   const ACCENT = '#07a5c9';
+  const ARROW_ACCENT = '#ffb400';
 
   // ── State ──
   let currentIdx = startStep;
@@ -248,7 +249,7 @@
       <div
         class="dt-arrow dt-arrow-{arrowDir}"
         aria-hidden="true"
-        style="color:{ACCENT}; {arrowDir === 'top' || arrowDir === 'bottom' ? `left:${arrowOffset}` : `top:${arrowOffset}`};"
+        style="color:{ARROW_ACCENT}; {arrowDir === 'top' || arrowDir === 'bottom' ? `left:${arrowOffset}` : `top:${arrowOffset}`};"
       >
         {#if arrowDir === 'top'}
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">

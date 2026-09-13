@@ -1761,7 +1761,7 @@ $effect(() => {
 {/if}
 
 <div
-  class="h-screen flex flex-col bg-[#0a0e1a] text-[#d0d7dd]"
+  class="workspace-page h-screen min-w-0 flex flex-col overflow-hidden bg-[#0a0e1a] text-[#d0d7dd]"
   class:invisible={isBooting}
 >
   <!-- Header -->
@@ -1825,7 +1825,7 @@ $effect(() => {
     </div>
   {/if}
 
-  <div class="flex flex-1 overflow-hidden">
+  <div class="workspace-row flex min-w-0 flex-1 overflow-hidden">
     <!-- Left Sidebar -->
     <PrimarySidebar
       {fileTree}
@@ -2118,5 +2118,21 @@ $effect(() => {
   :global(.search-highlight-match-inline) {
     color: #fff !important;
     font-weight: 600;
+  }
+
+  @media (max-width: 1280px) {
+    :global(.workspace-page .workspace-row > [data-tour="tutorial-dev-sidebar"] aside) {
+      width: 200px !important;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    :global(.workspace-page .workspace-row > [data-tour="tutorial-dev-sidebar"] aside) {
+      width: 176px !important;
+    }
+
+    :global(.workspace-page .workspace-row > aside[class*="w-44"]) {
+      width: 9rem;
+    }
   }
 </style>

@@ -26,12 +26,12 @@ export class StackDescriptionService {
     // Build prompt
     const prompt = this.stackData.buildStackDescriptionPrompt(selection);
 
-    // Try models in order of preference
+    // Keep stack analysis aligned with the AI checker model fallback order.
     const models = [
       'auto/coding',
+      'auto/best-free',
       'nvidia/nemotron-3-nano-30b-a3b:free',
-      'google/gemma-3n-e2b-it:free',
-      'qwen/qwen3.6-plus:free'
+      'google/gemma-3n-e2b-it:free'
     ];
 
     const omnirouteKey = process.env.OMNIROUTE_KEY;
@@ -43,7 +43,7 @@ export class StackDescriptionService {
 
     for (const modelName of models) {
       try {
-        const result = await this.tryOmniroute(prompt, omnirouteKey);
+        const result = await this.tryOmniroute(prompt, omnirouteKey, modelName);
         if (result.success) {
           return { success: true, description: result.description };
         }
@@ -54,11 +54,27 @@ export class StackDescriptionService {
       }
     }
 
-    console.error('All AI models failed:', lastError);
+    const errorMessage = this.getErrorMessage(lastError);
+    console.error('All AI models failed:', errorMessage);
     return {
       success: false,
-      error: 'AI service temporarily unavailable. Please try again later.'
+      error: `OmniRoute unavailable: ${errorMessage}`
     };
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (error && typeof error === 'object') {
+      const value = error as { error?: { message?: string } | string; message?: string };
+      if (typeof value.message === 'string') return value.message;
+      if (typeof value.error === 'string') return value.error;
+      if (value.error && typeof value.error === 'object' && typeof value.error.message === 'string') {
+        return value.error.message;
+      }
+      return JSON.stringify(error);
+    }
+    return 'No response from the gateway';
   }
 
   private async tryGeminiModel(prompt: string): Promise<{ success: boolean; description?: string; error?: any }> {
@@ -141,9 +157,12 @@ export class StackDescriptionService {
 
   private async tryOmniroute(
     prompt: string,
-    apiKey: string
+    apiKey: string,
+    modelName: string
   ): Promise<{ success: boolean; description?: string; error?: any; status?: number }> {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15_000);
       const modelResponse = await fetch('http://localhost:20128/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -151,36 +170,50 @@ export class StackDescriptionService {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'auto/best-free',
+          model: modelName,
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 300,
           temperature: 0.7,
-        })
+        }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (modelResponse.ok) {
         const text = await modelResponse.text();
-        const lines = text.split('\n').filter((line) => line.startsWith('data: '));
         let description = '';
-        for (const line of lines) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(data);
-            const delta = parsed.choices?.[0]?.delta?.content || '';
-            description += delta;
-          } catch {}
+
+        try {
+          const parsed = JSON.parse(text);
+          description = parsed.choices?.[0]?.message?.content?.trim() || '';
+        } catch {
+          const lines = text.split('\n').filter((line) => line.startsWith('data: '));
+          for (const line of lines) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              description += parsed.choices?.[0]?.delta?.content || '';
+            } catch {}
+          }
         }
         if (!description) {
           return { success: false, error: 'No description generated' };
         }
         return { success: true, description: description.trim() };
       } else {
-        const errorData = await modelResponse.json();
+        const errorText = await modelResponse.text();
+        let errorData: unknown = errorText || `HTTP ${modelResponse.status}`;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {}
         return { success: false, error: errorData, status: modelResponse.status };
       }
     } catch (error) {
-      return { success: false, error };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 }

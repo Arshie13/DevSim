@@ -157,13 +157,13 @@
   </header>
 
   <main class="pt-28 pb-12 px-6">
-    <div class="max-w-3xl mx-auto">
+    <div class="assessment-container mx-auto">
       {#if loading}
-        <div class="card-cyber p-8 text-center">
+        <div class="assessment-card card-cyber p-8 text-center">
           <p class="text-[var(--text-muted)]">Loading...</p>
         </div>
       {:else if !showResult}
-        <div class="card-cyber p-8 relative">
+        <div class="assessment-card card-cyber p-8 relative">
           <div class="mb-8">
             <div class="flex justify-between items-center mb-3">
               <span class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)]">
@@ -238,7 +238,7 @@
 
       {:else if showResult}
         {#if processingResults}
-          <div class="card-cyber p-8 text-center relative">
+          <div class="assessment-card card-cyber p-8 text-center relative">
             <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute top-5 right-5 w-7 h-7 border-t-2 border-r-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute bottom-5 left-5 w-7 h-7 border-b-2 border-l-2 border-[var(--accent)] opacity-40"></div>
@@ -267,7 +267,7 @@
             </div>
           </div>
         {:else}
-          <div class="card-cyber p-8 text-center relative">
+          <div class="assessment-card card-cyber p-8 text-center relative">
             <div class="absolute top-5 left-5 w-7 h-7 border-t-2 border-l-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute top-5 right-5 w-7 h-7 border-t-2 border-r-2 border-[var(--accent)] opacity-40"></div>
             <div class="absolute bottom-5 left-5 w-7 h-7 border-b-2 border-l-2 border-[var(--accent)] opacity-40"></div>
@@ -391,5 +391,43 @@
       transparent 70%
     );
     pointer-events: none;
+  }
+
+  .assessment-container {
+    width: min(52vw, 820px);
+  }
+
+  .assessment-card {
+    padding: clamp(1.25rem, 1.8vw, 1.75rem) !important;
+  }
+
+  .assessment-card h2 {
+    font-size: clamp(1.1rem, 1.35vw, 1.35rem);
+  }
+
+  .assessment-card .w-14 {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .assessment-card .w-32 {
+    width: 7rem;
+    height: 7rem;
+  }
+
+  @media (max-width: 900px) {
+    .assessment-container {
+      width: min(76vw, 700px);
+    }
+
+    .assessment-card {
+      padding: 1.1rem !important;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .assessment-container {
+      width: 100%;
+    }
   }
 </style>

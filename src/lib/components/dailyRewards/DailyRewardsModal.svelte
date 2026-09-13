@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { Calendar, Gift, Check, Lock, Coins, Zap, X, Clock, Bot } from 'lucide-svelte';
+  import { Calendar, Gift, Check, Lock, Coins, Zap, Clock, Bot } from 'lucide-svelte';
 
   // -- Props --------------------------------------------------------------------
   export let isOpen = false;
@@ -185,13 +185,6 @@
             {/if}
           </div>
         </div>
-        <button
-          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[4px] border border-transparent bg-transparent text-obsidian-text-muted transition-all duration-150 ease-in-out hover:border-cyber-danger/30 hover:bg-cyber-danger/10 hover:text-cyber-danger"
-          on:click={close}
-          aria-label="Close"
-        >
-          <X class="w-5 h-5" />
-        </button>
       </div>
 
       <!-- Rewards Grid -->

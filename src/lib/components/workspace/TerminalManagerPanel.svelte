@@ -12,7 +12,7 @@
 </script>
 
 <aside
-  class="w-44 flex-shrink-0 bg-[#0d1321] border-l border-[rgba(7,165,201,0.1)] flex flex-col"
+  class="terminal-manager w-44 min-w-0 flex-shrink-0 bg-[#0d1321] border-l border-[rgba(7,165,201,0.1)] flex flex-col"
   style="font-family:'Share Tech Mono',monospace;"
 >
   <!-- Header -->
@@ -71,3 +71,17 @@
     {/if}
   </div>
 </aside>
+
+<style>
+  @media (max-width: 1100px) {
+    .terminal-manager {
+      width: 9rem;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .terminal-manager {
+      width: 7.5rem;
+    }
+  }
+</style>

@@ -1,32 +1,21 @@
-import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import { PUBLIC_WS_URL } from "$env/static/public";
 import { checkCommandBlacklist } from "$lib/utils/terminal-command-blacklist";
 import { stripShellPrompt } from "$lib/components/tutorial/tutorialUtils";
 
-// Get WebSocket URL for terminal connection
-// In production, set PUBLIC_WS_URL environment variable to the WebSocket server URL
-// e.g., PUBLIC_WS_URL=ws://localhost:3001
 function getTerminalWsUrl(containerId: string): string {
-  // Check for custom WebSocket URL (set in production)
-  // const wsUrl = (typeof window !== 'undefined' 
-  //   ? (window as string).ENV?.PUBLIC_WS_URL 
-  //   : null) || process.env.PUBLIC_WS_URL;
-
-  const wsUrl = process.env.NODE_ENV === 'production' ? PUBLIC_WS_URL : 'ws://localhost:8080'; // Default to localhost with Vite dev server port
+  const wsUrl = process.env.NODE_ENV === 'production' ? PUBLIC_WS_URL : 'ws://localhost:8080';
   
   if (wsUrl) {
     return `${wsUrl}/terminal?containerId=${containerId}`;
   }
   
-  // Development: use same host
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${protocol}//${window.location.host}/terminal?containerId=${containerId}`;
 }
 
 export class TerminalInitializer {
   private terminal: Terminal | null = null;
-  private fitAddon: FitAddon | null = null;
   private socket: WebSocket | null = null;
   private containerId: string = "";
   private sessionId: string = "default";
@@ -35,6 +24,7 @@ export class TerminalInitializer {
   private outputBuffer: string = "";
   private pendingCommandForCompletion: string | null = null;
   private waitingForFreshPrompt: boolean = false;
+  private resizeObserver: ResizeObserver | null = null;
 
   async initializeDockerTerminal(terminalRef: HTMLElement, containerId: string, sessionId?: string) {
     if (typeof window === "undefined") return;
@@ -44,12 +34,10 @@ export class TerminalInitializer {
 
     try {
       const xtermPkg = await import("@xterm/xterm");
-      const fitPkg = await import("@xterm/addon-fit");
       const linksPkg = await import("@xterm/addon-web-links");
       await import("@xterm/xterm/css/xterm.css");
 
       const TerminalConstructor = xtermPkg.Terminal || xtermPkg.default?.Terminal || xtermPkg.default;
-      const FitAddonConstructor = fitPkg.FitAddon || fitPkg.default?.FitAddon || fitPkg.default;
       const WebLinksAddonConstructor = linksPkg.WebLinksAddon || linksPkg.default?.WebLinksAddon || linksPkg.default;
 
       this.terminal = new TerminalConstructor({
@@ -72,18 +60,17 @@ export class TerminalInitializer {
         },
       });
 
-      this.fitAddon = new FitAddonConstructor();
-      this.terminal!.loadAddon(this.fitAddon!);
       this.terminal!.loadAddon(new WebLinksAddonConstructor());
 
       this.terminal!.open(terminalRef);
-      this.fitAddon!.fit();
 
-      // Connect to Socket
+      this.terminal!.onResize(({ cols, rows }) => {
+        this.sendResize(cols, rows);
+      });
+
       this.connectSocket();
 
       window.addEventListener("resize", () => {
-        this.fitAddon?.fit();
         this.sendResize();
       });
 
@@ -94,10 +81,25 @@ export class TerminalInitializer {
     }
   }
 
-  private sendResize() {
+  private setupResizeObserver(terminalRef: HTMLElement) {
+    if (!this.terminal) return;
+
+    this.resizeObserver = new ResizeObserver(() => {
+      if (this.terminal) {
+        this.sendResize();
+      }
+    });
+    this.resizeObserver.observe(terminalRef);
+  }
+
+  private sendResize(cols?: number, rows?: number) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
     if (!this.terminal) return;
-    this.socket.send(JSON.stringify({ type: "resize", cols: this.terminal.cols, rows: this.terminal.rows }));
+    this.socket.send(JSON.stringify({ 
+      type: "resize", 
+      cols: cols ?? this.terminal.cols, 
+      rows: rows ?? this.terminal.rows 
+    }));
   }
 
   private connectSocket() {
@@ -270,7 +272,7 @@ export class TerminalInitializer {
   }
 
   fit() {
-    this.fitAddon?.fit();
+    this.sendResize();
   }
 
   dispose() {
@@ -278,9 +280,12 @@ export class TerminalInitializer {
       this.socket.close();
       this.socket = null;
     }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
     this.terminal?.dispose();
     this.terminal = null;
-    this.fitAddon = null;
     this.commandBuffer = "";
     this.outputBuffer = "";
     this.pendingCommandForCompletion = null;
