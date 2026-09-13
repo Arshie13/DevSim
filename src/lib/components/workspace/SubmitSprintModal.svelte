@@ -864,6 +864,7 @@
       }
 
       state = "success";
+      showModal = false;
 
       // Show success toast instead of inline success popup
       toast.success("Sprint submitted successfully! 🎉");
@@ -1011,5 +1012,8 @@
 <KeyTakeawaysModal
   bind:open={showKeyTakeawaysModal}
   {keyTakeaways}
-  on:closed={() => hasViewedTakeaways = true}
+  on:closed={() => {
+    hasViewedTakeaways = true;
+    handleContinueWorking();
+  }}
 />

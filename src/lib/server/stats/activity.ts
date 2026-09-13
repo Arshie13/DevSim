@@ -12,7 +12,7 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
     }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      include: { tier: { include: { achievement: true } } },
+      include: { achievement: true },
       orderBy: { created_at: "desc" },
       take: limit,
     }),
@@ -30,11 +30,11 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
   const achievementItems: ActivityItem[] = achievements.map((a) => ({
     id: a.id,
     type: "achievement" as const,
-    title: a.tier.achievement.name,
-    description: a.tier.achievement.description,
+    title: a.achievement.name,
+    description: a.achievement.tier_description,
     timestamp: formatRelativeTime(a.created_at),
-    icon: a.tier.achievement.icon ?? "🏅",
-    xp: a.tier.achievement.xp_reward,
+    icon: a.achievement.icon ?? "🏅",
+    xp: a.achievement.xp_reward,
   }));
 
   const interleaved: ActivityItem[] = [];

@@ -88,6 +88,7 @@ model scenario {
   is_paywalled Boolean     @default(false) @map("is_paywalled")
   levels       level[]
   workspaces   workspace[]
+  project_access user_project_access[] @relation("scenario_project_access")
 
   @@map("scenarios")
 }
@@ -118,10 +119,6 @@ model level_task {
   task_name  String @map("task_name")
   user_story String @map("user_story")
   order      Int    @default(0) @map("order")
-
-  /// Template default. Per-workspace board state is tracked in
-  /// workspace.completed_tasks; this column serves only as a seed/fallback.
-  is_complete Boolean @default(false) @map("is_complete")
 
   test_type           String                @default("none") @map("test_type")
   acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
@@ -183,23 +180,28 @@ model hint {
 
 model daily_login {
   id      String   @id @default(cuid()) @map("id")
-  date    DateTime @map("date")
   streak  Int      @default(0) @map("streak")
   user_id String   @unique @map("user_id")
 
-  /// Actual claim timestamps for each day claimed this cycle (Monday–Sunday).
-  /// Replaces the old Int[] day-indices. Use getDay() to recover the weekday.
-  claimed_days DateTime[] @default([]) @map("claimed_days")
-
-  /// Cycle position (1-7). NOT a date — this is an integer counter tracking
-  /// which day of the 7-day cycle the user is on. Resets after day 7.
-  /// Distinct from streak (consecutive login days).
-  current_day Int @default(1) @map("current_day")
-
   last_claimed_at DateTime? @map("last_claimed_at")
   user            user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  claims          daily_login_claim[]
 
   @@map("daily_logins")
+}
+
+/// One row per day claimed per cycle. Unique constraint enforces idempotency
+/// at the DB level, preventing duplicate claims even under concurrent requests.
+model daily_login_claim {
+  id            String      @id @default(cuid()) @map("id")
+  daily_login_id String     @map("daily_login_id")
+  day_index     Int         @map("day_index")   // 0-6 (Mon-Sun)
+  claimed_at    DateTime    @default(now()) @map("claimed_at")
+  daily_login   daily_login @relation(fields: [daily_login_id], references: [id], onDelete: Cascade)
+
+  @@unique([daily_login_id, day_index])
+  @@index([daily_login_id])
+  @@map("daily_login_claims")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -207,59 +209,37 @@ model daily_login {
 // ────────────────────────────────────────────────────────────────────────────
 
 model achievement {
-  id          String             @id @default(cuid()) @map("id")
-  name        String             @unique @map("name")
-  description String             @map("description")
-  icon        String             @map("icon")
-  category    String             @map("category")
-  xp_reward   Int                @default(100) @map("xp_reward")
-  coin_reward Int                @default(50) @map("coin_reward")
-  created_at  DateTime           @default(now()) @map("created_at")
-  updated_at  DateTime           @updatedAt @map("updated_at")
-  tiers       achievement_tier[]
+  id               String             @id @default(cuid()) @map("id")
+  name             String             @map("name")
+  description      String             @map("description")
+  icon             String             @map("icon")
+  category         String             @map("category")
+  tier             String             @map("tier")
+  tier_description String             @map("tier_description")
+  criteria         Json               @map("criteria")
+  xp_reward        Int                @default(100) @map("xp_reward")
+  coin_reward      Int                @default(50) @map("coin_reward")
+  created_at       DateTime           @default(now()) @map("created_at")
+  updated_at       DateTime           @updatedAt @map("updated_at")
+  unlocks          user_achievement[]
 
+  @@unique([name, tier])
   @@map("achievements")
 }
 
-model achievement_tier {
-  id             String  @id @default(cuid()) @map("id")
-  achievement_id String  @map("achievement_id")
-  tier           String  @map("tier")
-  description    String  @map("description")
-  icon           String? @map("icon")
-
-  /// Expected shape: { type: string; count?: number; days?: number; xp?: number; coins?: number }
-  /// Known types: scenarios_in_stack, distinct_stacks, tasks_completed,
-  /// levels_completed, scenarios_completed, login_streak, xp_total,
-  /// coins_earned, file_edits, tutorial_completed, trivia_correct
-  criteria Json @map("criteria")
-
-  xp_reward   Int                @default(100) @map("xp_reward")
-  coin_reward Int                @default(50) @map("coin_reward")
-  created_at  DateTime           @default(now()) @map("created_at")
-  updated_at  DateTime           @updatedAt @map("updated_at")
-  achievement achievement        @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
-  unlocks     user_achievement[]
-
-  @@unique([achievement_id, tier])
-  @@index([achievement_id])
-  @@map("achievement_tiers")
-}
-
-/// Junction table: links a user to an unlocked achievement_tier.
-/// No duplicated tier metadata — join through `tier` instead.
+/// Junction table: links a user to an unlocked achievement row.
 model user_achievement {
-  id                  String           @id @default(cuid()) @map("id")
-  user_id             String           @map("user_id")
-  achievement_tier_id String           @map("achievement_tier_id")
-  created_at          DateTime         @default(now()) @map("created_at")
-  updated_at          DateTime         @updatedAt @map("updated_at")
-  tier                achievement_tier @relation(fields: [achievement_tier_id], references: [id], onDelete: Cascade)
-  user                user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid()) @map("id")
+  user_id       String      @map("user_id")
+  achievement_id String     @map("achievement_id")
+  created_at    DateTime    @default(now()) @map("created_at")
+  updated_at    DateTime    @updatedAt @map("updated_at")
+  achievement   achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+  user          user        @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([user_id, achievement_tier_id])
+  @@unique([user_id, achievement_id])
   @@index([user_id])
-  @@index([achievement_tier_id])
+  @@index([achievement_id])
   @@map("user_achievements")
 }
 
@@ -273,7 +253,6 @@ model file_changes {
   file_path    String    @map("file_path")
   action       String    @map("action")
   old_path     String?   @map("old_path")
-  content_hash String?   @map("content_hash")
   timestamp    DateTime  @default(now()) @map("timestamp")
   workspace    workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
@@ -325,13 +304,11 @@ model assessment_topic_score {
 model learner_pass_enrollment {
   id         String    @id @default(cuid()) @map("id")
   user_id    String    @map("user_id")
-  started_at DateTime? @map("started_at")
   expires_at DateTime? @map("expires_at")
-  streak     Int       @default(0) @map("streak")
-
   /// Reward day numbers claimed (1-30). Allows back-filling past days.
   claimed_day_numbers Int[] @default([]) @map("claimed_days")
 
+  streak             Int       @default(0) @map("streak")
   last_claimed_at    DateTime? @map("last_claimed_at")
   payment_id         String?   @unique @map("payment_id")
   payment_provider   String    @default("stripe") @map("payment_provider")
@@ -372,19 +349,20 @@ model learner_pass_reward {
 model user_project_access {
   id                         String                     @id @default(cuid()) @map("id")
   user_id                    String                     @map("user_id")
-  project_id                 String                     @map("project_id") // references scenario.id
+  scenario_id                String                     @map("scenario_id")
   source                     String                     @map("source") // LEARNER_PASS, COIN_PURCHASE, ADMIN_GRANT
   learner_pass_enrollment_id String?                    @map("learner_pass_enrollment_id")
   coin_purchase_id           String?                    @map("coin_purchase_id")
   granted_at                 DateTime                   @default(now()) @map("granted_at")
   expires_at                 DateTime?                  @map("expires_at") // null = permanent unlock
   user                       user                       @relation("user_project_access", fields: [user_id], references: [id], onDelete: Cascade)
+  scenario                   scenario                   @relation("scenario_project_access", fields: [scenario_id], references: [id], onDelete: Restrict)
   learner_pass_enrollment    learner_pass_enrollment?   @relation("learner_pass_project_access", fields: [learner_pass_enrollment_id], references: [id], onDelete: Cascade)
   coin_purchase              coin_purchase?             @relation("coin_purchase_project_access", fields: [coin_purchase_id], references: [id], onDelete: Cascade)
 
-  @@unique([user_id, project_id, source])
+  @@unique([user_id, scenario_id, source])
   @@index([user_id])
-  @@index([project_id])
+  @@index([scenario_id])
   @@index([source])
   @@index([learner_pass_enrollment_id])
   @@index([coin_purchase_id])

@@ -194,7 +194,6 @@
   let tasks: WorkspaceTask[] = tutorialData.tasks.map((task) => ({
     ...task,
     testStatus: "pending",
-    boardStatus: task.isCompleted ? "done" : "backlog",
     hasClientTest: task.testType === "client" || task.testType === "both",
     hasServerTest: task.testType === "server" || task.testType === "both",
   }));

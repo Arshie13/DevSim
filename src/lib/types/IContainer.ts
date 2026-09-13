@@ -49,9 +49,10 @@ export interface ITask {
   hints: IHints[];
   acceptanceCriteria: IAcceptanceCriteria[];
   learningSections?: ILearningSection[];
-
-  isCompleted: boolean; // Optional field to track completion status on the client side
   testType: string;
+  /// Runtime-enriched by the workspace page from workspace.completed_tasks.
+  /// Not persisted on level_task — use workspace.completed_tasks as the source of truth.
+  isCompleted?: boolean;
 }
 
 export interface ILearningSection {

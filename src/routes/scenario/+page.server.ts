@@ -287,7 +287,7 @@ export const load: PageServerLoad = async (event) => {
 		const scenarioPaywall = dbId ? paywallMap.get(dbId) ?? false : false;
 		let isLocked = false;
 		if (scenarioPaywall) {
-			const hasAccess = await hasProjectAccess(session.user.id, dbId, false);
+			const hasAccess = await hasProjectAccess(session.user.id, dbId);
 			isLocked = !hasAccess;
 		}
 
