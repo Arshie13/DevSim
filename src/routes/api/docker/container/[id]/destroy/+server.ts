@@ -54,18 +54,14 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     //     Chromium browsers fail slow localhost HTTPS requests with
     //     ERR_NETWORK_CHANGED. Respond immediately, clean up in background.
     const containerId = record.container_id;
-    const isTutorial = record.status === 'tutorial';
     const recordId = record.id;
     const containerService = new ContainerService();
+
+    await prisma.workspace.deleteMany({ where: { id: recordId } });
 
     const bgCleanup = async () => {
       try {
         await containerService.stopAndRemove(containerId);
-        if (isTutorial) {
-          // deleteMany is intentionally idempotent because another cleanup
-          // request may have removed the row first.
-          await prisma.workspace.deleteMany({ where: { id: recordId } });
-        }
       } catch (err) {
         console.error('Background destroy error:', err);
       }
