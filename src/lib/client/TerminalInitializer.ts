@@ -2,6 +2,7 @@ import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import { PUBLIC_WS_URL } from "$env/static/public";
 import { checkCommandBlacklist } from "$lib/utils/terminal-command-blacklist";
+import { stripShellPrompt } from "$lib/components/tutorial/tutorialUtils";
 
 // Get WebSocket URL for terminal connection
 // In production, set PUBLIC_WS_URL environment variable to the WebSocket server URL
@@ -106,7 +107,7 @@ export class TerminalInitializer {
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
-      this.terminal?.writeln("\x1b[1;32mCONNECTED TO DOCKER CONTAINER\x1b[0m");
+      this.terminal?.writeln("\x1b[1;32mWorkspace connected\x1b[0m");
       this.sendResize();
     };
 
@@ -169,6 +170,14 @@ export class TerminalInitializer {
     }
   }
 
+  private readRenderedCommand(): string {
+    if (!this.terminal) return "";
+    const buffer = this.terminal.buffer.active;
+    const line = buffer.getLine(buffer.baseY + buffer.cursorY);
+    if (!line) return "";
+    return stripShellPrompt(line.translateToString(true));
+  }
+
   private trackCommandInput(data: string) {
     if (typeof window === "undefined") return;
 
@@ -179,7 +188,8 @@ export class TerminalInitializer {
 
     for (const ch of sanitizedData) {
       if (ch === "\r") {
-        const command = this.commandBuffer.trim().replace(/\s+/g, " ");
+        const rendered = this.readRenderedCommand();
+        const command = rendered || this.commandBuffer.trim().replace(/\s+/g, " ");
         if (command.length > 0) {
           if (!this.pendingCommandForCompletion) {
             this.pendingCommandForCompletion = command;
