@@ -39,6 +39,8 @@
    * Called when the tutorial needs to submit the sprint.
    */
   export let onSubmitSprint: (() => void) | undefined = undefined;
+  /** Current user id, used to key saved tutorial progress. */
+  export let userId: string = "";
 
   // ── Phase machine ──────────────────────────────────────────────────────────
   // Direct tutorial flow only: stackTutorial → done
@@ -119,6 +121,8 @@
       {onSwitchTab}
       {onRunTests}
       {onSubmitSprint}
+      {userId}
+      tutorialKey={resolvedStackTutorialType}
       on:complete={onStackTutorialComplete}
     />
   {:else if resolvedStackTutorialType === 'nestjs'}
@@ -130,6 +134,8 @@
       {onSwitchTab}
       {onRunTests}
       {onSubmitSprint}
+      {userId}
+      tutorialKey={resolvedStackTutorialType}
       on:complete={onStackTutorialComplete}
     />
   {:else if resolvedStackTutorialType === 'shadcn'}
@@ -141,6 +147,8 @@
       {onSwitchTab}
       {onRunTests}
       {onSubmitSprint}
+      {userId}
+      tutorialKey={resolvedStackTutorialType}
       on:complete={onStackTutorialComplete}
     />
   {:else if resolvedStackTutorialType === 'mern'}
@@ -152,6 +160,8 @@
       {onSwitchTab}
       {onRunTests}
       {onSubmitSprint}
+      {userId}
+      tutorialKey={resolvedStackTutorialType}
       on:complete={onStackTutorialComplete}
     />
   {:else if resolvedStackTutorialType === 'nextjs-postgres-prisma'}
@@ -163,6 +173,8 @@
       {onSwitchTab}
       {onRunTests}
       {onSubmitSprint}
+      {userId}
+      tutorialKey={resolvedStackTutorialType}
       on:complete={onStackTutorialComplete}
     />
   {/if}

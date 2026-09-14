@@ -18,8 +18,6 @@
     description: string;
     icon: string;
     category: string;
-    xpReward: number;
-    coinReward: number;
     tiers: Tier[];
   }
 

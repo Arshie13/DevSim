@@ -8,7 +8,6 @@
     taskName: string;
     userStory: string;
     order: number;
-    isComplete: boolean;
     testType: string;
     levelId: string;
     acceptanceCriteria: { id: string; description: string; isRequired: boolean; order: number }[];
@@ -618,15 +617,6 @@
                                         {#each TEST_TYPES as tt}
                                           <option value={tt} selected={task.testType === tt}>{tt}</option>
                                         {/each}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label class="text-[var(--text-muted)] text-xs" for="complete">Complete</label>
-                                      <select id="complete" name="isComplete"
-                                        class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
-                                      >
-                                        <option value="false" selected={!task.isComplete}>No</option>
-                                        <option value="true" selected={task.isComplete}>Yes</option>
                                       </select>
                                     </div>
                                     <div class="col-span-2">

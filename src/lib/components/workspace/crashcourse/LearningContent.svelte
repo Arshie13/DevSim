@@ -475,7 +475,16 @@
     }
 
     if (editableRegions.length > 0 && starterCode) {
-      const result = evaluateEditableRegionsLab(interactiveCode, starterCode, editableRegions);
+      const expectedAnswer =
+        testCases.length > 0 && typeof testCases[0].expected === "string"
+          ? (testCases[0].expected as string)
+          : undefined;
+      const result = evaluateEditableRegionsLab(
+        interactiveCode,
+        starterCode,
+        editableRegions,
+        expectedAnswer,
+      );
       setCodePracticeResult(result.passed, result.feedback, result.feedback);
       return;
     }

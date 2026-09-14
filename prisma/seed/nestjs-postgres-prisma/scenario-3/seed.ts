@@ -69,24 +69,29 @@ export const levels = [
                 order: 5,
               },
               {
+                title: "Prisma Fields, Types, and Optionality",
+                content:
+                  "A Prisma model is made up of fields. Each field has a name, a type, and optional attributes.\n\nCommon scalar types:\n- `String` — text\n- `Int` — whole numbers\n- `Boolean` — true/false\n- `DateTime` — timestamps\n- `Decimal` — exact money values\n\nA field is required by default. Adding a `?` right after the type makes it optional (nullable):\n\n  `name String`   → required\n  `name String?`  → optional\n\nOptional fields can be left empty when a record is created, while required fields must always have a value.",
+                order: 6,
+              },
+              {
                 title: "Practice Lab: Prisma Model Field",
                 content:
-                  "Practice writing a Prisma model field definition for an optional string field.",
+                  "Practice adding a field to a real Prisma model definition.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getPhoneNumberFieldDefinition() returning \"phoneNumber String?\".",
-                  language: "javascript",
+                    "Add an optional phoneNumber field with the String type under this model.",
+                  language: "prisma",
                   starter_code:
-                    "export function getPhoneNumberFieldDefinition() {\n  // TODO\n}\n",
+                    "model Setting {\n  id                 String  @id @default(uuid())\n  storeName          String  @default(\"My POS Store\")\n  storeAddress       String  @default(\"\")\n  taxRate            Decimal @db.Decimal(5, 2) @default(0)\n  acceptCash         Boolean @default(true)\n  acceptCard         Boolean @default(true)\n  // TODO: add phoneNumber field here\n  createdAt          DateTime @default(now())\n  updatedAt          DateTime @updatedAt\n}\n",
                   editable_regions: [
                     {
-                      placeholder: "// TODO",
+                      placeholder: "// TODO: add phoneNumber field here",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getPhoneNumberFieldDefinition",
                   test_cases: [
                     {
                       input: [],
@@ -94,32 +99,31 @@ export const levels = [
                       label: "optional phoneNumber field",
                     },
                   ],
-                
                   hints: [
-                    "Return Prisma string.",
-                    "return \"phoneNumber String?\";",
-                    "return \"___ ___?\";"
+                    "Add an optional string field named phoneNumber.",
+                    "Fields are written as `name Type`, and a `?` after the type makes it optional.",
+                    "phoneNumber String?"
                   ],
                 },
-                order: 6,
+                order: 7,
               },
               {
                 title: "Environment Variables",
                 content:
                   "Sensitive config (like database URIs) is stored in .env files â€” never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/pos_system\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. âš ï¸ .env files are listed in .gitignore intentionally â€” they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
-                order: 7,
+                order: 8,
               },
               {
                 title: "Seeding the Database",
                 content:
                   "A seed script populates the database with realistic sample data so development can proceed against a real dataset instead of an empty one. The IPPO POS seed creates default admin and cashier users for testing.\n\nRun the seed with:\npnpm exec prisma db seed\n\nThis command is defined in the root package.json and calls prisma/seed.ts via ts-node.",
-                order: 8,
+                order: 9,
               },
               {
                 title: "Key Takeaway",
                 content:
                   "Setting up a project is more than running one command â€” it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first enables building features with confidence.",
-                order: 9,
+                order: 10,
               },
             ],
           },

@@ -35,14 +35,21 @@ export class TasksDataAccess {
   async createCompletedTask(workspaceId: string, taskId: string, userId: string, level: number) {
     try {
       await prisma.$transaction(async (tx) => {
-        await tx.workspace.update({
+        const workspace = await tx.workspace.findUnique({
           where: { id: workspaceId },
-          data: {
-            completed_tasks: {
-              push: taskId
-            }
-          }
+          select: { completed_tasks: true }
         });
+
+        if (!workspace?.completed_tasks.includes(taskId)) {
+          await tx.workspace.update({
+            where: { id: workspaceId },
+            data: {
+              completed_tasks: {
+                push: taskId
+              }
+            }
+          });
+        }
 
         const existing = await tx.task_activity.findFirst({
           where: { user_id: userId, task_name: taskId }

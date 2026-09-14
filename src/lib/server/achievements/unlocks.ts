@@ -13,7 +13,7 @@ export interface UnlockedAchievement {
 }
 
 /**
- * Recomputes the user's progress snapshot, finds every achievement tier whose
+ * Recomputes the user's progress snapshot, finds every achievement row whose
  * criteria are now satisfied but not yet persisted, writes the new ones to
  * `user_achievement`, and returns them so the caller can surface a toast.
  *
@@ -25,42 +25,37 @@ export async function detectNewlyUnlockedAchievements(
   userId: string,
 ): Promise<UnlockedAchievement[]> {
   const [achievements, existing, snapshot] = await Promise.all([
-    prisma.achievement.findMany({ include: { tiers: true } }),
+    prisma.achievement.findMany(),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_tier_id: true },
+      select: { achievement_id: true },
     }),
     getUserProgressSnapshot(userId),
   ]);
 
   const alreadyUnlocked = new Set(
-    existing.map((e) => e.achievement_tier_id),
+    existing.map((e) => e.achievement_id),
   );
 
   const newlyUnlocked: UnlockedAchievement[] = [];
-  const rows: { user_id: string; achievement_tier_id: string }[] = [];
+  const rows: { user_id: string; achievement_id: string }[] = [];
 
   for (const a of achievements) {
-    for (const t of a.tiers) {
-      if (alreadyUnlocked.has(t.id)) continue;
+    if (alreadyUnlocked.has(a.id)) continue;
 
-      const { current, target } = evaluateCriterion(t.criteria, snapshot);
-      if (current < target) continue;
+    const { current, target } = evaluateCriterion(a.criteria, snapshot);
+    if (current < target) continue;
 
-      rows.push({
-        user_id: userId,
-        achievement_tier_id: t.id,
-      });
-      newlyUnlocked.push({
-        achievementId: a.id,
-        name: a.name,
-        icon: a.icon,
-        tier: t.tier as achievement_tier_level,
-        tierDescription: t.description,
-        xpReward: t.xp_reward,
-        coinReward: t.coin_reward,
-      });
-    }
+    rows.push({ user_id: userId, achievement_id: a.id });
+    newlyUnlocked.push({
+      achievementId: a.id,
+      name: a.name,
+      icon: a.icon,
+      tier: a.tier as achievement_tier_level,
+      tierDescription: a.tier_description,
+      xpReward: a.xp_reward,
+      coinReward: a.coin_reward,
+    });
   }
 
   if (rows.length > 0) {

@@ -3,6 +3,7 @@
   import { browser } from "$app/environment";
   import type { TutorialStep } from "$components/tutorial/tutorialTypes";
   import { isCommandMatch, canonicalizeCommand, sleep, registerWindowListeners } from "$components/tutorial/tutorialUtils";
+  import { getTutorialProgress, setTutorialProgress, clearTutorialProgress } from "$components/tutorial/tutorialProgress";
   import { resolvePlacement, getFallbackPlacement, type PlacementResult, type SpotlightRect } from "$components/tutorial/tutorialPositioning";
   import TutorialWelcomeModal from "$components/tutorial/TutorialWelcomeModal.svelte";
   import TutorialCalloutPanel from "$components/tutorial/TutorialCalloutPanel.svelte";
@@ -17,6 +18,8 @@
   export let onSwitchTab: ((tab: string) => void) | undefined = undefined;
   export let onRunTests: (() => void) | undefined = undefined;
   export let onSubmitSprint: (() => void) | undefined = undefined;
+  export let userId: string = "";
+  export let tutorialKey: string = "";
   export let onPrepareStep: ((step: TutorialStep) => Promise<void> | void) | undefined = undefined;
   export let codeEditStepId: string = "task-two-ui-edit";
   export let closeResultModalStepIds: string[] = ["test-task-one-result-continue", "test-task-two-result-continue"];
@@ -30,6 +33,9 @@
   let currentIdx = 0;
   let visible = false;
   let welcomeModalVisible = true;
+  let resumeModalVisible = false;
+  let resumeStepId: string | null = null;
+  let resumeStepTitle = "";
   let completionModalVisible = false;
   let showSkipConfirm = false;
   let proceedLoading = false;
@@ -48,6 +54,7 @@
   let clickError = "";
   let stepCodeSaveDone = false;
   let pendingTerminalCommand: string | null = null;
+  let backupCommandPending = false;
   let terminalOutputPollId: ReturnType<typeof setInterval> | null = null;
   let stepConfirmReady = false;
   let layerClicks: string[] = [];
@@ -57,6 +64,50 @@
   const TARGET_RETRY_DELAY_MS = 120;
 
   function getCurrentStep() { return steps[currentIdx]; }
+
+  function persistProgress() {
+    if (!userId || !tutorialKey) return;
+    const s = getCurrentStep();
+    if (s) setTutorialProgress(userId, tutorialKey, s.id);
+  }
+
+  function clearProgress() {
+    if (userId && tutorialKey) clearTutorialProgress(userId, tutorialKey);
+  }
+
+  function resolveSavedStep() {
+    if (!userId || !tutorialKey || !steps.length) return;
+    const saved = getTutorialProgress(userId, tutorialKey);
+    if (!saved) return;
+
+    const idx = steps.findIndex((s) => s.id === saved.stepId);
+    if (idx > 0) {
+      resumeStepId = saved.stepId;
+      resumeStepTitle = steps[idx].title ?? "your last step";
+      resumeModalVisible = true;
+      welcomeModalVisible = false;
+    } else {
+      clearProgress();
+    }
+  }
+
+  function resumeContinue() {
+    const idx = resumeStepId ? steps.findIndex((s) => s.id === resumeStepId) : -1;
+    resumeModalVisible = false;
+    if (idx > 0) {
+      currentIdx = idx;
+      visible = true;
+      void prepareStep();
+    } else {
+      welcomeModalVisible = true;
+    }
+  }
+
+  function resumeRestart() {
+    clearProgress();
+    resumeModalVisible = false;
+    welcomeModalVisible = true;
+  }
 
   function applyPlacement(p: PlacementResult) {
     arrowDir = p.arrowDir;
@@ -141,6 +192,7 @@
     }
     if (currentIdx >= steps.length - 1) { openCompletionModal(); return; }
     currentIdx += 1;
+    persistProgress();
     void prepareStep();
   }
 
@@ -155,6 +207,7 @@
 
   function completeTutorial() {
     if (browser) window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
+    clearProgress();
     proceedLoading = true;
     setTimeout(() => dispatch("complete"), 180);
   }
@@ -163,6 +216,7 @@
     pendingTerminalCommand = null;
     clickError = "";
     completionModalVisible = false;
+    clearProgress();
     currentIdx = 0;
     visible = true;
     void prepareStep();
@@ -173,6 +227,7 @@
 
   function resetStepState() {
     stopTerminalOutputPoll();
+    backupCommandPending = false;
     stepConfirmReady = false;
     layerClicks = [];
     reflectionInteracted = false;
@@ -196,7 +251,9 @@
         pathHasTourTarget(path, "tutorial-search-input") ||
         pathHasTourTarget(path, "tutorial-search-result-item");
     }
-    const allowed = [s.target, ...(s.targets ?? [])].filter(Boolean) as string[];
+    const allowed = [s.target, ...(s.targets ?? [])]
+      .filter((v): v is string => Boolean(v))
+      .filter((v) => v !== s.spotlightTarget);
     const clicked = collectTourTargets(path);
     if (!clicked.length) return false;
     if (s.requireCommand) return clicked.includes("terminal-panel");
@@ -247,7 +304,7 @@
     terminalOutputPollId = setInterval(() => {
       const rows = document.querySelector('[data-tour="terminal-panel"] .xterm-rows');
       const text = rows?.textContent ?? document.querySelector('[data-tour="terminal-panel"]')?.textContent ?? "";
-      if (patterns.every((p) => text.includes(p))) { stopTerminalOutputPoll(); pendingTerminalCommand = null; clickError = ""; advanceStep(); }
+      if (patterns.every((p) => text.includes(p))) { stopTerminalOutputPoll(); pendingTerminalCommand = null; backupCommandPending = false; clickError = ""; advanceStep(); }
     }, 1000);
   }
 
@@ -259,6 +316,7 @@
     if (isCommandMatch(executed, s.command)) {
       if (s.waitForCompletion === false) { pendingTerminalCommand = null; clickError = ""; advanceStep(); return; }
       pendingTerminalCommand = canonicalizeCommand(executed);
+      backupCommandPending = false;
       if (s.waitForTerminalOutput?.length) {
         clickError = "Command accepted. Waiting for client and server to start...";
         startTerminalOutputPoll(s.waitForTerminalOutput);
@@ -267,6 +325,17 @@
       clickError = "Command accepted. Waiting for terminal to finish...";
       return;
     }
+
+    // Backup: accept any command that produces the expected terminal output, so an
+    // equivalent command (e.g. `pnpm dev` instead of `pnpm run dev`) also works.
+    if (s.waitForTerminalOutput?.length && executed.trim()) {
+      pendingTerminalCommand = canonicalizeCommand(executed);
+      backupCommandPending = true;
+      clickError = "Command accepted. Checking that it produces the expected result...";
+      startTerminalOutputPoll(s.waitForTerminalOutput);
+      return;
+    }
+
     if (pendingTerminalCommand) return;
     pendingTerminalCommand = null;
     clickError = `Expected terminal command: ${s.command}`;
@@ -277,8 +346,19 @@
     if (!s.requireCommand || !s.command || !pendingTerminalCommand) return;
     const raw = (event as CustomEvent<{ command?: string }>).detail?.command ?? "";
     if (canonicalizeCommand(raw) !== pendingTerminalCommand) return;
-    if (!isCommandMatch(raw, s.command)) return;
-    pendingTerminalCommand = null; clickError = ""; advanceStep();
+
+    if (isCommandMatch(raw, s.command)) {
+      pendingTerminalCommand = null; clickError = ""; advanceStep();
+      return;
+    }
+
+    // A backup (non-matching) command finished without producing the expected output.
+    if (backupCommandPending) {
+      backupCommandPending = false;
+      pendingTerminalCommand = null;
+      stopTerminalOutputPoll();
+      clickError = `That command didn't produce the expected result. Try: ${s.command}`;
+    }
   }
 
   function handleTutorialFileSaved(event: Event) {
@@ -316,6 +396,16 @@
     }
   }
 
+  function handleModalEscape(event: KeyboardEvent) {
+    if (!visible) return;
+    const s = getCurrentStep();
+    if (s.spotlightTarget && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      clickError = "You can't close this modal yet. Use the highlighted action to continue.";
+    }
+  }
+
   function handleWindowResize() { if (browser && pointerReady) void positionPointerForStep(); }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -323,11 +413,13 @@
 
   onMount(() => {
     applyFallback();
+    resolveSavedStep();
     removeListeners = registerWindowListeners([
       ["pointerdown", handleInteractivePointerDown as EventListener, true],
       ["click", handleInteractiveClick as EventListener, true],
       ["contextmenu", handleInteractiveClick as EventListener, true],
       ["dblclick", handleInteractiveClick as EventListener, true],
+      ["keydown", handleModalEscape as EventListener, true],
       ["devsim-tutorial-file-opened", handleTutorialFileOpened as EventListener],
       ["devsim-tutorial-file-saved", handleTutorialFileSaved as EventListener],
       ["devsim-terminal-command", handleTerminalCommand as EventListener],
@@ -397,10 +489,13 @@
 
 <TutorialModals
   {showSkipConfirm} {completionModalVisible} {proceedLoading}
+  {resumeModalVisible} {resumeStepTitle}
   on:skipConfirm={confirmSkip}
   on:skipCancel={() => { showSkipConfirm = false; }}
   on:replay={replayTutorial}
   on:proceed={completeTutorial}
+  on:resumeContinue={resumeContinue}
+  on:resumeRestart={resumeRestart}
 />
 
 <style>

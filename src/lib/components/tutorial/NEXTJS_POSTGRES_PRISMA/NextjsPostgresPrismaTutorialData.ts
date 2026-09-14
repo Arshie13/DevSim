@@ -124,7 +124,8 @@ function buildNextjsPostgresTaskTwo(): ITask {
       taskId,
       order: 1,
       isRequired: true,
-      description: 'Header in src/components/TodoApp.tsx updated from "To-Do List Tutorial" to "Task Tracker"',
+      description:
+        'Header in src/components/TodoApp.tsx updated from "To-Do List Tutorial" to "Task Tracker"',
     },
     {
       id: `${taskId}-ac-2`,
@@ -168,15 +169,22 @@ const DEFAULT_TUTORIAL_DATA: TutorialWorkspaceData = {
 };
 
 function normalizeStackName(raw: string): string {
-  return raw.toLowerCase().trim().replace(/[\s_+]+/g, "-");
+  return raw
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_+]+/g, "-");
 }
 
-export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceData {
+export function getTutorialWorkspaceData(
+  stackName: string,
+): TutorialWorkspaceData {
   const normalized = normalizeStackName(stackName);
 
   if (
     normalized.includes("nextjs-postgres-prisma") ||
-    (normalized.includes("next") && normalized.includes("postgres") && normalized.includes("prisma"))
+    (normalized.includes("next") &&
+      normalized.includes("postgres") &&
+      normalized.includes("prisma"))
   ) {
     return NEXTJS_POSTGRES_PRISMA_TUTORIAL_DATA;
   }
@@ -191,7 +199,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "board-kanban",
     title: "Open Kanban View",
-    instruction: "Go to the Board tab, then click Kanban so you can see your sprint task cards.",
+    instruction:
+      "Go to the Board tab, then click Kanban so you can see your sprint task cards.",
     hint: "Click the highlighted Kanban toggle in the board panel.",
     target: "board-subtab-kanban",
     switchTab: "board",
@@ -210,7 +219,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "task-one-close-modal",
     title: "Close Task Details",
-    instruction: "After reviewing Task 1 requirements, close the task modal to continue.",
+    instruction:
+      "After reviewing Task 1 requirements, close the task modal to continue.",
     hint: "The whole task modal is highlighted. Click Close inside the modal.",
     target: "board-task-modal",
     preferSide: "left",
@@ -230,7 +240,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "readme-open",
     title: "Open README.md",
-    instruction: "Click README.md in the explorer so you can follow setup instructions.",
+    instruction:
+      "Click README.md in the explorer so you can follow setup instructions.",
     hint: "Open the highlighted README file item.",
     target: "tutorial-readme-file",
     targets: ["tutorial-readme-file"],
@@ -241,7 +252,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "read-readme",
     title: "Read README Instructions",
-    instruction: "Review the README in the workspace editor and confirm when done.",
+    instruction:
+      "Review the README in the workspace editor and confirm when done.",
     hint: "Use the Done button after reading the setup guide.",
     target: "editor-workspace",
     confirmLabel: "Done Reading README",
@@ -353,8 +365,9 @@ export const STEPS: TutorialStep[] = [
   {
     id: "test-task-one-result-continue",
     title: "Review Result And Continue",
-    instruction: "Review the test results. When done, click Continue Working to keep going.",
-    hint: "Wait for the test run to complete, then click Continue Working.",
+    instruction:
+      "Review the test results. When done, click the 'Continue Working' button on the modal.",
+    hint: "Wait for the test run to complete, then click the 'Continue Working' button.",
     spotlightTarget: "test-result-modal",
     target: "test-result-continue-button",
     requireTargetClick: true,
@@ -373,7 +386,8 @@ export const STEPS: TutorialStep[] = [
   {
     id: "task-two-open",
     title: "Open Task 2 Ticket",
-    instruction: "Open Task 2 and review its requirements — you'll update the page header.",
+    instruction:
+      "Open Task 2 and review its requirements — you'll update the page header.",
     hint: "Click on the second task card in the Kanban board.",
     target: "board-task-ticket-2",
     boardSubTab: "board",
@@ -451,8 +465,9 @@ export const STEPS: TutorialStep[] = [
   {
     id: "test-task-two-result-continue",
     title: "Review Result And Continue",
-    instruction: "Review the test results. When done, click Continue Working to keep going.",
-    hint: "Wait for the test run to complete, then click Continue Working.",
+    instruction:
+      'Review the test results. When done, click "Continue Working" button on the modal.',
+    hint: "Wait for the test run to complete, then click the 'Continue Working' button.",
     spotlightTarget: "test-result-modal",
     target: "test-result-continue-button",
     requireTargetClick: true,

@@ -65,7 +65,6 @@ export class LevelDataAccess {
           levelId: task.level_id,
           taskName: task.task_name,
           userStory: task.user_story,
-          isComplete: task.is_complete,
           testType: task.test_type
         }))
       }

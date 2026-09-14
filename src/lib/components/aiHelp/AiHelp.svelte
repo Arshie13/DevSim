@@ -438,6 +438,7 @@
 {#if show}
   <aside
     bind:this={asideEl}
+    data-tour="ai-panel"
     class="relative flex-shrink-0 border-l border-[rgba(7,165,201,0.18)] flex flex-col overflow-hidden"
     style="width: {panelWidth}px; max-width: min(calc(100vw - {RESERVED_FOR_WORKSPACE}px), {MAX_PANEL_WIDTH}px);"
   >

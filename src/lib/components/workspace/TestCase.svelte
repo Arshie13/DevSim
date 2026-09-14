@@ -124,6 +124,20 @@
     }
   }
 
+  /** Fire-and-forget: record each passing task into workspace.completed_tasks. */
+  function recordPassedTasks(taskResults: TaskTestResult[]) {
+    for (const result of taskResults) {
+      if (!result.passed) continue;
+      const taskName = tasks.find(t => t.id === result.taskId)?.taskName;
+      if (!taskName) continue;
+      fetch(`/api/docker/container/${containerId}/tasks/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskName }),
+      }).catch(err => console.error('[TestCase] recordTaskCompletion failed:', err));
+    }
+  }
+
   async function cancelRunningTests() {
     suppressCompletionDispatch = true;
     activeTestAbortController?.abort();
@@ -222,6 +236,7 @@
         clearRunningTaskTracking();
 
         if (data.passed) {
+          recordPassedTasks(testResult.taskResults);
           toast.success("Tests passed");
         }
       } else {
@@ -321,6 +336,7 @@
             return result ? { ...t, testStatus: result.passed ? 'passed' : 'failed' } : t;
           });
           recordRunResults(data.taskResults);
+          recordPassedTasks(data.taskResults);
         }
         clearRunningTaskTracking();
 
@@ -440,6 +456,7 @@
           return result ? { ...t, testStatus: result.passed ? 'passed' : 'failed' } : t;
         });
         recordRunResults(data.taskResults);
+        recordPassedTasks(data.taskResults);
       }
       clearRunningTaskTracking();
 

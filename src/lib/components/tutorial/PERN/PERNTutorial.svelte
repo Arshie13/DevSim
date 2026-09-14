@@ -13,6 +13,8 @@
   export let onSwitchTab: ((tab: string) => void) | undefined = undefined;
   export let onRunTests: (() => void) | undefined = undefined;
   export let onSubmitSprint: (() => void) | undefined = undefined;
+  export let userId: string = "";
+  export let tutorialKey: string = "";
 
   const steps = STEPS;
 
@@ -59,6 +61,8 @@
   {onSwitchTab}
   {onRunTests}
   {onSubmitSprint}
+  {userId}
+  {tutorialKey}
   onPrepareStep={handlePrepareStep}
   on:complete
 />

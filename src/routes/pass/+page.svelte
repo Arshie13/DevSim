@@ -119,13 +119,11 @@
     // Past missed days are always claimable (no cooldown).
     if (reward.day < currentLevel) return true;
 
-    // Current day: enforce one-claim-per-real-day cooldown.
+    // Current day: enforce one-claim-per-real-day cooldown (24h ms comparison,
+    // avoids timezone issues with toDateString()).
     if (!enrollment.lastClaimedAt) return true;
 
-    const lastClaimDate = new Date(enrollment.lastClaimedAt).toDateString();
-    const today = new Date().toDateString();
-
-    return lastClaimDate !== today;
+    return Date.now() - new Date(enrollment.lastClaimedAt).getTime() >= 24 * 60 * 60 * 1000;
   }
 
   function handleClaim(dayNumber: number = enrollment?.currentDay || 1) {
@@ -142,17 +140,15 @@
         if (claimData.success) {
           claimedDays = [...claimedDays, dayNumber];
 
-          if (enrollment && claimData.streak !== undefined) {
+          if (enrollment) {
+            const newTotalClaimed = claimData.totalClaimedDays ?? enrollment.totalClaimedDays;
             enrollment = {
               ...enrollment,
               currentDay: claimData.currentDay ?? enrollment.currentDay,
-              streak: claimData.streak,
-              totalClaimedDays: claimData.totalClaimedDays,
-              status: claimData.totalClaimedDays >= 30 ? "COMPLETED" : enrollment.status,
-              lastClaimedAt:
-                dayNumber === enrollment.currentDay
-                  ? new Date().toISOString()
-                  : enrollment.lastClaimedAt,
+              streak: claimData.streak ?? enrollment.streak,
+              totalClaimedDays: newTotalClaimed,
+              status: newTotalClaimed >= 30 ? "COMPLETED" : enrollment.status,
+              lastClaimedAt: new Date().toISOString(),
             };
             startTimer();
           }

@@ -390,8 +390,8 @@ export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceDa
     {
       id: 'test-task-one-result-continue',
       title: 'Review Result And Continue',
-      instruction: 'Review the test results. When done, click Continue Working to keep going.',
-      hint: 'Wait for the test run to complete, then click Continue Working.',
+      instruction: 'Review the test results. When done, click "Continue Working" button on the modal.',
+      hint: 'Wait for the test run to complete, then click the "Continue Working" button.',
       spotlightTarget: 'test-result-modal',
       target: 'test-result-continue-button',
       requireTargetClick: true,
@@ -504,8 +504,8 @@ export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceDa
     {
       id: 'test-task-two-result-continue',
       title: 'Review Result And Continue',
-      instruction: 'Review the test results. When done, click Continue Working to keep going.',
-      hint: 'Wait for the test run to complete, then click Continue Working.',
+      instruction: 'Review the test results. When done, click "Continue Working" below to continue.',
+      hint: 'Wait for the test run to complete, then use the button below.',
       spotlightTarget: 'test-result-modal',
       target: 'test-result-continue-button',
       requireTargetClick: true,
