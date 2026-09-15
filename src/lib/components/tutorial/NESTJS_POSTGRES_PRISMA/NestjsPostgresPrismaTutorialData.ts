@@ -381,11 +381,13 @@ export const STEPS: TutorialStep[] = [
     title: "Search Files",
     instruction:
       'Search for "completed Boolean" to find the Prisma schema file you need to edit for Task 2.',
-    hint: 'Type "completed Boolean" in the search box and click the highlighted result snippet.',
+    hint: 'Type "completed Boolean" in the search box and pick the result containing "completed Boolean".',
     target: "tutorial-search-result-item",
     spotlightTarget: "tutorial-search-panel",
     switchTab: "editor",
     requireTargetClick: true,
+    requiredSearchResultContains: "completed Boolean",
+    requiredFileContains: "prisma/schema.prisma",
     preferSide: "left",
   },
   {

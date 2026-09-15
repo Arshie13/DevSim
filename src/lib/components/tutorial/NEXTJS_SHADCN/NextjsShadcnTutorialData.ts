@@ -401,11 +401,13 @@ export const STEPS: TutorialStep[] = [
     title: "Search for the Header Text",
     instruction:
       'Search for "My To-Do List" to find the heading you need to update in the page component.',
-    hint: 'Type "My To-Do List" in the search box and click the highlighted result snippet.',
+    hint: 'Type "My To-Do List" in the search box and pick the result containing "My To-Do List".',
     target: "tutorial-search-result-item",
     spotlightTarget: "tutorial-search-panel",
     switchTab: "editor",
     requireTargetClick: true,
+    requiredSearchResultContains: "My To-Do List",
+    requiredFileContains: "src/app/page.tsx",
     preferSide: "left",
   },
   {
