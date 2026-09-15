@@ -384,7 +384,8 @@
         clickError = "";
         advanceStep();
       } else {
-        clickError = `Pick the search result containing ${s.requiredSearchResultContains ?? expectedFile}`;
+        const expectedFileName = s.requiredFileContains?.split(/[\\/]/).pop() ?? expectedFile;
+        clickError = `Pick the search result: ${expectedFileName}`;
       }
       return;
     }
