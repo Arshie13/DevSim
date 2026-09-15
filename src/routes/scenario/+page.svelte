@@ -60,8 +60,8 @@
     inset: 0;
     z-index: 0;
     background-image:
-      repeating-linear-gradient(0deg,   rgba(7,165,201,0.06) 0, rgba(7,165,201,0.06) 1px, transparent 1px, transparent 40px),
-      repeating-linear-gradient(90deg,  rgba(7,165,201,0.06) 0, rgba(7,165,201,0.06) 1px, transparent 1px, transparent 40px);
+      repeating-linear-gradient(0deg,   var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg,  var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px);
     pointer-events: none;
   }
 
@@ -72,7 +72,7 @@
     right: 0;
     height: 60vh;
     z-index: 0;
-    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7,165,201,0.08), transparent);
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7, 165, 201, 0.03), transparent);
     pointer-events: none;
   }
 

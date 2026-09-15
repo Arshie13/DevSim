@@ -90,7 +90,7 @@
 </svelte:head>
 
 <div
-  class="h-screen flex flex-col bg-obsidian-bg bg-grid-cyber text-obsidian-text-primary text-sm overflow-hidden"
+  class="h-screen flex flex-col bg-obsidian-bg bg-grid-cyber scanlines ambient-glow text-obsidian-text-primary text-sm overflow-hidden"
 >
 
   <!-- Back button bar -->
@@ -147,15 +147,6 @@
 
   <!-- Ambient background -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <div class="absolute inset-0 bg-grid-cyber opacity-60"></div>
-    <div
-      class="absolute top-0 left-0 right-0 h-[60vh]"
-      style="background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7,165,201,0.08), transparent);"
-    ></div>
-    <div
-      class="absolute inset-0"
-      style="background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.015) 4px); z-index: 200; pointer-events: none;"
-    ></div>
     <div
       class="absolute top-1/4 -left-32 w-96 h-96 bg-obsidian-accent/10 rounded-full blur-[120px]"
     ></div>

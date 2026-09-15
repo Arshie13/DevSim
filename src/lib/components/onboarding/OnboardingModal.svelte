@@ -458,7 +458,7 @@
     border: 1px solid rgba(136, 146, 160, 0.25);
     color: #8892a0;
     padding: 0.5rem 0.9rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-heading);
     font-size: 0.78rem;
     letter-spacing: 0.05em;
     cursor: pointer;

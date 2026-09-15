@@ -80,7 +80,7 @@
       <div class="mb-12" in:fade={{ duration: 400 }}>
         <button
           on:click={goBack}
-          class="flex items-center gap-2 text-[var(--text-muted)]/50 hover:text-[var(--accent)] transition-colors mb-6 group font-label text-xs uppercase tracking-widest"
+          class="flex items-center gap-2 text-[var(--text-muted)]/50 hover:text-[var(--accent)] transition-colors mb-6 group font-heading text-xs uppercase tracking-widest"
         >
           <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
           Back

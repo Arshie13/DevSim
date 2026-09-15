@@ -52,7 +52,7 @@
         <div in:fade={{ duration: 400 }}>
           <button 
             on:click={goBack}
-            class="flex items-center gap-2 text-obsidian-text-primary/50 hover:text-obsidian-accent transition-colors mb-4 group font-mono text-xs uppercase tracking-widest"
+            class="flex items-center gap-2 text-obsidian-text-primary/50 hover:text-obsidian-accent transition-colors mb-4 group font-heading text-xs uppercase tracking-widest"
           >
             <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
             Back to Simulation

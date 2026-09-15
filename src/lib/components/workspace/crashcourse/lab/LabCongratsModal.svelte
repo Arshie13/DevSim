@@ -59,7 +59,7 @@
     background: rgba(32, 197, 129, 0.18);
     color: #e9fff3;
     padding: 0.38rem 0.65rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-heading);
     font-size: 0.67rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;

@@ -435,7 +435,7 @@
     padding: 0.45rem 0.65rem;
     background: rgba(255, 255, 255, 0.02);
     color: #9fb0bf;
-    font-family: var(--font-mono);
+    font-family: var(--font-heading);
     font-size: 0.78rem;
     letter-spacing: 0.06em;
     cursor: pointer;
