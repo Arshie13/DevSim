@@ -6,14 +6,23 @@
   export let accentColor: string = '#07a5c9';
   export let stackName: string = 'your project';
   export let onClose: () => void = () => {};
+  export let aiPanelOpen: boolean = false;
 
-  let step: 0 | 1 | 2 = 0;
+  let step: 0 | 1 | 2 | 3 = 0;
 
   $: if (open) {
     step = 0;
   }
 
-  let typedMessage = '';
+  $: if (open && step === 2 && aiPanelOpen) {
+    step = 3;
+  }
+
+  $: if (open && step === 3 && !aiPanelOpen) {
+    step = 2;
+  }
+
+  let typedMessage = ''
   let typingIndex = 0;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
   const typedContentCache = new Set<string>();
@@ -24,13 +33,17 @@
   const CALLOUT_W = 340;
   const CALLOUT_H = 200;
   const HIGHLIGHT_TARGET = 'ai-toggle';
+  const AI_PANEL_TARGET = 'ai-panel';
 
   let spotlight = { top: -9999, left: -9999, width: 0, height: 0 };
   let calloutTop = -9999;
   let calloutLeft = -9999;
-  let arrowDir: 'top' | 'bottom' = 'top';
+  let arrowDir: 'top' | 'bottom' | 'left' | 'right' = 'top';
   let arrowOffset = '50%';
   let targetFound = false;
+  let avatarTop = -9999;
+  let avatarLeft = -9999;
+  let calloutEl: HTMLElement | null = null;
 
   function normalizeStackLabel(raw: string): string {
     if (!raw?.trim()) return 'Unknown Stack';
@@ -65,7 +78,13 @@
 
   $: parsedStackName = normalizeStackLabel(stackName);
   $: coachTitle =
-    step === 0 ? `Welcome to ${parsedStackName}` : step === 1 ? 'Read README Files First' : 'Your AI Helper';
+    step === 0
+      ? `Welcome to ${parsedStackName}`
+      : step === 1
+        ? 'Read README Files First'
+        : step === 2
+          ? 'Your AI Helper'
+          : 'AI Helper Panel';
   $: coachEyebrow =
     step === 0 ? 'Greetings, Developer!' : step === 1 ? 'GETTING STARTED TIP' : 'ALWAYS HERE';
   $: coachMessage =
@@ -73,7 +92,9 @@
       ? 'Hey dev, I am Saz. I am here if you need help while you build this workspace. Stay focused on mission flow and we will ship this level cleanly.'
       : step === 1
         ? 'Before coding, review README files and docs so you understand setup, project constraints, and folder responsibilities.'
-        : 'If you get stuck or need a hint, click the AI Helper button. Saz is always available to help you understand the task, explain errors, and point you in the right direction.';
+        : step === 2
+          ? 'If you get stuck or need a hint, click the AI Helper button. Saz is always available to help you understand the task, explain errors, and point you in the right direction.'
+          : 'This is the AI Helper panel. Ask Saz a question, grab a quick hint, or paste an error any time you get stuck.';
   $: tipTypedBlock = `${coachMessage}\n• Read README docs to avoid missing setup steps.\n• Familiarize yourself with project structure first.`;
   $: coachImage = step === 0 ? '/images/saz-wave.png' : '/images/saz-full.png';
   $: coachImageAlt = step === 0 ? 'Saz waving hello' : 'Saz sharing onboarding advice';
@@ -83,7 +104,7 @@
       clearTyping();
       typedMessage = '';
       typedContentCache.clear();
-    } else if (step === 2) {
+    } else if (step === 2 || step === 3) {
       clearTyping();
       typedMessage = coachMessage;
     } else {
@@ -100,9 +121,10 @@
   }
 
   function measureTarget() {
-    if (typeof document === 'undefined' || step !== 2 || !open) return;
+    if (typeof document === 'undefined' || !open || (step !== 2 && step !== 3)) return;
 
-    const el = document.querySelector<HTMLElement>(`[data-tour="${HIGHLIGHT_TARGET}"]`);
+    const target = step === 3 ? AI_PANEL_TARGET : HIGHLIGHT_TARGET;
+    const el = document.querySelector<HTMLElement>(`[data-tour="${target}"]`);
     if (!el) {
       targetFound = false;
       return;
@@ -114,9 +136,23 @@
     const spotW = r.width + SPOT_PAD * 2;
     const spotH = r.height + SPOT_PAD * 2;
     const spotCX = spotL + spotW / 2;
+    const spotCY = spotT + spotH / 2;
 
     spotlight = { top: spotT, left: spotL, width: spotW, height: spotH };
     targetFound = true;
+
+    if (step === 3) {
+      const calloutH = calloutEl?.offsetHeight ?? CALLOUT_H;
+
+      arrowDir = 'right';
+      calloutLeft = clamp(spotL - CALLOUT_W - GAP, 10, window.innerWidth - CALLOUT_W - 10);
+      calloutTop = clamp(spotCY - calloutH / 2 - 80, 10, window.innerHeight - calloutH - 10);
+      arrowOffset = `${calloutH / 2}px`;
+
+      avatarLeft = clamp(calloutLeft + CALLOUT_W / 2 - 125, 10, window.innerWidth - 250 - 10);
+      avatarTop = clamp(calloutTop + calloutH + 12, 10, window.innerHeight - 250 - 10);
+      return;
+    }
 
     const spaceBelow = window.innerHeight - r.bottom - SPOT_PAD;
     if (spaceBelow >= CALLOUT_H + GAP + 20) {
@@ -129,16 +165,19 @@
       calloutLeft = clamp(spotCX - CALLOUT_W / 2, 10, window.innerWidth - CALLOUT_W - 10);
     }
     arrowOffset = `${clamp(spotCX - calloutLeft, 14, CALLOUT_W - 14)}px`;
+
+    avatarLeft = calloutLeft + CALLOUT_W / 2 - 125;
+    avatarTop = calloutTop + CALLOUT_H + 48;
   }
 
-  $: if (open && step === 2) {
+  $: if (open && (step === 2 || step === 3)) {
     tick().then(() => {
       requestAnimationFrame(() => measureTarget());
     });
   }
 
   function handleResize() {
-    if (open && step === 2) measureTarget();
+    if (open && (step === 2 || step === 3)) measureTarget();
   }
 
   onMount(() => {
@@ -175,6 +214,8 @@
       step = 0;
     } else if (step === 2) {
       step = 1;
+    } else if (step === 3) {
+      step = 2;
     }
   }
 
@@ -182,8 +223,8 @@
 </script>
 
 {#if open}
-  <section class="saz-coach" class:saz-coach--tour={step === 2} aria-label="Saz onboarding coach">
-    {#if step === 2}
+  <section class="saz-coach" class:saz-coach--tour={step === 2 || step === 3} aria-label="Saz onboarding coach">
+    {#if step === 2 || step === 3}
       <!-- Spotlight overlay with a hole around the AI Helper button -->
       <div
         class="tour-spotlight"
@@ -201,6 +242,7 @@
       <!-- Callout bubble pointing at the highlighted button -->
       <div
         class="tour-callout"
+        bind:this={calloutEl}
         style="top: {calloutTop}px; left: {calloutLeft}px;"
         role="dialog"
         aria-label="Saz AI Helper tip"
@@ -208,15 +250,23 @@
         <div
           class="tour-arrow tour-arrow-{arrowDir}"
           aria-hidden="true"
-          style="color: {accentColor}; {arrowDir === 'top' || arrowDir === 'bottom' ? `left:${arrowOffset}` : ''}"
+          style="color: {accentColor}; {arrowDir === 'top' || arrowDir === 'bottom' ? `left:${arrowOffset}` : `top:${arrowOffset}`}"
         >
           {#if arrowDir === 'top'}
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
               <path d="M12 20V4M5 11l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-          {:else}
+          {:else if arrowDir === 'bottom'}
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
               <path d="M12 4v16M5 13l7 7 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          {:else if arrowDir === 'right'}
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+              <path d="M4 12h16M13 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          {:else}
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+              <path d="M20 12H4M11 5l-7 7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           {/if}
         </div>
@@ -225,8 +275,10 @@
           <p class="coach-eyebrow">{coachEyebrow}</p>
           <h2 class="coach-title">{coachTitle}</h2>
           <p class="coach-copy">{coachMessage}</p>
-          <div class="coach-actions">
-            <button type="button" on:click={backStep}>← Back</button>
+          <div class="coach-actions" class:coach-actions--single={step === 3}>
+            {#if step !== 3}
+              <button type="button" on:click={backStep}>← Back</button>
+            {/if}
             <button type="button" class="cta" on:click={nextStep}>{ctaLabel}</button>
           </div>
         </div>
@@ -235,7 +287,7 @@
       <!-- Saz avatar pointing at the highlighted button -->
       <div
         class="saz-avatar-wrap saz-avatar-wrap--tour"
-        style="top: {calloutTop + CALLOUT_H + 48}px; left: {calloutLeft + CALLOUT_W / 2 - 125}px;"
+        style="top: {avatarTop}px; left: {avatarLeft}px;"
       >
         <img src={coachImage} alt={coachImageAlt} class="saz-avatar" />
       </div>
@@ -373,6 +425,10 @@
     align-items: center;
   }
 
+  .coach-actions--single {
+    grid-template-columns: 1fr;
+  }
+
   .coach-actions button {
     border: 1px solid rgba(136, 146, 160, 0.34);
     border-radius: 2px;
@@ -491,6 +547,22 @@
     animation: bounceDown 1.1s ease-in-out infinite;
   }
 
+  .tour-arrow-left {
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-right: 4px;
+    animation: bounceLeft 1.1s ease-in-out infinite;
+  }
+
+  .tour-arrow-right {
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-left: 4px;
+    animation: bounceRight 1.1s ease-in-out infinite;
+  }
+
   @keyframes bounceUp {
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50% { transform: translateX(-50%) translateY(-5px); }
@@ -499,5 +571,15 @@
   @keyframes bounceDown {
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50% { transform: translateX(-50%) translateY(5px); }
+  }
+
+  @keyframes bounceLeft {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    50% { transform: translateY(-50%) translateX(-5px); }
+  }
+
+  @keyframes bounceRight {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    50% { transform: translateY(-50%) translateX(5px); }
   }
 </style>

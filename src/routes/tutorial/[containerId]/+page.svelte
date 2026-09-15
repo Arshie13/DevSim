@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { startPresenceHeartbeat } from "$lib/client/presenceHeartbeat";
   import { browser } from "$app/environment";
-  import { goto } from "$app/navigation";
+  import { goto, beforeNavigate } from "$app/navigation";
   import { page } from "$app/state";
   import { MonacoInitializer } from "$client/MonacoInitializer";
   import { TerminalInitializer } from "$client/TerminalInitializer";
@@ -28,6 +28,7 @@
   import { NEXTJS_SHADCN_TUTORIAL_DATA } from "$lib/components/tutorial/NEXTJS_SHADCN/NextjsShadcnTutorialData";
   import { getTutorialWorkspaceData as getMernTutorialData } from "$lib/components/tutorial/MERN/MERNTutorialData";
   import { getTutorialWorkspaceData as getNextjsPostgresPrismaTutorialData } from "$lib/components/tutorial/NEXTJS_POSTGRES_PRISMA/NextjsPostgresPrismaTutorialData";
+  import { clearTutorialProgress } from "$lib/components/tutorial/tutorialProgress";
 
   import { toast } from "$lib/stores/toast";
   import type { FileListResponse } from "$lib/interface/Files";
@@ -36,6 +37,7 @@
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { PageData } from "./$types";
   import { isBackendStack } from "$lib/utils/stacks";
+  import { toFriendlyBootError } from "$lib/utils/bootError";
 
   export let data: PageData;
 
@@ -194,7 +196,6 @@
   let tasks: WorkspaceTask[] = tutorialData.tasks.map((task) => ({
     ...task,
     testStatus: "pending",
-    boardStatus: task.isCompleted ? "done" : "backlog",
     hasClientTest: task.testType === "client" || task.testType === "both",
     hasServerTest: task.testType === "server" || task.testType === "both",
   }));
@@ -607,7 +608,7 @@
         return;
       }
 
-      bootError = message;
+      bootError = toFriendlyBootError(message, "Tutorial workspace failed to start. Please try again.");
       isBooting = true;
     }
   }
@@ -625,9 +626,17 @@
     if (backModalLoading) return;
 
     backModalLoading = true;
+    clearTutorialProgress(data.userId, tutorialStackType);
     await fetch(`/api/docker/container/${dockerContainerId}/stop`, { method: "POST" });
     goto("/scenario");
   }
+
+  beforeNavigate((navigation) => {
+    if (navigation.type === "popstate" && !backModalOpen) {
+      navigation.cancel();
+      backModalOpen = true;
+    }
+  });
 
   async function handleTutorialCompleted() {
     if (tutorialCleanupLoading) return;
@@ -782,11 +791,18 @@
     }
     window.addEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
 
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
       stopHeartbeat();
       stopPreviewPoll();
       window.removeEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
       window.removeEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       terminalSessions.forEach((s) => s.instance?.dispose());
       monacoEditor?.dispose();
     };
@@ -947,6 +963,7 @@
     {title}
     {scenario}
     level={1}
+    userId={data.userId}
     stackTutorialType={tutorialStackType}
     allowSkip={!tutorialLaunchContext.tutorialRequired}
     onSwitchTab={(tab) => {
@@ -961,10 +978,10 @@
     bind:open={backModalOpen}
     icon="🚪"
     iconVariant="warning"
-    title="Leave Tutorial?"
-    subtitle="Your tutorial session will be closed."
-    description="You can launch the tutorial again from the scenario page."
-    confirmLabel="Leave"
+    title="Quit Tutorial?"
+    subtitle="Proceeding to quit the tutorial will lose all your progress."
+    description="Do you want to continue?"
+    confirmLabel="Quit"
     cancelLabel="Stay"
     variant="warning"
     isLoading={backModalLoading}

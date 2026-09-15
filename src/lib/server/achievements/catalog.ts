@@ -10,26 +10,31 @@ const TIER_ORDER: Record<achievement_tier_level, number> = {
 
 export async function getAchievementsForUser(userId: string): Promise<AchievementView[]> {
   const [achievements, unlocked, snapshot] = await Promise.all([
-    prisma.achievement.findMany({
-      include: { tiers: true },
-      orderBy: { name: "asc" },
-    }),
+    prisma.achievement.findMany({ orderBy: { name: "asc" } }),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_tier_id: true },
+      select: { achievement_id: true },
     }),
     getUserProgressSnapshot(userId),
   ]);
 
-  const unlockedTierIds = new Set(unlocked.map((u) => u.achievement_tier_id));
+  const unlockedTierIds = new Set(unlocked.map((u) => u.achievement_id));
+  const families = new Map<string, typeof achievements>();
+  for (const achievement of achievements) {
+    const family = families.get(achievement.name) ?? [];
+    family.push(achievement);
+    families.set(achievement.name, family);
+  }
 
-  return achievements.map((a) => ({
-    id: a.id,
-    name: a.name,
-    description: a.description,
-    icon: a.icon,
-    category: a.category as AchievementCategory,
-    tiers: a.tiers
+  return Array.from(families.values()).map((family) => {
+    const first = family[0];
+    return {
+      id: first.name,
+      name: first.name,
+      description: first.description,
+      icon: first.icon,
+      category: first.category as AchievementCategory,
+      tiers: family
       .slice()
       .sort((x, y) => TIER_ORDER[x.tier as achievement_tier_level] - TIER_ORDER[y.tier as achievement_tier_level])
       .map((t) => {
@@ -39,7 +44,7 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
         return {
           id: t.id,
           tier: t.tier as achievement_tier_level,
-          description: t.description,
+          description: t.tier_description,
           xpReward: t.xp_reward,
           coinReward: t.coin_reward,
           unlocked: isUnlocked,
@@ -48,7 +53,8 @@ export async function getAchievementsForUser(userId: string): Promise<Achievemen
           progress: ratio,
         };
       }),
-  }));
+    };
+  });
 }
 
 /**
@@ -60,12 +66,12 @@ export async function getAchievementFeedItems(userId: string, limit = 5): Promis
     getAchievementsForUser(userId),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_tier_id: true, created_at: true },
+      select: { achievement_id: true, created_at: true },
     }),
   ]);
 
   const earnedAtMap = new Map(
-    userAchievements.map((ua) => [ua.achievement_tier_id, ua.created_at]),
+    userAchievements.map((ua) => [ua.achievement_id, ua.created_at]),
   );
 
   type Ranked = AchievementFeedItem & { _earnedAt: Date };

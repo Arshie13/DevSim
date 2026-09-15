@@ -8,7 +8,6 @@ export interface FileChangeLogParams {
   filePath: string;
   action: FileChangeAction;
   oldPath?: string;
-  contentHash?: string;
 }
 
 /**
@@ -37,7 +36,6 @@ export async function logFileChange(params: FileChangeLogParams) {
         file_path: params.filePath,
         action: params.action,
         old_path: params.oldPath || null,
-        content_hash: params.contentHash || null,
       },
     });
     return fileChange;
@@ -57,7 +55,6 @@ export async function getFileChanges(containerId: string): Promise<{
   filePath: string;
   action: string;
   oldPath: string | null;
-  contentHash: string | null;
   timestamp: Date;
 }[] | []> {
   try {
@@ -84,7 +81,6 @@ export async function getFileChanges(containerId: string): Promise<{
       filePath: change.file_path,
       action: change.action,
       oldPath: change.old_path,
-      contentHash: change.content_hash,
       timestamp: change.timestamp,
     }));
   } catch (error) {

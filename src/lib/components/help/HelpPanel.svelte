@@ -43,6 +43,8 @@
 	let selectedCategoryEntries = $derived(errorCatalog.filter((e) => e.category === selectedCategory));
 
 	const categoryNames = errorCategoryOrder;
+	const commonCategoryNames = errorCategoryOrder.filter((cat) => cat !== 'Docker Environment');
+	const limitationCategoryNames = errorCategoryOrder.filter((cat) => cat === 'Docker Environment');
 
 	function openImageLightbox(src: string) {
 		selectedImage = src;
@@ -370,7 +372,7 @@
 					class="flex items-center gap-1 text-xs text-[#07a5c9] hover:text-[#00f5ff] mb-4 transition-colors"
 				>
 					<ChevronRight class="w-3 h-3 rotate-180" />
-					Back to Common Issues
+					Back to Help Center
 				</button>
 				<span class="text-[0.65rem] text-[#07a5c9] font-mono uppercase tracking-wide block mb-3">{selectedCategory}</span>
 				<div class="space-y-1">
@@ -387,7 +389,20 @@
 			{:else}
 				<p class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-3" style="font-family:'Space Mono',monospace;">// Common Issues</p>
 				<div class="space-y-1 mb-6">
-					{#each categoryNames as cat}
+					{#each commonCategoryNames as cat}
+						<button
+							onclick={() => { selectedCategory = cat; }}
+							class="w-full text-left px-3 py-2.5 text-sm text-gray-300 hover:text-[#07a5c9] hover:bg-slate-800/50 border border-transparent hover:border-slate-700/50 transition-colors flex items-center justify-between"
+						>
+							<span>{cat}</span>
+							<ChevronRight class="w-3.5 h-3.5 text-gray-600" />
+						</button>
+					{/each}
+				</div>
+
+				<p class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-3" style="font-family:'Space Mono',monospace;">// Limitations</p>
+				<div class="space-y-1 mb-6">
+					{#each limitationCategoryNames as cat}
 						<button
 							onclick={() => { selectedCategory = cat; }}
 							class="w-full text-left px-3 py-2.5 text-sm text-gray-300 hover:text-[#07a5c9] hover:bg-slate-800/50 border border-transparent hover:border-slate-700/50 transition-colors flex items-center justify-between"

@@ -25,6 +25,15 @@ export function canonicalizeCommand(value: string): string {
   return normalized;
 }
 
+export function stripShellPrompt(line: string): string {
+  const trimmed = line.trim();
+  for (const marker of ["# ", "$ "]) {
+    const idx = trimmed.lastIndexOf(marker);
+    if (idx !== -1) return trimmed.slice(idx + marker.length).trim();
+  }
+  return trimmed;
+}
+
 export function isCommandMatch(executed: string, expected: string): boolean {
   return canonicalizeCommand(executed) === canonicalizeCommand(expected);
 }

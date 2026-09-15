@@ -116,6 +116,14 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function normalizeAnswer(value: string): string {
+  return value
+    .split("\n")
+    .map((line) => line.trim().replace(/\s+/g, " "))
+    .join("\n")
+    .trim();
+}
+
 function sanitizeCodeForRunner(code: string): string {
   // Keep the transform intentionally lightweight for browser execution.
   return code
@@ -220,6 +228,7 @@ export function evaluateEditableRegionsLab(
   interactiveCode: string,
   starterCode: string,
   editableRegions: EditableRegion[],
+  expectedAnswer?: string,
 ): { passed: boolean; feedback: string } {
   let template = starterCode;
   const regionTokens: string[] = [];
@@ -250,6 +259,21 @@ export function evaluateEditableRegionsLab(
     return {
       passed: false,
       feedback: "Keep the provided structure and only edit the intended text region(s).",
+    };
+  }
+
+  if (expectedAnswer !== undefined) {
+    const actual = (match[1] ?? "").trim();
+    if (normalizeAnswer(actual) !== normalizeAnswer(expectedAnswer)) {
+      return {
+        passed: false,
+        feedback: `That isn't quite right. The field should be "${expectedAnswer}".`,
+      };
+    }
+
+    return {
+      passed: true,
+      feedback: "Great job. You added the correct field while preserving the model structure.",
     };
   }
 

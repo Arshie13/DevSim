@@ -85,7 +85,6 @@ export const load: PageServerLoad = async () => {
           taskName: t.task_name,
           userStory: t.user_story,
           order: t.order,
-          isComplete: t.is_complete,
           testType: t.test_type,
           levelId: t.level_id,
           acceptanceCriteria: t.acceptance_criteria.map(ac => ({
@@ -282,7 +281,6 @@ export const actions: Actions = {
     const userStory = formData.get('userStory') as string;
     const order = parseInt(formData.get('order') as string) || 0;
     const testType = formData.get('testType') as string;
-    const isComplete = formData.get('isComplete') === 'true';
     const criteriaRaw = (formData.get('acceptanceCriteria') as string) || '';
 
     if (!id) {
@@ -294,7 +292,6 @@ export const actions: Actions = {
     if (userStory !== null) data.user_story = userStory;
     if (order !== undefined) data.order = order;
     if (testType) data.test_type = testType;
-    data.is_complete = isComplete;
 
     const criteriaLines = criteriaRaw.split('\n').map(s => s.trim()).filter(Boolean);
     if (criteriaLines.length > 0) {

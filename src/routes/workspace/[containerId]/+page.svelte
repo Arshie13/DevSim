@@ -38,6 +38,7 @@
   import type { ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
     import type { IInteractiveConfig } from "$lib/types/IContainer";
+  import { toFriendlyBootError } from "$lib/utils/bootError";
 
   let { data}: { data: PageData } = $props();
 
@@ -77,7 +78,6 @@
       taskName: task.task_name,
       userStory: task.user_story,
       order: task.order,
-      isCompleted: task.is_complete,
       testType: task.test_type,
       hints: task.hints.map((hint) => ({
         id: hint.id,
@@ -163,9 +163,9 @@
     const persistedState = persisted[task.id];
 
     const boardStatus =
-      persistedState?.boardStatus ?? (task.isCompleted ? "done" : "backlog");
+      persistedState?.boardStatus ?? "backlog";
     const dbCompleted = data.completedTasks?.includes(task.taskName) ?? false;
-    const isCompleted = persistedState?.isCompleted ?? dbCompleted ?? task.isCompleted;
+    const isCompleted = persistedState?.isCompleted ?? dbCompleted;
     const testStatus =
       persistedState?.testStatus ?? (isCompleted ? "passed" : "pending");
     const taskType = task.testType ?? "none";
@@ -939,7 +939,7 @@ $effect(() => {
       isBooting = false;
     } catch (error) {
       console.error("Failed to initialize environment:", error);
-      bootError = error instanceof Error ? error.message : String(error);
+      bootError = toFriendlyBootError(error, "Workspace failed to start. Please try again.");
     }
   }
 
@@ -1117,11 +1117,18 @@ $effect(() => {
                : (task.testStatus ?? "pending")
              : "pending";
 
+       if (nextIsCompleted) {
+         fetch(`/api/docker/container/${containerId}/tasks/complete`, {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ taskName: task.taskName }),
+         }).catch((err) => console.error("[workspace] recordTaskCompletion failed:", err));
+       }
+
        return {
          ...task,
          boardStatus: status,
          isCompleted: nextIsCompleted,
-         is_complete: nextIsCompleted,
          testStatus: nextTestStatus,
        };
      });
@@ -1251,7 +1258,7 @@ $effect(() => {
            taskName: task.taskName,
            previousStatus: task.boardStatus,
          });
-         return { ...task, testStatus: "failed", is_complete: false };
+         return { ...task, testStatus: "failed" };
        }
 
        return {
@@ -1261,7 +1268,6 @@ $effect(() => {
              ? "in-review"
              : (task.boardStatus ?? "in-review"),
          isCompleted: false,
-         is_complete: false,
          testStatus: "failed",
        };
      });
@@ -1352,7 +1358,6 @@ $effect(() => {
            ...task,
            boardStatus: "in-review",
            isCompleted: false,
-           is_complete: false,
            testStatus: "failed",
          };
        }
@@ -2057,6 +2062,7 @@ $effect(() => {
 <SazOnboardingCoach
   open={sazOnboardingOpen}
   stackName={stack}
+  aiPanelOpen={showAiHelper}
   onClose={() => { sazOnboardingOpen = false; }}
 />
 

@@ -215,7 +215,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Update the function to return \"Cook. Share. Inspire.\" instead of \"Hello World\".",
+                    "Update the function to return \"Welcome Back\" instead of \"Hello World\".",
                   language: "tsx",
                   starter_code:
                     'export function getUpdatedHeadingText() {\n  return "Hello World";\n}\n',
@@ -226,14 +226,14 @@ export const levels = [
                   test_cases: [
                     {
                       input: [],
-                      expected: "Cook. Share. Inspire.",
-                      label: "updated brand subtitle",
+                      expected: "Welcome Back",
+                      label: "updated heading text",
                     },
                   ],
                 
                   hints: [
                     "Simple text replacement.",
-                    "Replace \"Hello World\" with \"Cook. Share. Inspire.\"",
+                    "Replace \"Hello World\" with \"Welcome Back\".",
                     "return \"___\";"
                   ],
                 },

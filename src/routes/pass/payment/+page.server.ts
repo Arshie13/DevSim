@@ -1,9 +1,8 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import prisma from '$lib/server/client';
 import Stripe from 'stripe';
 import { checkRateLimit } from '$lib/server/ratelimit';
-import { getLearnerPassConfirmationResult } from '$lib/server/learnerPass';
+import { ensureLearnerPassEnrollmentForPayment, getLearnerPassConfirmationResult } from '$lib/server/learnerPass';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const LEARNER_PASS_PRICE = 29900;
@@ -59,14 +58,14 @@ export const actions: Actions = {
       const metadata = paymentIntent.metadata as { product?: string; userId?: string };
 
       if (metadata?.product === 'learner_pass_30d' && metadata?.userId === session.user.id) {
-        const existing = await prisma.learner_pass_enrollment.findFirst({
-          where: { payment_id: paymentIntentId },
-          select: { id: true },
+        const { enrollment } = await ensureLearnerPassEnrollmentForPayment({
+          userId: session.user.id,
+          paymentId: paymentIntentId,
         });
 
         const confirmation = getLearnerPassConfirmationResult({
           paymentSucceeded: true,
-          existingEnrollment: existing,
+          existingEnrollment: enrollment,
         });
 
         if (!confirmation.success) {
@@ -77,7 +76,7 @@ export const actions: Actions = {
           return { success: true, status: 'pending_webhook', message: confirmation.message };
         }
 
-        return { success: true, enrollment: existing, status: 'active' };
+        return { success: true, enrollment, status: 'active' };
       }
 
       return fail(400, { error: 'Invalid payment metadata' });

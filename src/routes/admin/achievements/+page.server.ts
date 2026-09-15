@@ -4,26 +4,25 @@ import type { Prisma } from '$prismaclient';
 import prisma from '$lib/server/client';
 
 export const load: PageServerLoad = async () => {
-  const achievements = await prisma.achievement.findMany({
-    include: {
-      tiers: { orderBy: { tier: 'asc' } }
-    },
-    orderBy: { created_at: 'asc' }
-  });
+  const rows = await prisma.achievement.findMany({ orderBy: { created_at: 'asc' } });
+  const families = new Map<string, typeof rows>();
+  for (const row of rows) {
+    const family = families.get(row.name) ?? [];
+    family.push(row);
+    families.set(row.name, family);
+  }
 
   return {
-    achievements: achievements.map(a => ({
-      id: a.id,
-      name: a.name,
-      description: a.description,
-      icon: a.icon,
-      category: a.category,
-      xpReward: a.xp_reward,
-      coinReward: a.coin_reward,
-      tiers: a.tiers.map(t => ({
+    achievements: Array.from(families.values()).map(family => ({
+      id: family[0].id,
+      name: family[0].name,
+      description: family[0].description,
+      icon: family[0].icon,
+      category: family[0].category,
+      tiers: family.map(t => ({
         id: t.id,
         tier: t.tier,
-        description: t.description,
+        description: t.tier_description,
         icon: t.icon,
         criteria: t.criteria,
         xpReward: t.xp_reward,
@@ -75,16 +74,18 @@ export const actions: Actions = {
     }
 
     try {
-      await prisma.achievement.create({
-        data: {
+      await prisma.achievement.createMany({
+        data: tiers.map(t => ({
           name,
           description,
           icon,
           category,
-          tiers: {
-            create: tiers
-          }
-        }
+          tier: t.tier,
+          tier_description: t.description,
+          criteria: t.criteria,
+          xp_reward: t.xp_reward,
+          coin_reward: t.coin_reward,
+        }))
       });
     } catch (e: unknown) {
       const err = e as { code?: string; meta?: { target?: string[] } };
@@ -109,8 +110,10 @@ export const actions: Actions = {
       return fail(400, { message: 'ID and name are required' });
     }
 
-    await prisma.achievement.update({
-      where: { id },
+    const current = await prisma.achievement.findUnique({ where: { id }, select: { name: true } });
+    if (!current) return fail(404, { message: 'Achievement not found' });
+    await prisma.achievement.updateMany({
+      where: { name: current.name },
       data: { name, description, icon, category }
     });
 
@@ -125,7 +128,9 @@ export const actions: Actions = {
       return fail(400, { message: 'Missing achievement ID' });
     }
 
-    await prisma.achievement.delete({ where: { id } });
+    const current = await prisma.achievement.findUnique({ where: { id }, select: { name: true } });
+    if (!current) return fail(404, { message: 'Achievement not found' });
+    await prisma.achievement.deleteMany({ where: { name: current.name } });
     return { success: true };
   },
 
@@ -149,9 +154,9 @@ export const actions: Actions = {
       return fail(400, { message: 'Criteria is not valid JSON' });
     }
 
-    await prisma.achievement_tier.update({
+    await prisma.achievement.update({
       where: { id },
-      data: { description, icon, criteria, xp_reward: xpReward, coin_reward: coinReward }
+      data: { tier_description: description, icon, criteria, xp_reward: xpReward, coin_reward: coinReward }
     });
 
     return { success: true };

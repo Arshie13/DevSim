@@ -68,24 +68,29 @@ export const levels = [
                 order: 5,
               },
               {
+                title: "Prisma Fields, Types, and Optionality",
+                content:
+                  "A Prisma model is made up of fields. Each field has a name, a type, and optional attributes.\n\nCommon scalar types:\n- `String` — text\n- `Int` — whole numbers\n- `Boolean` — true/false\n- `DateTime` — timestamps\n- `Decimal` — exact money values\n\nA field is required by default. Adding a `?` right after the type makes it optional (nullable):\n\n  `name String`   → required\n  `name String?`  → optional\n\nOptional fields can be left empty when a record is created, while required fields must always have a value.",
+                order: 6,
+              },
+              {
                 title: "Practice Lab: Prisma Model Field",
                 content:
-                  "Practice writing a Prisma model field definition for an optional string field.",
+                  "Practice adding a field to a real Prisma model definition.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getRoastLevelFieldDefinition() returning \"roastLevel String?\".",
-                  language: "javascript",
+                    "Add an optional roastLevel field with the String type under this model.",
+                  language: "prisma",
                   starter_code:
-                    "export function getRoastLevelFieldDefinition() {\n  // TODO\n}\n",
+                    "model Product {\n  id          String   @id @default(uuid())\n  name        String\n  description String?\n  price       Decimal  @db.Decimal(10, 2)\n  image       String\n  sku         String   @unique\n  stock       Int      @default(0)\n  isActive    Boolean  @default(true)\n  // TODO: add roastLevel field here\n  categoryId  String\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n",
                   editable_regions: [
                     {
-                      placeholder: "// TODO",
+                      placeholder: "// TODO: add roastLevel field here",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getRoastLevelFieldDefinition",
                   test_cases: [
                     {
                       input: [],
@@ -93,32 +98,31 @@ export const levels = [
                       label: "optional roastLevel field",
                     },
                   ],
-                
                   hints: [
-                    "Return Prisma string.",
-                    "The instructions already show the exact string to return. It's in quotes after the word 'returning' — copy it exactly.",
-                    "return \"___ ___?\";"
+                    "Add an optional string field named roastLevel.",
+                    "Fields are written as `name Type`, and a `?` after the type makes it optional.",
+                    "roastLevel String?"
                   ],
                 },
-                order: 6,
+                order: 7,
               },
               {
                 title: "Environment Variables",
                 content:
                   "Sensitive config (like database URIs) is stored in .env files - never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/brewhaven\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. Warning: .env files are listed in .gitignore intentionally - they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
-                order: 7,
+                order: 8,
               },
               {
                 title: "Seeding the Database",
                 content:
                   "A seed script populates the database with realistic sample data so development can proceed against a real dataset instead of an empty one. The BrewHaven seed creates 2 users, 4 categories, 10 products, and 2 sample orders.\n\nRun the seed with:\npnpm exec prisma db seed\n\nThis command is defined in the root package.json and calls prisma/seed.ts via ts-node.",
-                order: 8,
+                order: 9,
               },
               {
                 title: "Key Takeaway",
                 content:
                   "Setting up a project is more than running one command - it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first enables building features with confidence.",
-                order: 9,
+                order: 10,
               },
             ],
           },

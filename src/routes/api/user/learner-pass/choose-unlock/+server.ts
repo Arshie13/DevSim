@@ -23,12 +23,9 @@ export const POST: RequestHandler = async (event) => {
         orderBy: { created_at: 'desc' },
       });
 
-      if (!enrollment || !enrollment.started_at) throw error(400, 'No active pass');
+      if (!enrollment) throw error(400, 'No active pass');
 
       if (enrollment.expires_at && new Date() > enrollment.expires_at) throw error(410, 'Pass expired');
-
-      const start = enrollment.started_at;
-      if (!start) throw error(400, 'Enrollment missing start date');
 
       if (!enrollment.claimed_day_numbers.includes(dayNumber)) {
         throw error(400, 'Day not claimed');
@@ -43,14 +40,14 @@ export const POST: RequestHandler = async (event) => {
       if (!available.includes(scenarioId)) throw error(400, 'Invalid scenario for this day');
 
       const existing = await tx.user_project_access.findFirst({
-        where: { user_id: userId, project_id: scenarioId },
+        where: { user_id: userId, scenario_id: scenarioId },
       });
       if (existing) throw error(409, 'Scenario already unlocked');
 
       await tx.user_project_access.create({
         data: {
           user_id: userId,
-          project_id: scenarioId,
+          scenario_id: scenarioId,
           source: 'LEARNER_PASS',
           learner_pass_enrollment_id: enrollment.id,
           granted_at: new Date(),
