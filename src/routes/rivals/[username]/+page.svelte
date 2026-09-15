@@ -98,9 +98,9 @@
     <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-4 md:px-6 lg:px-8">
       <button
         on:click={handleBack}
-        class="btn-cyber btn-cyber-secondary inline-flex items-center gap-2 !py-2 !px-4"
+        class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
       >
-        <ArrowLeft class="w-4 h-4" />
+        <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
         <span>Back</span>
       </button>
     </div>

@@ -50,9 +50,9 @@
       <!-- Top Actions -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div in:fade={{ duration: 400 }}>
-          <button 
+          <button
             on:click={goBack}
-            class="flex items-center gap-2 text-obsidian-text-primary/50 hover:text-obsidian-accent transition-colors mb-4 group font-heading text-xs uppercase tracking-widest"
+            class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-4 group"
           >
             <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
             Back to Simulation

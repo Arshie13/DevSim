@@ -11,11 +11,11 @@
   <!-- Back button -->
   <div class="mb-4">
     <button
-      class="btn-cyber btn-cyber-outline flex items-center gap-1.5 flex-shrink-0"
+      class="inline-flex flex-shrink-0 items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
       on:click={() => goto("/stacks")}
       aria-label="Back to stack selection"
     >
-      <ArrowLeft class="w-4 h-4" />
+      <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
       <span>Back</span>
     </button>
   </div>

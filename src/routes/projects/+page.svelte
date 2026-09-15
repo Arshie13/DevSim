@@ -61,9 +61,9 @@
       <!-- Back button -->
       <button
         on:click={backToDashboard}
-        class="inline-flex items-center gap-2 text-xs font-heading uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-4"
+        class="inline-flex items-center gap-2 text-xs font-heading uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-4 group"
       >
-        <ArrowLeft class="w-4 h-4" />
+        <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
         <span>Back to Dashboard</span>
       </button>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { ArrowRight, Crown, Lock, Check, Loader2, Info, Zap } from "lucide-svelte";
+  import { ArrowLeft, Crown, Lock, Check, Loader2, Info, Zap } from "lucide-svelte";
   import type { PageData } from "./$types";
   import { onMount } from "svelte";
 
@@ -249,9 +249,10 @@
       <div class="flex items-center gap-3">
         <button
           on:click={handleGoBack}
-          class="p-2 hover:bg-cyber-cyan/10 rounded-lg transition-colors text-obsidian-text-muted hover:text-cyber-cyan"
+          class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
         >
-          <ArrowRight class="w-5 h-5 rotate-180" />
+          <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
+          <span>Back</span>
         </button>
         <div>
           <h1 class="text-2xl font-orbitron font-bold text-obsidian-text-primary">LEARNER PASS</h1>

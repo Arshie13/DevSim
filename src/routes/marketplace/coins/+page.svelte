@@ -1,5 +1,5 @@
 <script lang='ts'>
-  import { Coins, Sparkles, Zap, Trophy, Crown, ArrowRight, ShoppingCart, Loader2, Lightbulb } from 'lucide-svelte';
+  import { Coins, Sparkles, Zap, Trophy, Crown, ArrowRight, ArrowLeft, ShoppingCart, Loader2, Lightbulb } from 'lucide-svelte';
   import Header from '$components/Header.svelte';
   import PurchaseSuccessModal from '$components/ui/PurchaseSuccessModal.svelte';
   import type { PageData } from './$types';
@@ -92,6 +92,14 @@
 
   <main class='relative z-10 py-12 px-6'>
     <div class='max-w-[1200px] mx-auto'>
+      <button
+        on:click={() => goto('/dashboard')}
+        class='inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group mb-6'
+      >
+        <ArrowLeft size={14} class='transition-transform group-hover:-translate-x-1' />
+        <span>Back</span>
+      </button>
+
       <div class='text-center mb-16' in:fade={{ duration: 800 }}>
         <h2 class='text-4xl font-orbitron font-bold text-obsidian-text-muted mb-4 tracking-tighter'>
           COINS <span class='text-cyber-warn'>MARKETPLACE</span>

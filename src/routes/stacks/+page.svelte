@@ -122,8 +122,7 @@
       <div class="flex-shrink-0">
         <button
           on:click={goBack}
-          class="flex items-center gap-2 text-[rgba(208,215,221,0.40)] hover:text-[#07a5c9] transition-colors mb-5 group"
-          style="font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;"
+          class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-5 group"
         >
           <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
           Back
