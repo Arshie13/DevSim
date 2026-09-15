@@ -34,7 +34,7 @@
   }
 
   .filter-btn {
-    font-family: "Space Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;

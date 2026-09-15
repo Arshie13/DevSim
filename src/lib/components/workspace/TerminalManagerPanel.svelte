@@ -13,7 +13,7 @@
 
 <aside
   class="terminal-manager w-44 min-w-0 flex-shrink-0 bg-[#0d1321] border-l border-[rgba(7,165,201,0.1)] flex flex-col"
-  style="font-family:'Share Tech Mono',monospace;"
+  style="font-family: var(--font-mono);"
 >
   <!-- Header -->
   <div class="px-3 py-2.5 border-b border-[rgba(7,165,201,0.1)] flex items-center justify-between flex-shrink-0">

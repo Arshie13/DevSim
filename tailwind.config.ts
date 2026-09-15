@@ -7,51 +7,48 @@ export default {
     extend: {
       fontFamily: {
         // Map the app's font utilities onto the DevSim design-system fonts
-        // that are actually loaded in app.html (Chakra Petch · Exo 2 · Space
-        // Mono). Orbitron/Rajdhani/Share Tech Mono were never loaded, so these
-        // classes previously fell back to the system font — leaving the app's
-        // typography out of sync with the landing page. Keeping the utility
+        // loaded in app.html (Inter · JetBrains Mono). Keeping the utility
         // names means no component markup has to change.
-        heading: ['Chakra Petch', 'sans-serif'],
-        orbitron: ['Chakra Petch', 'sans-serif'],
-        rajdhani: ['Exo 2', 'sans-serif'],
-        body: ['Exo 2', 'sans-serif'],
-        mono: ['Space Mono', 'monospace'],
+        heading: ['Inter', 'system-ui', 'sans-serif'],
+        orbitron: ['Inter', 'system-ui', 'sans-serif'],
+        rajdhani: ['Inter', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
-        // DevSim Obsidian Terminal palette
+        // DevSim Obsidian Terminal palette (CSS-var backed for theming)
         obsidian: {
           bg: {
-            DEFAULT: '#0a0e1a',
-            light: '#12192a',
+            DEFAULT: 'rgb(var(--bg-rgb) / <alpha-value>)',
+            light: 'rgb(var(--bg-light-rgb) / <alpha-value>)',
           },
-          surface: '#2d3446',
-          border: '#27272a',
+          surface: 'rgb(var(--surface-rgb) / <alpha-value>)',
+          border: 'rgb(var(--border-rgb) / <alpha-value>)',
           text: {
-            primary: '#d0d7dd',
-            muted: '#f4f4f5',
+            primary: 'rgb(var(--text-primary-rgb) / <alpha-value>)',
+            muted: 'rgb(var(--text-muted-rgb) / <alpha-value>)',
           },
-          accent: '#07a5c9',
+          accent: 'rgb(var(--accent-rgb) / <alpha-value>)',
         },
         // Design system extended palette
         cyber: {
-          cyan: '#07a5c9',
-          bright: '#00f5ff',
-          success: '#00e5a0',
-          warn: '#ffb400',
-          danger: '#ff3860',
-          purple: '#a855f7',
+          cyan: 'rgb(var(--accent-rgb) / <alpha-value>)',
+          bright: 'rgb(var(--cyan-bright-rgb) / <alpha-value>)',
+          success: 'rgb(var(--success-rgb) / <alpha-value>)',
+          warn: 'rgb(var(--warn-rgb) / <alpha-value>)',
+          danger: 'rgb(var(--danger-rgb) / <alpha-value>)',
+          purple: 'rgb(var(--purple-rgb) / <alpha-value>)',
         }
       },
       borderRadius: {
         'card': '4px',
       },
       boxShadow: {
-        'accent-glow': '0 0 15px rgba(7,165,201,0.30)',
-        'accent-glow-lg': '0 0 30px rgba(7,165,201,0.30)',
-        'accent-glow-hover': '0 0 40px rgba(7,165,201,0.40)',
-        'card-glow': '0 0 20px rgba(7,165,201,0.12)',
-        'card-glow-hover': '0 0 35px rgba(7,165,201,0.22)',
+        'accent-glow': '0 0 15px rgba(7,165,201,0.10)',
+        'accent-glow-lg': '0 0 30px rgba(7,165,201,0.12)',
+        'accent-glow-hover': '0 0 40px rgba(7,165,201,0.16)',
+        'card-glow': '0 0 20px rgba(7,165,201,0.06)',
+        'card-glow-hover': '0 0 35px rgba(7,165,201,0.10)',
       },
     }
   },

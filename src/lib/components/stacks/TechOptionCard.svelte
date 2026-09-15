@@ -120,7 +120,7 @@
   }
 
   .card-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.88rem;
     font-weight: 600;
     color: #d0d7dd;
@@ -133,7 +133,7 @@
   }
 
   .card-desc {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.85rem;
     color: rgba(208, 215, 221, 0.55);
     line-height: 1.35;
@@ -150,7 +150,7 @@
     font-size: 0.75rem;
   }
   .badge-text {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -158,7 +158,7 @@
     margin-left: 0.25rem;
   }
   .badge-desc {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.75rem;
     color: rgba(208, 215, 221, 0.70);
     margin-top: 0.25rem;

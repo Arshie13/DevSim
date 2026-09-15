@@ -752,7 +752,7 @@
   .section-lock-feedback {
     margin: 0 0 0.5rem;
     color: #ffdca8;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.76rem;
     text-align: center;
   }
@@ -779,7 +779,7 @@
   .meta {
     margin: 0 0 0.6rem;
     color: #8892a0;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -797,7 +797,7 @@
     background: rgba(255, 255, 255, 0.02);
     color: #b7c4d1;
     padding: 0.42rem 0.56rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.67rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;

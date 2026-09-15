@@ -358,13 +358,13 @@
     padding: 1rem 1rem 0.875rem;
   }
   .wt-step-num {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
   }
   .wt-title {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 0.88rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -401,7 +401,7 @@
     flex: 1;
     border: none;
     padding: 0.42rem 0.75rem;
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;

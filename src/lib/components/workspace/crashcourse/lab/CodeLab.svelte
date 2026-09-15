@@ -126,7 +126,7 @@
     border: 1px solid rgba(136, 146, 160, 0.38);
     color: #d7f5ff;
     padding: 0.55rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     resize: vertical;
   }
@@ -137,7 +137,7 @@
     gap: 0.4rem;
     margin: 0 0 0.4rem;
     color: #bfe9f6;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.74rem;
   }
 
@@ -168,7 +168,7 @@
     border: 1px solid rgba(136, 146, 160, 0.38);
     color: #8ba2b3;
     padding: 0.55rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     line-height: 1.55;
     white-space: pre;
@@ -195,7 +195,7 @@
     border-bottom: 1.5px solid #8fe3f6;
     border-radius: 2px 2px 0 0;
     color: #f3fdff;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     line-height: 1.55;
     white-space: pre;
@@ -229,14 +229,14 @@
   .structure-note {
     margin: 0.35rem 0 0;
     color: #9db6c7;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.72rem;
   }
 
   .editor-actions p {
     margin: 0;
     color: #d0d7dd;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.76rem;
   }
 
@@ -245,7 +245,7 @@
     background: rgba(7, 165, 201, 0.12);
     color: #dff8ff;
     padding: 0.34rem 0.52rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     cursor: pointer;
   }

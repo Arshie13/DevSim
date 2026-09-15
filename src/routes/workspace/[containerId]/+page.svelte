@@ -1799,7 +1799,7 @@ $effect(() => {
       role="status"
     >
       <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <p class="leading-6 text-[14px]" style="font-family:'Exo 2',sans-serif;">
+        <p class="leading-6 text-[14px]" style="font-family: var(--font-body);">
           ⚠️ This workspace runs inside a Docker container to simulate a development environment. Some behavior may differ from a full local setup, and file or terminal actions are scoped to this container only.
         </p>
 
@@ -1807,7 +1807,7 @@ $effect(() => {
           <button
             type="button"
             class="px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
-            style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
+            style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family: var(--font-heading);"
             onclick={() => handleOpenHelp()}
           >
             Learn more →

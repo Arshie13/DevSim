@@ -481,7 +481,7 @@
       <button
         on:click={handleCreateFile}
         class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
-        style="font-family:'Share Tech Mono',monospace;"
+        style="font-family: var(--font-mono);"
         role="menuitem"
       >
         <FilePlus class="w-3.5 h-3.5 flex-shrink-0" />
@@ -490,7 +490,7 @@
       <button
         on:click={handleCreateFolder}
         class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#07a5c9] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
-        style="font-family:'Share Tech Mono',monospace;"
+        style="font-family: var(--font-mono);"
         role="menuitem"
       >
         <FolderPlus class="w-3.5 h-3.5 flex-shrink-0" />
@@ -502,7 +502,7 @@
       <button
         on:click={handleRenameFile}
         class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#8892a0] hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.06)] transition-colors"
-        style="font-family:'Share Tech Mono',monospace;"
+        style="font-family: var(--font-mono);"
         role="menuitem"
       >
         <Pencil class="w-3.5 h-3.5 flex-shrink-0" />
@@ -511,7 +511,7 @@
       <button
         on:click={handleDeleteFile}
         class="w-full px-3 py-1.5 text-left flex items-center gap-2 text-[0.72rem] text-[#ff3860] hover:bg-[rgba(255,56,96,0.08)] transition-colors"
-        style="font-family:'Share Tech Mono',monospace;"
+        style="font-family: var(--font-mono);"
         role="menuitem"
       >
         <Trash2 class="w-3.5 h-3.5 flex-shrink-0" />

@@ -30,6 +30,7 @@
 
    let isStatsDrawerOpen = false;
    let isDailyRewardsModalOpen = false;
+   let showDailyRewardsBadge = false;
 
    // Help panel state
    let helpMounted = false;
@@ -41,6 +42,7 @@
      if (shouldShowOnboarding) {
        onboardingPhase = 'welcome';
      }
+     void refreshDailyRewardsBadge();
      return helpTrigger.subscribe((payload) => {
        if (payload) {
          helpPrefillCategory = payload.category;
@@ -136,6 +138,17 @@
     goto("/stacks");
   }
 
+  async function refreshDailyRewardsBadge() {
+    try {
+      const res = await fetch('/api/user/daily-rewards');
+      if (!res.ok) return;
+      const daily = await res.json();
+      showDailyRewardsBadge = Boolean(daily.canClaimToday && daily.hasRewards);
+    } catch {
+      // Non-critical — keep the badge hidden on failure
+    }
+  }
+
   function openDailyRewardsModal() {
     isDailyRewardsModalOpen = true;
   }
@@ -155,6 +168,7 @@
 
   function handleRewardClaim(e: CustomEvent<{ day: number; coins: number; xp: number; aiHelps: number; newCoins?: number; newXp?: number; newAiHelpCredits?: number }>) {
     console.log(`Reward claimed: Day ${e.detail.day}, +${e.detail.coins} coins, +${e.detail.xp} XP, +${e.detail.aiHelps} AI helps`);
+    showDailyRewardsBadge = false;
 
     // Update header values if API returned new totals
     if (e.detail.newCoins !== undefined) {
@@ -177,6 +191,7 @@
     onOpenDailyRewards={openDailyRewardsModal}
     onOpenHelp={handleOpenHelp}
     showPass={true}
+    showDailyRewardsBadge={showDailyRewardsBadge}
   />
 
   <!-- Stats Drawer -->

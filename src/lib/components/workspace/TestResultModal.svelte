@@ -89,7 +89,7 @@
     on:keydown={(e) => e.key === 'Escape' && close('escape')}
   >
     <div class="result-card-in relative flex max-h-[85vh] w-[min(680px,95vw)] flex-col overflow-hidden rounded-[4px] border border-[var(--card-border)] bg-[var(--bg-light)] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_var(--accent-glow),0_24px_60px_rgba(0,0,0,0.6)]">
-      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-30" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-60" aria-hidden="true"></div>
       <!-- Ambient glow top edge -->
       <div class="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent),transparent)]" aria-hidden="true"></div>
 

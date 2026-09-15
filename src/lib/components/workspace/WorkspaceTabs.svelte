@@ -51,7 +51,7 @@
           {activeTab === tab.id
           ? 'border-[#07a5c9] text-[#07a5c9] bg-[#12192a]'
           : 'border-transparent text-[#8892a0] hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.04)]'}"
-        style="font-family: 'Space Mono', monospace;"
+        style="font-family: var(--font-mono);"
       >
         <svelte:component this={tab.icon} class="w-4 h-4 flex-shrink-0" />
         <span class="hidden sm:inline">{tab.label}</span>
@@ -68,7 +68,7 @@
           {crashCourseCompleted
             ? 'border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.1)] text-[#93f7a2] hover:bg-[rgba(126,231,135,0.18)]'
             : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"
-        style="font-family: 'Space Mono', monospace;"
+        style="font-family: var(--font-mono);"
         on:click={onOpenCrashCourse}
       >
         <GraduationCap class="w-4 h-4 flex-shrink-0" />
@@ -93,7 +93,7 @@
         {aiHelperActive
           ? 'border-[rgba(7,165,201,0.55)] bg-[rgba(7,165,201,0.2)] text-[#caf3ff]'
           : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"
-      style="font-family: 'Space Mono', monospace;"
+      style="font-family: var(--font-mono);"
     >
       <img src="/images/saz.png" alt="" class="w-4 h-4 rounded-full object-cover" />
       <span class="action-label">AI Helper</span>

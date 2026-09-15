@@ -215,7 +215,7 @@
     flex-shrink: 0;
   }
   .terminal-header span {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -250,14 +250,14 @@
     50%      { box-shadow: 0 0 0 8px rgba(7,165,201,0.0); }
   }
   .empty-title {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.85rem;
     font-weight: 700;
     color: rgba(208,215,221,0.45);
     letter-spacing: 0.10em;
   }
   .empty-text {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.82rem;
     color: rgba(208,215,221,0.35);
     max-width: 240px;
@@ -280,7 +280,7 @@
     gap: 0.15rem;
   }
   .identity-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.95rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -294,7 +294,7 @@
     gap: 0.5rem;
   }
   .layer-count {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.6rem;
     color: rgba(208,215,221,0.40);
     letter-spacing: 0.06em;
@@ -313,7 +313,7 @@
     gap: 1px;
   }
   .shield-badge span {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.55rem;
     color: #07a5c9;
   }
@@ -323,7 +323,7 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.58rem;
     letter-spacing: 0.13em;
     color: rgba(208,215,221,0.35);
@@ -398,14 +398,14 @@
     gap: 0.05rem;
   }
   .tower-name {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.82rem;
     font-weight: 600;
     color: #d0d7dd;
     line-height: 1.2;
   }
   .tower-role {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.55rem;
     letter-spacing: 0.10em;
     color: rgba(var(--rgb), 0.50);
@@ -440,7 +440,7 @@
     justify-content: center;
     gap: 0.4rem;
     padding: 0.7rem;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.10em;
@@ -472,7 +472,7 @@
     justify-content: center;
     gap: 0.3rem;
     padding: 0.5rem;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.08em;
     color: rgba(7,165,201,0.60);
@@ -495,7 +495,7 @@
     flex-shrink: 0;
   }
   .terminal-foot span {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.55rem;
     letter-spacing: 0.12em;
     color: rgba(7,165,201,0.25);

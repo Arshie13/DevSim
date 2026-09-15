@@ -71,7 +71,7 @@
     margin-bottom: 1.25rem;
   }
   .category-heading {
-    font-family: "Space Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;

@@ -364,7 +364,7 @@
     position: absolute;
     bottom: -10px;
     right: 12px;
-    font-family: "Chakra Petch", monospace;
+    font-family: var(--font-heading);
     font-size: 5rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.025);
@@ -433,7 +433,7 @@
     border: none;
     padding: 0;
     font-size: 0.68rem;
-    font-family: "Chakra Petch", monospace;
+    font-family: var(--font-heading);
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -448,7 +448,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-family: "Chakra Petch", monospace;
+    font-family: var(--font-heading);
     font-size: 0.62rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -505,14 +505,14 @@
     border-bottom: 1px solid rgba(7, 165, 201, 0.12);
   }
   .epics-title {
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.62rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #07a5c9;
   }
   .epics-count {
-    font-family: "Rajdhani", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.68rem;
     color: rgba(208, 215, 221, 0.4);
   }
@@ -536,13 +536,13 @@
     font-size: 0.68rem;
   }
   .epic-sprint {
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     color: #07a5c9;
     font-size: 0.58rem;
     flex-shrink: 0;
   }
   .epic-name {
-    font-family: "Rajdhani", sans-serif;
+    font-family: var(--font-body);
     color: rgba(208, 215, 221, 0.82);
     flex: 1;
     white-space: nowrap;
@@ -550,7 +550,7 @@
     text-overflow: ellipsis;
   }
   .epic-levels {
-    font-family: "Rajdhani", sans-serif;
+    font-family: var(--font-body);
     color: rgba(208, 215, 221, 0.35);
     font-size: 0.58rem;
     flex-shrink: 0;

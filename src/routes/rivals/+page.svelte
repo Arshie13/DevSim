@@ -138,9 +138,3 @@
   </div>
 </div>
 
-<style>
-  /* Scanline effect override if needed */
-  :global(.scanlines::before) {
-    opacity: 0.03;
-  }
-</style>

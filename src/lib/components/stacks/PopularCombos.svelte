@@ -153,7 +153,7 @@
     flex-shrink: 0;
   }
   .preset-header span {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -228,7 +228,7 @@
   }
 
   .type-badge {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.55rem;
     letter-spacing: 0.10em;
     padding: 0.1rem 0.35rem;
@@ -239,7 +239,7 @@
   }
 
   .rarity-badge {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.55rem;
     letter-spacing: 0.08em;
     padding: 0.1rem 0.35rem;
@@ -263,7 +263,7 @@
   }
 
   .row-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.88rem;
     font-weight: 600;
     color: #d0d7dd;
@@ -308,7 +308,7 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.6rem;
     letter-spacing: 0.08em;
     color: var(--accent);
@@ -324,7 +324,7 @@
     flex-shrink: 0;
   }
   .preset-foot span {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.55rem;
     letter-spacing: 0.12em;
     color: rgba(7,165,201,0.25);

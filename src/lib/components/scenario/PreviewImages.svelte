@@ -260,7 +260,7 @@
     align-items: center;
     gap: 6px;
     padding: 8px 20px;
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.1em;
@@ -342,7 +342,7 @@
   .preview-count {
     display: inline-block;
     margin-top: 4px;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.6rem;
     color: rgba(7, 165, 201, 0.7);
     background: rgba(7, 165, 201, 0.1);
@@ -350,7 +350,7 @@
     border-radius: 2px;
   }
   .preview-label {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -370,19 +370,6 @@
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
   }
-  .scanlines {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 3px,
-      rgba(7, 165, 201, 0.015) 3px,
-      rgba(7, 165, 201, 0.015) 4px
-    );
-    pointer-events: none;
-  }
-
   /* ── Panel ───────────────────────────────────────────────────────── */
   .panel {
     position: relative;
@@ -458,7 +445,7 @@
     gap: 1px;
   }
   .panel-title {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -466,7 +453,7 @@
     color: #e2e8f0;
   }
   .label-tag {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -479,7 +466,7 @@
     flex-shrink: 0;
   }
   .label-index {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.6rem;
     color: rgba(7, 165, 201, 0.5);
     letter-spacing: 0.06em;

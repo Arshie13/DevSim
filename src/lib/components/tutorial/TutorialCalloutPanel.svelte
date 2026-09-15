@@ -127,7 +127,7 @@
     padding: 0.85rem;
     pointer-events: auto;
     color: #d0d7dd;
-    font-family: "Rajdhani", sans-serif;
+    font-family: var(--font-body);
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -158,16 +158,16 @@
   .pt-eyebrow {
     margin: 0;
     color: #00c2ff;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
   }
 
-  h3 { margin: 0.35rem 0; font-family: "Orbitron", sans-serif; font-size: 1.1rem; }
+  h3 { margin: 0.35rem 0; font-family: var(--font-heading); font-size: 1.1rem; }
 
   .pt-progress {
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.78rem;
     color: rgba(208, 215, 221, 0.72);
   }
@@ -185,13 +185,13 @@
 
   .pt-instruction { margin: 0; line-height: 1.45; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
   .pt-hint { margin: 0; color: rgba(208, 215, 221, 0.72); font-size: 0.88rem; line-height: 1.4; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
-  :global(.pt-inline-code) { font-family: "Share Tech Mono", monospace; font-size: 0.85em; background: rgba(0, 194, 255, 0.1); border: 1px solid rgba(0, 194, 255, 0.25); border-radius: 3px; padding: 0.05em 0.3em; color: #00e5a0; }
+  :global(.pt-inline-code) { font-family: var(--font-mono); font-size: 0.85em; background: rgba(0, 194, 255, 0.1); border: 1px solid rgba(0, 194, 255, 0.25); border-radius: 3px; padding: 0.05em 0.3em; color: #00e5a0; }
 
   .pt-command {
     display: block;
     margin: 0.2rem 0 0.55rem;
     color: #00e5a0;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.74rem;
     white-space: pre-wrap;
     word-break: break-all;
@@ -209,7 +209,7 @@
     background: none;
     border: none;
     padding: 0.15rem 0.3rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.64rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -224,7 +224,7 @@
     border-radius: 4px;
     border: 1px solid transparent;
     padding: 0.42rem 0.62rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     cursor: pointer;
   }

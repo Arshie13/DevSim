@@ -266,7 +266,7 @@
 
   .checkout-kicker {
     margin: 0;
-    font: 700 0.75rem/1.2 var(--font-heading, "Orbitron", sans-serif);
+    font: 700 0.75rem/1.2 var(--font-heading);
     text-transform: uppercase;
     color: var(--text-primary, #e2e8f0);
     letter-spacing: 0.07em;
@@ -275,7 +275,7 @@
   .checkout-sub {
     margin: 0;
     color: var(--text-muted, #94a3b8);
-    font: 500 0.66rem/1.2 var(--font-mono, "JetBrains Mono", monospace);
+    font: 500 0.66rem/1.2 var(--font-mono);
     text-transform: uppercase;
   }
 
@@ -290,14 +290,14 @@
 
   .header h1 {
     margin: 0.35rem 0 0;
-    font: 700 clamp(1.4rem, 3vw, 2rem) / 1.2 var(--font-heading, "Orbitron", sans-serif);
+    font: 700 clamp(1.4rem, 3vw, 2rem) / 1.2 var(--font-heading);
     letter-spacing: 0.02em;
     color: var(--text-primary, #e2e8f0);
   }
 
   .eyebrow {
     margin: 0;
-    font: 600 0.72rem/1.3 var(--font-mono, "JetBrains Mono", monospace);
+    font: 600 0.72rem/1.3 var(--font-mono);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--accent, #07a5c9);
@@ -317,7 +317,7 @@
   }
 
   .price {
-    font: 800 2rem/1 var(--font-heading, "Orbitron", sans-serif);
+    font: 800 2rem/1 var(--font-heading);
     color: #f8fafc;
   }
 
@@ -325,7 +325,7 @@
     border-radius: 999px;
     border: 1px solid rgba(7, 165, 201, 0.35);
     padding: 0.35rem 0.65rem;
-    font: 600 0.68rem/1 var(--font-mono, "JetBrains Mono", monospace);
+    font: 600 0.68rem/1 var(--font-mono);
     color: var(--accent, #07a5c9);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -353,7 +353,7 @@
   .benefit-title {
     margin: 0;
     color: var(--text-primary, #e2e8f0);
-    font: 700 0.75rem/1.2 var(--font-heading, "Orbitron", sans-serif);
+    font: 700 0.75rem/1.2 var(--font-heading);
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
@@ -368,7 +368,7 @@
   .label {
     display: block;
     margin-bottom: 0.5rem;
-    font: 600 0.72rem/1.3 var(--font-mono, "JetBrains Mono", monospace);
+    font: 600 0.72rem/1.3 var(--font-mono);
     color: var(--text-muted, #94a3b8);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -398,7 +398,7 @@
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 0.78rem 1rem;
-    font: 700 0.82rem/1.1 var(--font-heading, "Orbitron", sans-serif);
+    font: 700 0.82rem/1.1 var(--font-heading);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: #071018;
@@ -419,7 +419,7 @@
 
   .checkout-note {
     margin: 0.6rem 0 0;
-    font: 500 0.68rem/1.4 var(--font-mono, "JetBrains Mono", monospace);
+    font: 500 0.68rem/1.4 var(--font-mono);
     color: var(--text-muted, #94a3b8);
     text-align: center;
   }
@@ -439,7 +439,7 @@
     border-top: 1px solid rgba(148, 163, 184, 0.2);
     padding-top: 0.9rem;
     color: var(--text-muted, #94a3b8);
-    font: 500 0.78rem/1.5 var(--font-mono, "JetBrains Mono", monospace);
+    font: 500 0.78rem/1.5 var(--font-mono);
   }
 
   .test-title {

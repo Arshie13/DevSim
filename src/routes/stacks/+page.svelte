@@ -112,7 +112,7 @@
   <!-- Full-bleed background layers -->
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-orb" aria-hidden="true"></div>
-  <div class="bg-scanlines" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
 
   <div class="relative z-10 h-screen flex flex-col overflow-hidden">
     <Header userData={headerUserData} />
@@ -123,7 +123,7 @@
         <button
           on:click={goBack}
           class="flex items-center gap-2 text-[rgba(208,215,221,0.40)] hover:text-[#07a5c9] transition-colors mb-5 group"
-          style="font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;"
+          style="font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;"
         >
           <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
           Back
@@ -157,7 +157,7 @@
                   <span class="w-2 h-2 rounded-full bg-[#00e5a0] animate-pulse"></span>
                   <span
                     class="text-xs uppercase tracking-widest"
-                    style="font-family: 'Orbitron', sans-serif; color: #00e5a0; font-size: 0.65rem;"
+                    style="font-family: var(--font-heading); color: #00e5a0; font-size: 0.65rem;"
                   >
                     Ready
                   </span>
@@ -243,23 +243,9 @@
     pointer-events: none;
   }
 
-  /* Scanlines overlay */
-  .bg-scanlines {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0,0,0,0.015) 4px
-    );
-    pointer-events: none;
-  }
-
   /* Big header title — matches leaderboards */
   .page-title-big {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 2rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -268,7 +254,7 @@
   }
 
   .page-subtitle-big {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.9rem;
     color: rgba(208, 215, 221, 0.55);
   }

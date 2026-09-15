@@ -84,7 +84,7 @@
         >
         <span
           class="level-title max-w-[34vw] truncate text-base font-bold text-[#d0d7dd] tracking-wide"
-          style="font-family:'Orbitron',monospace;">{title}</span
+          style="font-family: var(--font-heading);">{title}</span
         >
         <span
           class="text-[0.65rem] px-1.5 py-0.5 ml-2 border font-mono uppercase tracking-wide"
@@ -114,7 +114,7 @@
       <MessageSquare class="w-4 h-4 flex-shrink-0" />
       <span
         class="text-[0.8rem] font-bold uppercase tracking-widest"
-        style="font-family:'Orbitron',monospace;"
+        style="font-family: var(--font-heading);"
         >Satisfaction Survey</span
       >
     </a>
@@ -135,7 +135,7 @@
       <button
         on:click={() => dispatch('help')}
         class="px-3 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[#ffb400] border border-[rgba(255,180,0,0.4)] bg-[rgba(255,180,0,0.06)] hover:bg-[rgba(255,180,0,0.12)] transition-all"
-        style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+        style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
         title="Help is minimized — click to restore"
       >
         <HelpCircle class="w-3.5 h-3.5" />Help ◈
@@ -144,7 +144,7 @@
       <button
         on:click={() => dispatch('help')}
         class="px-3 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[#8892a0] border border-[rgba(136,146,160,0.4)] bg-transparent hover:bg-[rgba(136,146,160,0.08)] transition-all"
-        style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+        style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
         title="Help &amp; Troubleshooting"
       >
         <HelpCircle class="w-3.5 h-3.5" />Help
@@ -158,7 +158,7 @@
       class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed {isDownloading
         ? 'text-[#07a5c9] border border-[rgba(7,165,201,0.4)] bg-[rgba(7,165,201,0.08)]'
         : 'text-[#8892a0] border border-[rgba(136,146,160,0.4)] bg-transparent hover:bg-[rgba(136,146,160,0.08)]'}"
-      style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+      style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
       title="Download project to upload to GitHub"
     >
       {#if isDownloading}
@@ -177,7 +177,7 @@
       data-tour="submit-sprint-button"
       on:click={onSubmit}
       class="px-4 py-1.5 text-[0.75rem] font-bold uppercase tracking-widest text-[#0a0e1a] bg-[#07a5c9] border border-[#07a5c9] hover:bg-[#00f5ff] hover:border-[#00f5ff] flex items-center gap-1.5 transition-all"
-      style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;box-shadow:0 0 14px rgba(7,165,201,0.35);"
+      style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);box-shadow:0 0 14px rgba(7,165,201,0.35);"
     >
       <Zap class="w-3.5 h-3.5" />Submit Sprint
     </button>

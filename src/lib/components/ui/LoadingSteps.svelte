@@ -290,7 +290,7 @@
 
   .ls-title {
     margin: 0.3rem 0 0;
-    font-family: var(--font-heading, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 1.28rem;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -299,7 +299,7 @@
 
   .ls-subtitle {
     margin: 0.3rem 0 0;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.8rem;
     color: rgba(7, 165, 201, 0.7);
     letter-spacing: 0.08em;
@@ -323,7 +323,7 @@
   }
   .ls-progress-pct {
     text-align: right;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.74rem;
     color: var(--accent, #07a5c9);
     margin: 0 0 1.25rem;
@@ -343,7 +343,7 @@
     display: flex;
     align-items: flex-start;
     gap: 0.7rem;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.85rem;
     transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
     border: 1px solid rgba(136, 146, 160, 0.22);
@@ -439,7 +439,7 @@
     border: 1px solid rgba(255, 56, 96, 0.35);
     border-radius: 4px;
     color: #fca5a5;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     display: flex;
     align-items: center;
@@ -449,7 +449,7 @@
   .ls-retry-btn {
     flex-shrink: 0;
     padding: 0.3rem 0.85rem;
-    font-family: var(--font-heading, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 0.62rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -467,7 +467,7 @@
   .ls-footer {
     position: relative;
     z-index: 1;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.7rem;
     color: rgba(7, 165, 201, 0.8);
     letter-spacing: 0.1em;

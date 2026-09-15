@@ -9,7 +9,7 @@
     /** Decorative icon shown above the title (emoji or symbol). */
     icon = '⟨/⟩',
     iconVariant = 'accent' as 'accent' | 'danger' | 'warning' | 'success',
-    /** Modal heading — rendered in Orbitron. */
+    /** Modal heading — rendered in the display font. */
     title = 'Are you sure?',
     subtitle = '',
     description = '',
@@ -273,7 +273,7 @@
 
   .cm-title {
     margin: 0.45rem 0 0.3rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 1.3rem;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -282,7 +282,7 @@
 
   .cm-subtitle {
     margin: 0;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.82rem;
     line-height: 1.6;
     color: rgba(7, 165, 201, 0.7);
@@ -290,7 +290,7 @@
 
   /* ── Description ──────────────────────────────────────────────────────── */
   .cm-description {
-    font-family: var(--font-body, 'Exo 2', sans-serif);
+    font-family: var(--font-body);
     font-size: 1rem;
     color: rgba(208, 215, 221, 0.75);
     margin: 0 0 1.25rem;
@@ -305,7 +305,7 @@
     border: 1px solid rgba(255, 56, 96, 0.35);
     border-radius: 4px;
     color: #fca5a5;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.82rem;
     line-height: 1.5;
   }
@@ -330,7 +330,7 @@
   .cm-btn-cancel {
     position: relative;
     padding: 0.6rem 1.25rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.1em;
@@ -356,7 +356,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.5rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.1em;

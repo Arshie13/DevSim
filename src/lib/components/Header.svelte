@@ -8,6 +8,7 @@
   export let userData: Partial<UserData>;
   export let onOpenStats: (() => void) | undefined = undefined;
   export let onOpenDailyRewards: (() => void) | undefined = undefined;
+  export let showDailyRewardsBadge = false;
   export let showPass = false;
   export let onOpenHelp: (() => void) | undefined = undefined;
 
@@ -46,10 +47,12 @@
           >
             <div class="relative">
               <Gift class="w-4 h-4 transition-transform group-hover:scale-110" />
-              <span class="absolute -top-1 -right-1 flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-cyan opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-cyber-cyan"></span>
-              </span>
+              {#if showDailyRewardsBadge}
+                <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-cyan opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-cyber-cyan"></span>
+                </span>
+              {/if}
             </div>
           </button>
           <span class="nav-tooltip" aria-hidden="true">Daily Rewards</span>

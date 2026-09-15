@@ -466,10 +466,6 @@
 </div>
 
 <style>
-  :global(.scanlines::before) {
-    opacity: 0.03;
-  }
-
   @keyframes spin {
     from {
       transform: rotate(0deg);

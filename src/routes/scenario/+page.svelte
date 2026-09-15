@@ -25,7 +25,7 @@
   <!-- Background layers -->
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-orb" aria-hidden="true"></div>
-  <div class="bg-scanlines" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
 
   <div class="relative z-10 flex flex-col min-h-screen">
     <Header userData={headerUserData} />
@@ -76,16 +76,4 @@
     pointer-events: none;
   }
 
-  .bg-scanlines {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0,0,0,0.015) 4px
-    );
-    pointer-events: none;
-  }
 </style>

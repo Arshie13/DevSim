@@ -245,7 +245,7 @@
     <!-- Left: section label -->
     <span
       class="text-[1rem] uppercase tracking-[0.18em] text-[#8892a0] select-none"
-      style="font-family: 'Space Mono', monospace;"
+      style="font-family: var(--font-mono);"
     >
       A B I D E
     </span>
@@ -273,7 +273,7 @@
         data-tour="board-subtab-scenario"
         on:click={() => (activeSubTab = 'scenario')}
         class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
-        style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'scenario' ? '#07a5c9' : '#8892a0'};"
+        style="font-family: var(--font-mono); color: {activeSubTab === 'scenario' ? '#07a5c9' : '#8892a0'};"
       >
         <FileText class="w-3 h-3 flex-shrink-0" />
         Scenario
@@ -284,7 +284,7 @@
         data-tour="board-subtab-kanban"
         on:click={() => (activeSubTab = 'board')}
         class="relative flex items-center gap-1.5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.1em] transition-colors duration-150 rounded-sm"
-        style="font-family: 'Space Mono', monospace; color: {activeSubTab === 'board' ? '#07a5c9' : '#8892a0'};"
+        style="font-family: var(--font-mono); color: {activeSubTab === 'board' ? '#07a5c9' : '#8892a0'};"
       >
         <LayoutDashboard class="w-3 h-3 flex-shrink-0" />
         Kanban
@@ -301,7 +301,7 @@
       </div>
       <span
         class="text-[0.8rem] text-[#8892a0] tabular-nums"
-        style="font-family: 'Space Mono', monospace;"
+        style="font-family: var(--font-mono);"
       >
         {doneCount}/{kanbanTasks.length}
       </span>
@@ -309,7 +309,7 @@
       <button
         on:click={() => (showHints = !showHints)}
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors duration-150"
-        style="font-family: 'Space Mono', monospace; color: {showHints ? '#FFB400' : '#8892a0'}; background: {showHints ? 'rgba(255,180,0,0.12)' : 'transparent'}; border: 1px solid {showHints ? 'rgba(255,180,0,0.35)' : 'rgba(7,165,201,0.18)'};"
+        style="font-family: var(--font-mono); color: {showHints ? '#FFB400' : '#8892a0'}; background: {showHints ? 'rgba(255,180,0,0.12)' : 'transparent'}; border: 1px solid {showHints ? 'rgba(255,180,0,0.35)' : 'rgba(7,165,201,0.18)'};"
         title={showHints ? 'Hide task hints' : 'Show task hints'}
       >
         {#if showHints}
@@ -330,7 +330,7 @@
         <!-- Label -->
         <p
           class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-4"
-          style="font-family: 'Space Mono', monospace;"
+          style="font-family: var(--font-mono);"
         >
           // Sprint Brief
         </p>
@@ -347,7 +347,7 @@
 
           <p
             class="text-[0.9rem] text-[#d0d7dd]/80 leading-relaxed"
-            style="font-family: 'Exo 2', sans-serif;"
+            style="font-family: var(--font-body);"
           >
             {scenario || 'No scenario description available.'}
           </p>
@@ -358,7 +358,7 @@
           <div class="mt-6">
             <p
               class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-3"
-              style="font-family: 'Space Mono', monospace;"
+              style="font-family: var(--font-mono);"
             >
               // Sprint Tasks
             </p>
@@ -392,7 +392,7 @@
                   ></div>
                   <span
                     class="text-[0.82rem] flex-1"
-                    style="font-family: 'Exo 2', sans-serif; color: {t.status === 'done' ? '#8892a0' : '#d0d7dd'}; {t.status === 'done' ? 'text-decoration: line-through;' : ''}"
+                    style="font-family: var(--font-body); color: {t.status === 'done' ? '#8892a0' : '#d0d7dd'}; {t.status === 'done' ? 'text-decoration: line-through;' : ''}"
                   >
                     {t.text}
                   </span>
@@ -402,7 +402,7 @@
                   <!-- Status label -->
                   <span
                     class="text-[0.6rem] uppercase tracking-wider px-2 py-0.5 rounded"
-                    style="font-family: 'Space Mono', monospace; color: {t.status === 'done' ? '#00E5A0' : t.status === 'in-review' ? '#07A5C9' : t.status === 'in-progress' ? '#FFB400' : '#8892a0'}; background: {t.status === 'done' ? 'rgba(0,229,160,0.08)' : t.status === 'in-review' ? 'rgba(7,165,201,0.12)' : t.status === 'in-progress' ? 'rgba(255,180,0,0.08)' : 'rgba(136,146,160,0.08)'};"
+                    style="font-family: var(--font-mono); color: {t.status === 'done' ? '#00E5A0' : t.status === 'in-review' ? '#07A5C9' : t.status === 'in-progress' ? '#FFB400' : '#8892a0'}; background: {t.status === 'done' ? 'rgba(0,229,160,0.08)' : t.status === 'in-review' ? 'rgba(7,165,201,0.12)' : t.status === 'in-progress' ? 'rgba(255,180,0,0.08)' : 'rgba(136,146,160,0.08)'};"
                   >
                     {t.status === 'in-progress' ? 'In Progress' : t.status === 'in-review' ? 'In Review' : t.status === 'done' ? 'Done' : 'Backlog'}
                   </span>
@@ -411,7 +411,7 @@
                     <div class="mt-2 w-full">
                       <p
                         class="text-[0.55rem] uppercase tracking-wider text-[#FFB400] mb-1"
-                        style="font-family: 'Space Mono', monospace;"
+                        style="font-family: var(--font-mono);"
                       >
                         Hints:
                       </p>
@@ -419,7 +419,7 @@
                         {#each t.hints as hint, idx}
                           <div
                             class="text-[0.75rem] text-[#d0d7dd]/70 px-2 py-1 rounded bg-[rgba(255,180,0,0.06)] border border-[rgba(255,180,0,0.15)]"
-                            style="font-family: 'Exo 2', sans-serif;"
+                            style="font-family: var(--font-body);"
                           >
                             {idx + 1}. {hint.content}
                           </div>
@@ -459,13 +459,13 @@
               ></div>
               <span
                 class="text-[0.65rem] uppercase tracking-widest font-semibold"
-                style="font-family: 'Space Mono', monospace; color: {col.color};"
+                style="font-family: var(--font-mono); color: {col.color};"
               >
                 {col.label}
               </span>
               <span
                 class="ml-auto text-[0.6rem] px-2 py-0.5 rounded"
-                style="font-family: 'Space Mono', monospace; color: {col.color}; background: {col.bg};"
+                style="font-family: var(--font-mono); color: {col.color}; background: {col.bg};"
               >
                 {kanbanTasks.filter((t) => t.status === col.id).length}
               </span>
@@ -496,7 +496,7 @@
                   <div class="mb-2 flex justify-start">
                     <span
                       class="text-[0.58rem] uppercase tracking-wider px-1 py-0.5 rounded"
-                      style="font-family: 'Space Mono', monospace; color: {col.color}; background: {col.bg}; border: 1px solid {col.color}44;"
+                      style="font-family: var(--font-mono); color: {col.color}; background: {col.bg}; border: 1px solid {col.color}44;"
                     >
                       Task {task.order}
                     </span>
@@ -515,7 +515,7 @@
                     <!-- Task text -->
                     <span
                       class="text-[0.8rem] leading-snug flex-1"
-                      style="font-family: 'Exo 2', sans-serif; color: {task.status === 'done' ? '#8892a0' : '#d0d7dd'}; {task.status === 'done' ? 'text-decoration: line-through;' : ''}"
+                      style="font-family: var(--font-body); color: {task.status === 'done' ? '#8892a0' : '#d0d7dd'}; {task.status === 'done' ? 'text-decoration: line-through;' : ''}"
                     >
                       {task.text}
                     </span>
@@ -530,7 +530,7 @@
               {#if kanbanTasks.filter((t) => t.status === col.id).length === 0}
                 <div
                   class="flex items-center justify-center h-16 border border-dashed rounded text-[0.65rem] transition-colors"
-                  style="border-color: {dragOverColumn === col.id ? col.color + '66' : 'rgba(7,165,201,0.1)'}; color: {dragOverColumn === col.id ? col.color : '#8892a0'}; font-family: 'Space Mono', monospace;"
+                  style="border-color: {dragOverColumn === col.id ? col.color + '66' : 'rgba(7,165,201,0.1)'}; color: {dragOverColumn === col.id ? col.color : '#8892a0'}; font-family: var(--font-mono);"
                 >
                   {#if col.id === 'done'}
                     Pass tests to auto-complete

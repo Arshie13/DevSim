@@ -147,7 +147,7 @@
 
   <!-- Ambient background -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <div class="absolute inset-0 bg-grid-cyber opacity-30"></div>
+    <div class="absolute inset-0 bg-grid-cyber opacity-60"></div>
     <div
       class="absolute top-0 left-0 right-0 h-[60vh]"
       style="background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7,165,201,0.08), transparent);"

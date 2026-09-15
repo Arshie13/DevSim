@@ -204,7 +204,7 @@
   /* ── Step label ── */
   .dom-step-label {
     text-align: center;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -244,7 +244,7 @@
   }
 
   .dom-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.18em;
@@ -252,7 +252,7 @@
     margin: 0 0 0.3rem;
   }
   .dom-title {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 1.85rem;
     font-weight: 800;
     letter-spacing: 0.02em;
@@ -273,7 +273,7 @@
   }
 
   .dom-ready-title {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 1.1rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -291,7 +291,7 @@
     flex: 1;
     border: 1px solid;
     padding: 0.55rem 1rem;
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -312,7 +312,7 @@
     border: 1px solid rgba(136, 146, 160, 0.25);
     color: #8892a0;
     padding: 0.5rem 1rem;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     letter-spacing: 0.05em;
     cursor: pointer;

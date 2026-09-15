@@ -119,7 +119,7 @@
 
   .dm-title {
     margin: 0.5rem 0 0.3rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -128,7 +128,7 @@
 
   .dm-subtitle {
     margin: 0;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.82rem;
     line-height: 1.6;
     color: var(--danger, #ff3860);
@@ -140,7 +140,7 @@
   }
 
   .dm-text {
-    font-family: var(--font-body, 'Exo 2', sans-serif);
+    font-family: var(--font-body);
     font-size: 0.95rem;
     color: var(--text-primary, #d0d7dd);
     opacity: 0.75;

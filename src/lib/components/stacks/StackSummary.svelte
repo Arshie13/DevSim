@@ -106,7 +106,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="modal-box" on:click|stopPropagation>
-      <div class="modal-scanlines" aria-hidden="true"></div>
+      <div class="scanlines" aria-hidden="true"></div>
       <div class="modal-shimmer"></div>
 
       <!-- Header -->
@@ -267,14 +267,14 @@
   }
 
   .fab-text {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.12em;
     color: #d0d7dd;
   }
   .fab-count {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     color: #07a5c9;
     padding: 0.05rem 0.35rem;
@@ -320,13 +320,6 @@
     to   { opacity:1; transform: scale(1) translateY(0); }
   }
 
-  .modal-scanlines {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.015) 4px);
-    pointer-events: none;
-    z-index: 0;
-  }
   .modal-shimmer {
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -364,7 +357,7 @@
   }
 
   .modal-title {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 1rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -381,14 +374,14 @@
     border-radius: 2px;
   }
   .xp-badge span {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     font-weight: 700;
     color: #ffb400;
     letter-spacing: 0.06em;
   }
   .count-tag {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     padding: 0.15rem 0.5rem;
     border-radius: 2px;
@@ -433,13 +426,13 @@
     opacity: 0.5;
   }
   .pill-name {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.82rem;
     color: #d0d7dd;
     letter-spacing: 0.04em;
   }
   .pill-empty-label {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.78rem;
     color: rgba(208, 215, 221, 0.40);
   }
@@ -454,7 +447,7 @@
   .pill-clear:hover { color: #ff3860; }
 
   .arrow {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     color: rgba(208, 215, 221, 0.25);
     font-size: 0.9rem;
   }
@@ -470,7 +463,7 @@
 
   .btn-ghost {
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.10em;
@@ -490,7 +483,7 @@
 
   .btn-primary {
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.10em;

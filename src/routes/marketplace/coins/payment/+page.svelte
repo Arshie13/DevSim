@@ -54,7 +54,7 @@
           base: {
             fontSize: '16px',
             color: '#e2e8f0',
-            fontFamily: 'Orbitron, "JetBrains Mono", monospace', 
+            fontFamily: 'Inter, system-ui, sans-serif', 
             fontSmoothing: 'antialiased',
             '::placeholder': {
               color: '#94a3b8',
