@@ -345,6 +345,7 @@ export function getTutorialWorkspaceData(stackName: string): TutorialWorkspaceDa
       title: 'Start Development Server',
       instruction: 'Start the app in development mode. The step will advance automatically once both the client and server are ready.',
       hint: 'Run: pnpm run dev',
+      switchTab: 'terminal',
       command: 'pnpm run dev',
       requireCommand: true,
       waitForTerminalOutput: ['VITE', 'Local:'],

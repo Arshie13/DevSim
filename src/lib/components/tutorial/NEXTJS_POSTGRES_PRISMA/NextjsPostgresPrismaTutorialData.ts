@@ -319,6 +319,7 @@ export const STEPS: TutorialStep[] = [
     instruction:
       "Start the Next.js app in development mode. The step advances automatically once the server is ready.",
     hint: "Run: pnpm run dev",
+    switchTab: "terminal",
     command: "pnpm run dev",
     requireCommand: true,
     waitForTerminalOutput: ["localhost:3000", "Ready in"],
