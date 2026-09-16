@@ -131,7 +131,7 @@
 
   .sem-title {
     margin: 0.45rem 0 0.3rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 1.3rem;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -140,14 +140,14 @@
 
   .sem-subtitle {
     margin: 0;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.82rem;
     line-height: 1.6;
     color: rgba(7, 165, 201, 0.7);
   }
 
   .sem-description {
-    font-family: var(--font-body, 'Exo 2', sans-serif);
+    font-family: var(--font-body);
     font-size: 1rem;
     color: rgba(208, 215, 221, 0.75);
     margin: 0 0 1.5rem;
@@ -167,7 +167,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 2rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.1em;

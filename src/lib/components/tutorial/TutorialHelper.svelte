@@ -2,7 +2,7 @@
   import { createEventDispatcher, onDestroy, onMount, tick } from "svelte";
   import { browser } from "$app/environment";
   import type { TutorialStep } from "$components/tutorial/tutorialTypes";
-  import { isCommandMatch, canonicalizeCommand, sleep, registerWindowListeners } from "$components/tutorial/tutorialUtils";
+  import { isCommandMatch, canonicalizeCommand, sleep, registerWindowListeners, stepRequiresTargetClick } from "$components/tutorial/tutorialUtils";
   import { getTutorialProgress, setTutorialProgress, clearTutorialProgress } from "$components/tutorial/tutorialProgress";
   import { resolvePlacement, getFallbackPlacement, type PlacementResult, type SpotlightRect } from "$components/tutorial/tutorialPositioning";
   import TutorialWelcomeModal from "$components/tutorial/TutorialWelcomeModal.svelte";
@@ -341,9 +341,12 @@
   function handleInteractiveClick(event: MouseEvent) {
     if (!visible) return;
     if (blockIfLocked(event)) return;
-    if (isReviewing) return;
     const path = event.composedPath?.() ?? [];
     const s = getCurrentStep();
+    // Steps advanced by clicking a highlighted target intentionally render no
+    // Next button, so they must stay clickable while reviewing too — otherwise
+    // there is no way to move forward from them.
+    if (isReviewing && !stepRequiresTargetClick(s)) return;
     if (s.id === "search-type-query") {
       if (pathHasTourTarget(path, "tutorial-search-result-item")) clickError = "Opening selected search result...";
       return;
@@ -351,9 +354,10 @@
     const targets = [s.target, ...(s.targets ?? [])].filter(Boolean) as string[];
     const clicked = collectTourTargets(path);
     const hitTarget = clicked.some((v) => targets.includes(v));
-    const needsClick = s.requireTargetClick ?? Boolean(s.target && !s.requireCommand && !s.action && !s.confirmLabel);
+    const needsClick = stepRequiresTargetClick(s);
     if (!s.target || s.requireCommand || s.action || !needsClick || !stepConfirmReady) return;
     if (hitTarget) { clickError = ""; advanceStep(); return; }
+    if (isReviewing) return;
     clickError = pointerReady ? "Click the highlighted target to continue this step." : "Waiting for target to finish rendering. Click the required target once visible.";
   }
 
@@ -439,8 +443,9 @@
   }
 
   function handleTutorialFileOpened(event: Event) {
-    if (isReviewing) return;
     const s = getCurrentStep();
+    // Same as target clicks: steps with no Next button keep working while reviewing.
+    if (isReviewing && !stepRequiresTargetClick(s)) return;
     if (s.id === "search-type-query") { clickError = ""; advanceStep(); return; }
     if (!s.requiredFileContains) return;
     const opened = (event as CustomEvent<{ file?: string }>).detail?.file?.toLowerCase() ?? "";
@@ -519,6 +524,7 @@
   $: isTerminalBusy = pendingTerminalCommand !== null || terminalOutputPollId !== null;
   $: isCommandStep = Boolean(step.requireCommand && step.command);
   $: isManualConfirmStep = Boolean(step.confirmLabel && !isCommandStep && step.action !== "runTests" && step.action !== "submitSprint");
+  $: requiresTargetClick = stepRequiresTargetClick(step);
   $: manualConfirmDisabled = step.id === codeEditStepId && !stepCodeSaveDone;
   $: progress = `${currentIdx + 1}/${steps.length}`;
 
@@ -554,7 +560,7 @@
     {step} {stack} {progress} {isCommandStep} {isManualConfirmStep}
     {manualConfirmDisabled} {pointerReady} {waitingForTarget} {clickError}
     {allowSkip} {arrowDir} {arrowOffset} {calloutTop} {calloutLeft}
-    {canGoBack} {isReviewing} {isTerminalBusy}
+    {canGoBack} {isReviewing} {isTerminalBusy} {requiresTargetClick}
     on:skip={skipTutorial}
     on:advance={advanceStep}
     on:back={goBack}

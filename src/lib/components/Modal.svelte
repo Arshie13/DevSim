@@ -80,7 +80,7 @@
 					<!-- Title -->
 					<h3
 						class="text-[0.9rem] font-bold tracking-wide text-[#d0d7dd]"
-						style="font-family:'Orbitron',monospace;"
+						style="font-family: var(--font-heading);"
 					>
 						{title}
 					</h3>
@@ -94,7 +94,7 @@
 				{#if message}
 					<p
 						class="text-[0.85rem] leading-relaxed"
-						style="color:rgba(208,215,221,0.75);font-family:'Rajdhani',sans-serif;"
+						style="color:rgba(208,215,221,0.75);font-family: var(--font-body);"
 					>
 						{#if isDanger}
 							<span class="text-[#ff3860] font-semibold">Warning: </span>
@@ -112,7 +112,7 @@
 							placeholder={inputPlaceholder}
 							on:keydown={handleKeydown}
 							class="w-full px-3 py-2 text-[0.82rem] text-[#d0d7dd] placeholder-[#8892a0]/50 bg-[#0a0e1a] outline-none transition-all"
-							style="border:1px solid rgba(7,165,201,0.2);border-radius:2px;font-family:'Share Tech Mono',monospace;box-shadow:none;"
+							style="border:1px solid rgba(7,165,201,0.2);border-radius:2px;font-family: var(--font-mono);box-shadow:none;"
 							on:focus={(e) => (e.currentTarget.style.borderColor = 'rgba(7,165,201,0.6)', e.currentTarget.style.boxShadow = '0 0 0 2px rgba(7,165,201,0.1)')}
 							on:blur={(e) => (e.currentTarget.style.borderColor = 'rgba(7,165,201,0.2)', e.currentTarget.style.boxShadow = 'none')}
 						/>
@@ -129,7 +129,7 @@
 				<button
 					on:click={onClose}
 					class="px-4 py-2 text-[0.65rem] font-bold uppercase tracking-widest text-[#8892a0] bg-transparent hover:text-[#d0d7dd] hover:bg-[rgba(7,165,201,0.06)] border border-[rgba(40,55,80,0.9)] hover:border-[rgba(7,165,201,0.25)] transition-all"
-					style="clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));font-family:'Orbitron',monospace;"
+					style="clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));font-family: var(--font-heading);"
 				>
 					Cancel
 				</button>
@@ -149,7 +149,7 @@
 <style>
   .modal-confirm-btn {
     clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
   }
   .modal-confirm-btn.primary {
     background: #07a5c9;

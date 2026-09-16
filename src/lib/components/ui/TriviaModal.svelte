@@ -89,7 +89,7 @@
   >
     <div class="trivia-card ds-scrollbar">
       <div class="trivia-card-glow" aria-hidden="true"></div>
-      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-30" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-60" aria-hidden="true"></div>
       <div class="trivia-accent-line" aria-hidden="true"></div>
 
       <!-- Header -->
@@ -295,7 +295,7 @@
 
   .trivia-title {
     margin: 0;
-    font-family: var(--font-heading, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -305,7 +305,7 @@
 
   .trivia-subtitle {
     margin: 0.25rem 0 0;
-    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     color: var(--text-muted, #8892a0);
   }
@@ -341,7 +341,7 @@
 
   .trivia-question {
     margin: 0 0 1.25rem;
-    font-family: var(--font-body, 'Exo 2', sans-serif);
+    font-family: var(--font-body);
     font-size: 1.05rem;
     line-height: 1.5;
     color: var(--text-primary, #d0d7dd);
@@ -405,7 +405,7 @@
     border: 1px solid rgba(7, 165, 201, 0.35);
     background: rgba(7, 165, 201, 0.12);
     color: var(--accent, #07a5c9);
-    font-family: var(--font-heading, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 0.62rem;
     font-weight: 700;
     flex-shrink: 0;
@@ -425,7 +425,7 @@
 
   .option-text {
     flex: 1;
-    font-family: var(--font-body, 'Exo 2', sans-serif);
+    font-family: var(--font-body);
     font-size: 0.88rem;
     font-weight: 500;
     color: var(--text-primary, #d0d7dd);
@@ -450,7 +450,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-family: var(--font-heading, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -463,7 +463,7 @@
   }
 
   .explanation-text {
-    font-family: var(--font-body, 'Exo 2', sans-serif);
+    font-family: var(--font-body);
     font-size: 0.85rem;
     line-height: 1.6;
     color: rgba(208, 215, 221, 0.8);
@@ -487,7 +487,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.25rem;
-    font-family: var(--font-head, 'Chakra Petch', sans-serif);
+    font-family: var(--font-heading);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;

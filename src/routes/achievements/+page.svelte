@@ -41,14 +41,14 @@
   <title>Achievements | DevSim</title>
 </svelte:head>
 
-<div class="min-h-screen bg-obsidian-bg text-obsidian-text-primary text-sm">
+<div class="min-h-screen bg-obsidian-bg text-obsidian-text-primary text-sm scanlines ambient-glow bg-grid-cyber">
   <!-- Back button -->
   <div class="w-full max-w-[1200px] mx-auto px-4 pt-4 md:px-6 lg:px-8">
     <button
       on:click={backToDashboard}
-      class="btn-cyber btn-cyber-secondary inline-flex items-center gap-2 !py-2 !px-4"
+      class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
     >
-      <ArrowLeft class="w-4 h-4" />
+      <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
       <span>Back</span>
     </button>
   </div>
@@ -71,7 +71,6 @@
 
   <!-- Ambient background -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <div class="absolute inset-0 bg-grid-cyber"></div>
     <div class="absolute top-1/4 -left-32 w-96 h-96 bg-obsidian-accent/10 rounded-full blur-[120px]"></div>
     <div class="absolute bottom-1/3 -right-32 w-80 h-80 bg-purple-500/8 rounded-full blur-[100px]"></div>
   </div>

@@ -19,10 +19,19 @@
   export let canGoBack: boolean = false;
   export let isReviewing: boolean = false;
   export let isTerminalBusy: boolean = false;
+  export let requiresTargetClick: boolean = false;
 
   const dispatch = createEventDispatcher<{ skip: void; advance: void; back: void; runTests: void; submitSprint: void }>();
 
   let copySuccess = false;
+
+  $: hasPrimaryAction =
+    (isReviewing && !requiresTargetClick && !step.spotlightTarget) ||
+    isManualConfirmStep ||
+    step.action === "runTests" ||
+    step.action === "submitSprint";
+
+  $: hasFooter = hasPrimaryAction || canGoBack;
 
   function renderMarkdown(text: string): string {
     return text
@@ -69,7 +78,14 @@
     <header class="pt-header">
       <p class="pt-eyebrow">{stack} Interactive Tutorial</p>
       <h3>{step.title}</h3>
-      <span class="pt-progress">Step {progress}</span>
+      <div class="pt-meta">
+        <span class="pt-progress">Step {progress}</span>
+        {#if isReviewing}
+          <span class="pt-done" title="You already completed this step">
+            <span class="pt-done-icon" aria-hidden="true">✓</span>Completed
+          </span>
+        {/if}
+      </div>
     </header>
 
     <div class="pt-body">
@@ -90,47 +106,40 @@
       <p class="pt-error">{clickError}</p>
     {/if}
 
-    {#if isCommandStep}
-      {#if isReviewing}
-        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
-      {:else}
-        <code class="pt-command">Run in terminal: {step.command}</code>
-      {/if}
-    {:else if isManualConfirmStep}
-      {#if isReviewing}
-        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
-      {:else}
-        <button
-          class="pt-btn pt-btn-primary"
-          on:click={() => dispatch("advance")}
-          disabled={manualConfirmDisabled}
-        >
-          {manualConfirmDisabled ? "Save your UI change first" : step.confirmLabel}
-        </button>
-      {/if}
-    {:else if step.action === "runTests"}
-      {#if isReviewing}
-        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
-      {:else}
-        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("runTests")}>Run Tests</button>
-      {/if}
-    {:else if step.action === "submitSprint"}
-      {#if isReviewing}
-        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
-      {:else}
-        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("submitSprint")}>Submit Sprint</button>
-      {/if}
-    {:else if isReviewing}
-      <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
+    {#if isCommandStep && !isReviewing}
+      <code class="pt-command">Run in terminal: {step.command}</code>
     {/if}
 
-    {#if canGoBack}
-      <button
-        class="pt-btn pt-btn-secondary pt-back-btn"
-        on:click={() => dispatch("back")}
-        disabled={isTerminalBusy}
-        title={isTerminalBusy ? "Wait for the terminal command to finish" : "Go to previous step"}
-      >{isTerminalBusy ? "Working..." : "Back"}</button>
+    {#if hasFooter}
+      <footer class="pt-footer">
+        {#if canGoBack}
+          <button
+            class="pt-btn pt-btn-ghost pt-back-btn"
+            on:click={() => dispatch("back")}
+            disabled={isTerminalBusy}
+            title={isTerminalBusy ? "Wait for the terminal command to finish" : "Go to previous step"}
+          >
+            <span class="pt-back-chevron" aria-hidden="true">←</span>
+            {isTerminalBusy ? "Working..." : "Previous"}
+          </button>
+        {/if}
+
+        {#if isReviewing && !requiresTargetClick && !step.spotlightTarget}
+          <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
+        {:else if isManualConfirmStep}
+          <button
+            class="pt-btn pt-btn-primary"
+            on:click={() => dispatch("advance")}
+            disabled={manualConfirmDisabled}
+          >
+            {manualConfirmDisabled ? "Save your UI change first" : step.confirmLabel}
+          </button>
+        {:else if step.action === "runTests"}
+          <button class="pt-btn pt-btn-primary" on:click={() => dispatch("runTests")}>Run Tests</button>
+        {:else if step.action === "submitSprint"}
+          <button class="pt-btn pt-btn-primary" on:click={() => dispatch("submitSprint")}>Submit Sprint</button>
+        {/if}
+      </footer>
     {/if}
   </div>
 </div>
@@ -157,7 +166,7 @@
     padding: 0.85rem;
     pointer-events: auto;
     color: #d0d7dd;
-    font-family: "Rajdhani", sans-serif;
+    font-family: var(--font-body);
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -188,18 +197,44 @@
   .pt-eyebrow {
     margin: 0;
     color: #00c2ff;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
   }
 
-  h3 { margin: 0.35rem 0; font-family: "Orbitron", sans-serif; font-size: 1.1rem; }
+  h3 { margin: 0.35rem 0; font-family: var(--font-heading); font-size: 1.1rem; }
+
+  .pt-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
   .pt-progress {
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.78rem;
     color: rgba(208, 215, 221, 0.72);
+  }
+
+  .pt-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #00e5a0;
+    background: rgba(0, 229, 160, 0.1);
+    border: 1px solid rgba(0, 229, 160, 0.35);
+    border-radius: 3px;
+    padding: 0.1rem 0.35rem;
+  }
+
+  .pt-done-icon {
+    font-size: 0.7rem;
+    line-height: 1;
   }
 
   .pt-body {
@@ -215,13 +250,13 @@
 
   .pt-instruction { margin: 0; line-height: 1.45; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
   .pt-hint { margin: 0; color: rgba(208, 215, 221, 0.72); font-size: 0.88rem; line-height: 1.4; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
-  :global(.pt-inline-code) { font-family: "Share Tech Mono", monospace; font-size: 0.85em; background: rgba(0, 194, 255, 0.1); border: 1px solid rgba(0, 194, 255, 0.25); border-radius: 3px; padding: 0.05em 0.3em; color: #00e5a0; }
+  :global(.pt-inline-code) { font-family: var(--font-mono); font-size: 0.85em; background: rgba(0, 194, 255, 0.1); border: 1px solid rgba(0, 194, 255, 0.25); border-radius: 3px; padding: 0.05em 0.3em; color: #00e5a0; }
 
   .pt-command {
     display: block;
     margin: 0.2rem 0 0.55rem;
     color: #00e5a0;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.74rem;
     white-space: pre-wrap;
     word-break: break-all;
@@ -239,7 +274,7 @@
     background: none;
     border: none;
     padding: 0.15rem 0.3rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.64rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -254,15 +289,37 @@
     border-radius: 4px;
     border: 1px solid transparent;
     padding: 0.42rem 0.62rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  }
+
+  .pt-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(0, 194, 255, 0.16);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
   }
 
   .pt-copy-btn { align-self: flex-start; margin-top: 0.2rem; margin-bottom: 0.55rem; }
-  .pt-back-btn { align-self: flex-start; margin-top: 0.35rem; }
-  .pt-btn-primary { background: #00c2ff; color: #0a0e1a; border-color: #00c2ff; }
+
+  .pt-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+  }
+  .pt-back-chevron { font-size: 0.82rem; line-height: 1; transition: transform 0.18s ease; }
+  .pt-back-btn:not(:disabled):hover .pt-back-chevron { transform: translateX(-2px); }
+
+  .pt-btn-primary { background: #00c2ff; color: #0a0e1a; border-color: #00c2ff; margin-left: auto; }
+  .pt-btn-primary:not(:disabled):hover { background: #4fd2ff; border-color: #4fd2ff; }
   .pt-btn-secondary { background: transparent; color: #00c2ff; border-color: rgba(0, 194, 255, 0.5); }
+  .pt-btn-ghost { background: transparent; color: rgba(208, 215, 221, 0.8); border-color: rgba(208, 215, 221, 0.22); }
+  .pt-btn-ghost:not(:disabled):hover { color: #d0d7dd; border-color: rgba(208, 215, 221, 0.42); }
   .pt-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   @media (max-height: 700px), (max-width: 500px) {

@@ -369,7 +369,7 @@
 
   .coach-eyebrow {
     margin: 0 0 0.35rem;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 1.05rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -381,7 +381,7 @@
     margin: 0 0 0.5rem;
     color: #e4f8ff;
     font-size: 1.1rem;
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-weight: 700;
     text-align: center;
   }
@@ -435,7 +435,7 @@
     padding: 0.45rem 0.65rem;
     background: rgba(255, 255, 255, 0.02);
     color: #9fb0bf;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-heading);
     font-size: 0.78rem;
     letter-spacing: 0.06em;
     cursor: pointer;

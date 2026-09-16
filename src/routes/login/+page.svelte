@@ -64,7 +64,7 @@
 				</p>
 			</div>
 
-			<div class="mb-4 rounded-xl border border-[var(--card-border)] bg-[var(--bg-primary)] p-3 text-center text-xs leading-5 text-[var(--text-muted)]">
+			<div class="mb-4 rounded-xl border border-[var(--card-border)] bg-[var(--bg)] p-3 text-center text-xs leading-5 text-[var(--text-muted)]">
 				<p>
 					By signing in, you hereby agree to our
 					<button

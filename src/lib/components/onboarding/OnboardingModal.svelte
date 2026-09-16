@@ -282,7 +282,7 @@
   /* ── Step label ────────────────────────────────────────────────────────── */
   .om-step-label {
     text-align: center;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -335,7 +335,7 @@
   }
 
   .om-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.18em;
@@ -343,7 +343,7 @@
     margin: 0 0 0.3rem;
   }
   .om-stack-name {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 1.55rem;
     font-weight: 800;
     letter-spacing: 0.02em;
@@ -379,14 +379,14 @@
     text-align: left;
   }
   .om-mission-level {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.2em;
     display: block;
   }
   .om-mission-title {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 0.95rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -439,7 +439,7 @@
   }
 
   .om-ready-title {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 1.1rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -458,7 +458,7 @@
     border: 1px solid rgba(136, 146, 160, 0.25);
     color: #8892a0;
     padding: 0.5rem 0.9rem;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-heading);
     font-size: 0.78rem;
     letter-spacing: 0.05em;
     cursor: pointer;
@@ -478,7 +478,7 @@
     flex: 1;
     border: 1px solid;
     padding: 0.55rem 1rem;
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;

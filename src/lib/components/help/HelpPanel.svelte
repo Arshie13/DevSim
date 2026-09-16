@@ -140,7 +140,7 @@
 	<div class="panel-header">
 		<div class="flex items-center gap-3">
 			<HelpCircle class="w-5 h-5 text-[#07a5c9]" />
-			<h2 class="text-sm font-bold text-gray-100" style="font-family:'Orbitron',monospace;">HELP &amp; TROUBLESHOOTING</h2>
+			<h2 class="text-sm font-bold text-gray-100" style="font-family: var(--font-heading);">HELP &amp; TROUBLESHOOTING</h2>
 		</div>
 		<div class="flex items-center gap-1">
 			{#if onMinimize}
@@ -175,7 +175,7 @@
 			<button
 				onclick={() => { requestSent = false; showRequestForm = false; requestSubject = ''; requestDescription = ''; }}
 				class="mt-5 px-5 py-2 text-sm bg-[#07a5c9] text-[#0a0e1a] font-bold hover:bg-[#00f5ff] transition-all"
-				style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+				style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
 			>
 				Done
 			</button>
@@ -254,7 +254,7 @@
 						onclick={sendHelpRequest}
 						disabled={isSending || !requestSubject.trim() || !requestDescription.trim()}
 						class="flex-1 px-4 py-2.5 text-sm font-bold flex items-center justify-center gap-2 bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-						style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+						style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
 					>
 						{#if isSending}
 							<span class="animate-spin w-3.5 h-3.5 border-2 border-[#0a0e1a] border-t-transparent rounded-full"></span>
@@ -326,7 +326,7 @@
 										<button
 											onclick={() => handleAction(attachment.handler)}
 											class="px-4 py-2 text-xs font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-											style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
+											style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family: var(--font-heading);"
 										>
 											{attachment.label}
 										</button>
@@ -344,7 +344,7 @@
 						<button
 							onclick={() => handleAction(action.handler)}
 							class="px-4 py-2 text-xs font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-							style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
+							style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family: var(--font-heading);"
 						>
 							{action.label}
 						</button>
@@ -356,7 +356,7 @@
 				<button
 					onclick={() => openRequestForm(error.category)}
 					class="w-full px-4 py-2.5 text-sm font-bold border border-[#07a5c9] text-[#07a5c9] hover:bg-[rgba(7,165,201,0.08)] transition-all"
-					style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+					style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
 				>
 					<Send class="w-3.5 h-3.5 inline mr-1.5" />
 					This didn't help — Send a help request
@@ -387,7 +387,7 @@
 					{/each}
 				</div>
 			{:else}
-				<p class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-3" style="font-family:'Space Mono',monospace;">// Common Issues</p>
+				<p class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-3" style="font-family: var(--font-mono);">// Common Issues</p>
 				<div class="space-y-1 mb-6">
 					{#each commonCategoryNames as cat}
 						<button
@@ -400,7 +400,7 @@
 					{/each}
 				</div>
 
-				<p class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-3" style="font-family:'Space Mono',monospace;">// Limitations</p>
+				<p class="text-[0.65rem] uppercase tracking-widest text-[#8892a0] mb-3" style="font-family: var(--font-mono);">// Limitations</p>
 				<div class="space-y-1 mb-6">
 					{#each limitationCategoryNames as cat}
 						<button
@@ -417,7 +417,7 @@
 					<button
 						onclick={() => openRequestForm()}
 						class="w-full px-4 py-2.5 text-sm font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-						style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:'Orbitron',monospace;"
+						style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
 					>
 						<Send class="w-3.5 h-3.5 inline mr-1.5" />
 						Send Help Request

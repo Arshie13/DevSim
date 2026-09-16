@@ -330,7 +330,7 @@
   }
 
   .tutorial-bar-title {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.07em;
@@ -354,7 +354,7 @@
   }
 
   .tutorial-bar-badge {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.6rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -424,7 +424,7 @@
   }
 
   .tutorial-bar-switch-label {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.65rem;
     font-weight: 600;
     letter-spacing: 0.08em;

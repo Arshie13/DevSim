@@ -278,7 +278,7 @@
   <div class="modal-box" on:click|stopPropagation>
 
     <!-- Scanline overlay -->
-    <div class="modal-scanlines" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
 
     <!-- Top shimmer -->
     <div class="modal-shimmer"></div>
@@ -569,20 +569,6 @@
     to   { opacity:1; transform: scale(1) translateY(0); }
   }
 
-  /* Scanlines */
-  .modal-scanlines {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0, 0, 0, 0.015) 4px
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
-
   /* Top shimmer accent */
   .modal-shimmer {
     position: absolute;
@@ -627,7 +613,7 @@
   }
 
   .modal-title {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 1.05rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -635,7 +621,7 @@
   }
 
   .type-badge {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.12em;
     padding: 0.15rem 0.5rem;
@@ -643,7 +629,7 @@
     border-radius: 2px;
   }
   .layer-badge {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.10em;
     padding: 0.15rem 0.5rem;
@@ -668,7 +654,7 @@
     justify-content: center;
     gap: 0.4rem;
     padding: 0.7rem 0.5rem;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.10em;
@@ -705,7 +691,7 @@
   }
 
   .stack-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 1.1rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -720,7 +706,7 @@
     gap: 0.6rem;
   }
   .div-lbl {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.14em;
     color: rgba(7,165,201,0.45);
@@ -732,7 +718,7 @@
     background: linear-gradient(90deg, rgba(7,165,201,0.25), transparent);
   }
   .div-count {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.6rem;
     letter-spacing: 0.10em;
     color: rgba(208,215,221,0.30);
@@ -772,7 +758,7 @@
   }
 
   .layer-idx {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.6rem;
     color: rgba(var(--rgb),0.36);
     letter-spacing: 0.05em;
@@ -807,20 +793,20 @@
     gap: 0.1rem;
   }
   .layer-name {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.88rem;
     font-weight: 600;
     color: #d0d7dd;
     letter-spacing: 0.03em;
   }
   .layer-role {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.55rem;
     letter-spacing: 0.13em;
     color: rgba(var(--rgb),0.46);
   }
   .layer-desc {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.78rem;
     color: rgba(208,215,221,0.50);
     line-height: 1.3;
@@ -841,13 +827,13 @@
     margin-bottom: 0.25rem;
   }
   .preview-lbl {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.12em;
     color: #ffb400;
   }
   .preview-txt {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.85rem;
     color: rgba(208,215,221,0.70);
     line-height: 1.35;
@@ -871,7 +857,7 @@
     border-radius: 0 4px 4px 0;
   }
   .synergy-text {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.88rem;
     color: #d0d7dd;
     line-height: 1.5;
@@ -889,7 +875,7 @@
     margin-bottom: 0.6rem;
   }
   .section-title {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     font-weight: 400;
     text-transform: uppercase;
@@ -910,13 +896,13 @@
     gap: 0.5rem;
   }
   .item-bullet {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     line-height: 1.4;
     flex-shrink: 0;
   }
   .item-text {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.88rem;
     color: rgba(208, 215, 221, 0.70);
     line-height: 1.4;
@@ -936,7 +922,7 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.92rem;
     color: rgba(208,215,221,0.60);
   }
@@ -945,12 +931,12 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.92rem;
     color: rgba(208,215,221,0.60);
   }
   .retry-btn {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.68rem;
     letter-spacing: 0.10em;
     text-transform: uppercase;
@@ -972,7 +958,7 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.88rem;
     color: rgba(208,215,221,0.45);
     max-width: 280px;
@@ -990,13 +976,13 @@
     border-bottom: 1px solid rgba(255,180,0,0.15);
   }
   .ai-header span {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     letter-spacing: 0.12em;
     color: #ffb400;
   }
   .ai-text {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.9rem;
     color: rgba(208,215,221,0.75);
     line-height: 1.55;
@@ -1038,13 +1024,13 @@
     line-height: 1;
   }
   .pill-name {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     color: #d0d7dd;
     letter-spacing: 0.03em;
   }
   .pill-empty-label {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     color: rgba(208, 215, 221, 0.35);
   }

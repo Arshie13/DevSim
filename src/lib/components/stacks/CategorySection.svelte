@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <!-- Optional badge — Share Tech Mono tag style -->
+    <!-- Optional badge — mono tag style -->
     <span class="opt-tag">Optional</span>
   </div>
 
@@ -86,7 +86,7 @@
   }
 
   .cat-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 1.05rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -100,15 +100,15 @@
   }
 
   .cat-desc {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.92rem;
     color: rgba(208, 215, 221, 0.50);
     margin-top: 1px;
   }
 
-  /* Share Tech Mono tag — muted style */
+  /* Mono tag — muted style */
   .opt-tag {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;

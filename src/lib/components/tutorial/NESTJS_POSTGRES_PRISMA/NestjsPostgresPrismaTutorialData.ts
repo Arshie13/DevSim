@@ -287,6 +287,7 @@ export const STEPS: TutorialStep[] = [
     instruction:
       "Start the NestJS app in development mode. The step will advance automatically once the server is ready.",
     hint: "Run: pnpm run dev",
+    switchTab: "terminal",
     command: "pnpm run dev",
     requireCommand: true,
     waitForTerminalOutput: ["is running on", "Nest application successfully"],

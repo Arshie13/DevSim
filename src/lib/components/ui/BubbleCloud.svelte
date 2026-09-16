@@ -153,7 +153,7 @@
 		flex-direction: column;
 		box-sizing: border-box;
 		overflow: hidden;
-		font-family: sans-serif;
+    font-family: var(--font-body);
 	}
 
 	@keyframes float {

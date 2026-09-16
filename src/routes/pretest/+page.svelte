@@ -152,7 +152,7 @@
     </div>
   </header>
 
-  <main class="pt-28 pb-12 px-6">
+  <main class="pt-28 pb-36 px-6 min-h-screen flex items-center justify-center">
     <div class="assessment-container mx-auto">
       {#if !showResult && !showLearningScreen}
         <div class="assessment-card card-cyber p-8 relative">
@@ -341,51 +341,6 @@
 </div>
 
 <style>
-  .bg-grid-cyber {
-    background-image:
-      linear-gradient(rgba(7, 165, 201, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(7, 165, 201, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-
-  .scanlines {
-    position: relative;
-  }
-
-  .scanlines::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.1) 2px,
-      rgba(0, 0, 0, 0.1) 4px
-    );
-    pointer-events: none;
-  }
-
-  .ambient-glow {
-    position: relative;
-  }
-
-  .ambient-glow::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(
-      ellipse 60% 50% at 50% 0%,
-      rgba(7, 165, 201, 0.08) 0%,
-      transparent 70%
-    );
-    pointer-events: none;
-  }
-
   .assessment-container {
     width: min(52vw, 820px);
   }
