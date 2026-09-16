@@ -271,6 +271,23 @@
     state = "confirm";
   }
 
+  // ── Tutorial Back-nav API ────────────────────────────────────────────────
+  // Non-destructive reopen: restores the modal shell without clearing
+  // masteryReflection / impactedLayers, so Back navigation preserves input.
+  export function reopenForTour() {
+    if (state === "loading" || state === "testing") return;
+    submitError = "";
+    state = "confirm";
+    showKeyTakeawaysModal = false;
+    showModal = true;
+  }
+
+  export function closeForTour() {
+    if (state === "loading" || state === "testing") return;
+    showModal = false;
+    showKeyTakeawaysModal = false;
+  }
+
   function openCancelConfirmation() {
     showCancelConfirmModal = true;
   }

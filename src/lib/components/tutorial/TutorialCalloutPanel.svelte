@@ -16,8 +16,11 @@
   export let arrowOffset: string;
   export let calloutTop: number;
   export let calloutLeft: number;
+  export let canGoBack: boolean = false;
+  export let isReviewing: boolean = false;
+  export let isTerminalBusy: boolean = false;
 
-  const dispatch = createEventDispatcher<{ skip: void; advance: void; runTests: void; submitSprint: void }>();
+  const dispatch = createEventDispatcher<{ skip: void; advance: void; back: void; runTests: void; submitSprint: void }>();
 
   let copySuccess = false;
 
@@ -88,19 +91,46 @@
     {/if}
 
     {#if isCommandStep}
-      <code class="pt-command">Run in terminal: {step.command}</code>
+      {#if isReviewing}
+        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
+      {:else}
+        <code class="pt-command">Run in terminal: {step.command}</code>
+      {/if}
     {:else if isManualConfirmStep}
-      <button
-        class="pt-btn pt-btn-primary"
-        on:click={() => dispatch("advance")}
-        disabled={manualConfirmDisabled}
-      >
-        {manualConfirmDisabled ? "Save your UI change first" : step.confirmLabel}
-      </button>
+      {#if isReviewing}
+        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
+      {:else}
+        <button
+          class="pt-btn pt-btn-primary"
+          on:click={() => dispatch("advance")}
+          disabled={manualConfirmDisabled}
+        >
+          {manualConfirmDisabled ? "Save your UI change first" : step.confirmLabel}
+        </button>
+      {/if}
     {:else if step.action === "runTests"}
-      <button class="pt-btn pt-btn-primary" on:click={() => dispatch("runTests")}>Run Tests</button>
+      {#if isReviewing}
+        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
+      {:else}
+        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("runTests")}>Run Tests</button>
+      {/if}
     {:else if step.action === "submitSprint"}
-      <button class="pt-btn pt-btn-primary" on:click={() => dispatch("submitSprint")}>Submit Sprint</button>
+      {#if isReviewing}
+        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
+      {:else}
+        <button class="pt-btn pt-btn-primary" on:click={() => dispatch("submitSprint")}>Submit Sprint</button>
+      {/if}
+    {:else if isReviewing}
+      <button class="pt-btn pt-btn-primary" on:click={() => dispatch("advance")}>Next</button>
+    {/if}
+
+    {#if canGoBack}
+      <button
+        class="pt-btn pt-btn-secondary pt-back-btn"
+        on:click={() => dispatch("back")}
+        disabled={isTerminalBusy}
+        title={isTerminalBusy ? "Wait for the terminal command to finish" : "Go to previous step"}
+      >{isTerminalBusy ? "Working..." : "Back"}</button>
     {/if}
   </div>
 </div>
@@ -230,8 +260,10 @@
   }
 
   .pt-copy-btn { align-self: flex-start; margin-top: 0.2rem; margin-bottom: 0.55rem; }
+  .pt-back-btn { align-self: flex-start; margin-top: 0.35rem; }
   .pt-btn-primary { background: #00c2ff; color: #0a0e1a; border-color: #00c2ff; }
   .pt-btn-secondary { background: transparent; color: #00c2ff; border-color: rgba(0, 194, 255, 0.5); }
+  .pt-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   @media (max-height: 700px), (max-width: 500px) {
     .pt-panel { padding: 1rem 0.9rem !important; min-height: 280px; max-height: 70vh; }

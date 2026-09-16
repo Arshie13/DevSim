@@ -791,6 +791,31 @@
     }
     window.addEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
 
+    function handleOpenTestSelection() {
+      testCaseComponent?.openSelection();
+    }
+    window.addEventListener("devsim-tour-open-test-selection", handleOpenTestSelection);
+
+    function handleOpenTestResult() {
+      testCaseComponent?.openResult();
+    }
+    window.addEventListener("devsim-tour-open-test-result", handleOpenTestResult);
+
+    function handleCloseTestSelection() {
+      testCaseComponent?.closeSelection();
+    }
+    window.addEventListener("devsim-tour-close-test-selection", handleCloseTestSelection);
+
+    function handleOpenSubmitModal() {
+      submitSprintModal?.reopenForTour();
+    }
+    window.addEventListener("devsim-tour-open-submit-modal", handleOpenSubmitModal);
+
+    function handleCloseSubmitModal() {
+      submitSprintModal?.closeForTour();
+    }
+    window.addEventListener("devsim-tour-close-submit-modal", handleCloseSubmitModal);
+
     function handleBeforeUnload(event: BeforeUnloadEvent) {
       event.preventDefault();
       event.returnValue = "";
@@ -802,6 +827,11 @@
       stopPreviewPoll();
       window.removeEventListener("devsim-tour-open-file", handleTourOpenFile as EventListener);
       window.removeEventListener("devsim-tour-close-result-modal", handleCloseResultModal);
+      window.removeEventListener("devsim-tour-open-test-selection", handleOpenTestSelection);
+      window.removeEventListener("devsim-tour-open-test-result", handleOpenTestResult);
+      window.removeEventListener("devsim-tour-close-test-selection", handleCloseTestSelection);
+      window.removeEventListener("devsim-tour-open-submit-modal", handleOpenSubmitModal);
+      window.removeEventListener("devsim-tour-close-submit-modal", handleCloseSubmitModal);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       terminalSessions.forEach((s) => s.instance?.dispose());
       monacoEditor?.dispose();

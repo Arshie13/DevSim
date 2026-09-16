@@ -497,6 +497,35 @@
     dispatch('resultModalClosed');
   }
 
+  // ── Tutorial Back-nav API ────────────────────────────────────────────────
+  // Non-destructive open/close helpers so the tutorial can restore the
+  // expected modal when navigating back/forward without re-running tests.
+  export function openSelection() {
+    if (testLoading) {
+      testMinimized = false;
+      showResultModal = true;
+      showSelectionModal = false;
+      return;
+    }
+    showResultModal = false;
+    showSelectionModal = true;
+  }
+
+  export function openResult() {
+    if (testLoading || testResult) {
+      testMinimized = false;
+      showSelectionModal = false;
+      showResultModal = true;
+      return;
+    }
+    // No cached result (e.g. never ran) — fall back to selection modal.
+    showSelectionModal = true;
+  }
+
+  export function closeSelection() {
+    showSelectionModal = false;
+  }
+
   // -- Derived ------------------------------------------------------------------
   $: hasTestableTasks = tasks.some(t => t.hasClientTest || t.hasServerTest);
   $: passedTasks = tasks.filter(t => taskPassedCache.get(t.id) === true);

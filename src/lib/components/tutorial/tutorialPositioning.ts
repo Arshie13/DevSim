@@ -21,6 +21,7 @@ const CALLOUT_H = 360;
 const SPOT_PAD = 8;
 const GAP = 14;
 const EDGE_MARGIN = 12;
+const NO_OVERLAP_GAP = 12;
 
 export const MODAL_SPOTLIGHT_TARGETS = new Set([
   "submit-sprint-modal",
@@ -41,6 +42,46 @@ export function getFallbackPlacement(): Omit<PlacementResult, "spotlight"> {
  * Pure function: computes callout position and spotlight rect from a DOM rect + step.
  * Returns a PlacementResult — caller applies values to component state.
  */
+function rectsOverlap(
+  a: { left: number; top: number; right: number; bottom: number },
+  b: { left: number; top: number; right: number; bottom: number },
+  gap = 0,
+) {
+  return a.left < b.right + gap && a.right > b.left - gap && a.top < b.bottom + gap && a.bottom > b.top - gap;
+}
+
+function isPanelOverSpotlight(calloutLeft: number, calloutTop: number, spotlight: SpotlightRect): boolean {
+  const calloutRect = {
+    left: calloutLeft,
+    top: calloutTop,
+    right: calloutLeft + CALLOUT_W,
+    bottom: calloutTop + CALLOUT_H,
+  };
+  const spotRect = {
+    left: spotlight.left,
+    top: spotlight.top,
+    right: spotlight.left + spotlight.width,
+    bottom: spotlight.top + spotlight.height,
+  };
+
+  return rectsOverlap(calloutRect, spotRect, NO_OVERLAP_GAP);
+}
+
+function choosePlacement(candidates: PlacementResult[]) {
+  const good = candidates.filter(
+    (candidate) => !isPanelOverSpotlight(candidate.calloutLeft, candidate.calloutTop, candidate.spotlight),
+  );
+  if (good.length) {
+    good.sort((a, b) => {
+      const aDist = Math.abs(a.calloutLeft - a.spotlight.left) + Math.abs(a.calloutTop - a.spotlight.top);
+      const bDist = Math.abs(b.calloutLeft - b.spotlight.left) + Math.abs(b.calloutTop - b.spotlight.top);
+      return aDist - bDist;
+    });
+    return good[0];
+  }
+
+  return candidates[0];
+}
 export function resolvePlacement(
   r: DOMRect,
   step: TutorialStep,
@@ -59,35 +100,7 @@ export function resolvePlacement(
   const spotCY = spotT + spotH / 2;
   const spotlight: SpotlightRect = { top: spotT, left: spotL, width: spotW, height: spotH };
 
-  const pinRight = (): PlacementResult => {
-    const calloutLeft = Math.max(EDGE_MARGIN, window.innerWidth - CALLOUT_W - EDGE_MARGIN);
-    const calloutTop = clamp(spotCY - CALLOUT_H / 2, EDGE_MARGIN, window.innerHeight - CALLOUT_H - EDGE_MARGIN);
-    return { arrowDir: "left", arrowOffset: `${clamp(spotCY - calloutTop, 20, CALLOUT_H - 20)}px`, calloutTop, calloutLeft, spotlight };
-  };
-
-  if (
-    step.id === "read-readme" ||
-    step.id === "search-works-confirm" ||
-    step.id === codeEditStepId ||
-    step.id === "task-two-schema-edit" ||
-    step.id === "terminal-stop-server" ||
-    step.id === "shadcn-intro" ||
-    step.id === "shadcn-init-wait" ||
-    step.id === "shadcn-add" ||
-    step.id === "shadcn-add-wait" ||
-    step.requireCommand ||
-    (step.spotlightTarget != null && MODAL_SPOTLIGHT_TARGETS.has(step.spotlightTarget))
-  ) {
-    return pinRight();
-  }
-
   const preferSide = step.preferSide ?? "auto";
-
-  if (preferSide === "right" && spaceRight >= CALLOUT_W + GAP) {
-    const calloutLeft = window.innerWidth - CALLOUT_W - EDGE_MARGIN;
-    const calloutTop = clamp(spotCY - CALLOUT_H / 2, EDGE_MARGIN, window.innerHeight - CALLOUT_H - EDGE_MARGIN);
-    return { arrowDir: "left", arrowOffset: `${clamp(spotCY - calloutTop, 20, CALLOUT_H - 20)}px`, calloutTop, calloutLeft, spotlight };
-  }
 
   const makeBelow = (): PlacementResult => {
     const ct = clamp(spotT + spotH + GAP, EDGE_MARGIN, window.innerHeight - CALLOUT_H - EDGE_MARGIN);
@@ -110,10 +123,27 @@ export function resolvePlacement(
     return { arrowDir: "right", arrowOffset: `${clamp(spotCY - ct, 20, CALLOUT_H - 20)}px`, calloutTop: ct, calloutLeft: cl, spotlight };
   };
 
-  if (preferSide === "top" && spaceBelow >= CALLOUT_H + GAP) return makeBelow();
-  if (preferSide === "bottom" && spaceAbove >= CALLOUT_H + GAP) return makeAbove();
-  if (preferSide === "left" && spaceRight >= CALLOUT_W + GAP) return makeRight();
-  if (preferSide === "right" && spaceLeft >= CALLOUT_W + GAP) return makeLeft();
+  const isEditorTargetStep = step.target === "editor-workspace" || step.id === codeEditStepId;
+
+  const mustPreferRight =
+    step.id === "read-readme" ||
+    step.id === "search-works-confirm" ||
+    isEditorTargetStep ||
+    step.id === "task-two-schema-edit" ||
+    step.id === "terminal-stop-server" ||
+    step.id === "shadcn-intro" ||
+    step.id === "shadcn-init-wait" ||
+    step.id === "shadcn-add" ||
+    step.id === "shadcn-add-wait" ||
+    step.requireCommand ||
+    (step.spotlightTarget != null && MODAL_SPOTLIGHT_TARGETS.has(step.spotlightTarget));
+
+  if (mustPreferRight) return choosePlacement([makeRight(), makeBelow(), makeAbove(), makeLeft()]);
+
+  if (preferSide === "top") return choosePlacement([makeBelow(), makeAbove(), makeRight(), makeLeft()]);
+  if (preferSide === "bottom") return choosePlacement([makeAbove(), makeBelow(), makeRight(), makeLeft()]);
+  if (preferSide === "left") return choosePlacement([makeLeft(), makeRight(), makeBelow(), makeAbove()]);
+  if (preferSide === "right") return choosePlacement([makeRight(), makeLeft(), makeBelow(), makeAbove()]);
 
   const scores: Array<[number, () => PlacementResult]> = [
     [spaceBelow, makeBelow],
@@ -122,5 +152,5 @@ export function resolvePlacement(
     [spaceLeft, makeLeft],
   ];
   scores.sort((a, b) => b[0] - a[0]);
-  return scores[0][1]();
+  return choosePlacement(scores.map(([, getCandidate]) => getCandidate()));
 }

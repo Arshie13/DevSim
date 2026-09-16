@@ -31,6 +31,7 @@
 
   // ── UI state ────────────────────────────────────────────────────────────────
   let currentIdx = 0;
+  let maxReachedIdx = 0;
   let visible = false;
   let welcomeModalVisible = true;
   let resumeModalVisible = false;
@@ -67,7 +68,7 @@
 
   function persistProgress() {
     if (!userId || !tutorialKey) return;
-    const s = getCurrentStep();
+    const s = steps[maxReachedIdx] ?? getCurrentStep();
     if (s) setTutorialProgress(userId, tutorialKey, s.id);
   }
 
@@ -96,6 +97,7 @@
     resumeModalVisible = false;
     if (idx > 0) {
       currentIdx = idx;
+      maxReachedIdx = idx;
       visible = true;
       void prepareStep();
     } else {
@@ -160,6 +162,16 @@
     applyFallback();
   }
 
+  function stepRequiresBoardModal(s: TutorialStep) {
+    return s.target === "board-task-modal" || Boolean(s.lockBoardTaskModalToTaskOrder);
+  }
+
+  async function switchToTabAndSettle(tab: string) {
+    if (onSwitchTab) onSwitchTab(tab);
+    await tick();
+    await new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
+  }
+
   // ── Step flow ────────────────────────────────────────────────────────────────
   async function prepareStep() {
     const s = getCurrentStep();
@@ -170,16 +182,23 @@
     if (onPrepareStep) await onPrepareStep(s);
 
     if (s.switchTab && onSwitchTab) {
-      onSwitchTab(s.switchTab);
-      await tick();
-      await new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
+      await switchToTabAndSettle(s.switchTab);
+    } else if ((s.boardSubTab || stepRequiresBoardModal(s)) && onSwitchTab) {
+      // BoardPanel only mounts when the board tab is active. Steps that need
+      // the board (sub-tab or task modal) but declare no switchTab must still
+      // force the board tab, otherwise open/position events hit nothing.
+      await switchToTabAndSettle("board");
     }
     if (s.boardSubTab) {
       window.dispatchEvent(new CustomEvent("devsim-tour-board-subtab", { detail: { subTab: s.boardSubTab } }));
+      await tick();
     }
-    if (s.lockBoardTaskModalToTaskOrder) {
-      window.dispatchEvent(new CustomEvent("devsim-tour-open-task-modal", { detail: { order: s.lockBoardTaskModalToTaskOrder } }));
-    }
+
+    // Modal sync AFTER tab switch so BoardPanel is mounted before we try to
+    // open the task modal. positionPointerForStep then finds modal targets.
+    syncModalsForStep(s);
+    await tick();
+    await new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
 
     await positionPointerForStep();
   }
@@ -192,8 +211,53 @@
     }
     if (currentIdx >= steps.length - 1) { openCompletionModal(); return; }
     currentIdx += 1;
+    if (currentIdx > maxReachedIdx) maxReachedIdx = currentIdx;
     persistProgress();
     void prepareStep();
+  }
+
+  function goBack() {
+    if (currentIdx <= 0) return;
+    // Don't allow navigating away mid-install/download — the terminal
+    // command must finish first, otherwise the poll/completion handlers
+    // lose their step context.
+    if (pendingTerminalCommand !== null || terminalOutputPollId !== null) return;
+    stepCodeSaveDone = false;
+    pendingTerminalCommand = null;
+    backupCommandPending = false;
+    clickError = "";
+    currentIdx -= 1;
+    // Progress stays at furthest step — no persistProgress() here.
+    void prepareStep();
+  }
+
+  // Close any open tutorial modal, then reopen the one (if any) required by
+  // the given step. Forward and Back navigation both funnel through here so
+  // the visible modal always matches the current step.
+  function syncModalsForStep(s: TutorialStep) {
+    if (!browser) return;
+    window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
+    window.dispatchEvent(new CustomEvent("devsim-tour-close-result-modal"));
+    window.dispatchEvent(new CustomEvent("devsim-tour-close-test-selection"));
+    window.dispatchEvent(new CustomEvent("devsim-tour-close-submit-modal"));
+
+    if (s.target === "board-task-modal" || s.lockBoardTaskModalToTaskOrder) {
+      window.dispatchEvent(new CustomEvent("devsim-tour-open-task-modal", {
+        detail: { order: s.lockBoardTaskModalToTaskOrder },
+      }));
+      return;
+    }
+    if (s.spotlightTarget === "test-selection-modal") {
+      window.dispatchEvent(new CustomEvent("devsim-tour-open-test-selection"));
+      return;
+    }
+    if (s.spotlightTarget === "test-result-modal") {
+      window.dispatchEvent(new CustomEvent("devsim-tour-open-test-result"));
+      return;
+    }
+    if (s.spotlightTarget === "submit-sprint-modal") {
+      window.dispatchEvent(new CustomEvent("devsim-tour-open-submit-modal"));
+    }
   }
 
   function beginTutorial() { welcomeModalVisible = false; visible = true; void prepareStep(); }
@@ -218,6 +282,7 @@
     completionModalVisible = false;
     clearProgress();
     currentIdx = 0;
+    maxReachedIdx = 0;
     visible = true;
     void prepareStep();
   }
@@ -262,6 +327,7 @@
 
   function blockIfLocked(event: MouseEvent | PointerEvent) {
     if (!visible) return false;
+    if (isReviewing) return false;
     const path = event.composedPath?.() ?? [];
     const inPanel = path.some((e) => e instanceof HTMLElement && Boolean(e.closest(".pt-panel") || e.closest(".pt-modal-box")));
     if (inPanel) return false;
@@ -275,6 +341,7 @@
   function handleInteractiveClick(event: MouseEvent) {
     if (!visible) return;
     if (blockIfLocked(event)) return;
+    if (isReviewing) return;
     const path = event.composedPath?.() ?? [];
     const s = getCurrentStep();
     if (s.id === "search-type-query") {
@@ -310,6 +377,7 @@
 
   // ── Event handlers ───────────────────────────────────────────────────────────
   function handleTerminalCommand(event: Event) {
+    if (isReviewing) return;
     const s = getCurrentStep();
     if (!s.requireCommand || !s.command) return;
     const executed = (event as CustomEvent<{ command?: string }>).detail?.command ?? "";
@@ -342,6 +410,7 @@
   }
 
   function handleTerminalCommandComplete(event: Event) {
+    if (isReviewing) return;
     const s = getCurrentStep();
     if (!s.requireCommand || !s.command || !pendingTerminalCommand) return;
     const raw = (event as CustomEvent<{ command?: string }>).detail?.command ?? "";
@@ -370,6 +439,7 @@
   }
 
   function handleTutorialFileOpened(event: Event) {
+    if (isReviewing) return;
     const s = getCurrentStep();
     if (s.id === "search-type-query") { clickError = ""; advanceStep(); return; }
     if (!s.requiredFileContains) return;
@@ -378,6 +448,7 @@
   }
 
   function handleTestsComplete(event: Event) {
+    if (isReviewing) return;
     if (getCurrentStep().action !== "runTests") return;
     const ok = (event as CustomEvent<{ success?: boolean }>).detail?.success;
     if (ok) { clickError = ""; advanceStep(); }
@@ -443,6 +514,9 @@
 
   // ── Reactives ────────────────────────────────────────────────────────────────
   $: step = steps[currentIdx] ?? steps[0];
+  $: isReviewing = currentIdx < maxReachedIdx;
+  $: canGoBack = currentIdx > 0;
+  $: isTerminalBusy = pendingTerminalCommand !== null || terminalOutputPollId !== null;
   $: isCommandStep = Boolean(step.requireCommand && step.command);
   $: isManualConfirmStep = Boolean(step.confirmLabel && !isCommandStep && step.action !== "runTests" && step.action !== "submitSprint");
   $: manualConfirmDisabled = step.id === codeEditStepId && !stepCodeSaveDone;
@@ -480,8 +554,10 @@
     {step} {stack} {progress} {isCommandStep} {isManualConfirmStep}
     {manualConfirmDisabled} {pointerReady} {waitingForTarget} {clickError}
     {allowSkip} {arrowDir} {arrowOffset} {calloutTop} {calloutLeft}
+    {canGoBack} {isReviewing} {isTerminalBusy}
     on:skip={skipTutorial}
     on:advance={advanceStep}
+    on:back={goBack}
     on:runTests={() => { if (onRunTests) onRunTests(); clickError = "Waiting for test results..."; }}
     on:submitSprint={() => { if (onSubmitSprint) onSubmitSprint(); }}
   />
