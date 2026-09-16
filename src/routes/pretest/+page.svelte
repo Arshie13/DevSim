@@ -152,7 +152,7 @@
     </div>
   </header>
 
-  <main class="pt-28 pb-12 px-6">
+  <main class="pt-28 pb-36 px-6 min-h-screen flex items-center justify-center">
     <div class="assessment-container mx-auto">
       {#if !showResult && !showLearningScreen}
         <div class="assessment-card card-cyber p-8 relative">
