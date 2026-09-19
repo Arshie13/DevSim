@@ -38,6 +38,7 @@ export default {
           warn: 'rgb(var(--warn-rgb) / <alpha-value>)',
           danger: 'rgb(var(--danger-rgb) / <alpha-value>)',
           purple: 'rgb(var(--purple-rgb) / <alpha-value>)',
+          gold: 'rgb(var(--gold-rgb) / <alpha-value>)',
         }
       },
       borderRadius: {
