@@ -7,7 +7,7 @@
   ];
 </script>
 
-<section id="how-it-works" class="py-24 px-6 border-t border-[rgba(7,165,201,0.05)]">
+<section id="how-it-works" class="py-24 px-6 border-t border-obsidian-accent/5">
   <div class="max-w-5xl mx-auto">
     <div class="text-center mb-16">
       <span class="tag-cyber tag-cyan inline-block mb-5">// HOW IT WORKS</span>
@@ -16,15 +16,17 @@
       </h2>
     </div>
 
-    <div class="grid sm:grid-cols-2 gap-4">
+    <div class="grid sm:grid-cols-2 gap-5">
       {#each steps as step}
-        <div class="card-cyber p-6 flex gap-5 items-start">
-          <div
-            class="font-heading text-[2.4rem] font-bold text-[var(--accent)] opacity-20 leading-none flex-shrink-0 select-none"
-          >{step.num}</div>
-          <div>
-            <h3 class="font-heading font-bold text-[0.9rem] text-[var(--text-primary)] mb-2">{step.title}</h3>
-            <p class="text-[0.825rem] text-[var(--text-muted)] leading-relaxed font-body">{step.desc}</p>
+        <div class="card-cyber">
+          <div class="card-cyber-body flex gap-5 items-start">
+            <div
+              class="font-heading text-[2.4rem] font-bold text-[var(--accent)] opacity-20 leading-none flex-shrink-0 select-none"
+            >{step.num}</div>
+            <div>
+              <h3 class="font-heading font-bold text-[0.9rem] text-[var(--text-primary)] mb-2">{step.title}</h3>
+              <p class="text-[0.825rem] text-[var(--text-muted)] leading-relaxed font-body">{step.desc}</p>
+            </div>
           </div>
         </div>
       {/each}

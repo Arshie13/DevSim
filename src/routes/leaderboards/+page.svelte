@@ -70,11 +70,11 @@
   <title>Leaderboards | DevSim</title>
 </svelte:head>
 
-<div class="min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber overflow-x-hidden">
+<div class="min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber [overflow-x:clip]">
   <Header userData={headerUserData} />
 
   <main class="relative z-10 py-8 lg:py-12">
-    <div class="max-w-[1400px] mx-auto px-6">
+    <div class="max-w-[1200px] mx-auto px-6">
 
       <!-- Page Header -->
       <div class="mb-12" in:fade={{ duration: 400 }}>

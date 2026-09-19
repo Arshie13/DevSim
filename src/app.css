@@ -18,6 +18,8 @@
     --danger: #ff3860;
     --purple: #a855f7;
     --gold: #ffd700;
+    --text-bright: #ffffff;
+    --terminal-bg: #05070f;
 
     /* Channel triplets for Tailwind's alpha-aware utilities */
     --bg-rgb: 10 14 26;
@@ -33,6 +35,8 @@
     --danger-rgb: 255 56 96;
     --purple-rgb: 168 85 247;
     --gold-rgb: 255 215 0;
+    --text-bright-rgb: 255 255 255;
+    --terminal-bg-rgb: 5 7 15;
 
     /* Derived values */
     --accent-glow: rgba(7, 165, 201, 0.10);
@@ -62,13 +66,17 @@ body {
   box-sizing: border-box;
 }
 
-/* Fluid desktop scale. 1920px is the reference viewport, where 1rem = 16px.
-   1280 -> 13px | 1920 -> 16px | 2560 -> 19px.
-   Every rem-based Tailwind utility (type, spacing, widths) scales together,
-   while fixed px values stay crisp. Replaces the previous body{zoom} hack,
-   which rescaled fixed-position overlays and editor pixel math. */
+/* Fluid desktop scale, derived from two reference screens:
+     1024 x 600  -> 13px        1920 x 1080 -> 17px
+   Linear in viewport width, floored at 13px so small windows stay readable and
+   capped at 18.5px so ultrawides do not balloon.
+   Every rem-based Tailwind utility (type, spacing, widths) scales together, so
+   content keeps its proportions across desktop sizes instead of leaving 1920x1080
+   looking sparse. Fixed px values stay crisp.
+   Replaces the previous body{zoom} hack, which rescaled fixed-position overlays
+   and editor pixel math. */
 html {
-  font-size: clamp(13px, calc(7px + 0.46875vw), 19px);
+  font-size: clamp(13px, calc(8.43px + 0.4464vw), 18.5px);
 }
 
 /* ── DevSim Clip-Path Button System ── */

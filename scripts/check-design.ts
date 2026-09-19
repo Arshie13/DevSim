@@ -71,13 +71,15 @@ const RATCHET_RULES: Rule[] = [
   {
     id: 'rgbaLiterals',
     exts: ['.svelte', '.ts'],
-    pattern: /rgba?\(/g,
+    // Only literal channel values count. rgb(var(--token-rgb) / alpha) is compliant.
+    pattern: /rgba?\(\s*[\d.]/g,
     hint: 'use rgb(var(--token-rgb) / alpha)',
   },
   {
-    id: 'fontFamilyDecls',
+    id: 'fontFamilyLiterals',
     exts: ['.svelte'],
-    pattern: /font-family/g,
+    // font-family: var(--font-*) is compliant; naming an actual family is not.
+    pattern: /font-family:\s*(?!var\()/g,
     hint: 'prefer the .font-heading / .font-label / .font-body utility classes',
   },
 ];

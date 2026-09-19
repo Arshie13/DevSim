@@ -55,11 +55,13 @@ in a component.
 | `--danger` | `#ff3860` | Errors, destructive actions |
 | `--purple` | `#a855f7` | Activity, AI, tertiary category |
 | `--gold` | `#ffd700` | Rank / first place / leaderboard only |
+| `--text-bright` | `#ffffff` | Hero gradients and wordmark highlight only |
+| `--terminal-bg` | `#05070f` | Terminal, code and editor surfaces |
 
 Each colour also has a channel triplet for alpha-aware utilities:
 `--bg-rgb`, `--bg-light-rgb`, `--surface-rgb`, `--border-rgb`, `--text-primary-rgb`,
 `--text-muted-rgb`, `--accent-rgb`, `--cyan-bright-rgb`, `--success-rgb`, `--warn-rgb`,
-`--danger-rgb`, `--purple-rgb`, `--gold-rgb`.
+`--danger-rgb`, `--purple-rgb`, `--gold-rgb`, `--text-bright-rgb`, `--terminal-bg-rgb`.
 
 ### How to apply a colour
 
@@ -119,7 +121,7 @@ never redeclare them in a component:
   Delete local copies and use the shared classes.
 - Do not override `.scanlines::before`. The shared definition uses `::after`.
 - Grid **cells are `2.5rem`**, so density stays constant as the root font scales
-  (`40px` at the 1920px reference, `32.5px` at 1280, `47.5px` at 2560).
+  (`42.5px` at 1920, `35px` at 1280, `46px` at 2560).
 - `--grid-line` is `0.04`. Wrapper opacity **multiplies** it, so the effective alpha is
   what you see:
 
@@ -202,7 +204,7 @@ Use the Tailwind spacing scale, which is rem-based and therefore scales with the
 | Inline control gaps | `gap-2` / `gap-3` |
 
 **Do not compress spacing to fit more content.** Reduce card count, shorten copy, or let the
-page scroll. On 1280px screens the root is 13px, so all rem spacing is already ~19% tighter
+page scroll. On 1280px screens the root is 14.1px, so all rem spacing is already ~17% tighter
 than at 1920 — do not stack additional media-query overrides on top of that.
 
 ---
@@ -251,25 +253,35 @@ Buttons are always uppercase with `0.06em` tracking. Tags always use `.font-labe
 
 ## 8. Responsive scaling
 
-The root font size is fluid and scales with the viewport. **1920px is the reference
-viewport**, where `1rem = 16px`.
+The root font size is fluid. It is derived by interpolating between **two reference
+screens**, so content keeps the same proportions across desktop sizes:
 
 ```css
 /* src/app.css */
 html {
-  font-size: clamp(13px, calc(7px + 0.46875vw), 19px);
+  font-size: clamp(13px, calc(8.43px + 0.4464vw), 18.5px);
 }
 ```
 
-| Viewport | Root | Relative to 1920 |
+| Viewport | Root | vs 1920 |
 | --- | --- | --- |
-| 1280 | 13.0px | −19% |
-| 1366 | 13.4px | −16% |
-| 1440 | 13.8px | −14% |
-| 1680 | 14.9px | −7% |
-| 1920 | 16.0px | 0% (reference) |
-| 2560 | 19.0px | +19% |
-| >2560 | 19.0px | capped |
+| 1024 | 13.0px | −24% |
+| 1280 | 14.1px | −17% |
+| 1366 | 14.5px | −15% |
+| 1440 | 14.9px | −12% |
+| 1680 | 15.9px | −6% |
+| 1920 | 17.0px | anchor |
+| ≥2256 | 18.5px | capped |
+
+**1920×1080 is 17px, not 16px.** Do not treat 16px as the reference — at 16px the
+1920 layout reads sparse, because a `rem`-based design at 16px leaves large empty margins.
+1024×600 is 13px, so nothing below that becomes unreadable.
+
+This curve is deliberately restrained: an earlier 18px-at-1920 version read as too large.
+If you change it, do not exceed ~17px at 1920 without re-checking every stage.
+
+Changing this curve changes **everything at once** — type, padding, gaps, card padding and
+any `rem`-based width. Do not "correct" a single page's sizes against it; fix the page.
 
 **Consequences you must design around**
 
@@ -299,11 +311,38 @@ panel widths must be `rem`:
 <div class="w-[min(35rem,95vw)]">
 ```
 
+### Page container
+
+Every page's top-level content column must use the **same container as the nav**, so the
+logo and the content beneath it keep a fixed relationship at every viewport:
+
+```svelte
+<div class="max-w-[1200px] mx-auto px-6">
+```
+
+The nav (`Header` / `LandingNav`) is `max-w-[1200px]` with `px-4 md:px-6 lg:px-8`, so page
+content at `px-6` sits **0.5rem** inside the logo — constant at every width. That 0.5rem
+relationship is the target; anything wider breaks it.
+
+This is the **one deliberate exception** to "layout is `rem`" above. The container is a
+fixed `1200px` in both the nav and the pages, so the two stay locked together; only the
+padding is `rem`, which scales the offset proportionally. Do not convert the container to
+`rem` in isolation — that desynchronises it from the nav.
+
+**Legacy widths to converge:** `/leaderboards`, `/pass`, `/profile` and
+`/rivals/[username]` still use `max-w-[1400px]`. Bring them to `1200px` as each page is
+swept. Reference implementation: `/dashboard`.
+
 ### Banned
 
 - **Do not reintroduce `body { zoom }`.** It was removed because it rescales fixed-position
   overlays and editor pixel math. Tutorial and onboarding overlays were never compensated
   for it, so they were silently misaligned on 1024–1399px screens.
+- **Do not put `overflow-x: hidden` on a page wrapper that contains a `position: sticky`
+  header.** `hidden` forces the other axis to compute to `auto`, which makes the wrapper a
+  scroll container and scopes the sticky element to it — so the header scrolls away with
+  the page instead of sticking. Use `[overflow-x:clip]` instead: `clip` still clips, but
+  does not create a scroll container. The landing page wrapper (`/`) does exactly this.
 - Do not add viewport-width media queries to compensate for the fluid root. Solve density
   with `rem` and the spacing scale instead.
 - Do not set a static `html { font-size }` override in a component or layout.
@@ -347,11 +386,15 @@ build:
 `scripts/design-baseline.json`. The gate fails if a count **increases** — removing debt
 passes and should be followed by lowering the baseline.
 
+Only **literal** values are counted. The compliant forms `rgb(var(--token-rgb) / alpha)`
+and `font-family: var(--font-*)` are **not** counted, so tokenising a value always lowers
+the number.
+
 | Rule | Baseline |
 | --- | --- |
-| Raw hex colours in `src/**/*.{svelte,ts}` | 883 |
-| `rgb()` / `rgba()` literals in `src/**/*.{svelte,ts}` | 1718 |
-| `font-family` declarations in `src/**/*.svelte` | 448 |
+| Raw hex colours in `src/**/*.{svelte,ts}` | 881 |
+| Literal `rgb()` / `rgba()` in `src/**/*.{svelte,ts}` | 1664 |
+| `font-family` naming a real family in `src/**/*.svelte` | 274 |
 
 To intentionally lower a baseline after a cleanup, or to accept a one-off exception:
 
@@ -367,11 +410,51 @@ baseline in the same commit — never raise it.
 
 ## 11. Known debt
 
-- **~2600 hardcoded colour literals** across 117 files. Convert opportunistically.
-- **448 `font-family` declarations** remain. Most already reference `var(--font-*)`; the
-  rest should.
+- **~2545 hardcoded colour literals** across 117 files. Convert opportunistically.
+- **274 `font-family` declarations name a real family** instead of `var(--font-*)`.
 - Textures are still redeclared locally in the files listed in §3.
 - `/admin/*` has never been swept and uses its own ad-hoc styling and ~300 type utilities.
   It is excluded from the current scope by decision, not by oversight.
 - The type-scale step-up in §4 has **not** yet been applied across the app; it is the
   target for the component sweep. Until then, treat §4 as the specification.
+
+---
+
+## 12. Rollout stages
+
+The sweep runs page by page, lowest risk first, so the system is validated before the
+editor surfaces are touched. A stage is complete only when `pnpm check:design`,
+`pnpm check` and `pnpm validate` all pass and the routes have been walked at
+1280 · 1440 · 1920 · 2560.
+
+| # | Stage | Routes / files | Status |
+| --- | --- | --- | --- |
+| 1 | Landing | `/`, `landing/*` | **Done** |
+| 2 | Entry & auth | `/login`, `/pretest`, `/postassessment` | Pending |
+| 3 | Dashboard | `/dashboard`, `dashboard/*` widgets | Pending |
+| 4 | Core lists | `/projects`, `/stacks`, `/scenario`, `/achievements` | Pending |
+| 5 | Social | `/leaderboards`, `/rivals`, `/profile` | **In progress** — leaderboards container + sticky fixed |
+| 6 | Workspace & tutorial | `/workspace/[containerId]`, `/tutorial/[containerId]` | Pending |
+| 7 | Commerce | `/marketplace/coins`, `/pass` | Pending |
+
+**Excluded:** `/admin/*` is not swept by decision. It inherits global tokens, the fluid
+scale and the grid, but keeps its own layout.
+
+Stage 1 covered: navbar matched to `Header` (container, padding, logo lockup with subtitle,
+border and background tokens) and made `sticky` in normal flow like every other page
+instead of `fixed`, so its logo sits in the same place as the dashboard's. The hero is
+sized `min-h-[calc(100vh-4.5rem)] lg:min-h-[calc(100vh-5rem)]` so it still fills the
+viewport and keeps the SCROLL cue visible now that the nav occupies flow space.
+
+Because the nav is now in flow, the hero's top padding is only `pt-8` — **do not restore
+`pt-32 lg:pt-36`**, which was sized to clear an *overlapping* nav and double-counts once
+the nav has its own flow space. With `items-center`, padding only shifts content by half
+its value, so `pt` is a short-viewport floor, not the main positioning lever. Also: hero
+headline leading, `HowItWorks` card padding moved to `.card-cyber-body` with `gap-5`,
+tokenisation of `LandingNav` and `HeroSection`, and the `--text-bright` and `--terminal-bg`
+tokens (§2).
+
+**Still outstanding from your original brief:** the §4 type-scale step-up (card and section
+headings, page titles, stat values) and the `px → rem` pass on modal/panel widths. Both are
+deliberately deferred so they can be applied uniformly rather than landing in one page at
+a time — tell me when you want them and I will run them as their own stages.

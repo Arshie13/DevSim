@@ -42,17 +42,17 @@
   });
 </script>
 
-<section class="relative min-h-screen flex items-center pt-24 pb-20 px-6 overflow-hidden">
+<section class="relative min-h-[calc(100vh-4.5rem)] lg:min-h-[calc(100vh-5rem)] flex items-center pt-8 pb-20 px-6 overflow-hidden">
 
   <!-- Floating orbs -->
   <div class="absolute pointer-events-none orb-1"
-    style="top:12%;left:-10%;width:600px;height:600px;background:rgba(7,165,201,0.10);border-radius:50%;filter:blur(150px);"></div>
+    style="top:12%;left:-10%;width:600px;height:600px;background:rgb(var(--accent-rgb) / 0.10);border-radius:50%;filter:blur(150px);"></div>
   <div class="absolute pointer-events-none orb-2"
-    style="bottom:8%;right:-8%;width:500px;height:500px;background:rgba(168,85,247,0.08);border-radius:50%;filter:blur(130px);"></div>
+    style="bottom:8%;right:-8%;width:500px;height:500px;background:rgb(var(--purple-rgb) / 0.08);border-radius:50%;filter:blur(130px);"></div>
   <div class="absolute pointer-events-none orb-3"
-    style="top:60%;left:40%;width:300px;height:300px;background:rgba(0,229,160,0.04);border-radius:50%;filter:blur(100px);"></div>
+    style="top:60%;left:40%;width:300px;height:300px;background:rgb(var(--success-rgb) / 0.04);border-radius:50%;filter:blur(100px);"></div>
 
-  <div class="relative z-10 max-w-7xl mx-auto w-full">
+  <div class="relative z-10 max-w-[1200px] mx-auto w-full">
     <div class="grid lg:grid-cols-2 gap-16 items-center">
 
       <!-- ◈ Left: Hero text -->
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Headline -->
-        <h1 class="font-heading font-bold leading-[1.02] mb-6" style="font-size: clamp(2.8rem, 5.5vw, 4.4rem);">
+        <h1 class="font-heading font-bold leading-[1.1] mb-6" style="font-size: clamp(2.8rem, 5.5vw, 4.4rem);">
           <span class="block text-[var(--text-primary)] hero-reveal" style="animation-delay:0ms">MASTER</span>
           <span class="block hero-grad hero-reveal" style="animation-delay:80ms">FULL-STACK</span>
           <span class="block text-[var(--text-primary)] hero-reveal" style="animation-delay:160ms">DEVELOPMENT</span>
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Stats strip -->
-        <div class="mt-4 pt-8 border-t border-[rgba(7,165,201,0.10)] flex flex-wrap gap-8 hero-reveal"
+        <div class="mt-4 pt-8 border-t border-obsidian-accent/10 flex flex-wrap gap-8 hero-reveal"
           style="animation-delay:480ms">
           {#each displayStats as s}
             <div>
@@ -106,16 +106,16 @@
       <div class="hidden lg:block">
         <div class="term-float">
           <div class="relative overflow-hidden"
-            style="background:#05070F; border:1px solid rgba(7,165,201,0.28); border-radius:4px;
-                   box-shadow: 0 0 60px rgba(7,165,201,0.12), 0 24px 60px rgba(0,0,0,0.5);">
+            style="background:var(--terminal-bg); border:1px solid rgb(var(--accent-rgb) / 0.28); border-radius:4px;
+                   box-shadow: 0 0 60px rgb(var(--accent-rgb) / 0.12), 0 24px 60px rgb(var(--terminal-bg-rgb) / 0.5);">
 
             <!-- Top accent shimmer -->
             <div class="absolute top-0 left-0 right-0 h-px"
               style="background: linear-gradient(90deg, transparent, var(--accent), transparent);"></div>
 
             <!-- Shell-style header bar (no macOS dots) -->
-            <div class="flex items-center justify-between px-4 py-2.5 border-b border-[rgba(7,165,201,0.10)]"
-              style="background: rgba(7,165,201,0.03);">
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-obsidian-accent/10"
+              style="background: rgb(var(--accent-rgb) / 0.03);">
               <div class="flex items-center gap-2.5">
                 <!-- Accent bar instead of traffic-light dots -->
                 <div class="w-0.5 h-4 bg-[var(--accent)] opacity-80 flex-shrink-0 rounded-full"></div>
@@ -167,7 +167,7 @@
 
 <style>
   .hero-grad {
-    background: linear-gradient(90deg, #ffffff 0%, var(--accent) 45%, var(--cyan-bright) 100%);
+    background: linear-gradient(90deg, var(--text-bright) 0%, var(--accent) 45%, var(--cyan-bright) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
