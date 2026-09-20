@@ -18,6 +18,12 @@
     .filter((container) => !removedContainerIds.includes(container.id))
     .slice(0, maxVisible);
 
+  function shortStackLabel(stackName: string): string {
+    const parsed = parseStackName(stackName);
+    const dashIndex = parsed.indexOf(' — ');
+    return dashIndex === -1 ? parsed : parsed.slice(0, dashIndex);
+  }
+
   function openDeleteConfirmation(container: IContainer) {
     deleteStack = container;
     deleteError = "";
@@ -78,89 +84,78 @@
   }
 </script>
 
-<div class="card-cyber shadow-card-glow hover:shadow-card-glow-hover transition-shadow duration-500">
+<div class="card-cyber shadow-card-glow hover:shadow-card-glow-hover transition-shadow duration-500 flex flex-col h-full min-h-0">
   <!-- Header -->
-  <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--card-border)]">
+  <div class="flex items-center justify-between px-5 py-3 border-b border-[var(--card-border)] shrink-0">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-card bg-obsidian-accent/15 flex items-center justify-center border border-obsidian-accent/30">
-        <Play class="w-4 h-4 text-obsidian-accent" />
+      <div class="w-7 h-7 rounded-card bg-cyber-purple/15 flex items-center justify-center border border-cyber-purple/30">
+        <Play class="w-3.5 h-3.5 text-cyber-purple" />
       </div>
       <div>
-        <h3 class="text-sm font-orbitron font-bold text-obsidian-text-muted">In Progress</h3>
-        <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
+        <h3 class="text-sm font-heading font-bold text-obsidian-text-primary">In Progress</h3>
+        <p class="text-[10px] font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
     <a
       href="/projects?view=current"
-      class="tag-cyber tag-cyan flex items-center gap-1 hover:bg-obsidian-accent/15 transition-colors cursor-pointer"
+      class="tag-cyber tag-purple flex items-center gap-1 hover:bg-obsidian-accent/15 transition-colors cursor-pointer"
     >
       See All
       <ChevronRight class="w-3 h-3" />
     </a>
   </div>
 
-    <!-- Stack Cards -->
-  <div class="p-4 min-h-[280px] flex flex-col">
+  <!-- Stack Cards -->
+  <div class="flex-1 min-h-0 p-4 flex flex-col">
     {#if containers.length > 0}
-      <div class="space-y-3">
+      <div class="grid h-full min-h-0 grid-rows-3 gap-2 overflow-y-auto">
         {#each visibleContainers as container}
-          <div class="bg-obsidian-bg border border-[var(--card-border)] rounded-card p-4 hover:border-[var(--card-hover)] transition-colors duration-300">
-            <div class="relative">
-              <div class="flex items-start justify-between mb-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-card bg-obsidian-accent/10 border border-obsidian-accent/25 flex items-center justify-center text-obsidian-accent">
-                    <Container class="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">
-                      {container.scenario.name}
-                    </h4>
-                    {#if container.scenario.name}
-                      <p class="text-xs font-mono text-[var(--accent)] opacity-70 mt-0.5 truncate">
-                        {parseStackName(container.stackName ?? '')}
-                      </p>
-                    {/if}
-                  </div>
+          <div
+            class="flex h-full min-h-0 flex-col justify-between rounded-card border border-[var(--card-border)] bg-obsidian-surface/40 p-2.5 transition-colors duration-300 hover:border-[rgb(var(--purple-rgb)_/_0.35)]"
+            style="border-left: 3px solid rgb(var(--purple-rgb) / 0.7)"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex min-w-0 items-center gap-2">
+                <div class="w-7 h-7 shrink-0 rounded-card bg-obsidian-surface/70 border border-[var(--card-border)] text-obsidian-text-muted flex items-center justify-center">
+                  <Container class="w-3.5 h-3.5" />
                 </div>
-                <div class="flex items-center gap-1 font-mono text-xs text-[var(--text-muted)]">
-                  <Clock class="w-3 h-3" />
-                  <span>{formatLastActive(container.updated_at)}</span>
-                </div>
+                <h4 class="text-sm font-heading font-semibold text-obsidian-text-primary truncate">{container.scenario.name}</h4>
               </div>
-
-              <div class="flex justify-between text-xs">
-                <span class="font-mono text-[var(--text-muted)]">Level {container.level}</span>
-                <span class="tag-cyber tag-cyan">{container.status}</span>
-              </div>
-
-              <div class="flex items-center gap-2 mt-3">
-                <a href="/workspace/{container.id}" class="btn-cyber btn-cyber-outline flex-1 !py-2 !px-4 flex items-center justify-center gap-2 text-xs">
-                  <Play class="w-3 h-3" />
-                  Continue
-                </a>
-                <button
-                  type="button"
-                  aria-label="Delete {container.scenario.name} workspace"
-                  title="Delete workspace"
-                  on:click={() => openDeleteConfirmation(container)}
-                  class="btn-cyber !p-2 border border-cyber-danger/40 text-cyber-danger hover:bg-cyber-danger/15 hover:border-cyber-danger/70"
-                >
-                  <Trash2 class="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <span class="tag-cyber tag-cyan shrink-0 !py-0.5 !px-2 !text-[10px]">{container.status}</span>
+            </div>
+            <p class="text-[10px] font-mono uppercase tracking-wider text-obsidian-text-muted truncate">
+              {shortStackLabel(container.stackName ?? '')} · Level {container.level} · <Clock class="w-3.5 h-3.5 inline" /> {formatLastActive(container.updated_at)}
+            </p>
+            <div class="flex items-center justify-between gap-2">
+              <a href="/workspace/{container.id}" class="btn-cyber btn-cyber-outline !py-1 !px-2.5 flex items-center gap-1.5 text-xs">
+                <Play class="w-3.5 h-3.5" />Continue
+              </a>
+              <button type="button" aria-label="Delete {container.scenario.name} workspace" title="Delete workspace" on:click={() => openDeleteConfirmation(container)}
+                class="btn-cyber !p-1.5 border border-cyber-danger/40 text-cyber-danger hover:bg-cyber-danger/15 hover:border-cyber-danger/70">
+                <Trash2 class="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         {/each}
+        {#if visibleContainers.length > 0 && visibleContainers.length < 3}
+          {#each Array.from({ length: 3 - visibleContainers.length }) as _}
+            <div class="flex h-full min-h-0 items-center justify-center rounded-card border border-dashed border-[var(--card-border)] opacity-50">
+              <span class="text-[9px] font-mono uppercase tracking-wider text-obsidian-text-muted">Open slot</span>
+            </div>
+          {/each}
+        {/if}
       </div>
     {:else}
-      <div class="flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <p class="text-lg font-orbitron text-obsidian-text-primary/40">No stacks in progress</p>
-          <a href="/stacks" class="btn-cyber btn-cyber-outline inline-flex items-center gap-2 !px-4 !py-2 mt-4 text-xs">
-            <Play class="w-3 h-3" />
-            Start a Stack
-          </a>
+      <div class="flex-1 flex flex-col items-center justify-center text-center gap-2">
+        <div class="w-12 h-12 rounded-card bg-cyber-purple/15 border border-cyber-purple/30 text-cyber-purple flex items-center justify-center">
+          <Play class="w-6 h-6" />
         </div>
+        <p class="font-heading text-lg text-obsidian-text-primary/60">No stacks in progress</p>
+        <p class="text-sm text-obsidian-text-muted">Pick a scenario and start building.</p>
+        <a href="/stacks" class="btn-cyber btn-cyber-outline inline-flex items-center gap-2 !px-4 !py-2 mt-4 text-xs">
+          <Play class="w-3 h-3" />
+          Start a Stack
+        </a>
       </div>
     {/if}
   </div>

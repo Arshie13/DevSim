@@ -431,7 +431,7 @@ editor surfaces are touched. A stage is complete only when `pnpm check:design`,
 | --- | --- | --- | --- |
 | 1 | Landing | `/`, `landing/*` | **Done** |
 | 2 | Entry & auth | `/login`, `/pretest`, `/postassessment` | Pending |
-| 3 | Dashboard | `/dashboard`, `dashboard/*` widgets | Pending |
+| 3 | Dashboard | `/dashboard`, `dashboard/*` widgets | **Done** |
 | 4 | Core lists | `/projects`, `/stacks`, `/scenario`, `/achievements` | Pending |
 | 5 | Social | `/leaderboards`, `/rivals`, `/profile` | **In progress** — leaderboards container + sticky fixed |
 | 6 | Workspace & tutorial | `/workspace/[containerId]`, `/tutorial/[containerId]` | Pending |
@@ -453,6 +453,11 @@ its value, so `pt` is a short-viewport floor, not the main positioning lever. Al
 headline leading, `HowItWorks` card padding moved to `.card-cyber-body` with `gap-5`,
 tokenisation of `LandingNav` and `HeroSection`, and the `--text-bright` and `--terminal-bg`
 tokens (§2).
+
+Stage 3 covered: the dashboard now uses a viewport-fitting, no-scroll flex layout at lg+
+(`calc(100vh - 5rem)`) with fixed-height In Progress/Completed sections (max 3
+recency-sorted stack rows each), a purple In Progress accent (`--purple`), a Learner Pass
+promo banner, and reduced nav-to-welcome spacing.
 
 **Still outstanding from your original brief:** the §4 type-scale step-up (card and section
 headings, page titles, stat values) and the `px → rem` pass on modal/panel widths. Both are

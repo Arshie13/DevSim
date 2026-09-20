@@ -12,6 +12,12 @@
 
   $: visibleContainers = containers.slice(0, maxVisible);
 
+  function shortStackLabel(stackName: string): string {
+    const parsed = parseStackName(stackName);
+    const dashIndex = parsed.indexOf(' — ');
+    return dashIndex === -1 ? parsed : parsed.slice(0, dashIndex);
+  }
+
   const RESTORE_COST = 100;
 
   const RESTORE_STEPS = [
@@ -96,16 +102,16 @@
   }
 </script>
 
-<div class="card-cyber shadow-card-glow hover:shadow-card-glow-hover transition-shadow duration-500 relative overflow-hidden">
+<div class="card-cyber shadow-card-glow hover:shadow-card-glow-hover transition-shadow duration-500 relative overflow-hidden flex flex-col h-full min-h-0">
   <!-- Header -->
-  <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--card-border)]">
+  <div class="flex items-center justify-between px-5 py-3 border-b border-[var(--card-border)] shrink-0">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-card bg-cyber-warn/15 flex items-center justify-center border border-cyber-warn/30">
-        <Trophy class="w-4 h-4 text-cyber-warn" />
+      <div class="w-7 h-7 rounded-card bg-cyber-warn/15 flex items-center justify-center border border-cyber-warn/30">
+        <Trophy class="w-3.5 h-3.5 text-cyber-warn" />
       </div>
       <div>
-        <h3 class="text-sm font-orbitron font-bold text-obsidian-text-muted">Completed</h3>
-        <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
+        <h3 class="text-sm font-heading font-bold text-obsidian-text-primary">Completed</h3>
+        <p class="text-[10px] font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
     <a
@@ -118,58 +124,62 @@
   </div>
 
   <!-- Completed Stack Cards -->
-  <div class="p-4 min-h-[280px] flex flex-col">
+  <div class="flex-1 min-h-0 p-4 flex flex-col">
     {#if containers.length > 0}
-      <div class="space-y-3">
+      <div class="grid h-full min-h-0 grid-rows-3 gap-2 overflow-y-auto">
         {#each visibleContainers as container}
           {@const canRestore = container.isArchived && container.volumeName}
-          <div class="bg-obsidian-bg border border-[var(--card-border)] rounded-card p-4 hover:border-cyber-warn/40 transition-colors duration-300">
-            <div class="relative">
-              <div class="flex items-start justify-between mb-3">
-                <div class="flex items-center gap-3">
-                  <!-- Completion badge -->
-                  <div class="relative w-10 h-10 rounded-card bg-cyber-warn/10 border border-cyber-warn/25 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-cyber-warn" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="text-sm font-orbitron font-semibold text-obsidian-text-muted">
-                      {container.scenario?.name ?? parseStackName(container.stackName ?? '')}
-                    </h4>
-                    {#if container.scenario?.name}
-                      <p class="text-xs font-mono text-cyber-warn opacity-70 mt-0.5 truncate">
-                        {parseStackName(container.stackName ?? '')}
-                      </p>
-                    {/if}
-                    <p class="text-xs font-mono text-[var(--text-muted)] mt-0.5">
-                      Level {container.level}
-                    </p>
-                  </div>
+          <div
+            class="flex h-full min-h-0 flex-col justify-between rounded-card border border-[var(--card-border)] bg-obsidian-surface/40 p-2.5 transition-colors duration-300 hover:border-cyber-warn/35"
+            style="border-left: 3px solid rgb(var(--warn-rgb) / 0.7)"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex min-w-0 items-center gap-2">
+                <div class="w-7 h-7 shrink-0 rounded-card bg-obsidian-surface/70 border border-[var(--card-border)] text-obsidian-text-muted flex items-center justify-center">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
+                <h4 class="text-sm font-heading font-semibold text-obsidian-text-primary truncate">{container.scenario?.name ?? parseStackName(container.stackName ?? '')}</h4>
               </div>
-
-              <!-- Restore Button (clip-path) -->
+            </div>
+            <p class="text-[10px] font-mono uppercase tracking-wider text-obsidian-text-muted truncate">
+              {shortStackLabel(container.stackName ?? '')} · Level {container.level}
+            </p>
+            <div class="flex items-center justify-between gap-2">
               {#if canRestore}
                 <button
                   on:click={() => openPaywall(container)}
-                  class="btn-cyber mt-3 w-full flex items-center justify-center gap-2 !py-1.5 bg-cyber-warn/10 border border-cyber-warn/30 text-cyber-warn text-xs hover:bg-cyber-warn/20 hover:border-cyber-warn/50 hover:shadow-[0_0_15px_rgba(255,180,0,0.15)] transition-all duration-200"
+                  class="btn-cyber flex items-center gap-2 !py-1 !px-2.5 bg-cyber-warn/10 border border-cyber-warn/30 text-cyber-warn text-xs hover:bg-cyber-warn/20 hover:border-cyber-warn/50 hover:shadow-[0_0_15px_rgb(var(--warn-rgb)_/_0.15)] transition-all duration-200"
                 >
                   <RotateCcw class="w-3 h-3" />
                   Restore Progress
                 </button>
               {:else}
-                <div class="mt-3 w-full px-3 py-1.5 bg-obsidian-bg border border-[var(--card-border)] rounded text-xs font-mono text-[var(--text-muted)] text-center">
-                  Not restorable
-                </div>
+                <span class="text-[10px] font-mono uppercase tracking-wider text-obsidian-text-muted">Not restorable</span>
               {/if}
             </div>
           </div>
         {/each}
+        {#if visibleContainers.length > 0 && visibleContainers.length < 3}
+          {#each Array.from({ length: 3 - visibleContainers.length }) as _}
+            <div class="flex h-full min-h-0 items-center justify-center rounded-card border border-dashed border-[var(--card-border)] opacity-50">
+              <span class="text-[9px] font-mono uppercase tracking-wider text-obsidian-text-muted">Open slot</span>
+            </div>
+          {/each}
+        {/if}
       </div>
     {:else}
-      <div class="flex-1 flex items-center justify-center">
-        <p class="text-lg font-orbitron text-obsidian-text-primary/40">No completed stacks yet</p>
+      <div class="flex-1 flex flex-col items-center justify-center text-center gap-2">
+        <div class="w-12 h-12 rounded-card bg-cyber-warn/15 border border-cyber-warn/30 text-cyber-warn flex items-center justify-center">
+          <Trophy class="w-6 h-6" />
+        </div>
+        <p class="font-heading text-lg text-obsidian-text-primary/60">No completed stacks yet</p>
+        <p class="text-sm text-obsidian-text-muted">Finish a stack to earn XP, coins and achievements.</p>
+        <a href="/stacks" class="btn-cyber btn-cyber-outline inline-flex items-center gap-2 !px-4 !py-2 mt-4 text-xs">
+          <ChevronRight class="w-3 h-3" />
+          Browse Stacks
+        </a>
       </div>
     {/if}
   </div>
@@ -192,20 +202,20 @@
     <!-- Stack preview + cost/balance info -->
     <div class="space-y-3">
       <!-- Stack card -->
-      <div class="flex items-center gap-3 bg-[#0a0e1a] border border-[rgba(7,165,201,0.12)] rounded-[4px] px-4 py-3">
+      <div class="flex items-center gap-3 bg-obsidian-bg border border-[rgb(var(--accent-rgb)_/_0.12)] rounded-[4px] px-4 py-3">
         <div>
-          <p class="font-mono text-[0.85rem] font-semibold text-[#d0d7dd]">{paywallStack.scenario?.name ?? parseStackName(paywallStack.stackName ?? '')}</p>
+          <p class="font-mono text-[0.85rem] font-semibold text-obsidian-text-primary">{paywallStack.scenario?.name ?? parseStackName(paywallStack.stackName ?? '')}</p>
           {#if paywallStack.scenario?.name}
-            <p class="font-mono text-xs text-[#8892a0]">{parseStackName(paywallStack.stackName ?? '')}</p>
+            <p class="font-mono text-xs text-obsidian-text-muted">{parseStackName(paywallStack.stackName ?? '')}</p>
           {/if}
-          <p class="font-mono text-xs text-[#8892a0] mt-0.5">Level {paywallStack.level}</p>
+          <p class="font-mono text-xs text-obsidian-text-muted mt-0.5">Level {paywallStack.level}</p>
         </div>
       </div>
 
       <!-- Cost row -->
-      <div class="flex items-center justify-between bg-[rgba(255,180,0,0.06)] border border-[rgba(255,180,0,0.2)] rounded-[4px] px-4 py-2.5">
-        <span class="font-mono text-[0.8rem] text-[#8892a0] uppercase tracking-wider">Restore cost</span>
-        <div class="flex items-center gap-1.5 text-[#ffb400] font-mono font-semibold text-[0.85rem]">
+      <div class="flex items-center justify-between bg-cyber-warn/[0.06] border border-cyber-warn/20 rounded-[4px] px-4 py-2.5">
+        <span class="font-mono text-[0.8rem] text-obsidian-text-muted uppercase tracking-wider">Restore cost</span>
+        <div class="flex items-center gap-1.5 text-cyber-warn font-mono font-semibold text-[0.85rem]">
           <Coins class="w-4 h-4" />
           <span>{RESTORE_COST} coins</span>
         </div>
@@ -213,14 +223,14 @@
 
       <!-- Balance row -->
       <div class="flex items-center justify-between px-1">
-        <span class="font-mono text-xs text-[#8892a0]">Your balance</span>
-        <span class="font-mono text-xs font-semibold {userCoins >= RESTORE_COST ? 'text-[#00e5a0]' : 'text-[#ff3860]'}">
+        <span class="font-mono text-xs text-obsidian-text-muted">Your balance</span>
+        <span class="font-mono text-xs font-semibold {userCoins >= RESTORE_COST ? 'text-cyber-success' : 'text-cyber-danger'}">
           🪙 {userCoins} coins
         </span>
       </div>
 
       {#if userCoins < RESTORE_COST}
-        <p class="font-mono text-xs text-[#ff3860]/80 text-center">
+        <p class="font-mono text-xs text-cyber-danger/80 text-center">
           Not enough coins. Earn more by completing sprints.
         </p>
       {/if}
