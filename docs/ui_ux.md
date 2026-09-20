@@ -234,6 +234,9 @@ padding.
 - Cards lift `translateY(-2px)` on hover and show a top shimmer. Do not add competing
   hover effects.
 - `border-radius` is `4px` (`rounded-card`). Do not introduce other radii for cards.
+- **Focused cards.** A single-card page (e.g. auth) may scale the card up: `.card-cyber-body`
+  padding overridden to `p-8 sm:p-10`, width `w-[min(30rem,95vw)]`, and an explicit per-card
+  accent border `rgb(var(--accent-rgb) / 0.25)`. Reference implementation: `/login`.
 
 ---
 
@@ -430,7 +433,7 @@ editor surfaces are touched. A stage is complete only when `pnpm check:design`,
 | # | Stage | Routes / files | Status |
 | --- | --- | --- | --- |
 | 1 | Landing | `/`, `landing/*` | **Done** |
-| 2 | Entry & auth | `/login`, `/pretest`, `/postassessment` | Pending |
+| 2 | Entry & auth | `/login`, `/pretest`, `/postassessment` | In progress — `/login` done |
 | 3 | Dashboard | `/dashboard`, `dashboard/*` widgets | **Done** |
 | 4 | Core lists | `/projects`, `/stacks`, `/scenario`, `/achievements` | Pending |
 | 5 | Social | `/leaderboards`, `/rivals`, `/profile` | **In progress** — leaderboards container + sticky fixed |

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { signIn } from '@auth/sveltekit/client';
 	import Logo from '$components/ui/Logo.svelte';
-	import Scrollbar from '$lib/components/ui/Scrollbar.svelte';
 
 	let showTermsDetails = false;
 
@@ -29,86 +28,91 @@
 	<!-- Floating orbs (mirrors the landing hero) -->
 	<div
 		class="absolute pointer-events-none orb-1"
-		style="top:8%;left:-8%;width:520px;height:520px;background:rgba(7,165,201,0.10);border-radius:50%;filter:blur(150px);"
+		style="top:8%;left:-8%;width:520px;height:520px;background:rgb(var(--accent-rgb) / 0.10);border-radius:50%;filter:blur(150px);"
 	></div>
 	<div
 		class="absolute pointer-events-none orb-2"
-		style="bottom:6%;right:-8%;width:460px;height:460px;background:rgba(168,85,247,0.08);border-radius:50%;filter:blur(130px);"
+		style="bottom:6%;right:-8%;width:460px;height:460px;background:rgb(var(--purple-rgb) / 0.08);border-radius:50%;filter:blur(130px);"
 	></div>
 
 	<!-- Auth card -->
-	<div class="relative z-10 w-full max-w-md card-cyber login-reveal">
-		<div class="px-8 py-10 sm:px-10">
-			<!-- Platform badge -->
-			<div
-				class="inline-flex items-center gap-2 mb-8 px-4 py-2 border border-[var(--card-border)] bg-[var(--accent-dim)]"
-			>
-				<span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)] dot-pulse"></span>
-				<span class="font-label text-[0.6rem] tracking-[0.15em] text-[var(--accent)] uppercase">
-					Secure Access · DevSim
-				</span>
-			</div>
+	<div
+		class="relative z-10 w-[min(30rem,95vw)] card-cyber card-cyber-body login-reveal shadow-card-glow p-8 sm:p-10"
+		style="border-color: rgb(var(--accent-rgb) / 0.25)"
+	>
+		<!-- Platform badge -->
+		<div
+			class="inline-flex items-center gap-2 mb-6 px-3 py-1.5 border border-[var(--card-border)] bg-[var(--accent-dim)]"
+		>
+			<span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)] dot-pulse"></span>
+			<span class="font-label text-xs tracking-[0.04em] text-[var(--accent)] uppercase">
+				Secure Access · DevSim
+			</span>
+		</div>
 
-			<!-- Logo -->
-			<div class="flex justify-center mb-8">
-				<Logo stacked markClass="w-24 h-24" textClass="text-2xl" subtitle="Developer Simulation" />
-			</div>
+		<!-- Logo -->
+		<div class="flex justify-center mb-6">
+			<Logo stacked markClass="w-16 h-16" textClass="text-xl" subtitle="Developer Simulation" />
+		</div>
 
-			<!-- Heading -->
-			<div class="text-center mb-8">
-				<h1 class="font-heading font-bold text-2xl leading-tight text-[var(--text-primary)]">
-					Welcome, developer.
-				</h1>
-				<p class="mt-3 font-body text-sm text-[var(--text-muted)]">
-					Sign up to start your learning journey.
-				</p>
-			</div>
-
-			<div class="mb-4 rounded-xl border border-[var(--card-border)] bg-[var(--bg)] p-3 text-center text-xs leading-5 text-[var(--text-muted)]">
-				<p>
-					By signing in, you hereby agree to our
-					<button
-						type="button"
-						class="font-semibold text-[var(--accent)] underline decoration-[var(--accent)] underline-offset-2 transition hover:text-[var(--accent-hover)]"
-						onclick={openTermsDetails}
-					>
-						Terms and Conditions
-					</button>.
-				</p>
-			</div>
-
-			<!-- Google sign-in -->
-			<button
-				onclick={continueWithGoogle}
-				type="button"
-				class="btn-cyber btn-cyber-solid group w-full !py-3.5 flex items-center justify-center gap-3"
-			>
-				<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-					<path
-						d="M23.06 12.25c0-.78-.07-1.53-.2-2.25H12v4.51h6.2a5.3 5.3 0 0 1-2.3 3.48v2.9h3.72c2.18-2 3.44-4.96 3.44-8.64z"
-					/>
-					<path
-						d="M12 24c3.1 0 5.7-1.03 7.6-2.78l-3.72-2.9c-1.03.7-2.35 1.1-3.88 1.1-2.98 0-5.5-2.01-6.4-4.72H1.75v2.98A11.99 11.99 0 0 0 12 24z"
-					/>
-					<path d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6V7.13H1.75a12 12 0 0 0 0 10.55L5.6 14.7z" />
-					<path
-						d="M12 4.75c1.68 0 3.19.58 4.38 1.72l3.28-3.28C17.7 1.2 15.1 0 12 0 7.35 0 3.34 2.66 1.75 6.55l3.85 2.98C6.5 6.76 9.02 4.75 12 4.75z"
-					/>
-				</svg>
-				Sign up with Google
-				<span class="inline-block group-hover:translate-x-1 transition-transform duration-200">→</span>
-			</button>
-
-			<!-- Footer note -->
-			<p class="mt-6 text-center font-label text-[0.6rem] tracking-widest text-[var(--text-muted)] uppercase">
-				Interactive Simulation Platform
+		<!-- Heading -->
+		<div class="text-center mb-6">
+			<h1 class="font-heading font-bold text-3xl leading-tight text-[var(--text-primary)]">
+				Welcome, developer.
+			</h1>
+			<p class="mt-2 font-body text-sm text-[var(--text-muted)]">
+				Sign up to start your learning journey.
 			</p>
+		</div>
+
+		<div class="mb-6 rounded-card border border-[var(--card-border)] bg-[var(--surface)] p-4 text-center text-xs leading-5 text-[var(--text-muted)]">
+			<p>
+				By signing in, you hereby agree to our
+				<button
+					type="button"
+					class="font-semibold text-[var(--accent)] underline decoration-[var(--accent)] underline-offset-2 transition hover:text-[var(--cyan-bright)]"
+					onclick={openTermsDetails}
+				>
+					Terms and Conditions
+				</button>.
+			</p>
+		</div>
+
+		<!-- Google sign-in -->
+		<button
+			onclick={continueWithGoogle}
+			type="button"
+			class="btn-cyber btn-cyber-solid group w-full !py-3.5 flex items-center justify-center gap-3"
+		>
+			<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+				<path
+					d="M23.06 12.25c0-.78-.07-1.53-.2-2.25H12v4.51h6.2a5.3 5.3 0 0 1-2.3 3.48v2.9h3.72c2.18-2 3.44-4.96 3.44-8.64z"
+				/>
+				<path
+					d="M12 24c3.1 0 5.7-1.03 7.6-2.78l-3.72-2.9c-1.03.7-2.35 1.1-3.88 1.1-2.98 0-5.5-2.01-6.4-4.72H1.75v2.98A11.99 11.99 0 0 0 12 24z"
+				/>
+				<path d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6V7.13H1.75a12 12 0 0 0 0 10.55L5.6 14.7z" />
+				<path
+					d="M12 4.75c1.68 0 3.19.58 4.38 1.72l3.28-3.28C17.7 1.2 15.1 0 12 0 7.35 0 3.34 2.66 1.75 6.55l3.85 2.98C6.5 6.76 9.02 4.75 12 4.75z"
+				/>
+			</svg>
+			Sign up with Google
+			<span class="inline-block group-hover:translate-x-1 transition-transform duration-200">→</span>
+		</button>
+
+		<!-- Footer note -->
+		<div class="mt-6 flex items-center gap-4">
+			<span class="h-px flex-1 bg-[var(--card-border)]"></span>
+			<span class="font-label text-xs uppercase tracking-[0.04em] text-[var(--text-muted)]">
+				Interactive Simulation Platform
+			</span>
+			<span class="h-px flex-1 bg-[var(--card-border)]"></span>
 		</div>
 	</div>
 
 	{#if showTermsDetails}
-		<div class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-[#020b14]/90 px-4 py-6 backdrop-blur-sm sm:py-8">
-			<div class="my-auto w-full max-w-xl rounded-2xl border border-[var(--card-border)] bg-[#07141d]/95 p-6 shadow-[0_0_0_1px_rgba(34,211,238,0.1),0_18px_50px_rgba(2,8,23,0.7)]">
+		<div class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-[var(--terminal-bg)]/90 px-4 py-6 backdrop-blur-sm sm:py-8">
+			<div class="my-auto w-full max-w-xl rounded-card border border-[var(--card-border)] bg-obsidian-bg-light p-6 shadow-accent-glow-lg">
 				<div class="flex items-start justify-between gap-4">
 					<div>
 						<p class="font-label text-[0.65rem] tracking-[0.18em] uppercase text-[var(--accent)]">
