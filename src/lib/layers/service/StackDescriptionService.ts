@@ -26,12 +26,14 @@ export class StackDescriptionService {
     // Build prompt
     const prompt = this.stackData.buildStackDescriptionPrompt(selection);
 
-    // Keep stack analysis aligned with the AI checker model fallback order.
+    // Keep stack analysis aligned with the AI helper model fallback order.
     const models = [
       'auto/coding',
-      'auto/best-free',
       'nvidia/nemotron-3-nano-30b-a3b:free',
-      'google/gemma-3n-e2b-it:free'
+      'google/gemma-3n-e2b-it:free',
+      'qwen/qwen3.6-plus:free',
+      'nvidia/nemotron-3-super-120b-a12b:free',
+      'google/gemini-2.5-flash:direct'
     ];
 
     const omnirouteKey = process.env.OMNIROUTE_KEY;
