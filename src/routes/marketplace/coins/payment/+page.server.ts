@@ -1,9 +1,11 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import prisma from '$lib/server/client';
 import Stripe from 'stripe';
 import { checkRateLimit } from '$lib/server/ratelimit';
-import { getCoinPurchaseConfirmationResult } from '$lib/server/learnerPass';
+import {
+  ensureCoinPurchaseForPayment,
+  getCoinPurchaseConfirmationResult,
+} from '$lib/server/learnerPass';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const COIN_PRICE_CENTAVOS = 50;
@@ -130,40 +132,51 @@ export const actions: Actions = {
 
       const metadata = paymentIntent.metadata as { coinAmount?: string; userId?: string; type?: string };
 
-      if (metadata?.type === 'coin_purchase' && metadata?.userId === session.user.id && metadata?.coinAmount) {
-        const existing = await prisma.coin_purchase.findUnique({
-          where: { payment_id: paymentIntentId },
-          select: { id: true },
-        });
+      if (metadata?.type !== 'coin_purchase' || metadata?.userId !== session.user.id || !metadata?.coinAmount) {
+        return fail(400, { error: 'Invalid payment metadata' });
+      }
 
-        const confirmation = getCoinPurchaseConfirmationResult({
-          paymentSucceeded: true,
-          existingPurchase: existing,
-        });
+      const coinAmount = Number.parseInt(metadata.coinAmount, 10);
 
-        if (!confirmation.success) {
-          return fail(400, { error: confirmation.error });
-        }
+      if (!Number.isFinite(coinAmount) || coinAmount <= 0) {
+        return fail(400, { error: 'Invalid coin amount' });
+      }
 
-        if (confirmation.status === 'pending_webhook') {
-          return {
-            success: true,
-            status: 'pending_webhook',
-            message: confirmation.message,
-          };
-        }
+      // Credit the purchase here so coins land immediately. Safe to run alongside the
+      // Stripe webhook: the unique payment_id keeps both paths idempotent.
+      const { purchase, created } = await ensureCoinPurchaseForPayment({
+        userId: session.user.id,
+        paymentId: paymentIntentId,
+        coinAmount,
+      });
 
+      const confirmation = getCoinPurchaseConfirmationResult({
+        paymentSucceeded: true,
+        existingPurchase: purchase,
+      });
+
+      if (!confirmation.success) {
+        return fail(400, { error: confirmation.error });
+      }
+
+      if (confirmation.status === 'pending_webhook') {
         return {
           success: true,
-          status: 'active',
-          message: 'Your coins are already credited.',
+          status: 'pending_webhook',
+          message: confirmation.message,
+          coinAmount,
         };
       }
 
-      return fail(400, { error: 'Invalid payment metadata' });
+      return {
+        success: true,
+        status: 'active',
+        credited: created,
+        coinAmount,
+      };
     } catch (err: any) {
-      // ponytail: P2002 = duplicate payment_id, already processed
-      if (err?.code === 'P2002') return { success: true, added: 0 };
+      // P2002 = duplicate payment_id, meaning another request already credited it
+      if (err?.code === 'P2002') return { success: true, status: 'active', credited: false };
       return fail(500, { error: 'Failed to confirm purchase' });
     }
   },

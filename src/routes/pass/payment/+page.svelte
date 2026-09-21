@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { enhance } from "$app/forms";
+  import { enhance, deserialize } from "$app/forms";
   import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from "$env/static/public";
   import {
     loadStripe,
@@ -115,11 +115,18 @@
         const res = await fetch("?/confirmPayment", {
           method: "POST",
           body: fd,
+          headers: { "x-sveltekit-action": "true" },
         });
-        const confirmResult = await res.json();
+        // SvelteKit wraps action results as { type, status, data } with `data` devalue-encoded.
+        // `deserialize` takes the raw response text — it runs JSON.parse internally.
+        const confirmResult = deserialize(await res.text());
 
         if (confirmResult.type === "failure") {
           errorMessage = (confirmResult.data?.error as string) ?? "Confirmation failed.";
+        } else if (confirmResult.type === "error") {
+          errorMessage = confirmResult.error?.message ?? "Confirmation failed.";
+        } else if (confirmResult.type === "redirect") {
+          await goto(confirmResult.location);
         } else {
           if (confirmResult.data?.status === "pending_webhook") {
             modalTitle = "PAYMENT RECEIVED";
@@ -138,9 +145,26 @@
       }
     };
   }
+
+  function goBack() {
+    // Use real browser history so the user returns to whichever page sent them here.
+    // Falls back to the pass page when there is no history to go back to
+    // (e.g. the checkout URL was opened directly).
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    goto("/pass");
+  }
 </script>
 
 <main class="payment-shell">
+  <button type="button" class="back-button" on:click={goBack}>
+    <span aria-hidden="true">&larr;</span>
+    Back
+  </button>
+
   <section class="payment-card" aria-busy={isStripeLoading || isSubmitting}>
     <div class="top-accent"></div>
 
@@ -227,6 +251,32 @@
 </PurchaseSuccessModal>
 
 <style>
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+    padding: 0.35rem 0;
+    border: none;
+    background: none;
+    color: var(--text-muted, #94a3b8);
+    font: 600 0.72rem/1.3 var(--font-mono, "JetBrains Mono", monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .back-button:hover {
+    color: var(--accent, #07a5c9);
+  }
+
+  .back-button:focus-visible {
+    outline: 2px solid var(--accent, #07a5c9);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
   .payment-shell {
     max-width: 920px;
     margin: 0 auto;

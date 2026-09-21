@@ -1,7 +1,7 @@
 <script lang='ts'>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { enhance } from '$app/forms';
+  import { enhance, deserialize } from '$app/forms';
   import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from '$env/static/public';
   import {
     loadStripe,
@@ -120,11 +120,18 @@
         const res = await fetch('?/confirmPayment', {
           method: 'POST',
           body: fd,
+          headers: { 'x-sveltekit-action': 'true' },
         });
-        const confirmResult = await res.json();
+        // SvelteKit wraps action results as { type, status, data } with `data` devalue-encoded.
+        // `deserialize` takes the raw response text — it runs JSON.parse internally.
+        const confirmResult = deserialize(await res.text());
 
         if (confirmResult.type === 'failure') {
           errorMessage = (confirmResult.data?.error as string) ?? 'Confirmation failed.';
+        } else if (confirmResult.type === 'error') {
+          errorMessage = confirmResult.error?.message ?? 'Confirmation failed.';
+        } else if (confirmResult.type === 'redirect') {
+          await goto(confirmResult.location);
         } else {
           if (confirmResult.data?.status === 'pending_webhook') {
             modalTitle = 'PAYMENT RECEIVED';
@@ -145,6 +152,14 @@
   }
 
   function goBack() {
+    // Use real browser history so the user returns to whichever page sent them here.
+    // Falls back to the marketplace when there is no history to go back to
+    // (e.g. the checkout URL was opened directly).
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
     goto('/marketplace/coins');
   }
 </script>
@@ -156,11 +171,12 @@
 <div class='min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber py-12 px-6'>
   <div class='max-w-[1000px] mx-auto'>
     <button 
+      type='button'
       on:click={goBack}
       class='flex items-center gap-2 text-obsidian-text-primary/60 hover:text-cyber-cyan transition-colors mb-8 font-orbitron text-sm uppercase tracking-widest'
     >
       <ArrowLeft class='w-4 h-4' />
-      Back to Marketplace
+      Back
     </button>
 
     <div class='grid grid-cols-1 lg:grid-cols-2 gap-8'>
