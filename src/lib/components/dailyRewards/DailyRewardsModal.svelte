@@ -164,13 +164,13 @@
     on:keydown={handleKeyDown}
   >
     <div
-      class="relative w-[min(56rem,95vw)] overflow-hidden rounded-card border bg-obsidian-bg-light shadow-accent-glow-lg"
+      class="relative w-[min(64rem,95vw)] overflow-hidden rounded-card border bg-obsidian-bg-light shadow-accent-glow-lg"
       style="border-color: rgb(var(--accent-rgb) / 0.25)"
     >
       <div class="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent),transparent)]"></div>
 
       <!-- Header -->
-      <div class="flex items-center justify-between gap-4 border-b border-[var(--card-border)] px-6 py-5">
+      <div class="flex items-center justify-between gap-4 border-b border-[var(--card-border)] px-6 py-6">
         <div class="flex items-center gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-card border border-cyber-cyan/30 bg-cyber-cyan/10 text-cyber-cyan">
             <Calendar class="h-5 w-5" />
@@ -192,7 +192,7 @@
       </div>
 
       <!-- Rewards Grid -->
-      <div class="px-6 py-5">
+      <div class="px-6 py-7">
         {#if loadError}
           <div class="py-10 text-center">
             <p class="font-body text-sm text-obsidian-text-muted">Failed to load rewards. Please try again.</p>
@@ -202,7 +202,7 @@
           <div class="grid grid-cols-2 gap-4 sm:grid-cols-7 sm:gap-3">
             {#each rewards as reward, idx (reward.day)}
               <div
-                class="flex w-full min-w-0 flex-col items-center rounded-lg border border-obsidian-accent/25 bg-obsidian-bg px-3 py-3.5 transition-all duration-200"
+                class="flex w-full min-w-0 flex-col items-center rounded-lg border border-obsidian-accent/25 bg-obsidian-bg px-3 py-6 transition-all duration-200"
                 class:claimed={reward.claimed}
                 class:pending={!reward.claimed && idx < currentDay}
                 class:locked={idx >= currentDay}
@@ -211,22 +211,22 @@
                   Day {reward.day}
                 </span>
 
-                <div class="mt-2.5 grid w-full min-w-0 grid-cols-3 gap-1">
-                  <span class="flex min-w-0 flex-col items-center gap-0.5 overflow-hidden whitespace-nowrap rounded-full bg-cyber-warn/10 px-0.5 py-1">
-                    <Coins class="h-2.5 w-2.5 shrink-0 text-cyber-warn" />
+                <div class="mt-3.5 grid w-full min-w-0 grid-cols-3 gap-1">
+                  <span class="flex min-w-0 flex-col items-center gap-0.5 overflow-hidden whitespace-nowrap rounded-full bg-cyber-warn/10 px-0.5 py-1.5">
+                    <Coins class="h-3 w-3 shrink-0 text-cyber-warn" />
                     <span class="font-label text-[0.65rem] font-semibold leading-none text-cyber-warn tabular-nums">{reward.coins}</span>
                   </span>
-                  <span class="flex min-w-0 flex-col items-center gap-0.5 overflow-hidden whitespace-nowrap rounded-full bg-cyber-cyan/10 px-0.5 py-1">
-                    <Zap class="h-2.5 w-2.5 shrink-0 text-cyber-cyan" />
+                  <span class="flex min-w-0 flex-col items-center gap-0.5 overflow-hidden whitespace-nowrap rounded-full bg-cyber-cyan/10 px-0.5 py-1.5">
+                    <Zap class="h-3 w-3 shrink-0 text-cyber-cyan" />
                     <span class="font-label text-[0.65rem] font-semibold leading-none text-cyber-cyan tabular-nums">{reward.xp}</span>
                   </span>
-                  <span class="flex min-w-0 flex-col items-center gap-0.5 overflow-hidden whitespace-nowrap rounded-full bg-cyber-purple/10 px-0.5 py-1">
-                    <Bot class="h-2.5 w-2.5 shrink-0 text-cyber-purple" />
+                  <span class="flex min-w-0 flex-col items-center gap-0.5 overflow-hidden whitespace-nowrap rounded-full bg-cyber-purple/10 px-0.5 py-1.5">
+                    <Bot class="h-3 w-3 shrink-0 text-cyber-purple" />
                     <span class="font-label text-[0.65rem] font-semibold leading-none text-cyber-purple tabular-nums">{reward.aiHelps}</span>
                   </span>
                 </div>
 
-                <div class="mt-auto flex min-h-[2.25rem] w-full items-center justify-center pt-2.5">
+                <div class="mt-auto flex min-h-[3.25rem] w-full items-center justify-center pt-4">
                   {#if reward.claimed}
                     <span class="flex items-center gap-1.5 font-label text-[0.65rem] uppercase tracking-[0.04em] text-cyber-success">
                       <Check class="h-3.5 w-3.5" />
@@ -273,7 +273,7 @@
       </div>
 
       <!-- Footer -->
-      <div class="flex justify-end border-t border-[var(--card-border)] bg-obsidian-bg/40 px-6 py-4">
+      <div class="flex justify-end border-t border-[var(--card-border)] bg-obsidian-bg/40 px-6 py-5">
         <button class="btn-cyber btn-cyber-outline !px-6 !py-2.5" on:click={close}>
           Close
         </button>
