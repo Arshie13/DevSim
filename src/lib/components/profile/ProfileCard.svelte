@@ -41,7 +41,7 @@
 </script>
 
 <section
-  class="relative h-full bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] flex flex-col"
+  class="relative h-full bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card overflow-hidden shadow-accent-glow-lg flex flex-col"
 >
   <!-- Top accent bar -->
   <div
@@ -52,12 +52,12 @@
     <!-- ── Banner + Avatar ──────────────────────────────────────────────── -->
     <div class="relative shrink-0">
       <div
-        class="h-14 xl:h-16 2xl:h-20 bg-gradient-to-br from-obsidian-accent/15 via-purple-500/10 to-transparent"
+        class="h-20 bg-gradient-to-br from-obsidian-accent/15 via-cyber-purple/10 to-transparent"
       ></div>
 
       <div class="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2">
         <div
-          class="avatar-ring w-16 h-16 xl:w-20 xl:h-20 2xl:w-24 2xl:h-24 bg-obsidian-bg-light border-[2.5px] border-obsidian-accent rounded-card flex items-center justify-center shadow-[0_0_24px_rgba(7,165,201,0.35)] overflow-hidden mb-2"
+          class="avatar-ring w-24 h-24 bg-obsidian-bg-light border-[2.5px] border-obsidian-accent rounded-card flex items-center justify-center shadow-[0_0_24px_rgb(var(--accent-rgb)_/_0.35)] overflow-hidden mb-2"
         >
           {#if isExternalImage || isSvgPath}
             <img
@@ -74,30 +74,30 @@
         </div>
         <!-- Online dot -->
         <div
-          class="online-dot absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-obsidian-surface"
+          class="online-dot absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-cyber-success rounded-full border-2 border-obsidian-surface"
         ></div>
       </div>
     </div>
 
     <!-- ── Identity ─────────────────────────────────────────────────────── -->
     <div
-      class="flex-1 flex flex-col items-center justify-center text-center px-5 pt-10 xl:pt-12 2xl:pt-14 pb-4 gap-1 min-h-0"
+      class="flex-1 flex flex-col items-center justify-center text-center px-5 pt-14 pb-4 gap-2 min-h-0"
     >
       <h1
-        class="text-base xl:text-xl 2xl:text-2xl font-orbitron font-bold text-obsidian-text-muted tracking-tight leading-tight"
+        class="text-xl font-heading font-bold text-obsidian-text-primary tracking-tight leading-tight"
       >
         {user.name}
       </h1>
 
       {#if user.username}
         <p
-          class="text-[0.65rem] font-mono text-obsidian-text-primary/40 tracking-wider"
+          class="text-[0.65rem] font-label text-obsidian-text-primary/40 tracking-wider"
         >
           @{user.username}
         </p>
       {:else if user.email}
         <p
-          class="text-[0.65rem] font-mono text-obsidian-text-primary/40 tracking-wider"
+          class="text-[0.65rem] font-label text-obsidian-text-primary/40 tracking-wider"
         >
           @{user.email}
         </p>
@@ -105,11 +105,11 @@
 
       <!-- Rank badge -->
       <div
-        class="mt-1.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/25"
+        class="mt-1.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyber-gold/10 border border-cyber-gold/25"
       >
-        <Trophy class="w-3 h-3 text-amber-400" />
+        <Trophy class="w-3 h-3 text-cyber-gold" />
         <span
-          class="text-[0.65rem] font-orbitron font-bold text-amber-400 tracking-wide"
+          class="text-[0.65rem] font-heading font-bold text-cyber-gold tracking-wide"
         >
           Rank #{leaderboardRank}
         </span>
@@ -117,7 +117,7 @@
 
       <!-- Member since -->
       <div
-        class="mt-2 flex items-center gap-1.5 text-[0.6rem] font-mono text-obsidian-text-primary/40 uppercase tracking-wider"
+        class="mt-2 flex items-center gap-1.5 text-[0.6rem] font-label text-obsidian-text-primary/40 uppercase tracking-wider"
       >
         <Calendar class="w-3 h-3" />
         <span>Member since {memberSince}</span>
@@ -125,7 +125,7 @@
 
       {#if bio}
         <p
-          class="mt-3 text-xs font-rajdhani text-obsidian-text-primary/55 leading-relaxed max-w-[240px]"
+          class="mt-3 text-xs font-body text-obsidian-text-primary/55 leading-relaxed max-w-[240px]"
         >
           {bio}
         </p>
@@ -138,8 +138,8 @@
     ></div>
 
     <!-- ── Actions ──────────────────────────────────────────────────────── -->
-    <div class="shrink-0 px-5 py-4 flex flex-col gap-2">
-      <div class="grid gap-2" class:grid-cols-2={isOwnProfile}>
+    <div class="shrink-0 px-5 py-5 flex flex-col gap-3">
+      <div class="grid gap-3" class:grid-cols-2={isOwnProfile}>
         {#if isOwnProfile}
           <button
             on:click={() => dispatch("editProfile")}
@@ -151,7 +151,7 @@
         {/if}
         <button
           on:click={shareProfile}
-          class="btn-cyber btn-cyber-secondary flex items-center justify-center gap-1.5 text-xs !py-2 !px-3"
+          class="btn-cyber btn-cyber-secondary flex items-center justify-center gap-1.5 text-xs"
         >
           <LinkIcon class="w-3 h-3" />
           Share Profile
@@ -174,7 +174,7 @@
 <style>
   /* Online dot pulse */
   .online-dot {
-    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    box-shadow: 0 0 6px rgb(var(--success-rgb) / 0.6);
     animation: dot-pulse 2s ease-in-out infinite;
   }
   @keyframes dot-pulse {
@@ -199,8 +199,8 @@
     inset: -5px;
     border-radius: 6px;
     border: 1px solid transparent;
-    border-top-color: rgba(7, 165, 201, 0.8);
-    border-right-color: rgba(7, 165, 201, 0.2);
+    border-top-color: rgb(var(--accent-rgb) / 0.8);
+    border-right-color: rgb(var(--accent-rgb) / 0.2);
     animation: spin 8s linear infinite;
     pointer-events: none;
   }
@@ -211,27 +211,5 @@
     to {
       transform: rotate(360deg);
     }
-  }
-
-  :global(.btn-cyber-danger) {
-    border: 1px solid rgba(255, 56, 96, 0.5);
-    color: #ff3860;
-    background: rgba(255, 56, 96, 0.08);
-  }
-  :global(.btn-cyber-danger:hover) {
-    background: rgba(255, 56, 96, 0.18);
-    border-color: rgba(255, 56, 96, 0.75);
-    box-shadow: 0 0 20px rgba(255, 56, 96, 0.25);
-    color: #ff6080;
-  }
-  :global(.btn-cyber-secondary) {
-    border: 1px solid rgba(39, 39, 42, 0.8);
-    color: rgba(208, 215, 221, 0.6);
-    background: rgba(18, 25, 42, 0.8);
-  }
-  :global(.btn-cyber-secondary:hover) {
-    border-color: rgba(7, 165, 201, 0.35);
-    color: #d0d7dd;
-    background: rgba(7, 165, 201, 0.08);
   }
 </style>

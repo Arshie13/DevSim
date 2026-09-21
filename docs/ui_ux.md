@@ -233,7 +233,9 @@ padding.
   (`rgba(255,215,0)`) matched no token at all. That is now `--gold`.
 - Cards lift `translateY(-2px)` on hover and show a top shimmer. Do not add competing
   hover effects.
-- `border-radius` is `4px` (`rounded-card`). Do not introduce other radii for cards.
+- `border-radius` is `4px` (`rounded-card`). Do not introduce other radii for cards. Exception:
+  daily-rewards day-cards (the `/pass` grid and the DailyRewardsModal day-cards) use `rounded-lg`
+  (0.5rem) for a friendlier rewards identity.
 - **Focused cards.** A single-card page (e.g. auth) may scale the card up: `.card-cyber-body`
   padding overridden to `p-8 sm:p-10`, width `w-[min(30rem,95vw)]`, and an explicit per-card
   accent border `rgb(var(--accent-rgb) / 0.25)`. Reference implementation: `/login`.

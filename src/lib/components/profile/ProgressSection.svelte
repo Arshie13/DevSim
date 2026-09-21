@@ -22,7 +22,7 @@
 </script>
 
 <section
-  class="relative bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card overflow-hidden shadow-[0_0_30px_rgba(7,165,201,0.15)] hover:shadow-[0_0_40px_rgba(7,165,201,0.25)] transition-shadow duration-500"
+  class="relative bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card overflow-hidden shadow-accent-glow-lg hover:shadow-accent-glow-hover transition-shadow duration-500"
 >
   <!-- Top accent bar -->
   <div
@@ -32,14 +32,14 @@
   <div class="relative z-10 p-5">
     <div class="flex items-center gap-6">
       <!-- Level ring -->
-      <div class="relative shrink-0 w-20 h-20">
+      <div class="relative shrink-0 w-28 h-28">
         <svg class="w-full h-full -rotate-90" viewBox="0 0 80 80">
           <circle
             cx="40"
             cy="40"
             r="34"
             fill="none"
-            stroke="rgba(39,39,42,0.8)"
+            stroke="rgb(var(--border-rgb) / 0.8)"
             stroke-width="5"
           />
           <circle
@@ -56,18 +56,18 @@
           />
           <defs>
             <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#07a5c9" />
-              <stop offset="100%" stop-color="#34d399" />
+              <stop offset="0%" stop-color="var(--accent)" />
+              <stop offset="100%" stop-color="var(--success)" />
             </linearGradient>
           </defs>
         </svg>
         <div class="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            class="text-lg font-orbitron font-bold text-obsidian-text-muted leading-none"
+            class="text-2xl font-heading font-bold text-obsidian-text-muted leading-none"
             >{effectiveLevel}</span
           >
           <span
-            class="text-[0.55rem] font-mono text-obsidian-text-primary/40 uppercase tracking-wider"
+            class="text-[0.55rem] font-label text-obsidian-text-primary/40 uppercase tracking-wider"
             >Level</span
           >
         </div>
@@ -77,11 +77,11 @@
       <div class="flex-1 min-w-0">
         <div class="flex items-baseline gap-2 mb-1">
           <h3
-            class="text-sm font-orbitron font-semibold text-obsidian-text-muted"
+            class="text-sm font-heading font-semibold text-obsidian-text-muted"
           >
             Level Progress
           </h3>
-          <span class="text-[0.65rem] font-mono text-obsidian-text-primary/40">
+          <span class="text-[0.65rem] font-label text-obsidian-text-primary/40">
             {xpPercentage.toFixed(0)}% to Level {effectiveLevel + 1}
           </span>
         </div>
@@ -93,18 +93,18 @@
 
         <!-- Stat pills -->
         <div
-          class="flex flex-wrap items-center gap-4 text-[0.65rem] font-mono text-obsidian-text-primary/50 uppercase tracking-wide"
+          class="flex flex-wrap items-center gap-4 text-[0.65rem] font-label text-obsidian-text-primary/50 uppercase tracking-wide"
         >
           <span class="flex items-center gap-1">
             <Zap class="w-3 h-3 text-obsidian-accent" />
             {xpIntoLevel.toLocaleString()} / {xpForLevel.toLocaleString()} XP
           </span>
           <span class="flex items-center gap-1">
-            <Coins class="w-3 h-3 text-amber-400" />
+            <Coins class="w-3 h-3 text-cyber-warn" />
             {user.coins} coins
           </span>
           <span class="flex items-center gap-1">
-            <Flame class="w-3 h-3 text-orange-400" />
+            <Flame class="w-3 h-3 text-cyber-warn" />
             {streakDays} day streak
           </span>
         </div>
@@ -112,15 +112,15 @@
 
       <!-- Trend -->
       <div
-        class="flex flex-col items-center gap-1 shrink-0 bg-emerald-500/10 border border-emerald-500/20 rounded-card px-4 py-3"
+        class="flex flex-col items-center gap-1 shrink-0 bg-cyber-success/10 border border-cyber-success/20 rounded-card px-4 py-3"
       >
-        <TrendingUp class="w-5 h-5 text-emerald-400" />
+        <TrendingUp class="w-5 h-5 text-cyber-success" />
         <span
-          class="text-[0.65rem] font-orbitron font-semibold text-emerald-400"
+          class="text-[0.65rem] font-heading font-semibold text-cyber-success"
           >{weeklyGrowth}</span
         >
         <span
-          class="text-[0.55rem] font-mono text-obsidian-text-primary/40 uppercase"
+          class="text-[0.55rem] font-label text-obsidian-text-primary/40 uppercase"
           >This week</span
         >
       </div>
@@ -131,15 +131,15 @@
 <style>
   .xp-track {
     height: 4px;
-    background: rgba(39, 39, 42, 0.8);
+    background: rgb(var(--border-rgb) / 0.8);
     border-radius: 2px;
     overflow: hidden;
   }
   .xp-fill {
     height: 100%;
-    background: linear-gradient(90deg, #07a5c9, #34d399);
+    background: linear-gradient(90deg, var(--accent), var(--success));
     border-radius: 2px;
-    box-shadow: 0 0 8px rgba(7, 165, 201, 0.4);
+    box-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.4);
     transition: width 0.7s ease;
   }
 </style>

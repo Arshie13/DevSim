@@ -20,7 +20,7 @@
 <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
   {#each metrics as metric (metric.label)}
     <div
-      class="group relative bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card p-4 hover:border-obsidian-accent/50 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden shadow-[0_0_20px_rgba(7,165,201,0.10)] hover:shadow-[0_0_30px_rgba(7,165,201,0.22)] cursor-default"
+      class="group relative bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card p-4 hover:border-obsidian-accent/50 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden shadow-[0_0_20px_rgb(var(--accent-rgb)_/_0.10)] hover:shadow-[0_0_30px_rgb(var(--accent-rgb)_/_0.22)] cursor-default"
     >
       <!-- Top accent bar — always visible, brightens on hover -->
       <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-obsidian-accent/35 to-transparent group-hover:via-obsidian-accent/60 transition-all duration-300"></div>
@@ -39,8 +39,8 @@
           <svelte:component this={metric.icon} class="w-4 h-4" style="color: {metric.color};" />
         </div>
         <div>
-          <p class="text-xl font-orbitron font-bold text-obsidian-text-muted leading-tight">{metric.value}</p>
-          <p class="text-[0.6rem] font-mono text-obsidian-text-primary/50 uppercase tracking-wider">{metric.label}</p>
+          <p class="text-xl font-heading font-bold text-obsidian-text-muted leading-tight">{metric.value}</p>
+          <p class="text-[0.6rem] font-label text-obsidian-text-primary/50 uppercase tracking-wider">{metric.label}</p>
         </div>
       </div>
     </div>
