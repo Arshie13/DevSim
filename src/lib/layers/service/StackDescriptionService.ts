@@ -36,16 +36,16 @@ export class StackDescriptionService {
       'google/gemini-2.5-flash:direct'
     ];
 
-    const omnirouteKey = process.env.OMNIROUTE_KEY;
-    if (!omnirouteKey) {
-      return { success: false, error: 'OMNIROUTE_KEY is not configured. Please add it to your .env file.' };
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return { success: false, error: 'OPENROUTER_API_KEY is not configured. Please add it to your .env file.' };
     }
 
     let lastError = null;
 
     for (const modelName of models) {
       try {
-        const result = await this.tryOmniroute(prompt, omnirouteKey, modelName);
+        const result = await this.tryOpenRouterModel(prompt, modelName);
         if (result.success) {
           return { success: true, description: result.description };
         }
@@ -60,7 +60,7 @@ export class StackDescriptionService {
     console.error('All AI models failed:', errorMessage);
     return {
       success: false,
-      error: `OmniRoute unavailable: ${errorMessage}`
+      error: `OpenRouter unavailable: ${errorMessage}`
     };
   }
 
@@ -154,68 +154,6 @@ export class StackDescriptionService {
       return { success: false, error: errorData };
     } catch (error) {
       return { success: false, error };
-    }
-  }
-
-  private async tryOmniroute(
-    prompt: string,
-    apiKey: string,
-    modelName: string
-  ): Promise<{ success: boolean; description?: string; error?: any; status?: number }> {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15_000);
-      const modelResponse = await fetch('http://localhost:20128/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 300,
-          temperature: 0.7,
-        }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-
-      if (modelResponse.ok) {
-        const text = await modelResponse.text();
-        let description = '';
-
-        try {
-          const parsed = JSON.parse(text);
-          description = parsed.choices?.[0]?.message?.content?.trim() || '';
-        } catch {
-          const lines = text.split('\n').filter((line) => line.startsWith('data: '));
-          for (const line of lines) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              description += parsed.choices?.[0]?.delta?.content || '';
-            } catch {}
-          }
-        }
-        if (!description) {
-          return { success: false, error: 'No description generated' };
-        }
-        return { success: true, description: description.trim() };
-      } else {
-        const errorText = await modelResponse.text();
-        let errorData: unknown = errorText || `HTTP ${modelResponse.status}`;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {}
-        return { success: false, error: errorData, status: modelResponse.status };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-      };
     }
   }
 }
