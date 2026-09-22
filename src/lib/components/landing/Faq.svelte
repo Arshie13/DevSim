@@ -10,7 +10,7 @@
     },
     {
       q: "Who is DevSim designed for?",
-      a: "DevSim is built for aspiring and intermediate developers who want to move beyond tutorials and build actual project experience with modern, production-grade tech stacks.",
+      a: "DevSim is built for aspiring developers who want to move beyond tutorials and build actual project experience with modern, production-grade tech stacks.",
     },
     {
       q: "Is DevSim free to use?",
@@ -19,8 +19,8 @@
   ];
 </script>
 
-<section id="faq" class="py-24 px-6 border-t border-[rgba(7,165,201,0.05)]">
-  <div class="max-w-3xl mx-auto">
+<section id="faq" class="py-24 border-t border-[rgba(7,165,201,0.05)]">
+  <div class="page-container max-w-3xl">
     <div class="text-center mb-16">
       <span class="tag-cyber tag-cyan inline-block mb-5">// FAQ</span>
       <h2 class="font-heading font-bold text-[1.8rem] md:text-[2.6rem]">FREQUENTLY ASKED</h2>

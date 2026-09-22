@@ -35,7 +35,7 @@
 <nav
   class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50"
 >
-  <div class="w-full max-w-[1200px] min-w-0 px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between gap-6 mx-auto">
+  <div class="page-container min-w-0 py-3 lg:py-4 flex items-center justify-between gap-6">
 
     <!-- Logo + tagline -->
     <a href="/" class="flex-shrink-0 group">

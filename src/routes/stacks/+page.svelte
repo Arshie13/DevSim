@@ -117,7 +117,7 @@
   <div class="relative z-10 h-screen flex flex-col overflow-hidden">
     <Header userData={headerUserData} />
 
-    <main class="flex-1 w-full max-w-[1320px] mx-auto px-4 pt-6 pb-4 md:px-5 lg:px-6 min-h-0 flex flex-col gap-4">
+    <main class="page-container flex-1 pt-6 pb-4 min-h-0 flex flex-col gap-4">
       <!-- Page Header (matches leaderboards format) -->
       <div class="flex-shrink-0">
         <button

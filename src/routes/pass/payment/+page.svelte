@@ -209,7 +209,7 @@
   <Header userData={headerUserData} onOpenHelp={handleOpenHelp} />
 
   <!-- Back button -->
-  <div class="max-w-[1200px] mx-auto px-6 pt-4">
+  <div class="page-container pt-4">
     <button
       on:click={goBack}
       class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-obsidian-text-muted hover:text-cyber-cyan transition-colors group"
@@ -220,7 +220,7 @@
   </div>
 
   <!-- Focused payment card (login pattern) -->
-  <main class="max-w-[1200px] mx-auto px-6 py-8">
+  <main class="page-container py-8">
     <div
       class="card-cyber card-cyber-body mx-auto w-[min(30rem,95vw)] p-8 sm:p-10 shadow-card-glow"
       style="border-color: rgb(var(--accent-rgb) / 0.25)"

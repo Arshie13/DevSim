@@ -45,7 +45,7 @@
   <Header userData={headerUserData} />
 
   <main class="relative z-10 py-8 lg:py-12">
-    <div class="max-w-[1200px] mx-auto px-6">
+    <div class="page-container">
       
       <!-- Top Actions -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">

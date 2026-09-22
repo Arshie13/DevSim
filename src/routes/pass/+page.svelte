@@ -330,7 +330,7 @@
   />
 
   <!-- Back button: own row above the title -->
-  <div class="w-full max-w-[1200px] mx-auto px-6 pt-4">
+  <div class="w-full page-container pt-4">
     <button
       on:click={handleGoBack}
       class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
@@ -342,7 +342,7 @@
 
   <!-- Main Content -->
   <main class="relative z-10 pt-5 pb-8">
-    <div class="max-w-[1200px] mx-auto px-6">
+    <div class="page-container">
       <header class="mb-5">
         <h1 class="font-heading text-3xl font-bold text-obsidian-text-primary">LEARNER PASS</h1>
         <p class="font-label text-xs text-obsidian-text-muted uppercase tracking-wider mt-1">

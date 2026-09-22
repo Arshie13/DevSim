@@ -43,7 +43,7 @@
 
 <div class="min-h-screen bg-obsidian-bg text-obsidian-text-primary text-sm scanlines ambient-glow bg-grid-cyber">
   <!-- Back button -->
-  <div class="w-full max-w-[1200px] mx-auto px-4 pt-4 md:px-6 lg:px-8">
+  <div class="page-container pt-4">
     <button
       on:click={backToDashboard}
       class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
@@ -53,7 +53,7 @@
     </button>
   </div>
 
-  <main class="w-full max-w-[1200px] mx-auto px-4 py-6 md:px-6 lg:px-8">
+  <main class="page-container py-6">
     <header class="mb-5">
       <h1 class="font-orbitron font-bold text-2xl text-obsidian-text-primary">All Achievements</h1>
       <p class="font-mono text-xs text-obsidian-text-primary/50 uppercase tracking-wider mt-1">

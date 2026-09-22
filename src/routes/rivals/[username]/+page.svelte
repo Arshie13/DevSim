@@ -95,7 +95,7 @@
 
   <!-- Back button bar -->
   {#if canGoBack}
-    <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-4 md:px-6 lg:px-8">
+    <div class="page-container shrink-0 pt-4">
       <button
         on:click={handleBack}
         class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
@@ -108,7 +108,7 @@
 
   <!-- ── Main asymmetric grid ─────────────────────────────────────────────── -->
   <main
-    class="flex-1 min-h-0 w-full max-w-[1400px] mx-auto px-4 py-3 md:px-6 lg:px-8 grid gap-3 lg:gap-4"
+    class="page-container flex-1 min-h-0 py-3 grid gap-3 lg:gap-4"
     style="grid-template-columns: clamp(260px, 28%, 360px) 1fr;"
   >
     <!-- LEFT COLUMN — Profile + Snapshot -->

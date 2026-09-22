@@ -88,7 +88,7 @@
 <div class="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-obsidian-bg bg-grid-cyber scanlines ambient-glow text-obsidian-text-primary text-sm">
 
   <!-- Back button bar -->
-  <div class="shrink-0 w-full max-w-[1200px] mx-auto px-6 pt-4">
+  <div class="shrink-0 w-full page-container pt-4">
     <button
       on:click={handleBack}
       class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
@@ -100,7 +100,7 @@
 
   <!-- ── Main asymmetric grid ─────────────────────────────────────────────── -->
   <main
-    class="flex-1 min-h-0 w-full max-w-[1200px] mx-auto px-6 py-3 grid grid-cols-1 lg:[grid-template-columns:clamp(16.25rem,28%,22.5rem)_1fr] gap-3 lg:gap-4"
+    class="flex-1 min-h-0 w-full page-container py-3 grid grid-cols-1 lg:[grid-template-columns:clamp(16.25rem,28%,22.5rem)_1fr] gap-3 lg:gap-4"
   >
     <!-- LEFT COLUMN — Profile + Snapshot -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">

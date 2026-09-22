@@ -74,7 +74,7 @@
   <Header userData={headerUserData} />
 
   <main class="relative z-10 py-8 lg:py-12">
-    <div class="max-w-[1200px] mx-auto px-6">
+    <div class="page-container">
 
       <!-- Page Header -->
       <div class="mb-12" in:fade={{ duration: 400 }}>

@@ -6,8 +6,8 @@
   ];
 </script>
 
-<section id="about" class="py-24 px-6 border-t border-[rgba(7,165,201,0.05)]">
-  <div class="max-w-5xl mx-auto">
+<section id="about" class="py-24 border-t border-[rgba(7,165,201,0.05)]">
+  <div class="page-container max-w-5xl">
     <div class="text-center mb-16">
       <span class="tag-cyber tag-cyan inline-block mb-5">// ABOUT</span>
       <h2 class="font-heading font-bold text-[1.8rem] md:text-[2.6rem] mb-4">

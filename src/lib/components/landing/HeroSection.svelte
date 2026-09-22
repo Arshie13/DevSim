@@ -42,7 +42,7 @@
   });
 </script>
 
-<section class="relative min-h-[calc(100vh-4.5rem)] lg:min-h-[calc(100vh-5rem)] flex items-center pt-8 pb-20 px-6 overflow-hidden">
+<section class="relative min-h-[calc(100vh-4.5rem)] lg:min-h-[calc(100vh-5rem)] flex items-center pt-8 pb-20 overflow-hidden">
 
   <!-- Floating orbs -->
   <div class="absolute pointer-events-none orb-1"
@@ -52,7 +52,7 @@
   <div class="absolute pointer-events-none orb-3"
     style="top:60%;left:40%;width:300px;height:300px;background:rgb(var(--success-rgb) / 0.04);border-radius:50%;filter:blur(100px);"></div>
 
-  <div class="relative z-10 max-w-[1200px] mx-auto w-full">
+  <div class="relative z-10 page-container">
     <div class="grid lg:grid-cols-2 gap-16 items-center">
 
       <!-- ◈ Left: Hero text -->

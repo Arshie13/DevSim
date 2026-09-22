@@ -7,8 +7,8 @@
   ];
 </script>
 
-<section id="how-it-works" class="py-24 px-6 border-t border-obsidian-accent/5">
-  <div class="max-w-5xl mx-auto">
+<section id="how-it-works" class="py-24 border-t border-obsidian-accent/5">
+  <div class="page-container max-w-5xl">
     <div class="text-center mb-16">
       <span class="tag-cyber tag-cyan inline-block mb-5">// HOW IT WORKS</span>
       <h2 class="font-heading font-bold text-[1.8rem] md:text-[2.6rem]">

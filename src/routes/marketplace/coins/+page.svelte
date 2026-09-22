@@ -90,8 +90,8 @@
 <div class='min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber pb-20'>
   <Header userData={{ ...data.user, coins: userCoins, image: data.user.image ?? undefined }} />
 
-  <main class='relative z-10 py-12 px-6'>
-    <div class='max-w-[1200px] mx-auto'>
+  <main class='relative z-10 py-12'>
+    <div class='page-container'>
       <button
         on:click={() => goto('/dashboard')}
         class='inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group mb-6'

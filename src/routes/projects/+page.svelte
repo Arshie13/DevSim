@@ -57,7 +57,7 @@
   <Header userData={headerUserData} />
 
   <main class="relative z-10 py-6">
-    <div class="max-w-[1200px] mx-auto px-6">
+    <div class="page-container">
       <!-- Back button -->
       <button
         on:click={backToDashboard}

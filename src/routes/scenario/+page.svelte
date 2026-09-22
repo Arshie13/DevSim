@@ -30,7 +30,7 @@
   <div class="relative z-10 flex flex-col min-h-screen">
     <Header userData={headerUserData} />
 
-      <main class="w-full max-w-[1200px] mx-auto px-4 py-4 md:px-6 lg:px-8">
+      <main class="page-container py-4">
       <ScenarioList
         scenarios={data.scenarios}
         stackName={data.stackName}

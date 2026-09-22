@@ -211,7 +211,7 @@
 
   <!-- Main Content -->
   <main class="relative z-10 pt-5 pb-6 flex flex-col gap-5 h-auto lg:h-[calc(100vh-5rem)] lg:overflow-hidden">
-    <div class="max-w-[1200px] mx-auto px-6 flex-1 min-h-0 flex flex-col gap-5">
+    <div class="page-container flex-1 min-h-0 flex flex-col gap-5">
     <!-- Top Section: Welcome + New Stack Button -->
     <div class="flex flex-wrap items-center justify-between gap-4 shrink-0">
       <h2 class="text-2xl font-heading font-bold text-obsidian-text-primary">
