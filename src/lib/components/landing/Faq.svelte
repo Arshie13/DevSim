@@ -33,7 +33,7 @@
             <span class="font-heading font-bold text-[0.9rem] text-[var(--text-primary)]">{faq.q}</span>
             <span
               class="flex-shrink-0 w-6 h-6 border border-[var(--accent)] text-[var(--accent)] flex items-center justify-center text-sm group-open:rotate-45 transition-transform duration-200"
-              style="clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));"
+              style="border-radius: var(--radius-card);"
             >+</span>
           </summary>
           <p

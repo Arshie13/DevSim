@@ -102,7 +102,7 @@
     width: min(520px, 90vw);
     max-height: min(92vh, 820px);
     overflow-y: auto;
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(0, 194, 255, 0.35);
     background: #0d1425;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -157,7 +157,7 @@
     padding: 0.65rem 0.9rem;
     background: rgba(0, 194, 255, 0.07);
     border: 1px solid rgba(0, 194, 255, 0.2);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
   }
 
   .pt-spinner {
@@ -181,7 +181,7 @@
   }
 
   .pt-btn {
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid transparent;
     padding: 0.42rem 0.62rem;
     font-family: var(--font-mono);

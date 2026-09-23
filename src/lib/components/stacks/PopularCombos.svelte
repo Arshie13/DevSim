@@ -141,7 +141,7 @@
     padding: 0.9rem 1.1rem;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.20);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
   }
 
   .preset-header {
@@ -182,7 +182,7 @@
     padding: 0 0.9rem;
     background: linear-gradient(145deg, rgba(9,14,24,0.92) 0%, rgba(12,18,30,0.92) 100%);
     border: 1px solid rgba(7,165,201,0.10);
-    border-radius: 5px;
+    border-radius: var(--radius-card);
     text-align: left;
     cursor: pointer;
     overflow: hidden;
@@ -235,7 +235,7 @@
     color: var(--accent);
     background: rgba(var(--rgb), 0.08);
     border: 1px solid rgba(var(--rgb), 0.2);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   .rarity-badge {
@@ -243,7 +243,7 @@
     font-size: 0.55rem;
     letter-spacing: 0.08em;
     padding: 0.1rem 0.35rem;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     font-weight: 700;
   }
   .rarity-badge.epic {
@@ -292,7 +292,7 @@
     justify-content: center;
     background: rgba(var(--rgb), 0.07);
     border: 1px solid rgba(var(--rgb), 0.15);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     font-size: 0.85rem;
     line-height: 1;
   }
@@ -315,7 +315,7 @@
     padding: 0.15rem 0.45rem;
     background: rgba(var(--rgb), 0.10);
     border: 1px solid rgba(var(--rgb), 0.28);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   .preset-foot {

@@ -161,7 +161,7 @@
     overflow: hidden;
     background: #0d1425;
     border: 1px solid rgba(0, 194, 255, 0.45);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     box-shadow: 0 12px 50px rgba(0, 0, 0, 0.55);
     padding: 0.85rem;
     pointer-events: auto;
@@ -228,7 +228,7 @@
     color: #00e5a0;
     background: rgba(0, 229, 160, 0.1);
     border: 1px solid rgba(0, 229, 160, 0.35);
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
     padding: 0.1rem 0.35rem;
   }
 
@@ -250,7 +250,7 @@
 
   .pt-instruction { margin: 0; line-height: 1.45; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
   .pt-hint { margin: 0; color: rgba(208, 215, 221, 0.72); font-size: 0.88rem; line-height: 1.4; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
-  :global(.pt-inline-code) { font-family: var(--font-mono); font-size: 0.85em; background: rgba(0, 194, 255, 0.1); border: 1px solid rgba(0, 194, 255, 0.25); border-radius: 3px; padding: 0.05em 0.3em; color: #00e5a0; }
+  :global(.pt-inline-code) { font-family: var(--font-mono); font-size: 0.85em; background: rgba(0, 194, 255, 0.1); border: 1px solid rgba(0, 194, 255, 0.25); border-radius: var(--radius-chrome); padding: 0.05em 0.3em; color: #00e5a0; }
 
   .pt-command {
     display: block;
@@ -286,7 +286,7 @@
   .pt-skip-btn:hover { color: rgba(208, 215, 221, 0.65); }
 
   .pt-btn {
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid transparent;
     padding: 0.42rem 0.62rem;
     font-family: var(--font-mono);

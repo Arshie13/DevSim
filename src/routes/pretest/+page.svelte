@@ -257,7 +257,7 @@
               <div class="space-y-4">
                 {#each summaryVideos as video}
                   <a href={video.url} target="_blank" rel="noopener noreferrer"
-                     class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
+                     class="block p-4 rounded-card border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
                     <div class="flex items-start gap-3">
                       <span class="text-[var(--accent)] text-xl">▶</span>
                       <div class="flex-1">
@@ -275,7 +275,7 @@
               <div class="space-y-4">
                 {#each referenceDocs as doc}
                   <a href={doc.url} target="_blank" rel="noopener noreferrer"
-                     class="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
+                     class="block p-4 rounded-card border border-[var(--card-border)] bg-[var(--bg-light)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)] transition-all duration-200">
                     <div class="flex items-start gap-3">
                       <span class="text-[var(--accent)] text-xl">📖</span>
                       <div>
@@ -292,7 +292,7 @@
               <button onclick={retakeQuiz} class="btn-cyber w-full py-3">
                 RETRY QUIZ NOW
               </button>
-              <button onclick={proceedToDashboard} class="bg-[var(--accent)] text-[var(--bg)] py-3 px-8 rounded-lg font-bold w-full hover:opacity-90">
+              <button onclick={proceedToDashboard} class="bg-[var(--accent)] text-[var(--bg)] py-3 px-8 rounded-card font-bold w-full hover:opacity-90">
                 CONTINUE TO DASHBOARD
               </button>
             </div>

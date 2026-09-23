@@ -195,7 +195,7 @@
     overflow-y: auto;
     background: var(--bg-light, #12192a);
     border: 1px solid var(--card-border, rgba(7, 165, 201, 0.15));
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     box-shadow:
       0 0 0 1px rgba(7, 165, 201, 0.07),
       0 0 50px var(--accent-glow, rgba(7, 165, 201, 0.25)),
@@ -206,7 +206,7 @@
   .trivia-card-glow {
     position: absolute;
     inset: -1px;
-    border-radius: 5px;
+    border-radius: var(--radius-card);
     background: linear-gradient(135deg, rgba(7, 165, 201, 0.30), transparent 55%, rgba(99, 102, 241, 0.18));
     z-index: -1;
     pointer-events: none;
@@ -240,13 +240,13 @@
 
   .ds-scrollbar::-webkit-scrollbar-track {
     background: rgba(10, 14, 26, 0.6);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
     margin: 4px 0;
   }
 
   .ds-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(136, 146, 160, 0.3);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.05),
       0 1px 3px rgba(0, 0, 0, 0.3);
@@ -281,7 +281,7 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.25);
     background: rgba(7, 165, 201, 0.1);
     color: var(--cat-color, var(--accent));
@@ -320,7 +320,7 @@
     justify-content: center;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     color: var(--text-muted, #8892a0);
     cursor: pointer;
     transition: all 0.15s ease-in-out;
@@ -364,7 +364,7 @@
     width: 100%;
     background: rgba(10, 14, 26, 0.72);
     border: 1px solid rgba(136, 146, 160, 0.12);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
@@ -401,7 +401,7 @@
     justify-content: center;
     width: 26px;
     height: 26px;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.35);
     background: rgba(7, 165, 201, 0.12);
     color: var(--accent, #07a5c9);
@@ -436,7 +436,7 @@
   .trivia-explanation {
     margin-top: 1.25rem;
     padding: 0.875rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     background: rgba(255, 56, 96, 0.07);
     border: 1px solid rgba(255, 56, 96, 0.2);
   }
@@ -495,7 +495,7 @@
     color: #07a5c9;
     background: rgba(7, 165, 201, 0.1);
     border: 1px solid rgba(7, 165, 201, 0.5);
-    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: all 0.2s;
   }

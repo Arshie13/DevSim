@@ -99,7 +99,7 @@
     box-shadow:
       0 0 16px var(--glow),
       0 8px 32px rgba(0,0,0,0.6);
-    border-radius: 8px;
+    border-radius: var(--radius-card);
   }
 
   .ep-icon-header {
@@ -186,7 +186,7 @@
     align-items: center;
     justify-content: center;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
   }
 
   .ep-close:hover {

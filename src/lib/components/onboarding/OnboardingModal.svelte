@@ -214,7 +214,7 @@
     width: min(94vw, 520px);
     background: #0d1425;
     border: 1px solid rgba(7, 165, 201, 0.2);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 2.5rem 2rem 1.75rem;
     box-shadow:
       0 0 60px rgba(7, 165, 201, 0.07),
@@ -251,7 +251,7 @@
     font-size: 0.95rem;
     color: #8892a0;
     padding: 4px 7px;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     transition: color 0.18s, background 0.18s;
     line-height: 1;
   }
@@ -276,7 +276,7 @@
   }
   .om-dot.om-dot-active {
     width: 22px;
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
   }
 
   /* ── Step label ────────────────────────────────────────────────────────── */
@@ -373,7 +373,7 @@
     width: 100%;
     background: rgba(7, 165, 201, 0.05);
     border: 1px solid;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 0.7rem 1rem;
     margin: 0.5rem 0 0.9rem;
     text-align: left;
@@ -399,7 +399,7 @@
     background: rgba(255, 255, 255, 0.02);
     border-left: 2px solid rgba(7, 165, 201, 0.3);
     padding: 0.45rem 0.7rem;
-    border-radius: 0 2px 2px 0;
+    border-radius: 0 4px 4px 0;
     text-align: left;
     width: 100%;
     margin: 0 0 0.4rem;
@@ -414,7 +414,7 @@
   .om-tool {
     background: rgba(255, 255, 255, 0.025);
     border: 1px solid rgba(7, 165, 201, 0.1);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 0.7rem 0.45rem;
     display: flex;
     flex-direction: column;
@@ -462,7 +462,7 @@
     font-size: 0.78rem;
     letter-spacing: 0.05em;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     transition: color 0.18s, border-color 0.18s;
     white-space: nowrap;
   }
@@ -484,7 +484,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     transition: opacity 0.18s, box-shadow 0.18s;
   }
   .om-btn-next:hover {

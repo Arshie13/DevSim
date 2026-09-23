@@ -1806,8 +1806,8 @@ $effect(() => {
         <div class="flex flex-wrap items-center gap-2 shrink-0">
           <button
             type="button"
-            class="px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
-            style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family: var(--font-heading);"
+            class="px-3 py-1 text-[0.7rem] font-bold rounded-card uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
+            style="font-family: var(--font-heading);"
             onclick={() => handleOpenHelp()}
           >
             Learn more →
@@ -2112,7 +2112,7 @@ $effect(() => {
   :global(.search-highlight-match) {
     background-color: rgba(7, 165, 201, 0.25) !important;
     border: 1px solid rgba(7, 165, 201, 0.6);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   :global(.search-highlight-match-inline) {

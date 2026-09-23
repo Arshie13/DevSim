@@ -143,3 +143,20 @@ viewport. `/stacks` (was `max-w-[1320px]`) and `/rivals/[username]` (was `max-w-
 were converged, and the landing page sections were aligned to the same container (narrower
 reading columns keep their width via `max-w-*` overrides on the same element). The
 authoritative spec is `docs/ui_ux.md` §8.
+
+## Addendum — Radius tokens & rounding sweep (2026-09-23)
+
+The fixed `4px` card radius read harsh next to the softened neon, and radii were expressed
+four inconsistent ways: the `rounded-card` token, `.card-cyber` literals, arbitrary
+`rounded-[4px]`-style classes and bare `rounded`. Radii are now tokenised like colours —
+`--radius-card: 0.5rem` and `--radius-chrome: 2px` in `src/app.css` `:root`, mapped in
+`tailwind.config.ts` to the `rounded-card` / `rounded-chrome` utilities.
+
+Cards, modal shells, panels, inputs and banners share the card tier (the daily-rewards
+day-card exception was removed — it now equals the system). Hairline chrome — tags, XP
+tracks, code chips, scrollbar thumbs — uses the chrome tier. Small controls (icon buttons,
+chips, `kbd` hints) keep Tailwind's default `rounded` (`0.25rem`). Asymmetric corner
+accents doubled their values (`0 4px 4px 0` → `0 8px 8px 0`). Roughly 80 component and
+route files were migrated; `/admin/*` keeps its own styling and was not swept. The `.btn-cyber` clip-path bevel was retired in the same sweep; buttons and beveled panels join the card tier, while decorative corner-cut shapes (badges, hexes, parallelogram masks) remain as accents.
+
+The authoritative spec is `docs/ui_ux.md` §6.

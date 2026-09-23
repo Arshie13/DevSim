@@ -206,7 +206,7 @@
     opacity: 0;
     transform: translateY(12px) scale(0.985);
     transition: all 0.35s ease;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     box-shadow:
       0 0 0 1px rgba(7, 165, 201, 0.06),
       0 0 36px rgba(7, 165, 201, 0.1),
@@ -216,7 +216,7 @@
   .modal-card-glow {
     position: absolute;
     inset: -1px;
-    border-radius: 5px;
+    border-radius: var(--radius-card);
     background: linear-gradient(135deg, rgba(7, 165, 201, 0.22), transparent 62%, rgba(7, 165, 201, 0.14));
     z-index: -1;
     pointer-events: none;
@@ -252,12 +252,12 @@
   }
 
   .level-chip {
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     box-shadow: 0 0 0 1px rgba(7, 165, 201, 0.1);
   }
 
   .close-btn {
-    border-radius: 2px;
+    border-radius: var(--radius-card);
   }
 
   .ring-pulse::after {

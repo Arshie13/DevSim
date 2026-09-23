@@ -142,7 +142,7 @@
     padding: 0.3rem 0.65rem;
     background: var(--bg-light);
     border: 1px solid rgba(7, 165, 201, 0.35);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     color: var(--accent);
     font-family: var(--font-heading);
     font-size: 0.6rem;

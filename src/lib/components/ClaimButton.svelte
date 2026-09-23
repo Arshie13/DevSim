@@ -47,7 +47,7 @@
 <button
   on:click={handleClaim}
   disabled={!canClaim}
-  class="relative w-full rounded-lg font-orbitron font-semibold transition-all duration-200
+  class="relative w-full rounded-card font-orbitron font-semibold transition-all duration-200
     {buttonClasses[size]}
     
     {claimed

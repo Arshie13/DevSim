@@ -187,7 +187,7 @@
     gap: 0.5rem;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.20);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     padding: 0.9rem 1.1rem;
     height: 100%;
     overflow: hidden;
@@ -308,7 +308,7 @@
     justify-content: center;
     background: rgba(7, 165, 201, 0.08);
     border: 1px solid rgba(7, 165, 201, 0.25);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     flex-shrink: 0;
     gap: 1px;
   }
@@ -348,8 +348,8 @@
     padding-right: 2px;
   }
   .tower::-webkit-scrollbar { width: 4px; }
-  .tower::-webkit-scrollbar-track { background: rgba(10,14,26,0.4); border-radius: 2px; }
-  .tower::-webkit-scrollbar-thumb { background: rgba(136,146,160,0.2); border-radius: 2px; }
+  .tower::-webkit-scrollbar-track { background: rgba(10,14,26,0.4); border-radius: var(--radius-chrome); }
+  .tower::-webkit-scrollbar-thumb { background: rgba(136,146,160,0.2); border-radius: var(--radius-chrome); }
   .tower::-webkit-scrollbar-thumb:hover { background: rgba(7,165,201,0.4); }
 
   .tower-layer {
@@ -359,7 +359,7 @@
     padding: 0.45rem 0.6rem 0.45rem 1.1rem;
     background: rgba(var(--rgb), 0.05);
     border: 1px solid rgba(var(--rgb), 0.12);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     position: relative;
     overflow: hidden;
     animation: layerIn 0.35s cubic-bezier(0.22,0.61,0.36,1) both;
@@ -385,7 +385,7 @@
     justify-content: center;
     background: rgba(var(--rgb), 0.08);
     border: 1px solid rgba(var(--rgb), 0.18);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     font-size: 1rem;
     line-height: 1;
     flex-shrink: 0;
@@ -419,7 +419,7 @@
     color: rgba(208,215,221,0.30);
     background: transparent;
     border: none;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: color 0.15s ease, background 0.15s ease;
     flex-shrink: 0;
@@ -448,10 +448,9 @@
     color: #0a0e1a;
     background: #07a5c9;
     border: none;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: all 0.2s ease;
-    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
   }
   .deploy-btn:hover:not(:disabled) {
     background: #00f5ff;
@@ -478,7 +477,7 @@
     color: rgba(7,165,201,0.60);
     background: rgba(7,165,201,0.05);
     border: 1px solid rgba(7,165,201,0.12);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: all 0.2s ease;
   }

@@ -431,7 +431,7 @@
 
   .coach-actions button {
     border: 1px solid rgba(136, 146, 160, 0.34);
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     padding: 0.45rem 0.65rem;
     background: rgba(255, 255, 255, 0.02);
     color: #9fb0bf;
@@ -491,7 +491,7 @@
     z-index: 10046;
     pointer-events: none;
     border: 2px solid;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     transition:
       top 0.42s cubic-bezier(0.4, 0, 0.2, 1),
       left 0.42s cubic-bezier(0.4, 0, 0.2, 1),
@@ -507,7 +507,7 @@
     pointer-events: auto;
     background: #0d1425;
     border: 1px solid rgba(7, 165, 201, 0.22);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(7, 165, 201, 0.05);
     overflow: visible;
     animation: calloutIn 0.26s ease;

@@ -286,7 +286,7 @@
 
               {#if getPreAverage() > 0}
                 {@const delta = getAverageScore() - getPreAverage()}
-                <div class="mb-6 p-5 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)]">
+                <div class="mb-6 p-5 rounded-card bg-[var(--bg-light)] border border-[var(--card-border)]">
                   <h3 class="font-label text-[0.7rem] tracking-widest text-[var(--text-muted)] mb-4">
                     YOUR IMPROVEMENT
                   </h3>
@@ -318,7 +318,7 @@
                   </p>
                 </div>
               {:else}
-                <div class="mb-6 p-4 rounded-lg bg-[var(--bg-light)] border border-[var(--card-border)]">
+                <div class="mb-6 p-4 rounded-card bg-[var(--bg-light)] border border-[var(--card-border)]">
                   <p class="text-[var(--text-muted)] text-sm text-center">
                     No previous assessment score on record to compare against.
                   </p>

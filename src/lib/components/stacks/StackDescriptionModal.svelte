@@ -59,7 +59,7 @@
     <!-- Card -->
     <div
       class="relative w-full max-w-xl mx-4 flex flex-col"
-      style="background:#12192a;border:1px solid rgba(7,165,201,0.25);border-radius:6px;padding:1.25rem;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(7,165,201,0.1),0 0 60px rgba(7,165,201,0.15),0 32px 80px rgba(0,0,0,0.6);"
+      style="background:#12192a;border:1px solid rgba(7,165,201,0.25);border-radius:var(--radius-card);padding:1.25rem;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(7,165,201,0.1),0 0 60px rgba(7,165,201,0.15),0 32px 80px rgba(0,0,0,0.6);"
     >
       <!-- Ambient glow -->
       <div
@@ -174,7 +174,7 @@
 
     background: rgba(7, 165, 201, 0.08);
     border: 1px solid rgba(7, 165, 201, 0.2);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
 
     font-family: var(--font-mono);
     color: #d0d7dd;

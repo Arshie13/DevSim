@@ -62,7 +62,7 @@
     position: relative;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.18);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
   }
   .corner-tl {
     position: absolute;
@@ -72,7 +72,7 @@
     height: 6px;
     border-top: 1px solid;
     border-left: 1px solid;
-    border-radius: 1px 0 0 0;
+    border-radius: 2px 0 0 0;
   }
   .corner-br {
     position: absolute;
@@ -82,7 +82,7 @@
     height: 6px;
     border-bottom: 1px solid;
     border-right: 1px solid;
-    border-radius: 0 0 1px 0;
+    border-radius: 0 0 2px 0;
   }
 
   .cat-name {
@@ -113,7 +113,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 0.2rem 0.6rem;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     color: rgba(208, 215, 221, 0.40);
     border: 1px solid rgba(208, 215, 221, 0.12);
     background: transparent;

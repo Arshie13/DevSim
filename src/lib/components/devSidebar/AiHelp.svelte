@@ -577,7 +577,7 @@
     role: "user" | "ai";
     isWarning?: boolean;
   }): string {
-    let classes = "max-w-[85%] p-3 rounded-lg text-sm ";
+    let classes = "max-w-[85%] p-3 rounded-card text-sm ";
     if (msg.role === "user") {
       classes += "bg-cyan-600/20 text-gray-100";
     } else if (msg.isWarning) {
@@ -633,7 +633,7 @@
         <p class="text-sm font-semibold text-gray-200">{AI_NAME}</p>
         <p class="text-xs text-gray-400">AI Coding Assistant</p>
       </div>
-      <div class="flex items-center gap-1 bg-yellow-600/20 px-2 py-1 rounded-lg">
+      <div class="flex items-center gap-1 bg-yellow-600/20 px-2 py-1 rounded-card">
         <Coins class="w-3 h-3 text-yellow-500" />
         <span class="text-xs font-medium text-yellow-500">{currentCoins}</span>
       </div>
@@ -643,7 +643,7 @@
   <button
     on:click={requestQuickHint}
     disabled={quickHintLoading || !containerId || !userId}
-    class="w-full flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 rounded-lg transition-all text-sm font-medium text-white"
+    class="w-full flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 rounded-card transition-all text-sm font-medium text-white"
   >
     <Bot class="w-4 h-4" />
     Get Quick Hint
@@ -694,7 +694,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full p-4"
+      class="bg-[#12192a] border border-[#27272a] rounded-card max-w-md w-full p-4"
       on:click|stopPropagation
     >
       <div class="flex items-center justify-between mb-3">
@@ -758,7 +758,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" on:click={() => showFilePicker = false}>
-    <div class="bg-[#12192a] border border-[#27272a] rounded-lg max-w-md w-full max-h-[70vh] flex flex-col" on:click|stopPropagation>
+    <div class="bg-[#12192a] border border-[#27272a] rounded-card max-w-md w-full max-h-[70vh] flex flex-col" on:click|stopPropagation>
       <div class="flex items-center justify-between p-4 border-b border-[#27272a]">
         <div class="flex items-center gap-2">
           <Paperclip class="w-5 h-5 text-cyan-500" />
@@ -883,7 +883,7 @@
               >
                 <Bot class="w-3 h-3 text-cyan-500" />
               </div>
-              <div class="bg-slate-900/60 p-3 rounded-lg">
+              <div class="bg-slate-900/60 p-3 rounded-card">
                 <div class="flex gap-1">
                   <span
                     class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
@@ -910,7 +910,7 @@
       {#if attachedFiles.length > 0}
         <div class="flex flex-wrap gap-2 mb-3">
           {#each attachedFiles as file}
-            <div class="flex items-center gap-1 bg-slate-800 border border-zinc-700 rounded-md px-2 py-1 text-xs">
+            <div class="flex items-center gap-1 bg-slate-800 border border-zinc-700 rounded-card px-2 py-1 text-xs">
               <FileText class="w-3 h-3 text-cyan-500" />
               <span class="text-gray-300 max-w-[120px] truncate">{file.name}</span>
               <button 
@@ -929,7 +929,7 @@
         <button
           on:click={() => showFilePicker = true}
           disabled={!canAttachMore}
-          class="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-lg transition-all"
+          class="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-card transition-all"
           title={canAttachMore ? "Attach up to 3 files" : "Maximum files attached"}
         >
           <Paperclip class="w-4 h-4 text-gray-400" />
@@ -940,13 +940,13 @@
           bind:value={userMessage}
           on:keydown={handleKeydown}
           placeholder="Ask for a hint..."
-          class="flex-1 bg-slate-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+          class="flex-1 bg-slate-950 border border-zinc-800 rounded-card px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500"
           disabled={isLoading}
         />
         <button
           on:click={sendMessage}
           disabled={!canSend}
-          class="bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-lg transition-all"
+          class="bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-card transition-all"
         >
           <Send class="w-4 h-4 text-white" />
         </button>
@@ -972,7 +972,7 @@
 
   .overflow-y-auto::-webkit-scrollbar-thumb {
     background: #27272a;
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
   }
 
   .overflow-y-auto::-webkit-scrollbar-thumb:hover {

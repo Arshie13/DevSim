@@ -84,7 +84,7 @@
     width: 100%;
     background: rgba(125, 214, 236, 0.2);
     border: 1px solid rgba(143, 227, 246, 0.9);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     color: #f3fdff;
     caret-color: #aef3ff;
     padding: 0.34rem 0.45rem;

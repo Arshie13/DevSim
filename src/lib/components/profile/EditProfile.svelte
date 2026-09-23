@@ -203,7 +203,7 @@
     content: '';
     position: absolute;
     inset: -6px;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid transparent;
     border-top-color: #07a5c9;
     animation: spin 10s linear infinite;

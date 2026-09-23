@@ -24,12 +24,12 @@
 </script>
 
 <div class="submit-run-panel">
-  <div class="run-head-wrap relative mb-3 overflow-hidden rounded-[4px] border border-[rgba(7,165,201,0.24)] bg-[rgba(10,14,26,0.88)] px-4 py-3">
+  <div class="run-head-wrap relative mb-3 overflow-hidden rounded-card border border-[rgba(7,165,201,0.24)] bg-[rgba(10,14,26,0.88)] px-4 py-3">
     <div class="run-head-glow absolute inset-0" aria-hidden="true"></div>
     <div class="relative">
       <div class="mb-2 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
-          <span class="run-head-icon inline-flex h-8 w-8 items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.35)] bg-[rgba(7,165,201,0.1)] text-[0.92rem]">
+          <span class="run-head-icon inline-flex h-8 w-8 items-center justify-center rounded-card border border-[rgba(7,165,201,0.35)] bg-[rgba(7,165,201,0.1)] text-[0.92rem]">
             {state === 'testing' ? '🧪' : '⚙'}
           </span>
           <div>
@@ -37,20 +37,20 @@
             <p class="run-head-status mt-0.5 [font-family:var(--font-mono)] text-[0.75rem] text-[var(--text-primary)]">{loadingTitle || currentStep.label}</p>
           </div>
         </div>
-        <span class="rounded-[3px] border border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.1)] px-2 py-1 [font-family:var(--font-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-[var(--accent)]">
+        <span class="rounded-card border border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.1)] px-2 py-1 [font-family:var(--font-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-[var(--accent)]">
           {progressPct}%
         </span>
       </div>
-      <div class="h-1.5 w-full overflow-hidden rounded-[2px] bg-[rgba(136,146,160,0.22)]">
+      <div class="h-1.5 w-full overflow-hidden rounded-chrome bg-[rgba(136,146,160,0.22)]">
         <div
-          class="run-head-progress h-full rounded-[2px] bg-[linear-gradient(90deg,var(--accent),var(--cyan-bright))] shadow-[0_0_8px_var(--accent-glow)] transition-all duration-300"
+          class="run-head-progress h-full rounded-chrome bg-[linear-gradient(90deg,var(--accent),var(--cyan-bright))] shadow-[0_0_8px_var(--accent-glow)] transition-all duration-300"
           style={`width: ${progressPct}%`}
         ></div>
       </div>
     </div>
   </div>
 
-  <div class="relative overflow-hidden rounded-[4px] border border-[rgba(7,165,201,0.24)] bg-[rgba(7,165,201,0.04)] px-4 py-3">
+  <div class="relative overflow-hidden rounded-card border border-[rgba(7,165,201,0.24)] bg-[rgba(7,165,201,0.04)] px-4 py-3">
     <div class="run-step-scanline absolute inset-x-0 top-0 h-px" aria-hidden="true"></div>
     <div class="relative">
       <div class="run-queue-wrap">
@@ -74,7 +74,7 @@
     </div>
   </div>
 
-  <div class="mt-3 flex items-center justify-between gap-2 rounded-[4px] border border-[rgba(255,56,96,0.24)] bg-[rgba(255,56,96,0.06)] px-3 py-2">
+  <div class="mt-3 flex items-center justify-between gap-2 rounded-card border border-[rgba(255,56,96,0.24)] bg-[rgba(255,56,96,0.06)] px-3 py-2">
     <p class="[font-family:var(--font-mono)] text-[0.67rem] uppercase tracking-[0.08em] text-[var(--danger)]">Need to stop this run?</p>
     <button
       class="btn-cyber cursor-pointer border border-[rgba(255,56,96,0.4)] bg-[rgba(255,56,96,0.1)] !px-[1rem] !py-[0.55rem] [font-family:var(--font-heading)] !text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--danger)] transition-all duration-150 ease-in-out hover:-translate-y-[1px] hover:border-[rgba(255,56,96,0.7)] hover:bg-[rgba(255,56,96,0.16)] hover:shadow-[0_0_14px_rgba(255,56,96,0.22)] disabled:cursor-not-allowed disabled:opacity-60"
@@ -138,7 +138,7 @@
 
   .run-queue-wrap {
     border: 1px solid rgba(7, 165, 201, 0.2);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     background: rgba(10, 14, 26, 0.46);
     padding: 0.7rem;
   }
@@ -168,7 +168,7 @@
     font-family: var(--font-mono);
     font-size: 0.7rem;
     border: 1px solid rgba(136, 146, 160, 0.28);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 0.35rem 0.45rem;
     min-height: 2rem;
     background: rgba(10, 14, 26, 0.4);
@@ -210,7 +210,7 @@
     width: 1rem;
     height: 1rem;
     border: 1px solid rgba(136, 146, 160, 0.35);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     font-size: 0.6rem;
     font-weight: 700;
     color: var(--text-muted);

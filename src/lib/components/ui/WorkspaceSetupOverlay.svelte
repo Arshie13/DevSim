@@ -106,7 +106,7 @@
     width: 200px;
     height: 2px;
     background: rgba(0, 194, 255, 0.12);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     overflow: hidden;
     margin-top: 0.3rem;
   }

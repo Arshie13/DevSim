@@ -42,7 +42,8 @@ export default {
         }
       },
       borderRadius: {
-        'card': '4px',
+        'card': 'var(--radius-card)',
+        'chrome': 'var(--radius-chrome)',
       },
       boxShadow: {
         'accent-glow': '0 0 15px rgba(7,165,201,0.10)',

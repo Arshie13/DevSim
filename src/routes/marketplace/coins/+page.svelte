@@ -123,7 +123,7 @@
               </div>
             {/if}
 
-            <div class='w-16 h-16 rounded-2xl bg-gradient-to-br {pkg.color} p-4 mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500'>
+            <div class='w-16 h-16 rounded-card bg-gradient-to-br {pkg.color} p-4 mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500'>
               <svelte:component this={pkg.icon} class='w-full h-full text-obsidian-bg' />
             </div>
 
@@ -295,7 +295,7 @@
 
       <div class='mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-obsidian-accent/10 pt-12'>
         <div class='flex gap-4'>
-          <div class='p-3 rounded-xl bg-obsidian-surface h-fit'>
+          <div class='p-3 rounded-card bg-obsidian-surface h-fit'>
             <Zap class='w-6 h-6 text-cyber-cyan' />
           </div>
           <div>
@@ -304,7 +304,7 @@
           </div>
         </div>
         <div class='flex gap-4'>
-          <div class='p-3 rounded-xl bg-obsidian-surface h-fit'>
+          <div class='p-3 rounded-card bg-obsidian-surface h-fit'>
             <Crown class='w-6 h-6 text-amber-500' />
           </div>
           <div>
@@ -313,7 +313,7 @@
           </div>
         </div>
         <div class='flex gap-4'>
-          <div class='p-3 rounded-xl bg-obsidian-surface h-fit'>
+          <div class='p-3 rounded-card bg-obsidian-surface h-fit'>
             <Trophy class='w-6 h-6 text-cyber-cyan' />
           </div>
           <div>

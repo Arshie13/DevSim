@@ -43,7 +43,7 @@
 
   <!-- ── Header ─────────────────────────────────────────────── -->
   <header class="relative z-10 flex items-center gap-2 px-3.5 py-2.5 shrink-0">
-    <div class="flex items-center justify-center w-6 h-6 rounded-[3px] shrink-0"
+    <div class="flex items-center justify-center w-6 h-6 rounded-card shrink-0"
       style="background: rgb(var(--purple-rgb) / 0.12); border: 1px solid rgb(var(--purple-rgb) / 0.3);">
       <Award class="w-3.5 h-3.5 text-cyber-purple" />
     </div>
@@ -155,7 +155,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     overflow: hidden;
     box-shadow: 0 0 30px rgb(var(--accent-rgb) / 0.12);
   }
@@ -203,7 +203,7 @@
     text-transform: uppercase;
     padding: 0.1rem 0.42rem;
     border: 1px solid;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     white-space: nowrap;
   }
   .locked-pill {
@@ -271,7 +271,7 @@
     width: 100%;
     height: clamp(0.5rem, 3.9cqmin, 0.75rem);
     border: 1px solid;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     position: relative;
     overflow: hidden;
     flex-shrink: 0;

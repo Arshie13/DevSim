@@ -271,7 +271,7 @@
     content: "";
     position: absolute;
     inset: -5px;
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     border: 1px solid transparent;
     border-top-color: rgb(var(--accent-rgb) / 0.8);
     border-right-color: rgb(var(--accent-rgb) / 0.2);

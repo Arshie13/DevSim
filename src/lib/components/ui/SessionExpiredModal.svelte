@@ -83,7 +83,7 @@
     width: min(440px, 100%);
     background: var(--bg-light, #12192a);
     border: 1px solid var(--card-border, rgba(7, 165, 201, 0.15));
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     padding: 2.25rem 2.5rem;
     box-shadow:
       0 0 0 1px rgba(7, 165, 201, 0.07),
@@ -94,7 +94,7 @@
   .sem-card-glow {
     position: absolute;
     inset: -1px;
-    border-radius: 7px;
+    border-radius: var(--radius-card);
     background: linear-gradient(135deg, rgba(7, 165, 201, 0.30), transparent 55%, rgba(99, 102, 241, 0.18));
     z-index: -1;
     pointer-events: none;
@@ -173,7 +173,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     background: transparent;
-    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.1s;
     color: var(--warn, #ffb400);

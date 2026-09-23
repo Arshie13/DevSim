@@ -27,7 +27,7 @@
     padding: 3rem 2rem;
     background: var(--bg-light);
     border: 1px dashed rgba(7, 165, 201, 0.25);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     text-align: center;
     display: flex;
     flex-direction: column;

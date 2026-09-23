@@ -133,13 +133,13 @@
             <!-- Icon box with glow -->
             <div class="relative">
               <div
-                class="w-14 h-14 flex items-center justify-center rounded-lg"
+                class="w-14 h-14 flex items-center justify-center rounded-card"
                 style="background: rgba(7,165,201,0.10); border: 1px solid rgba(7,165,201,0.30); color: #07a5c9;"
               >
                 <Layers size={28} />
               </div>
               <div
-                class="absolute inset-0 rounded-lg blur-xl animate-pulse"
+                class="absolute inset-0 rounded-card blur-xl animate-pulse"
                 style="background: rgba(7,165,201,0.15);"
               ></div>
             </div>

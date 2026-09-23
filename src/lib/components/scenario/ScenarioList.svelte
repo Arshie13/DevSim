@@ -307,7 +307,7 @@
     padding: 0.75rem 1rem;
     background: rgba(7, 165, 201, 0.05);
     border: 1px solid rgba(7, 165, 201, 0.18);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
   }
 
   .tutorial-bar-left {
@@ -360,7 +360,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 0.2rem 0.5rem;
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
     background: rgba(7, 165, 201, 0.12);
     border: 1px solid rgba(7, 165, 201, 0.35);
     color: #07a5c9;
@@ -397,7 +397,7 @@
     align-items: center;
     width: 34px;
     height: 18px;
-    border-radius: 9px;
+    border-radius: var(--radius-card);
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.15);
     transition: background 0.2s, border-color 0.2s;

@@ -45,7 +45,7 @@
         class="flex items-center gap-1.5 text-[0.6rem] font-bold uppercase tracking-widest
                text-[#0a0e1a] bg-[#07a5c9] px-3 py-1 hover:bg-[#00f5ff] transition-all
                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#07a5c9]"
-        style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family: var(--font-heading);"
+        style="border-radius:var(--radius-card);font-family: var(--font-heading);"
       >
         <Save class="w-3 h-3" />Save
       </button>

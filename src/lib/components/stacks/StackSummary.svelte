@@ -240,7 +240,7 @@
   .fab-glow {
     position: absolute;
     inset: -4px;
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     background: rgba(7, 165, 201, 0.15);
     filter: blur(12px);
     opacity: 0;
@@ -256,9 +256,8 @@
     padding: 0.65rem 1.1rem;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.30);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .fab:hover .fab-inner {
@@ -280,7 +279,7 @@
     padding: 0.05rem 0.35rem;
     background: rgba(7, 165, 201, 0.10);
     border: 1px solid rgba(7, 165, 201, 0.25);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   /* ══ MODAL ══ */
@@ -306,7 +305,7 @@
     overflow: hidden;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.30);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     max-width: 560px;
     width: 100%;
     max-height: 85vh;
@@ -345,10 +344,9 @@
     color: rgba(208, 215, 221, 0.45);
     background: transparent;
     border: 1px solid rgba(7, 165, 201, 0.25);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-    clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
   }
   .close-btn:hover {
     color: #ff3860;
@@ -371,7 +369,7 @@
     padding: 0.15rem 0.5rem;
     background: rgba(255, 180, 0, 0.10);
     border: 1px solid rgba(255, 180, 0, 0.30);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
   .xp-badge span {
     font-family: var(--font-mono);
@@ -384,7 +382,7 @@
     font-family: var(--font-mono);
     font-size: 0.72rem;
     padding: 0.15rem 0.5rem;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     color: #07a5c9;
     border: 1px solid rgba(7, 165, 201, 0.35);
     background: rgba(7, 165, 201, 0.08);
@@ -416,7 +414,7 @@
     padding: 0.35rem 0.65rem;
     background: rgba(7, 165, 201, 0.08);
     border: 1px solid rgba(7, 165, 201, 0.35);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     box-shadow: 0 0 10px rgba(7, 165, 201, 0.08);
   }
   .stack-pill--empty {
@@ -462,7 +460,7 @@
   }
 
   .btn-ghost {
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    border-radius: var(--radius-card);
     font-family: var(--font-heading);
     font-size: 0.72rem;
     font-weight: 600;
@@ -482,7 +480,7 @@
   }
 
   .btn-primary {
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    border-radius: var(--radius-card);
     font-family: var(--font-heading);
     font-size: 0.72rem;
     font-weight: 700;

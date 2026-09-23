@@ -586,7 +586,7 @@
     z-index: 10042;
     pointer-events: none;
     border: 2px solid rgba(0, 194, 255, 0.95);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     box-shadow:
       0 0 0 9999px rgba(0, 0, 12, 0.82),
       0 0 16px rgba(0, 194, 255, 0.6),

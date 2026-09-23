@@ -150,7 +150,7 @@
     width: 0.62rem;
     height: 0.62rem;
     flex: none;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     background: rgba(7, 165, 201, 0.32);
     border: 1px solid rgba(7, 165, 201, 0.85);
     box-shadow: 0 0 8px rgba(7, 165, 201, 0.55);
@@ -193,7 +193,7 @@
     background: rgba(125, 214, 236, 0.28);
     border: none;
     border-bottom: 1.5px solid #8fe3f6;
-    border-radius: 2px 2px 0 0;
+    border-radius: 4px 4px 0 0;
     color: #f3fdff;
     font-family: var(--font-mono);
     font-size: 0.72rem;

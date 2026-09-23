@@ -202,7 +202,7 @@
     <!-- Stack preview + cost/balance info -->
     <div class="space-y-3">
       <!-- Stack card -->
-      <div class="flex items-center gap-3 bg-obsidian-bg border border-[rgb(var(--accent-rgb)_/_0.12)] rounded-[4px] px-4 py-3">
+      <div class="flex items-center gap-3 bg-obsidian-bg border border-[rgb(var(--accent-rgb)_/_0.12)] rounded-card px-4 py-3">
         <div>
           <p class="font-mono text-[0.85rem] font-semibold text-obsidian-text-primary">{paywallStack.scenario?.name ?? parseStackName(paywallStack.stackName ?? '')}</p>
           {#if paywallStack.scenario?.name}
@@ -213,7 +213,7 @@
       </div>
 
       <!-- Cost row -->
-      <div class="flex items-center justify-between bg-cyber-warn/[0.06] border border-cyber-warn/20 rounded-[4px] px-4 py-2.5">
+      <div class="flex items-center justify-between bg-cyber-warn/[0.06] border border-cyber-warn/20 rounded-card px-4 py-2.5">
         <span class="font-mono text-[0.8rem] text-obsidian-text-muted uppercase tracking-wider">Restore cost</span>
         <div class="flex items-center gap-1.5 text-cyber-warn font-mono font-semibold text-[0.85rem]">
           <Coins class="w-4 h-4" />

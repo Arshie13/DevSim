@@ -202,7 +202,7 @@
           <div class="grid grid-cols-2 gap-4 sm:grid-cols-7 sm:gap-3">
             {#each rewards as reward, idx (reward.day)}
               <div
-                class="flex w-full min-w-0 flex-col items-center rounded-lg border border-obsidian-accent/25 bg-obsidian-bg px-3 py-6 transition-all duration-200"
+                class="flex w-full min-w-0 flex-col items-center rounded-card border border-obsidian-accent/25 bg-obsidian-bg px-3 py-6 transition-all duration-200"
                 class:claimed={reward.claimed}
                 class:pending={!reward.claimed && idx < currentDay}
                 class:locked={idx >= currentDay}

@@ -20,7 +20,7 @@
   <!-- Header -->
   <div class="flex items-center justify-between px-5 py-3 border-b border-obsidian-border/60 shrink-0">
     <div class="flex items-center gap-2.5">
-      <div class="w-6 h-6 rounded-md bg-obsidian-accent/15 flex items-center justify-center">
+      <div class="w-6 h-6 rounded-card bg-obsidian-accent/15 flex items-center justify-center">
         <Users class="w-5 h-5 text-obsidian-accent" />
       </div>
       <h3 class="text-lg font-heading font-semibold text-obsidian-text-muted">Rivals</h3>

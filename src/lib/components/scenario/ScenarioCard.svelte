@@ -79,7 +79,7 @@
           </span>
         </div>
         <div
-          class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
+          class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-chrome border uppercase"
           style="color:{diffColor}; border-color:{diffColor}55; background:{diffColor}14;"
         >
           <Star class="w-2.5 h-2.5 flex-shrink-0" />
@@ -87,7 +87,7 @@
         </div>
         {#if isLocked}
           <div
-            class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase ml-2"
+            class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-chrome border uppercase ml-2"
             style="color:#ffb400; border-color:#ffb40055; background:#ffb40014;"
           >
             <Lock class="w-2.5 h-2.5 flex-shrink-0" />
@@ -172,7 +172,7 @@
             </button>
           {/if}
           <button
-            class="launch-btn flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[#07a5c9] bg-[rgba(7,165,201,0.08)] border border-[rgba(7,165,201,0.35)] px-4 py-2 rounded-[3px] relative overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            class="launch-btn flex items-center gap-1.5 font-['Chakra_Petch',monospace] text-[0.65rem] font-bold tracking-[0.1em] uppercase text-[#07a5c9] bg-[rgba(7,165,201,0.08)] border border-[rgba(7,165,201,0.35)] px-4 py-2 rounded-card relative overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             on:click={() => dispatch("launchSprint")}
             disabled={isLoading || isLocked}
             aria-busy={isLoading}
@@ -225,7 +225,7 @@
         </div>
         <div class="flex items-center gap-2">
           <div
-            class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
+            class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-chrome border uppercase"
             style="color:{diffColor}; border-color:{diffColor}55; background:{diffColor}14;"
           >
             <Star class="w-2.5 h-2.5 flex-shrink-0" />
@@ -233,7 +233,7 @@
           </div>
           {#if isLocked}
             <div
-              class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-[2px] border uppercase"
+              class="flex items-center gap-1 text-[0.62rem] font-mono font-semibold tracking-[0.06em] px-2 py-0.5 rounded-chrome border uppercase"
               style="color:#ffb400; border-color:#ffb40055; background:#ffb40014;"
             >
               <Lock class="w-2.5 h-2.5 flex-shrink-0" />
@@ -260,7 +260,7 @@
     height: 440px;
     display: flex;
     flex-direction: column;
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.12);
     background: linear-gradient(155deg, #0d1525 0%, #0a0e1a 60%, #0d1525 100%);
     overflow: hidden;
@@ -402,7 +402,7 @@
   .desc-scroll.expanded::-webkit-scrollbar { width: 4px; }
   .desc-scroll.expanded::-webkit-scrollbar-thumb {
     background: rgba(7, 165, 201, 0.25);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
   .desc-block {
     border-left: 2px solid rgba(7, 165, 201, 0.35);
@@ -457,9 +457,8 @@
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 6px 12px;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     cursor: pointer;
-    clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
     transition: background 0.2s, border-color 0.2s, color 0.2s;
   }
   .preview-btn:hover {
@@ -469,9 +468,6 @@
   }
 
   /* ── Launch button shimmer ───────────────────────────────────── */
-  .launch-btn {
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
-  }
   .launch-btn::before {
     content: "";
     position: absolute;
@@ -494,7 +490,7 @@
     padding: 0.5rem;
     background: rgba(7, 165, 201, 0.04);
     border: 1px solid rgba(7, 165, 201, 0.12);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
   }
   .epics-header {
     display: flex;
@@ -532,7 +528,7 @@
     padding: 0.2rem 0.45rem;
     background: rgba(0, 0, 0, 0.18);
     border-left: 2px solid;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     font-size: 0.68rem;
   }
   .epic-sprint {

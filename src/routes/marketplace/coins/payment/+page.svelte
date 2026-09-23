@@ -166,7 +166,7 @@
     <div class='grid grid-cols-1 lg:grid-cols-2 gap-8'>
       <div class='bg-obsidian-bg-light/40 border border-obsidian-accent/10 rounded-card p-8 backdrop-blur-md'>
         <div class='flex items-center gap-3 mb-6'>
-          <div class='p-2 rounded-lg bg-cyber-warn/10 border border-cyber-warn/20'>
+          <div class='p-2 rounded-card bg-cyber-warn/10 border border-cyber-warn/20'>
             <Coins class='w-6 h-6 text-cyber-warn' />
           </div>
           <h2 class='text-xl font-orbitron font-bold text-obsidian-text-muted uppercase tracking-tighter'>Order Summary</h2>
@@ -199,14 +199,14 @@
           </div>
 
           <div class='grid grid-cols-1 gap-4 mt-8'>
-            <div class='flex items-start gap-3 p-4 rounded-lg bg-obsidian-bg/40 border border-obsidian-accent/5'>
+            <div class='flex items-start gap-3 p-4 rounded-card bg-obsidian-bg/40 border border-obsidian-accent/5'>
               <Zap class='w-5 h-5 text-cyber-cyan shrink-0' />
               <div>
                 <p class='text-xs font-orbitron font-bold text-obsidian-text-muted uppercase tracking-wider mb-1'>Instant Core Injection</p>
                 <p class='text-[0.7rem] font-rajdhani text-obsidian-text-primary/50'>Coins are credited to your developer profile immediately upon verification.</p>
               </div>
             </div>
-            <div class='flex items-start gap-3 p-4 rounded-lg bg-obsidian-bg/40 border border-obsidian-accent/5'>
+            <div class='flex items-start gap-3 p-4 rounded-card bg-obsidian-bg/40 border border-obsidian-accent/5'>
               <ShieldCheck class='w-5 h-5 text-emerald-500 shrink-0' />
               <div>
                 <p class='text-xs font-orbitron font-bold text-obsidian-text-muted uppercase tracking-wider mb-1'>Encrypted Protocol</p>
@@ -230,7 +230,7 @@
         </div>
 
         {#if errorMessage}
-          <div class='mb-6 p-4 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-mono' role='alert'>
+          <div class='mb-6 p-4 rounded-card bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-mono' role='alert'>
             {errorMessage}
           </div>
         {/if}
@@ -251,7 +251,7 @@
               <label class='block text-[0.65rem] font-orbitron font-bold text-obsidian-text-primary/40 uppercase tracking-[0.2em] mb-3' for='card-element'>
                 Neural-Link Card Authorization
               </label>
-              <div class='p-4 rounded-lg bg-obsidian-bg/60 border border-obsidian-accent/20 focus-within:border-cyber-cyan/40 transition-colors'>
+              <div class='p-4 rounded-card bg-obsidian-bg/60 border border-obsidian-accent/20 focus-within:border-cyber-cyan/40 transition-colors'>
                 <div id='card-element'>
                   {#if !stripeInitialized}
                     <div class='text-xs font-mono text-obsidian-text-primary/30 animate-pulse'>Loading authorization matrix...</div>

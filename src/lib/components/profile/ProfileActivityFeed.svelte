@@ -103,11 +103,11 @@
   }
   .overflow-y-auto::-webkit-scrollbar-track {
     background: rgb(var(--surface-rgb) / 0.3);
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
   }
   .overflow-y-auto::-webkit-scrollbar-thumb {
     background: rgb(var(--accent-rgb) / 0.3);
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
   }
   .overflow-y-auto::-webkit-scrollbar-thumb:hover {
     background: rgb(var(--accent-rgb) / 0.5);

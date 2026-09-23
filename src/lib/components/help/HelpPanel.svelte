@@ -175,7 +175,7 @@
 			<button
 				onclick={() => { requestSent = false; showRequestForm = false; requestSubject = ''; requestDescription = ''; }}
 				class="mt-5 px-5 py-2 text-sm bg-[#07a5c9] text-[#0a0e1a] font-bold hover:bg-[#00f5ff] transition-all"
-				style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
+				style="border-radius:var(--radius-card);font-family: var(--font-heading);"
 			>
 				Done
 			</button>
@@ -246,7 +246,7 @@
 					<button
 						onclick={backToCategories}
 						class="flex-1 px-4 py-2.5 text-sm text-gray-400 border border-slate-700 hover:bg-slate-800 transition-colors"
-						style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));"
+						style="border-radius:var(--radius-card);"
 					>
 						Cancel
 					</button>
@@ -254,7 +254,7 @@
 						onclick={sendHelpRequest}
 						disabled={isSending || !requestSubject.trim() || !requestDescription.trim()}
 						class="flex-1 px-4 py-2.5 text-sm font-bold flex items-center justify-center gap-2 bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-						style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
+						style="border-radius:var(--radius-card);font-family: var(--font-heading);"
 					>
 						{#if isSending}
 							<span class="animate-spin w-3.5 h-3.5 border-2 border-[#0a0e1a] border-t-transparent rounded-full"></span>
@@ -288,7 +288,7 @@
 			{#if error.image}
 				<button
 					onclick={() => openImageLightbox(error.image!)}
-					class="mb-5 rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-fit max-w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
+					class="mb-5 rounded-card overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-fit max-w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
 				>
 					<img
 						src={error.image}
@@ -313,7 +313,7 @@
 									{#if attachment.type === 'image'}
 										<button
 											onclick={() => openImageLightbox(attachment.image)}
-											class="rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-fit max-w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
+											class="rounded-card overflow-hidden border border-slate-700/50 bg-slate-900/30 block w-fit max-w-full text-left cursor-pointer hover:border-[#07a5c9]/30 transition-colors"
 										>
 											<img
 												src={attachment.image}
@@ -326,7 +326,7 @@
 										<button
 											onclick={() => handleAction(attachment.handler)}
 											class="px-4 py-2 text-xs font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-											style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family: var(--font-heading);"
+											style="border-radius:var(--radius-card);font-family: var(--font-heading);"
 										>
 											{attachment.label}
 										</button>
@@ -344,7 +344,7 @@
 						<button
 							onclick={() => handleAction(action.handler)}
 							class="px-4 py-2 text-xs font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-							style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family: var(--font-heading);"
+							style="border-radius:var(--radius-card);font-family: var(--font-heading);"
 						>
 							{action.label}
 						</button>
@@ -356,7 +356,7 @@
 				<button
 					onclick={() => openRequestForm(error.category)}
 					class="w-full px-4 py-2.5 text-sm font-bold border border-[#07a5c9] text-[#07a5c9] hover:bg-[rgba(7,165,201,0.08)] transition-all"
-					style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
+					style="border-radius:var(--radius-card);font-family: var(--font-heading);"
 				>
 					<Send class="w-3.5 h-3.5 inline mr-1.5" />
 					This didn't help — Send a help request
@@ -417,7 +417,7 @@
 					<button
 						onclick={() => openRequestForm()}
 						class="w-full px-4 py-2.5 text-sm font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-						style="clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family: var(--font-heading);"
+						style="border-radius:var(--radius-card);font-family: var(--font-heading);"
 					>
 						<Send class="w-3.5 h-3.5 inline mr-1.5" />
 						Send Help Request
@@ -508,7 +508,7 @@
 
 	.panel-body::-webkit-scrollbar-thumb {
 		background: #27272a;
-		border-radius: 2px;
+		border-radius: var(--radius-chrome);
 	}
 
 	.panel-body::-webkit-scrollbar-thumb:hover {
@@ -548,7 +548,7 @@
 		max-width: 100%;
 		max-height: 85vh;
 		object-fit: contain;
-		border-radius: 8px;
+		border-radius: var(--radius-card);
 		box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
 		border: 1px solid rgba(7, 165, 201, 0.2);
 	}
@@ -565,7 +565,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 6px;
+		border-radius: var(--radius-card);
 		cursor: pointer;
 		transition: all 0.2s;
 	}

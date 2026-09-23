@@ -492,7 +492,7 @@
               </div>
 
               <div
-                class="relative flex-1 w-full rounded-lg border p-3 text-center transition-all duration-200 group-hover:shadow-lg min-h-[100px] flex flex-col items-center justify-center {claimedDays.includes(reward.day)
+                class="relative flex-1 w-full rounded-card border p-3 text-center transition-all duration-200 group-hover:shadow-lg min-h-[100px] flex flex-col items-center justify-center {claimedDays.includes(reward.day)
                   ? 'bg-gradient-to-br from-cyber-success/10 to-cyber-success/5 border-cyber-success/35 hover:border-cyber-success/55 group-hover:shadow-cyber-success/10'
                   : 'bg-gradient-to-br from-cyber-warn/15 to-cyber-warn/5 border-cyber-warn/30 hover:border-cyber-warn/50 group-hover:shadow-cyber-warn/10'}"
               >

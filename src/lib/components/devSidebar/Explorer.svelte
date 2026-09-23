@@ -470,7 +470,7 @@
   <div
     bind:this={contextMenuEl}
     class="fixed z-50 py-1 min-w-[160px]"
-    style="left: {contextMenuPosition.x}px; top: {contextMenuPosition.y}px;background:#12192a;border:1px solid rgba(7,165,201,0.2);border-radius:4px;box-shadow:0 0 24px rgba(7,165,201,0.1),0 8px 32px rgba(0,0,0,0.5);"
+    style="left: {contextMenuPosition.x}px; top: {contextMenuPosition.y}px;background:#12192a;border:1px solid rgba(7,165,201,0.2);border-radius:var(--radius-card);box-shadow:0 0 24px rgba(7,165,201,0.1),0 8px 32px rgba(0,0,0,0.5);"
     on:click|stopPropagation
     on:keydown={(e) => e.key === 'Escape' && closeContextMenu()}
     role="menu"

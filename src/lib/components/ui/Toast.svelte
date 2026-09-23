@@ -96,14 +96,7 @@
     box-shadow:
       0 0 16px var(--glow),
       0 4px 24px rgba(0,0,0,0.6);
-    clip-path: polygon(
-      0 0,
-      calc(100% - 10px) 0,
-      100% 10px,
-      100% 100%,
-      10px 100%,
-      0 calc(100% - 10px)
-    );
+    border-radius: var(--radius-card);
   }
 
   .toast-shimmer {
@@ -194,14 +187,7 @@
     align-items: center;
     justify-content: center;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 4px) 0,
-      100% 4px,
-      100% 100%,
-      4px 100%,
-      0 calc(100% - 4px)
-    );
+    border-radius: var(--radius-card);
   }
 
   .toast-close:hover {

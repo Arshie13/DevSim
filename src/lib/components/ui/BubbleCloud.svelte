@@ -141,7 +141,7 @@
 		position: absolute;
 		inset: -20px;
 		pointer-events: none;
-		border-radius: 14px;
+		border-radius: var(--radius-card);
 		background: radial-gradient(ellipse at 50% 50%, rgba(var(--bubble-accent-rgb), 0.12) 0%, transparent 70%);
 		z-index: 0;
 	}

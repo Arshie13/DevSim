@@ -268,7 +268,7 @@
     color: #07a5c9;
     background: rgba(7, 165, 201, 0.08);
     border: 1px solid rgba(7, 165, 201, 0.35);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     overflow: hidden;
     clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
@@ -312,7 +312,7 @@
     position: relative;
     width: 100%;
     height: 180px;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.2);
     background: rgba(0, 0, 0, 0.3);
     /* overflow: hidden; */
@@ -347,7 +347,7 @@
     color: rgba(7, 165, 201, 0.7);
     background: rgba(7, 165, 201, 0.1);
     padding: 2px 6px;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
   .preview-label {
     font-family: var(--font-mono);
@@ -375,7 +375,7 @@
     position: relative;
     background: linear-gradient(155deg, #0d1525 0%, #0a0e1a 60%, #0d1525 100%);
     border: 1px solid rgba(7, 165, 201, 0.45);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     width: min(1200px, 95vw);
     max-height: 95vh;
     display: flex;
@@ -462,7 +462,7 @@
     background: rgba(7, 165, 201, 0.12);
     border: 1px solid rgba(7, 165, 201, 0.35);
     padding: 3px 7px;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     flex-shrink: 0;
   }
   .label-index {
@@ -479,7 +479,7 @@
     height: 28px;
     background: rgba(7, 165, 201, 0.08);
     border: 1px solid rgba(7, 165, 201, 0.25);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     color: rgba(7, 165, 201, 0.7);
     cursor: pointer;
     transition: background 0.2s, color 0.2s, border-color 0.2s;
@@ -508,7 +508,7 @@
     max-height: 80vh;
     object-fit: contain;
     object-position: top center;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.18);
     box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
     display: block;
@@ -532,7 +532,7 @@
     width: min(100%, 1000px);
     height: 60vh;
     max-height: 80vh;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.18);
     box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
   }
@@ -540,7 +540,7 @@
   .skeleton--inline {
     width: 100%;
     height: 180px;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.2);
   }
 
@@ -556,7 +556,7 @@
     height: 36px;
     background: rgba(7, 165, 201, 0.12);
     border: 1px solid rgba(7, 165, 201, 0.35);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     color: #07a5c9;
     cursor: pointer;
     z-index: 3;

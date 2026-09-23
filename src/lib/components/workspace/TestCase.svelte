@@ -548,7 +548,7 @@
 <div class="relative inline-flex">
   <button
     data-tour="run-tests-button"
-    class="flex items-center gap-1.5 rounded-[3px] border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.08)] px-3.5 py-2 font-heading text-[0.6875rem] font-semibold text-[var(--accent)] transition-all duration-150 ease-in-out hover:border-[rgba(7,165,201,0.4)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_12px_rgba(7,165,201,0.2)] disabled:cursor-not-allowed disabled:opacity-50"
+    class="flex items-center gap-1.5 rounded-card border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.08)] px-3.5 py-2 font-heading text-[0.6875rem] font-semibold text-[var(--accent)] transition-all duration-150 ease-in-out hover:border-[rgba(7,165,201,0.4)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_12px_rgba(7,165,201,0.2)] disabled:cursor-not-allowed disabled:opacity-50"
     on:click={openTestModal}
     disabled={disabled || !hasTestableTasks}
     title={!hasTestableTasks ? 'No tests available for this level' : 'Run tests'}
@@ -557,7 +557,7 @@
     <span>Test</span>
     {#if untestedTasks.length === 0 && testableCount > 0}
       <span
-        class="ml-1 rounded-[2px] px-1.5 py-0.5 text-[0.625rem]"
+        class="ml-1 rounded-chrome px-1.5 py-0.5 text-[0.625rem]"
         class:bg-[rgba(0,229,160,0.15)]={allTestablePassed}
         class:text-[var(--success)]={allTestablePassed}
         class:bg-[rgba(255,56,96,0.15)]={!allTestablePassed && failedTasks.length > 0}
@@ -569,7 +569,7 @@
       </span>
     {:else if passedTasks.length > 0 || failedTasks.length > 0}
       <span
-        class="ml-1 rounded-[2px] px-1.5 py-0.5 text-[0.625rem]"
+        class="ml-1 rounded-chrome px-1.5 py-0.5 text-[0.625rem]"
         class:bg-[rgba(0,229,160,0.15)]={allTestablePassed}
         class:text-[var(--success)]={allTestablePassed}
         class:bg-[rgba(255,56,96,0.15)]={!allTestablePassed && failedTasks.length > 0}

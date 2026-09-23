@@ -124,7 +124,7 @@
     padding: 0.45rem 0.55rem;
     background: rgba(255, 200, 87, 0.1);
     border: 1px solid rgba(255, 184, 28, 0.35);
-    border-radius: 2px;
+    border-radius: var(--radius-card);
   }
 
   .lab-hint-icon {

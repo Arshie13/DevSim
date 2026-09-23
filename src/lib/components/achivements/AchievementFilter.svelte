@@ -39,7 +39,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 0.35rem 0.9rem;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(168, 85, 247, 0.2);
     background: transparent;
     color: rgba(208, 215, 221, 0.45);

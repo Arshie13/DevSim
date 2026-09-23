@@ -219,7 +219,7 @@
     width: min(560px, 94vw);
     background: var(--bg-light, #12192a);
     border: 1px solid var(--card-border, rgba(7, 165, 201, 0.15));
-    border-radius: 4px; /* sharp corners per design guide */
+    border-radius: var(--radius-card);
     padding: 2rem 2.25rem;
     box-shadow:
       0 0 0 1px rgba(7, 165, 201, 0.07),
@@ -231,7 +231,7 @@
   .ls-card-glow {
     position: absolute;
     inset: -1px;
-    border-radius: 5px;
+    border-radius: var(--radius-card);
     background: linear-gradient(135deg, rgba(7, 165, 201, 0.30), transparent 60%, rgba(99, 102, 241, 0.18));
     z-index: -1;
     pointer-events: none;
@@ -310,14 +310,14 @@
   .ls-progress-track {
     height: 5px;
     background: rgba(255, 255, 255, 0.06);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     overflow: hidden;
     margin-bottom: 0.4rem;
   }
   .ls-progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--accent, #07a5c9), var(--cyan-bright, #00f5ff));
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     transition: width 0.8s ease;
     box-shadow: 0 0 8px var(--accent-glow, rgba(7, 165, 201, 0.30));
   }
@@ -347,7 +347,7 @@
     font-size: 0.85rem;
     transition: opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
     border: 1px solid rgba(136, 146, 160, 0.22);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 0.45rem 0.6rem;
     background: rgba(10, 14, 26, 0.4);
   }
@@ -437,7 +437,7 @@
     padding: 0.75rem 1rem;
     background: rgba(255, 56, 96, 0.07);
     border: 1px solid rgba(255, 56, 96, 0.35);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     color: #fca5a5;
     font-family: var(--font-mono);
     font-size: 0.75rem;
@@ -456,7 +456,7 @@
     text-transform: uppercase;
     background: rgba(255, 56, 96, 0.15);
     border: 1px solid rgba(255, 56, 96, 0.45);
-    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+    border-radius: var(--radius-card);
     color: #fecaca;
     cursor: pointer;
     transition: background 0.2s;

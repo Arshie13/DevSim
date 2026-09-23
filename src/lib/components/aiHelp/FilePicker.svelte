@@ -60,7 +60,7 @@
       style="left: clamp(12px, {anchorX ?? 24}px, calc(100vw - 356px)); top: {anchorY ?? 360}px; transform: translateY(calc(-100% - 10px));"
     >
       <div 
-        class="file-picker-pop w-[344px] max-h-[420px] flex flex-col bg-[#0f172a] border-2 border-cyan-400/40 rounded-2xl overflow-hidden shadow-2xl"
+        class="file-picker-pop w-[344px] max-h-[420px] flex flex-col bg-[#0f172a] border-2 border-cyan-400/40 rounded-card overflow-hidden shadow-2xl"
         style="box-shadow: 0 0 26px rgba(6, 182, 212, 0.2);"
         onclick={(e) => { e.stopPropagation(); }}
         role="presentation"
@@ -80,7 +80,7 @@
             type="button"
             onclick={onClose}
             onkeydown={(e) => e.key === 'Enter' && onClose()}
-            class="text-gray-400 hover:text-gray-200 p-1 rounded-lg hover:bg-slate-800 transition-colors absolute right-3 top-2"
+            class="text-gray-400 hover:text-gray-200 p-1 rounded-card hover:bg-slate-800 transition-colors absolute right-3 top-2"
           >
             <X class="w-4 h-4" />
           </button>
@@ -93,7 +93,7 @@
               type="text"
               bind:value={searchQuery}
               placeholder="Search files..."
-              class="w-full bg-slate-950/70 border border-cyan-500/30 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-cyan-400/70 focus:ring-1 focus:ring-cyan-500/40"
+              class="w-full bg-slate-950/70 border border-cyan-500/30 rounded-card pl-9 pr-3 py-1.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-cyan-400/70 focus:ring-1 focus:ring-cyan-500/40"
             />
           </div>
           <div class="mt-2 text-[10px] text-gray-400">
@@ -113,10 +113,10 @@
                   type="button"
                   onclick={() => onAttach(filePath)}
                   onkeydown={(e) => e.key === 'Enter' && onAttach(filePath)}
-                  class="w-full text-left px-2.5 py-2 rounded-lg border border-cyan-500/15 bg-slate-900/30 hover:bg-cyan-500/10 hover:border-cyan-400/45 transition-all group"
+                  class="w-full text-left px-2.5 py-2 rounded-card border border-cyan-500/15 bg-slate-900/30 hover:bg-cyan-500/10 hover:border-cyan-400/45 transition-all group"
                 >
                   <div class="flex items-start gap-2 min-w-0">
-                    <div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-cyan-500/25 bg-slate-950/70">
+                    <div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-card border border-cyan-500/25 bg-slate-950/70">
                       <FileCode class="w-3.5 h-3.5 {getFileIconColor(filePath)}" />
                     </div>
                     <div class="min-w-0 flex-1">

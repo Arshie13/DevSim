@@ -156,7 +156,7 @@
     width: min(94vw, 520px);
     background: #0d1425;
     border: 1px solid rgba(7, 165, 201, 0.2);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 2.5rem 2rem 1.75rem;
     box-shadow:
       0 0 60px rgba(7, 165, 201, 0.07),
@@ -198,7 +198,7 @@
   }
   .dom-dot.dom-dot-active {
     width: 22px;
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
   }
 
   /* ── Step label ── */
@@ -297,7 +297,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     transition: opacity 0.18s, box-shadow 0.18s;
   }
   .dom-btn-next:hover {
@@ -316,7 +316,7 @@
     font-size: 0.75rem;
     letter-spacing: 0.05em;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     transition: color 0.18s, border-color 0.18s;
   }
   .dom-btn-secondary:hover {

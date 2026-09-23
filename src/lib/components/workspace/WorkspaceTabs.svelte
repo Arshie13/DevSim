@@ -64,7 +64,7 @@
       <button
         type="button"
         title={crashCourseCompleted ? "Crash Course (completed)" : "Open Crash Course"}
-        class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2
+        class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2 rounded-card
           {crashCourseCompleted
             ? 'border-[rgba(126,231,135,0.45)] bg-[rgba(126,231,135,0.1)] text-[#93f7a2] hover:bg-[rgba(126,231,135,0.18)]'
             : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"
@@ -89,7 +89,7 @@
       type="button"
       on:click={onToggleAiHelper}
       title="Open AI Helper (SAZ)"
-      class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2
+      class="action-btn px-3 py-1.5 text-[0.66rem] uppercase tracking-[0.1em] border transition-colors whitespace-nowrap inline-flex items-center gap-2 rounded-card
         {aiHelperActive
           ? 'border-[rgba(7,165,201,0.55)] bg-[rgba(7,165,201,0.2)] text-[#caf3ff]'
           : 'border-[rgba(7,165,201,0.28)] bg-[rgba(7,165,201,0.08)] text-[#9fe7ff] hover:bg-[rgba(7,165,201,0.16)]'}"

@@ -233,9 +233,17 @@ padding.
   (`rgba(255,215,0)`) matched no token at all. That is now `--gold`.
 - Cards lift `translateY(-2px)` on hover and show a top shimmer. Do not add competing
   hover effects.
-- `border-radius` is `4px` (`rounded-card`). Do not introduce other radii for cards. Exception:
-  daily-rewards day-cards (the `/pass` grid and the DailyRewardsModal day-cards) use `rounded-lg`
-  (0.5rem) for a friendlier rewards identity.
+- **Radius tiers.** Radii are tokenised in `src/app.css` `:root` and mapped to utilities in
+  `tailwind.config.ts`:
+  - **Card tier — `0.5rem`** (`var(--radius-card)` / `rounded-card`): cards, modal shells,
+    panels, inputs, banners and day-cards. Do not introduce other radii for containers.
+  - **Chrome tier — `2px`** (`var(--radius-chrome)` / `rounded-chrome`): hairline chrome —
+    tags, XP tracks, code chips, inline code, scrollbar thumbs and thin bars.
+  - **Small-control tier — `0.25rem`** (Tailwind default `rounded`): icon buttons, small
+    chips and `kbd` hints. Keep the default class; do not tokenise these.
+- Radii are rem-based and scale with the fluid root font. Asymmetric corner accents
+  (multi-value `border-radius`) double their previous values (e.g. `0 4px 4px 0` →
+  `0 8px 8px 0`). Leave `rounded-full`, `50%` circles and `999px` pills unchanged.
 - **Focused cards.** A single-card page (e.g. auth) may scale the card up: `.card-cyber-body`
   padding overridden to `p-8 sm:p-10`, width `w-[min(30rem,95vw)]`, and an explicit per-card
   accent border `rgb(var(--accent-rgb) / 0.25)`. Reference implementation: `/login`.
@@ -246,11 +254,11 @@ padding.
 
 | Element | Class | Notes |
 | --- | --- | --- |
-| Button base | `.btn-cyber` | Clip-path bevel, uppercase, `0.06em` tracking |
+| Button base | `.btn-cyber` | rounded-card (0.5rem), uppercase, `0.06em` tracking |
 | Outline button | `.btn-cyber .btn-cyber-outline` | Default for secondary actions |
 | Solid button | `.btn-cyber .btn-cyber-solid` | One per view wherever possible |
-| Tag | `.tag-cyber` + `.tag-cyan`/`.tag-green`/`.tag-warn`/`.tag-purple` | Mono, uppercase |
-| Progress bar | `.xp-track` + `.xp-fill` | `4px` tall |
+| Tag | `.tag-cyber` + `.tag-cyan`/`.tag-green`/`.tag-warn`/`.tag-purple` | Mono, uppercase · 2px chrome radius |
+| Progress bar | `.xp-track` + `.xp-fill` | `4px` tall · 2px chrome radius |
 
 Buttons are always uppercase with `0.06em` tracking. Tags always use `.font-label`.
 

@@ -210,7 +210,7 @@
     border: 1px solid rgba(255, 180, 0, 0.5);
     background: rgba(255, 180, 0, 0.06);
     transition: all 0.2s ease;
-    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    border-radius: var(--radius-card);
   }
 
   .action-btn:hover:not(:disabled) {
@@ -241,7 +241,7 @@
   .info-row {
     background: rgba(10, 14, 26, 0.6);
     border: 1px solid rgba(7, 165, 201, 0.18);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 0.75rem 1rem;
   }
 
@@ -265,7 +265,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.6rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     background: rgba(255, 180, 0, 0.06);
     border: 1px solid rgba(255, 180, 0, 0.25);
   }

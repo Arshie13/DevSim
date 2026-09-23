@@ -555,7 +555,7 @@
     overflow: hidden;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.30);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     max-width: 720px;
     width: 100%;
     max-height: 88vh;
@@ -601,10 +601,9 @@
     color: rgba(208, 215, 221, 0.45);
     background: transparent;
     border: 1px solid rgba(7, 165, 201, 0.25);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-    clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
   }
   .close-btn:hover {
     color: #ff3860;
@@ -626,14 +625,14 @@
     letter-spacing: 0.12em;
     padding: 0.15rem 0.5rem;
     border: 1px solid;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
   }
   .layer-badge {
     font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.10em;
     padding: 0.15rem 0.5rem;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     color: rgba(208,215,221,0.40);
     border: 1px solid rgba(208,215,221,0.12);
     background: transparent;
@@ -739,7 +738,7 @@
     padding: 0.55rem 0.75rem 0.55rem 0;
     background: rgba(var(--rgb),0.04);
     border: 1px solid rgba(var(--rgb),0.10);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     position: relative;
     overflow: hidden;
     animation: layerIn 0.45s cubic-bezier(0.22,0.61,0.36,1) calc(var(--i) * 0.07s + 0.04s) both;
@@ -776,7 +775,7 @@
     justify-content: center;
     background: rgba(var(--rgb),0.09);
     border: 1px solid rgba(var(--rgb),0.20);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     flex-shrink: 0;
     box-shadow: 0 0 10px rgba(var(--rgb),0.09), inset 0 0 5px rgba(var(--rgb),0.05);
     margin-top: 0.05rem;
@@ -817,7 +816,7 @@
   .build-preview {
     background: linear-gradient(135deg, rgba(255,180,0,0.07) 0%, rgba(255,200,50,0.03) 100%);
     border: 1px solid rgba(255,180,0,0.17);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 0.75rem 1rem;
   }
   .preview-hd {
@@ -854,7 +853,7 @@
     padding: 0.875rem 1rem;
     background: rgba(7, 165, 201, 0.06);
     border-left: 2px solid #07a5c9;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 8px 8px 0;
   }
   .synergy-text {
     font-family: var(--font-body);
@@ -944,10 +943,9 @@
     color: #07a5c9;
     background: rgba(7,165,201,0.08);
     border: 1px solid rgba(7,165,201,0.25);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease;
-    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
   }
   .retry-btn:hover {
     background: #07a5c9;
@@ -1011,7 +1009,7 @@
     padding: 0.3rem 0.55rem;
     background: rgba(7, 165, 201, 0.08);
     border: 1px solid rgba(7, 165, 201, 0.30);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
   }
   .stack-pill--empty {
     background: transparent;

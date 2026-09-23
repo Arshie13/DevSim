@@ -106,7 +106,7 @@
       <div class="hidden lg:block">
         <div class="term-float">
           <div class="relative overflow-hidden"
-            style="background:var(--terminal-bg); border:1px solid rgb(var(--accent-rgb) / 0.28); border-radius:4px;
+            style="background:var(--terminal-bg); border:1px solid rgb(var(--accent-rgb) / 0.28); border-radius:var(--radius-card);
                    box-shadow: 0 0 60px rgb(var(--accent-rgb) / 0.12), 0 24px 60px rgb(var(--terminal-bg-rgb) / 0.5);">
 
             <!-- Top accent shimmer -->
