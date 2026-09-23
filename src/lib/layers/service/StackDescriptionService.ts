@@ -1,4 +1,5 @@
 import { StackDataAccess } from '../data-access/StackDataAccess';
+import { extractChatContent } from './parseChatCompletion';
 import type { StackSelection } from '$types';
 
 interface StackDescriptionRequest {
@@ -26,16 +27,15 @@ export class StackDescriptionService {
     // Build prompt
     const prompt = this.stackData.buildStackDescriptionPrompt(selection);
 
-    // Keep stack analysis aligned with the AI checker model fallback order.
+    // Keep stack analysis aligned with the AI helper model fallback order.
     const models = [
-      'auto/coding',
-      'auto/best-free',
-      'nvidia/nemotron-3-nano-30b-a3b:free',
-      'google/gemma-3n-e2b-it:free'
+      'oc/muse-spark-1.3-contributor-free',
+      'oc/muse-spark-1.2-contributor-free',
+      'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
     ];
 
-    const omnirouteKey = process.env.OMNIROUTE_KEY;
-    if (!omnirouteKey) {
+    const openRouterKey = process.env.OMNIROUTE_KEY;
+    if (!openRouterKey) {
       return { success: false, error: 'OMNIROUTE_KEY is not configured. Please add it to your .env file.' };
     }
 
@@ -43,7 +43,7 @@ export class StackDescriptionService {
 
     for (const modelName of models) {
       try {
-        const result = await this.tryOmniroute(prompt, omnirouteKey, modelName);
+        const result = await this.tryOpenRouterModel(prompt, modelName);
         if (result.success) {
           return { success: true, description: result.description };
         }
@@ -58,7 +58,7 @@ export class StackDescriptionService {
     console.error('All AI models failed:', errorMessage);
     return {
       success: false,
-      error: `OmniRoute unavailable: ${errorMessage}`
+      error: `OpenRouter unavailable: ${errorMessage}`
     };
   }
 
@@ -180,27 +180,12 @@ export class StackDescriptionService {
       clearTimeout(timeout);
 
       if (modelResponse.ok) {
-        const text = await modelResponse.text();
-        let description = '';
+        const description = extractChatContent(await modelResponse.text());
 
-        try {
-          const parsed = JSON.parse(text);
-          description = parsed.choices?.[0]?.message?.content?.trim() || '';
-        } catch {
-          const lines = text.split('\n').filter((line) => line.startsWith('data: '));
-          for (const line of lines) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              description += parsed.choices?.[0]?.delta?.content || '';
-            } catch {}
-          }
-        }
         if (!description) {
           return { success: false, error: 'No description generated' };
         }
-        return { success: true, description: description.trim() };
+        return { success: true, description };
       } else {
         const errorText = await modelResponse.text();
         let errorData: unknown = errorText || `HTTP ${modelResponse.status}`;

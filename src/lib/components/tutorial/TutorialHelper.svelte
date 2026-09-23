@@ -56,6 +56,7 @@
   let stepCodeSaveDone = false;
   let pendingTerminalCommand: string | null = null;
   let backupCommandPending = false;
+  let searchResultSelectionValid = false;
   let terminalOutputPollId: ReturnType<typeof setInterval> | null = null;
   let stepConfirmReady = false;
   let layerClicks: string[] = [];
@@ -293,6 +294,7 @@
   function resetStepState() {
     stopTerminalOutputPoll();
     backupCommandPending = false;
+    searchResultSelectionValid = false;
     stepConfirmReady = false;
     layerClicks = [];
     reflectionInteracted = false;
@@ -348,7 +350,10 @@
     // there is no way to move forward from them.
     if (isReviewing && !stepRequiresTargetClick(s)) return;
     if (s.id === "search-type-query") {
-      if (pathHasTourTarget(path, "tutorial-search-result-item")) clickError = "Opening selected search result...";
+      if (pathHasTourTarget(path, "tutorial-search-result-item")) {
+        searchResultSelectionValid = false;
+        clickError = "Opening selected search result...";
+      }
       return;
     }
     const targets = [s.target, ...(s.targets ?? [])].filter(Boolean) as string[];
@@ -446,7 +451,19 @@
     const s = getCurrentStep();
     // Same as target clicks: steps with no Next button keep working while reviewing.
     if (isReviewing && !stepRequiresTargetClick(s)) return;
-    if (s.id === "search-type-query") { clickError = ""; advanceStep(); return; }
+    if (s.id === "search-type-query") {
+      const opened = (event as CustomEvent<{ file?: string }>).detail?.file?.toLowerCase() ?? "";
+      const expectedFile = s.requiredFileContains?.toLowerCase();
+      searchResultSelectionValid = !expectedFile || opened.includes(expectedFile);
+      if (searchResultSelectionValid) {
+        clickError = "";
+        advanceStep();
+      } else {
+        const expectedFileName = s.requiredFileContains?.split(/[\\/]/).pop() ?? expectedFile;
+        clickError = `Pick the search result: ${expectedFileName}`;
+      }
+      return;
+    }
     if (!s.requiredFileContains) return;
     const opened = (event as CustomEvent<{ file?: string }>).detail?.file?.toLowerCase() ?? "";
     if (opened.includes(s.requiredFileContains.toLowerCase())) { clickError = ""; advanceStep(); }

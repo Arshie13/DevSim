@@ -4,9 +4,13 @@ import Stripe from 'stripe';
 import { checkRateLimit } from '$lib/server/ratelimit';
 import { ensureLearnerPassEnrollmentForPayment, getLearnerPassConfirmationResult } from '$lib/server/learnerPass';
 import prisma from '$lib/server/client';
+import { hasActiveLearnerPass } from '$lib/server/access/hasProjectAccess';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const LEARNER_PASS_PRICE = 29900;
+
+const ALREADY_HAS_PASS_ERROR =
+  'You already have an active Learner Pass. You can buy another one once it expires.';
 
 // The shared Header needs live account data (coins, xp, avatars, …) that the
 // auth session does not carry — fetch it here so the page can build its
@@ -34,7 +38,22 @@ export const load: PageServerLoad = async (event) => {
     },
   });
 
+  // Duplicate-purchase guard: a user with a live pass must not buy a second one.
+  const active = await hasActiveLearnerPass(userData.id);
+
+  let expiresAt: string | null = null;
+  if (active) {
+    const enrollment = await prisma.learner_pass_enrollment.findFirst({
+      where: { user_id: userData.id },
+      orderBy: { created_at: 'desc' },
+      select: { expires_at: true },
+    });
+    expiresAt = enrollment?.expires_at?.toISOString() ?? null;
+  }
+
   return {
+    alreadyHasPass: active,
+    expiresAt,
     user: {
       ...session.user,
       name: dbUser?.name ?? userData.name ?? 'No Name',
@@ -55,6 +74,21 @@ export const load: PageServerLoad = async (event) => {
   };
 };
 
+/**
+ * A pass conflicts with starting a new purchase unless the given payment was
+ * already linked to an enrollment (idempotent re-confirm of the same payment).
+ */
+async function hasConflictingActivePass(userId: string, paymentId: string): Promise<boolean> {
+  const enrollmentForThisPayment = await prisma.learner_pass_enrollment.findUnique({
+    where: { payment_id: paymentId },
+    select: { id: true },
+  });
+
+  if (enrollmentForThisPayment) return false;
+
+  return hasActiveLearnerPass(userId);
+}
+
 export const actions: Actions = {
   createPaymentIntent: async (event) => {
     const session = await event.locals.auth();
@@ -64,6 +98,10 @@ export const actions: Actions = {
 
     if (!checkRateLimit(`pass_payment:${session.user.id}`, 5, 60000)) {
       return fail(429, { error: 'Too many attempts. Please wait.' });
+    }
+
+    if (await hasActiveLearnerPass(session.user.id)) {
+      return fail(400, { error: ALREADY_HAS_PASS_ERROR });
     }
 
     try {
@@ -94,6 +132,10 @@ export const actions: Actions = {
 
     if (!paymentIntentId) {
       return fail(400, { error: 'Missing paymentIntentId' });
+    }
+
+    if (await hasConflictingActivePass(session.user.id, paymentIntentId)) {
+      return fail(400, { error: ALREADY_HAS_PASS_ERROR });
     }
 
     try {

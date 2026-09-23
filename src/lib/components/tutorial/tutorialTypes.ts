@@ -7,6 +7,7 @@ export type TutorialStep = {
   spotlightTarget?: string;
   targets?: string[];
   requiredFileContains?: string;
+  requiredSearchResultContains?: string;
   switchTab?: 'editor' | 'terminal' | 'preview' | 'board';
   boardSubTab?: 'scenario' | 'board';
   lockBoardTaskModalToTaskOrder?: number;
