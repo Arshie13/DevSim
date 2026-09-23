@@ -24,24 +24,24 @@
 </script>
 
 <div class="submit-run-panel">
-  <div class="run-head-wrap relative mb-3 overflow-hidden rounded-card border border-[rgba(7,165,201,0.24)] bg-[rgba(10,14,26,0.88)] px-4 py-3">
+  <div class="run-head-wrap relative mb-3 overflow-hidden rounded-card border border-[rgb(var(--accent-rgb)/0.24)] bg-[rgb(var(--bg-rgb)/0.88)] px-4 py-3">
     <div class="run-head-glow absolute inset-0" aria-hidden="true"></div>
     <div class="relative">
       <div class="mb-2 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
-          <span class="run-head-icon inline-flex h-8 w-8 items-center justify-center rounded-card border border-[rgba(7,165,201,0.35)] bg-[rgba(7,165,201,0.1)] text-[0.92rem]">
+          <span class="run-head-icon inline-flex h-8 w-8 items-center justify-center rounded-card border border-[rgb(var(--accent-rgb)/0.35)] bg-[rgb(var(--accent-rgb)/0.1)] text-lg">
             {state === 'testing' ? '🧪' : '⚙'}
           </span>
           <div>
-            <p class="[font-family:var(--font-heading)] text-[0.68rem] uppercase tracking-[0.12em] text-[var(--accent)]">Submission Pipeline</p>
-            <p class="run-head-status mt-0.5 [font-family:var(--font-mono)] text-[0.75rem] text-[var(--text-primary)]">{loadingTitle || currentStep.label}</p>
+            <p class="font-label text-xs uppercase tracking-[0.12em] text-[var(--accent)]">Submission Pipeline</p>
+            <p class="run-head-status mt-0.5 font-heading text-base font-semibold text-[var(--text-primary)]">{loadingTitle || currentStep.label}</p>
           </div>
         </div>
-        <span class="rounded-card border border-[rgba(7,165,201,0.3)] bg-[rgba(7,165,201,0.1)] px-2 py-1 [font-family:var(--font-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-[var(--accent)]">
+        <span class="rounded-card border border-[rgb(var(--accent-rgb)/0.3)] bg-[rgb(var(--accent-rgb)/0.1)] px-2 py-1 font-label text-xs uppercase tracking-[0.1em] text-[var(--accent)] tabular-nums">
           {progressPct}%
         </span>
       </div>
-      <div class="h-1.5 w-full overflow-hidden rounded-chrome bg-[rgba(136,146,160,0.22)]">
+      <div class="h-1.5 w-full overflow-hidden rounded-chrome bg-[rgb(var(--text-muted-rgb)/0.22)]">
         <div
           class="run-head-progress h-full rounded-chrome bg-[linear-gradient(90deg,var(--accent),var(--cyan-bright))] shadow-[0_0_8px_var(--accent-glow)] transition-all duration-300"
           style={`width: ${progressPct}%`}
@@ -50,7 +50,7 @@
     </div>
   </div>
 
-  <div class="relative overflow-hidden rounded-card border border-[rgba(7,165,201,0.24)] bg-[rgba(7,165,201,0.04)] px-4 py-3">
+  <div class="relative overflow-hidden rounded-card border border-[rgb(var(--accent-rgb)/0.24)] bg-[rgb(var(--accent-rgb)/0.04)] px-4 py-3">
     <div class="run-step-scanline absolute inset-x-0 top-0 h-px" aria-hidden="true"></div>
     <div class="relative">
       <div class="run-queue-wrap">
@@ -74,10 +74,10 @@
     </div>
   </div>
 
-  <div class="mt-3 flex items-center justify-between gap-2 rounded-card border border-[rgba(255,56,96,0.24)] bg-[rgba(255,56,96,0.06)] px-3 py-2">
-    <p class="[font-family:var(--font-mono)] text-[0.67rem] uppercase tracking-[0.08em] text-[var(--danger)]">Need to stop this run?</p>
+  <div class="mt-3 flex items-center justify-between gap-2 rounded-card border border-[rgb(var(--danger-rgb)/0.24)] bg-[rgb(var(--danger-rgb)/0.06)] px-3 py-2">
+    <p class="font-label text-xs uppercase tracking-[0.08em] text-[var(--danger)]">Need to stop this run?</p>
     <button
-      class="btn-cyber cursor-pointer border border-[rgba(255,56,96,0.4)] bg-[rgba(255,56,96,0.1)] !px-[1rem] !py-[0.55rem] [font-family:var(--font-heading)] !text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--danger)] transition-all duration-150 ease-in-out hover:-translate-y-[1px] hover:border-[rgba(255,56,96,0.7)] hover:bg-[rgba(255,56,96,0.16)] hover:shadow-[0_0_14px_rgba(255,56,96,0.22)] disabled:cursor-not-allowed disabled:opacity-60"
+      class="btn-cyber cursor-pointer border border-[rgb(var(--danger-rgb)/0.4)] bg-[rgb(var(--danger-rgb)/0.1)] px-4 py-2 font-heading text-xs font-semibold uppercase tracking-[0.08em] text-[var(--danger)] transition-all duration-150 ease-in-out hover:-translate-y-[1px] hover:border-[rgb(var(--danger-rgb)/0.7)] hover:bg-[rgb(var(--danger-rgb)/0.16)] hover:shadow-[0_0_14px_rgb(var(--danger-rgb)/0.22)] disabled:cursor-not-allowed disabled:opacity-60"
       on:click={requestCancel}
       disabled={cancelingSubmit}
     >
@@ -93,11 +93,11 @@
 
   .run-head-wrap {
     position: relative;
-    box-shadow: inset 0 0 0 1px rgba(7, 165, 201, 0.08), 0 0 24px rgba(7, 165, 201, 0.08);
+    box-shadow: inset 0 0 0 1px rgb(var(--accent-rgb) / 0.08), 0 0 24px rgb(var(--accent-rgb) / 0.08);
   }
 
   .run-head-glow {
-    background: radial-gradient(circle at 10% 35%, rgba(7, 165, 201, 0.12), transparent 45%);
+    background: radial-gradient(circle at 10% 35%, rgb(var(--accent-rgb) / 0.12), transparent 45%);
     animation: head-glow-shift 4.5s ease-in-out infinite;
   }
 
@@ -107,7 +107,7 @@
 
   .run-head-status {
     white-space: nowrap;
-    text-shadow: 0 0 10px rgba(7, 165, 201, 0.16);
+    text-shadow: 0 0 10px rgb(var(--accent-rgb) / 0.16);
   }
 
   .run-head-progress {
@@ -121,10 +121,10 @@
     inset: 0;
     background: repeating-linear-gradient(
       -55deg,
-      rgba(255, 255, 255, 0.03) 0,
-      rgba(255, 255, 255, 0.03) 4px,
-      rgba(255, 255, 255, 0.48) 4px,
-      rgba(255, 255, 255, 0.48) 9px
+      rgb(var(--text-bright-rgb) / 0.03) 0,
+      rgb(var(--text-bright-rgb) / 0.03) 4px,
+      rgb(var(--text-bright-rgb) / 0.48) 4px,
+      rgb(var(--text-bright-rgb) / 0.48) 9px
     );
     animation: progress-stripes 0.65s linear infinite;
     opacity: 0.9;
@@ -137,9 +137,9 @@
   }
 
   .run-queue-wrap {
-    border: 1px solid rgba(7, 165, 201, 0.2);
+    border: 1px solid rgb(var(--accent-rgb) / 0.2);
     border-radius: var(--radius-card);
-    background: rgba(10, 14, 26, 0.46);
+    background: rgb(var(--bg-rgb) / 0.46);
     padding: 0.7rem;
   }
 
@@ -149,7 +149,8 @@
     text-transform: uppercase;
     letter-spacing: 0.09em;
     color: var(--text-muted);
-    font-size: 0.62rem;
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
   .run-queue-track {
@@ -166,23 +167,23 @@
     align-items: center;
     gap: 0.42rem;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
-    border: 1px solid rgba(136, 146, 160, 0.28);
+    font-size: 0.875rem;
+    border: 1px solid rgb(var(--text-muted-rgb) / 0.28);
     border-radius: var(--radius-card);
     padding: 0.35rem 0.45rem;
     min-height: 2rem;
-    background: rgba(10, 14, 26, 0.4);
+    background: rgb(var(--bg-rgb) / 0.4);
   }
 
   .run-queue-item.done {
-    border-color: rgba(0, 229, 160, 0.35);
-    background: rgba(0, 229, 160, 0.08);
+    border-color: rgb(var(--success-rgb) / 0.35);
+    background: rgb(var(--success-rgb) / 0.08);
   }
 
   .run-queue-item.active {
-    border-color: rgba(7, 165, 201, 0.55);
-    background: rgba(7, 165, 201, 0.12);
-    box-shadow: 0 0 12px rgba(7, 165, 201, 0.16);
+    border-color: rgb(var(--accent-rgb) / 0.55);
+    background: rgb(var(--accent-rgb) / 0.12);
+    box-shadow: 0 0 12px rgb(var(--accent-rgb) / 0.16);
     position: relative;
     overflow: hidden;
     animation: active-stage-pulse 1.4s ease-in-out infinite;
@@ -193,13 +194,13 @@
     position: absolute;
     inset: -1px;
     transform: translateX(-120%);
-    background: linear-gradient(100deg, transparent 10%, rgba(7, 165, 201, 0.24) 50%, transparent 90%);
+    background: linear-gradient(100deg, transparent 10%, rgb(var(--accent-rgb) / 0.24) 50%, transparent 90%);
     animation: active-stage-sweep 1.5s linear infinite;
     pointer-events: none;
   }
 
   .run-queue-item.pending {
-    border-color: rgba(136, 146, 160, 0.23);
+    border-color: rgb(var(--text-muted-rgb) / 0.23);
     opacity: 0.76;
   }
 
@@ -209,21 +210,21 @@
     justify-content: center;
     width: 1rem;
     height: 1rem;
-    border: 1px solid rgba(136, 146, 160, 0.35);
+    border: 1px solid rgb(var(--text-muted-rgb) / 0.35);
     border-radius: var(--radius-chrome);
-    font-size: 0.6rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-muted);
     flex-shrink: 0;
   }
 
   .run-queue-item.done .run-queue-pill {
-    border-color: rgba(0, 229, 160, 0.5);
+    border-color: rgb(var(--success-rgb) / 0.5);
     color: var(--success);
   }
 
   .run-queue-item.active .run-queue-pill {
-    border-color: rgba(7, 165, 201, 0.5);
+    border-color: rgb(var(--accent-rgb) / 0.5);
     color: var(--accent);
   }
 
@@ -253,8 +254,8 @@
 
   .run-queue-detail {
     font-family: var(--font-mono);
-    font-size: 0.64rem;
-    color: rgba(7, 165, 201, 0.85);
+    font-size: 0.875rem;
+    color: rgb(var(--accent-rgb) / 0.85);
     line-height: 1.35;
   }
 
@@ -292,7 +293,7 @@
 
   @keyframes head-icon-pulse {
     0%, 100% {
-      box-shadow: 0 0 0 rgba(7, 165, 201, 0);
+      box-shadow: 0 0 0 rgb(var(--accent-rgb) / 0);
       transform: scale(1);
     }
     50% {
@@ -326,12 +327,12 @@
 
   @keyframes active-stage-pulse {
     0%, 100% {
-      box-shadow: 0 0 12px rgba(7, 165, 201, 0.14);
-      border-color: rgba(7, 165, 201, 0.52);
+      box-shadow: 0 0 12px rgb(var(--accent-rgb) / 0.14);
+      border-color: rgb(var(--accent-rgb) / 0.52);
     }
     50% {
-      box-shadow: 0 0 20px rgba(7, 165, 201, 0.28);
-      border-color: rgba(7, 165, 201, 0.75);
+      box-shadow: 0 0 20px rgb(var(--accent-rgb) / 0.28);
+      border-color: rgb(var(--accent-rgb) / 0.75);
     }
   }
 

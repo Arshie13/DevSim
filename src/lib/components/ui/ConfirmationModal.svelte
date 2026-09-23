@@ -17,6 +17,8 @@
     confirmLabel = 'Confirm',
     /** Label for the cancel button. */
     cancelLabel = 'Cancel',
+    /** Optional override for the cancel button label; wins over `cancelLabel` when set. */
+    cancelText = undefined as string | undefined,
     variant = 'primary' as 'primary' | 'danger' | 'warning' | 'success',
     isLoading = false,
     /** Text shown next to the spinner while loading. */
@@ -39,6 +41,10 @@
     closeOnBackdropClick = true,
     /** Optional data-tour attribute forwarded to the backdrop element for tutorial spotlight targeting. */
     tourId = undefined as string | undefined,
+    /** Optional explicit data-tour id for the confirm button; falls back to the label-derived id. */
+    confirmButtonTourId = undefined as string | undefined,
+    /** CSS width value applied to the modal card. */
+    width = 'min(480px, 100%)',
     /** Content rendered in the default slot. */
     children = undefined as Snippet | undefined,
   } = $props();
@@ -69,11 +75,12 @@
   };
 
   let confirmButtonTour = $derived(
-    confirmLabel === 'Submit & Continue'
-      ? 'submit-sprint-confirm-button'
-      : confirmLabel === 'Proceed to Workspace'
-        ? 'tutorial-proceed-button'
-        : undefined,
+    confirmButtonTourId ??
+      (confirmLabel === 'Submit & Continue'
+        ? 'submit-sprint-confirm-button'
+        : confirmLabel === 'Proceed to Workspace'
+          ? 'tutorial-proceed-button'
+          : undefined),
   );
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -109,7 +116,7 @@
     onkeydown={handleKeydown}
     data-tour={tourId}
   >
-    <div class="cm-card ds-scrollbar">
+    <div class="cm-card ds-scrollbar" style="--cm-card-width: {width};">
       <!-- Animated gradient border glow -->
       <div class="cm-card-glow" aria-hidden="true"></div>
 
@@ -145,7 +152,7 @@
               onclick={handleCancel}
               disabled={isLoading}
             >
-              {cancelLabel}
+              {cancelText ?? cancelLabel}
             </button>
 
             <button
@@ -185,7 +192,7 @@
   /* ── Card ─────────────────────────────────────────────────────────────── */
   .cm-card {
     position: relative;
-    width: min(480px, 100%);
+    width: var(--cm-card-width, min(480px, 100%));
     max-height: min(92vh, 820px);
     overflow-y: auto;
     background: var(--bg-light, #12192a);

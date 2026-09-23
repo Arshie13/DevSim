@@ -231,6 +231,30 @@
     void prepareStep();
   }
 
+  const submitPartByStepId: Record<string, number> = {
+    "submit-sprint-preflight": 1,
+    "submit-sprint-reflection": 2,
+    "submit-sprint-layers": 3,
+    "submit-sprint-confirm": 3,
+  };
+
+  function dispatchSubmitModalPart(s: TutorialStep) {
+    const targets = [s.target, ...(s.targets ?? []), s.spotlightTarget]
+      .filter((v): v is string => Boolean(v));
+    const detail =
+      submitPartByStepId[s.id] ??
+      (targets.includes("mastery-reflection-input")
+        ? 2
+        : targets.some((t) => t.startsWith("impacted-layer-") || t === "submit-sprint-confirm-button")
+          ? 3
+          : s.spotlightTarget === "submit-sprint-modal"
+            ? 1
+            : undefined);
+    if (detail !== undefined) {
+      window.dispatchEvent(new CustomEvent("devsim-tour-submit-part", { detail }));
+    }
+  }
+
   // Close any open tutorial modal, then reopen the one (if any) required by
   // the given step. Forward and Back navigation both funnel through here so
   // the visible modal always matches the current step.
@@ -258,6 +282,7 @@
     if (s.spotlightTarget === "submit-sprint-modal") {
       window.dispatchEvent(new CustomEvent("devsim-tour-open-submit-modal"));
     }
+    dispatchSubmitModalPart(s);
   }
 
   function beginTutorial() { welcomeModalVisible = false; visible = true; void prepareStep(); }
@@ -315,6 +340,12 @@
       return pathHasTourTarget(path, "tutorial-search-panel") ||
         pathHasTourTarget(path, "tutorial-search-input") ||
         pathHasTourTarget(path, "tutorial-search-result-item");
+    }
+    if (s.id === "submit-sprint-reflection") {
+      // The reflection field must stay editable; the step advances on the
+      // modal's Next button, which is also allowed.
+      return pathHasTourTarget(path, "mastery-reflection-input") ||
+        pathHasTourTarget(path, "submit-sprint-confirm-button");
     }
     const allowed = [s.target, ...(s.targets ?? [])]
       .filter((v): v is string => Boolean(v))

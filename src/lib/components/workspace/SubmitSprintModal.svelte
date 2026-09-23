@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { goto } from "$app/navigation";
   import type { ITask } from "$lib/types";
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
-  import SubmitSprintConfirmContent from "$lib/components/workspace/SubmitSprintConfirmContent.svelte";
+  import SubmitSprintPreflightPart from "$lib/components/workspace/SubmitSprintPreflightPart.svelte";
+  import SubmitSprintMasteryPart from "$lib/components/workspace/SubmitSprintMasteryPart.svelte";
+  import SubmitSprintLayersPart from "$lib/components/workspace/SubmitSprintLayersPart.svelte";
   import SubmitSprintProgressContent from "$lib/components/workspace/SubmitSprintProgressContent.svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
   import KeyTakeawaysModal from "./KeyTakeawaysModal.svelte";
@@ -94,6 +96,14 @@
   };
   let masteryReflection = "";
   let impactedLayers: string[] = [];
+
+  // The confirm state is split into sequential parts (steps) inside the shell;
+  // the ModalState machine above is unaffected — steps only exist in "confirm".
+  const MIN_MASTERY_REFLECTION_LENGTH = 80;
+  let confirmStep: 1 | 2 | 3 = 1;
+  let masteryError = "";
+  let layersError = "";
+  let backToStep: 1 | 2 | null = null;
 
   const SUBMIT_STEPS = [
     {
@@ -193,10 +203,28 @@
     SUBMIT_STEPS.length - 1,
   );
   $: expectedLayerCount = inferExpectedLayerCount();
+  $: totalConfirmSteps = masteryCheckpointEnabled ? 3 : 2;
+  $: activeConfirmStepIndex =
+    masteryCheckpointEnabled ? confirmStep - 1 : confirmStep === 3 ? 1 : 0;
+  $: if (masteryReflection.trim().length >= MIN_MASTERY_REFLECTION_LENGTH) masteryError = "";
+  $: if (impactedLayers.length >= expectedLayerCount) layersError = "";
+  // The shell closes itself when its cancel button fires; to use that button as
+  // "Back" on parts 2/3, re-open once the close has landed.
+  $: if (backToStep !== null && !showModal) {
+    confirmStep = backToStep;
+    backToStep = null;
+    showModal = true;
+  }
   $: activeSubmitStep = SUBMIT_STEPS[activeSubmitStepIndex];
   $: loadingTitle = activeSubmitStep?.label ?? "Submitting…";
   $: loadingSubtitle =
     activeSubmitStep?.detail ?? "Please keep this window open.";
+  // The running pipeline gets its own standalone overlay (not nested in the
+  // shell); the shell only returns for the error state, whose error box and
+  // Retry/Fix Issues actions live there.
+  $: pipelineStandalone = state === "loading" || state === "testing";
+  $: if (pipelineStandalone) showModal = false;
+  $: if (state === "error" && !showModal) showModal = true;
 
   $: completedCount = tasks.filter((t) => t.isCompleted).length;
 
@@ -239,6 +267,8 @@
     submitStep = 0;
     submittedNextLevel = null;
     state = "confirm";
+    confirmStep = 1;
+    backToStep = null;
     showModal = true;
     showKeyTakeawaysModal = false;
     hasViewedTakeaways = false;
@@ -259,6 +289,8 @@
     };
     masteryReflection = "";
     impactedLayers = [];
+    masteryError = "";
+    layersError = "";
 
     if (!tutorialMode) fetchFileChanges();
   }
@@ -278,6 +310,7 @@
     if (state === "loading" || state === "testing") return;
     submitError = "";
     state = "confirm";
+    confirmStep = 1;
     showKeyTakeawaysModal = false;
     showModal = true;
   }
@@ -287,6 +320,25 @@
     showModal = false;
     showKeyTakeawaysModal = false;
   }
+
+  // ── Tutorial tour bridge ─────────────────────────────────────────────────
+  // TutorialHelper dispatches a window CustomEvent "devsim-tour-submit-part"
+  // with detail 1 (modal spotlight), 2 (mastery textarea) or 3 (layer chips);
+  // the matching part must be visible when the tour spotlights it.
+  function handleTourSubmitPart(event: Event) {
+    const detail = (event as CustomEvent<number>).detail;
+    if (detail !== 1 && detail !== 2 && detail !== 3) return;
+    confirmStep = (detail === 2 && !masteryCheckpointEnabled ? 3 : detail) as 1 | 2 | 3;
+  }
+
+  onMount(() => {
+    window.addEventListener("devsim-tour-submit-part", handleTourSubmitPart);
+    return () =>
+      window.removeEventListener(
+        "devsim-tour-submit-part",
+        handleTourSubmitPart,
+      );
+  });
 
   function openCancelConfirmation() {
     showCancelConfirmModal = true;
@@ -318,6 +370,7 @@
     cancelingSubmit = false;
     showModal = false;
     state = "confirm";
+    confirmStep = 1;
     submitStep = 0;
     submittedNextLevel = null;
     submitError = "";
@@ -362,7 +415,7 @@
      try {
        // Mastery checkpoint validation (only if enabled globally)
        if (masteryCheckpointEnabled) {
-         if (masteryReflection.trim().length < 80) {
+         if (masteryReflection.trim().length < MIN_MASTERY_REFLECTION_LENGTH) {
            throw new Error(
              "Add a clearer technical reflection (at least 80 characters) before submitting.",
            );
@@ -895,6 +948,7 @@
         isSubmitFlowCanceled
       ) {
         state = "confirm";
+        confirmStep = 1;
         submitError = "";
         return;
       }
@@ -904,6 +958,43 @@
       submitAbortController = null;
       cancelingSubmit = false;
     }
+  }
+
+  // Step router for the part-based confirm screen; the final step hands off to
+  // the submit flow above, whose own validation stays as a backstop.
+  function handleStepConfirm() {
+    if (state !== "confirm") {
+      handleConfirm();
+      return;
+    }
+    if (confirmStep === 1) {
+      confirmStep = masteryCheckpointEnabled ? 2 : 3;
+      return;
+    }
+    if (confirmStep === 2) {
+      if (masteryReflection.trim().length < MIN_MASTERY_REFLECTION_LENGTH) {
+        masteryError = `Add a clearer technical reflection (at least ${MIN_MASTERY_REFLECTION_LENGTH} characters) before continuing.`;
+        return;
+      }
+      confirmStep = 3;
+      return;
+    }
+    if (impactedLayers.length < expectedLayerCount) {
+      layersError = expectedLayerCount > 1
+        ? "This sprint looks multi-layer. Select at least 2 impacted layers."
+        : "Select at least 1 impacted layer before submitting.";
+      return;
+    }
+    handleConfirm();
+  }
+
+  function handleShellCancel() {
+    if (state === "confirm" && confirmStep > 1) {
+      // The shell closes itself on cancel; re-open one part earlier instead of exiting.
+      backToStep = masteryCheckpointEnabled && confirmStep === 3 ? 2 : 1;
+      return;
+    }
+    close();
   }
 
   function handleDone() {
@@ -931,6 +1022,8 @@
   $: iconVariant = (
     state === "error" ? "danger" : state === "testing" ? "warning" : "accent"
   ) as "accent" | "danger" | "warning" | "success";
+  // Confirm-state header is step-aware so each part has exactly one header
+  // (the shell's); the part components no longer repeat their own headings.
   $: modalTitle =
     state === "error"
       ? regressedTasks.length > 0
@@ -940,31 +1033,43 @@
         ? ""
         : state === "testing"
           ? "Running Tests…"
-          : "Submit Sprint?";
+          : state === "confirm"
+            ? confirmStep === 1
+              ? "Submit Sprint?"
+              : confirmStep === 2
+                ? "Mastery Checkpoint"
+                : "Select Layers"
+            : "Submit Sprint?";
   $: modalSubtitle =
     state === "confirm"
-      ? "Are you sure you want to submit your completed tasks? This will validate your work and award XP and coins if all tests pass."
+      ? confirmStep === 1
+        ? "Review the pre-flight summary before continuing."
+        : confirmStep === 2
+          ? "Explain what you changed and why it works."
+          : "Tag which parts of the stack this sprint touched."
       : "";
   $: confirmLabel =
     state === "error"
       ? regressedTasks.length > 0
         ? "Fix Issues"
         : "Retry"
-      : "Submit & Continue";
-  $: cancelLabel =
-    state === "error" ? "Close" : state === "testing" ? "Cancel" : "Cancel";
+      : state === "confirm"
+        ? confirmStep === 3
+          ? "Submit & Continue"
+          : "Next"
+        : "Submit & Continue";
+  $: cancelLabel = state === "error" ? "Close" : "Cancel";
+  $: cancelText = state === "confirm" && confirmStep > 1 ? "Back" : undefined;
   $: variant = (
     state === "error" ? "danger" : state === "testing" ? "warning" : "primary"
   ) as "primary" | "danger" | "warning" | "success";
   $: modalError = state === "error" ? submitError : "";
-  $: hideActions = state === "loading" || state === "testing";
-  $: hideHeader = state === "loading" || state === "testing";
-  $: disableBackdropClose = state === "loading" || state === "testing";
 </script>
 
 <!-- ConfirmationModal is the shell — all states drive its props/slots -->
 <ConfirmationModal
   tourId="submit-sprint-modal"
+  confirmButtonTourId={state === "confirm" ? "submit-sprint-confirm-button" : undefined}
   bind:open={showModal}
   icon={modalIcon}
   {iconVariant}
@@ -972,43 +1077,69 @@
   subtitle={modalSubtitle}
   {confirmLabel}
   {cancelLabel}
+  {cancelText}
   {variant}
-  {hideActions}
-  {hideHeader}
   error={modalError}
-  closeOnBackdropClick={!disableBackdropClose}
-  on:confirm={handleConfirm}
-  on:cancel={close}
+  width="min(34rem, 100%)"
+  on:confirm={handleStepConfirm}
+  on:cancel={handleShellCancel}
 >
   <!-- Default slot: body changes per state -->
    {#if state === "confirm"}
-     <SubmitSprintConfirmContent
-       {tasks}
-       {completedCount}
-       {loadingFileChanges}
-       {fileChanges}
-       expectedLayerCount={expectedLayerCount}
-       bind:masteryReflection
-       bind:impactedLayers
-       rewardXp={levelXpReward}
-       rewardCoins={levelCoinReward}
-       showMasteryCheckpoint={masteryCheckpointEnabled}
-     />
-   {:else if state === "loading" || state === "testing"}
-    <SubmitSprintProgressContent
-      state={state as "loading" | "testing"}
-      {activeSubmitStepIndex}
-      {activeSubmitStep}
-      submitSteps={SUBMIT_STEPS}
-      {loadingTitle}
-      {loadingSubtitle}
-      {cancelingSubmit}
-      on:cancel={openCancelConfirmation}
-    />
-  {/if}
+     <div class="ss-dots" aria-hidden="true">
+       {#each Array(totalConfirmSteps) as _, i}
+         <span class="ss-dot" class:ss-dot-active={i === activeConfirmStepIndex}></span>
+       {/each}
+     </div>
+     <p class="ss-step-label font-label text-xs">Part {activeConfirmStepIndex + 1} of {totalConfirmSteps}</p>
+
+     {#if confirmStep === 1}
+       <SubmitSprintPreflightPart
+         {tasks}
+         {completedCount}
+         {loadingFileChanges}
+         {fileChanges}
+         rewardXp={levelXpReward}
+         rewardCoins={levelCoinReward}
+       />
+     {:else if confirmStep === 2 && masteryCheckpointEnabled}
+       <SubmitSprintMasteryPart
+         bind:masteryReflection
+         error={masteryError}
+       />
+     {:else}
+       <SubmitSprintLayersPart
+         bind:impactedLayers
+         expectedLayerCount={expectedLayerCount}
+         error={layersError}
+       />
+     {/if}
+   {/if}
 
 </ConfirmationModal>
 
+<!-- Standalone submission pipeline: runs in its own overlay while tests/scoring execute -->
+{#if pipelineStandalone}
+  <div
+    class="fixed inset-0 z-[9997] flex items-center justify-center bg-[rgb(var(--bg-rgb)/0.85)] p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Submission pipeline"
+  >
+    <div class="max-h-[85vh] w-[min(34rem,95vw)] overflow-y-auto rounded-card border border-[rgb(var(--accent-rgb)/0.24)] bg-[var(--bg-light)] p-5 shadow-[0_24px_48px_rgb(var(--bg-rgb)/0.55)]">
+      <SubmitSprintProgressContent
+        state={state as "loading" | "testing"}
+        {activeSubmitStepIndex}
+        {activeSubmitStep}
+        submitSteps={SUBMIT_STEPS}
+        {loadingTitle}
+        {loadingSubtitle}
+        {cancelingSubmit}
+        on:cancel={openCancelConfirmation}
+      />
+    </div>
+  </div>
+{/if}
 
 <ConfirmationModal
   bind:open={showCancelConfirmModal}
@@ -1034,3 +1165,33 @@
     handleContinueWorking();
   }}
 />
+
+<style>
+  /* Step pager inside the confirm state (mirrors OnboardingModal's om-dots) */
+  .ss-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 0.4rem;
+  }
+  .ss-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgb(var(--text-muted-rgb) / 0.28);
+    transition: background 0.28s, width 0.28s;
+  }
+  .ss-dot-active {
+    width: 22px;
+    border-radius: var(--radius-chrome);
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+  .ss-step-label {
+    margin: 0 0 0.75rem;
+    text-align: center;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+</style>
