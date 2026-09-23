@@ -31,7 +31,10 @@ export class StackDescriptionService {
       'auto/coding',
       'auto/best-free',
       'nvidia/nemotron-3-nano-30b-a3b:free',
-      'google/gemma-3n-e2b-it:free'
+      'google/gemma-3n-e2b-it:free',
+      'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
+      'oc/muse-spark-1.3-contributor-free',
+      'oc/muse-spark-1.2-contributor-free',
     ];
 
     const omnirouteKey = process.env.OMNIROUTE_KEY;

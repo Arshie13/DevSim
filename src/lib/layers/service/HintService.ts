@@ -380,6 +380,9 @@ Example of CORRECT answer (based on actual file content):
     const defaultModels = [
       'auto/coding',
       'nvidia/nemotron-3-nano-30b-a3b:free',
+      'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
+      'oc/muse-spark-1.3-contributor-free',
+      'oc/muse-spark-1.2-contributor-free',
       'google/gemma-3n-e2b-it:free',
       'qwen/qwen3.6-plus:free',
       'nvidia/nemotron-3-super-120b-a12b:free',
