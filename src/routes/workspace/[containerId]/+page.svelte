@@ -1953,6 +1953,7 @@ $effect(() => {
      {fileContents}
      existingFiles={fileTree}
       masteryCheckpointEnabled={data.masteryCheckpointEnabled}
+      isReplay={data.container?.is_replay ?? false}
       onSubmitted={(detail) => handleSubmitted(undefined, detail)}
       on:submitted={handleSubmitted}
    />

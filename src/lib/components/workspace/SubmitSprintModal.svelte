@@ -29,6 +29,9 @@
   export let levelCoinReward: number = 0;
   export let tutorialMode: boolean = false;
   export let masteryCheckpointEnabled: boolean = true;
+  // Restored (finished) workspace = revisit only: no rewards, no progression,
+  // no archiving. Passed down from the workspace record's is_replay flag.
+  export let isReplay: boolean = false;
   export let onSubmitted: ((data: { xp: number; coins: number; advanceToNextLevel: boolean; nextLevel: number | null }) => void) | undefined = undefined;
 
   // -- State --------------------------------------------------------------------
@@ -629,6 +632,33 @@
         "[SUBMIT SPRINT] All tests passed! Proceeding with submission...",
       );
 
+      // Replay workspace: tests passing is the whole outcome. Skip AI scoring,
+      // mastery gating, reward collection and archiving — the run is frozen, so
+      // there is nothing to award and nothing to advance.
+      if (isReplay) {
+        submitRewards = { xp: 0, coins: 0 };
+        advancingToNextLevel = false;
+        submittedNextLevel = null;
+        state = "confirm";
+        showModal = false;
+        toast.success(
+          "Tests passed. Replay session — no rewards on restored workspaces.",
+        );
+        onSubmitted?.({
+          xp: 0,
+          coins: 0,
+          advanceToNextLevel: false,
+          nextLevel: null,
+        });
+        dispatch("submitted", {
+          xp: 0,
+          coins: 0,
+          advanceToNextLevel: false,
+          nextLevel: null,
+        });
+        return;
+      }
+
       state = "loading";
       await advanceSubmitStep(1);
 
@@ -943,7 +973,9 @@
           : "Submit Sprint?";
   $: modalSubtitle =
     state === "confirm"
-      ? "Are you sure you want to submit your completed tasks? This will validate your work and award XP and coins if all tests pass."
+      ? isReplay
+        ? "This is a restored workspace. Submitting will run your tests so you can verify the finished work — no XP, coins, achievements, or level progress are awarded."
+        : "Are you sure you want to submit your completed tasks? This will validate your work and award XP and coins if all tests pass."
       : "";
   $: confirmLabel =
     state === "error"
@@ -990,9 +1022,9 @@
        expectedLayerCount={expectedLayerCount}
        bind:masteryReflection
        bind:impactedLayers
-       rewardXp={levelXpReward}
-       rewardCoins={levelCoinReward}
-       showMasteryCheckpoint={masteryCheckpointEnabled}
+       rewardXp={isReplay ? 0 : levelXpReward}
+       rewardCoins={isReplay ? 0 : levelCoinReward}
+       showMasteryCheckpoint={masteryCheckpointEnabled && !isReplay}
      />
    {:else if state === "loading" || state === "testing"}
     <SubmitSprintProgressContent

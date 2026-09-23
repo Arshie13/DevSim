@@ -165,7 +165,13 @@ export class WorkspaceService {
       );
 
       // Same guard as above: never reuse a tutorial container for a workspace.
-      if (dbRecord && !(mode === "workspace" && dbRecord.status === "tutorial")) {
+      // Also never adopt a replay workspace — its rewards are frozen, so a new
+      // launch against it would look successful but award nothing.
+      if (
+        dbRecord &&
+        !dbRecord.isReplay &&
+        !(mode === "workspace" && dbRecord.status === "tutorial")
+      ) {
         await this.container.ensureRunning(dockerMatch.Id);
 
         const { dbContainerId } = await saveUserContainer({
@@ -426,6 +432,23 @@ export class WorkspaceService {
         };
       }
 
+      // Replay workspaces are restored finished runs: the level, board state,
+      // and rewards are frozen. Accept the submission as a no-op so the UI can
+      // still confirm "tests pass", but write nothing — no XP, coins, level
+      // advance, status change, achievements, or task_activity rows.
+      if (workspaceRecord.isReplay) {
+        return {
+          success: true,
+          status: 200,
+          replay: true,
+          rewards: { xp: 0, coins: 0 },
+          levelComplete: false,
+          allLevelsComplete: false,
+          nextLevel: null,
+          newlyUnlocked: [],
+        };
+      }
+
       const currentLevel = workspaceRecord.level;
       const scenarioId = workspaceRecord.currentScenarioId;
 
@@ -586,6 +609,18 @@ export class WorkspaceService {
 
       if (!workspaceRecord) {
         return { success: false, status: 404, error: "Workspace not found" };
+      }
+
+      // Replay workspaces never log activity: task_activity feeds lifetime
+      // stats, the weekly chart, and achievement progress, all of which must
+      // stay frozen for a restored run. Board state is already complete.
+      if (workspaceRecord.isReplay) {
+        return {
+          success: true,
+          status: 200,
+          skipped: true,
+          reason: "replay",
+        };
       }
 
       const current = await this.tasks.getCurrentCompletedTasks(

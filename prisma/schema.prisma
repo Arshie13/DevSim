@@ -67,6 +67,11 @@ model workspace {
   /// advance. Replaces the old completed_task table.
   completed_tasks String[] @default([]) @map("completed_tasks")
 
+  /// Set when a finished (archived) workspace is restored for revisiting.
+  /// Replay workspaces are progression-inert: submissions award no XP/coins,
+  /// unlock no achievements, never advance the level, and log no task_activity.
+  is_replay Boolean @default(false) @map("is_replay")
+
   file_changes file_changes[]
   scenario     scenario       @relation(fields: [current_scenario_id], references: [id], onDelete: Restrict)
   user         user           @relation(fields: [user_id], references: [id], onDelete: Cascade)

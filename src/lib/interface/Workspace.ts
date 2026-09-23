@@ -9,6 +9,7 @@ export interface WorkspaceRow {
   stoppedAt: Date | null;
   volume_name: string | null;
   is_archived: boolean;
+  is_replay: boolean;
   createdAt: Date;
   updatedAt: Date;
   stack_name: string | null;

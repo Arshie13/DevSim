@@ -28,7 +28,10 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
     prisma.task_activity.count({ where: { user_id: userId } }),
     prisma.file_changes.count({
       where: {
-        workspace: { user_id: userId },
+        // Replay (restored) workspaces are excluded: editing code in a finished
+        // run must not progress the `file_edits` achievement toward an unlock,
+        // because unlocks pay out XP/coins.
+        workspace: { user_id: userId, is_replay: false },
         action: { in: ["WRITE", "RENAME"] },
       },
     }),

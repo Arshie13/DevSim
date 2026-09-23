@@ -93,7 +93,10 @@ export async function restoreContainer(
 		Labels: {
 			'devsim.userId': req.userId,
 			'devsim.stack': stackNames.join('-'),
-			'devsim.level': record.level.toString()
+			'devsim.level': record.level.toString(),
+			// Marks this container as a replay target so launch/reuse lookups
+			// (ContainerService.findByLabels) skip it.
+			'devsim.replay': 'true'
 		}
 	});
 
@@ -133,12 +136,15 @@ export async function restoreContainer(
 
 	// --- 6. Update the SAME DB record + deduct coins atomically ---
 	// The Container.id never changes — only the Docker container ID, archive flag, and volume name.
+	// is_replay marks this as a revisit: the level, board state, and rewards are
+	// frozen, so future submissions cannot re-award XP/coins or unlock achievements.
 	await prisma.$transaction([
 		prisma.workspace.update({
 			where: { id: req.dbContainerId },
 			data: {
 				container_id: newContainer.id, // new Docker container ID
 				is_archived: false,
+				is_replay: true,
 				volume_name: null,
 				status: 'created'
 			}

@@ -13,6 +13,7 @@ function mapWorkspace(row: WorkspaceRow) {
     stoppedAt: row.stoppedAt,
     volumeName: row.volume_name,
     isArchived: row.is_archived,
+    isReplay: row.is_replay,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     stackName: row.stack_name,
@@ -28,7 +29,9 @@ export class WorkspaceDataAccess {
       where: {
         user_id: userId,
         level,
-        is_archived: false
+        is_archived: false,
+        // Replay workspaces are frozen finished runs — never "active" work.
+        is_replay: false
       },
     });
     return row ? mapWorkspace(row as unknown as WorkspaceRow) : null;
@@ -40,6 +43,7 @@ export class WorkspaceDataAccess {
         user_id: userId,
         is_archived: false,
         status: { not: 'completed' },
+        is_replay: false
       },
       orderBy: { updated_at: 'desc' },
     });
@@ -65,6 +69,9 @@ export class WorkspaceDataAccess {
         is_archived: false,
         stack_name: stackName,
         status: { not: 'completed' },
+        // Never hand back a restored workspace: it is progression-inert, so
+        // reusing it would silently swallow the user's XP/coins on a fresh run.
+        is_replay: false,
       }
     });
 

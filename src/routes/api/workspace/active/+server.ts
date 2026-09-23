@@ -20,6 +20,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
       user_id: session.user.id,
       is_archived: false,
       status: { not: 'completed' },
+      // A restored (replay) workspace is not in-progress work — surfacing it
+      // here would offer to "resume" a frozen run.
+      is_replay: false,
     };
 
     if (stackName && !anyActive) {

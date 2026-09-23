@@ -86,7 +86,14 @@ export class ContainerService {
       })
     });
 
-    return containers.length > 0 ? containers[0] : null;
+    // Restored (replay) containers carry the same user/stack/level labels but
+    // must never be picked up as a launch target — they are progression-inert.
+    // The Docker label filter has no portable negation, so drop them in JS.
+    const reusable = containers.filter(
+      (container) => container.Labels?.['devsim.replay'] !== 'true'
+    );
+
+    return reusable.length > 0 ? reusable[0] : null;
   }
 
   async ensureRunning(containerId: string) {
