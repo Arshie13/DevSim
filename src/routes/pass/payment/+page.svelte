@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { enhance } from "$app/forms";
+  import { enhance, deserialize } from "$app/forms";
   import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from "$env/static/public";
   import {
     loadStripe,
@@ -63,6 +63,15 @@
   });
 
   // Back button: real browser history when there is any, otherwise /pass.
+  function formatExpiry(value: string | null | undefined): string | null {
+    if (!value) return null;
+    return new Date(value).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
   function goBack() {
     if (window.history.length > 1) {
       window.history.back();
@@ -84,6 +93,9 @@
   let purchaseComplete = false;
 
   onMount(async () => {
+    // Nothing to pay for — the checkout form is not rendered for pass holders.
+    if (data.alreadyHasPass) return;
+
     isStripeLoading = true;
     if (!PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       errorMessage = "Stripe publishable key is missing. Check your .env file.";
@@ -175,11 +187,18 @@
         const res = await fetch("?/confirmPayment", {
           method: "POST",
           body: fd,
+          headers: { "x-sveltekit-action": "true" },
         });
-        const confirmResult = await res.json();
+        // SvelteKit wraps action results as { type, status, data } with `data` devalue-encoded.
+        // `deserialize` takes the raw response text — it runs JSON.parse internally.
+        const confirmResult = deserialize(await res.text());
 
         if (confirmResult.type === "failure") {
           errorMessage = (confirmResult.data?.error as string) ?? "Confirmation failed.";
+        } else if (confirmResult.type === "error") {
+          errorMessage = confirmResult.error?.message ?? "Confirmation failed.";
+        } else if (confirmResult.type === "redirect") {
+          await goto(confirmResult.location);
         } else {
           if (confirmResult.data?.status === "pending_webhook") {
             modalTitle = "PAYMENT RECEIVED";
@@ -288,10 +307,29 @@
           </aside>
         </div>
 
-        <!-- Checkout column -->
+      <!-- Already owns an active pass — no second purchase offered -->
+      {#if data.alreadyHasPass}
+        <div
+          class="mt-6 rounded-card border border-[rgb(var(--accent-rgb)_/_0.25)] bg-[rgb(var(--accent-rgb)_/_0.08)] p-4"
+          role="status"
+        >
+          <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-cyber-cyan">
+            Pass already active
+          </p>
+          <p class="mt-2 text-sm leading-relaxed text-obsidian-text-muted">
+            You don't need to buy another one right now.{#if formatExpiry(data.expiresAt)}
+              Your current pass runs until {formatExpiry(data.expiresAt)}.{/if}
+            You can purchase a new pass once it expires.
+          </p>
+          <a href="/pass" class="btn-cyber btn-cyber-solid mt-4 block w-full !py-3.5 text-center">
+            Go to my Learner Pass
+          </a>
+        </div>
+      {:else}
+          <!-- Checkout column -->
         <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-5">
           <!-- Checkout header -->
-          <div class="flex items-baseline justify-between border-b border-[var(--card-border)] pb-3">
+            <div class="flex items-baseline justify-between border-b border-[var(--card-border)] pb-3">
             <p class="font-heading text-xs font-bold uppercase tracking-[0.07em] text-obsidian-text-primary">
               Secure Checkout
             </p>
@@ -343,6 +381,7 @@
           {/if}
         </div>
       </div>
+      {/if}
     </div>
   </main>
 

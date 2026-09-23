@@ -417,6 +417,8 @@ export const STEPS: TutorialStep[] = [
     hint: 'Type "To-Do List Tutorial" in the search box and click the highlighted result snippet. There should be two results there, click the one with the <h1> tag.',
     target: 'tutorial-search-result-item',
     spotlightTarget: 'tutorial-search-panel',
+    requiredSearchResultContains: '<h1>',
+    requiredFileContains: 'client/src/pages/TodoPage.tsx',
     switchTab: 'editor',
     requireTargetClick: true,
     preferSide: 'left',
