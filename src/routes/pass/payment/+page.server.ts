@@ -1,11 +1,52 @@
 import { fail } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import Stripe from 'stripe';
 import { checkRateLimit } from '$lib/server/ratelimit';
 import { ensureLearnerPassEnrollmentForPayment, getLearnerPassConfirmationResult } from '$lib/server/learnerPass';
+import { hasActiveLearnerPass } from '$lib/server/access/hasProjectAccess';
+import prisma from '$lib/server/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const LEARNER_PASS_PRICE = 29900;
+
+const ALREADY_HAS_PASS_ERROR =
+  'You already have an active Learner Pass. You can buy another one once it expires.';
+
+export const load: PageServerLoad = async (event) => {
+  const session = await event.locals.auth();
+  if (!session?.user?.id) {
+    return { alreadyHasPass: false, expiresAt: null };
+  }
+
+  const active = await hasActiveLearnerPass(session.user.id);
+
+  let expiresAt: string | null = null;
+  if (active) {
+    const enrollment = await prisma.learner_pass_enrollment.findFirst({
+      where: { user_id: session.user.id },
+      orderBy: { created_at: 'desc' },
+      select: { expires_at: true },
+    });
+    expiresAt = enrollment?.expires_at?.toISOString() ?? null;
+  }
+
+  return { alreadyHasPass: active, expiresAt };
+};
+
+/**
+ * A pass conflicts with starting a new purchase unless the given payment was
+ * already linked to an enrollment (idempotent re-confirm of the same payment).
+ */
+async function hasConflictingActivePass(userId: string, paymentId: string): Promise<boolean> {
+  const enrollmentForThisPayment = await prisma.learner_pass_enrollment.findUnique({
+    where: { payment_id: paymentId },
+    select: { id: true },
+  });
+
+  if (enrollmentForThisPayment) return false;
+
+  return hasActiveLearnerPass(userId);
+}
 
 export const actions: Actions = {
   createPaymentIntent: async (event) => {
@@ -16,6 +57,10 @@ export const actions: Actions = {
 
     if (!checkRateLimit(`pass_payment:${session.user.id}`, 5, 60000)) {
       return fail(429, { error: 'Too many attempts. Please wait.' });
+    }
+
+    if (await hasActiveLearnerPass(session.user.id)) {
+      return fail(400, { error: ALREADY_HAS_PASS_ERROR });
     }
 
     try {
@@ -46,6 +91,10 @@ export const actions: Actions = {
 
     if (!paymentIntentId) {
       return fail(400, { error: 'Missing paymentIntentId' });
+    }
+
+    if (await hasConflictingActivePass(session.user.id, paymentIntentId)) {
+      return fail(400, { error: ALREADY_HAS_PASS_ERROR });
     }
 
     try {

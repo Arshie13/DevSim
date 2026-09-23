@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { enhance } from "$app/forms";
+  import { enhance, deserialize } from "$app/forms";
   import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from "$env/static/public";
   import {
     loadStripe,
@@ -11,6 +11,9 @@
   } from "@stripe/stripe-js";
 
   import PurchaseSuccessModal from "$components/ui/PurchaseSuccessModal.svelte";
+  import type { PageData } from "./$types";
+
+  export let data: PageData;
 
   let stripe: Stripe | null = null;
   let elements: StripeElements | null = null;
@@ -25,6 +28,9 @@
   let purchaseComplete = false;
 
   onMount(async () => {
+    // Nothing to pay for — the checkout form is not rendered for pass holders.
+    if (data.alreadyHasPass) return;
+
     isStripeLoading = true;
     if (!PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       errorMessage = "Stripe publishable key is missing. Check your .env file.";
@@ -115,11 +121,18 @@
         const res = await fetch("?/confirmPayment", {
           method: "POST",
           body: fd,
+          headers: { "x-sveltekit-action": "true" },
         });
-        const confirmResult = await res.json();
+        // SvelteKit wraps action results as { type, status, data } with `data` devalue-encoded.
+        // `deserialize` takes the raw response text — it runs JSON.parse internally.
+        const confirmResult = deserialize(await res.text());
 
         if (confirmResult.type === "failure") {
           errorMessage = (confirmResult.data?.error as string) ?? "Confirmation failed.";
+        } else if (confirmResult.type === "error") {
+          errorMessage = confirmResult.error?.message ?? "Confirmation failed.";
+        } else if (confirmResult.type === "redirect") {
+          await goto(confirmResult.location);
         } else {
           if (confirmResult.data?.status === "pending_webhook") {
             modalTitle = "PAYMENT RECEIVED";
@@ -138,13 +151,55 @@
       }
     };
   }
+
+  function formatExpiry(value: string | null | undefined): string | null {
+    if (!value) return null;
+    return new Date(value).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
+  function goBack() {
+    // Use real browser history so the user returns to whichever page sent them here.
+    // Falls back to the pass page when there is no history to go back to
+    // (e.g. the checkout URL was opened directly).
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    goto("/pass");
+  }
 </script>
 
 <main class="payment-shell">
-  <section class="payment-card" aria-busy={isStripeLoading || isSubmitting}>
-    <div class="top-accent"></div>
+  <button type="button" class="back-button" on:click={goBack}>
+    <span aria-hidden="true">&larr;</span>
+    Back
+  </button>
 
-    <div class="layout-grid">
+  {#if data.alreadyHasPass}
+    <section class="payment-card" aria-labelledby="already-owned-title">
+      <div class="top-accent"></div>
+
+      <div class="notice" role="status">
+        <p class="eyebrow">Learner Pass Checkout</p>
+        <h1 id="already-owned-title">You already have an active Learner Pass</h1>
+        <p class="subcopy">
+          You don't need to buy another one right now. Your current pass is active{#if formatExpiry(data.expiresAt)}
+            and runs until {formatExpiry(data.expiresAt)}{/if}. You can purchase a new pass once it
+          expires.
+        </p>
+        <a class="notice-cta" href="/pass">Go to my Learner Pass</a>
+      </div>
+    </section>
+  {:else}
+    <section class="payment-card" aria-busy={isStripeLoading || isSubmitting}>
+      <div class="top-accent"></div>
+
+      <div class="layout-grid">
       <aside class="summary-panel">
         <header class="header">
           <p class="eyebrow">Learner Pass Checkout</p>
@@ -211,9 +266,10 @@
             <p class="checkout-note">Your card details are not stored on our servers.</p>
           </form>
         {/if}
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  {/if}
 </main>
 
 <!-- Purchase success popup — closing it heads to the pass rewards page -->
@@ -227,6 +283,32 @@
 </PurchaseSuccessModal>
 
 <style>
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+    padding: 0.35rem 0;
+    border: none;
+    background: none;
+    color: var(--text-muted, #94a3b8);
+    font: 600 0.72rem/1.3 var(--font-mono, "JetBrains Mono", monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .back-button:hover {
+    color: var(--accent, #07a5c9);
+  }
+
+  .back-button:focus-visible {
+    outline: 2px solid var(--accent, #07a5c9);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
   .payment-shell {
     max-width: 920px;
     margin: 0 auto;
@@ -286,6 +368,38 @@
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--accent, #07a5c9), transparent);
+  }
+
+  .notice {
+    padding: clamp(0.5rem, 2vw, 1rem) 0.25rem clamp(0.25rem, 1vw, 0.5rem);
+    max-width: 46ch;
+  }
+
+  .notice h1 {
+    margin: 0.35rem 0 0;
+    font: 700 clamp(1.3rem, 2.6vw, 1.8rem) / 1.2 var(--font-heading, "Orbitron", sans-serif);
+    letter-spacing: 0.02em;
+    color: var(--text-primary, #e2e8f0);
+  }
+
+  .notice-cta {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 1.4rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 4px;
+    border: 1px solid rgba(7, 165, 201, 0.5);
+    background: rgba(7, 165, 201, 0.14);
+    color: var(--accent, #07a5c9);
+    font: 700 0.75rem/1.2 var(--font-heading, "Orbitron", sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .notice-cta:hover {
+    background: rgba(7, 165, 201, 0.24);
   }
 
   .header h1 {

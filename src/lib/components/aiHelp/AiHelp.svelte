@@ -46,7 +46,7 @@
   export let initialCoins: number = 1000;
   // The user's available AI help credits, spent before coins are charged.
   export let initialAiHelps: number = 0;
-  export let initialAiModel: string = "nvidia/nemotron-3-nano-30b-a3b:free";
+  export let initialAiModel: string = "oc/muse-spark-1.3-contributor-free";
   // Whether the docked chat panel is open (controlled by the workspace tab button).
   export let show: boolean = false;
   export let onClose: () => void = () => {};

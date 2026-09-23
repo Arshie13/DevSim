@@ -1,4 +1,5 @@
 import { StackDataAccess } from '../data-access/StackDataAccess';
+import { extractChatContent } from './parseChatCompletion';
 import type { StackSelection } from '$types';
 
 interface StackDescriptionRequest {
@@ -28,17 +29,14 @@ export class StackDescriptionService {
 
     // Keep stack analysis aligned with the AI helper model fallback order.
     const models = [
-      'auto/coding',
-      'nvidia/nemotron-3-nano-30b-a3b:free',
-      'google/gemma-3n-e2b-it:free',
-      'qwen/qwen3.6-plus:free',
-      'nvidia/nemotron-3-super-120b-a12b:free',
-      'google/gemini-2.5-flash:direct'
+      'oc/muse-spark-1.3-contributor-free',
+      'oc/muse-spark-1.2-contributor-free',
+      'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
     ];
 
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    const openRouterKey = process.env.OMNIROUTE_KEY;
     if (!openRouterKey) {
-      return { success: false, error: 'OPENROUTER_API_KEY is not configured. Please add it to your .env file.' };
+      return { success: false, error: 'OMNIROUTE_KEY is not configured. Please add it to your .env file.' };
     }
 
     let lastError = null;
@@ -154,6 +152,53 @@ export class StackDescriptionService {
       return { success: false, error: errorData };
     } catch (error) {
       return { success: false, error };
+    }
+  }
+
+  private async tryOmniroute(
+    prompt: string,
+    apiKey: string,
+    modelName: string
+  ): Promise<{ success: boolean; description?: string; error?: any; status?: number }> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15_000);
+      const modelResponse = await fetch('http://localhost:20128/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (modelResponse.ok) {
+        const description = extractChatContent(await modelResponse.text());
+
+        if (!description) {
+          return { success: false, error: 'No description generated' };
+        }
+        return { success: true, description };
+      } else {
+        const errorText = await modelResponse.text();
+        let errorData: unknown = errorText || `HTTP ${modelResponse.status}`;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {}
+        return { success: false, error: errorData, status: modelResponse.status };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 }
