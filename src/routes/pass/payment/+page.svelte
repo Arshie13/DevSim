@@ -11,6 +11,9 @@
   } from "@stripe/stripe-js";
 
   import PurchaseSuccessModal from "$components/ui/PurchaseSuccessModal.svelte";
+  import type { PageData } from "./$types";
+
+  export let data: PageData;
 
   let stripe: Stripe | null = null;
   let elements: StripeElements | null = null;
@@ -25,6 +28,9 @@
   let purchaseComplete = false;
 
   onMount(async () => {
+    // Nothing to pay for — the checkout form is not rendered for pass holders.
+    if (data.alreadyHasPass) return;
+
     isStripeLoading = true;
     if (!PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       errorMessage = "Stripe publishable key is missing. Check your .env file.";
@@ -146,6 +152,15 @@
     };
   }
 
+  function formatExpiry(value: string | null | undefined): string | null {
+    if (!value) return null;
+    return new Date(value).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
   function goBack() {
     // Use real browser history so the user returns to whichever page sent them here.
     // Falls back to the pass page when there is no history to go back to
@@ -165,10 +180,26 @@
     Back
   </button>
 
-  <section class="payment-card" aria-busy={isStripeLoading || isSubmitting}>
-    <div class="top-accent"></div>
+  {#if data.alreadyHasPass}
+    <section class="payment-card" aria-labelledby="already-owned-title">
+      <div class="top-accent"></div>
 
-    <div class="layout-grid">
+      <div class="notice" role="status">
+        <p class="eyebrow">Learner Pass Checkout</p>
+        <h1 id="already-owned-title">You already have an active Learner Pass</h1>
+        <p class="subcopy">
+          You don't need to buy another one right now. Your current pass is active{#if formatExpiry(data.expiresAt)}
+            and runs until {formatExpiry(data.expiresAt)}{/if}. You can purchase a new pass once it
+          expires.
+        </p>
+        <a class="notice-cta" href="/pass">Go to my Learner Pass</a>
+      </div>
+    </section>
+  {:else}
+    <section class="payment-card" aria-busy={isStripeLoading || isSubmitting}>
+      <div class="top-accent"></div>
+
+      <div class="layout-grid">
       <aside class="summary-panel">
         <header class="header">
           <p class="eyebrow">Learner Pass Checkout</p>
@@ -235,9 +266,10 @@
             <p class="checkout-note">Your card details are not stored on our servers.</p>
           </form>
         {/if}
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  {/if}
 </main>
 
 <!-- Purchase success popup — closing it heads to the pass rewards page -->
@@ -336,6 +368,38 @@
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--accent, #07a5c9), transparent);
+  }
+
+  .notice {
+    padding: clamp(0.5rem, 2vw, 1rem) 0.25rem clamp(0.25rem, 1vw, 0.5rem);
+    max-width: 46ch;
+  }
+
+  .notice h1 {
+    margin: 0.35rem 0 0;
+    font: 700 clamp(1.3rem, 2.6vw, 1.8rem) / 1.2 var(--font-heading, "Orbitron", sans-serif);
+    letter-spacing: 0.02em;
+    color: var(--text-primary, #e2e8f0);
+  }
+
+  .notice-cta {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 1.4rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 4px;
+    border: 1px solid rgba(7, 165, 201, 0.5);
+    background: rgba(7, 165, 201, 0.14);
+    color: var(--accent, #07a5c9);
+    font: 700 0.75rem/1.2 var(--font-heading, "Orbitron", sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .notice-cta:hover {
+    background: rgba(7, 165, 201, 0.24);
   }
 
   .header h1 {
