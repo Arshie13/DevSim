@@ -77,7 +77,7 @@
     <div class="page-container">
 
       <!-- Page Header -->
-      <div class="mb-12" in:fade={{ duration: 400 }}>
+      <div class="mb-20" in:fade={{ duration: 400 }}>
         <button
           on:click={goBack}
           class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-6 group"
@@ -98,7 +98,6 @@
               <h1 class="text-4xl font-heading font-bold text-[var(--text-primary)] tracking-tight mb-1">Leaderboards</h1>
               <div class="flex items-center gap-3">
                 <p class="text-sm font-body text-[var(--text-muted)]">Top developers ranked by XP</p>
-                <span class="tag-cyber tag-label">Season 01</span>
                 <div class="flex items-center gap-2 px-3 py-1 rounded-card bg-[var(--success)]/10 border border-[var(--success)]/30">
                   <span class="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse"></span>
                   <span class="text-xs font-label text-[var(--success)] uppercase tracking-widest">Live</span>
