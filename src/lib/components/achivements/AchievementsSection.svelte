@@ -43,10 +43,10 @@
 
 <section class="achievements-section">
   {#if achievements.length === 0}
-    <p class="text-obsidian-text-primary/50 text-xs font-mono">No achievements found.</p>
+    <p class="text-obsidian-text-muted font-label text-xs uppercase">No achievements found.</p>
 
   {:else if mode === "default"}
-    <div class="card-grid">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       {#each flatSorted as achievement (achievement.id)}
         <AchievementCard {achievement} />
       {/each}
@@ -54,9 +54,9 @@
 
   {:else}
     {#each grouped as group (group.category)}
-      <div class="category-block">
-        <h3 class="category-heading">{CATEGORY_LABEL[group.category]}</h3>
-        <div class="card-grid">
+      <div class="mb-8">
+        <h3 class="font-label text-xs uppercase tracking-[0.1em] text-[var(--purple)] mb-2">{CATEGORY_LABEL[group.category]}</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {#each group.items as achievement (achievement.id)}
             <AchievementCard {achievement} />
           {/each}
@@ -65,27 +65,3 @@
     {/each}
   {/if}
 </section>
-
-<style>
-  .category-block {
-    margin-bottom: 1.25rem;
-  }
-  .category-heading {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #A855F7;
-    margin-bottom: 0.5rem;
-  }
-  .card-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  @media (min-width: 1024px) {
-    .card-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-</style>
