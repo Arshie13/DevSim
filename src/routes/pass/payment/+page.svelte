@@ -62,7 +62,6 @@
     });
   });
 
-  // Back button: real browser history when there is any, otherwise /pass.
   function formatExpiry(value: string | null | undefined): string | null {
     if (!value) return null;
     return new Date(value).toLocaleDateString(undefined, {
@@ -72,6 +71,7 @@
     });
   }
 
+  // Back button: real browser history when there is any, otherwise /pass.
   function goBack() {
     if (window.history.length > 1) {
       window.history.back();
@@ -228,7 +228,7 @@
   <Header userData={headerUserData} onOpenHelp={handleOpenHelp} />
 
   <!-- Back button -->
-  <div class="page-container pt-4">
+  <div class="page-container pt-8">
     <button
       on:click={goBack}
       class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-obsidian-text-muted hover:text-cyber-cyan transition-colors group"
@@ -307,28 +307,28 @@
           </aside>
         </div>
 
-      <!-- Already owns an active pass — no second purchase offered -->
-      {#if data.alreadyHasPass}
-        <div
-          class="mt-6 rounded-card border border-[rgb(var(--accent-rgb)_/_0.25)] bg-[rgb(var(--accent-rgb)_/_0.08)] p-4"
-          role="status"
-        >
-          <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-cyber-cyan">
-            Pass already active
-          </p>
-          <p class="mt-2 text-sm leading-relaxed text-obsidian-text-muted">
-            You don't need to buy another one right now.{#if formatExpiry(data.expiresAt)}
-              Your current pass runs until {formatExpiry(data.expiresAt)}.{/if}
-            You can purchase a new pass once it expires.
-          </p>
-          <a href="/pass" class="btn-cyber btn-cyber-solid mt-4 block w-full !py-3.5 text-center">
-            Go to my Learner Pass
-          </a>
-        </div>
-      {:else}
+        <!-- Already owns an active pass — no second purchase offered -->
+        {#if data.alreadyHasPass}
+          <div
+            class="mt-6 rounded-card border border-[rgb(var(--accent-rgb)_/_0.25)] bg-[rgb(var(--accent-rgb)_/_0.08)] p-4"
+            role="status"
+          >
+            <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-cyber-cyan">
+              Pass already active
+            </p>
+            <p class="mt-2 text-sm leading-relaxed text-obsidian-text-muted">
+              You don't need to buy another one right now.{#if formatExpiry(data.expiresAt)}
+                Your current pass runs until {formatExpiry(data.expiresAt)}.{/if}
+              You can purchase a new pass once it expires.
+            </p>
+            <a href="/pass" class="btn-cyber btn-cyber-solid mt-4 block w-full !py-3.5 text-center">
+              Go to my Learner Pass
+            </a>
+          </div>
+        {:else}
           <!-- Checkout column -->
-        <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-5">
-          <!-- Checkout header -->
+          <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-5">
+            <!-- Checkout header -->
             <div class="flex items-baseline justify-between border-b border-[var(--card-border)] pb-3">
             <p class="font-heading text-xs font-bold uppercase tracking-[0.07em] text-obsidian-text-primary">
               Secure Checkout
@@ -379,9 +379,9 @@
               </p>
             </form>
           {/if}
-        </div>
+          </div>
+        {/if}
       </div>
-      {/if}
     </div>
   </main>
 
