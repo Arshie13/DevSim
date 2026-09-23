@@ -121,7 +121,7 @@ never redeclare them in a component:
   Delete local copies and use the shared classes.
 - Do not override `.scanlines::before`. The shared definition uses `::after`.
 - Grid **cells are `2.5rem`**, so density stays constant as the root font scales
-  (`42.5px` at 1920, `35px` at 1280, `46px` at 2560).
+  (`45px` at 1920, `36px` at 1280, `54px` at 2560).
 - `--grid-line` is `0.04`. Wrapper opacity **multiplies** it, so the effective alpha is
   what you see:
 
@@ -264,26 +264,33 @@ screens**, so content keeps the same proportions across desktop sizes:
 ```css
 /* src/app.css */
 html {
-  font-size: clamp(13px, calc(8.43px + 0.4464vw), 18.5px);
+  font-size: clamp(11px, min(calc(7.29px + 0.558vw), 1.78vh), 22px);
 }
 ```
 
 | Viewport | Root | vs 1920 |
 | --- | --- | --- |
-| 1024 | 13.0px | −24% |
-| 1280 | 14.1px | −17% |
-| 1366 | 14.5px | −15% |
-| 1440 | 14.9px | −12% |
-| 1680 | 15.9px | −6% |
-| 1920 | 17.0px | anchor |
-| ≥2256 | 18.5px | capped |
+| 768 | 11.6px | −36% |
+| 1024 | 13.0px | −28% |
+| 1280 | 14.4px | −20% |
+| 1366 | 14.9px | −17% |
+| 1440 | 15.3px | −15% |
+| 1680 | 16.7px | −7% |
+| 1920 | 18.0px | anchor |
+| 2560 | 21.6px | +20% |
+| ≥2640 | 22px | capped |
 
-**1920×1080 is 17px, not 16px.** Do not treat 16px as the reference — at 16px the
+The curve was steepened and the cap raised (18.5px → 22px) so 2560px+ desktops keep scaling with the viewport; re-verify every stage after further changes.
+
+The root also carries a 1.78vh ceiling (`min()` in the clamp) so short viewports scale by height and viewport-fitting pages stay scroll-free — e.g. 1280×720 resolves to a 12.8px root while 1920×1080 keeps the 18px anchor.
+
+**1920×1080 is 18px, not 16px.** Do not treat 16px as the reference — at 16px the
 1920 layout reads sparse, because a `rem`-based design at 16px leaves large empty margins.
-1024×600 is 13px, so nothing below that becomes unreadable.
+Below 1024 the curve keeps scaling (768 → 11.6px) and floors at 11px on phone widths.
 
-This curve is deliberately restrained: an earlier 18px-at-1920 version read as too large.
-If you change it, do not exceed ~17px at 1920 without re-checking every stage.
+The curve targets 18px at the 1920 anchor (raised from 17px by decision so type and
+spacing scale up more on large screens). Changing it changes everything at once — re-check
+every stage after any adjustment.
 
 Changing this curve changes **everything at once** — type, padding, gaps, card padding and
 any `rem`-based width. Do not "correct" a single page's sizes against it; fix the page.
@@ -318,25 +325,42 @@ panel widths must be `rem`:
 
 ### Page container
 
-Every page's top-level content column must use the **same container as the nav**, so the
-logo and the content beneath it keep a fixed relationship at every viewport:
+Every page's top-level content column, and the nav (`Header` / `LandingNav`), must use the
+single shared container class `.page-container` defined in `src/app.css` (`@layer components`):
 
-```svelte
-<div class="max-w-[1200px] mx-auto px-6">
+```css
+.page-container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 1.5rem; /* px-6 — scales with the fluid root */
+}
 ```
 
-The nav (`Header` / `LandingNav`) is `max-w-[1200px]` with `px-4 md:px-6 lg:px-8`, so page
-content at `px-6` sits **0.5rem** inside the logo — constant at every width. That 0.5rem
-relationship is the target; anything wider breaks it.
+```svelte
+<main class="page-container py-6">…</main>
+```
 
-This is the **one deliberate exception** to "layout is `rem`" above. The container is a
-fixed `1200px` in both the nav and the pages, so the two stay locked together; only the
-padding is `rem`, which scales the offset proportionally. Do not convert the container to
-`rem` in isolation — that desynchronises it from the nav.
+The invariant: **the logo's left edge and the page content's left edge coincide exactly at
+every viewport.** The nav and the pages share one container definition, so the relationship
+cannot drift. Do not add per-breakpoint horizontal padding ramps (`px-4 md:px-6 lg:px-8`) to
+the nav or a page container — that is how this drifted before. No content may extend past
+the container edge; narrower inner reading columns (`max-w-3xl`/`max-w-4xl`) stay inside it
+via a utilities-layer `max-w-*` override on the same element (`class="page-container
+max-w-3xl"`) — the utilities layer beats the components layer, so only the width is
+overridden and the centring and `1.5rem` padding still come from `.page-container`.
 
-**Legacy widths to converge:** `/leaderboards`, `/pass`, `/profile` and
-`/rivals/[username]` still use `max-w-[1400px]`. Bring them to `1200px` as each page is
-swept. Reference implementation: `/dashboard`.
+This is the **one deliberate exception** to "layout is `rem`" above. The container is a fixed
+`1440px` in both the nav and the pages, so the two stay locked together; only the padding is
+`rem`, which scales the offset proportionally. Do not convert the container to `rem` in
+isolation — that desynchronises it from the nav.
+
+The `landing/*` sections use `.page-container` too (hero, features and footer at full
+container width; about/how-it-works at `max-w-5xl`, CTA at `max-w-4xl`, FAQ at `max-w-3xl`
+via the override above); `TechMarquee` is a deliberate full-bleed band. `/pretest` and
+`/postassessment` (centred assessment flows) and the full-bleed IDE shells (`/workspace/*`,
+`/tutorial/*`) do not use `.page-container` by design. `/admin/*` is excluded from sweeps by
+decision. Reference implementation: `/dashboard`.
 
 ### Banned
 
@@ -439,6 +463,7 @@ editor surfaces are touched. A stage is complete only when `pnpm check:design`,
 | 3 | Dashboard | `/dashboard`, `dashboard/*` widgets | **Done** |
 | 4 | Core lists | `/projects`, `/stacks`, `/scenario`, `/achievements` | Pending |
 | 5 | Social | `/leaderboards`, `/rivals`, `/profile` | **In progress** — leaderboards container + sticky fixed |
+| 5b | Nav & container alignment | `.page-container` in `app.css` (1440px); nav + all `Header` routes + landing sections migrated; `/stacks` 1320→1440, `/rivals/[username]` 1400→1440 | **Done** |
 | 6 | Workspace & tutorial | `/workspace/[containerId]`, `/tutorial/[containerId]` | Pending |
 | 7 | Commerce | `/marketplace/coins`, `/pass` | Pending |
 

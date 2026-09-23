@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import prisma from '$lib/server/client';
-import { getProfileMetrics, getRivals } from '$lib/server/stats';
+import { getProfileMetrics, getRivals, getRecentActivity } from '$lib/server/stats';
 import { getTopAchievements } from '$lib/server/achievements/snapshots';
 import { computeLevel } from '$lib/utils/level';
 
@@ -19,10 +19,11 @@ export const load: PageServerLoad = async (event) => {
     select: { image: true, coins: true, xp: true, owned_avatars: true, has_completed_tutorial: true, username: true },
   });
 
-  const [metrics, rivals, topAchievements] = await Promise.all([
+  const [metrics, rivals, topAchievements, activity] = await Promise.all([
     getProfileMetrics(userSession.id),
     getRivals(userSession.id, dbUser?.xp ?? 0, 4),
     getTopAchievements(userSession.id, 3),
+    getRecentActivity(userSession.id, 4),
   ]);
 
   const levelData = computeLevel(dbUser?.xp ?? 0);
@@ -43,5 +44,6 @@ export const load: PageServerLoad = async (event) => {
     metrics,
     rivals,
     topAchievements,
+    activity,
   };
 };

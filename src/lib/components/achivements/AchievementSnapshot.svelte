@@ -66,8 +66,8 @@
   </div>
 
   <!-- ── Podium ──────────────────────────────────────────────── -->
-  <div class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-4 pt-2 min-h-0">
-    <div class="flex items-end justify-center gap-6 w-full">
+  <div class="podium relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-4 pt-2 min-h-0">
+    <div class="flex items-end justify-center gap-7 w-full">
     {#each podiumOrder as slot, i (i)}
       {@const isCenter = i === 1}
       {@const rankLabel = RANK_LABELS[i]}
@@ -179,20 +179,25 @@
     50%       { opacity: 0.35; }
   }
 
+  /* ── Podium container — badges scale with the space they get ── */
+  .podium {
+    container-type: size;
+  }
+
   /* ── Slots ─────────────────────────────────────────────────── */
   .slot {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.375rem;
     min-width: 0;
   }
-  .slot-center { flex: 0 0 5.5rem; }
-  .slot-side   { flex: 0 0 4.25rem; }
+  .slot-center { flex: 0 0 clamp(4.5rem, 42cqmin, 8rem); }
+  .slot-side   { flex: 0 0 clamp(3.75rem, 31.5cqmin, 6rem); }
 
   /* ── Rank pill ─────────────────────────────────────────────── */
   .rank-pill {
-    font-size: 0.52rem;
+    font-size: clamp(0.5rem, 3.9cqmin, 0.75rem);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -218,8 +223,8 @@
   .hex-wrapper:not([style*="opacity: 0"]):hover {
     transform: translateY(-5px);
   }
-  .hex-wrapper      { width: 4rem;  height: 4.5rem; }
-  .hex-wrapper.hex-center { width: 5rem;  height: 6rem; }
+  .hex-wrapper      { width: clamp(3.6rem, 31cqmin, 6rem);  height: clamp(4.1rem, 37cqmin, 7rem); }
+  .hex-wrapper.hex-center { width: clamp(4.5rem, 39cqmin, 7.5rem);  height: clamp(5.4rem, 47cqmin, 9rem); }
 
   /* Outer pulsing ring — slightly larger than body */
   .hex-ring {
@@ -251,11 +256,11 @@
   }
 
   /* ── Badge content ─────────────────────────────────────────── */
-  .badge-emoji        { font-size: 1.2rem; line-height: 1; }
-  .badge-emoji-center { font-size: 1.6rem; }
+  .badge-emoji        { font-size: clamp(1.1rem, 10cqmin, 1.9rem); line-height: 1; }
+  .badge-emoji-center { font-size: clamp(1.4rem, 13.5cqmin, 2.6rem); }
 
   .tier-text {
-    font-size: 0.4rem;
+    font-size: clamp(0.4rem, 3.1cqmin, 0.6rem);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -264,14 +269,14 @@
   /* ── Platform pedestal ─────────────────────────────────────── */
   .platform {
     width: 100%;
-    height: 0.5rem;
+    height: clamp(0.5rem, 3.9cqmin, 0.75rem);
     border: 1px solid;
     border-radius: 2px;
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
   }
-  .platform-center { height: 0.875rem; }
+  .platform-center { height: clamp(0.85rem, 6.8cqmin, 1.3rem); }
   .platform-glow {
     position: absolute;
     bottom: 0; left: 15%; right: 15%;
@@ -286,7 +291,7 @@
 
   /* ── Name label ────────────────────────────────────────────── */
   .badge-label {
-    font-size: 0.5rem;
+    font-size: clamp(0.48rem, 3.7cqmin, 0.7rem);
     letter-spacing: 0.03em;
     color: rgb(var(--text-primary-rgb) / 0.75);
     text-align: center;

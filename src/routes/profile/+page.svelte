@@ -5,11 +5,11 @@
 
   // ── Modular profile components ────────────────────────────────────────────
   import ProfileCard         from "$components/profile/ProfileCard.svelte";
-  import ProgressSection     from "$components/profile/ProgressSection.svelte";
   import MetricsSection      from "$components/profile/MetricsSection.svelte";
   import FriendsSection      from "$components/profile/FriendsSection.svelte";
   import EditProfile         from "$components/profile/EditProfile.svelte";
   import AchievementSnapshot from "$components/achivements/AchievementSnapshot.svelte";
+  import ProfileActivityFeed from "$components/profile/ProfileActivityFeed.svelte";
   import { goto }            from "$app/navigation";
   import { toast }           from "$lib/stores/toast";
 
@@ -57,9 +57,7 @@
   const rivals: RivalEntry[] = data.rivals ?? [];
 
   const memberSince     = new Date(metrics.memberSince).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  const streakDays      = metrics.dayStreak;
   const leaderboardRank = metrics.leaderboardRank;
-  const weeklyGrowth    = metrics.weeklyGrowth;
 
   const bio = "";
   const location = "";
@@ -88,7 +86,7 @@
 <div class="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-obsidian-bg bg-grid-cyber scanlines ambient-glow text-obsidian-text-primary text-sm">
 
   <!-- Back button bar -->
-  <div class="shrink-0 w-full page-container pt-4">
+  <div class="shrink-0 w-full page-container pt-8">
     <button
       on:click={handleBack}
       class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
@@ -100,12 +98,12 @@
 
   <!-- ── Main asymmetric grid ─────────────────────────────────────────────── -->
   <main
-    class="flex-1 min-h-0 w-full page-container py-3 grid grid-cols-1 lg:[grid-template-columns:clamp(16.25rem,28%,22.5rem)_1fr] gap-3 lg:gap-4"
+    class="flex-1 min-h-0 w-full page-container py-3 grid grid-cols-1 lg:[grid-template-columns:clamp(18rem,30%,24rem)_1fr] gap-3 lg:gap-4"
   >
     <!-- LEFT COLUMN — Profile + Snapshot -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
       <!-- S1: Profile data -->
-      <div class="lg:flex-1 lg:min-h-0">
+      <div class="flex-[3] min-h-0">
         <ProfileCard
           {user}
           {memberSince}
@@ -117,22 +115,26 @@
       </div>
 
       <!-- S2: Achievement snapshot -->
-      <div class="shrink-0">
+      <div class="flex-[2] min-h-0">
         <AchievementSnapshot snapshots={data.topAchievements ?? []} />
       </div>
     </div>
 
-    <!-- RIGHT COLUMN (70%) — KPIs + Rivals -->
+    <!-- RIGHT COLUMN (70%) — KPIs + Rivals + Activity -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
-      <!-- S3: KPIs (level progress + metric cards) -->
-      <div class="shrink-0 flex flex-col gap-3 lg:gap-4">
-        <ProgressSection {user} {streakDays} {weeklyGrowth} />
+      <!-- S3: KPIs (metric cards) -->
+      <div class="shrink-0">
         <MetricsSection metrics={metricCards} />
       </div>
 
       <!-- S4: Top rivals -->
-      <div class="flex-1 min-h-0 flex flex-col">
+      <div class="shrink-0 flex flex-col">
         <FriendsSection {rivals} />
+      </div>
+
+      <!-- S5: Recent activity -->
+      <div class="flex-1 min-h-0">
+        <ProfileActivityFeed activities={data.activity ?? []} />
       </div>
     </div>
   </main>

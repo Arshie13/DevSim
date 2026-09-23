@@ -67,16 +67,18 @@ body {
 }
 
 /* Fluid desktop scale, derived from two reference screens:
-     1024 x 600  -> 13px        1920 x 1080 -> 17px
-   Linear in viewport width, floored at 13px so small windows stay readable and
-   capped at 18.5px so ultrawides do not balloon.
+     1024 x 600  -> 13px        1920 x 1080 -> 18px
+   Linear in viewport width, floored at 11px on phone widths and
+   capped at 22px so ultrawides do not balloon.
+   A 1.78vh ceiling scales short viewports by height so
+   viewport-fitting pages stay scroll-free (1280x720 -> 12.8px).
    Every rem-based Tailwind utility (type, spacing, widths) scales together, so
    content keeps its proportions across desktop sizes instead of leaving 1920x1080
    looking sparse. Fixed px values stay crisp.
    Replaces the previous body{zoom} hack, which rescaled fixed-position overlays
    and editor pixel math. */
 html {
-  font-size: clamp(13px, calc(8.43px + 0.4464vw), 18.5px);
+  font-size: clamp(11px, min(calc(7.29px + 0.558vw), 1.78vh), 22px);
 }
 
 /* ── DevSim Clip-Path Button System ── */
@@ -255,7 +257,7 @@ html {
 }
 
 /* ── Background Grid Texture ── */
-/* Cells are rem-based (2.5rem = 40px at the 1920px reference) so the grid
+/* Cells are rem-based (2.5rem = 45px at the 1920px reference) so the grid
    keeps the same density relative to content as the root font size scales. */
 .bg-grid-cyber {
   background-image:

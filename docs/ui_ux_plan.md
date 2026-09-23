@@ -133,3 +133,13 @@ Watch for compounding: several wrappers apply `bg-grid-cyber` with `opacity-30`/
 
 - The ~151 broken font references mean typography will visibly change; that is the intended fix, but screenshots will differ significantly.
 - The component sweep is large (~70 files); review per stage rather than as one diff.
+
+## Addendum — Strict page container
+
+After Stage 5, the nav (`Header`/`LandingNav`) and every in-scope page were moved onto a
+shared `.page-container` class in `src/app.css` (`max-width: 1440px; margin-inline: auto;
+padding-inline: 1.5rem`) so the logo and content left edges coincide exactly at every
+viewport. `/stacks` (was `max-w-[1320px]`) and `/rivals/[username]` (was `max-w-[1400px]`)
+were converged, and the landing page sections were aligned to the same container (narrower
+reading columns keep their width via `max-w-*` overrides on the same element). The
+authoritative spec is `docs/ui_ux.md` §8.

@@ -4,6 +4,7 @@
   import Header from "$lib/components/Header.svelte";
   import RivalCard from "$lib/components/rivals/RivalCard.svelte";
   import type { UserData } from "$types";
+  import { goto } from "$app/navigation";
 
   export let data: {
     rivals: any[];
@@ -33,7 +34,7 @@
   };
 
   function goBack() {
-    window.history.back();
+    goto('/dashboard');
   }
 </script>
 
@@ -52,7 +53,7 @@
         <div in:fade={{ duration: 400 }}>
           <button
             on:click={goBack}
-            class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-4 group"
+            class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-6 group"
           >
             <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
             Back to Simulation

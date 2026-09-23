@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
-import { getProfileMetrics, getRivals } from '$lib/server/stats';
+import { getProfileMetrics, getRivals, getRecentActivity } from '$lib/server/stats';
 import { getTopAchievements } from '$lib/server/achievements/snapshots';
 import { computeLevel } from '$lib/utils/level';
 
@@ -36,14 +36,15 @@ export const load: PageServerLoad = async (event) => {
   }
 
   // Fetch metrics, rivals, and top achievements for the target user
-  const [metrics, rivals, topAchievements, currentUserDb] = await Promise.all([
+  const [metrics, rivals, topAchievements, currentUserDb, activity] = await Promise.all([
     getProfileMetrics(targetUser.id),
     getRivals(targetUser.id, targetUser.xp, 4),
     getTopAchievements(targetUser.id, 3),
     prisma.user.findUnique({
       where: { id: currentUserId },
       select: { coins: true, image: true, owned_avatars: true }
-    })
+    }),
+    getRecentActivity(targetUser.id, 4),
   ]);
 
   const levelData = computeLevel(targetUser.xp);
@@ -63,6 +64,7 @@ export const load: PageServerLoad = async (event) => {
     metrics,
     rivals,
     topAchievements,
+    activity,
     isOwnProfile: currentUserId === targetUser.id,
     // Header data for the current user
     user: {
