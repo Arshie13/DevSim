@@ -1,5 +1,6 @@
 import { UserDataAccess } from '../data-access/UserDataAccess';
 import { ContainerService } from './ContainerService';
+import { extractChatContent } from './parseChatCompletion';
 import {
   QUICK_HINT_CREDIT_COST,
   CHAT_HINT_CREDIT_COST,
@@ -385,32 +386,69 @@ Example of CORRECT answer (based on actual file content):
 
     const models = model ? [model, ...defaultModels.filter((m) => m !== model)] : defaultModels;
 
-    let lastError = null;
+    let lastError: unknown = null;
 
     for (const modelName of models) {
       console.log(`Trying model: ${modelName}`);
 
-      const omnirouteResult = await this.tryOmniroute(prompt, omnirouteKey);
+      const omnirouteResult = await this.tryOmniroute(prompt, omnirouteKey, modelName);
       if (omnirouteResult.success && omnirouteResult.hint) {
         return omnirouteResult.hint;
       }
       lastError = omnirouteResult.error;
 
-      if (omnirouteResult.status === 429 || omnirouteResult.status === 404) {
-        continue;
-      } else {
-        break;
+      const status = omnirouteResult.status;
+      // The gateway rejecting our credentials won't be fixed by another model,
+      // so fail fast with the real reason. Everything else (rate limits, missing
+      // models, provider-specific 4xx, transient 5xx, empty responses) may be
+      // model-specific, so try the next model before giving up.
+      if (status === 401 || status === 403) {
+        throw new Error(
+          `Failed to get response from AI (model: ${modelName}): ${this.getErrorMessage(lastError)}`,
+        );
       }
     }
 
-    throw new Error(`Failed to get response from AI: ${lastError?.error?.message || lastError?.message || 'All models unavailable'}`);
+    throw new Error(
+      `All models unavailable. Last error: ${this.getErrorMessage(lastError)}`,
+    );
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (error && typeof error === 'object') {
+      const value = error as {
+        error?: { message?: string } | string;
+        message?: string;
+      };
+      if (typeof value.message === 'string') return value.message;
+      if (typeof value.error === 'string') return value.error;
+      if (
+        value.error &&
+        typeof value.error === 'object' &&
+        typeof value.error.message === 'string'
+      ) {
+        return value.error.message;
+      }
+      try {
+        return JSON.stringify(error);
+      } catch {
+        return 'Unknown error';
+      }
+    }
+    return 'No response from the gateway';
   }
 
   private async tryOmniroute(
     prompt: string,
-    apiKey: string
+    apiKey: string,
+    modelName: string,
   ): Promise<{ success: boolean; hint?: string; error?: any; status?: number }> {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30_000);
+
       const modelResponse = await fetch('http://localhost:20128/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -418,32 +456,25 @@ Example of CORRECT answer (based on actual file content):
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'auto/best-free',
+          model: modelName,
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 1000,
           temperature: 0.7,
-        })
+        }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (modelResponse.ok) {
-        const text = await modelResponse.text();
-        const lines = text.split('\n').filter((line) => line.startsWith('data: '));
-        let hint = '';
-        for (const line of lines) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(data);
-            const delta = parsed.choices?.[0]?.delta?.content || '';
-            hint += delta;
-          } catch {}
-        }
+        const hint = extractChatContent(await modelResponse.text());
+
         if (!hint) {
           return { success: false, error: 'No hint generated' };
         }
         return { success: true, hint };
       } else {
-        const errorData = await modelResponse.json();
+        // Error bodies aren't guaranteed to be JSON (e.g. gateway HTML pages).
+        const errorData = await modelResponse.json().catch(() => null);
         return { success: false, error: errorData, status: modelResponse.status };
       }
     } catch (error) {

@@ -1,4 +1,5 @@
 import { StackDataAccess } from '../data-access/StackDataAccess';
+import { extractChatContent } from './parseChatCompletion';
 import type { StackSelection } from '$types';
 
 interface StackDescriptionRequest {
@@ -179,27 +180,12 @@ export class StackDescriptionService {
       clearTimeout(timeout);
 
       if (modelResponse.ok) {
-        const text = await modelResponse.text();
-        let description = '';
+        const description = extractChatContent(await modelResponse.text());
 
-        try {
-          const parsed = JSON.parse(text);
-          description = parsed.choices?.[0]?.message?.content?.trim() || '';
-        } catch {
-          const lines = text.split('\n').filter((line) => line.startsWith('data: '));
-          for (const line of lines) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              description += parsed.choices?.[0]?.delta?.content || '';
-            } catch {}
-          }
-        }
         if (!description) {
           return { success: false, error: 'No description generated' };
         }
-        return { success: true, description: description.trim() };
+        return { success: true, description };
       } else {
         const errorText = await modelResponse.text();
         let errorData: unknown = errorText || `HTTP ${modelResponse.status}`;

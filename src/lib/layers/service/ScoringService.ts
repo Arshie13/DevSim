@@ -1,5 +1,6 @@
 import { LevelDataAccess } from '../data-access/LevelDataAccess';
 import { ContainerService } from './ContainerService';
+import { extractChatContent } from './parseChatCompletion';
 import type { TestValidationResult } from '$lib/tests/types';
 
 // Source code file extensions to analyze
@@ -448,18 +449,8 @@ Respond ONLY using this exact format:
         });
 
         if (response.ok) {
-          const text = await response.text();
-          const lines = text.split('\n').filter((line) => line.startsWith('data: '));
-          let content = '';
-          for (const line of lines) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content || '';
-              content += delta;
-            } catch {}
-          }
+          const content = extractChatContent(await response.text());
+
           if (!content) {
             lastError = new Error('No content in response');
             continue;
