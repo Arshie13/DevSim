@@ -219,122 +219,130 @@
     </button>
   </div>
 
-  <!-- Focused payment card (login pattern) -->
+  <!-- Focused payment card: pass summary on the left, secure checkout on the right -->
   <main class="page-container py-8">
     <div
-      class="card-cyber card-cyber-body mx-auto w-[min(30rem,95vw)] p-8 sm:p-10 shadow-card-glow"
+      class="card-cyber card-cyber-body mx-auto w-[min(51rem,95vw)] p-8 sm:p-10 shadow-card-glow"
       style="border-color: rgb(var(--accent-rgb) / 0.25)"
       aria-busy={isStripeLoading || isSubmitting}
     >
-      <!-- Card header -->
-      <header>
-        <p class="font-label text-xs uppercase tracking-[0.1em] text-cyber-cyan">
-          Learner Pass Checkout
-        </p>
-        <h1 class="mt-2 font-heading font-bold text-3xl tracking-tight text-obsidian-text-primary">
-          Unlock Premium Rewards
-        </h1>
-        <p class="mt-2 text-sm text-obsidian-text-muted">
-          One-time payment. No auto-renew. Instant activation after successful charge.
-        </p>
-      </header>
+      <div class="grid gap-5 md:grid-cols-[1.1fr_0.9fr]">
+        <!-- Summary column -->
+        <div>
+          <!-- Card header -->
+          <header>
+            <p class="font-label text-xs uppercase tracking-[0.1em] text-cyber-cyan">
+              Learner Pass Checkout
+            </p>
+            <h1 class="mt-2 font-heading font-bold text-3xl tracking-tight text-obsidian-text-primary">
+              Unlock Premium Rewards
+            </h1>
+            <p class="mt-2 text-sm text-obsidian-text-muted">
+              One-time payment. No auto-renew. Instant activation after successful charge.
+            </p>
+          </header>
 
-      <!-- Price row -->
-      <div class="mt-5 flex items-center gap-3">
-        <span class="font-heading font-bold text-2xl tabular-nums text-obsidian-text-primary">₱299</span>
-        <span class="tag-cyber tag-cyan">30-Day Access</span>
-      </div>
+          <!-- Price row -->
+          <div class="mt-5 flex items-center gap-3">
+            <span class="font-heading font-bold text-2xl tabular-nums text-obsidian-text-primary">₱299</span>
+            <span class="tag-cyber tag-cyan">30-Day Access</span>
+          </div>
 
-      <!-- Benefits -->
-      <div class="mt-5 grid gap-2" aria-label="Premium pass benefits">
-        <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">
-          <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-obsidian-text-primary">
-            Daily Premium Rewards
-          </p>
-          <p class="mt-1 text-xs leading-relaxed text-obsidian-text-muted">
-            Claim boosted rewards across all 30 days of your pass.
-          </p>
-        </div>
-        <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">
-          <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-obsidian-text-primary">
-            Extra AI Help Credits
-          </p>
-          <p class="mt-1 text-xs leading-relaxed text-obsidian-text-muted">
-            Get additional daily help usage while your pass is active.
-          </p>
-        </div>
-        <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">
-          <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-obsidian-text-primary">
-            One-Time Charge
-          </p>
-          <p class="mt-1 text-xs leading-relaxed text-obsidian-text-muted">
-            No recurring billing, no surprise renewals.
-          </p>
-        </div>
-      </div>
-
-      <!-- Test cards -->
-      <aside class="mt-5 border-t border-[var(--card-border)] pt-3 font-label text-xs leading-relaxed text-obsidian-text-muted">
-        <p class="text-[0.7rem] font-bold uppercase tracking-[0.08em] text-obsidian-text-primary">
-          Test Card Numbers
-        </p>
-        <p class="mt-1"><strong>Success:</strong> 4242 4242 4242 4242</p>
-        <p><strong>Declined:</strong> 4000 0000 0000 0002</p>
-        <p><strong>3D Secure:</strong> 4000 0025 0000 3155</p>
-        <p class="opacity-80">Use any future expiry and any CVC for test mode.</p>
-      </aside>
-
-      <!-- Checkout header -->
-      <div class="mt-6 flex items-baseline justify-between border-b border-[var(--card-border)] pb-3">
-        <p class="font-heading text-xs font-bold uppercase tracking-[0.07em] text-obsidian-text-primary">
-          Secure Checkout
-        </p>
-        <p class="font-label text-xs uppercase text-obsidian-text-muted">
-          Powered by Stripe
-        </p>
-      </div>
-
-      {#if errorMessage}
-        <div
-          class="mt-4 rounded-card border border-[rgb(var(--danger-rgb)_/_0.4)] bg-[rgb(var(--danger-rgb)_/_0.12)] p-3 text-sm text-[var(--danger)]"
-          role="alert"
-        >
-          {errorMessage}
-        </div>
-      {/if}
-
-      {#if isStripeLoading}
-        <div class="mt-4 text-sm text-obsidian-text-muted">Preparing secure checkout...</div>
-      {:else}
-        <form method="POST" action="?/createPaymentIntent" use:enhance={handleEnhance} class="mt-4">
-          <label
-            class="mb-2 block font-label text-xs uppercase tracking-[0.08em] text-obsidian-text-muted"
-            for="card-element"
-          >
-            Card Details
-          </label>
-          <div class="min-h-[4.5rem] rounded-card border border-[rgb(var(--accent-rgb)_/_0.25)] bg-obsidian-bg/60 p-3.5">
-            <div id="card-element" class="w-full">
-              {#if !stripeInitialized}
-                <div class="text-sm text-obsidian-text-muted">Loading payment form...</div>
-              {/if}
+          <!-- Benefits -->
+          <div class="mt-5 grid gap-2" aria-label="Premium pass benefits">
+            <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">
+              <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-obsidian-text-primary">
+                Daily Premium Rewards
+              </p>
+              <p class="mt-1 text-xs leading-relaxed text-obsidian-text-muted">
+                Claim boosted rewards across all 30 days of your pass.
+              </p>
+            </div>
+            <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">
+              <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-obsidian-text-primary">
+                Extra AI Help Credits
+              </p>
+              <p class="mt-1 text-xs leading-relaxed text-obsidian-text-muted">
+                Get additional daily help usage while your pass is active.
+              </p>
+            </div>
+            <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">
+              <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-obsidian-text-primary">
+                One-Time Charge
+              </p>
+              <p class="mt-1 text-xs leading-relaxed text-obsidian-text-muted">
+                No recurring billing, no surprise renewals.
+              </p>
             </div>
           </div>
 
-          <!-- The one solid button on this view -->
-          <button
-            type="submit"
-            disabled={isSubmitting || !stripeInitialized}
-            class="btn-cyber btn-cyber-solid mt-4 w-full !py-3.5 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? "Processing Payment..." : "Pay ₱299"}
-          </button>
+          <!-- Test cards -->
+          <aside class="mt-5 border-t border-[var(--card-border)] pt-3 font-label text-xs leading-relaxed text-obsidian-text-muted">
+            <p class="text-[0.7rem] font-bold uppercase tracking-[0.08em] text-obsidian-text-primary">
+              Test Card Numbers
+            </p>
+            <p class="mt-1"><strong>Success:</strong> 4242 4242 4242 4242</p>
+            <p><strong>Declined:</strong> 4000 0000 0000 0002</p>
+            <p><strong>3D Secure:</strong> 4000 0025 0000 3155</p>
+            <p class="opacity-80">Use any future expiry and any CVC for test mode.</p>
+          </aside>
+        </div>
 
-          <p class="mt-3 text-center font-label text-xs text-obsidian-text-muted">
-            Your card details are not stored on our servers.
-          </p>
-        </form>
-      {/if}
+        <!-- Checkout column -->
+        <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-5">
+          <!-- Checkout header -->
+          <div class="flex items-baseline justify-between border-b border-[var(--card-border)] pb-3">
+            <p class="font-heading text-xs font-bold uppercase tracking-[0.07em] text-obsidian-text-primary">
+              Secure Checkout
+            </p>
+            <p class="font-label text-xs uppercase text-obsidian-text-muted">
+              Powered by Stripe
+            </p>
+          </div>
+
+          {#if errorMessage}
+            <div
+              class="mt-4 rounded-card border border-[rgb(var(--danger-rgb)_/_0.4)] bg-[rgb(var(--danger-rgb)_/_0.12)] p-3 text-sm text-[var(--danger)]"
+              role="alert"
+            >
+              {errorMessage}
+            </div>
+          {/if}
+
+          {#if isStripeLoading}
+            <div class="mt-4 text-sm text-obsidian-text-muted">Preparing secure checkout...</div>
+          {:else}
+            <form method="POST" action="?/createPaymentIntent" use:enhance={handleEnhance} class="mt-4">
+              <label
+                class="mb-2 block font-label text-xs uppercase tracking-[0.08em] text-obsidian-text-muted"
+                for="card-element"
+              >
+                Card Details
+              </label>
+              <div class="min-h-[4.5rem] rounded-card border border-[rgb(var(--accent-rgb)_/_0.25)] bg-obsidian-bg/60 p-3.5">
+                <div id="card-element" class="w-full">
+                  {#if !stripeInitialized}
+                    <div class="text-sm text-obsidian-text-muted">Loading payment form...</div>
+                  {/if}
+                </div>
+              </div>
+
+              <!-- The one solid button on this view -->
+              <button
+                type="submit"
+                disabled={isSubmitting || !stripeInitialized}
+                class="btn-cyber btn-cyber-solid mt-4 w-full !py-3.5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSubmitting ? "Processing Payment..." : "Pay ₱299"}
+              </button>
+
+              <p class="mt-3 text-center font-label text-xs text-obsidian-text-muted">
+                Your card details are not stored on our servers.
+              </p>
+            </form>
+          {/if}
+        </div>
+      </div>
     </div>
   </main>
 

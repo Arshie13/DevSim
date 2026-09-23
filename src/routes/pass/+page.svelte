@@ -255,11 +255,7 @@
 
   // Browser history first, dashboard as fallback (achievements convention).
   function handleGoBack() {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back();
-    } else {
       goto("/dashboard");
-    }
   }
 
   function openDailyRewardsModal() {
