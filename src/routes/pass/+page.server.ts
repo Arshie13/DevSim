@@ -49,8 +49,10 @@ export const load: PageServerLoad = async (event) => {
 
   let pendingUnlocks: { day: number; available: string[] }[] = [];
   if (enrollment) {
+    // Any access source counts here — choose-unlock only rejects a scenario
+    // the user already owns, so the pending list must apply the same rule.
     const unlockedProjects = await prisma.user_project_access.findMany({
-      where: { user_id: userId, source: 'LEARNER_PASS' },
+      where: { user_id: userId },
       select: { scenario_id: true },
     });
     const unlockedIds = new Set(unlockedProjects.map((p) => p.scenario_id));

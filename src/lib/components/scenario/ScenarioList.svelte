@@ -23,8 +23,11 @@
     isNewUser: boolean;
     hasCompletedTutorial: boolean;
   };
+  /** Scenario to focus on mount — used when deep-linking from a reward modal. */
+  export let initialScenarioIndex = 0;
 
   let activeIndex = 0;
+  let initialIndexApplied = false;
   let isLoading = false;
   let showExistingModal = false;
   let existingContainerDbId = '';
@@ -38,6 +41,14 @@
   onMount(() => {
     withTutorial = !tutorialState.hasCompletedTutorial;
   });
+
+  // Svelte assigns props after the instance script runs, so seed `activeIndex`
+  // reactively once the scenario list is available. Runs once, then leaves the
+  // carousel to manage its own index.
+  $: if (!initialIndexApplied && scenarios.length > 0) {
+    activeIndex = Math.min(Math.max(initialScenarioIndex, 0), scenarios.length - 1);
+    initialIndexApplied = true;
+  }
 
   function handleTutorialToggleChange(e: Event) {
     const input = e.target as HTMLInputElement;
