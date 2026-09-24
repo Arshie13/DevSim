@@ -40,7 +40,7 @@
         </div>
         <div>
           <p class="text-[1.6875rem] font-heading font-bold text-obsidian-text-muted leading-tight tabular-nums">{metric.value}</p>
-          <p class="text-[0.6rem] font-label text-obsidian-text-primary/50 uppercase tracking-wider">{metric.label}</p>
+          <p class="text-[0.62rem] font-label text-obsidian-text-primary/50 uppercase tracking-wider">{metric.label}</p>
         </div>
       </div>
     </div>

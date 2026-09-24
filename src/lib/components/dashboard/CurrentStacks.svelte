@@ -92,8 +92,8 @@
         <Play class="w-3.5 h-3.5 text-cyber-purple" />
       </div>
       <div>
-        <h3 class="text-sm font-heading font-bold text-obsidian-text-primary">In Progress</h3>
-        <p class="text-[10px] font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
+        <h3 class="text-lg font-heading font-bold text-obsidian-text-primary">In Progress</h3>
+        <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
     <a
@@ -119,11 +119,11 @@
                 <div class="w-7 h-7 shrink-0 rounded-card bg-obsidian-surface/70 border border-[var(--card-border)] text-obsidian-text-muted flex items-center justify-center">
                   <Container class="w-3.5 h-3.5" />
                 </div>
-                <h4 class="text-sm font-heading font-semibold text-obsidian-text-primary truncate">{container.scenario.name}</h4>
+                <h4 class="text-md font-heading font-semibold text-obsidian-text-primary truncate">{container.scenario.name}</h4>
               </div>
-              <span class="tag-cyber tag-cyan shrink-0 !py-0.5 !px-2 !text-[10px]">{container.status}</span>
+              <span class="tag-cyber tag-cyan shrink-0 !py-0.5 !px-2 !text-xs">{container.status}</span>
             </div>
-            <p class="text-[10px] font-mono uppercase tracking-wider text-obsidian-text-muted truncate">
+            <p class="text-xs font-mono uppercase tracking-wider text-obsidian-text-muted truncate">
               {shortStackLabel(container.stackName ?? '')} · Level {container.level} · <Clock class="w-3.5 h-3.5 inline" /> {formatLastActive(container.updated_at)}
             </p>
             <div class="flex items-center justify-between gap-2">
@@ -140,7 +140,7 @@
         {#if visibleContainers.length > 0 && visibleContainers.length < 3}
           {#each Array.from({ length: 3 - visibleContainers.length }) as _}
             <div class="flex h-full min-h-0 items-center justify-center rounded-card border border-dashed border-[var(--card-border)] opacity-50">
-              <span class="text-[9px] font-mono uppercase tracking-wider text-obsidian-text-muted">Open slot</span>
+              <span class="text-xs font-mono uppercase tracking-wider text-obsidian-text-muted">Open slot</span>
             </div>
           {/each}
         {/if}

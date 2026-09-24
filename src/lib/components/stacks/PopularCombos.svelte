@@ -229,7 +229,7 @@
 
   .type-badge {
     font-family: var(--font-mono);
-    font-size: 0.55rem;
+    font-size: 0.6rem;
     letter-spacing: 0.10em;
     padding: 0.1rem 0.35rem;
     color: var(--accent);
@@ -240,7 +240,7 @@
 
   .rarity-badge {
     font-family: var(--font-mono);
-    font-size: 0.55rem;
+    font-size: 0.6rem;
     letter-spacing: 0.08em;
     padding: 0.1rem 0.35rem;
     border-radius: var(--radius-chrome);
@@ -264,8 +264,8 @@
 
   .row-name {
     font-family: var(--font-heading);
-    font-size: 0.88rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
     color: #d0d7dd;
     letter-spacing: 0.02em;
     line-height: 1.2;
@@ -325,8 +325,8 @@
   }
   .preset-foot span {
     font-family: var(--font-mono);
-    font-size: 0.55rem;
+    font-size: 0.7rem;
     letter-spacing: 0.12em;
-    color: rgba(7,165,201,0.25);
+    color: #8892a0
   }
 </style>

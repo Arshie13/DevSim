@@ -110,8 +110,8 @@
         <Trophy class="w-3.5 h-3.5 text-cyber-warn" />
       </div>
       <div>
-        <h3 class="text-sm font-heading font-bold text-obsidian-text-primary">Completed</h3>
-        <p class="text-[10px] font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
+        <h3 class="text-lg font-heading font-bold text-obsidian-text-primary">Completed</h3>
+        <p class="text-xs font-mono text-[var(--text-muted)]">{containers.length} stack{containers.length !== 1 ? 's' : ''}</p>
       </div>
     </div>
     <a
@@ -140,10 +140,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h4 class="text-sm font-heading font-semibold text-obsidian-text-primary truncate">{container.scenario?.name ?? parseStackName(container.stackName ?? '')}</h4>
+                <h4 class="text-md font-heading font-semibold text-obsidian-text-primary truncate">{container.scenario?.name ?? parseStackName(container.stackName ?? '')}</h4>
               </div>
             </div>
-            <p class="text-[10px] font-mono uppercase tracking-wider text-obsidian-text-muted truncate">
+            <p class="text-xs font-mono uppercase tracking-wider text-obsidian-text-muted truncate">
               {shortStackLabel(container.stackName ?? '')} · Level {container.level}
             </p>
             <div class="flex items-center justify-between gap-2">
@@ -156,7 +156,7 @@
                   Restore Progress
                 </button>
               {:else}
-                <span class="text-[10px] font-mono uppercase tracking-wider text-obsidian-text-muted">Not restorable</span>
+                <span class="text-xs font-mono uppercase tracking-wider text-obsidian-text-muted">Not restorable</span>
               {/if}
             </div>
           </div>
@@ -164,7 +164,7 @@
         {#if visibleContainers.length > 0 && visibleContainers.length < 3}
           {#each Array.from({ length: 3 - visibleContainers.length }) as _}
             <div class="flex h-full min-h-0 items-center justify-center rounded-card border border-dashed border-[var(--card-border)] opacity-50">
-              <span class="text-[9px] font-mono uppercase tracking-wider text-obsidian-text-muted">Open slot</span>
+              <span class="text-xs font-mono uppercase tracking-wider text-obsidian-text-muted">Open slot</span>
             </div>
           {/each}
         {/if}
