@@ -93,7 +93,7 @@ export const POST: RequestHandler = async (event) => {
       });
 
       const projectGrants: string[] = [];
-      const pendingUnlocks: { day: number; available: string[] }[] = [];
+      const unlockedScenarios: string[] = [];
       const rewardUnlocks = getRewardUnlockIds(reward);
 
       if (rewardUnlocks.length > 0) {
@@ -119,8 +119,45 @@ export const POST: RequestHandler = async (event) => {
           }
         }
 
+        // Every special unlock day maps to exactly one scenario, so there is
+        // nothing for the user to choose — grant it right away.
         if (specialUnlocks.length > 0) {
-          pendingUnlocks.push({ day: dayNumber, available: specialUnlocks });
+          const ownedAccess = await tx.user_project_access.findMany({
+            where: { user_id: userId, scenario_id: { in: specialUnlocks } },
+            select: { scenario_id: true },
+          });
+          const ownedIds = new Set(ownedAccess.map((a) => a.scenario_id));
+
+          for (const scenarioId of specialUnlocks) {
+            if (ownedIds.has(scenarioId)) continue;
+
+            await tx.user_project_access.create({
+              data: {
+                user_id: userId,
+                scenario_id: scenarioId,
+                source: 'LEARNER_PASS',
+                learner_pass_enrollment_id: enrollment.id,
+                granted_at: now,
+              },
+            });
+            projectGrants.push(scenarioId);
+            unlockedScenarios.push(scenarioId);
+          }
+
+          // Record the choice so the legacy pending-unlock fallback never
+          // surfaces this day again.
+          const chosen = new Set(
+            Array.isArray(enrollment.unlock_choices)
+              ? (enrollment.unlock_choices as unknown[]).filter(
+                  (c): c is string => typeof c === 'string',
+                )
+              : [],
+          );
+          for (const scenarioId of specialUnlocks) chosen.add(scenarioId);
+          await tx.learner_pass_enrollment.update({
+            where: { id: enrollment.id },
+            data: { unlock_choices: [...chosen] },
+          });
         }
       }
 
@@ -130,7 +167,7 @@ export const POST: RequestHandler = async (event) => {
         newClaimedDays,
         reward,
         projectGrants,
-        pendingUnlocks,
+        unlockedScenarios,
         currentDay,
       };
     });
@@ -144,7 +181,7 @@ export const POST: RequestHandler = async (event) => {
         aiHelps: result.reward.ai_helps,
         unlocks: result.projectGrants,
       },
-      pendingUnlocks: result.pendingUnlocks,
+      unlockedScenarios: result.unlockedScenarios,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,

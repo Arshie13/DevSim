@@ -7,7 +7,9 @@
   import Header from "$components/Header.svelte";
   import DailyRewardsModal from "$lib/components/dailyRewards/DailyRewardsModal.svelte";
   import HelpPanel from "$lib/components/help/HelpPanel.svelte";
+  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import { helpTrigger } from "$lib/stores/helpTrigger";
+  import { resolveScenarioRef } from "$lib/utils/scenario-mapping";
 
   export let data: PageData;
 
@@ -47,6 +49,12 @@
   let pickerDay = 0;
   let pickerAvailable: string[] = [];
   let isChoosing = false;
+  let chooseUnlockError = "";
+
+  // Confirmation shown after claiming a milestone day — there is only ever one
+  // scenario per unlock day, so no picker is needed.
+  let showUnlockedScenarioModal = false;
+  let unlockedScenarioId: string | null = null;
   let pendingUnlocks = data.pendingUnlocks ?? [];
 
   const SCENARIO_NAMES: Record<string, string> = {
@@ -190,11 +198,9 @@
             startTimer();
           }
 
-          if (claimData.pendingUnlocks && claimData.pendingUnlocks.length > 0) {
-            showUnlockPicker = true;
-            pickerDay = claimData.pendingUnlocks[0].day;
-            pickerAvailable = claimData.pendingUnlocks[0].available;
-            pendingUnlocks = [...pendingUnlocks, ...claimData.pendingUnlocks];
+          if (claimData.unlockedScenarios && claimData.unlockedScenarios.length > 0) {
+            unlockedScenarioId = claimData.unlockedScenarios[0];
+            showUnlockedScenarioModal = true;
           }
         }
       })
@@ -207,24 +213,57 @@
   function handleChooseUnlock(scenarioId: string) {
     if (isChoosing) return;
     isChoosing = true;
+    chooseUnlockError = "";
 
     fetch("/api/user/learner-pass/choose-unlock", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ dayNumber: pickerDay, scenarioId }),
     })
-      .then((res) => res.json())
-      .then((resp) => {
-        if (resp.success) {
-          showUnlockPicker = false;
-          // TODO: add type for response
-          pendingUnlocks = pendingUnlocks.filter((p: any) => p.day !== pickerDay);
+      .then(async (res) => {
+        const resp = await res.json().catch(() => null);
+
+        if (!res.ok || !resp?.success) {
+          chooseUnlockError =
+            resp?.message ?? `Could not unlock scenario (${res.status})`;
+          return;
         }
+
+        showUnlockPicker = false;
+        // The choice is now recorded server-side, so drop this day's pending
+        // entry (the scenario may have been owned already via another source).
+        pendingUnlocks = pendingUnlocks.filter((p: any) => p.day !== pickerDay);
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err);
+        chooseUnlockError = "Something went wrong. Please try again.";
+      })
       .finally(() => {
         isChoosing = false;
       });
+  }
+
+  $: unlockedScenarioName = unlockedScenarioId
+    ? SCENARIO_NAMES[unlockedScenarioId] ?? unlockedScenarioId
+    : "";
+
+  function handleGoToUnlockedScenario() {
+    const scenarioId = unlockedScenarioId;
+    showUnlockedScenarioModal = false;
+    unlockedScenarioId = null;
+    if (!scenarioId) return;
+
+    const ref = resolveScenarioRef(scenarioId);
+    goto(
+      ref
+        ? `/scenario?stack=${ref.stackName}&scenario=${ref.folderScenarioId}`
+        : "/scenario",
+    );
+  }
+
+  function handleDismissUnlockedScenario() {
+    showUnlockedScenarioModal = false;
+    unlockedScenarioId = null;
   }
 
   function handleEquipAvatar(level: number, entry: RewardEntry) {
@@ -577,6 +616,7 @@
                 {#each pending.available as scenarioId}
                   <button
                     on:click={() => {
+                      chooseUnlockError = "";
                       pickerDay = pending.day;
                       pickerAvailable = pending.available;
                       showUnlockPicker = true;
@@ -650,6 +690,9 @@
             </button>
           {/each}
         </div>
+        {#if chooseUnlockError}
+          <p class="mt-3 font-label text-sm text-cyber-danger">{chooseUnlockError}</p>
+        {/if}
         <button
           on:click={() => showUnlockPicker = false}
           class="mt-4 w-full font-label text-xs uppercase tracking-wide text-obsidian-text-muted hover:text-obsidian-text-primary transition-colors py-2"
@@ -659,6 +702,21 @@
       </div>
     </div>
   {/if}
+
+  <!-- Scenario Unlocked confirmation (milestone days) -->
+  <ConfirmationModal
+    bind:open={showUnlockedScenarioModal}
+    icon="🔓"
+    iconVariant="success"
+    variant="success"
+    title="Scenario Unlocked"
+    subtitle="Learner Pass reward"
+    description={`${unlockedScenarioName} unlocked. Go to scenario details?`}
+    confirmLabel="Go now"
+    cancelLabel="Maybe later"
+    on:confirm={handleGoToUnlockedScenario}
+    on:cancel={handleDismissUnlockedScenario}
+  />
 
   <!-- Ambient Background Effects -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">

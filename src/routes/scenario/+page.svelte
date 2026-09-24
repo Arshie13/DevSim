@@ -36,6 +36,7 @@
         stackName={data.stackName}
         selection={data.selection}
         tutorialState={data.tutorialState}
+        initialScenarioIndex={data.initialScenarioIndex}
       />
     </main>
   </div>
