@@ -8,7 +8,7 @@
 
   const dispatch = createEventDispatcher<{ update: UserData }>();
 
-  const USERNAME_PATTERN = /^[a-z0-9_-]{3,30}$/;
+  const USERNAME_PATTERN = /^[a-z0-9_-]{3,16}$/;
 
   let username = user.username ?? "";
   let serverError = "";
@@ -19,7 +19,7 @@
   $: invalid = !USERNAME_PATTERN.test(normalized);
   $: clientError =
     normalized !== "" && invalid
-      ? "Username must be 3-30 characters: letters, numbers, hyphens and underscores"
+      ? "Username must be 3-16 characters: letters, numbers, hyphens and underscores"
       : "";
   $: canSave = !saving && !unchanged && !invalid;
 
@@ -89,6 +89,7 @@
       spellcheck="false"
       aria-label="New username"
       placeholder="new_username"
+      maxlength="16"
       class="w-full px-3 py-2.5 bg-obsidian-surface border border-obsidian-border/60 rounded-card font-body text-base text-obsidian-text-primary placeholder:text-obsidian-text-muted/50 focus:border-obsidian-accent/60 focus:outline-none transition-colors duration-200"
     />
 

@@ -216,7 +216,7 @@
     : LEVEL_CONFIG
   );
 
-  let operatorAlias = $derived(data.user?.name || data.user?.name || "Operator");
+  let operatorAlias = $derived(data.user?.username || data.user?.name || "Operator");
   let workspaceProjectName = $derived(workspaceScenario?.name || title || "DevSim Workspace");
   let cameFromTutorial = $derived(page.url.searchParams.get("fromTutorial") === "1");
 

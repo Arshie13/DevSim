@@ -44,7 +44,8 @@
     {:else}
     <div class="grid grid-cols-2 md:grid-cols-4 auto-rows-fr gap-3 lg:gap-4 w-full">
       {#each rivals as rival (rival.id)}
-        <button
+        <a
+          href="/rivals/{rival.username}"
           class="group relative flex h-full flex-col items-center justify-center gap-3 lg:gap-4 bg-obsidian-bg-light border border-obsidian-accent/25 rounded-card transition-all duration-300 shadow-[0_0_25px_rgb(var(--accent-rgb)_/_0.1)] hover:border-obsidian-accent/50 hover:shadow-[0_0_35px_rgb(var(--accent-rgb)_/_0.25)] hover:-translate-y-0.5 cursor-pointer overflow-hidden p-3"
         >
           <!-- Inner glow -->
@@ -88,7 +89,7 @@
 
           <!-- Accent bottom line -->
           <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-obsidian-accent/20 to-transparent opacity-60"></div>
-        </button>
+        </a>
       {/each}
     </div>
     {/if}

@@ -15,6 +15,7 @@
 
   $: headerUserData = {
     ...data.user,
+    fullName: data.user.fullName ?? data.user.name,
     coins: data.userCoins,
   } as UserData;
 
@@ -162,7 +163,7 @@
                     <!-- Info -->
                     <div class="text-center mb-4">
                       <p class="text-base font-heading font-bold text-[var(--text-primary)] truncate">
-                        {entry.name ?? entry.username}
+                        {entry.username}
                         {#if entry.isCurrentUser}
                           <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                         {/if}
@@ -233,7 +234,7 @@
                     <!-- Info -->
                     <div class="text-center mb-5">
                       <p class="text-lg font-heading font-bold text-[#ffd700] truncate">
-                        {entry.name ?? entry.username}
+                        {entry.username}
                         {#if entry.isCurrentUser}
                           <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                         {/if}
@@ -297,7 +298,7 @@
                     <!-- Info -->
                     <div class="text-center mb-4">
                       <p class="text-base font-heading font-bold text-[var(--text-primary)] truncate">
-                        {entry.name ?? entry.username}
+                        {entry.username}
                         {#if entry.isCurrentUser}
                           <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                         {/if}
@@ -367,7 +368,7 @@
                   <!-- User Info -->
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-label font-medium truncate {entry.isCurrentUser ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]'}">
-                      {entry.name ?? entry.username}
+                      {entry.username}
                       {#if entry.isCurrentUser}
                         <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                       {/if}
@@ -417,7 +418,7 @@
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-label font-medium truncate text-[var(--accent)]">
-                      {data.currentUserEntry.name ?? data.currentUserEntry.username}
+                      {data.currentUserEntry.username}
                       <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                     </p>
                     <div class="flex items-center gap-3 mt-1">

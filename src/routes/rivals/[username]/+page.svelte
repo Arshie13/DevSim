@@ -83,7 +83,7 @@
 </script>
 
 <svelte:head>
-  <title>{targetUser.name}'s Profile | DevSim</title>
+  <title>{targetUser.username}'s Profile | DevSim</title>
 </svelte:head>
 
 <div

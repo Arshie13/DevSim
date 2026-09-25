@@ -12,7 +12,7 @@
     image: data.user.image ?? 'No image found',
     id: data.user.id ?? '',
     avatar: data.user?.image ?? '../static/avatars/defaultcyan.svg',
-    fullName: data.user?.name ?? data.user?.name ?? 'No name found',
+    fullName: data.user?.fullName ?? data.user?.name ?? 'No name found',
     coins: data.userCoins,
   };
 </script>

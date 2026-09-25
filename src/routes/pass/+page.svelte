@@ -18,6 +18,7 @@
     ? {
         id: data.user.id,
         name: data.user.name ?? "No Name",
+        fullName: data.user.fullName ?? data.user.name,
         email: data.user.email ?? undefined,
         image: data.user.image ?? undefined,
         avatar: data.user.avatar ?? data.user.image ?? "",

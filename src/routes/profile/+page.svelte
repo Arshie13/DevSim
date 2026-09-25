@@ -19,6 +19,7 @@
   let user: UserData = {
     id: data.user.id,
     name: data.user?.name ?? 'Name not found',
+    fullName: data.user.fullName,
     email: data.user.email ?? 'no email found',
     image: data.user.image ?? 'static/avatars/defaultcyan.svg',
     avatar: data.user.avatar ?? data.user.image ?? "",

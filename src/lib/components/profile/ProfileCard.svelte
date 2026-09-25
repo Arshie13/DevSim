@@ -70,7 +70,7 @@
           {#if isExternalImage || isSvgPath}
             <img
               src={user.image}
-              alt={user.name}
+              alt={user.username}
               class="w-full h-full object-contain"
               on:error={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
@@ -94,20 +94,14 @@
       <h1
         class="text-xl font-heading font-bold text-obsidian-text-primary tracking-tight leading-tight"
       >
-        {user.name}
+        {user.username}
       </h1>
 
       {#if user.username}
         <p
           class="text-xs font-label text-obsidian-text-primary/40 tracking-wider"
         >
-          {user.username}
-        </p>
-      {:else if user.email}
-        <p
-          class="text-xs font-label text-obsidian-text-primary/40 tracking-wider"
-        >
-          @{user.email}
+          {user.fullName ?? user.name}
         </p>
       {/if}
 

@@ -38,7 +38,7 @@
     </div>
     <div class="flex-1 min-w-0">
       <h3 class="text-lg font-heading font-semibold text-obsidian-text-muted">Recent Activity</h3>
-      <p class="text-xs font-label text-obsidian-text-primary/30 uppercase tracking-wider">
+      <p class="text-[0.65rem] font-label text-obsidian-text-primary/30 uppercase tracking-wider">
         {activities.length} {activities.length === 1 ? "item" : "items"}
       </p>
     </div>

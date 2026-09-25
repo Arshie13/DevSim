@@ -42,7 +42,7 @@ export const load: PageServerLoad = async (event) => {
     getTopAchievements(targetUser.id, 3),
     prisma.user.findUnique({
       where: { id: currentUserId },
-      select: { coins: true, image: true, owned_avatars: true }
+      select: { coins: true, image: true, owned_avatars: true, username: true }
     }),
     getRecentActivity(targetUser.id, 4),
   ]);
@@ -69,6 +69,7 @@ export const load: PageServerLoad = async (event) => {
     // Header data for the current user
     user: {
       ...session.user,
+      username: currentUserDb?.username,
       avatar: currentUserDb?.owned_avatars[0] || currentUserDb?.image || session.user.image,
     },
     userCoins: currentUserDb?.coins ?? 0

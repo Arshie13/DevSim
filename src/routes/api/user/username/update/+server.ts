@@ -14,8 +14,8 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
   const username = raw.toLowerCase();
 
   // Validate username format
-  if (!/^[a-zA-Z0-9_-]{3,30}$/.test(username)) {
-    return json({ error: 'Username must be 3-30 characters long and contain only letters, numbers, hyphens, or underscores' }, { status: 400 });
+  if (!/^[a-zA-Z0-9_-]{3,16}$/.test(username)) {
+    return json({ error: 'Username must be 3-16 characters long and contain only letters, numbers, hyphens, or underscores' }, { status: 400 });
   }
 
   try {

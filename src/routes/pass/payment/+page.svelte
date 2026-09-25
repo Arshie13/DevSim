@@ -24,6 +24,7 @@
   let headerUserData: UserData = {
     id: data.user.id,
     name: data.user.name ?? "No Name",
+    fullName: data.user.fullName ?? data.user.name,
     email: data.user.email,
     image: data.user.image,
     avatar: data.user.avatar ?? data.user.image ?? "",

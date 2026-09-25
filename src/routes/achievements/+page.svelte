@@ -22,6 +22,7 @@
 
   $: headerUserData = {
     ...data.user,
+    fullName: data.user.fullName ?? data.user.name,
     coins: data.userCoins,
   } as UserData;
 

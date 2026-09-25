@@ -68,7 +68,7 @@ export const load: PageServerLoad = async (event) => {
 
     const dbUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { coins: true, image: true, owned_avatars: true },
+      select: { coins: true, image: true, owned_avatars: true, username: true },
     });
 
     return {
@@ -76,6 +76,7 @@ export const load: PageServerLoad = async (event) => {
       currentUserEntry,
       user: {
         ...session.user,
+        username: dbUser?.username,
         avatar:
           dbUser?.image ||
           dbUser?.owned_avatars[0] ||

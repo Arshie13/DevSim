@@ -31,10 +31,10 @@
               {rival.isCurrentUser ? 'border-obsidian-accent shadow-[0_0_15px_rgba(7,165,204,0.3)]' : ''}"
           >
             {#if rival.image}
-              <img src={rival.image} alt={rival.name} class="w-full h-full object-cover" />
+              <img src={rival.image} alt={rival.username} class="w-full h-full object-cover" />
             {:else}
               <span class="text-2xl font-orbitron font-bold text-obsidian-accent">
-                {rival.name[0].toUpperCase()}
+                {rival.username[0]?.toUpperCase()}
               </span>
             {/if}
           </div>
@@ -43,12 +43,12 @@
 
         <div>
           <h3 class="text-lg font-orbitron font-bold text-obsidian-text-muted transition-colors group-hover:text-obsidian-accent">
-            {rival.name}
+            {rival.username}
             {#if rival.isCurrentUser}
               <span class="ml-2 text-[0.6rem] font-mono px-2 py-0.5 rounded border border-obsidian-accent/30 bg-obsidian-accent/10 text-obsidian-accent align-middle">YOU</span>
             {/if}
           </h3>
-          <p class="text-xs font-mono text-obsidian-text-primary/50 tracking-wider">@{rival.username}</p>
+          <p class="text-xs font-mono text-obsidian-text-primary/50 tracking-wider">{rival.name}</p>
         </div>
       </div>
 
