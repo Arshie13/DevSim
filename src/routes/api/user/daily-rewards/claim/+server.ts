@@ -3,17 +3,17 @@ import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 import { detectNewlyUnlockedAchievements } from '$lib/server/achievements/unlocks';
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 const REWARD_SCHEDULE = [
-  { day: 1, coins: 50,  xp: 10, aiHelps: 1 },
-  { day: 2, coins: 75,  xp: 20, aiHelps: 1 },
+  { day: 1, coins: 50, xp: 10, aiHelps: 1 },
+  { day: 2, coins: 75, xp: 20, aiHelps: 1 },
   { day: 3, coins: 100, xp: 30, aiHelps: 2 },
   { day: 4, coins: 150, xp: 40, aiHelps: 2 },
   { day: 5, coins: 200, xp: 50, aiHelps: 2 },
   { day: 6, coins: 300, xp: 75, aiHelps: 3 },
   { day: 7, coins: 500, xp: 100, aiHelps: 5 },
 ];
-
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export const POST: RequestHandler = async (event) => {
   const session = await event.locals.auth();
@@ -112,7 +112,16 @@ export const POST: RequestHandler = async (event) => {
         select: { coins: true, xp: true, ai_help_credits: true },
       });
 
-      return { daily, updatedUser, reward };
+      return {
+        daily,
+        updatedUser,
+        reward: {
+          day: reward.day,
+          coins: reward.coins,
+          xp: reward.xp,
+          aiHelps: reward.aiHelps,
+        },
+      };
     });
 
     const newlyUnlocked = await detectNewlyUnlockedAchievements(userId);

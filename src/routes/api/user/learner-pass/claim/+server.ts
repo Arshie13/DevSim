@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 import { SCENARIO_3_IDS } from '$lib/utils/reward-constants';
 import { getRewardUnlockIds } from '$lib/server/learnerPassRewards';
-import { computeStreak } from '$lib/utils/learnerPassStreak';
+import { calculateNextStreak } from '$lib/utils/learnerPassStreak';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -67,10 +67,16 @@ export const POST: RequestHandler = async (event) => {
       }
 
       const newClaimedDays = [...uniqueClaimed, dayNumber];
+      const newStreak = calculateNextStreak(
+        enrollment.streak,
+        enrollment.last_claimed_at,
+        now,
+      );
 
       const updatedEnrollment = await tx.learner_pass_enrollment.update({
         where: { id: enrollment.id },
         data: {
+          streak: newStreak,
           last_claimed_at: now,
           claimed_day_numbers: newClaimedDays,
         },
@@ -96,14 +102,14 @@ export const POST: RequestHandler = async (event) => {
 
         for (const projectId of normalUnlocks) {
           const existingAccess = await tx.user_project_access.findFirst({
-            where: { user_id: userId, project_id: projectId, source: 'LEARNER_PASS' },
+            where: { user_id: userId, scenario_id: projectId, source: 'LEARNER_PASS' },
           });
 
           if (!existingAccess) {
             await tx.user_project_access.create({
               data: {
                 user_id: userId,
-                project_id: projectId,
+                scenario_id: projectId,
                 source: 'LEARNER_PASS',
                 learner_pass_enrollment_id: enrollment.id,
                 granted_at: now,
@@ -129,9 +135,6 @@ export const POST: RequestHandler = async (event) => {
       };
     });
 
-    // Derive streak from the updated claimed days — no stored counter needed.
-    const streak = computeStreak(result.newClaimedDays);
-
     return Response.json({
       success: true,
       day: dayNumber,
@@ -145,7 +148,7 @@ export const POST: RequestHandler = async (event) => {
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,
-      streak,
+      streak: result.updatedEnrollment.streak,
       totalClaimedDays: result.newClaimedDays.length,
       currentDay: result.currentDay,
     });

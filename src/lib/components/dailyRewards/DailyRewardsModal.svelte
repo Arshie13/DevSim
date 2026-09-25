@@ -21,17 +21,17 @@
   }
 
   const REWARD_SCHEDULE: DailyReward[] = [
-    { day: 1, coins: 50,  xp: 10,  aiHelps: 1, claimed: false },
-    { day: 2, coins: 75,  xp: 20,  aiHelps: 1, claimed: false },
-    { day: 3, coins: 100, xp: 30,  aiHelps: 2, claimed: false },
-    { day: 4, coins: 150, xp: 40,  aiHelps: 2, claimed: false },
-    { day: 5, coins: 200, xp: 50,  aiHelps: 2, claimed: false },
-    { day: 6, coins: 300, xp: 75,  aiHelps: 3, claimed: false },
+    { day: 1, coins: 50, xp: 10, aiHelps: 1, claimed: false },
+    { day: 2, coins: 75, xp: 20, aiHelps: 1, claimed: false },
+    { day: 3, coins: 100, xp: 30, aiHelps: 2, claimed: false },
+    { day: 4, coins: 150, xp: 40, aiHelps: 2, claimed: false },
+    { day: 5, coins: 200, xp: 50, aiHelps: 2, claimed: false },
+    { day: 6, coins: 300, xp: 75, aiHelps: 3, claimed: false },
     { day: 7, coins: 500, xp: 100, aiHelps: 5, claimed: false },
   ];
 
   // -- State --------------------------------------------------------------------
-  let rewards: DailyReward[] = REWARD_SCHEDULE.map(r => ({ ...r }));
+  let rewards: DailyReward[] = REWARD_SCHEDULE.map((reward) => ({ ...reward }));
   let currentDay = 1;
   let isClaiming = false;
   let claimingDay: number | null = null;
@@ -63,9 +63,9 @@
         minutes: data.cooldown?.minutes ?? 0,
       };
 
-      rewards = REWARD_SCHEDULE.map((r, idx) => ({
+      rewards = REWARD_SCHEDULE.map((r) => ({
         ...r,
-        claimed: claimedIndices.includes(idx),
+        claimed: claimedIndices.includes(r.day - 1),
       }));
 
       loadError = false;
@@ -116,9 +116,9 @@
         hours: result.cooldown?.hours ?? 0,
         minutes: result.cooldown?.minutes ?? 0,
       };
-      rewards = REWARD_SCHEDULE.map((r, idx) => ({
+      rewards = REWARD_SCHEDULE.map((r) => ({
         ...r,
-        claimed: result.claimedDays.includes(idx),
+        claimed: result.claimedDays.includes(r.day - 1),
       }));
 
       dispatch('claim', {

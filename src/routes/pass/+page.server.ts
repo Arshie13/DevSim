@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import prisma from "$lib/server/client";
 import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
-import { computeStreak } from "$lib/utils/learnerPassStreak";
+import { getCurrentStreak } from "$lib/utils/learnerPassStreak";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -37,9 +37,9 @@ export const load: PageServerLoad = async (event) => {
   if (enrollment) {
     const unlockedProjects = await prisma.user_project_access.findMany({
       where: { user_id: userId, source: 'LEARNER_PASS' },
-      select: { project_id: true },
+      select: { scenario_id: true },
     });
-    const unlockedIds = new Set(unlockedProjects.map((p) => p.project_id));
+    const unlockedIds = new Set(unlockedProjects.map((p) => p.scenario_id));
     const choices = (enrollment.unlock_choices as string[]) || [];
     for (const day of enrollment.claimed_day_numbers) {
       if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
@@ -70,7 +70,9 @@ export const load: PageServerLoad = async (event) => {
           ? "ACTIVE"
           : "INACTIVE";
 
-  const streak = computeStreak([...uniqueClaimedDays]);
+  const streak = enrollment
+    ? getCurrentStreak(enrollment.streak, enrollment.last_claimed_at, now)
+    : 0;
 
   return {
     enrollment: enrollment

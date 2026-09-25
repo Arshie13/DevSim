@@ -2,7 +2,7 @@ import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
 import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
-import { computeStreak } from "$lib/utils/learnerPassStreak";
+import { getCurrentStreak } from "$lib/utils/learnerPassStreak";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -86,7 +86,7 @@ export const GET: RequestHandler = async (event) => {
 
   const unlockedProjects = await prisma.user_project_access.findMany({
     where: { user_id: userId, source: "LEARNER_PASS" },
-    select: { project_id: true, granted_at: true },
+    select: { scenario_id: true, granted_at: true },
   });
 
   // Validate unlock_choices defensively — it's a JSON column, shape not guaranteed.
@@ -102,15 +102,14 @@ export const GET: RequestHandler = async (event) => {
     const available = getSpecialUnlocksForDay(day).filter(
       (id) =>
         !choices.includes(id) &&
-        !unlockedProjects.some((p) => p.project_id === id),
+        !unlockedProjects.some((p) => p.scenario_id === id),
     );
     if (available.length > 0) {
       pendingUnlocks.push({ day, available });
     }
   }
 
-  // Derive streak from claimed day numbers — no stored counter needed.
-  const streak = computeStreak([...uniqueClaimedDays]);
+  const streak = getCurrentStreak(enrollment.streak, enrollment.last_claimed_at, now);
 
   return Response.json({
     status,
@@ -128,7 +127,7 @@ export const GET: RequestHandler = async (event) => {
       upcoming: upcomingRewards,
     },
     unlockedProjects: unlockedProjects.map((p) => ({
-      projectId: p.project_id,
+      projectId: p.scenario_id,
       grantedAt: p.granted_at.toISOString(),
     })),
     pendingUnlocks,

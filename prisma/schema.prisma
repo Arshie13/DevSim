@@ -88,6 +88,7 @@ model scenario {
   is_paywalled Boolean     @default(false) @map("is_paywalled")
   levels       level[]
   workspaces   workspace[]
+  project_access user_project_access[] @relation("scenario_project_access")
 
   @@map("scenarios")
 }
@@ -307,6 +308,7 @@ model learner_pass_enrollment {
   /// Reward day numbers claimed (1-30). Allows back-filling past days.
   claimed_day_numbers Int[] @default([]) @map("claimed_days")
 
+  streak             Int       @default(0) @map("streak")
   last_claimed_at    DateTime? @map("last_claimed_at")
   payment_id         String?   @unique @map("payment_id")
   payment_provider   String    @default("stripe") @map("payment_provider")
@@ -347,19 +349,20 @@ model learner_pass_reward {
 model user_project_access {
   id                         String                     @id @default(cuid()) @map("id")
   user_id                    String                     @map("user_id")
-  project_id                 String                     @map("project_id") // references scenario.id
+  scenario_id                String                     @map("scenario_id")
   source                     String                     @map("source") // LEARNER_PASS, COIN_PURCHASE, ADMIN_GRANT
   learner_pass_enrollment_id String?                    @map("learner_pass_enrollment_id")
   coin_purchase_id           String?                    @map("coin_purchase_id")
   granted_at                 DateTime                   @default(now()) @map("granted_at")
   expires_at                 DateTime?                  @map("expires_at") // null = permanent unlock
   user                       user                       @relation("user_project_access", fields: [user_id], references: [id], onDelete: Cascade)
+  scenario                   scenario                   @relation("scenario_project_access", fields: [scenario_id], references: [id], onDelete: Restrict)
   learner_pass_enrollment    learner_pass_enrollment?   @relation("learner_pass_project_access", fields: [learner_pass_enrollment_id], references: [id], onDelete: Cascade)
   coin_purchase              coin_purchase?             @relation("coin_purchase_project_access", fields: [coin_purchase_id], references: [id], onDelete: Cascade)
 
-  @@unique([user_id, project_id, source])
+  @@unique([user_id, scenario_id, source])
   @@index([user_id])
-  @@index([project_id])
+  @@index([scenario_id])
   @@index([source])
   @@index([learner_pass_enrollment_id])
   @@index([coin_purchase_id])

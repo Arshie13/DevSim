@@ -1,34 +1,32 @@
-/**
- * Computes the longest consecutive streak of day numbers in a learner pass
- * enrollment. Day numbers are 1-based (1–30).
- *
- * Because back-filling past days is allowed, the streak is derived from the
- * set of claimed day numbers rather than from claim timestamps. Filling in a
- * skipped day retroactively will extend the streak on the next read.
- *
- * Examples:
- *   [1, 2, 3, 5]      → 3  (run 1→2→3; day 4 skipped)
- *   [1, 2, 3, 4]      → 4
- *   [1, 3, 4, 5]      → 3  (run 3→4→5)
- *   [1, 2, 4, 5, 6]   → 3  (run 4→5→6)
- *   []                → 0
- */
-export function computeStreak(claimedDays: number[]): number {
-  if (claimedDays.length === 0) return 0;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-  const sorted = [...new Set(claimedDays)].sort((a, b) => a - b);
+function utcDay(timestamp: Date): number {
+  return Date.UTC(timestamp.getUTCFullYear(), timestamp.getUTCMonth(), timestamp.getUTCDate());
+}
 
-  let best = 1;
-  let current = 1;
+/** Returns the streak after a claim made at `now`. */
+export function calculateNextStreak(
+  currentStreak: number,
+  lastClaimedAt: Date | null,
+  now: Date,
+): number {
+  if (!lastClaimedAt) return 1;
 
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i] === sorted[i - 1] + 1) {
-      current++;
-      if (current > best) best = current;
-    } else {
-      current = 1;
-    }
-  }
+  const daysSinceLastClaim = (utcDay(now) - utcDay(lastClaimedAt)) / ONE_DAY_MS;
 
-  return best;
+  if (daysSinceLastClaim === 0) return currentStreak;
+  if (daysSinceLastClaim === 1) return currentStreak + 1;
+  return 1;
+}
+
+/** Returns zero once a user has missed a full UTC calendar day. */
+export function getCurrentStreak(
+  currentStreak: number,
+  lastClaimedAt: Date | null,
+  now: Date,
+): number {
+  if (!lastClaimedAt) return 0;
+
+  const daysSinceLastClaim = (utcDay(now) - utcDay(lastClaimedAt)) / ONE_DAY_MS;
+  return daysSinceLastClaim <= 1 ? currentStreak : 0;
 }

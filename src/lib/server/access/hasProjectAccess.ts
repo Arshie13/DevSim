@@ -45,7 +45,7 @@ export async function hasProjectAccess(
   const access = await prisma.user_project_access.findFirst({
     where: {
       user_id: userId,
-      project_id: scenarioDbId,
+      scenario_id: scenarioDbId,
       OR: [
         { expires_at: null },
         { expires_at: { gt: now } },

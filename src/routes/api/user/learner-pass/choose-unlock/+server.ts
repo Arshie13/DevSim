@@ -40,14 +40,14 @@ export const POST: RequestHandler = async (event) => {
       if (!available.includes(scenarioId)) throw error(400, 'Invalid scenario for this day');
 
       const existing = await tx.user_project_access.findFirst({
-        where: { user_id: userId, project_id: scenarioId },
+        where: { user_id: userId, scenario_id: scenarioId },
       });
       if (existing) throw error(409, 'Scenario already unlocked');
 
       await tx.user_project_access.create({
         data: {
           user_id: userId,
-          project_id: scenarioId,
+          scenario_id: scenarioId,
           source: 'LEARNER_PASS',
           learner_pass_enrollment_id: enrollment.id,
           granted_at: new Date(),
