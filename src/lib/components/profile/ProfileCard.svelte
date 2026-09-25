@@ -100,13 +100,13 @@
 
       {#if user.username}
         <p
-          class="text-[0.65rem] font-label text-obsidian-text-primary/40 tracking-wider"
+          class="text-xs font-label text-obsidian-text-primary/40 tracking-wider"
         >
-          @{user.username}
+          {user.username}
         </p>
       {:else if user.email}
         <p
-          class="text-[0.65rem] font-label text-obsidian-text-primary/40 tracking-wider"
+          class="text-xs font-label text-obsidian-text-primary/40 tracking-wider"
         >
           @{user.email}
         </p>
@@ -184,7 +184,7 @@
               >
                 Level Progress
               </h3>
-              <span class="text-[0.6rem] font-label text-obsidian-text-primary/40">
+              <span class="text-[0.65rem] font-label text-obsidian-text-primary/40">
                 {xpPercentage.toFixed(0)}% to Level {effectiveLevel + 1}
               </span>
             </div>
@@ -199,7 +199,7 @@
     <!-- ── Member Since ───────────────────────────────────────────────── -->
     <div class="shrink-0 px-5 pb-4">
       <div
-        class="flex items-center justify-center gap-1.5 text-[0.6rem] font-label text-obsidian-text-primary/40 uppercase tracking-wider"
+        class="flex items-center justify-center gap-1.5 text-[0.65rem] font-label text-obsidian-text-primary/40 uppercase tracking-wider"
       >
         <Calendar class="w-3 h-3" />
         <span>Member since {memberSince}</span>

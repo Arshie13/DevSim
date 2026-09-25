@@ -48,7 +48,7 @@
       <Award class="w-3.5 h-3.5 text-cyber-purple" />
     </div>
     <div class="flex-1 min-w-0">
-      <p class="font-heading text-[0.8rem] font-bold text-obsidian-text-muted tracking-wide leading-none">
+      <p class="font-heading text-md font-bold text-obsidian-text-muted tracking-wide leading-none">
         Top Achievements
       </p>
     </div>
@@ -260,7 +260,7 @@
   .badge-emoji-center { font-size: clamp(1.4rem, 13.5cqmin, 2.6rem); }
 
   .tier-text {
-    font-size: clamp(0.4rem, 3.1cqmin, 0.6rem);
+    font-size: clamp(0.42rem, 3.5cqmin, 0.65rem);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -291,8 +291,8 @@
 
   /* ── Name label ────────────────────────────────────────────── */
   .badge-label {
-    font-size: clamp(0.48rem, 3.7cqmin, 0.7rem);
-    letter-spacing: 0.03em;
+    font-size: clamp(0.48rem, 5cqmin, 0.7rem);
+    letter-spacing: 0.04em;
     color: rgb(var(--text-primary-rgb) / 0.75);
     text-align: center;
     white-space: nowrap;

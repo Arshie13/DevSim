@@ -38,7 +38,7 @@
     </div>
     <div class="flex-1 min-w-0">
       <h3 class="text-lg font-heading font-semibold text-obsidian-text-muted">Recent Activity</h3>
-      <p class="text-[0.6rem] font-label text-obsidian-text-primary/30 uppercase tracking-wider">
+      <p class="text-xs font-label text-obsidian-text-primary/30 uppercase tracking-wider">
         {activities.length} {activities.length === 1 ? "item" : "items"}
       </p>
     </div>
@@ -64,27 +64,27 @@
 
             <!-- Content -->
             <div class="flex-1 min-w-0">
-              <p class="font-heading text-xs font-medium text-obsidian-text-primary truncate">
+              <p class="font-heading text-sm font-medium text-obsidian-text-primary truncate">
                 {item.title}
               </p>
-              <p class="text-[0.6rem] font-body text-obsidian-text-primary/40 truncate">
+              <p class="text-xs font-body text-obsidian-text-primary/40 truncate">
                 {item.description}
               </p>
             </div>
 
             <!-- Timestamp + Rewards -->
             <div class="flex items-center gap-2 shrink-0">
-              <span class="text-[0.6rem] font-label text-obsidian-text-primary/30 whitespace-nowrap">
+              <span class="text-xs font-label text-obsidian-text-primary/30 whitespace-nowrap">
                 {item.timestamp}
               </span>
               {#if item.xp}
-                <span class="text-[0.6rem] font-label text-obsidian-text-primary/50 flex items-center gap-0.5">
+                <span class="text-xs font-label text-obsidian-text-primary/50 flex items-center gap-0.5">
                   <Zap class="w-2.5 h-2.5 text-obsidian-accent" />
                   {item.xp}
                 </span>
               {/if}
               {#if item.coins}
-                <span class="text-[0.6rem] font-label text-obsidian-text-primary/50 flex items-center gap-0.5">
+                <span class="text-xs font-label text-obsidian-text-primary/50 flex items-center gap-0.5">
                   <Coins class="w-2.5 h-2.5 text-obsidian-accent" />
                   {item.coins}
                 </span>
