@@ -19,7 +19,6 @@
 
   export let user: UserData;
   export let memberSince: string = "";
-  export let bio: string = "";
   export let leaderboardRank: number = 4;
   export let isOwnProfile: boolean = false;
 
@@ -123,14 +122,6 @@
           Rank #{leaderboardRank}
         </span>
       </div>
-
-      {#if bio}
-        <p
-          class="text-xs font-body text-obsidian-text-primary/55 leading-relaxed max-w-[230px]"
-        >
-          {bio}
-        </p>
-      {/if}
     </div>
 
     <!-- ── Level Progress ──────────────────────────────────────────────── -->

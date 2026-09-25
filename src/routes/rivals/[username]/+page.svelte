@@ -42,8 +42,6 @@
   });
   $: leaderboardRank = metrics.leaderboardRank;
 
-  const bio = ""; // Optional: Add bio to DB later if needed
-
   $: metricCards = [
     {
       label: "Tasks Completed",
@@ -116,7 +114,6 @@
         <ProfileCard
           user={targetUser}
           {memberSince}
-          {bio}
           {leaderboardRank}
           {isOwnProfile}
         />

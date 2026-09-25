@@ -47,8 +47,6 @@
         console.error('Failed to persist avatar:', err);
         toast.error('Failed to save avatar');
       }
-    } else {
-      toast.success('Profile updated');
     }
   }
 
@@ -58,10 +56,6 @@
 
   const memberSince     = new Date(metrics.memberSince).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   const leaderboardRank = metrics.leaderboardRank;
-
-  const bio = "";
-  const location = "";
-  const role = "";
 
   const metricCards = [
     { label: "Tasks Completed", value: String(metrics.tasksCompleted),    icon: Target,                  color: "var(--accent)",  bg: "rgb(var(--accent-rgb) / 0.12)"  },
@@ -107,7 +101,6 @@
         <ProfileCard
           {user}
           {memberSince}
-          {bio}
           {leaderboardRank}
           isOwnProfile={true}
           on:editProfile={() => (editProfileOpen = true)}

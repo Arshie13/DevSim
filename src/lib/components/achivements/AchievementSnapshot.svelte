@@ -48,7 +48,7 @@
       <Award class="w-3.5 h-3.5 text-cyber-purple" />
     </div>
     <div class="flex-1 min-w-0">
-      <p class="font-heading text-md font-bold text-obsidian-text-muted tracking-wide leading-none">
+      <p class="font-heading font-semibold text-lg p-2 font-bold text-obsidian-text-muted tracking-wide leading-none">
         Top Achievements
       </p>
     </div>
