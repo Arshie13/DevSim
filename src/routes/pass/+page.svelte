@@ -152,6 +152,13 @@
     }
   }
 
+  function isCrownIcon(entry: RewardEntry): boolean {
+    if (entry.type === "badge") {
+      return entry.value.toLowerCase().includes("crown");
+    }
+    return !["coins", "help", "avatar", "badge"].includes(entry.type);
+  }
+
   function isClaimable(reward: DayReward) {
     if (claimedDays.includes(reward.day)) return false;
 
@@ -531,7 +538,18 @@
                   ? 'bg-gradient-to-br from-cyber-success/10 to-cyber-success/5 border-cyber-success/35 hover:border-cyber-success/55 group-hover:shadow-cyber-success/10'
                   : 'bg-gradient-to-br from-cyber-warn/15 to-cyber-warn/5 border-cyber-warn/30 hover:border-cyber-warn/50 group-hover:shadow-cyber-warn/10'}"
               >
-                <img src={getRewardIcon(reward.rewards)} alt={reward.rewards.value} class="w-10 h-10 mb-2 object-contain drop-shadow{claimedDays.includes(reward.day) ? ' opacity-60' : ''}" loading="lazy" />
+                <div class="hex-frame" style="filter: drop-shadow(0 0 4px rgb(var(--{isCrownIcon(reward.rewards) ? 'gold' : 'accent'}-rgb) / 0.35));">
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                      <defs>
+                        <clipPath id="hex-clip">
+                          <polygon points="50,2 98,26 98,74 50,98 2,74 2,26" />
+                        </clipPath>
+                      </defs>
+                      <polygon points="50,2 98,26 98,74 50,98 2,74 2,26" fill="rgb(var(--surface-rgb) / 0.85)" />
+                      <polygon points="50,2 98,26 98,74 50,98 2,74 2,26" fill="none" stroke="rgb(var(--{isCrownIcon(reward.rewards) ? 'gold' : 'accent'}-rgb) / 0.6)" stroke-width="1.5" />
+                      <image href={getRewardIcon(reward.rewards)} x="25" y="25" width="50" height="50" clip-path="url(#hex-clip)" preserveAspectRatio="xMidYMid meet" />
+                    </svg>
+                  </div>
                 <div class="flex min-h-[2rem] items-center justify-center font-label text-xs font-semibold uppercase tracking-wide text-obsidian-text-primary mb-2 tabular-nums">
                   {reward.rewards.value}
                 </div>
@@ -724,3 +742,20 @@
     <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgb(var(--purple-rgb) / 0.08);"></div>
   </div>
 </div>
+
+<style>
+  .hex-frame {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .hex-frame img {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: contain;
+  }
+</style>
