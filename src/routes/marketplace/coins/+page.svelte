@@ -88,7 +88,7 @@
 </svelte:head>
 
 <div class='min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber pb-20'>
-  <Header userData={{ ...data.user, coins: userCoins, image: data.user.image ?? undefined }} />
+  <Header userData={{ ...data.user, coins: userCoins, image: data.user.image ?? undefined, avatar: data.user.image ?? '' }} />
 
   <main class='relative z-10 py-12'>
     <div class='page-container'>

@@ -93,6 +93,16 @@
       class="w-full px-3 py-2.5 bg-obsidian-surface border border-obsidian-border/60 rounded-card font-body text-base text-obsidian-text-primary placeholder:text-obsidian-text-muted/50 focus:border-obsidian-accent/60 focus:outline-none transition-colors duration-200"
     />
 
+    <div class="flex justify-end">
+      <span
+        class="font-label text-xs tracking-[0.04em] {username.length >= 16
+          ? 'text-[var(--warn)]'
+          : 'text-obsidian-text-muted'}"
+      >
+        {username.length}/16
+      </span>
+    </div>
+
     {#if clientError || serverError}
       <p class="font-body text-sm text-[var(--danger)] text-center" role="alert">
         {clientError || serverError}

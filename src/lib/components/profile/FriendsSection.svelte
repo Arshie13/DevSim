@@ -78,7 +78,7 @@
           </div>
 
           <!-- Name -->
-          <span class="relative text-xs font-label uppercase tracking-wide text-obsidian-text-primary/70 group-hover:text-obsidian-accent truncate w-full text-center transition-colors duration-300 px-3">
+          <span class="relative text-xs font-label tracking-wide text-obsidian-text-primary/70 group-hover:text-obsidian-accent truncate w-full text-center transition-colors duration-300 px-3">
             {rival.username}
           </span>
 
