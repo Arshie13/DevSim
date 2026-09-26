@@ -60,6 +60,7 @@
    let headerUserData: UserData = {
      id: data.user.id,
      name: data.user.name ?? "No Name",
+     fullName: data.user.fullName ?? data.user.name,
      email: data.user.email,
      image: data.user.image,
      avatar: data.user.avatar ?? data.user.image ?? "",
@@ -71,7 +72,7 @@
      hasSeenDashboardOnboarding: data.user.hasSeenDashboardOnboarding ?? false,
    };
 
-   $: firstName = data.user.givenName?.split(' ')[0] || data.user.name?.split(' ')[0] || 'Developer';
+   $: displayName = data.user.username || data.user.name?.split(' ')[0] || 'Developer';
 
   $: currentStacks = [...data.userContainerList].sort((a, b) => +new Date(b.updated_at ?? 0) - +new Date(a.updated_at ?? 0));
   $: archivedStacks = [...data.archivedStacks].sort((a, b) => +new Date(b.updated_at ?? 0) - +new Date(a.updated_at ?? 0));
@@ -216,9 +217,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 shrink-0">
       <h2 class="text-2xl font-heading font-bold text-obsidian-text-primary">
         {#if shouldShowOnboarding}
-          Welcome to DevSim, <span class="text-cyber-cyan">{firstName}!</span>
+          Welcome to DevSim, <span class="text-cyber-cyan">{displayName}!</span>
         {:else}
-          Welcome back, <span class="text-cyber-cyan">{firstName}!</span>
+          Welcome back, <span class="text-cyber-cyan">{displayName}!</span>
         {/if}
       </h2>
 

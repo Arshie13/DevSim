@@ -52,7 +52,7 @@
 
 		<!-- Logo -->
 		<div class="flex justify-center mb-6">
-			<Logo stacked markClass="w-16 h-16" textClass="text-xl" subtitle="Developer Simulation" />
+			<Logo stacked markClass="w-20 h-20" textClass="text-xl" subtitle="Developer Simulation" />
 		</div>
 
 		<!-- Heading -->

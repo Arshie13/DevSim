@@ -19,7 +19,6 @@
 
   export let user: UserData;
   export let memberSince: string = "";
-  export let bio: string = "";
   export let leaderboardRank: number = 4;
   export let isOwnProfile: boolean = false;
 
@@ -71,7 +70,7 @@
           {#if isExternalImage || isSvgPath}
             <img
               src={user.image}
-              alt={user.name}
+              alt={user.username}
               class="w-full h-full object-contain"
               on:error={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
@@ -95,20 +94,14 @@
       <h1
         class="text-xl font-heading font-bold text-obsidian-text-primary tracking-tight leading-tight"
       >
-        {user.name}
+        {user.username}
       </h1>
 
       {#if user.username}
         <p
-          class="text-[0.65rem] font-label text-obsidian-text-primary/40 tracking-wider"
+          class="text-xs font-label text-obsidian-text-primary/40 tracking-wider"
         >
-          @{user.username}
-        </p>
-      {:else if user.email}
-        <p
-          class="text-[0.65rem] font-label text-obsidian-text-primary/40 tracking-wider"
-        >
-          @{user.email}
+          {user.fullName ?? user.name}
         </p>
       {/if}
 
@@ -123,14 +116,6 @@
           Rank #{leaderboardRank}
         </span>
       </div>
-
-      {#if bio}
-        <p
-          class="text-xs font-body text-obsidian-text-primary/55 leading-relaxed max-w-[230px]"
-        >
-          {bio}
-        </p>
-      {/if}
     </div>
 
     <!-- ── Level Progress ──────────────────────────────────────────────── -->
@@ -184,7 +169,7 @@
               >
                 Level Progress
               </h3>
-              <span class="text-[0.6rem] font-label text-obsidian-text-primary/40">
+              <span class="text-[0.65rem] font-label text-obsidian-text-primary/40">
                 {xpPercentage.toFixed(0)}% to Level {effectiveLevel + 1}
               </span>
             </div>
@@ -199,7 +184,7 @@
     <!-- ── Member Since ───────────────────────────────────────────────── -->
     <div class="shrink-0 px-5 pb-4">
       <div
-        class="flex items-center justify-center gap-1.5 text-[0.6rem] font-label text-obsidian-text-primary/40 uppercase tracking-wider"
+        class="flex items-center justify-center gap-1.5 text-[0.65rem] font-label text-obsidian-text-primary/40 uppercase tracking-wider"
       >
         <Calendar class="w-3 h-3" />
         <span>Member since {memberSince}</span>

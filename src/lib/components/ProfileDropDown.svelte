@@ -55,14 +55,14 @@
         rounded-full flex items-center justify-center overflow-hidden"
     >
       {#if userData.avatar && /^https?:\/\//i.test(userData.avatar)}
-        <img src={userData.avatar} alt={userData.name ?? 'User'} class="w-full h-full object-cover rounded-full" referrerpolicy="no-referrer" />
+        <img src={userData.avatar} alt={userData.username ?? userData.name ?? 'User'} class="w-full h-full object-cover rounded-full" referrerpolicy="no-referrer" />
       {:else if userData.avatar && userData.avatar.startsWith('/')}
-        <img src={userData.avatar} alt={userData.name ?? 'User'} class="w-full h-full object-contain" />
+        <img src={userData.avatar} alt={userData.username ?? userData.name ?? 'User'} class="w-full h-full object-contain" />
       {:else if userData.avatar}
         {userData.avatar}
       {:else}
         <span class="text-obsidian-accent font-heading font-bold text-base">
-          {(userData.name ?? '?')[0].toUpperCase()}
+          {(userData.username ?? userData.name ?? '?')[0].toUpperCase()}
         </span>
       {/if}
     </div>
@@ -77,8 +77,8 @@
     >
       <!-- User info header -->
       <div class="px-4 py-3 border-b border-[var(--card-border)] bg-obsidian-surface/40">
-        <p class="text-base font-heading font-semibold text-obsidian-text-primary leading-tight">{userData.name}</p>
-        <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Developer</p>
+        <p class="text-base font-heading font-semibold text-obsidian-text-primary leading-tight">{userData.username ?? userData.name}</p>
+        <p class="text-xs font-label text-[var(--text-muted)] uppercase tracking-wider mt-0.5">{userData.fullName ?? userData.name}</p>
       </div>
 
       <!-- Menu items -->

@@ -23,13 +23,14 @@
     switch (sortBy) {
       case "xp_desc": result.sort((a, b) => b.xp - a.xp); break;
       case "xp_asc": result.sort((a, b) => a.xp - b.xp); break;
-      case "name_asc": result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case "name_asc": result.sort((a, b) => a.username.localeCompare(b.username)); break;
     }
     return result;
   })();
 
   let headerUserData: UserData = {
     ...data.user,
+    fullName: data.user.fullName ?? data.user.name,
     coins: data.userCoins
   };
 
