@@ -59,7 +59,7 @@
     <!-- Card -->
     <div
       class="relative w-full max-w-xl mx-4 flex flex-col"
-      style="background:#12192a;border:1px solid rgba(7,165,201,0.25);border-radius:6px;padding:1.25rem;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(7,165,201,0.1),0 0 60px rgba(7,165,201,0.15),0 32px 80px rgba(0,0,0,0.6);"
+      style="background:#12192a;border:1px solid rgba(7,165,201,0.25);border-radius:var(--radius-card);padding:1.25rem;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(7,165,201,0.1),0 0 60px rgba(7,165,201,0.15),0 32px 80px rgba(0,0,0,0.6);"
     >
       <!-- Ambient glow -->
       <div
@@ -70,10 +70,10 @@
       <!-- Header -->
       <div class="flex items-start justify-between gap-3 mb-6 pb-4 border-b border-[rgba(7,165,201,0.15)] flex-shrink-0">
         <div>
-          <h3 class="text-lg font-bold tracking-wide text-[#d0d7dd]" style="font-family:'Orbitron',monospace;">
+          <h3 class="text-lg font-bold tracking-wide text-[#d0d7dd]" style="font-family: var(--font-heading);">
             Your Stack Analysis
           </h3>
-          <p class="text-sm text-[#8892a0] mt-1" style="font-family:'Rajdhani',sans-serif;">
+          <p class="text-sm text-[#8892a0] mt-1" style="font-family: var(--font-body);">
             AI-powered insights about your technology combination
           </p>
         </div>
@@ -121,7 +121,7 @@
           <div class="flex items-center justify-center py-12">
             <div class="flex items-center gap-3">
               <Loader class="w-6 h-6 animate-spin" style="color:#07a5c9;" />
-              <span class="text-[#d0d7dd]" style="font-family:'Rajdhani',sans-serif;">
+              <span class="text-[#d0d7dd]" style="font-family: var(--font-body);">
                 Analyzing your stack combination...
               </span>
             </div>
@@ -131,7 +131,7 @@
           <div class="prose prose-invert max-w-none">
             <div
               class="text-[#d0d7dd] leading-relaxed text-justify"
-              style="font-family:'Rajdhani',sans-serif;font-size:0.95rem;line-height:1.6;"
+              style="font-family: var(--font-body);font-size:0.95rem;line-height:1.6;"
             >
               {@html formatMessage(description)}
             </div>
@@ -139,7 +139,7 @@
 
         {:else}
           <div class="text-center py-8">
-            <p class="text-[#8892a0]" style="font-family:'Rajdhani',sans-serif;">
+            <p class="text-[#8892a0]" style="font-family: var(--font-body);">
               Failed to generate description. Please try again.
             </p>
           </div>
@@ -174,9 +174,9 @@
 
     background: rgba(7, 165, 201, 0.08);
     border: 1px solid rgba(7, 165, 201, 0.2);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
 
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     color: #d0d7dd;
   }
 

@@ -99,7 +99,7 @@
     box-shadow:
       0 0 16px var(--glow),
       0 8px 32px rgba(0,0,0,0.6);
-    border-radius: 8px;
+    border-radius: var(--radius-card);
   }
 
   .ep-icon-header {
@@ -137,7 +137,7 @@
   }
 
   .ep-label {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -146,7 +146,7 @@
   }
 
   .ep-message {
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     color: #d0d7dd;
     line-height: 1.45;
@@ -154,7 +154,7 @@
   }
 
   .ep-help-action {
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-heading);
     font-size: 0.6rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -186,7 +186,7 @@
     align-items: center;
     justify-content: center;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
   }
 
   .ep-close:hover {

@@ -4,6 +4,7 @@
   import Header from "$lib/components/Header.svelte";
   import RivalCard from "$lib/components/rivals/RivalCard.svelte";
   import type { UserData } from "$types";
+  import { goto } from "$app/navigation";
 
   export let data: {
     rivals: any[];
@@ -22,18 +23,19 @@
     switch (sortBy) {
       case "xp_desc": result.sort((a, b) => b.xp - a.xp); break;
       case "xp_asc": result.sort((a, b) => a.xp - b.xp); break;
-      case "name_asc": result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case "name_asc": result.sort((a, b) => a.username.localeCompare(b.username)); break;
     }
     return result;
   })();
 
   let headerUserData: UserData = {
     ...data.user,
+    fullName: data.user.fullName ?? data.user.name,
     coins: data.userCoins
   };
 
   function goBack() {
-    window.history.back();
+    goto('/dashboard');
   }
 </script>
 
@@ -45,14 +47,14 @@
   <Header userData={headerUserData} />
 
   <main class="relative z-10 py-8 lg:py-12">
-    <div class="max-w-[1200px] mx-auto px-6">
+    <div class="page-container">
       
       <!-- Top Actions -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div in:fade={{ duration: 400 }}>
-          <button 
+          <button
             on:click={goBack}
-            class="flex items-center gap-2 text-obsidian-text-primary/50 hover:text-obsidian-accent transition-colors mb-4 group font-mono text-xs uppercase tracking-widest"
+            class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-6 group"
           >
             <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
             Back to Simulation
@@ -138,9 +140,3 @@
   </div>
 </div>
 
-<style>
-  /* Scanline effect override if needed */
-  :global(.scanlines::before) {
-    opacity: 0.03;
-  }
-</style>

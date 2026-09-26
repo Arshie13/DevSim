@@ -102,7 +102,7 @@
 </script>
 
 <div 
-  class="relative flex flex-col items-center p-4 rounded-xl border transition-all duration-300
+  class="relative flex flex-col items-center p-4 rounded-card border transition-all duration-300
     {isPremium 
       ? 'bg-gradient-to-b from-cyber-bright/5 to-obsidian-accent/5 border-cyber-bright/40' 
       : 'bg-obsidian-surface border-obsidian-accent/30'}
@@ -118,7 +118,7 @@
   
   <!-- Locked overlay */}
   {#if isLocked}
-    <div class="absolute inset-0 bg-obsidian-bg/50 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10">
+    <div class="absolute inset-0 bg-obsidian-bg/50 backdrop-blur-[2px] rounded-card flex items-center justify-center z-10">
       <Lock class="w-8 h-8 text-obsidian-text-muted" />
     </div>
   {/if}
@@ -160,7 +160,7 @@
     <div class="mt-3 w-full">
       <button 
         disabled
-        class="w-full py-2 px-4 rounded-lg bg-cyber-success/20 border border-cyber-success/30 text-cyber-success font-orbitron text-sm flex items-center justify-center gap-2 cursor-default"
+        class="w-full py-2 px-4 rounded-card bg-cyber-success/20 border border-cyber-success/30 text-cyber-success font-orbitron text-sm flex items-center justify-center gap-2 cursor-default"
       >
         <Check class="w-4 h-4" />
         <span>Claimed</span>
@@ -171,7 +171,7 @@
       <button 
         on:click={handleClaim}
         disabled={isClaiming}
-        class="w-full py-2 px-4 rounded-lg bg-gradient-to-r from-cyber-bright to-obsidian-accent border border-cyber-bright/50 text-obsidian-bg font-orbitron text-sm font-bold hover:shadow-lg hover:shadow-cyber-bright/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full py-2 px-4 rounded-card bg-gradient-to-r from-cyber-bright to-obsidian-accent border border-cyber-bright/50 text-obsidian-bg font-orbitron text-sm font-bold hover:shadow-lg hover:shadow-cyber-bright/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         class:animate-pulse={!isClaiming}
       >
         {#if isClaiming}
@@ -188,7 +188,7 @@
     <div class="mt-3 w-full">
       <button 
         disabled
-        class="w-full py-2 px-4 rounded-lg bg-obsidian-surface border border-obsidian-accent/20 text-obsidian-text-muted font-orbitron text-sm cursor-not-allowed"
+        class="w-full py-2 px-4 rounded-card bg-obsidian-surface border border-obsidian-accent/20 text-obsidian-text-muted font-orbitron text-sm cursor-not-allowed"
       >
         <Lock class="w-4 h-4 inline mr-2" />
         Reach Level {reward.level}

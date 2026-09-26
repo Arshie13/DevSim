@@ -40,7 +40,7 @@
   .lab-success-modal h4 {
     margin: 0 0 0.5rem;
     color: #d8ffe9;
-    font-family: "Orbitron", monospace;
+    font-family: var(--font-heading);
     font-size: 0.85rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -49,7 +49,7 @@
   .lab-success-modal p {
     margin: 0 0 0.8rem;
     color: #d0d7dd;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.8rem;
     line-height: 1.35;
   }
@@ -59,7 +59,7 @@
     background: rgba(32, 197, 129, 0.18);
     color: #e9fff3;
     padding: 0.38rem 0.65rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-heading);
     font-size: 0.67rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;

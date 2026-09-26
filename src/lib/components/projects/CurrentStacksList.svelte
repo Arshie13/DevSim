@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
-  import { Play, Archive, Lock } from "lucide-svelte";
+  import { Play, Archive, Lock, Trash2 } from "lucide-svelte";
   import { parseStackName } from "$lib/utils/stacks";
   import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import LoadingSteps from "$lib/components/ui/LoadingSteps.svelte";
@@ -24,6 +24,12 @@
   let archiveError = "";
   let stepTimer: ReturnType<typeof setInterval> | null = null;
 
+  let deleteTarget: IContainer | null = null;
+  let deleteOpen = false;
+  let isDeleting = false;
+  let deleteError = "";
+  let removedContainerIds: string[] = [];
+
   function isArchivable(c: IContainer): boolean {
     return (c.status ?? "").toLowerCase() === "completed" && !c.isArchived;
   }
@@ -39,6 +45,47 @@
     if (isArchiving) return;
     confirmOpen = false;
     archiveError = "";
+  }
+
+  function openDeleteConfirm(c: IContainer) {
+    deleteTarget = c;
+    deleteOpen = true;
+    deleteError = "";
+  }
+
+  function closeDeleteConfirm() {
+    if (isDeleting) return;
+    deleteOpen = false;
+    deleteTarget = null;
+    deleteError = "";
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+
+    isDeleting = true;
+    deleteError = "";
+
+    try {
+      const res = await fetch(`/api/docker/container/${target.id}/destroy`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? `Delete failed (${res.status})`);
+      }
+
+      removedContainerIds = [...removedContainerIds, target.id];
+      deleteOpen = false;
+      deleteTarget = null;
+      await invalidateAll();
+    } catch (err) {
+      deleteError = err instanceof Error ? err.message : "Delete failed. Please try again.";
+    } finally {
+      isDeleting = false;
+    }
   }
 
   function startStepTimer() {
@@ -100,7 +147,7 @@
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  {#each containers as c (c.id)}
+  {#each containers.filter((c) => !removedContainerIds.includes(c.id)) as c (c.id)}
     {@const archivable = isArchivable(c)}
     <ProjectCard container={c} variant="current">
       <svelte:fragment slot="actions">
@@ -130,6 +177,16 @@
             <Lock class="w-3.5 h-3.5" />
           {/if}
           <span>Archive</span>
+        </button>
+
+        <button
+          type="button"
+          class="action-btn action-btn--delete"
+          on:click={() => openDeleteConfirm(c)}
+          title="Permanently delete this workspace"
+        >
+          <Trash2 class="w-3.5 h-3.5" />
+          <span>Delete</span>
         </button>
       </svelte:fragment>
     </ProjectCard>
@@ -173,6 +230,33 @@
   </ConfirmationModal>
 {/if}
 
+<!-- Delete modal -->
+{#if deleteTarget}
+  <ConfirmationModal
+    bind:open={deleteOpen}
+    icon="⚠"
+    iconVariant="danger"
+    title="Delete Workspace?"
+    description="This will permanently delete the workspace and its Docker container. This action cannot be undone."
+    confirmLabel="Delete Workspace"
+    cancelLabel="Cancel"
+    variant="danger"
+    isLoading={isDeleting}
+    loadingLabel="Deleting..."
+    error={deleteError}
+    on:confirm={handleDelete}
+    on:cancel={closeDeleteConfirm}
+  >
+    <div class="info-row">
+      <p class="info-title">{deleteTarget.scenario?.name ?? parseStackName(deleteTarget.stackName ?? '')}</p>
+      {#if deleteTarget.scenario?.name}
+        <p class="info-sub">{parseStackName(deleteTarget.stackName ?? '')}</p>
+      {/if}
+      <p class="info-sub">Level {deleteTarget.level}</p>
+    </div>
+  </ConfirmationModal>
+{/if}
+
 <!-- Loading overlay -->
 {#if isArchiving}
   <LoadingSteps
@@ -204,7 +288,7 @@
     border: 1px solid;
     background: transparent;
     transition: color 0.2s, background 0.2s, box-shadow 0.2s, border-color 0.2s;
-    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    border-radius: var(--radius-card);
   }
 
   .action-btn--continue {
@@ -230,6 +314,17 @@
     box-shadow: 0 0 14px rgba(255, 180, 0, 0.3);
   }
 
+  .action-btn--delete {
+    color: var(--danger);
+    border-color: rgba(255, 56, 96, 0.5);
+  }
+
+  .action-btn--delete:hover {
+    background: rgba(255, 56, 96, 0.12);
+    border-color: rgba(255, 56, 96, 0.9);
+    box-shadow: 0 0 14px rgba(255, 56, 96, 0.3);
+  }
+
   .action-btn.disabled,
   .action-btn:disabled {
     opacity: 0.4;
@@ -242,7 +337,7 @@
   .info-row {
     background: rgba(10, 14, 26, 0.6);
     border: 1px solid rgba(7, 165, 201, 0.18);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 0.75rem 1rem;
   }
 
@@ -266,7 +361,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.6rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     background: rgba(255, 180, 0, 0.06);
     border: 1px solid rgba(255, 180, 0, 0.25);
     font-family: var(--font-mono);

@@ -47,7 +47,7 @@
   .terminal-path {
     margin: 0 0 0.5rem;
     color: #9db6c7;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
   }
 
@@ -57,7 +57,7 @@
     border: 1px solid rgba(136, 146, 160, 0.28);
     padding: 0.45rem;
     margin-bottom: 0.5rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     color: #d7f5ff;
     box-sizing: border-box;
@@ -75,7 +75,7 @@
     gap: 0.4rem;
     align-items: center;
     color: #d7f5ff;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
   }
 
@@ -84,7 +84,7 @@
     width: 100%;
     background: rgba(125, 214, 236, 0.2);
     border: 1px solid rgba(143, 227, 246, 0.9);
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     color: #f3fdff;
     caret-color: #aef3ff;
     padding: 0.34rem 0.45rem;
@@ -108,7 +108,7 @@
     background: rgba(7, 165, 201, 0.12);
     color: #dff8ff;
     padding: 0.34rem 0.52rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     cursor: pointer;
   }

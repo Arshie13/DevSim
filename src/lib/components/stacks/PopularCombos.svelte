@@ -141,7 +141,7 @@
     padding: 0.9rem 1.1rem;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.20);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
   }
 
   .preset-header {
@@ -153,7 +153,7 @@
     flex-shrink: 0;
   }
   .preset-header span {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -182,7 +182,7 @@
     padding: 0 0.9rem;
     background: linear-gradient(145deg, rgba(9,14,24,0.92) 0%, rgba(12,18,30,0.92) 100%);
     border: 1px solid rgba(7,165,201,0.10);
-    border-radius: 5px;
+    border-radius: var(--radius-card);
     text-align: left;
     cursor: pointer;
     overflow: hidden;
@@ -228,22 +228,22 @@
   }
 
   .type-badge {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
     letter-spacing: 0.10em;
     padding: 0.1rem 0.35rem;
     color: var(--accent);
     background: rgba(var(--rgb), 0.08);
     border: 1px solid rgba(var(--rgb), 0.2);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   .rarity-badge {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
     letter-spacing: 0.08em;
     padding: 0.1rem 0.35rem;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     font-weight: 700;
   }
   .rarity-badge.epic {
@@ -263,9 +263,9 @@
   }
 
   .row-name {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 600;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 500;
     color: #d0d7dd;
     letter-spacing: 0.02em;
     line-height: 1.2;
@@ -292,7 +292,7 @@
     justify-content: center;
     background: rgba(var(--rgb), 0.07);
     border: 1px solid rgba(var(--rgb), 0.15);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     font-size: 0.85rem;
     line-height: 1;
   }
@@ -308,14 +308,14 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.6rem;
     letter-spacing: 0.08em;
     color: var(--accent);
     padding: 0.15rem 0.45rem;
     background: rgba(var(--rgb), 0.10);
     border: 1px solid rgba(var(--rgb), 0.28);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   .preset-foot {
@@ -324,9 +324,9 @@
     flex-shrink: 0;
   }
   .preset-foot span {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
     letter-spacing: 0.12em;
-    color: rgba(7,165,201,0.25);
+    color: #8892a0
   }
 </style>

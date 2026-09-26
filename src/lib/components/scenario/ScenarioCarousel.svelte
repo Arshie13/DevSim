@@ -199,7 +199,7 @@
     border: none;
     cursor: pointer;
     padding: 0;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     transition: background 0.25s, width 0.25s, box-shadow 0.25s;
   }
   .dot--active { width: 48px; background: rgba(7,165,201,0.8); box-shadow: 0 0 10px rgba(7,165,201,0.4); }

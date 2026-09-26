@@ -2,7 +2,7 @@
   import { createEventDispatcher, onDestroy, onMount, tick } from "svelte";
   import { browser } from "$app/environment";
   import type { TutorialStep } from "$components/tutorial/tutorialTypes";
-  import { isCommandMatch, canonicalizeCommand, sleep, registerWindowListeners } from "$components/tutorial/tutorialUtils";
+  import { isCommandMatch, canonicalizeCommand, sleep, registerWindowListeners, stepRequiresTargetClick } from "$components/tutorial/tutorialUtils";
   import { getTutorialProgress, setTutorialProgress, clearTutorialProgress } from "$components/tutorial/tutorialProgress";
   import { resolvePlacement, getFallbackPlacement, type PlacementResult, type SpotlightRect } from "$components/tutorial/tutorialPositioning";
   import TutorialWelcomeModal from "$components/tutorial/TutorialWelcomeModal.svelte";
@@ -232,6 +232,30 @@
     void prepareStep();
   }
 
+  const submitPartByStepId: Record<string, number> = {
+    "submit-sprint-preflight": 1,
+    "submit-sprint-reflection": 2,
+    "submit-sprint-layers": 3,
+    "submit-sprint-confirm": 3,
+  };
+
+  function dispatchSubmitModalPart(s: TutorialStep) {
+    const targets = [s.target, ...(s.targets ?? []), s.spotlightTarget]
+      .filter((v): v is string => Boolean(v));
+    const detail =
+      submitPartByStepId[s.id] ??
+      (targets.includes("mastery-reflection-input")
+        ? 2
+        : targets.some((t) => t.startsWith("impacted-layer-") || t === "submit-sprint-confirm-button")
+          ? 3
+          : s.spotlightTarget === "submit-sprint-modal"
+            ? 1
+            : undefined);
+    if (detail !== undefined) {
+      window.dispatchEvent(new CustomEvent("devsim-tour-submit-part", { detail }));
+    }
+  }
+
   // Close any open tutorial modal, then reopen the one (if any) required by
   // the given step. Forward and Back navigation both funnel through here so
   // the visible modal always matches the current step.
@@ -259,6 +283,7 @@
     if (s.spotlightTarget === "submit-sprint-modal") {
       window.dispatchEvent(new CustomEvent("devsim-tour-open-submit-modal"));
     }
+    dispatchSubmitModalPart(s);
   }
 
   function beginTutorial() { welcomeModalVisible = false; visible = true; void prepareStep(); }
@@ -318,6 +343,12 @@
         pathHasTourTarget(path, "tutorial-search-input") ||
         pathHasTourTarget(path, "tutorial-search-result-item");
     }
+    if (s.id === "submit-sprint-reflection") {
+      // The reflection field must stay editable; the step advances on the
+      // modal's Next button, which is also allowed.
+      return pathHasTourTarget(path, "mastery-reflection-input") ||
+        pathHasTourTarget(path, "submit-sprint-confirm-button");
+    }
     const allowed = [s.target, ...(s.targets ?? [])]
       .filter((v): v is string => Boolean(v))
       .filter((v) => v !== s.spotlightTarget);
@@ -343,9 +374,12 @@
   function handleInteractiveClick(event: MouseEvent) {
     if (!visible) return;
     if (blockIfLocked(event)) return;
-    if (isReviewing) return;
     const path = event.composedPath?.() ?? [];
     const s = getCurrentStep();
+    // Steps advanced by clicking a highlighted target intentionally render no
+    // Next button, so they must stay clickable while reviewing too — otherwise
+    // there is no way to move forward from them.
+    if (isReviewing && !stepRequiresTargetClick(s)) return;
     if (s.id === "search-type-query") {
       if (pathHasTourTarget(path, "tutorial-search-result-item")) {
         searchResultSelectionValid = false;
@@ -356,9 +390,10 @@
     const targets = [s.target, ...(s.targets ?? [])].filter(Boolean) as string[];
     const clicked = collectTourTargets(path);
     const hitTarget = clicked.some((v) => targets.includes(v));
-    const needsClick = s.requireTargetClick ?? Boolean(s.target && !s.requireCommand && !s.action && !s.confirmLabel);
+    const needsClick = stepRequiresTargetClick(s);
     if (!s.target || s.requireCommand || s.action || !needsClick || !stepConfirmReady) return;
     if (hitTarget) { clickError = ""; advanceStep(); return; }
+    if (isReviewing) return;
     clickError = pointerReady ? "Click the highlighted target to continue this step." : "Waiting for target to finish rendering. Click the required target once visible.";
   }
 
@@ -444,8 +479,9 @@
   }
 
   function handleTutorialFileOpened(event: Event) {
-    if (isReviewing) return;
     const s = getCurrentStep();
+    // Same as target clicks: steps with no Next button keep working while reviewing.
+    if (isReviewing && !stepRequiresTargetClick(s)) return;
     if (s.id === "search-type-query") {
       const opened = (event as CustomEvent<{ file?: string }>).detail?.file?.toLowerCase() ?? "";
       const expectedFile = s.requiredFileContains?.toLowerCase();
@@ -536,6 +572,7 @@
   $: isTerminalBusy = pendingTerminalCommand !== null || terminalOutputPollId !== null;
   $: isCommandStep = Boolean(step.requireCommand && step.command);
   $: isManualConfirmStep = Boolean(step.confirmLabel && !isCommandStep && step.action !== "runTests" && step.action !== "submitSprint");
+  $: requiresTargetClick = stepRequiresTargetClick(step);
   $: manualConfirmDisabled = step.id === codeEditStepId && !stepCodeSaveDone;
   $: progress = `${currentIdx + 1}/${steps.length}`;
 
@@ -571,7 +608,7 @@
     {step} {stack} {progress} {isCommandStep} {isManualConfirmStep}
     {manualConfirmDisabled} {pointerReady} {waitingForTarget} {clickError}
     {allowSkip} {arrowDir} {arrowOffset} {calloutTop} {calloutLeft}
-    {canGoBack} {isReviewing} {isTerminalBusy}
+    {canGoBack} {isReviewing} {isTerminalBusy} {requiresTargetClick}
     on:skip={skipTutorial}
     on:advance={advanceStep}
     on:back={goBack}
@@ -597,7 +634,7 @@
     z-index: 10042;
     pointer-events: none;
     border: 2px solid rgba(0, 194, 255, 0.95);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     box-shadow:
       0 0 0 9999px rgba(0, 0, 12, 0.82),
       0 0 16px rgba(0, 194, 255, 0.6),

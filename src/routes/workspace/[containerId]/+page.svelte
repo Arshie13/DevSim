@@ -216,7 +216,7 @@
     : LEVEL_CONFIG
   );
 
-  let operatorAlias = $derived(data.user?.name || data.user?.name || "Operator");
+  let operatorAlias = $derived(data.user?.username || data.user?.name || "Operator");
   let workspaceProjectName = $derived(workspaceScenario?.name || title || "DevSim Workspace");
   let cameFromTutorial = $derived(page.url.searchParams.get("fromTutorial") === "1");
 
@@ -1799,15 +1799,15 @@ $effect(() => {
       role="status"
     >
       <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <p class="leading-6 text-[14px]" style="font-family:'Exo 2',sans-serif;">
+        <p class="leading-6 text-[14px]" style="font-family: var(--font-body);">
           ⚠️ This workspace runs inside a Docker container to simulate a development environment. Some behavior may differ from a full local setup, and file or terminal actions are scoped to this container only.
         </p>
 
         <div class="flex flex-wrap items-center gap-2 shrink-0">
           <button
             type="button"
-            class="px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
-            style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
+            class="px-3 py-1 text-[0.7rem] font-bold rounded-card uppercase tracking-wider text-[#07a5c9] border border-[rgba(7,165,201,0.3)] bg-transparent hover:bg-[rgba(7,165,201,0.08)] transition-all"
+            style="font-family: var(--font-heading);"
             onclick={() => handleOpenHelp()}
           >
             Learn more →
@@ -2106,13 +2106,13 @@ $effect(() => {
   :global(body) {
     margin: 0;
     padding: 0;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: var(--font-body);
   }
 
   :global(.search-highlight-match) {
     background-color: rgba(7, 165, 201, 0.25) !important;
     border: 1px solid rgba(7, 165, 201, 0.6);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   :global(.search-highlight-match-inline) {

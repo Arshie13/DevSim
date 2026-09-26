@@ -171,7 +171,7 @@
       >
         <span
           class="text-[0.85rem] font-semibold uppercase tracking-widest text-[#8892a0]"
-          style="font-family:'Share Tech Mono',monospace;"
+          style="font-family: var(--font-mono);"
           >{panelLabels[activeSidebarPanel]}</span
         >
         {#if activeSidebarPanel === 'files'}

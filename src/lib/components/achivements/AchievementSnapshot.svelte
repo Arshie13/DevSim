@@ -10,15 +10,15 @@
   export const slotCount = 3;
 
   const TIER_COLOR: Record<achievement_tier_level, string> = {
-    ROOKIE:  "#a855f7",
-    AMATEUR: "#c084fc",
-    PRO:     "#fbbf24",
+    ROOKIE:  "var(--purple)",
+    AMATEUR: "rgb(var(--purple-rgb) / 0.75)",
+    PRO:     "var(--warn)",
   };
 
   const TIER_RGB: Record<achievement_tier_level, string> = {
-    ROOKIE:  "168,85,247",
-    AMATEUR: "192,132,252",
-    PRO:     "251,191,36",
+    ROOKIE:  "var(--purple-rgb)",
+    AMATEUR: "var(--purple-rgb)",
+    PRO:     "var(--warn-rgb)",
   };
 
   const TIER_RANK: Record<achievement_tier_level, number> = {
@@ -38,17 +38,17 @@
 <section class="snap-root bg-obsidian-bg-light border border-obsidian-accent/25">
   <!-- Top accent bar (purple gradient, matches achievement theme) -->
   <div class="absolute top-0 left-0 right-0 h-[2px] z-10"
-    style="background: linear-gradient(90deg, transparent, #a855f7 30%, #c084fc 50%, #a855f7 70%, transparent);">
+    style="background: linear-gradient(90deg, transparent, var(--purple) 30%, rgb(var(--purple-rgb) / 0.7) 50%, var(--purple) 70%, transparent);">
   </div>
 
   <!-- ── Header ─────────────────────────────────────────────── -->
   <header class="relative z-10 flex items-center gap-2 px-3.5 py-2.5 shrink-0">
-    <div class="flex items-center justify-center w-6 h-6 rounded-[3px] shrink-0"
-      style="background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3);">
-      <Award class="w-3.5 h-3.5 text-purple-400" />
+    <div class="flex items-center justify-center w-6 h-6 rounded-card shrink-0"
+      style="background: rgb(var(--purple-rgb) / 0.12); border: 1px solid rgb(var(--purple-rgb) / 0.3);">
+      <Award class="w-3.5 h-3.5 text-cyber-purple" />
     </div>
     <div class="flex-1 min-w-0">
-      <p class="font-orbitron text-[0.8rem] font-bold text-obsidian-text-muted tracking-wide leading-none">
+      <p class="font-heading font-semibold text-lg p-2 font-bold text-obsidian-text-muted tracking-wide leading-none">
         Top Achievements
       </p>
     </div>
@@ -62,12 +62,12 @@
 
   <!-- Divider -->
   <div class="shrink-0 h-px relative z-10"
-    style="background: linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent);">
+    style="background: linear-gradient(90deg, transparent, rgb(var(--purple-rgb) / 0.3), transparent);">
   </div>
 
   <!-- ── Podium ──────────────────────────────────────────────── -->
-  <div class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-4 pt-2 min-h-0">
-    <div class="flex items-end justify-center gap-6 w-full">
+  <div class="podium relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-4 pt-2 min-h-0">
+    <div class="flex items-end justify-center gap-7 w-full">
     {#each podiumOrder as slot, i (i)}
       {@const isCenter = i === 1}
       {@const rankLabel = RANK_LABELS[i]}
@@ -79,8 +79,8 @@
         <div class="slot" class:slot-center={isCenter} class:slot-side={!isCenter}>
 
           <!-- Rank pill -->
-          <p class="rank-pill font-mono"
-            style="color:{color}; border-color:rgba({rgb},0.45); background:rgba({rgb},0.12);">
+          <p class="rank-pill font-label"
+            style="color:{color}; border-color:rgb({rgb} / 0.45); background:rgb({rgb} / 0.12);">
             {#if isCenter}<span class="mr-0.5">⭐</span>{/if}{rankLabel}
           </p>
 
@@ -88,32 +88,32 @@
           <div
             class="hex-wrapper"
             class:hex-center={isCenter}
-            style="filter: drop-shadow(0 0 {isCenter ? '12px' : '7px'} rgba({rgb},0.6));"
+            style="filter: drop-shadow(0 0 {isCenter ? '12px' : '7px'} rgb({rgb} / 0.6));"
           >
             <!-- Pulsing outer ring -->
             <div class="hex-ring" class:hex-ring-center={isCenter}
-              style="background: rgba({rgb},0.22);">
+              style="background: rgb({rgb} / 0.22);">
             </div>
 
-            <!-- Badge body — uses obsidian surface (#2d3446) as base to stay on-palette -->
+            <!-- Badge body — uses obsidian surface token as base to stay on-palette -->
             <div class="hex-body" class:hex-body-center={isCenter}
-              style="background: linear-gradient(150deg, rgba({rgb},0.28) 0%, rgba(45,52,70,0.96) 55%);"
+              style="background: linear-gradient(150deg, rgb({rgb} / 0.28) 0%, rgb(var(--surface-rgb) / 0.96) 55%);"
             >
               <!-- Top-edge highlight strip -->
               <div class="absolute top-0 left-1/4 right-1/4 h-px z-10"
-                style="background: rgba({rgb},0.75);">
+                style="background: rgb({rgb} / 0.75);">
               </div>
               <!-- Corner shimmer -->
               <div class="absolute inset-0 pointer-events-none"
-                style="background: linear-gradient(135deg, rgba({rgb},0.14) 0%, transparent 45%);
+                style="background: linear-gradient(135deg, rgb({rgb} / 0.14) 0%, transparent 45%);
                        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);">
               </div>
 
               <span class="badge-emoji relative z-10" class:badge-emoji-center={isCenter}
-                style="filter: drop-shadow(0 0 5px rgba({rgb},0.85));">
+                style="filter: drop-shadow(0 0 5px rgb({rgb} / 0.85));">
                 {slot.icon}
               </span>
-              <span class="tier-text font-mono relative z-10" style="color:{color};">
+              <span class="tier-text font-label relative z-10" style="color:{color};">
                 {slot.highestTier}
               </span>
             </div>
@@ -121,26 +121,26 @@
 
           <!-- Platform pedestal -->
           <div class="platform" class:platform-center={isCenter}
-            style="background: linear-gradient(180deg, rgba({rgb},0.18), rgba({rgb},0.04));
-                   border-color: rgba({rgb},0.4);">
-            <div class="platform-glow" style="background: rgba({rgb},0.45);"></div>
+            style="background: linear-gradient(180deg, rgb({rgb} / 0.18), rgb({rgb} / 0.04));
+                   border-color: rgb({rgb} / 0.4);">
+            <div class="platform-glow" style="background: rgb({rgb} / 0.45);"></div>
           </div>
 
           <!-- Name label -->
-          <p class="badge-label font-mono" title={slot.name}>{slot.name}</p>
+          <p class="badge-label font-label" title={slot.name}>{slot.name}</p>
         </div>
 
       {:else}
         <!-- Locked slot -->
         <div class="slot" class:slot-center={isCenter} class:slot-side={!isCenter}>
-          <p class="rank-pill font-mono locked-pill">{rankLabel}</p>
+          <p class="rank-pill font-label locked-pill">{rankLabel}</p>
           <div class="hex-wrapper" class:hex-center={isCenter} style="opacity: 0.28;">
             <div class="hex-body hex-body-locked" class:hex-body-center={isCenter}>
               <Lock class="{isCenter ? 'w-5 h-5' : 'w-4 h-4'} text-obsidian-text-primary/30" />
             </div>
           </div>
           <div class="platform locked-platform" class:platform-center={isCenter}></div>
-          <p class="badge-label font-mono locked-label">Locked</p>
+          <p class="badge-label font-label locked-label">Locked</p>
         </div>
       {/if}
     {/each}
@@ -155,9 +155,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     overflow: hidden;
-    box-shadow: 0 0 30px rgba(7, 165, 201, 0.12);
+    box-shadow: 0 0 30px rgb(var(--accent-rgb) / 0.12);
   }
 
   /* ── Status dots ───────────────────────────────────────────── */
@@ -165,13 +165,13 @@
     display: block;
     width: 5px; height: 5px;
     border-radius: 50%;
-    background: rgba(168,85,247,0.15);
-    border: 1px solid rgba(168,85,247,0.22);
+    background: rgb(var(--purple-rgb) / 0.15);
+    border: 1px solid rgb(var(--purple-rgb) / 0.22);
   }
   .status-dot.active {
-    background: #a855f7;
-    border-color: #a855f7;
-    box-shadow: 0 0 6px rgba(168,85,247,0.9);
+    background: var(--purple);
+    border-color: var(--purple);
+    box-shadow: 0 0 6px rgb(var(--purple-rgb) / 0.9);
     animation: dot-pulse 2s ease-in-out infinite;
   }
   @keyframes dot-pulse {
@@ -179,36 +179,36 @@
     50%       { opacity: 0.35; }
   }
 
+  /* ── Podium container — badges scale with the space they get ── */
+  .podium {
+    container-type: size;
+  }
+
   /* ── Slots ─────────────────────────────────────────────────── */
   .slot {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.375rem;
     min-width: 0;
   }
-  .slot-center { flex: 0 0 88px; }
-  .slot-side   { flex: 0 0 68px; }
-
-  @media (min-width: 1280px) {
-    .slot-center { flex: 0 0 104px; }
-    .slot-side   { flex: 0 0 80px; }
-  }
+  .slot-center { flex: 0 0 clamp(4.5rem, 42cqmin, 8rem); }
+  .slot-side   { flex: 0 0 clamp(3.75rem, 31.5cqmin, 6rem); }
 
   /* ── Rank pill ─────────────────────────────────────────────── */
   .rank-pill {
-    font-size: 0.52rem;
+    font-size: clamp(0.5rem, 3.9cqmin, 0.75rem);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0.1rem 0.42rem;
     border: 1px solid;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     white-space: nowrap;
   }
   .locked-pill {
-    color: rgba(208,215,221,0.2);
-    border-color: rgba(208,215,221,0.1);
+    color: rgb(var(--text-primary-rgb) / 0.2);
+    border-color: rgb(var(--text-primary-rgb) / 0.1);
     background: transparent;
   }
 
@@ -223,15 +223,8 @@
   .hex-wrapper:not([style*="opacity: 0"]):hover {
     transform: translateY(-5px);
   }
-  .hex-wrapper      { width: 62px;  height: 72px; }
-  .hex-wrapper.hex-center { width: 82px;  height: 94px; }
-
-  @media (min-width: 1280px) {
-    .hex-wrapper           { width: 74px;  height: 86px; }
-    .hex-wrapper.hex-center { width: 98px; height: 112px; }
-    .badge-emoji        { font-size: 1.4rem; }
-    .badge-emoji-center { font-size: 1.9rem; }
-  }
+  .hex-wrapper      { width: clamp(3.6rem, 31cqmin, 6rem);  height: clamp(4.1rem, 37cqmin, 7rem); }
+  .hex-wrapper.hex-center { width: clamp(4.5rem, 39cqmin, 7.5rem);  height: clamp(5.4rem, 47cqmin, 9rem); }
 
   /* Outer pulsing ring — slightly larger than body */
   .hex-ring {
@@ -246,7 +239,7 @@
     50%       { opacity: 0.1;  transform: scale(1.06); }
   }
 
-  /* Badge body — clip-path hex, #12192a base (NOT black) */
+  /* Badge body — clip-path hex, obsidian surface base (NOT black) */
   .hex-body {
     position: relative;
     width: 100%; height: 100%;
@@ -259,15 +252,15 @@
     overflow: hidden;
   }
   .hex-body-locked {
-    background: rgba(45, 52, 70, 0.75);
+    background: rgb(var(--surface-rgb) / 0.75);
   }
 
   /* ── Badge content ─────────────────────────────────────────── */
-  .badge-emoji        { font-size: 1.2rem; line-height: 1; }
-  .badge-emoji-center { font-size: 1.6rem; }
+  .badge-emoji        { font-size: clamp(1.1rem, 10cqmin, 1.9rem); line-height: 1; }
+  .badge-emoji-center { font-size: clamp(1.4rem, 13.5cqmin, 2.6rem); }
 
   .tier-text {
-    font-size: 0.4rem;
+    font-size: clamp(0.42rem, 3.5cqmin, 0.65rem);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -276,14 +269,14 @@
   /* ── Platform pedestal ─────────────────────────────────────── */
   .platform {
     width: 100%;
-    height: 8px;
+    height: clamp(0.5rem, 3.9cqmin, 0.75rem);
     border: 1px solid;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
   }
-  .platform-center { height: 14px; }
+  .platform-center { height: clamp(0.85rem, 6.8cqmin, 1.3rem); }
   .platform-glow {
     position: absolute;
     bottom: 0; left: 15%; right: 15%;
@@ -292,15 +285,15 @@
     filter: blur(3px);
   }
   .locked-platform {
-    background: rgba(208,215,221,0.03);
-    border-color: rgba(208,215,221,0.1);
+    background: rgb(var(--text-primary-rgb) / 0.03);
+    border-color: rgb(var(--text-primary-rgb) / 0.1);
   }
 
   /* ── Name label ────────────────────────────────────────────── */
   .badge-label {
-    font-size: 0.5rem;
-    letter-spacing: 0.03em;
-    color: rgba(208,215,221,0.75);
+    font-size: clamp(0.48rem, 5cqmin, 0.7rem);
+    letter-spacing: 0.04em;
+    color: rgb(var(--text-primary-rgb) / 0.75);
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -308,5 +301,5 @@
     max-width: 100%;
     padding: 0 2px;
   }
-  .locked-label { color: rgba(208,215,221,0.2); }
+  .locked-label { color: rgb(var(--text-primary-rgb) / 0.2); }
 </style>

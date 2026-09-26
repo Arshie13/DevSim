@@ -48,7 +48,7 @@
     padding: 0.35rem;
     background: rgba(10, 14, 26, 0.6);
     border: 1px solid var(--card-border);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     backdrop-filter: blur(6px);
   }
 
@@ -61,7 +61,7 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     padding: 0.55rem 1rem;
-    border-radius: 3px;
+    border-radius: var(--radius-card);
     border: 1px solid transparent;
     background: transparent;
     color: rgba(208, 215, 221, 0.55);

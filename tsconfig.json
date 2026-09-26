@@ -1,6 +1,6 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
-	"include": ["src/**/*", "prisma/**/*", ".svelte-kit/ambient.d.ts"],
+	"include": ["src/**/*", "prisma/**/*", "scripts/check-design.ts", "tailwind.config.ts", ".svelte-kit/ambient.d.ts"],
 	"compilerOptions": {
 		"rewriteRelativeImportExtensions": false,
 		"allowJs": true,

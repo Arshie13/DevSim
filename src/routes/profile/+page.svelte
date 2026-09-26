@@ -5,11 +5,11 @@
 
   // ── Modular profile components ────────────────────────────────────────────
   import ProfileCard         from "$components/profile/ProfileCard.svelte";
-  import ProgressSection     from "$components/profile/ProgressSection.svelte";
   import MetricsSection      from "$components/profile/MetricsSection.svelte";
   import FriendsSection      from "$components/profile/FriendsSection.svelte";
   import EditProfile         from "$components/profile/EditProfile.svelte";
   import AchievementSnapshot from "$components/achivements/AchievementSnapshot.svelte";
+  import ProfileActivityFeed from "$components/profile/ProfileActivityFeed.svelte";
   import { goto }            from "$app/navigation";
   import { toast }           from "$lib/stores/toast";
 
@@ -19,6 +19,7 @@
   let user: UserData = {
     id: data.user.id,
     name: data.user?.name ?? 'Name not found',
+    fullName: data.user.fullName,
     email: data.user.email ?? 'no email found',
     image: data.user.image ?? 'static/avatars/defaultcyan.svg',
     avatar: data.user.avatar ?? data.user.image ?? "",
@@ -47,8 +48,6 @@
         console.error('Failed to persist avatar:', err);
         toast.error('Failed to save avatar');
       }
-    } else {
-      toast.success('Profile updated');
     }
   }
 
@@ -57,19 +56,13 @@
   const rivals: RivalEntry[] = data.rivals ?? [];
 
   const memberSince     = new Date(metrics.memberSince).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  const streakDays      = metrics.dayStreak;
   const leaderboardRank = metrics.leaderboardRank;
-  const weeklyGrowth    = metrics.weeklyGrowth;
-
-  const bio = "";
-  const location = "";
-  const role = "";
 
   const metricCards = [
-    { label: "Tasks Completed", value: String(metrics.tasksCompleted),    icon: Target,                  color: "#07a5c9", bg: "rgba(7,165,201,0.12)"  },
-    { label: "File Edits",      value: String(metrics.fileEdits),         icon: GitCommitHorizontalIcon, color: "#a855f7", bg: "rgba(168,85,247,0.12)" },
-    { label: "Coins Earned",    value: String(metrics.coinsEarned),       icon: Coins,                   color: "#ffb400", bg: "rgba(255,180,0,0.12)"  },
-    { label: "Achievements",    value: String(metrics.achievementsCount), icon: Award,                   color: "#00e5a0", bg: "rgba(0,229,160,0.12)"  },
+    { label: "Tasks Completed", value: String(metrics.tasksCompleted),    icon: Target,                  color: "var(--accent)",  bg: "rgb(var(--accent-rgb) / 0.12)"  },
+    { label: "File Edits",      value: String(metrics.fileEdits),         icon: GitCommitHorizontalIcon, color: "var(--purple)",  bg: "rgb(var(--purple-rgb) / 0.12)" },
+    { label: "Coins Earned",    value: String(metrics.coinsEarned),       icon: Coins,                   color: "var(--warn)",    bg: "rgb(var(--warn-rgb) / 0.12)"  },
+    { label: "Achievements",    value: String(metrics.achievementsCount), icon: Award,                   color: "var(--success)", bg: "rgb(var(--success-rgb) / 0.12)"  },
   ];
 
   function handleBack() {
@@ -85,32 +78,30 @@
   <title>Profile | DevSim</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col bg-obsidian-bg bg-grid-cyber text-obsidian-text-primary text-sm overflow-hidden">
+<div class="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-obsidian-bg bg-grid-cyber scanlines ambient-glow text-obsidian-text-primary text-sm">
 
   <!-- Back button bar -->
-  <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-3 md:px-6 lg:px-8">
+  <div class="shrink-0 w-full page-container pt-8">
     <button
       on:click={handleBack}
-      class="btn-cyber btn-cyber-secondary inline-flex items-center gap-2 !py-2 !px-4"
+      class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
     >
-      <ArrowLeft class="w-4 h-4" />
+      <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
       <span>Back</span>
     </button>
   </div>
 
   <!-- ── Main asymmetric grid ─────────────────────────────────────────────── -->
   <main
-    class="flex-1 min-h-0 w-full max-w-[1400px] mx-auto px-4 py-3 md:px-6 lg:px-8 grid gap-3 lg:gap-4"
-    style="grid-template-columns: clamp(260px, 28%, 360px) 1fr;"
+    class="flex-1 min-h-0 w-full page-container py-3 grid grid-cols-1 lg:[grid-template-columns:clamp(18rem,30%,24rem)_1fr] gap-3 lg:gap-4"
   >
     <!-- LEFT COLUMN — Profile + Snapshot -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
       <!-- S1: Profile data -->
-      <div class="shrink-0">
+      <div class="flex-[3] min-h-0">
         <ProfileCard
           {user}
           {memberSince}
-          {bio}
           {leaderboardRank}
           isOwnProfile={true}
           on:editProfile={() => (editProfileOpen = true)}
@@ -118,31 +109,32 @@
       </div>
 
       <!-- S2: Achievement snapshot -->
-      <div class="flex-1 min-h-0">
+      <div class="flex-[2] min-h-0">
         <AchievementSnapshot snapshots={data.topAchievements ?? []} />
       </div>
     </div>
 
-    <!-- RIGHT COLUMN (70%) — KPIs + Rivals -->
+    <!-- RIGHT COLUMN (70%) — KPIs + Rivals + Activity -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
-      <!-- S3: KPIs (level progress + metric cards) -->
-      <div class="shrink-0 flex flex-col gap-3 lg:gap-4">
-        <ProgressSection {user} {streakDays} {weeklyGrowth} />
+      <!-- S3: KPIs (metric cards) -->
+      <div class="shrink-0">
         <MetricsSection metrics={metricCards} />
       </div>
 
       <!-- S4: Top rivals -->
-      <div class="flex-1 min-h-0 flex flex-col">
+      <div class="shrink-0 flex flex-col">
         <FriendsSection {rivals} />
+      </div>
+
+      <!-- S5: Recent activity -->
+      <div class="flex-1 min-h-0">
+        <ProfileActivityFeed activities={data.activity ?? []} />
       </div>
     </div>
   </main>
 
   <!-- Ambient background -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <div class="absolute inset-0 bg-grid-cyber"></div>
-    <div class="absolute top-0 left-0 right-0 h-[60vh]" style="background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7,165,201,0.08), transparent);"></div>
-    <div class="absolute inset-0" style="background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.015) 4px); z-index: 200; pointer-events: none;"></div>
     <div class="absolute top-1/4 -left-32 w-96 h-96 bg-obsidian-accent/10 rounded-full blur-[120px]"></div>
     <div class="absolute bottom-1/3 -right-32 w-80 h-80 bg-purple-500/8 rounded-full blur-[100px]"></div>
   </div>
@@ -153,16 +145,3 @@
   bind:user
   on:update={handleProfileUpdate}
 />
-
-<style>
-  :global(.btn-cyber-secondary) {
-    border: 1px solid rgba(39, 39, 42, 0.80);
-    color: rgba(208, 215, 221, 0.60);
-    background: #12192a;
-  }
-  :global(.btn-cyber-secondary:hover) {
-    border-color: rgba(7, 165, 201, 0.35);
-    color: #d0d7dd;
-    background: rgba(7, 165, 201, 0.08);
-  }
-</style>

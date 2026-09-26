@@ -99,12 +99,12 @@
 
   .overflow-y-auto::-webkit-scrollbar-track {
     background: rgba(14, 22, 33, 0.3);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
   }
 
   .overflow-y-auto::-webkit-scrollbar-thumb {
     background: rgba(7, 165, 201, 0.3);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
   }
 
   .overflow-y-auto::-webkit-scrollbar-thumb:hover {

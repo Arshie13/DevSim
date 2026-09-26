@@ -2,12 +2,14 @@ import type { PageServerLoad } from "./$types";
 import prisma from "$lib/server/client";
 import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
 import { getCurrentStreak } from "$lib/utils/learnerPassStreak";
+import { computeLevel } from "$lib/utils/level";
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
 
   if (!session?.user?.id) {
     return {
+      user: null,
       enrollment: null,
       rewards: [],
     };
@@ -17,8 +19,20 @@ export const load: PageServerLoad = async (event) => {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: userId },
-    select: { image: true },
+    select: {
+      name: true,
+      email: true,
+      image: true,
+      coins: true,
+      xp: true,
+      owned_avatars: true,
+      has_completed_tutorial: true,
+    },
   });
+
+  // The User model has no level/avatar columns: level is derived from xp and
+  // the equipped avatar is the stored image (same mapping as /profile).
+  const levelData = computeLevel(dbUser?.xp ?? 0);
 
   const enrollment = await prisma.learner_pass_enrollment.findFirst({
     where: { user_id: userId },
@@ -35,8 +49,10 @@ export const load: PageServerLoad = async (event) => {
 
   let pendingUnlocks: { day: number; available: string[] }[] = [];
   if (enrollment) {
+    // Any access source counts here — choose-unlock only rejects a scenario
+    // the user already owns, so the pending list must apply the same rule.
     const unlockedProjects = await prisma.user_project_access.findMany({
-      where: { user_id: userId, source: 'LEARNER_PASS' },
+      where: { user_id: userId },
       select: { scenario_id: true },
     });
     const unlockedIds = new Set(unlockedProjects.map((p) => p.scenario_id));
@@ -75,6 +91,20 @@ export const load: PageServerLoad = async (event) => {
     : 0;
 
   return {
+    user: {
+      ...session.user,
+      name: dbUser?.name ?? session.user.name ?? null,
+      email: dbUser?.email ?? session.user.email ?? null,
+      // Override session image with live DB value so avatar changes are
+      // reflected immediately without requiring a re-login.
+      image: dbUser?.image ?? session.user.image ?? null,
+      avatar: dbUser?.image ?? session.user.avatar ?? null,
+      coins: dbUser?.coins ?? 0,
+      xp: dbUser?.xp ?? 0,
+      level: levelData.level,
+      ownedAvatars: dbUser?.owned_avatars ?? [],
+      hasCompletedTutorial: dbUser?.has_completed_tutorial ?? false,
+    },
     enrollment: enrollment
       ? {
           status,

@@ -18,8 +18,8 @@
   ];
 </script>
 
-<section id="features" class="py-24 px-6 border-t border-[rgba(7,165,201,0.05)]">
-  <div class="max-w-7xl mx-auto">
+<section id="features" class="py-24 border-t border-[rgba(7,165,201,0.05)]">
+  <div class="page-container">
     <div class="text-center mb-16">
       <span class="tag-cyber tag-cyan inline-block mb-5">// FEATURES</span>
       <h2 class="font-heading font-bold text-[1.8rem] md:text-[2.6rem] mb-4">WHY CHOOSE DEVSIM</h2>

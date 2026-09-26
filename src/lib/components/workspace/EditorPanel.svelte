@@ -35,7 +35,7 @@
     <!-- Save button — pinned to the right -->
     <div class="flex-shrink-0 flex items-center gap-2 px-2 border-l border-[rgba(7,165,201,0.1)]">
       {#if isReadOnly}
-        <span class="text-[0.58rem] font-bold uppercase tracking-widest text-[#ff3860]/85" style="font-family:'Orbitron',monospace;">
+        <span class="text-[0.58rem] font-bold uppercase tracking-widest text-[#ff3860]/85" style="font-family: var(--font-heading);">
           {readOnlyMessage || 'Read-only'}
         </span>
       {/if}
@@ -45,7 +45,7 @@
         class="flex items-center gap-1.5 text-[0.6rem] font-bold uppercase tracking-widest
                text-[#0a0e1a] bg-[#07a5c9] px-3 py-1 hover:bg-[#00f5ff] transition-all
                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#07a5c9]"
-        style="clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));font-family:'Orbitron',monospace;"
+        style="border-radius:var(--radius-card);font-family: var(--font-heading);"
       >
         <Save class="w-3 h-3" />Save
       </button>

@@ -12,7 +12,7 @@ export const load: PageServerLoad = async (event) => {
     // Get the current user's XP to calculate closest rivals
     const dbUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { coins: true, image: true, owned_avatars: true, xp: true },
+      select: { coins: true, image: true, owned_avatars: true, xp: true, username: true },
     });
 
     const currentUserXp = dbUser?.xp ?? 0;
@@ -74,6 +74,7 @@ export const load: PageServerLoad = async (event) => {
       rivals,
       user: {
         ...session.user,
+        username: dbUser?.username,
         avatar:
           dbUser?.owned_avatars[0] ||
           dbUser?.image ||

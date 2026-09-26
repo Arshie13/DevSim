@@ -21,8 +21,10 @@
   <title>DevSim — Master Full-Stack Development</title>
 </svelte:head>
 
+<!-- overflow-x uses `clip`, not `hidden`: `hidden` makes this a scroll container,
+     which scopes the sticky LandingNav to it and lets the nav scroll away. -->
 <div
-  class="min-h-screen bg-obsidian-bg text-[var(--text-primary)] antialiased bg-grid-cyber scanlines ambient-glow overflow-x-hidden"
+  class="min-h-screen bg-obsidian-bg text-[var(--text-primary)] antialiased bg-grid-cyber scanlines ambient-glow [overflow-x:clip]"
 >
   <LandingNav {session} />
   <HeroSection {session} stats={data.landingStats} />

@@ -86,7 +86,7 @@
   }
 
   .ws-title {
-    font-family: "Orbitron", sans-serif;
+    font-family: var(--font-heading);
     color: #d0d7dd;
     font-size: 1rem;
     letter-spacing: 0.06em;
@@ -95,7 +95,7 @@
   }
 
   .ws-sub {
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     color: rgba(208, 215, 221, 0.5);
     font-size: 0.78rem;
     letter-spacing: 0.04em;
@@ -106,7 +106,7 @@
     width: 200px;
     height: 2px;
     background: rgba(0, 194, 255, 0.12);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     overflow: hidden;
     margin-top: 0.3rem;
   }

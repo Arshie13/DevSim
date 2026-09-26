@@ -17,17 +17,41 @@
     --warn: #ffb400;
     --danger: #ff3860;
     --purple: #a855f7;
+    --gold: #ffd700;
+    --text-bright: #ffffff;
+    --terminal-bg: #05070f;
+
+    /* Channel triplets for Tailwind's alpha-aware utilities */
+    --bg-rgb: 10 14 26;
+    --bg-light-rgb: 18 25 42;
+    --surface-rgb: 45 52 70;
+    --border-rgb: 39 39 42;
+    --text-primary-rgb: 208 215 221;
+    --text-muted-rgb: 136 146 160;
+    --accent-rgb: 7 165 201;
+    --cyan-bright-rgb: 0 245 255;
+    --success-rgb: 0 229 160;
+    --warn-rgb: 255 180 0;
+    --danger-rgb: 255 56 96;
+    --purple-rgb: 168 85 247;
+    --gold-rgb: 255 215 0;
+    --text-bright-rgb: 255 255 255;
+    --terminal-bg-rgb: 5 7 15;
 
     /* Derived values */
-    --accent-glow: rgba(7, 165, 201, 0.30);
-    --accent-dim: rgba(7, 165, 201, 0.15);
-    --grid-line: rgba(7, 165, 201, 0.06);
+    --accent-glow: rgba(7, 165, 201, 0.10);
+    --accent-dim: rgba(7, 165, 201, 0.08);
+    --grid-line: rgba(7, 165, 201, 0.04);
     --card-border: rgba(7, 165, 201, 0.15);
-    --card-hover: rgba(7, 165, 201, 0.40);
+    --card-hover: rgba(7, 165, 201, 0.16);
 
-    --font-heading: 'Chakra Petch', sans-serif;
-    --font-mono: 'Space Mono', monospace;
-    --font-body: 'Exo 2', sans-serif;
+    --font-heading: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+
+    /* Border radii */
+    --radius-card: 0.5rem;
+    --radius-chrome: 2px;
   }
 }
 
@@ -46,38 +70,38 @@ body {
   box-sizing: border-box;
 }
 
-/* Keep the same visual density across desktop browser zoom and laptop sizes.
-   Most application spacing and typography uses rem-based Tailwind utilities. */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  html {
-    font-size: 16px;
-  }
-
-  body {
-    zoom: 0.8;
-    width: 125%;
-  }
-}
-
-@media (min-width: 1280px) and (max-width: 1399px) {
-  html {
-    font-size: 16px;
-  }
-
-  body {
-    zoom: 0.88;
-    width: 113.6364%;
-  }
+/* Fluid desktop scale, derived from two reference screens:
+     1024 x 600  -> 13px        1920 x 1080 -> 18px
+   Linear in viewport width, floored at 11px on phone widths and
+   capped at 22px so ultrawides do not balloon.
+   A 1.78vh ceiling scales short viewports by height so
+   viewport-fitting pages stay scroll-free (1280x720 -> 12.8px).
+   Every rem-based Tailwind utility (type, spacing, widths) scales together, so
+   content keeps its proportions across desktop sizes instead of leaving 1920x1080
+   looking sparse. Fixed px values stay crisp.
+   Replaces the previous body{zoom} hack, which rescaled fixed-position overlays
+   and editor pixel math. */
+html {
+  font-size: clamp(11px, min(calc(7.29px + 0.558vw), 1.78vh), 22px);
 }
 
 /* ── DevSim Clip-Path Button System ── */
 @layer components {
+  /* Shared page container: one horizontal rhythm so nav edges and page
+     content align at every viewport. */
+  .page-container {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
   .btn-cyber {
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    border-radius: var(--radius-card);
     font-family: var(--font-heading);
     font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     padding: 0.65rem 1.5rem;
     position: relative;
@@ -109,11 +133,35 @@ body {
     box-shadow: 0 0 25px var(--accent-glow);
   }
 
+  .btn-cyber-secondary {
+    border: 1px solid rgb(var(--border-rgb) / 0.8);
+    color: rgb(var(--text-primary-rgb) / 0.6);
+    background: rgb(var(--bg-light-rgb) / 0.8);
+  }
+
+  .btn-cyber-secondary:hover {
+    border-color: rgb(var(--accent-rgb) / 0.35);
+    color: var(--text-primary);
+    background: rgb(var(--accent-rgb) / 0.08);
+  }
+
+  .btn-cyber-danger {
+    border: 1px solid rgb(var(--danger-rgb) / 0.5);
+    color: var(--danger);
+    background: rgb(var(--danger-rgb) / 0.08);
+  }
+
+  .btn-cyber-danger:hover {
+    background: rgb(var(--danger-rgb) / 0.18);
+    border-color: rgb(var(--danger-rgb) / 0.75);
+    box-shadow: 0 0 20px rgb(var(--danger-rgb) / 0.25);
+  }
+
   /* Card system */
   .card-cyber {
     background: var(--bg-light);
     border: 1px solid var(--card-border);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -142,14 +190,20 @@ body {
     opacity: 1;
   }
 
+  /* Canonical card content padding. Cards with full-bleed headers, tables or
+     image rows keep padding in markup instead and omit this wrapper. */
+  .card-cyber-body {
+    padding: 1.25rem;
+  }
+
   /* Tag system */
   .tag-cyber {
     font-family: var(--font-mono);
     font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     padding: 0.2rem 0.6rem;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
   }
 
   .tag-cyan {
@@ -180,7 +234,7 @@ body {
   .xp-track {
     height: 4px;
     background: rgba(255, 255, 255, 0.06);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     overflow: hidden;
   }
 
@@ -188,7 +242,7 @@ body {
     height: 100%;
     background: linear-gradient(90deg, var(--accent), var(--cyan-bright));
     box-shadow: 0 0 8px var(--accent-glow);
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     transition: width 0.8s ease;
   }
 
@@ -207,10 +261,12 @@ body {
 }
 
 /* ── Background Grid Texture ── */
+/* Cells are rem-based (2.5rem = 45px at the 1920px reference) so the grid
+   keeps the same density relative to content as the root font size scales. */
 .bg-grid-cyber {
   background-image:
-    repeating-linear-gradient(0deg, var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px),
-    repeating-linear-gradient(90deg, var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px);
+    repeating-linear-gradient(0deg, var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 2.5rem),
+    repeating-linear-gradient(90deg, var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 2.5rem);
   background-attachment: fixed;
 }
 
@@ -221,8 +277,8 @@ body {
   inset: 0;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.015) 0px,
-    rgba(0, 0, 0, 0.015) 2px,
+    rgba(0, 0, 0, 0.008) 0px,
+    rgba(0, 0, 0, 0.008) 2px,
     transparent 2px,
     transparent 4px
   );
@@ -239,7 +295,7 @@ body {
   transform: translateX(-50%);
   width: 80%;
   height: 60%;
-  background: radial-gradient(ellipse at center, rgba(7, 165, 201, 0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(7, 165, 201, 0.03) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }

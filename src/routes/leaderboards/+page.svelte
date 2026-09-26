@@ -15,6 +15,7 @@
 
   $: headerUserData = {
     ...data.user,
+    fullName: data.user.fullName ?? data.user.name,
     coins: data.userCoins,
   } as UserData;
 
@@ -70,17 +71,17 @@
   <title>Leaderboards | DevSim</title>
 </svelte:head>
 
-<div class="min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber overflow-x-hidden">
+<div class="min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber [overflow-x:clip]">
   <Header userData={headerUserData} />
 
   <main class="relative z-10 py-8 lg:py-12">
-    <div class="max-w-[1400px] mx-auto px-6">
+    <div class="page-container">
 
       <!-- Page Header -->
-      <div class="mb-12" in:fade={{ duration: 400 }}>
+      <div class="mb-20" in:fade={{ duration: 400 }}>
         <button
           on:click={goBack}
-          class="flex items-center gap-2 text-[var(--text-muted)]/50 hover:text-[var(--accent)] transition-colors mb-6 group font-label text-xs uppercase tracking-widest"
+          class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors mb-6 group"
         >
           <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
           Back
@@ -98,7 +99,6 @@
               <h1 class="text-4xl font-heading font-bold text-[var(--text-primary)] tracking-tight mb-1">Leaderboards</h1>
               <div class="flex items-center gap-3">
                 <p class="text-sm font-body text-[var(--text-muted)]">Top developers ranked by XP</p>
-                <span class="tag-cyber tag-label">Season 01</span>
                 <div class="flex items-center gap-2 px-3 py-1 rounded-card bg-[var(--success)]/10 border border-[var(--success)]/30">
                   <span class="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse"></span>
                   <span class="text-xs font-label text-[var(--success)] uppercase tracking-widest">Live</span>
@@ -163,7 +163,7 @@
                     <!-- Info -->
                     <div class="text-center mb-4">
                       <p class="text-base font-heading font-bold text-[var(--text-primary)] truncate">
-                        {entry.name ?? entry.username}
+                        {entry.username}
                         {#if entry.isCurrentUser}
                           <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                         {/if}
@@ -234,7 +234,7 @@
                     <!-- Info -->
                     <div class="text-center mb-5">
                       <p class="text-lg font-heading font-bold text-[#ffd700] truncate">
-                        {entry.name ?? entry.username}
+                        {entry.username}
                         {#if entry.isCurrentUser}
                           <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                         {/if}
@@ -298,7 +298,7 @@
                     <!-- Info -->
                     <div class="text-center mb-4">
                       <p class="text-base font-heading font-bold text-[var(--text-primary)] truncate">
-                        {entry.name ?? entry.username}
+                        {entry.username}
                         {#if entry.isCurrentUser}
                           <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                         {/if}
@@ -368,7 +368,7 @@
                   <!-- User Info -->
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-label font-medium truncate {entry.isCurrentUser ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]'}">
-                      {entry.name ?? entry.username}
+                      {entry.username}
                       {#if entry.isCurrentUser}
                         <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                       {/if}
@@ -418,7 +418,7 @@
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-label font-medium truncate text-[var(--accent)]">
-                      {data.currentUserEntry.name ?? data.currentUserEntry.username}
+                      {data.currentUserEntry.username}
                       <span class="text-xs text-[var(--accent)]/70 ml-2">(You)</span>
                     </p>
                     <div class="flex items-center gap-3 mt-1">
@@ -466,10 +466,6 @@
 </div>
 
 <style>
-  :global(.scanlines::before) {
-    opacity: 0.03;
-  }
-
   @keyframes spin {
     from {
       transform: rotate(0deg);
