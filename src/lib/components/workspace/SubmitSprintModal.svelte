@@ -8,8 +8,8 @@
   import SubmitSprintLayersPart from "$lib/components/workspace/SubmitSprintLayersPart.svelte";
   import SubmitSprintProgressContent from "$lib/components/workspace/SubmitSprintProgressContent.svelte";
   import SubmitSprintSuccessContent from "$lib/components/workspace/SubmitSprintSuccessContent.svelte";
-  import KeyTakeawaysModal from "./KeyTakeawaysModal.svelte";
-  import {
+import KeyTakeawaysModal from "./KeyTakeawaysModal.svelte";
+import {
     notifyAchievementUnlocks,
     type UnlockedAchievement,
   } from "$lib/stores/achievementToast";
@@ -39,6 +39,7 @@
   let showModal = false;
   let showCancelConfirmModal = false;
   let showKeyTakeawaysModal = false;
+  let showSuccessContent = false;
   let hasViewedTakeaways = false;
   let submitStep = 0;
   let submitError = "";
@@ -744,27 +745,27 @@
             done: true,
           };
         }
-      } catch (e) {
+} catch (e) {
         console.warn("AI Scoring failed:", e);
         aiScoring = {
           stars: 1,
           score: 35,
           feedback:
             "Your code passes the tests but there is room for improvement.",
-          improvements: "",
-          nextTime: "",
-          masteryPassed: false,
-          masteryGaps: "Mastery verification failed due to a temporary issue.",
-          loading: false,
-          done: true,
-        };
+improvements: "",
+            nextTime: "",
+            masteryPassed: false,
+            masteryGaps: "Mastery verification failed due to a temporary issue.",
+            loading: false,
+            done: true,
+          };
       }
-       console.log(
-         "AI SCORING: Complete - Stars:",
-         aiScoring.stars,
-         "Score:",
-         aiScoring.score,
-       );
+      console.log(
+           "AI SCORING: Complete - Stars:",
+           aiScoring.stars,
+           "Score:",
+           aiScoring.score,
+         );
        
        // Mastery checkpoint handling (only if enabled)
        if (masteryCheckpointEnabled) {
@@ -1004,6 +1005,7 @@
   function handleContinueWorking() {
     // Close modal and let parent reload the page
     showModal = false;
+    showSuccessContent = false;
     state = "confirm";
     const payload = {
       ...submitRewards,
@@ -1162,9 +1164,32 @@
   {keyTakeaways}
   on:closed={() => {
     hasViewedTakeaways = true;
-    handleContinueWorking();
+    showSuccessContent = true;
   }}
 />
+
+<ConfirmationModal
+  bind:open={showSuccessContent}
+  icon="🎉"
+  iconVariant="success"
+  title={advancingToNextLevel ? "Level Cleared" : "Sprint Archived"}
+  subtitle={advancingToNextLevel ? "Great run. Jump into your next challenge or return to dashboard." : "All deliverables are recorded for this sprint."}
+  confirmLabel={level === 5 ? "Take Post-Assessment" : "Back to Dashboard"}
+  variant="primary"
+  hideHeader={true}
+  hideActions={true}
+  on:confirm={handleDone}
+  on:cancel={handleContinueWorking}
+>
+  <SubmitSprintSuccessContent
+    {advancingToNextLevel}
+    {aiScoring}
+    submitRewards={submitRewards}
+    {level}
+    on:continue={handleContinueWorking}
+    on:done={handleDone}
+  />
+</ConfirmationModal>
 
 <style>
   /* Step pager inside the confirm state (mirrors OnboardingModal's om-dots) */
