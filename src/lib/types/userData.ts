@@ -19,4 +19,7 @@ export interface UserData {
 
   // Dashboard onboarding
   hasSeenDashboardOnboarding?: boolean;
+
+  // Authorisation — drives admin-only navigation entries.
+  isAdmin?: boolean;
 }

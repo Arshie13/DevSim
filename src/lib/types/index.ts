@@ -16,3 +16,4 @@ export type {
 } from "./IContainer"
 export * from "./test";
 export * from "./achievements";
+export * from "./cheatsheets";

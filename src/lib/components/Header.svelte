@@ -124,7 +124,7 @@
       <div class="w-px h-6 bg-obsidian-accent/20 mx-1 hidden sm:block" aria-hidden="true"></div>
 
       <!-- User Avatar -->
-      <ProfileDropDown {userData} />
+      <ProfileDropDown {userData} showAdminLinks={userData.isAdmin === true} />
     </div>
   </div>
 </header>

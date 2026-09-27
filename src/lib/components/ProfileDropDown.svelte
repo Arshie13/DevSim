@@ -1,10 +1,12 @@
 <script lang="ts">
   import { signOut } from "@auth/sveltekit/client";
   import { goto } from "$app/navigation";
-  import { User, Settings, LogOut, ChevronDown, Award, LayoutDashboard, Users } from "lucide-svelte";
+  import { User, Settings, LogOut, ChevronDown, Award, LayoutDashboard, Users, Terminal } from "lucide-svelte";
   import type { UserData } from "$types";
 
   export let userData: Partial<UserData>;
+  /** Admin-only destinations (e.g. cheatsheets) are hidden from learners. */
+  export let showAdminLinks = false;
 
   let open = false;
 
@@ -114,6 +116,16 @@
           <Users class="w-4 h-4 text-obsidian-accent/70" />
           Developer Rivals
         </button>
+
+        {#if showAdminLinks}
+          <button
+            on:click={() => navigateTo("/cheatsheets")}
+            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-body font-medium text-obsidian-text-primary hover:text-obsidian-accent hover:bg-obsidian-accent/5 transition-all"
+          >
+            <Terminal class="w-4 h-4 text-obsidian-accent/70" />
+            Cheatsheets
+          </button>
+        {/if}
 
         <button
           on:click={() => navigateTo("/profile")}
