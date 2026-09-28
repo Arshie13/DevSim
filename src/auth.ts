@@ -52,7 +52,7 @@ export const { handle } = SvelteKitAuth({
           // New user: use OAuth image if provided, otherwise assign a random default avatar
           const imageToStore = randomDefaultAvatarPath();
           // Generate username from email (remove domain and replace invalid characters)
-          const username = user.email!.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
+          const username = user.email!.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 16);
           await prisma.user.create({
             data: {
               email: user.email,
@@ -131,13 +131,19 @@ export const { handle } = SvelteKitAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
+        const dbUser = token.id
+          ? await prisma.user.findUnique({
+              where: { id: token.id as string },
+              select: { username: true, name: true },
+            })
+          : null;
         if (token.id) session.user.id = token.id as string;
-        if (token.username) session.user.username = token.username as string | null;
+        session.user.username = dbUser?.username ?? (token.username as string | null);
         // Surface the DB image (may be an OAuth URL or a local /avatars/ path)
         if (token.image !== undefined) {
           session.user.image = token.image as string | null;
-          session.user.name = token.name as string | null;
-          session.user.fullName = token.fullName as string | null;
+          session.user.name = dbUser?.username ?? (token.name as string | null);
+          session.user.fullName = (token.fullName as string | null) ?? dbUser?.name;
           session.user.givenName = token.givenName as string | null;
         }
         // Pass pretest completion status to the session

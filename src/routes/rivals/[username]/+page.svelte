@@ -8,13 +8,14 @@
   } from "lucide-svelte";
   import type { PageData } from "./$types";
   import type { UserData, ProfileMetricsData, RivalEntry } from "$types";
+  
 
   // ── Modular profile components ────────────────────────────────────────────
   import ProfileCard from "$components/profile/ProfileCard.svelte";
-  import ProgressSection from "$components/profile/ProgressSection.svelte";
   import MetricsSection from "$components/profile/MetricsSection.svelte";
   import FriendsSection from "$components/profile/FriendsSection.svelte";
   import AchievementSnapshot from "$components/achivements/AchievementSnapshot.svelte";
+  import ProfileActivityFeed from "$components/profile/ProfileActivityFeed.svelte";
   import { goto, afterNavigate } from "$app/navigation";
 
   export let data: PageData;
@@ -39,11 +40,7 @@
     day: "numeric",
     year: "numeric",
   });
-  $: streakDays = metrics.dayStreak;
   $: leaderboardRank = metrics.leaderboardRank;
-  $: weeklyGrowth = metrics.weeklyGrowth;
-
-  const bio = ""; // Optional: Add bio to DB later if needed
 
   $: metricCards = [
     {
@@ -86,21 +83,21 @@
 </script>
 
 <svelte:head>
-  <title>{targetUser.name}'s Profile | DevSim</title>
+  <title>{targetUser.username}'s Profile | DevSim</title>
 </svelte:head>
 
 <div
-  class="h-screen flex flex-col bg-obsidian-bg bg-grid-cyber text-obsidian-text-primary text-sm overflow-hidden"
+  class="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-obsidian-bg bg-grid-cyber scanlines ambient-glow text-obsidian-text-primary text-sm"
 >
 
   <!-- Back button bar -->
   {#if canGoBack}
-    <div class="shrink-0 w-full max-w-[1400px] mx-auto px-4 pt-4 md:px-6 lg:px-8">
+    <div class="page-container shrink-0 pt-8">
       <button
         on:click={handleBack}
-        class="btn-cyber btn-cyber-secondary inline-flex items-center gap-2 !py-2 !px-4"
+        class="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group"
       >
-        <ArrowLeft class="w-4 h-4" />
+        <ArrowLeft size={14} class="transition-transform group-hover:-translate-x-1" />
         <span>Back</span>
       </button>
     </div>
@@ -108,54 +105,47 @@
 
   <!-- ── Main asymmetric grid ─────────────────────────────────────────────── -->
   <main
-    class="flex-1 min-h-0 w-full max-w-[1400px] mx-auto px-4 py-3 md:px-6 lg:px-8 grid gap-3 lg:gap-4"
-    style="grid-template-columns: clamp(260px, 28%, 360px) 1fr;"
+    class="flex-1 min-h-0 w-full page-container py-3 grid grid-cols-1 lg:[grid-template-columns:clamp(18rem,30%,24rem)_1fr] gap-3 lg:gap-4"
   >
     <!-- LEFT COLUMN — Profile + Snapshot -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
       <!-- S1: Profile data -->
-      <div class="shrink-0">
+      <div class="flex-[3] min-h-0">
         <ProfileCard
           user={targetUser}
           {memberSince}
-          {bio}
           {leaderboardRank}
           {isOwnProfile}
         />
       </div>
 
       <!-- S2: Achievement snapshot -->
-      <div class="flex-1 min-h-0">
+      <div class="flex-[2] min-h-0">
         <AchievementSnapshot snapshots={data.topAchievements ?? []} />
       </div>
     </div>
 
-    <!-- RIGHT COLUMN (70%) — KPIs + Rivals -->
+    <!-- RIGHT COLUMN (70%) — KPIs + Rivals + Activity -->
     <div class="flex flex-col gap-3 lg:gap-4 min-h-0">
-      <!-- S3: KPIs (level progress + metric cards) -->
-      <div class="shrink-0 flex flex-col gap-3 lg:gap-4">
-        <ProgressSection user={targetUser} {streakDays} {weeklyGrowth} />
+      <!-- S3: KPIs (metric cards) -->
+      <div class="shrink-0">
         <MetricsSection metrics={metricCards} />
       </div>
 
-      <!-- S4: Rivals Section -->
-      <div class="flex-1 min-h-0 flex flex-col">
+      <!-- S4: Top rivals -->
+      <div class="shrink-0 flex flex-col">
         <FriendsSection {rivals} />
+      </div>
+
+      <!-- S5: Recent activity -->
+      <div class="flex-1 min-h-0">
+        <ProfileActivityFeed activities={data.activity ?? []} />
       </div>
     </div>
   </main>
 
   <!-- Ambient background -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <div class="absolute inset-0 bg-grid-cyber opacity-30"></div>
-    <div
-      class="absolute top-0 left-0 right-0 h-[60vh]"
-      style="background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7,165,201,0.08), transparent);"
-    ></div>
-    <div
-      class="absolute inset-0"
-      style="background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.015) 4px); z-index: 200; pointer-events: none;"
-    ></div>
     <div
       class="absolute top-1/4 -left-32 w-96 h-96 bg-obsidian-accent/10 rounded-full blur-[120px]"
     ></div>

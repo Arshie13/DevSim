@@ -71,12 +71,12 @@
     on:click={(e) => e.target === e.currentTarget && close()}
     on:keydown={(e) => e.key === 'Escape' && close()}
   >
-    <div class="modal-card-in relative flex max-h-[85vh] w-[min(560px,95vw)] flex-col overflow-hidden rounded-[4px] border border-[var(--card-border)] bg-[var(--bg-light)] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_var(--accent-glow),0_24px_60px_rgba(0,0,0,0.6)]">
-      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-35" aria-hidden="true"></div>
+    <div class="modal-card-in relative flex max-h-[85vh] w-[min(560px,95vw)] flex-col overflow-hidden rounded-card border border-[var(--card-border)] bg-[var(--bg-light)] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_var(--accent-glow),0_24px_60px_rgba(0,0,0,0.6)]">
+      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-70" aria-hidden="true"></div>
       <div class="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent),transparent)]" aria-hidden="true"></div>
       <div class="flex items-center justify-between border-b border-[rgba(7,165,201,0.1)] px-6 py-5">
         <div class="flex items-center gap-3.5">
-          <div class="pulse-icon flex h-10 w-10 items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.1)] text-[var(--accent)]">
+          <div class="pulse-icon flex h-10 w-10 items-center justify-center rounded-card border border-[rgba(7,165,201,0.25)] bg-[rgba(7,165,201,0.1)] text-[var(--accent)]">
             <Beaker class="w-5 h-5" />
           </div>
           <div>
@@ -112,7 +112,7 @@
               {@const isPassed = task.testStatus === 'passed'}
               {@const isFailed = task.testStatus === 'failed'}
               <div
-                class="task-row flex items-center gap-2.5 rounded-[4px] border border-[rgba(136,146,160,0.1)] bg-[rgba(10,14,26,0.72)] px-3 py-2.5 transition-all duration-200"
+                class="task-row flex items-center gap-2.5 rounded-card border border-[rgba(136,146,160,0.1)] bg-[rgba(10,14,26,0.72)] px-3 py-2.5 transition-all duration-200"
                 class:opacity-60={!hasTest}
                 class:opacity-100={hasTest}
                 class:cursor-pointer={hasTest}
@@ -164,7 +164,7 @@
                 {#if hasTest}
                   <button
                     data-tour={task.order === 1 || idx === 0 ? 'test-task-one-run-button' : task.order === 2 || idx === 1 ? 'test-task-two-run-button' : undefined}
-                    class="flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-[4px] border border-[rgba(7,165,201,0.2)] bg-[rgba(7,165,201,0.08)] p-0 text-[var(--accent)] transition-all duration-150 ease-in-out hover:-translate-y-[1px] hover:border-[rgba(7,165,201,0.35)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_14px_var(--accent-glow)] disabled:cursor-not-allowed disabled:opacity-50"
+                    class="flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-card border border-[rgba(7,165,201,0.2)] bg-[rgba(7,165,201,0.08)] p-0 text-[var(--accent)] transition-all duration-150 ease-in-out hover:-translate-y-[1px] hover:border-[rgba(7,165,201,0.35)] hover:bg-[rgba(7,165,201,0.15)] hover:shadow-[0_0_14px_var(--accent-glow)] disabled:cursor-not-allowed disabled:opacity-50"
                     on:click={() => runSingleTask(task)}
                     disabled={loading || isRunning}
                     title="Run this task's tests"

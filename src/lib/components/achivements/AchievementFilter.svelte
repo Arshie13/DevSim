@@ -17,7 +17,7 @@
     <button
       role="tab"
       aria-selected={filter === opt.value}
-      class="filter-btn"
+      class="filter-btn font-label"
       class:active={filter === opt.value}
       on:click={() => (filter = opt.value)}
     >
@@ -34,27 +34,26 @@
   }
 
   .filter-btn {
-    font-family: "Space Mono", monospace;
     font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 0.35rem 0.9rem;
-    border-radius: 4px;
-    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius-card);
+    border: 1px solid rgb(var(--purple-rgb) / 0.2);
     background: transparent;
-    color: rgba(208, 215, 221, 0.45);
+    color: rgb(var(--text-primary-rgb) / 0.45);
     cursor: pointer;
     transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
 
   .filter-btn:hover {
-    border-color: rgba(168, 85, 247, 0.5);
-    color: rgba(208, 215, 221, 0.85);
+    border-color: rgb(var(--purple-rgb) / 0.5);
+    color: rgb(var(--text-primary-rgb) / 0.85);
   }
 
   .filter-btn.active {
-    border-color: rgba(168, 85, 247, 0.7);
-    background: rgba(168, 85, 247, 0.12);
-    color: #c084fc;
+    border-color: rgb(var(--purple-rgb) / 0.7);
+    background: rgb(var(--purple-rgb) / 0.12);
+    color: rgb(var(--purple-rgb) / 0.9);
   }
 </style>

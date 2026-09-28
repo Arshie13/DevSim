@@ -8,6 +8,7 @@
   export let userData: Partial<UserData>;
   export let onOpenStats: (() => void) | undefined = undefined;
   export let onOpenDailyRewards: (() => void) | undefined = undefined;
+  export let showDailyRewardsBadge = false;
   export let showPass = false;
   export let onOpenHelp: (() => void) | undefined = undefined;
 
@@ -27,7 +28,7 @@
 </script>
 
 <header class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50" data-tour="dashboard-header">
-  <div class="site-header-inner w-full max-w-[1200px] min-w-0 px-4 py-3 md:px-6 lg:px-8 lg:py-4 flex items-center justify-between mx-auto">
+  <div class="site-header-inner page-container min-w-0 py-3 lg:py-4 flex items-center justify-between">
     <!-- Logo -->
     <button on:click={navigateToDashboard} class="flex-shrink-0 text-left">
       <Logo markClass="w-12 h-12" textClass="text-xl" subtitle="Developer Simulation" />
@@ -46,10 +47,12 @@
           >
             <div class="relative">
               <Gift class="w-4 h-4 transition-transform group-hover:scale-110" />
-              <span class="absolute -top-1 -right-1 flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-cyan opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-cyber-cyan"></span>
-              </span>
+              {#if showDailyRewardsBadge}
+                <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-cyan opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-cyber-cyan"></span>
+                </span>
+              {/if}
             </div>
           </button>
           <span class="nav-tooltip" aria-hidden="true">Daily Rewards</span>
@@ -139,7 +142,7 @@
     padding: 0.3rem 0.65rem;
     background: var(--bg-light);
     border: 1px solid rgba(7, 165, 201, 0.35);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     color: var(--accent);
     font-family: var(--font-heading);
     font-size: 0.6rem;
@@ -163,7 +166,6 @@
   @media (max-width: 760px) {
     .site-header-inner {
       gap: 0.75rem;
-      padding-inline: 0.75rem;
     }
 
     .site-header-inner :global(.logo-text),

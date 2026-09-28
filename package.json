@@ -27,6 +27,7 @@
 		"db:migrate": "pnpm prisma migrate dev",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:design": "pnpm exec tsx scripts/check-design.ts",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"db:generate": "prisma generate",
 		"db:push": "prisma db push",

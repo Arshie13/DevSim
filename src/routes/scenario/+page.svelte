@@ -12,7 +12,7 @@
     image: data.user.image ?? 'No image found',
     id: data.user.id ?? '',
     avatar: data.user?.image ?? '../static/avatars/defaultcyan.svg',
-    fullName: data.user?.name ?? data.user?.name ?? 'No name found',
+    fullName: data.user?.fullName ?? data.user?.name ?? 'No name found',
     coins: data.userCoins,
   };
 </script>
@@ -25,17 +25,18 @@
   <!-- Background layers -->
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-orb" aria-hidden="true"></div>
-  <div class="bg-scanlines" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
 
   <div class="relative z-10 flex flex-col min-h-screen">
     <Header userData={headerUserData} />
 
-      <main class="w-full max-w-[1200px] mx-auto px-4 py-4 md:px-6 lg:px-8">
+      <main class="page-container py-4">
       <ScenarioList
         scenarios={data.scenarios}
         stackName={data.stackName}
         selection={data.selection}
         tutorialState={data.tutorialState}
+        initialScenarioIndex={data.initialScenarioIndex}
       />
     </main>
   </div>
@@ -60,8 +61,8 @@
     inset: 0;
     z-index: 0;
     background-image:
-      repeating-linear-gradient(0deg,   rgba(7,165,201,0.06) 0, rgba(7,165,201,0.06) 1px, transparent 1px, transparent 40px),
-      repeating-linear-gradient(90deg,  rgba(7,165,201,0.06) 0, rgba(7,165,201,0.06) 1px, transparent 1px, transparent 40px);
+      repeating-linear-gradient(0deg,   var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg,  var(--grid-line) 0, var(--grid-line) 1px, transparent 1px, transparent 40px);
     pointer-events: none;
   }
 
@@ -72,20 +73,8 @@
     right: 0;
     height: 60vh;
     z-index: 0;
-    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7,165,201,0.08), transparent);
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(7, 165, 201, 0.03), transparent);
     pointer-events: none;
   }
 
-  .bg-scanlines {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0,0,0,0.015) 4px
-    );
-    pointer-events: none;
-  }
 </style>

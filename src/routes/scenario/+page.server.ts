@@ -123,6 +123,8 @@ export const load: PageServerLoad = async (event) => {
 
 	const stackParam = event.url.searchParams.get('stack') ?? '';
 	const selectionRaw = event.url.searchParams.get('selection') ?? '{}';
+	// Optional deep link target, e.g. `scenario-3` (frontend folder name).
+	const scenarioParam = event.url.searchParams.get('scenario') ?? '';
 
 	const emptyReturn = (stackName = stackParam) => ({
 		scenarios: [] as ScenarioMeta[],
@@ -135,7 +137,8 @@ export const load: PageServerLoad = async (event) => {
 		},
 		user,
 		userCoins,
-		hasCompletedTutorial
+		hasCompletedTutorial,
+		initialScenarioIndex: 0
 	});
 
 	// Strict validation: alphanumeric + hyphens only (prevents path traversal)
@@ -301,6 +304,11 @@ export const load: PageServerLoad = async (event) => {
 		/* summary.md is optional */
 	}
 
+	// Focus the requested scenario when the id is a valid folder name.
+	const requestedIndex = /^scenario-\d+$/.test(scenarioParam)
+		? scenarios.findIndex((s) => s.id === scenarioParam)
+		: -1;
+
 	return {
 		scenarios,
 		stackName: stackParam,
@@ -309,6 +317,7 @@ export const load: PageServerLoad = async (event) => {
 		tutorialState,
 		user,
 		userCoins,
-		hasCompletedTutorial
+		hasCompletedTutorial,
+		initialScenarioIndex: requestedIndex > 0 ? requestedIndex : 0
 	};
 };

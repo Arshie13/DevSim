@@ -5,8 +5,8 @@
 </script>
 
 <!-- ◈ CTA -->
-<section class="py-24 px-6 border-t border-[rgba(7,165,201,0.05)]">
-  <div class="max-w-4xl mx-auto">
+<section class="py-24 border-t border-[rgba(7,165,201,0.05)]">
+  <div class="page-container max-w-4xl">
     <div class="card-cyber p-12 text-center relative overflow-hidden">
       <!-- Radial bg wash -->
       <div class="absolute inset-0 pointer-events-none"
@@ -39,8 +39,8 @@
 </section>
 
 <!-- ◈ Footer -->
-<footer class="border-t border-[rgba(7,165,201,0.08)] py-12 px-6">
-  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<footer class="border-t border-[rgba(7,165,201,0.08)] py-12">
+  <div class="page-container flex flex-col md:flex-row justify-between items-center gap-6">
     <a href="/" class="flex-shrink-0">
       <Logo markClass="w-7 h-7" textClass="text-xl" />
     </a>

@@ -84,8 +84,9 @@ export const GET: RequestHandler = async (event) => {
     )
     .slice(0, 3);
 
+  // Any access source counts — keep in step with choose-unlock's ownership check.
   const unlockedProjects = await prisma.user_project_access.findMany({
-    where: { user_id: userId, source: "LEARNER_PASS" },
+    where: { user_id: userId },
     select: { scenario_id: true, granted_at: true },
   });
 

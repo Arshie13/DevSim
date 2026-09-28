@@ -7,7 +7,7 @@
 
 <div class="flex flex-col items-center justify-center text-center py-20 px-8 gap-4">
   <!-- Icon -->
-  <div class="w-20 h-20 flex items-center justify-center rounded-[4px] mb-1
+  <div class="w-20 h-20 flex items-center justify-center rounded-card mb-1
               bg-[var(--accent)]/5 border border-[var(--card-border)]" aria-hidden="true">
     <FolderOpen class="w-10 h-10 text-[var(--accent)]/40" />
   </div>
@@ -20,7 +20,7 @@
     There are no scenarios configured for <br />
     <code class="font-label text-[0.85rem] text-[var(--accent)]
                bg-[var(--accent)]/8 border border-[var(--accent)]/20
-               px-2 py-0.5 rounded-[2px]">{stackName || 'this stack'}</code>
+               px-2 py-0.5 rounded-chrome">{stackName || 'this stack'}</code>
     yet.<br />Check back later or choose a different stack.
   </p>
 

@@ -44,13 +44,13 @@
 
   .ds-scrollbar::-webkit-scrollbar-track {
     background: rgba(10, 14, 26, 0.6);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
     margin: 4px 0;
   }
 
   .ds-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(136, 146, 160, 0.3);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.05),
       0 1px 3px rgba(0, 0, 0, 0.3);
@@ -75,13 +75,13 @@
 
   .ds-scrollbar-horizontal::-webkit-scrollbar-track {
     background: rgba(10, 14, 26, 0.6);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
     margin: 0 4px;
   }
 
   .ds-scrollbar-horizontal::-webkit-scrollbar-thumb {
     background: rgba(136, 146, 160, 0.3);
-    border-radius: 4px;
+    border-radius: var(--radius-chrome);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.05),
       0 1px 3px rgba(0, 0, 0, 0.3);

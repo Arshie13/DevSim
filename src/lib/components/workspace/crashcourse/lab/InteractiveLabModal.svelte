@@ -73,7 +73,7 @@
   .lab-header h4 {
     margin: 0;
     color: #e4f8ff;
-    font-family: "Orbitron", monospace;
+    font-family: var(--font-heading);
     font-size: 0.86rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -84,7 +84,7 @@
     background: rgba(255, 255, 255, 0.04);
     color: #d0d7dd;
     padding: 0.32rem 0.54rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.66rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -94,7 +94,7 @@
   .interactive-instructions {
     margin: 0 0 0.7rem;
     color: #d0d7dd;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.8rem;
     line-height: 1.35;
     white-space: pre-line;
@@ -110,7 +110,7 @@
     color: #b7c4d1;
     background: rgba(255, 255, 255, 0.03);
     padding: 0.18rem 0.48rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.64rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -124,7 +124,7 @@
     padding: 0.45rem 0.55rem;
     background: rgba(255, 200, 87, 0.1);
     border: 1px solid rgba(255, 184, 28, 0.35);
-    border-radius: 2px;
+    border-radius: var(--radius-card);
   }
 
   .lab-hint-icon {
@@ -135,7 +135,7 @@
 
   .lab-hint-text {
     color: #ffdca8;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.74rem;
     line-height: 1.4;
   }
@@ -149,7 +149,7 @@
   .coin-note {
     margin: 0 0 0.55rem;
     color: #9db6c7;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.7rem;
     font-style: italic;
   }

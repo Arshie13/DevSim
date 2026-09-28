@@ -38,7 +38,7 @@
 
 <style>
   .logo-wordmark {
-    background: linear-gradient(90deg, #fff 0%, var(--accent) 50%, var(--cyan-bright) 100%);
+    background: linear-gradient(90deg, var(--text-bright) 0%, var(--accent) 50%, var(--cyan-bright) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

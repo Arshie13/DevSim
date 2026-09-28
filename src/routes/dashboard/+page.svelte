@@ -2,11 +2,13 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { onMount } from "svelte";
   import type { IContainer, UserData, KPIData, WeeklyStats, ActivityItem, LeaderboardEntry, UserKpis, AchievementFeedItem } from "$types";
+  import type { StackRecommendation } from "$lib/server/recommend";
   import { ArrowRight, ChartBar } from "lucide-svelte";
   import Header from "$components/Header.svelte";
   import KPIs from "$components/dashboard/KPIs.svelte";
   import CurrentStacks from "$components/dashboard/CurrentStacks.svelte";
   import FinishedStacks from "$components/dashboard/FinishedStacks.svelte";
+  import RecommendationBanner from "$components/dashboard/RecommendationBanner.svelte";
   import StatsDrawer from "$components/dashboard/StatsDrawer.svelte";
   import DailyRewardsModal from "$lib/components/dailyRewards/DailyRewardsModal.svelte";
   import DashboardWelcomeModal from "$components/onboarding/DashboardWelcomeModal.svelte";
@@ -24,12 +26,14 @@
     activity: ActivityItem[];
     leaderboard: LeaderboardEntry[];
     achievementItems: AchievementFeedItem[];
+    recommendation: StackRecommendation | null;
   }
 
   export let data: DashboardProps;
 
    let isStatsDrawerOpen = false;
    let isDailyRewardsModalOpen = false;
+   let showDailyRewardsBadge = false;
 
    // Help panel state
    let helpMounted = false;
@@ -41,6 +45,7 @@
      if (shouldShowOnboarding) {
        onboardingPhase = 'welcome';
      }
+     void refreshDailyRewardsBadge();
      return helpTrigger.subscribe((payload) => {
        if (payload) {
          helpPrefillCategory = payload.category;
@@ -55,6 +60,7 @@
    let headerUserData: UserData = {
      id: data.user.id,
      name: data.user.name ?? "No Name",
+     fullName: data.user.fullName ?? data.user.name,
      email: data.user.email,
      image: data.user.image,
      avatar: data.user.avatar ?? data.user.image ?? "",
@@ -66,7 +72,10 @@
      hasSeenDashboardOnboarding: data.user.hasSeenDashboardOnboarding ?? false,
    };
 
-   $: firstName = data.user.givenName?.split(' ')[0] || data.user.name?.split(' ')[0] || 'Developer';
+   $: displayName = data.user.username || data.user.name?.split(' ')[0] || 'Developer';
+
+  $: currentStacks = [...data.userContainerList].sort((a, b) => +new Date(b.updated_at ?? 0) - +new Date(a.updated_at ?? 0));
+  $: archivedStacks = [...data.archivedStacks].sort((a, b) => +new Date(b.updated_at ?? 0) - +new Date(a.updated_at ?? 0));
 
     // ── Dashboard Onboarding State ──
     type OnboardingPhase = 'welcome' | 'tour' | 'done';
@@ -136,6 +145,17 @@
     goto("/stacks");
   }
 
+  async function refreshDailyRewardsBadge() {
+    try {
+      const res = await fetch('/api/user/daily-rewards');
+      if (!res.ok) return;
+      const daily = await res.json();
+      showDailyRewardsBadge = Boolean(daily.canClaimToday && daily.hasRewards);
+    } catch {
+      // Non-critical — keep the badge hidden on failure
+    }
+  }
+
   function openDailyRewardsModal() {
     isDailyRewardsModalOpen = true;
   }
@@ -155,6 +175,7 @@
 
   function handleRewardClaim(e: CustomEvent<{ day: number; coins: number; xp: number; aiHelps: number; newCoins?: number; newXp?: number; newAiHelpCredits?: number }>) {
     console.log(`Reward claimed: Day ${e.detail.day}, +${e.detail.coins} coins, +${e.detail.xp} XP, +${e.detail.aiHelps} AI helps`);
+    showDailyRewardsBadge = false;
 
     // Update header values if API returned new totals
     if (e.detail.newCoins !== undefined) {
@@ -177,6 +198,7 @@
     onOpenDailyRewards={openDailyRewardsModal}
     onOpenHelp={handleOpenHelp}
     showPass={true}
+    showDailyRewardsBadge={showDailyRewardsBadge}
   />
 
   <!-- Stats Drawer -->
@@ -189,15 +211,15 @@
   />
 
   <!-- Main Content -->
-  <main class="relative z-10 py-8">
-    <div class="max-w-[1200px] mx-auto px-6">
+  <main class="relative z-10 pt-5 pb-6 flex flex-col gap-5 h-auto lg:h-[calc(100vh-5rem)] lg:overflow-hidden">
+    <div class="page-container flex-1 min-h-0 flex flex-col gap-5">
     <!-- Top Section: Welcome + New Stack Button -->
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-      <h2 class="text-2xl font-orbitron font-bold text-obsidian-text-muted">
+    <div class="flex flex-wrap items-center justify-between gap-4 shrink-0">
+      <h2 class="text-2xl font-heading font-bold text-obsidian-text-primary">
         {#if shouldShowOnboarding}
-          Welcome to DevSim, <span class="text-cyber-cyan">{firstName}!</span>
+          Welcome to DevSim, <span class="text-cyber-cyan">{displayName}!</span>
         {:else}
-          Welcome back, <span class="text-cyber-cyan">{firstName}!</span>
+          Welcome back, <span class="text-cyber-cyan">{displayName}!</span>
         {/if}
       </h2>
 
@@ -205,7 +227,7 @@
       <div class="flex items-center gap-3">
         <button
           on:click={openStatsDrawer}
-          class="btn-cyber flex items-center gap-2 !px-5 !py-2.5 border border-purple-400/60 text-purple-300 hover:bg-purple-500/15 hover:text-purple-200 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+          class="btn-cyber flex items-center gap-2 !px-5 !py-2.5 border border-cyber-purple/60 text-cyber-purple hover:bg-cyber-purple/15 hover:shadow-[0_0_20px_rgb(var(--purple-rgb)_/_0.3)]"
         >
           <ChartBar class="w-4 h-4" />
           Stats
@@ -223,19 +245,21 @@
     </div>
 
     <!-- KPIs Row -->
-    <div class="mb-8" data-tour="dashboard-kpis">
+    <div class="shrink-0" data-tour="dashboard-kpis">
       <KPIs {kpis} />
     </div>
 
     <!-- Stacks Section - Side by Side -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <div data-tour="dashboard-current-stacks">
-        <CurrentStacks containers={data.userContainerList} maxVisible={2} />
+    <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="h-full min-h-0" data-tour="dashboard-current-stacks">
+        <CurrentStacks containers={currentStacks} maxVisible={3} />
       </div>
-      <div data-tour="dashboard-finished-stacks">
-        <FinishedStacks containers={data.archivedStacks} userCoins={data.userCoins} maxVisible={3} />
+      <div class="h-full min-h-0" data-tour="dashboard-finished-stacks">
+        <FinishedStacks containers={archivedStacks} userCoins={data.userCoins} maxVisible={3} />
       </div>
     </div>
+
+    <RecommendationBanner recommendation={data.recommendation} />
     </div><!-- end max-width wrapper -->
   </main>
 
@@ -288,7 +312,7 @@
    <!-- Ambient Background Effects -->
    <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
      <!-- Glow orbs -->
-     <div class="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(7,165,201,0.12);"></div>
-     <div class="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgba(168,85,247,0.08);"></div>
+     <div class="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgb(var(--accent-rgb) / 0.12);"></div>
+     <div class="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full blur-[120px]" style="background: rgb(var(--purple-rgb) / 0.08);"></div>
    </div>
 </div>

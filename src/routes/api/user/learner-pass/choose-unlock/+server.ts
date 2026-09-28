@@ -39,20 +39,24 @@ export const POST: RequestHandler = async (event) => {
       const available = getSpecialUnlocksForDay(dayNumber);
       if (!available.includes(scenarioId)) throw error(400, 'Invalid scenario for this day');
 
+      // Access may already exist from another source (coin purchase, admin
+      // grant, a previous pass). That is not an error: the choice is still
+      // satisfied, so record it and report it instead of dead-ending the user.
       const existing = await tx.user_project_access.findFirst({
         where: { user_id: userId, scenario_id: scenarioId },
       });
-      if (existing) throw error(409, 'Scenario already unlocked');
 
-      await tx.user_project_access.create({
-        data: {
-          user_id: userId,
-          scenario_id: scenarioId,
-          source: 'LEARNER_PASS',
-          learner_pass_enrollment_id: enrollment.id,
-          granted_at: new Date(),
-        },
-      });
+      if (!existing) {
+        await tx.user_project_access.create({
+          data: {
+            user_id: userId,
+            scenario_id: scenarioId,
+            source: 'LEARNER_PASS',
+            learner_pass_enrollment_id: enrollment.id,
+            granted_at: new Date(),
+          },
+        });
+      }
 
       const newChoices = [...choices, scenarioId];
       await tx.learner_pass_enrollment.update({
@@ -60,7 +64,11 @@ export const POST: RequestHandler = async (event) => {
         data: { unlock_choices: newChoices },
       });
 
-      return Response.json({ success: true, grantedProjectId: scenarioId });
+      return Response.json({
+        success: true,
+        grantedProjectId: scenarioId,
+        alreadyOwned: !!existing,
+      });
     });
   } catch (err) {
     if (err && typeof err === 'object' && 'status' in err) throw err;

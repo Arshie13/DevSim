@@ -42,7 +42,7 @@ export class TerminalInitializer {
 
       this.terminal = new TerminalConstructor({
         convertEol: true,
-        fontFamily: 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace',
+        fontFamily: 'monospace',
         fontSize: 14,
         theme: {
           background: "#1e1e1e",
