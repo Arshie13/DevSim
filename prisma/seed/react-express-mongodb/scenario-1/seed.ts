@@ -130,13 +130,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Three folders contain a `package.json` — install in each. ",
+                  "Work from the repo root and run `pnpm install` three times: once in the root folder, once in `client/`, once in `server/`. Each of those folders has its own `package.json` and its own `node_modules`. The root `package.json` must list `concurrently`, `client/package.json` must list `react` and `axios`, and `server/package.json` must list `express` and `mongoose`.",
                 order: 1,
               },
               {
                 description:
-                  "Run `pnpm run db:seed` inside `server/` after Mongo is up; the dev server will fetch zero recipes until the DB has data.",
+                  "Create `server/.env` and put `MONGO_URI` in it, for example `MONGO_URI=\"mongodb://localhost:27017/app\"`. Then write a short script in `server/` that loads `dotenv/config`, connects mongoose to `process.env.MONGO_URI`, disconnects again, prints `DB_OK` and exits 0.",
                 order: 2,
+              },
+              {
+                description:
+                  "Start the API by running `pnpm run dev` in `server/`, then request `GET http://127.0.0.1:5000/api/health`. You should get a 200 and a body containing `ok`. Do not move on until that works.",
+                order: 3,
+              },
+              {
+                description:
+                  "Finally start the frontend with `pnpm run dev -- --port 3000` in `client/` and request `http://127.0.0.1:3000`. The body must contain `<div id=\"root\">`. That div is the React mount point in `client/index.html`, so if it is missing the entry file is broken.",
+                order: 4,
               },
             ],
           },
@@ -145,19 +155,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "Dependencies installed for the root, client, and server without errors",
+                  "Root `node_modules` exists and contains `concurrently`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "App seed script populates at least 10 recipes and 5 users",
+                description:
+                  "Client `node_modules` exists and contains `react` and `axios`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Both client and server start via `pnpm run dev` without crashes",
+                description:
+                  "Server `node_modules` exists and contains `express` and `mongoose`",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "A Mongoose connect/disconnect script using `process.env.MONGO_URI` exits 0 and prints `DB_OK`",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "The server starts via `pnpm run dev` and `GET http://127.0.0.1:5000/api/health` returns 200 with a body containing `ok`",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "The client starts via `pnpm run dev -- --port 3000` and `GET http://127.0.0.1:3000` returns a body containing `<div id=\"root\">`",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -251,17 +281,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The header is a layout-level element — look inside the `components/layout/` folder for the file that renders the brand area.",
+                  "Open `client/src/components/layout/Header.tsx`. The brand area is the `<span>Your Tagline Here</span>` rendered under the RecipeNest heading. Replace only that span's text and leave the surrounding `<header>` element exactly as it is.",
                 order: 1,
               },
               {
                 description:
-                  "After saving the change, open the running client in the browser to visually confirm the subtitle updated correctly on both desktop and mobile widths.",
+                  "Keep `Header` a named export. It gets rendered on its own inside a router, so it must not need any provider it does not already receive. Save the file, then confirm the new text shows up inside the `role=\"banner\"` element.",
                 order: 2,
               },
               {
                 description:
-                  "The acceptance criteria specifies the exact subtitle text — the change must match it character for character, including punctuation and capitalization.",
+                  "The new text has to be exactly `Cook. Share. Inspire.`, character for character, with capitals, periods and single spaces. The old placeholder `Your Tagline Here` must be gone from the rendered header, and the subtitle has to stay visible inside the `<header>` element.",
                 order: 3,
               },
             ],
@@ -270,14 +300,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: 'Header subtitle is exactly "Cook. Share. Inspire."',
+                description:
+                  "The subtitle text is exactly `Cook. Share. Inspire.` (case- and punctuation-sensitive)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Subtitle renders correctly on desktop and mobile breakpoints",
+                description:
+                  "The placeholder `Your Tagline Here` is no longer present anywhere in the rendered header",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description:
+                  "The subtitle renders inside the page header (the `role=\"banner\"` element)",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description:
+                  "The subtitle is visible (passes the testing-library visibility check)",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "The brand area is exported as a named `Header` component and renders inside a router context",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -398,17 +448,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Import `Link` from `react-router-dom` and wrap the entire `<article>` (or `<Card>`) in `<Link to={\\`/recipes/${recipe._id}\\`}>`. The test checks for a single `role=\"link\"` element.",
+                  "In `RecipeCard`, import `Link` from `react-router-dom` and wrap the whole card in `<Link to={\\`/recipes/${recipe._id}\\`}>` so the card becomes a single link.",
                 order: 1,
               },
               {
                 description:
-                  "The `<Link>` must contain the `<h3>` title — the test asserts that the link wraps the heading, making the whole card the click target.",
+                  "The `<Link>` has to wrap the `<h3>` title too, so the whole card is one click target, and the card should end up with exactly one `role=\"link\"` element.",
                 order: 2,
               },
               {
                 description:
-                  "In tests the component is wrapped in `<MemoryRouter>` — if a 'useHref outside Router' error appears when running locally, make sure the app's root already provides a `<BrowserRouter>` in `main.tsx`.",
+                  "Router components need a router to render, so if a `useHref outside Router` error turns up, make sure `main.tsx` already provides a `<BrowserRouter>`.",
                 order: 3,
               },
             ],
@@ -539,17 +589,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "`filterRecipes` should be a pure function returning a NEW array — do not mutate the input. Lower-case both sides before `includes`.",
+                  "Make `filterRecipes` a pure function that returns a new array and lower-cases both sides before matching, so a query for `PASTA` still finds a recipe tagged `pasta`.",
                 order: 1,
               },
               {
                 description:
-                  "`SearchBar` should accept `value` and `onChange` props so the parent owns the query state.",
+                  "Give `SearchBar` `value` and `onChange` props so the parent feed component owns the query state and the input stays controlled.",
                 order: 2,
               },
               {
                 description:
-                  "Wrap the derived list in `useMemo` so the filter doesn't re-run on every unrelated render.",
+                  "Wrap the filtered list in `useMemo` so the filter does not re-run on every unrelated render.",
                 order: 3,
               },
             ],
@@ -571,14 +621,21 @@ export const levels = [
               },
               {
                 description:
-                  "Typing in the search input updates the rendered card count without a page reload",
+                  "`filterRecipes('DESSERT', recipes)` returns only recipes whose tags match case-insensitively",
                 is_required: true,
                 order: 3,
               },
               {
-                description: 'Empty matches show an empty-state element with `data-testid="empty-state"`',
+                description:
+                  "`filterRecipes('xyzzz', recipes)` returns an empty array when nothing matches",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "`filterRecipes` returns a NEW array — it does not mutate the input list",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -715,17 +772,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "$match should run BEFORE $lookup to keep the pipeline cheap and let MongoDB use its indexes.",
+                  "The trending pipeline needs a `$match` on `createdAt` for the last 7 days before the `$lookup` into `saves`, so the join only ever touches recent recipes.",
                 order: 1,
               },
               {
                 description:
-                  "After $lookup the result is an array — $addFields with $size computes a number for sorting.",
+                  "A `$lookup` leaves an array behind, so derive a numeric `savedCount` from it before sorting. Without that number the sort has nothing to work with.",
                 order: 2,
               },
               {
                 description:
-                  "End the pipeline with $limit and $project so the response is bounded and doesn't include the heavy joined array.",
+                  "Close the pipeline with a `$limit` of 10 and a `$project` that drops the joined `saves` array, so documents come back ordered by `savedCount` and then `createdAt`, newest first, without the heavy field.",
                 order: 3,
               },
             ],
@@ -842,17 +899,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Use the existing `validateRequest(zodSchema)` middleware — define a query schema for `limit` and wire it before the controller.",
+                  "Wire `validateRequest(zodSchema)` onto `GET /api/recipes/trending` with a query schema that coerces `limit` to an integer between 1 and 50, so `?limit=999`, `?limit=0` and `?limit=abc` are all turned away with 400 before the controller runs.",
                 order: 1,
               },
               {
                 description:
-                  "Wrap the controller body in `try/catch` and pass any error to `next(err)` so the central error handler runs.",
+                  "Type the controller handler as `(req: Request, res: Response, next: NextFunction)` and wrap the body in `try/catch` that calls `next(err)`, so the central error handler deals with failures instead of the process crashing.",
                 order: 2,
               },
               {
                 description:
-                  "Return `{ success: true, data: [...] }` with `res.status(200).json(...)` — match the shape every other endpoint uses.",
+                  "Answer with `res.status(200).json({ success: true, data: [...] })` so trending has the same response shape as every other endpoint in the app.",
                 order: 3,
               },
             ],
@@ -862,25 +919,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "GET /api/recipes/trending returns 200 with `{ success: true, data: [...] }`",
+                  "GET /api/recipes/trending returns 200 with `res.body.success === true` and `res.body.data` an array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "GET /api/recipes/trending?limit=3 returns at most 3 documents",
+                description:
+                  "GET /api/recipes/trending?limit=3 returns 200 with at most 3 documents in `data`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "GET /api/recipes/trending?limit=999 returns 400 with a validation error",
+                description:
+                  "GET /api/recipes/trending?limit=999 returns 400 with `res.body.success === false` (validation error)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Route is registered before any catch-all 404 handler so it actually resolves",
+                  "GET /api/recipes/trending?limit=0 returns 400 (out-of-range rejected)",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "GET /api/recipes/trending?limit=abc returns 400 (non-numeric rejected)",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -1014,17 +1079,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "On the server, `findOneAndUpdate({userId, recipeId}, { $setOnInsert: {...} }, { upsert: true, new: true, rawResult: true })` distinguishes first-save from re-save.",
+                  "Saving has to be idempotent on the server, so that a first save and a repeat save can be told apart in a single round trip. One insert-or-update call does that.",
                 order: 1,
               },
               {
                 description:
-                  "Increment `recipe.savedCount` only when `rawResult.lastErrorObject.updatedExisting === false` (i.e. a new document was inserted).",
+                  "Only bump `recipe.savedCount` when a Save document was really created, otherwise every retry inflates the count. The raw result tells you which of the two happened.",
                 order: 2,
               },
               {
                 description:
-                  "On the client, store `isSaved` in component state and toggle it optimistically; revert on API error.",
+                  "The client toggle is optimistic: flip it immediately so the user gets instant feedback, send the request, and revert the button if the call fails.",
                 order: 3,
               },
             ],
@@ -1034,25 +1099,45 @@ export const levels = [
             create: [
               {
                 description:
-                  "POST /api/recipes/:id/save returns 201 (first save) or 200 (idempotent re-save) with `{ success, data }`",
+                  "First save: `POST /api/recipes/:id/save` returns a success status (200 or 201) with `res.body.success === true` and `recipe.savedCount` becomes 1",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Recipe `savedCount` increments by exactly 1 per unique user, never more on repeated saves by the same user",
+                  "A duplicate save by the same user returns a success status, leaves `recipe.savedCount` at 1, and leaves at least one Save document for that (userId, recipeId)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`SaveButton` toggles its visual state immediately on click",
+                description:
+                  "A save by a DIFFERENT user increments `recipe.savedCount` by exactly 1 (so two users → savedCount === 2)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Unauthenticated POST returns 401",
+                description:
+                  "An unauthenticated `POST /api/recipes/:id/save` returns 401",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "A save for a nonexistent recipe id returns a client error status between 400 and 499",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "`SaveButton` is exported as a function component from `client/src/components/recipe/SaveButton.tsx` and renders a `<button>` with an `aria-label`",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Clicking `SaveButton` toggles its `aria-pressed` attribute (the value changes, i.e. it is not static)",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1145,16 +1230,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Decrementing must clamp at 0 — use `$inc: { savedCount: -1 }` plus a `where: { savedCount: { $gt: 0 } }` guard with findOneAndUpdate.",
+                  "Unsave must never push `recipe.savedCount` below zero, so clamp the decrement at 0 with an atomic update that only applies when the count is currently above 0.",
                 order: 1,
               },
               {
                 description:
-                  "`Save.find({userId}).populate('recipeId')` or an aggregation `$lookup` are both fine — tests assert observable behaviour.",
+                  "`getSaved` can bring the recipes back however you like, populating the reference or using a `$lookup`. The only hard requirement is that the list holds exactly this user's saves, newest first.",
                 order: 2,
               },
               {
-                description: "Sort by `savedAt: -1` so the newest save appears first.",
+                description:
+                  "Ordering matters: sort by `savedAt` descending so the recipe saved last appears first, and render a real empty state carrying `data-testid=\"empty-state\"` when the user has saved nothing.",
                 order: 3,
               },
             ],
@@ -1164,31 +1250,45 @@ export const levels = [
             create: [
               {
                 description:
-                  "GET /api/recipes/saved returns 200 with the user's saved recipes sorted by savedAt descending",
+                  "GET /api/recipes/saved returns 200 with `res.body.data` an array containing exactly the user's saved recipes",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "DELETE /api/recipes/:id/save returns 200 and removes the Save document",
+                  "The saved list is sorted by `savedAt` descending — the recipe saved last appears first in `res.body.data`",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "After unsave, `savedCount` decreases by 1 (never below 0)",
+                  "DELETE /api/recipes/:id/save returns 200, removes the Save document, and decrements `recipe.savedCount` by 1",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "SavedRecipes page renders an empty state when the user has no saves",
+                description:
+                  "`recipe.savedCount` never goes below 0 — extra unsaves leave it at `>= 0`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Unauthenticated requests return 401",
+                description:
+                  "An unauthenticated `GET /api/recipes/saved` returns 401",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "`SavedRecipesPage` (exported from `client/src/pages/SavedRecipes.tsx`) renders an element with `data-testid=\"empty-state\"` when `getSaved` resolves to `[]`",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "`SavedRecipesPage` renders exactly one card per saved recipe — the title of every recipe returned by `getSaved` appears in the document",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1311,17 +1411,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The data model is the first place to enforce invariants — a compound unique index on { userId, recipeId } makes duplicates impossible at the DB level.",
+                  "One save per `userId` and `recipeId` has to be impossible, and a uniqueness rule in the database is the only thing that survives two requests arriving at the same moment. Application code that looks for an existing save and then writes one still has a gap in between.",
                 order: 1,
               },
               {
                 description:
-                  "Read-modify-write on a counter is unsafe under concurrency. Use the atomic `$inc` operator instead.",
+                  "Counters drift when they are read, changed and stored back as three separate steps, because a concurrent request reads the same starting value. Move the counter in a single atomic step so the database does the arithmetic.",
                 order: 2,
               },
               {
                 description:
-                  "Only increment the counter when the upsert actually inserted a new document — otherwise the counter drifts upward on every retry.",
+                  "Count saves, not requests. Bumping the counter every time a save is attempted means a retry inflates the count, and a retry is exactly what a user double-clicking produces.",
                 order: 3,
               },
             ],
@@ -1365,7 +1465,7 @@ export const levels = [
           task_name: "Fix Posted-At Timezone Bug",
           test_type: "server",
           user_story:
-            'As a user, I want "Posted X days ago" labels to be accurate regardless of my timezone or DST so I trust how recent a recipe is.',
+            "As a user, I want \"Posted X days ago\" labels to be accurate regardless of my timezone or DST so I trust how recent a recipe is.",
           learning_sections: {
             create: [
               {
@@ -1478,17 +1578,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Compute the diff from raw timestamps (`Date.parse(iso)` or `new Date(iso).getTime()`), not from formatted date strings.",
+                  "Elapsed time has to be measured from the raw timestamps, not from a date string that has already been cut down to a calendar day. The cut-down version quietly depends on whose timezone you are standing in.",
                 order: 1,
               },
               {
                 description:
-                  "Use `Math.floor` so labels only move forward after a full 24-hour window has passed; rounding flips the label at 12 hours.",
+                  "A day has to be complete before the label moves on, so round down. Rounding to the nearest flips the label at twelve hours, which is what makes a fresh post look a day old in the evening.",
                 order: 2,
               },
               {
                 description:
-                  "Make the helper accept an explicit `now` parameter — that makes timezone and DST cases trivial to test deterministically.",
+                  "The helper has to take the current instant as an input rather than read the clock itself. Otherwise every timezone and daylight saving case is untestable and the answer depends on the machine running it.",
                 order: 3,
               },
             ],

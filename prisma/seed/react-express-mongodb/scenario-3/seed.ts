@@ -132,18 +132,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has three separate folders that each need their own dependencies installed — check which folders contain a `package.json` file.",
+                  "Run `pnpm install` three times: once in the project root, once in `client/`, once in `server/`. Each folder has its own `package.json` and its own `node_modules`, and the root one is what supplies `concurrently`.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions.",
+                  "The connection string is read from `MONGO_URI`, which `server/src/env.ts` expects and `server/.env.example` shows the shape of. Put `MONGO_URI` in `server/.env`, and make sure MongoDB is running and reachable before a connect/disconnect script that prints `DB_OK` can exit 0.",
                 order: 2,
               },
               {
                 description:
-                  "Run the seed script to insert data into the database.",
+                  "From `server/`, run `pnpm run dev`, which runs `tsx watch src/index.ts`. The health route is mounted at `GET /api/health` in `server/src/routes/index.ts` and answers with `{ status: \"ok\" }`, so request it and confirm a 200.",
                 order: 3,
+              },
+              {
+                description:
+                  "From `client/`, run `pnpm run dev -- --port 3000` to start Vite. The HTML it serves must still contain the `<div id=\"root\">` mount point from `client/index.html`, since that div is where React attaches.",
+                order: 4,
               },
             ],
           },
@@ -151,24 +156,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Dependencies installed in root, client, and server without errors",
+                description:
+                  "Root dependencies are installed: `node_modules/` exists at the project root and contains the `concurrently` package",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description:
+                  "Client dependencies are installed: `client/node_modules/` exists and contains both `react` and `axios`",
+                is_required: true,
+                order: 2,
+              },
+              {
+                description:
+                  "Server dependencies are installed: `server/node_modules/` exists and contains both `express` and `mongoose`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Client dev server starts without errors",
+                description:
+                  "A `MONGO_URI` value is available to the server and `mongoose.connect()` against it succeeds",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Server starts without errors",
+                description:
+                  "`pnpm run dev` in `server/` starts the API and `GET /api/health` answers 200 with `ok` in the body",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  '`pnpm run dev` in `client/` serves the app on the requested port and the returned HTML contains a `<div id="root">` mount point',
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -265,17 +286,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The tagline is in `client/src/components/layout/Header.tsx` — look for the text that says `Your Tagline Here`.",
+                  "Open `client/src/components/layout/Header.tsx`. The tagline is the small muted `<span>` directly under the `TripWeaver` wordmark, and it currently reads `Your Tagline Here`. Replace the text inside that span only, and leave the surrounding `<header>` element alone.",
                 order: 1,
               },
               {
                 description:
-                  'Replace the placeholder text with exactly `Plan Together. Travel Smarter.` — the test checks for an exact string match including the period at the end.',
+                  "Set the text to exactly `Plan Together. Travel Smarter.`. The whole string is matched including the trailing period, so an extra space or a missing period will not do.",
                 order: 2,
               },
               {
                 description:
-                  "Save the file and check the browser — Vite's HMR will update the header instantly. If the test still fails, check for extra spaces or typos.",
+                  "Leave the element visible. Hiding it with `hidden`, `sr-only` or `display: none` is treated as a failure even though the words are still in the DOM, and it has to stay inside the `<header>` element that carries the `banner` role.",
                 order: 3,
               },
             ],
@@ -285,14 +306,21 @@ export const levels = [
             create: [
               {
                 description:
-                  'Header displays the exact text "Plan Together. Travel Smarter." (including the period)',
+                  'Header renders the exact text "Plan Together. Travel Smarter."',
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Tagline is visible on both desktop and mobile viewport sizes",
+                description:
+                  'The placeholder string "Your Tagline Here" is no longer rendered anywhere in the Header',
                 is_required: true,
                 order: 2,
+              },
+              {
+                description:
+                  "The tagline element is present in the DOM and visible (not hidden by CSS)",
+                is_required: true,
+                order: 3,
               },
             ],
           },
@@ -415,18 +443,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The stub is at `client/src/components/trip/StopCard.tsx` and currently returns `null`. Replace the return value with JSX that renders each field of the `stop` prop.",
+                  "Build the card in `client/src/components/trip/StopCard.tsx`, which currently returns `null`. Replace the return value with JSX, and the file's header comment lists the exact elements, attributes and test ids expected. Take the field names from the `Stop` interface in `client/src/types/stop.ts`, and reuse `Card`, `Badge` and `Button` from `../ui/` along with `formatDate` from `../../utils/formatters`.",
                 order: 1,
               },
               {
                 description:
-                  "Import `Card`, `Badge`, and `Button` from `../ui/` to avoid writing custom styles. Use `formatDate` from `../../utils/formatters` to display `stop.dayDate` as a readable string.",
+                  "The three test ids are matched literally, so they must be exactly `category-badge`, `day-label` and `vote-count`. The title, location and Vote button are matched as text and by accessible role instead, so those have to be real text content rather than attributes.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks for `data-testid=\"category-badge\"`, `data-testid=\"day-label\"`, `data-testid=\"vote-count\"`, a title in an `<h3>`, and a button with accessible name matching `/vote/i`. Add all of these or the tests will fail.",
+                  "Put the title in an `<h3>` so it exposes the `heading` role with the title as its accessible name, and make the Vote control a real `<button>` whose accessible name contains `Vote`. Wire its `onClick` straight to the `onVote` prop, since the parent owns the state.",
                 order: 3,
+              },
+              {
+                description:
+                  "The risk is test ids that never reach the DOM: if the shared `Card`, `Badge` and `Button` primitives do not forward `data-testid`, none of the three lookups will resolve even though the markup looks right.",
+                order: 4,
               },
             ],
           },
@@ -434,32 +467,37 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Stop title renders inside an <h3> element",
+                description:
+                  "The stop title is rendered inside a heading element (<h3>) with the title as its accessible name",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Stop location renders as visible text",
+                description: "The stop location is rendered as visible text",
                 is_required: true,
                 order: 2,
               },
               {
-                description: 'Category badge renders with data-testid="category-badge"',
+                description:
+                  'An element with data-testid="category-badge" showing the stop category is rendered',
                 is_required: true,
                 order: 3,
               },
               {
-                description: 'Formatted day label renders with data-testid="day-label"',
+                description:
+                  'An element with data-testid="day-label" showing the formatted stop.dayDate is rendered',
                 is_required: true,
                 order: 4,
               },
               {
-                description: 'Vote count renders with data-testid="vote-count"',
+                description:
+                  'An element with data-testid="vote-count" containing the stop voteCount value is rendered',
                 is_required: true,
                 order: 5,
               },
               {
-                description: "A Vote button is present with accessible name matching /vote/i",
+                description:
+                  "A button whose accessible name matches /vote/i is rendered, and clicking it calls the onVote prop exactly once",
                 is_required: true,
                 order: 6,
               },
@@ -579,18 +617,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "Start by implementing `filterByDay` in `client/src/utils/helpers.ts` — it is currently a stub that returns the input unchanged. Once that is correct, the rest of the wiring will make sense.",
+                  "The chip row in `client/src/components/trip/DayFilter.tsx` already renders. The only intentional bug is the empty `onClick={() => {}}`, so wire each day chip to `onClick={() => onDayChange(day)}` and the All chip to `onClick={() => onDayChange(\"all\")}`.",
                 order: 1,
               },
               {
                 description:
-                  "`TripDetail.tsx` already holds `activeDay` state and passes it down. Fix `DayFilter.tsx` — the chip buttons currently have an empty `onClick`. Wire them to call `onDayChange(day)` when clicked.",
+                  "Each day chip has to expose the raw day key as its accessible name, for example `2026-04-11`, so leave the label as the key itself rather than reformatting it into a friendlier date string. The All chip label has to contain `all` case-insensitively, which the existing `{day === \"all\" ? \"All\" : day}` label already gives you.",
                 order: 2,
               },
               {
                 description:
-                  "The test clicks a day chip and then checks that only stops matching that day are visible in the list. If all stops are still visible after clicking, the `filterByDay` function or the `onDayChange` wiring is still broken.",
+                  "Keep `aria-pressed={activeDay === day}` in place so the selected chip reports itself as pressed. That accessibility state, not a Tailwind class, is what marks the active chip.",
                 order: 3,
+              },
+              {
+                description:
+                  "DayFilter stays a controlled component and must not hold its own `activeDay` state. `TripDetail.tsx` owns that value and passes it down together with the `onDayChange` callback.",
+                order: 4,
+              },
+              {
+                description:
+                  "While you are there, `filterByDay` in `client/src/utils/helpers.ts` still returns every item. Make it return all stops for `\"all\"` and otherwise match on the stop's day key, so the chips actually filter the feed.",
+                order: 5,
+              },
+              {
+                description:
+                  "The risk is the empty click handler being left in place, which renders a filter bar that looks finished and does nothing at all.",
+                order: 6,
               },
             ],
           },
@@ -599,27 +652,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "DayFilter renders an 'All' chip plus one chip per day in the trip's date range",
+                  "DayFilter renders an 'All' chip — a button whose accessible name matches /all/i",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Clicking a day chip filters the itinerary to only that day's stops",
+                description:
+                  "DayFilter renders exactly one button per day in the days prop, plus the All chip",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Clicking the 'All' chip shows all stops again",
+                description:
+                  "Clicking a day chip calls onDayChange with that day's key (for example '2026-04-11')",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "filterByDay returns all stops unchanged when dayKey is 'all'",
+                description:
+                  "Clicking the 'All' chip calls onDayChange with 'all'",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The active chip is visually distinct from inactive chips",
+                description:
+                  'The chip whose key equals activeDay has aria-pressed="true"',
                 is_required: true,
                 order: 5,
               },
@@ -738,18 +795,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Look at `server/src/controllers/trip.controller.ts` in the `getTripStats` function. There are 4 distinct bugs in the aggregation pipeline — read the comments labeled `// L3-T1 BUG` for clues on what needs fixing.",
+                  "The pipeline in `getTripStats` in `server/src/controllers/trip.controller.ts` carries four labelled defects, marked `// L3-T1 BUG 1` through `// L3-T1 BUG 4`, each sitting directly above the offending stage. Start by moving the `$match` on `tripId` plus `dayDate` between `trip.startDate` and `trip.endDate` ahead of the `$lookup`, so the join only processes this trip's own stops.",
                 order: 1,
               },
               {
                 description:
-                  "The $lookup stage is running before $match — swap the order so $match (filter by tripId and date range) comes first. Also fix the date boundary: replace `new Date()` with `trip.startDate`.",
+                  "The lower bound of that `$match` is `new Date()`, which is a 'now' cutoff that silently drops every stop already in the past. It has to be `trip.startDate` instead.",
                 order: 2,
               },
               {
                 description:
-                  "After fixing stage order and dates, check the $group accumulator — it references `$votes` (the raw lookup array) instead of the stop's `$voteCount` field. Also add `$sort: { voteCount: -1 }` and `$limit: topN` at the end.",
+                  "The vote total has to be accumulated as `voteCount: { $sum: \"$voteCount\" }` rather than `$size: \"$votes\"`, since a joined array's length is not the number of votes on the stop. Then append `{ $sort: { voteCount: -1 } }` and `{ $limit: topN }` after the `$project` stage so the ranking is ordered and bounded.",
                 order: 3,
+              },
+              {
+                description:
+                  "Keep `_id: 0` in the projection and map `_id` to `stopId`. That is what stops the raw joined `votes` array from leaking into the response, and a `votes` key anywhere in `topStops` is treated as a failure.",
+                order: 4,
+              },
+              {
+                description:
+                  "The separate `Expense.aggregate()` that sums `totalSpent` is already correct, so a `totalSpent` of 0 means the trip is not being found or filtered, not that the sum is wrong.",
+                order: 5,
               },
             ],
           },
@@ -757,32 +824,37 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Stats only includes stops within the trip's startDate–endDate range",
+                description:
+                  "GET /api/trips/:tripId/stats responds 200 with success: true for an authenticated request",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "topStops are sorted by voteCount descending",
+                description:
+                  "data.topStops is ordered by voteCount descending, and ?topN=3 returns exactly 3 entries",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "topStops are capped at topN entries (default 5)",
+                description: "?topN=2 returns exactly 2 entries — the cap is applied",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Each entry in topStops has fields: stopId, title, voteCount, dayDate",
+                description:
+                  "No entry in data.topStops has a 'votes' property (the raw lookup array is not exposed)",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Response includes totalSpent summed from Expense documents",
+                description:
+                  "data.totalSpent equals the sum of the trip's expense amounts (150 for a trip with expenses of 100 and 50)",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Response does NOT include a raw votes lookup array",
+                description:
+                  "The same request without a bearer token responds 401",
                 is_required: true,
                 order: 6,
               },
@@ -886,18 +958,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "The `validateRequest` middleware already exists in `server/src/middleware/validateRequest.ts`. Create a `statsQuerySchema` with Zod in the validators file and wire it to the route.",
+                  "`statsQuerySchema` already exists in `server/src/validators/trip.schema.ts`, with `topN` an optional string transformed to a number and piped through `.int().min(1).max(25)` defaulting to 5, so it only needs wiring.",
                 order: 1,
               },
               {
                 description:
-                  "The controller currently uses `res.send(data)` with no status code and no `{ success, data }` envelope. Fix it to use `res.status(200).json({ success: true, data })` and wrap the whole function body in try/catch with `next(err)`.",
+                  "In `server/src/routes/trip.routes.ts`, insert `validateRequest({ query: statsQuerySchema })` between `requireAuth` and `getTripStats` on the `/:tripId/stats` route.",
                 order: 2,
               },
               {
                 description:
-                  "For `?topN=999`, the Zod schema should fail validation because 999 > 25. For `?topN=abc`, it should fail because Number('abc') is NaN which fails the `.int()` check. Test both cases after wiring up the schema.",
+                  "`validateRequest` in `server/src/middleware/validateRequest.ts` already answers 400 with `{ success: false, error, issues }` on a Zod failure, so `topN=0` (below the minimum), `topN=999` (above the maximum) and `topN=abc` (not an integer) are all rejected before the controller ever runs.",
                 order: 3,
+              },
+              {
+                description:
+                  "In `getTripStats`, replace `res.send(data)` with `res.status(200).json({ success: true, data })` and type the parameters as `Request` and `Response` instead of `any` so the validated query stays typed.",
+                order: 4,
+              },
+              {
+                description:
+                  "Wrap the aggregation work in `try/catch` and forward failures with `next(err)`. A bad `tripId` makes Mongoose throw a CastError, and the global `errorHandler` has to turn that into a 400 or a 404 rather than an unhandled rejection.",
+                order: 5,
+              },
+              {
+                description:
+                  "Once the schema is wired, `req.query.topN` is already a number, so drop the manual `Number(req.query.topN ?? 5)` coercion and let the default of 5 come from the schema in one place.",
+                order: 6,
               },
             ],
           },
@@ -905,34 +992,36 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "GET /api/trips/:tripId/stats returns 200 with { success: true, data: { topStops, totalSpent } }",
+                description: "GET /api/trips/:tripId/stats?topN=0 responds 400",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "?topN=3 returns at most 3 entries",
+                description:
+                  "?topN=999 responds 400 (above the allowed maximum)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?topN=999 returns 400 with success: false",
+                description: "?topN=abc responds 400 (not a valid integer)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "?topN=0 returns 400",
+                description:
+                  "A successful request responds 200 with a body containing both success: true and a data property",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "?topN=abc returns 400",
+                description:
+                  "data.topStops is an array and data.totalSpent is a number",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Thrown errors are forwarded to next(err) and handled by the global error handler",
+                  "An unknown tripId responds 400 or 404 — never an unhandled 500 crash",
                 is_required: true,
                 order: 6,
               },
@@ -1068,18 +1157,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller stub in `stop.controller.ts` returns 501 for vote/unvote. Implement it: use `Vote.findOne({ stopId, userId })` to check for an existing vote, then create or skip accordingly, and use `$inc` to adjust the voteCount.",
+                  "`vote` and `unvote` in `server/src/controllers/stop.controller.ts` currently raise a 501. Voting has to be scoped to the authenticated user, so the id always comes from the token (`req.user!.userId`) and never from the request body.",
                 order: 1,
               },
               {
                 description:
-                  "The client service `voteStop` in `stop.service.ts` throws an error instead of calling the API. Implement it using the `api` axios instance with `POST /trips/:tripId/stops/:stopId/vote`.",
+                  "Look for `Vote.findOne({ stopId, userId })` first. If one already exists, return 200 without touching the counter, otherwise `Vote.create(...)` and then `Stop.findByIdAndUpdate(stopId, { $inc: { voteCount: 1 } })`.",
                 order: 2,
               },
               {
                 description:
-                  "The StopCard Vote button is a no-op. Wire it to call `voteStop(tripId, stopId)` and update local state optimistically, reverting on error.",
+                  "Make `unvote` delete the Vote document and only then run `$inc: { voteCount: -1 }`, so a DELETE against a stop that was never voted cannot push the count below zero.",
                 order: 3,
+              },
+              {
+                description:
+                  "Both routes already sit behind `requireAuth` in `server/src/routes/stop.routes.ts`, so the 401 behaviour is handled by the existing middleware. Do not add a second auth check inside the controller.",
+                order: 4,
+              },
+              {
+                description:
+                  "On the client, `voteStop` and `unvoteStop` in `client/src/services/stop.service.ts` just throw. Implement them with the shared `api` axios instance against `POST` and `DELETE /trips/:tripId/stops/:stopId/vote` so the optimistic update has a real call to make.",
+                order: 5,
+              },
+              {
+                description:
+                  "`StopCard` only has to hand the click up through its `onVote` prop. The count itself lives in the parent's state, so keep the card presentational and update the displayed `voteCount` in `TripDetail`.",
+                order: 6,
               },
             ],
           },
@@ -1087,40 +1191,58 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "First vote returns 2xx and increments stop voteCount by 1",
+                description:
+                  "POST /api/trips/:tripId/stops/:stopId/vote responds 200 and the stop's voteCount becomes 1",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Duplicate vote by same user does not increment voteCount again",
+                description:
+                  "A second vote request from the same user leaves voteCount at 1 (idempotent — no double count)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Vote by a different user increments voteCount by 1 more",
+                description:
+                  "A vote from a second, different user brings voteCount to 2",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "DELETE vote removes the Vote doc and decrements voteCount",
+                description:
+                  "DELETE /api/trips/:tripId/stops/:stopId/vote removes that user's vote and brings voteCount back to 0",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Unvoting on a stop never-voted does not produce a negative count",
+                description:
+                  "A DELETE vote against a stop with no votes leaves voteCount at 0 or higher — never negative",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Unauthenticated request returns 401",
+                description:
+                  "POST .../vote without a bearer token responds 401",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "StopCard vote count updates optimistically without waiting for server response",
+                  'Clicking the StopCard Vote button calls the onVote prop exactly once, and the data-testid="vote-count" element then shows the updated count',
                 is_required: true,
                 order: 7,
+              },
+              {
+                description:
+                  'StopCard renders the data-testid="vote-count" element whenever a stop is rendered, including when no vote handler is supplied',
+                is_required: true,
+                order: 8,
+              },
+              {
+                description:
+                  "The Vote button is visible and not disabled",
+                is_required: true,
+                order: 9,
               },
             ],
           },
@@ -1233,18 +1355,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "The stub at `expense.controller.ts → createExpense` returns hardcoded `{ ok: true }`. Replace it: load the trip, validate that every userId in `splitBetween` is in `[trip.ownerId, ...trip.collaboratorIds]`, then create the Expense document.",
+                  "`createExpense` currently answers with a hardcoded `{ ok: true }`, so nothing real is stored. A new expense has to leave the trip's `totalSpent` and the per-member balances consistent, and the payer has to be whoever is actually logged in. The schema stores the payer in `paidById`, so default it to `req.user!.userId` when the body omits it.",
                 order: 1,
               },
               {
                 description:
-                  "After creating the Expense, use `Trip.findByIdAndUpdate(tripId, { $inc: { totalSpent: amount } })` to keep the cached total in sync.",
+                  "Only trip members can be in the split. Build the member set from `[trip.ownerId, ...trip.collaboratorIds]` and answer 400 if any id in `splitBetween` is missing from it.",
                 order: 2,
               },
               {
                 description:
-                  "Build the balances array by iterating over all trip members. For each member: `net = (member === paidBy ? amount : 0) - computeShare(amount, splitBetween.length)`. Return `{ success: true, data: { expense, balances } }`.",
+                  "Add the amount to the trip with `Trip.findByIdAndUpdate(tripId, { $inc: { totalSpent: amount } })` rather than a read-modify-write, or two expenses recorded at once leave the total short.",
                 order: 3,
+              },
+              {
+                description:
+                  "The response is 201 with `{ success: true, data: { ...expense, balances } }`, and the created expense has to be readable on `data` itself with `balances` alongside it rather than one level deeper. The route already runs `validateRequest({ body: createExpenseSchema })` behind `requireAuth`, so the 401 and the body shape are handled.",
+                order: 4,
+              },
+              {
+                description:
+                  "The risk is rounding. Each share is `Math.round(amount * 100 / splitBetween.length) / 100`, and the payer's net is the full amount minus their own share, which is what makes the nets sum to zero. Credit the payer the whole amount without subtracting their share and the total comes out wrong.",
+                order: 5,
               },
             ],
           },
@@ -1253,35 +1385,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "Returns 201 with { success: true, data: { expense, balances } }",
+                  "POST /api/trips/:tripId/expenses responds 201 with success: true and a data object holding the created expense (it carries an _id)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Expense.amount equals body.amount and is persisted to the database",
+                description:
+                  "Creating an expense increases the trip's totalSpent by exactly the expense amount",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Trip.totalSpent increases by exactly the expense amount",
+                description:
+                  "When the response data includes balances, the net values sum to 0 within a cent-level tolerance (0.02)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A user not in [ownerId, ...collaboratorIds] cannot appear in splitBetween — returns 400",
+                  "A splitBetween array containing a user who is neither the trip owner nor a collaborator responds 400",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The sum of all net balances equals 0 (or within 1 cent due to rounding)",
+                description:
+                  "POST /api/trips/:tripId/expenses without a bearer token responds 401",
                 is_required: true,
                 order: 5,
-              },
-              {
-                description: "Unauthenticated request returns 401",
-                is_required: true,
-                order: 6,
               },
             ],
           },
@@ -1409,18 +1539,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `server/src/models/Vote.ts` and look for the comment labeled `// L5-T1 BUG`. Add `VoteSchema.index({ userId: 1, stopId: 1 }, { unique: true })` below the schema definition.",
+                  "One user gets one vote per stop, and the database has to be what guarantees it. Two requests that both look for an existing vote, both find nothing, and both insert is the case an application check cannot handle.",
                 order: 1,
               },
               {
                 description:
-                  "After adding the index, update the vote controller to wrap `Vote.create()` in a try/catch that catches `err.code === 11000` and returns 200 without incrementing the counter again.",
+                  "A uniqueness rule over the user and stop pair is the fix, and it has to reach the actual collection rather than sitting only in the model definition. Until it does, the constraint is decorative.",
                 order: 2,
               },
               {
                 description:
-                  "Run `Vote.syncIndexes()` in the controller or test setup to ensure MongoDB applies the new index to the existing collection. Without this, the index only applies to new collections.",
+                  "Counting every request instead of counting new votes inflates `voteCount` on every retry, and a user pressing twice is a retry. A rejected duplicate still means the vote is there, so it has to succeed without moving the counter again.",
                 order: 3,
+              },
+              {
+                description:
+                  "The existing lookup can stay as a fast path, but it is the constraint that makes the write safe. The second insert is rejected by the database, not by your code.",
+                order: 4,
+              },
+              {
+                description:
+                  "Votes recorded before the fix have to be cleaned up first, keeping the oldest per pair and recomputing each count from what is left, or the constraint cannot be added at all.",
+                order: 5,
               },
             ],
           },
@@ -1429,32 +1569,27 @@ export const levels = [
             create: [
               {
                 description:
-                  "Vote schema has a compound unique index on { userId: 1, stopId: 1 } with unique: true",
+                  "The Vote collection has a unique index that covers both userId and stopId",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "100 concurrent vote requests from the same user produce exactly 1 Vote document",
+                  "100 concurrent vote requests from the same user leave exactly 1 Vote document for that userId/stopId pair",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "After the concurrency race, stop.voteCount === 1 (no counter drift)",
+                  "After those 100 concurrent same-user votes, the stop's voteCount is 1 — no counter drift",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "The duplicate-key error (E11000) is caught and treated as an idempotent success — not a 500 error",
+                  "Five different users voting on the same stop produce a voteCount of 5",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description: "Existing vote and unvote tests from Level 4 still pass",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -1567,18 +1702,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Find where the timeline controller groups stops by date. It uses `stop.dayDate.toISOString().slice(0,10)` (marked `// L5-T2 BUG`) — replace this with a call to a timezone-aware helper that reads `trip.destinationTimezone`.",
+                  "Stops have to be grouped by the calendar day at the destination, not by UTC. A stop at 15:30Z is 00:30 the next day in Tokyo, so grouping on the UTC date files it a day early, which is the bug users reported.",
                 order: 1,
               },
               {
                 description:
-                  "Implement a `localDateKeyForTrip(date: Date, tz: string): string` helper in `server/src/utils/tz.ts` using `new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)`. The `en-CA` locale produces `YYYY-MM-DD` output directly.",
+                  "The timezone belongs to the trip rather than to whoever is asking, so a Manila owner and a Tokyo collaborator hitting the same trip have to see the same grouping. Default to `\"UTC\"` when the trip has none, or a trip with no timezone set files every stop wrongly.",
                 order: 2,
               },
               {
                 description:
-                  "The test seeds a Tokyo trip with two stops at 15:30Z on consecutive UTC dates. After the fix, both stops should group to their correct Tokyo local days (Apr 13 and Apr 14). The test also verifies that a Manila user signing in does NOT change the grouping — the timezone comes from the trip, not the user.",
+                  "Each group is emitted as `{ date, stops }`, and the grouping key stays under the property name `date` as a `YYYY-MM-DD` string because the response is built on it. A UTC trip with a single stop at `2026-04-12T09:00:00Z` still has to produce the group `2026-04-12`.",
                 order: 3,
+              },
+              {
+                description:
+                  "For a trip with `destinationTimezone` `Asia/Tokyo`, two stops at 15:30Z on consecutive UTC dates group under `2026-04-13` and `2026-04-14`, and the raw UTC date `2026-04-12` must not appear at all.",
+                order: 4,
+              },
+              {
+                description:
+                  "A timezone helper for this already exists and formats straight to `YYYY-MM-DD`. Import it rather than hand-rolling offset maths, which is where the off-by-one day comes back.",
+                order: 5,
               },
             ],
           },
@@ -1587,33 +1732,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "Timeline groups stops by the trip's destinationTimezone local calendar day (not UTC date)",
+                  "GET /api/trips/:tripId/timeline responds 200 with data as an array of day groups shaped { date, stops }, where date is a YYYY-MM-DD string",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Two stops at 15:30Z on consecutive UTC dates group to consecutive Tokyo local days (Apr 13 and Apr 14) for a Tokyo trip",
+                  'For a trip with destinationTimezone "Asia/Tokyo", two stops at 15:30Z on consecutive UTC dates group under the Tokyo local dates "2026-04-13" and "2026-04-14" — the raw UTC date "2026-04-12" must not appear',
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Changing the requesting user's timezone does NOT affect the timeline grouping",
+                  'The stop scheduled at 2026-04-12T15:30:00Z is listed in the group whose date is "2026-04-13"',
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Implementation works with Intl.DateTimeFormat or any IANA-aware date library",
+                  "Requesting the same trip as a Tokyo-timezone user yields exactly the same group dates as its Manila-timezone owner",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Falls back to 'UTC' grouping when trip.destinationTimezone is missing",
+                  'A trip with destinationTimezone "UTC" still groups a stop at 2026-04-12T09:00:00Z under the date "2026-04-12"',
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "Requesting the timeline without a bearer token responds 401",
+                is_required: true,
+                order: 6,
               },
             ],
           },

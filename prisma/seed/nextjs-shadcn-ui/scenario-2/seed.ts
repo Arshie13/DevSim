@@ -87,15 +87,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Install dependencies using pnpm install at the project root",
+                description: "Run `pnpm install` at the project root so `node_modules` contains `next` and `react`",
                 order: 1,
               },
               {
-                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
+                description: "Add the shadcn Alert component with `pnpm dlx shadcn@latest add alert` to create `src/components/ui/alert.tsx`",
                 order: 2,
               },
               {
-                description: "Start the development server and verify it loads",
+                description: "Run `pnpm dev` and confirm the terminal logs `ready` or `Local:` within 30 seconds",
                 order: 3,
               },
             ],
@@ -104,17 +104,17 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on pnpm run dev",
+                description: "`node_modules` exists at the project root, including the `next` and `react` packages",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Required shadcn/components/ui/alert component is installed",
+                description: "Dev server starts via `pnpm dev` and logs `ready` or `Local:` within 30 seconds",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "All project dependencies are installed",
+                description: "`src/components/ui/alert.tsx` exists and defines `Alert`, `AlertTitle`, and `AlertDescription`",
                 is_required: true,
                 order: 3,
               },
@@ -198,7 +198,7 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Change the agent login button label from 'Sign In' to 'Login' in `src/app/agent/login/page.tsx`",
+                description: "In `src/app/agent/login/page.tsx`, replace the 'Sign In' label with 'Login' in JSX text. Text inside `//` and `/* */` comments is ignored, so a leftover 'Sign In' inside a comment is harmless",
                 order: 1,
               },
             ],
@@ -207,7 +207,7 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Agent login button reads 'Login'",
+                description: "Agent login page at `src/app/agent/login/page.tsx` contains 'Login' and does not contain 'Sign In' (with comments stripped)",
                 is_required: true,
                 order: 1,
               },
@@ -319,16 +319,24 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Update `getStatusBadge` in `src/app/agent/page.tsx` to map each status to a *-100 background and *-800 text.",
+                description: "Create `src/lib/intentMatcher.ts` exporting `matchIntent` and `getAssistantReply`",
                 order: 1,
               },
               {
-                description: "Map: active → green-100/green-800, waiting → yellow-100/yellow-800, resolved → gray-100/gray-800.",
+                description: "Define keyword lists per intent (permits, taxes, trash, etc.) and score an input by how many of them it contains",
                 order: 2,
               },
               {
-                description: "Verify each status renders distinctly on the agent dashboard.",
+                description: "Return `{ intent: 'fallback', score: 0 }` when no keywords match",
                 order: 3,
+              },
+              {
+                description: "`getAssistantReply` returns intent-specific copy and mentions a human agent on the fallback path",
+                order: 4,
+              },
+              {
+                description: "Wire `getAssistantReply` into `src/app/support/page.tsx` to power the chat flow",
+                order: 5,
               },
             ],
           },
@@ -336,19 +344,49 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`active` badge uses bg-green-100 and text-green-800",
+                description: "`src/lib/intentMatcher.ts` exists",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`waiting` badge uses bg-yellow-100 and text-yellow-800",
+                description: "Exports `matchIntent` and `getAssistantReply` as functions",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`resolved` badge uses bg-gray-100 and text-gray-800",
+                description: "`matchIntent('How do I apply for a building permit license?')` returns `{ intent: 'permits' }` with `score > 0`",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "`matchIntent('I need to pay my property tax bill')` returns `{ intent: 'taxes' }`",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "`matchIntent` returns the intent with the most keyword hits (e.g. 'trash' wins over 'permits' when 3 trash keywords match vs 1 permit keyword)",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`matchIntent('zxcvbnm qwerty asdfgh')` returns `{ intent: 'fallback', score: 0 }`",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "`getAssistantReply('Where do I get a parking permit?')` returns a non-empty string",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description: "`getAssistantReply('zxcvbnm qwerty asdfgh')` returns a reply matching `/agent/i`",
+                is_required: true,
+                order: 8,
+              },
+              {
+                description: "`src/app/support/page.tsx` imports from `@/lib/intentMatcher` and uses `getAssistantReply`",
+                is_required: true,
+                order: 9,
               },
             ],
           },
@@ -430,15 +468,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/components/MessageBubble.tsx` accepting a `message` prop and a `viewer` prop ('customer' | 'agent').",
+                description: "Create `src/lib/quickReplies.ts` exporting a non-empty `quickReplies` array of `{ id, label, text }` objects",
                 order: 1,
               },
               {
-                description: "Replace the inline message JSX in `src/app/support/page.tsx` and `src/app/agent/page.tsx` with the new component.",
+                description: "Render a button per snippet on `src/app/agent/page.tsx` using the snippet's `label` as the button's accessible name",
                 order: 2,
               },
               {
-                description: "Replace the three inline `.filter()` count derivations on the agent page with a single `useMemo` returning `{ active, waiting, resolved }`.",
+                description: "Clicking a snippet appends its `text` to the message input whose placeholder reads 'Type your response', without clearing text already typed",
                 order: 3,
               },
             ],
@@ -447,19 +485,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/components/MessageBubble.tsx` exists and is used by both support and agent pages",
+                description: "`src/lib/quickReplies.ts` exists",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`MessageBubble` aligns correctly based on the `viewer` prop",
+                description: "Exports a non-empty `quickReplies` array where each snippet has string `id`, string `label`, and non-empty string `text`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Agent page derives active/waiting/resolved counts via a single `useMemo`",
+                description: "Agent dashboard (`src/app/agent/page.tsx`) renders a button whose accessible name exactly matches each snippet's `label`",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "Clicking a snippet button appends that snippet's `text` to the message input matched by placeholder `/type your response/i`",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "Inserting a snippet preserves text already typed in the message input",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -572,19 +620,19 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Add a search input above the conversation list in `src/app/agent/page.tsx` with placeholder 'Search conversations...'.",
+                description: "A priority module exports `getPriorityScore` and `getPriorityLevel`",
                 order: 1,
               },
               {
-                description: "Filter by `customer.fullName` OR `customer.complaint` (both case-insensitive).",
+                description: "Score by status (resolved=0, active=10, waiting=40) plus 10 per unreadCount",
                 order: 2,
               },
               {
-                description: "Add a status filter row (All / Active / Waiting / Resolved) that combines with the search.",
+                description: "Map scores to tiers: 0='low', 1-39='normal', 40-49='high', >=50='urgent'",
                 order: 3,
               },
               {
-                description: "Render 'No conversations found' inside the conversations card when no rows match.",
+                description: "The agent dashboard sorts conversations by score, highest first",
                 order: 4,
               },
             ],
@@ -593,19 +641,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Search input filters conversations in real-time by name or complaint text",
+                description: "`src/lib/priority.ts` exists",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Status filter chips (All / Active / Waiting / Resolved) combine with the search",
+                description: "Exports `getPriorityScore` and `getPriorityLevel` as functions",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "'No conversations found' renders when filters yield zero results",
+                description: "`getPriorityScore` returns `0` for a conversation with `status: 'resolved'` (even with unreadCount > 0)",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "`getPriorityScore` scores 'waiting' higher than 'active' (all else equal)",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "`getPriorityScore` gives a higher score to a conversation with more unread messages",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`getPriorityLevel` maps: waiting+3 unread → 'urgent', waiting → 'high', active → 'normal', resolved → 'low'",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "`src/app/agent/page.tsx` imports from `@/lib/priority`",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description: "Agent dashboard renders conversations sorted by priority, highest first (Maria/waiting, John/active+2 unread, Robert/resolved)",
+                is_required: true,
+                order: 8,
               },
             ],
           },
@@ -652,19 +725,19 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/app/support/history/page.tsx` reading from `localStorage` key `customerComplaints`.",
+                description: "A service-level module exports `hasAgentReplied` and `getServiceState`",
                 order: 1,
               },
               {
-                description: "Display Submitted / Name / City + ZIP / Complaint columns; show 'No complaints submitted yet' when empty.",
+                description: "`hasAgentReplied` checks whether any message in `conversation.messages` has `role === 'agent'`",
                 order: 2,
               },
               {
-                description: "On submitting the support form, push a new entry to `customerComplaints` with `submittedAt = new Date().toISOString()`.",
+                description: "`getServiceState` returns 'resolved' for resolved status, 'awaiting-first-reply' when no agent has replied, and 'in-progress' when an agent has replied",
                 order: 3,
               },
               {
-                description: "Add a 'View History' link on `src/app/support/page.tsx` pointing to `/support/history`.",
+                description: "Conversation rows on the agent dashboard that lack an agent reply show an 'awaiting first reply' badge",
                 order: 4,
               },
             ],
@@ -673,24 +746,49 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "/support/history reads complaints from localStorage key `customerComplaints`",
+                description: "`src/lib/sla.ts` exists",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Empty state shows 'No complaints submitted yet'",
+                description: "Exports `hasAgentReplied` and `getServiceState` as functions",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Submitting the support form persists a new complaint entry with `submittedAt`",
+                description: "`hasAgentReplied` returns `false` when no message has `role: 'agent'`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Support page exposes a 'View History' link to `/support/history`",
+                description: "`hasAgentReplied` returns `true` when at least one message has `role: 'agent'`",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "`getServiceState({ status: 'resolved', messages })` returns `'resolved'`",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`getServiceState({ status: 'active', messages: [system, customer] })` returns `'awaiting-first-reply'`",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "`getServiceState({ status: 'waiting', messages: [system, customer, agent] })` returns `'in-progress'`",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description: "Agent dashboard badges conversations with no agent reply showing 'awaiting first reply'",
+                is_required: true,
+                order: 8,
+              },
+              {
+                description: "At least two conversations are badged with 'awaiting first reply' on the dashboard",
+                is_required: true,
+                order: 9,
               },
             ],
           },
@@ -805,19 +903,19 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Validate `fullName` (>= 2 chars), `zipCode` (/^\\d{5}$/), and `complaint` (>= 10 chars) in `src/app/support/page.tsx`.",
+                description: "Wait time estimates belong in one place, exposing `estimateWaitMinutes` and `formatWait`",
                 order: 1,
               },
               {
-                description: "Show an inline error under each invalid field (e.g. 'ZIP code must be 5 digits').",
+                description: "`estimateWaitMinutes(position, avgHandleMinutes)` returns `position * avgHandleMinutes`, clamped to >= 0",
                 order: 2,
               },
               {
-                description: "Disable the Submit Request button while any field is invalid.",
+                description: "`formatWait(minutes)` returns 'less than a minute' for 0, 'about N minutes' for 1-59, 'over an hour' for >= 60, and '' for NaN or Infinity",
                 order: 3,
               },
               {
-                description: "Verify the chat input on /support and /agent cannot send whitespace-only messages.",
+                description: "The support page gains a 'Talk to Agent' button that reveals a form, and submitting that form shows an 'Estimated wait' message",
                 order: 4,
               },
             ],
@@ -826,19 +924,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Submit Request is disabled until fullName (>= 2), zipCode (5 digits), and complaint (>= 10) are all valid",
+                description: "`src/lib/queue.ts` exists",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Inline error messages appear under each failing field",
+                description: "Exports `estimateWaitMinutes` and `formatWait` as functions",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Whitespace-only chat messages cannot be sent on either page",
+                description: "`estimateWaitMinutes(3)` returns `12` (default 4-minute average handle time)",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "`estimateWaitMinutes(2, 10)` returns `20` honouring a custom average handle time of 10 minutes",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "`estimateWaitMinutes(-3)` returns `0` (never negative)",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`formatWait(0)` matches `/less than a minute/i`, `formatWait(12)` matches `/about 12 minutes/i`, `formatWait(75)` matches `/over an hour/i`",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "`formatWait(NaN)` and `formatWait(Infinity)` return an empty string",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description: "Submitting the 'Talk to Agent' form on `src/app/support/page.tsx` renders an 'Estimated wait' message matching a valid wait description",
+                is_required: true,
+                order: 8,
               },
             ],
           },
@@ -931,15 +1054,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/hooks/useLocalStorage.ts` exporting `useLocalStorage<T>(key, initialValue): [T, (v: T) => void]` that hydrates on mount and persists on set.",
+                description: "Keyboard navigation across the agent dashboard: a `keydown` listener on `document.body` moves the selected conversation index with ArrowDown for the next one and ArrowUp for the previous one",
                 order: 1,
               },
               {
-                description: "Persist `agentConversations` and `agentStatus` in `src/app/agent/page.tsx`.",
+                description: "In the message input, Ctrl+Enter sends the current message and clears the input",
                 order: 2,
               },
               {
-                description: "Persist `supportMessages` in `src/app/support/page.tsx`.",
+                description: "Escape in the message input clears it without sending",
                 order: 3,
               },
             ],
@@ -948,24 +1071,19 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/hooks/useLocalStorage.ts` exists and matches the documented signature",
+                description: "ArrowDown and ArrowUp keys move the selected conversation in the agent dashboard (selection changes, then returns on reverse)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Agent conversations and agent status are persisted under `agentConversations` / `agentStatus`",
+                description: "Ctrl+Enter in the message input (placeholder `/type your response/i`) sends the current message and clears the input",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Support chat messages are persisted under `supportMessages`",
+                description: "Escape clears the message input without sending",
                 is_required: true,
                 order: 3,
-              },
-              {
-                description: "All three values survive a page reload",
-                is_required: true,
-                order: 4,
               },
             ],
           },
@@ -1030,15 +1148,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "When the agent clicks a conversation in `src/app/agent/page.tsx`, set its `unreadCount` to 0 immediately.",
+                description: "An offline agent cannot reply. The message input and send button are disabled and a notice reading 'Set your status to online to reply' explains why",
                 order: 1,
               },
               {
-                description: "Update both `conversations` state and `selectedConversation` state so they stay in sync.",
+                description: "Opening a conversation clears its unread badge to zero. If the badge stays red, the unread count was only cleared on the selected copy",
                 order: 2,
               },
               {
-                description: "Verify the header active/waiting/resolved counts (from Level 2's useMemo) still update correctly when a conversation is resolved.",
+                description: "Other conversations keep their own unread counts. Resetting the whole list when one is opened hides real unread work",
                 order: 3,
               },
             ],
@@ -1047,19 +1165,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Clicking a conversation clears its unread count to 0",
+                description: "Message input and send button are enabled when the agent status is online",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Conversation list and selectedConversation stay in sync after click and after status change",
+                description: "Setting agent status to 'offline' disables the message input and send button",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Header active/waiting/resolved counts update correctly when a conversation is resolved",
+                description: "A notice matching `/set your status to online to reply/i` appears when the agent is offline",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "Returning agent status to 'online' re-enables the input and hides the offline notice",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "An unopened conversation displays its seeded unread count badge (e.g., '2' for John Smith)",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "Clicking a conversation clears its unread count badge to 0",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "Opening one conversation does not change the unread count badge of other conversations",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1146,19 +1284,19 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/lib/dateUtils.ts` with `formatRelativeTime`, `isStale`, and `formatTimestamp`.",
+                description: "A conversation can be rendered as a readable transcript string that carries the customer name and each message's role and content",
                 order: 1,
               },
               {
-                description: "All three functions must return safe values for invalid input ('' for strings, false for `isStale`).",
+                description: "A conversation with no messages still produces a string. Returning nothing leaves the export blank",
                 order: 2,
               },
               {
-                description: "Replace the inline `formatTime` in `src/app/agent/page.tsx` with `formatRelativeTime` from the new module.",
+                description: "An agent can export a transcript of the current conversation from the dashboard",
                 order: 3,
               },
               {
-                description: "Update README.md with project overview, demo credentials, dev workflow, and route list.",
+                description: "The README describes the project for City Hall, gives the demo credentials `admin` / `admin123`, and lists the `/support` and `/agent` routes",
                 order: 4,
               },
             ],
@@ -1167,24 +1305,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/lib/dateUtils.ts` exports `formatRelativeTime`, `isStale`, `formatTimestamp` with the documented behavior",
+                description: "`src/lib/transcript.ts` exists",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "All three functions return safe values for invalid input",
+                description: "Exports `formatTranscript` as a function",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Agent page uses `formatRelativeTime` instead of the local `formatTime` helper",
+                description: "`formatTranscript` returns a string containing the customer name ('Jane Tester'), all message content, and the words 'customer' and 'agent'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "README documents project overview, demo credentials, dev workflow, and routes (`/`, `/support`, `/support/history`, `/agent/login`, `/agent`)",
+                description: "`formatTranscript({ customer: { fullName: 'Empty Case' }, status: 'active', messages: [] })` returns a string",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "`src/app/agent/page.tsx` imports from `@/lib/transcript`",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "Agent dashboard renders a button whose accessible name matches `/export transcript/i`",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "`README.md` exists (>400 chars) and matches `/city hall/i`, `/admin/`, `/admin123/`, `/\\/support/`, and `/\\/agent/`",
+                is_required: true,
+                order: 7,
               },
             ],
           },

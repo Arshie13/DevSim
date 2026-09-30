@@ -105,17 +105,17 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on pnpm run dev",
+                description: "A `node_modules` directory exists in the project root containing both `next` and `react`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Required shadcn/components/ui/alert component is installed",
+                description: "`pnpm dev` starts the development server and prints a line containing `ready` or `Local:` within 30 seconds without exiting with a non-zero code",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "All project dependencies are installed",
+                description: "`src/components/ui/alert.tsx` exists and its source references `Alert`, `AlertTitle` and `AlertDescription`",
                 is_required: true,
                 order: 3,
               },
@@ -208,7 +208,7 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Login button reads 'Log In'",
+                description: "`src/app/login/page.tsx` contains the text 'Log In' and no longer contains 'Sign In' anywhere outside of comments",
                 is_required: true,
                 order: 1,
               },
@@ -342,24 +342,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "A-tier badges (A, A-) use bg-green-100 and text-green-800",
+                description: "InfoTooltip renders an element with role=\"tooltip\" whose text content includes the passed label",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "B-tier badges (B+, B, B-) use bg-blue-100 and text-blue-800",
+                description: "The role=\"tooltip\" element has both opacity-0 and pointer-events-none classes by default",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "C-tier badges (C+, C, C-) use bg-yellow-100 and text-yellow-800",
+                description: "The wrapper element carries the group class and the tooltip element carries group-hover:opacity-100",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "D/F-tier badges use bg-red-100 and text-red-800",
+                description: "The standing page wraps the academic status badge with an InfoTooltip whose accessible name matches the good standing text including cumulative GPA and 3.0",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "The standing page source contains all three status-tier tooltip strings: Good Standing with cumulative GPA and 3.0, Warning with GPA 2.0 and 2.99, and Probation with GPA below 2.0 and advisor",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -458,19 +463,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/components/StatCard.tsx` exists and is used by dashboard, fees, schedule, and standing pages",
+                description: "SemesterGroup renders a button with accessible name matching the title prop and aria-expanded=\"false\" when defaultOpen is not passed",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "StatCard accepts title, value, subtitle, icon, and optional valueClassName props",
+                description: "Body content is not in the document until the title button is clicked, then appears after click",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Fees page derives all fee tallies from a single `useMemo`",
+                description: "After clicking the title button, its aria-expanded attribute becomes \"true\"",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "SemesterGroup with defaultOpen shows children immediately and the title button has aria-expanded=\"true\"",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "The grades page All Semesters tab renders accordion triggers for \"1st Semester — 2025-2026\" and \"2nd Semester — 2024-2025\"",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "In the grades page All Semesters tab the first semester trigger has aria-expanded=\"true\" and at least two semester triggers are rendered",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -604,19 +624,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Search input filters grade rows in real-time by course code or name",
+                description: "computeGPABySemester is exported from src/lib/mockData.ts and returns exactly one entry per unique (semester, academicYear) pair — two entries for the shipped mock grades",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Semester filter chips (All / 1st Semester / 2nd Semester) combine with the search input",
+                description: "Each entry reports the units total and a units-weighted gpa rounded to two decimals, so 3-unit A plus 3-unit B yields units 6 and gpa 3.5, while a lone 4-unit C yields units 4 and gpa 2.0",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "'No grades found' message renders when filters yield zero results",
+                description: "Groups are sorted chronologically: older academicYear first, and within a year 1st Semester before 2nd Semester",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "The standing page renders a heading or label whose text matches \"GPA by Semester\"",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "The standing page renders text for both the 1st Semester and 2nd Semester groups inside that card",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -690,24 +720,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "/dashboard/notes reads notes from localStorage key `studentNotes`",
+                description: "Progress rendered with value={42} and max={100} exposes role=\"progressbar\" with aria-valuenow=\"42\", aria-valuemin=\"0\" and aria-valuemax=\"100\"",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Empty state shows 'No notes yet'",
+                description: "Rendering Progress with value={30} and max={60} sets the inner fill element's inline width to 50%",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Submitting the new-note form persists a new entry with id and createdAt",
+                description: "Rendering Progress with value={250} and max={100} keeps the inner fill width at or below 100%",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Sidebar exposes a 'Notes' link to `/dashboard/notes`",
+                description: "Rendering Progress with value={-50} and max={100} keeps the inner fill width at or above 0%",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "The standing page renders at least one role=\"progressbar\" element and one of them reports aria-valuemax=\"90\"",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "The dashboard renders text matching \"Degree Progress\" and contains a role=\"progressbar\" element whose aria-valuemax is \"90\"",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -844,19 +884,24 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Log In button is disabled until both studentId (XX-XXX-XX) and password (>= 6 chars) are valid",
+                description: "The course detail page rendered with courseCode 'CS%20301' shows the course code, the course name 'Data Structures and Algorithms', the grade 'A', and the professor 'Dr. Sarah Johnson'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Inline error messages appear under each failing field",
+                description: "The course detail page rendered with an unknown courseCode shows the text 'Course not found'",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Wrong credentials show 'Invalid student ID or password' above the form",
+                description: "The not-found state still renders a link whose accessible name matches 'grades' and whose href is exactly '/dashboard/grades'",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "The grades page renders at least one link whose accessible name matches 'View Details', every such link's href starts with '/dashboard/courses/', and at least one points at the encoded 'CS%20301' route",
+                is_required: true,
+                order: 4,
               },
             ],
           },
@@ -970,24 +1015,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/hooks/useLocalStorage.ts` exists and matches the documented signature",
+                description: "Modal rendered with open exposes a role=\"dialog\" element whose aria-modal attribute is \"true\" and renders its children",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Sidebar open/closed preference is persisted under `sidebarOpen` and survives reload",
+                description: "Modal rendered with open={false} renders nothing — the container has no child element at all",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Notes page uses `useLocalStorage('studentNotes', [])` and notes survive reload",
+                description: "On step 1 of the document request flow the 'Next' button is disabled until a document type is selected, and becomes enabled once 'Transcript' is chosen",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Last successful studentId is persisted under `lastStudentId` and pre-fills the login form on next visit",
+                description: "On step 2 the 'Submit' button is disabled for an empty purpose and for 'too short' (9 characters), and enabled once the purpose reaches 10 characters (e.g. 'For my job application portfolio.')",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "Clicking 'Back' on step 2 returns to step 1, where the 'Next' button is on screen again",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "Step 3 shows 'Request submitted!', the chosen document type, the submitted purpose text, and a reference number matching 'REQ-' followed by exactly six uppercase letters or digits, and renders a 'Done' button",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "The dashboard renders a button or link whose accessible name matches 'Request Document'",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1073,24 +1133,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`computeCumulativeGPA` is exported from `src/lib/mockData.ts` and weights grade points by units",
+                description: "`computeCurrentSemesterUnits` is exported from `src/lib/mockData.ts` and returns 12 when called with the shipped `grades` array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Standing page uses computeCumulativeGPA in the standing card, GPA stat card, and GPA-status helper",
+                description: "`computeEarnedCredits` is exported from `src/lib/mockData.ts` and returns 24 when called with the shipped `grades` array",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Dashboard page 'Current GPA' stat uses computeCumulativeGPA instead of currentStanding.gpa",
+                description: "`computeEarnedCredits` ignores grades of `F`, summing 3 units of A plus 2 units of C- (and skipping the 4-unit F) to return 5",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Grades page 'Cumulative GPA' card uses computeCumulativeGPA and the duplicated `getAllTimeGPA` helper is removed",
+                description: "`src/app/dashboard/standing/page.tsx` no longer reads `currentStanding.totalUnits` or `currentStanding.earnedCredits` anywhere in its source",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "The standing page renders the text `12` and the text `24` as visible values for the units and earned-credits stats",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`src/app/dashboard/page.tsx` no longer reads `currentStanding.totalUnits` anywhere in its source",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "The dashboard renders the text `12` as the Total Units value",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1203,24 +1278,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/lib/dateUtils.ts` exports `formatDueDate`, `isOverdue`, `daysUntilDue` with the documented behavior",
+                description: "The first focusable element (a, button or [tabindex]) rendered by the dashboard layout is an a whose href is #main-content, whose text matches 'Skip to main content', and whose classes include both sr-only and focus:not-sr-only",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "All three functions return safe values for invalid input",
+                description: "The dashboard layout renders a main element with id=\"main-content\" and tabindex=\"-1\"",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Fees page uses `formatDueDate` instead of the local `formatDate` helper; pending and overdue rows read 'Due in N days' / 'Overdue by N days'",
+                description: "The dashboard layout exposes a navigation landmark whose accessible name matches 'Primary'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "README documents project overview, demo credentials, dev workflow, and routes (`/`, `/login`, `/dashboard`, `/dashboard/grades`, `/dashboard/schedule`, `/dashboard/fees`, `/dashboard/standing`, `/dashboard/notes`)",
+                description: "Exactly one element in the dashboard layout carries aria-current=\"page\", and it is the sidebar item for the current route",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "The dashboard layout renders a button whose accessible name matches 'Toggle sidebar'",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "The dashboard layout renders a button whose accessible name matches 'Sign out'",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "Inside the dashboard layout's header there is an h1 with the sr-only class whose text matches 'Riverside University'",
+                is_required: true,
+                order: 7,
               },
             ],
           },

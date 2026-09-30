@@ -87,15 +87,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Install dependencies using pnpm install",
+                description: "Run `pnpm install` in the project root so `node_modules/`, `node_modules/next` and `node_modules/react` all exist",
                 order: 1,
               },
               {
-                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
+                description: "Run `pnpm dlx shadcn@latest add alert` to write `src/components/ui/alert.tsx`; keep the shadcn file that exports `Alert`, `AlertTitle` and `AlertDescription`",
                 order: 2,
               },
               {
-                description: "Start the development server and verify it loads",
+                description: "Run `pnpm dev` in the project root and leave it running until the output contains `ready` or `Local:` within 30 seconds",
                 order: 3,
               },
             ],
@@ -104,17 +104,17 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on pnpm run dev",
+                description: "A `node_modules` directory exists in the project root containing both `next` and `react`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Required shadcn/components/ui/alert component is installed",
+                description: "`pnpm dev` starts the development server and prints a line containing `ready` or `Local:` within 30 seconds, exiting without a non-zero code",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "All project dependencies are installed",
+                description: "`src/components/ui/alert.tsx` exists and its source references `Alert`, `AlertTitle` and `AlertDescription`",
                 is_required: true,
                 order: 3,
               },
@@ -210,8 +210,12 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Change the signup button label from 'Sign Up' to 'Register' in `src/app/signup/page.tsx`",
+                description: "Open `src/app/signup/page.tsx` and locate the button whose visible label is 'Sign Up'",
                 order: 1,
+              },
+              {
+                description: "Change that button label from 'Sign Up' to 'Register', then remove every other occurrence of the string 'Sign Up' in the file that is not inside a comment",
+                order: 2,
               },
             ],
           },
@@ -219,7 +223,7 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Signup button reads 'Register'",
+                description: "`src/app/signup/page.tsx` contains the text 'Register' and no longer contains 'Sign Up' anywhere outside of comments",
                 is_required: true,
                 order: 1,
               },
@@ -331,15 +335,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Ensure 'available' status shows green color",
+                description: "The dashboard is `src/app/dashboard/page.tsx`, and it needs data to show. Store a logged-in librarian record in localStorage under the `librarian` key so the page renders",
                 order: 1,
               },
               {
-                description: "Ensure 'borrowed' status shows blue color",
+                description: "Each book's status renders as a badge inside its table cell (`<td>`)",
                 order: 2,
               },
               {
-                description: "Ensure 'overdue' status shows red color",
+                description: "Each status carries its own color classes: `bg-green-100 text-green-800` for available, `bg-blue-100 text-blue-800` for borrowed, `bg-red-100 text-red-800` for overdue",
                 order: 3,
               },
             ],
@@ -348,14 +352,19 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Each status has a distinct color",
+                description: "The dashboard shows at least one status badge containing 'available' inside a table cell, and every such badge carries the classes `bg-green-100` and `text-green-800`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Colors match the status type correctly",
+                description: "The dashboard shows at least one status badge containing 'borrowed' inside a table cell, and every such badge carries the classes `bg-blue-100` and `text-blue-800`",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "The dashboard shows at least one status badge containing 'overdue' inside a table cell, and every such badge carries the classes `bg-red-100` and `text-red-800`",
+                is_required: true,
+                order: 3,
               },
             ],
           },
@@ -448,16 +457,20 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create a single useMemo hook for book filtering",
+                description: "Extract the repeated table row into a `BookRow` component in `src/components/BookRow.tsx` that takes a single `book` prop",
                 order: 1,
               },
               {
-                description: "Return an object with availableBooks, borrowedBooks, and overdueBooks",
+                description: "`BookRow` renders a `<tr>` with the book's `title`, `author`, `isbn` and status as visible text",
                 order: 2,
               },
               {
-                description: "Create and use a BookRow component",
+                description: "Use it from `src/app/dashboard/page.tsx` in place of the inline rows, passing `key={book.id}` and `book={book}`, so every book from `@/lib/mockData` still renders",
                 order: 3,
+              },
+              {
+                description: "Leave the dashboard stat cards in place, still showing the numeric available and overdue counts as visible text",
+                order: 4,
               },
             ],
           },
@@ -465,19 +478,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "useMemo is used for book filtering",
+                description: "`src/components/BookRow.tsx` exports a React component function, either as its default export or as a named `BookRow` export",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "BookRow component exists and works correctly",
+                description: "Given a `book` prop, `BookRow` renders that book's title, author and ISBN as visible text",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Dashboard uses the new component",
+                description: "Given a book whose status is 'borrowed', `BookRow` renders text matching 'borrowed'",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "The dashboard renders a row for every book in the mock data set, with each book's title visible",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "The dashboard displays the available book count and the overdue book count as visible text",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -593,16 +616,20 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Add search input that filters books by title or author",
+                description: "The dashboard search needs a controlled input the user can type a book query into",
                 order: 1,
               },
               {
-                description: "Show 'No books found' when search yields no results",
+                description: "The visible book list filters on every keystroke, matching the query against both `book.title` and `book.author` case-insensitively",
                 order: 2,
               },
               {
-                description: "Add Borrow button that opens a modal with borrower details",
+                description: "A search that matches nothing shows the message 'No books found'",
                 order: 3,
+              },
+              {
+                description: "An empty search box keeps every book visible",
+                order: 4,
               },
             ],
           },
@@ -610,14 +637,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Search filters books in real-time",
+                description: "The dashboard renders an input field whose placeholder text matches 'Search books'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Borrow modal works and updates the UI",
+                description: "Typing the first word of a book's title into the search input shows that book and hides books whose titles do not contain the query",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "Typing an author's name into the search input shows every book by that author",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "The search matches titles and authors case-insensitively",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "A search that matches nothing displays the text 'No books found'",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "With an empty search input, every book in the list remains visible",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -670,16 +717,24 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create returns page with borrowed books table",
+                description: "A returns page lists only the books that are currently borrowed, with one action per book",
                 order: 1,
               },
               {
-                description: "Add Return button to process returns",
+                description: "The page shows a 'Returns' heading and a shadcn/ui `Table` whose header row has a `TableHead` (column header) labelled 'Title'",
                 order: 2,
               },
               {
-                description: "Update borrow record status to 'returned'",
+                description: "Each borrowed book gets one button labelled 'Return'. There must be exactly one of these per borrowed book",
                 order: 3,
+              },
+              {
+                description: "Clicking a Return button opens a confirmation dialog showing 'Are you sure' with a 'Confirm' button",
+                order: 4,
+              },
+              {
+                description: "Confirming the return removes that book from the borrowed list, so its title is no longer on the page",
+                order: 5,
               },
             ],
           },
@@ -687,14 +742,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Returns page processes returns correctly",
+                description: "The returns page renders visible text matching 'Returns' and a table column header whose accessible name matches 'Title'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Borrow records are updated on return",
+                description: "Every currently borrowed book is listed on the returns page with its title visible",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "The page renders exactly one button whose accessible name matches 'Return' for each borrowed book",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "Clicking a Return button displays a confirmation message containing 'Are you sure'",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "Confirming the return removes that book's title from the page",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -799,15 +869,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Prevent borrowing of overdue books",
+                description: "The dashboard status filter keeps working as tabs, one labelled 'All Books' and one labelled 'Overdue'",
                 order: 1,
               },
               {
-                description: "Auto-calculate due date to 14 days from current date",
+                description: "Only books that are available offer a Borrow action, so the overdue tab shows no Borrow button at all. The risk is deriving the actions from the whole book list instead of the filtered one",
                 order: 2,
               },
               {
-                description: "Format due date as YYYY-MM-DD",
+                description: "Overdue books still appear on the overdue tab with their title and an 'overdue' label",
                 order: 3,
               },
             ],
@@ -816,14 +886,19 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Overdue books cannot be borrowed",
+                description: "Selecting the 'Overdue' tab shows the overdue books by title and renders no Borrow buttons at all",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Due date auto-calculates correctly",
+                description: "The 'Overdue' tab displays text matching 'overdue'",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "Selecting the 'All Books' tab renders exactly one Borrow button per available book",
+                is_required: true,
+                order: 3,
               },
             ],
           },
@@ -870,16 +945,24 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Add confirmation dialogs before borrowing and returning",
+                description: "Borrow and Return are confirmed through a shadcn/ui `AlertDialog` whose body text reads 'Are you sure' and which offers 'Confirm' and 'Cancel' buttons",
                 order: 1,
               },
               {
-                description: "Persist all data to localStorage",
+                description: "The borrow or return happens only when Confirm fires. Cancelling leaves the book untouched",
                 order: 2,
               },
               {
-                description: "Create useLocalStorage hook",
+                description: "The borrow dialog has labelled text inputs named 'Borrower Name' and 'Borrower Email'",
                 order: 3,
+              },
+              {
+                description: "Persistence comes from one reusable `useLocalStorage(key, initialValue)` hook in `src/hooks/useLocalStorage.ts` that returns a `[value, setValue]` tuple",
+                order: 4,
+              },
+              {
+                description: "Books live under the `books` localStorage key. Seed state from it on mount and write it back on every change",
+                order: 5,
               },
             ],
           },
@@ -887,14 +970,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Confirmation dialogs appear before actions",
+                description: "Clicking a Borrow button on the dashboard opens a confirmation dialog showing text matching 'Are you sure', with buttons whose accessible names match 'Cancel' and 'Confirm'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Data persists across page refreshes",
+                description: "Clicking a Return button on the returns page opens a confirmation dialog showing text matching 'Are you sure'",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "Clicking Cancel in the borrow confirmation dialog closes it, removing the 'Are you sure' text from the page",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "Filling in the borrower name and email inputs and confirming the borrow writes the updated books to localStorage under the `books` key",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "When books have been saved to localStorage under the `books` key, the dashboard renders those stored books on mount",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`useLocalStorage(key, initialValue)` returns the initial value when nothing is stored under that key",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "Calling the setter returned by `useLocalStorage` updates the value and persists it to localStorage under the same key",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description: "`useLocalStorage` returns an existing stored value instead of the initial value when the key already holds one",
+                is_required: true,
+                order: 8,
               },
             ],
           },
@@ -959,16 +1072,24 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Investigate and fix the overdue status bug",
+                description: "A new page lists only overdue books, and every row offers a 'Mark as Returned' action. Leaving the page out means the report has nowhere to live",
                 order: 1,
               },
               {
-                description: "Create overdue report page",
+                description: "Each overdue book shows its title, its author, the borrower's name, and the borrower's email taken from its borrow record",
                 order: 2,
               },
               {
-                description: "Add 'Mark as Returned' functionality",
+                description: "Every row states how many days the book is overdue, for example '5 days overdue'",
                 order: 3,
+              },
+              {
+                description: "Marking a book returned takes it off the list. A row that survives the click means the list and the stored status disagree",
+                order: 4,
+              },
+              {
+                description: "The overdue status shown everywhere else has to agree with the due date. Fixing only the report leaves the rest of the app wrong",
+                order: 5,
               },
             ],
           },
@@ -976,14 +1097,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Overdue status calculation is fixed",
+                description: "The overdue report page lists every overdue book with both its title and its author",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Overdue report page displays accurate information",
+                description: "Each overdue book is shown with the borrower's name",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "Each overdue book is shown with the borrower's email from its borrow record",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "The page displays text matching 'days overdue' for the overdue books",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "The page renders exactly one button whose accessible name matches 'Mark as Returned' for each overdue book",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "Clicking 'Mark as Returned' removes that book's title from the overdue list",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -1075,16 +1216,28 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create date utility functions",
+                description: "A reusable date module exposes a formatter and an overdue check. Without one, both behaviours get reimplemented wherever they are needed",
                 order: 1,
               },
               {
-                description: "Update documentation with usage examples",
+                description: "Formatting '2026-01-15' has to produce exactly 'Jan 15, 2026'",
                 order: 2,
               },
               {
-                description: "Add code comments explaining the fix",
+                description: "Unparseable input must not throw. Both 'invalid' and '' format to an empty string, and the overdue check answers false for both",
                 order: 3,
+              },
+              {
+                description: "The overdue check compares a `YYYY-MM-DD` date string against today, answering true for past dates and false for future ones",
+                order: 4,
+              },
+              {
+                description: "The project README describes a library management app, mentions 'library management', 'book' and 'feature', and runs to more than 100 characters",
+                order: 5,
+              },
+              {
+                description: "At least 80% of the TypeScript source files in the project carry a code comment. Leaving them bare makes the codebase undiscoverable",
+                order: 6,
               },
             ],
           },
@@ -1092,14 +1245,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Date utilities handle all date operations",
+                description: "`formatDate` exported from `src/lib/dateUtils` converts '2026-01-15' to 'Jan 15, 2026'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Documentation is updated with examples",
+                description: "`formatDate` returns an empty string for the inputs 'invalid' and ''",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "`isOverdue` exported from `src/lib/dateUtils` returns true for a date one day in the past",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "`isOverdue` returns false for a date in the future",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "`isOverdue` returns false for the invalid date strings 'invalid' and '' instead of throwing",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`README.md` exists at the project root, is longer than 100 characters, and mentions 'library management', 'book' and 'feature'",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "At least 80% of the `.ts` and `.tsx` files under `src/` contain at least one code comment",
+                is_required: true,
+                order: 7,
               },
             ],
           },

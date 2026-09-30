@@ -134,13 +134,18 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has a single root package.json — run pnpm install from the project root, not from any subfolder.",
+                  "Open `src/app.module.ts` and make sure it exports an `AppModule` class that imports every feature module the app needs, each of which `providers` and `exports` what its own files inject. In `src/prisma/prisma.service.ts` add a `PrismaService` class that extends `PrismaClient` and calls `await this.$connect()` from an `onModuleInit` lifecycle method, and export the class so it can be pulled out of the running app. Without the `$connect()` call the connection never opens and `SELECT 1` cannot run.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions, follow them carefully.",
+                  "The server calls `app.setGlobalPrefix('api')`, so every controller has to sit under that prefix for `GET /api` to answer at all. A `@Get()` handler in a module that `AppModule` imports gives you the path `/api`. You do not need a root controller. Any status below 500 counts, so the default 404 for an unmatched route is good enough. A status of 500 or higher is the only thing that fails, and that comes from a module that fails to load or an unhandled error escaping a filter.",
                 order: 2,
+              },
+              {
+                description:
+                  "Build `POST /api/auth/login` under `src/auth/`, taking an email and a password in the body. Look the user up by email, and when nothing comes back throw `UnauthorizedException` so NestJS answers 401. The status has to be exactly 401. Letting a failed user lookup bubble up on its own gives a 500, which is the usual mistake here.",
+                order: 3,
               },
             ],
           },
@@ -148,22 +153,25 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Dependencies installed in root without errors",
+                description:
+                  "The app can be built from `AppModule` and started without errors",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Prisma migrations applied successfully",
+                description:
+                  "`PrismaService` is available from the running app, and a raw `SELECT 1` query through it reaches PostgreSQL, so the connection is live",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description: "`GET /api` answers with a status code below 500, so the HTTP server is running",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "NestJS dev server starts without errors",
+                description:
+                  "Sending an unknown email and a wrong password to `POST /api/auth/login` returns exactly 401",
                 is_required: true,
                 order: 4,
               },
@@ -272,18 +280,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `prisma/schema.prisma` and find the `Transaction` model. Add `note String?` after the `description` field.",
+                  "Open `prisma/schema.prisma`, find the `Transaction` model, and add `note String?` as a field on it. The `?` is what makes the column nullable. Then run `pnpm exec prisma migrate dev --name add_transaction_note` and, once that finishes, `pnpm exec prisma generate`. Skipping `generate` leaves `note` out of the generated Prisma types.",
                 order: 1,
               },
               {
                 description:
-                  "Run `pnpm exec prisma migrate dev --name add_transaction_note` to apply the schema change to PostgreSQL, then `pnpm exec prisma generate` to update the TypeScript types.",
+                  "In `src/transactions/dto/create-transaction.dto.ts` add a `note?: string` property to `CreateTransactionDto` and decorate it with `@IsOptional()` and `@IsString()`. In `src/transactions/transactions.service.ts` the `create` method passes the DTO straight through, so nothing changes there. In `src/transactions/transactions.controller.ts` the create handler returns the raw Prisma result, so the saved value comes back in the 201 response body on its own. Leaving off one of the two decorators is the usual mistake, since the request is then rejected before it reaches the service.",
                 order: 2,
               },
               {
                 description:
-                  "Add `@IsOptional()` and `@IsString()` decorators for the `note` field in `CreateTransactionDto`. The controller already spreads the DTO into the service call, so no controller changes are needed.",
+                  "`POST /api/auth/login` returns the JWT in a field named `accessToken`, and it is sent back as `Authorization: Bearer <accessToken>`. The create handler in `src/transactions/transactions.controller.ts` has to read the current user from that token, for example through the auth guard and the request object it decorates. If it does not, the request is rejected before the note is ever stored.",
                 order: 3,
+              },
+              {
+                description:
+                  "The list handler in `src/transactions/transactions.controller.ts` has to include `note` in what it selects, or the column is dropped from the returned rows. `GET /api/transactions` may answer with a bare JSON array or with a `{ data: [...] }` envelope, because the list is read as `(listRes.body.data ?? listRes.body).map(t => t.note)`. Make sure a transaction saved with `groceries` shows that exact value on the list.",
+                order: 4,
               },
             ],
           },
@@ -291,29 +304,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Transaction model in schema.prisma includes `note String?`",
+                description:
+                  "`POST /api/transactions` needs the `Authorization: Bearer <accessToken>` header, where the token is the JWT returned by `POST /api/auth/login`, and returns 201 on success",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Migration file is created and applied to the database",
+                description:
+                  "Creating an EXPENSE of 100 with `note: \"lunch with team\"` returns 201, and the `note` in the response body is exactly `lunch with team`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "CreateTransactionDto includes an optional note field with validation decorators",
+                description:
+                  "Creating a transaction with no `note` at all still returns 201, and no non-empty note string comes back in the response because the field is optional",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "POST /api/transactions accepts and persists a note value",
+                description:
+                  "`GET /api/transactions` returns 200 and the saved note `groceries` appears on one of the listed transactions. The body may be a bare array or a `{ data: [...] }` envelope",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description: "GET /api/transactions returns the note field in each transaction object",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -436,18 +448,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller already receives query params via `@Query()`. Use `parseInt` with a fallback (e.g., `page = 1`, `limit = 20`) to ensure integers.",
+                  "The list is assembled in `findAll()` in `src/transactions/transactions.controller.ts`, which reads one query param at a time. It needs the whole `@Query()` object, with `page` and `limit` read from it and parsed with `parseInt`, falling back to `page = 1` and `limit = 20`. Passing the raw string straight through is the usual mistake, because `NaN` then leaks into the response.",
                 order: 1,
               },
               {
                 description:
-                  "Build a `where` object that conditionally includes `type`, `categoryId`, and `date` range. Pass the same `where` object to both `findMany` and `count`.",
+                  "Pagination is offset-based, not cursor-based, so `findAll()` in `src/transactions/transactions.service.ts` skips `(page - 1) * limit` rows and takes `limit`. A cursor, or anything without an offset, cannot satisfy the `page=1&limit=5` request, which expects 5 rows.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks for `res.body.data`, `res.body.total`, `res.body.page`, `res.body.limit`, and `res.body.totalPages`. Make sure all five keys are present in the response.",
+                  "In `findAll()` in `src/transactions/transactions.service.ts` the filter has to be one single object that conditionally spreads in `type`, `categoryId` and the `date: { gte, lte }` range, and that same object goes to both `findMany` and `count`, because `total` has to be the filtered count and not the size of the whole table.",
                 order: 3,
+              },
+              {
+                description:
+                  "The response body has to carry all five keys: `data`, `total`, `page`, `limit` and `totalPages`. A `?type=EXPENSE` request returns `total` 15 with every row in `data` at `type === \"EXPENSE\"`. Leaving out `totalPages` and counting before filtering are the two common failures.",
+                order: 4,
               },
             ],
           },
@@ -455,29 +472,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/transactions returns a paginated envelope with data, total, page, limit, totalPages",
+                description:
+                  "`GET /api/transactions?page=1&limit=5` returns 200 with all five envelope keys present: `data`, `total`, `page`, `limit` and `totalPages`. `data` has a length of 5 and `total` is 20",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Defaults to page=1, limit=20 when no query params are provided",
+                description:
+                  "Pagination is offset-based, so `page=1&limit=5` returns the first 5 rows rather than the 5 that follow a cursor, and no cursor parameter is offered",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?type=EXPENSE filters to only expense transactions",
+                description:
+                  "`GET /api/transactions` with no query params returns 200 with `page` 1, `limit` 20 and 20 items in `data`. Those are the server-side defaults",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "?categoryId=<id> filters to transactions in that category",
+                description:
+                  "`GET /api/transactions?type=EXPENSE` returns 200 with `total` equal to 15, and that `total` counts only the filtered rows. Every row in `data` has `type` equal to `EXPENSE`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "?startDate=2025-01-05&endDate=2025-01-10 filters to transactions within that date range",
+                description:
+                  "`GET /api/transactions?categoryId=<id>` returns 200 with `total` equal to 5, which is the number of transactions in that category",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "`GET /api/transactions?startDate=2025-01-05&endDate=2025-01-10` returns 200 with a `total` between 1 and 6 inclusive, and the dates are honoured on the returned rows too",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -573,17 +601,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Update the `findAll` method in `categories.service.ts` to add `where: { isActive: true }` to the `prisma.category.findMany` call.",
+                  "The list lives in `findAll()` in `src/categories/categories.service.ts`, and the query needs to skip inactive categories, so add `where: { isActive: true }` to the `prisma.category.findMany` call. Leaving the filter off is what lets retired categories leak into the list.",
                 order: 1,
               },
               {
                 description:
-                  "In `transactions.service.ts → create()`, add a check that looks up the category by `categoryId` and throws if `!category || !category.isActive`.",
+                  "The list is read as `(res.body.data ?? res.body).map(c => c.id)`, so a bare array or a `{ data: [...] }` envelope both work. Either way the inactive category's id must be missing from the result.",
                 order: 2,
               },
               {
                 description:
-                  "The test expects `GET /api/categories` to NOT contain an inactive category ID, and expects `POST /api/transactions` with an inactive `categoryId` to return 400. Make sure both endpoints are updated.",
+                  "The transaction guard belongs in `create()` in `src/transactions/transactions.service.ts`, which looks the category up with `prisma.category.findUnique({ where: { id: dto.categoryId } })` and throws when `!category || !category.isActive`. Any status from 400 to 499 is accepted, so `400 BadRequestException` and `404 NotFoundException` both work. A success status (200 to 299) is the failure to avoid, because the transaction would then be created against a retired category.",
                 order: 3,
               },
             ],
@@ -592,17 +620,20 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Inactive categories do not appear in GET /api/categories",
+                description:
+                  "`GET /api/categories` returns 200, and the list, whether a bare array or a `{ data: [...] }` envelope, holds the active category's id and not the inactive category's id",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Creating a transaction with an inactive categoryId returns 400",
+                description:
+                  "`POST /api/transactions` with an inactive `categoryId` is rejected with a client error status between 400 and 499, and no transaction is created. Any status in that range is accepted, not specifically 400",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Active categories remain usable for new transactions (201 response)",
+                description:
+                  "`POST /api/transactions` with an active `categoryId` still returns exactly 201",
                 is_required: true,
                 order: 3,
               },
@@ -727,17 +758,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `transactions.service.ts → create()`, wrap the balance update and transaction creation in a `prisma.$transaction([...])` block for atomicity, or use `prisma.account.update` with `{ balance: { increment: delta } }`.",
+                  "The transactions service has to move the account balance by letting the database apply the delta in one operation, rather than reading the balance, working it out in JavaScript and writing a new value back. The `accounts` row is read straight from the database afterwards, so the delta has to be exact. Reading the balance first and writing a new value back is the mistake, because the rounding shows up.",
                 order: 1,
               },
               {
                 description:
-                  "The funds guard should query the account first, then throw BadRequestException if the balance is insufficient and `allowNegativeBalance` is false.",
+                  "The funds guard sits with the expense path in the same service. Read the account first, then turn the expense away when `type === 'EXPENSE' && !account.allowNegativeBalance && Number(account.balance) < amount`. The rejected case needs a client error status between 400 and 499, and the `allowNegativeBalance: true` case needs exactly 201.",
                 order: 2,
               },
               {
                 description:
-                  "Add `@IsPositive()` to the amount field in CreateTransactionDto, and add a future-date check in the service. The test expects 400 for negative amounts and future dates.",
+                  "The transaction input is rejected in two more places. A negative amount such as `-50` and a date 24 hours ahead both need a status of 400 or above. There is no upper bound, but any success status is a failure.",
                 order: 3,
               },
             ],
@@ -746,32 +777,37 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "EXPENSE decreases account balance atomically",
+                description:
+                  "After `POST /api/transactions` with an EXPENSE of 300 on an account with a balance of 1000, the `accounts.balance` row in the database is exactly 700",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "INCOME increases account balance atomically",
+                description:
+                  "After `POST /api/transactions` with an INCOME of 500 on an account with a balance of 1000, the `accounts.balance` row in the database is exactly 1500",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Rejects EXPENSE when balance is insufficient and allowNegativeBalance is false",
+                description:
+                  "An EXPENSE of 2000 against a balance of 1000 with `allowNegativeBalance` false is rejected with a client error status between 400 and 499. Anything in that range counts",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Allows negative balance when allowNegativeBalance is true",
+                description:
+                  "An EXPENSE of 500 against an account with a balance of 100 and `allowNegativeBalance` true returns exactly 201",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rejects transaction with negative amount (400)",
+                description: "A transaction with a negative amount is rejected with a status of 400 or above. No upper bound applies",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Rejects transaction with a future date (400)",
+                description:
+                  "A transaction dated 24 hours in the future is rejected with a status of 400 or above. No upper bound applies",
                 is_required: true,
                 order: 6,
               },
@@ -875,17 +911,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `budgets.service.ts`, query budgets for the user/month/year, then query transactions with `groupBy` to get the spent amount per category.",
+                  "The budgets service reads `month` and `year` from the query, finds the budgets for the current user, and then works out the spending per category for that month. A category with no spending at all has to report 0 rather than nothing, so the lookup needs a fallback.",
                 order: 1,
               },
               {
                 description:
-                  "Map the groupBy results into a lookup object `{ [categoryId]: spent }` for O(1) lookup when building the response.",
+                  "Map the groupBy output into a lookup keyed by `categoryId`, shaped as `{ [categoryId]: sum }`. Read it with `spentMap[budget.categoryId] ?? 0` so a category with no spending reports 0 instead of `undefined`.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks `spent`, `remaining`, `percentUsed`, and `exceeded` fields in the response. Make sure all four are present and that `exceeded` flips to true when spent > budget.",
+                  "The row is found by `b.category?.name === \"Food\" || b.categoryId === categoryId`. A budget of 500 with 300 spent must report `spent` 300, `remaining` 200, `percentUsed` 60 and `exceeded` false. A small float drift such as 60.0001 is fine. Adding one more 300 expense has to flip `exceeded` to true. All four computed fields belong on every budget row.",
                 order: 3,
               },
             ],
@@ -894,24 +930,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/budgets?month=1&year=2025 returns budgets with spent, remaining, percentUsed, and exceeded fields",
+                description:
+                  "`GET /api/budgets?month=1&year=2025` returns 200 with at least one budget, whether the body is a bare array or a `{ data: [...] }` envelope, and the row is matched by `category.name === \"Food\"` or by a bare `categoryId`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "spent equals the sum of EXPENSE transactions in that category for the requested month",
+                description:
+                  "With a budget amount of 500 and January 2025 expenses of 200 plus 100, the budget row reports `spent` exactly 300 and `remaining` exactly 200",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "exceeded is true when spent > budget amount",
+                description:
+                  "The same row reports `percentUsed` of 60, and a small float drift is tolerated",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "percentUsed is 0 (not NaN/Infinity) when budget amount is 0",
+                description:
+                  "`exceeded` is `false` while spending of 300 stays under the budget amount of 500",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "After one more January expense of 300 is added, bringing spending to 600, `exceeded` becomes `true`",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -1034,18 +1080,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `reports.controller.ts` and `reports.service.ts`, implement `monthly-summary` with two `prisma.transaction.aggregate` calls (one for INCOME, one for EXPENSE) using the same date range.",
+                  "The monthly summary adds up income and expenses separately over the same window and then subtracts one from the other. A transaction count belongs alongside them as `transactionCount`, with `numberOfTransactions` accepted as an alternative name. The risk is running the two aggregates over different windows, which makes the net drift.",
                 order: 1,
               },
               {
                 description:
-                  "For the `trends` endpoint, query the last N months of data and group by year+month. Prisma `groupBy` with raw date extraction or `$queryRaw` with PostgreSQL `DATE_TRUNC('month', date)` can both be used.",
+                  "The count is read as `res.body.transactionCount ?? res.body.numberOfTransactions` and has to be 4 for a month with four transactions. Counting the rows is the cheapest way to get it.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks that trend entries have `month`, `year`, `totalIncome`, `totalExpense`, and `netSavings`, and that the array is sorted chronologically.",
+                  "The trend report has to answer with a bare JSON array. Wrapping the rows in `{ data: [...] }` fails immediately, because the body is checked with `Array.isArray(res.body)`. The `months` query param caps the row count, so `?months=3` gives 3 or fewer rows and `?months=6` at most 6.",
                 order: 3,
+              },
+              {
+                description:
+                  "The trend rows run oldest to newest, so `year * 100 + month` never decreases as you read the array, and every entry carries `month`, `year`, `totalIncome`, `totalExpense` and `netSavings`. The risk is leaving the sort out, because database default ordering is not a guarantee.",
+                order: 4,
               },
             ],
           },
@@ -1053,24 +1104,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/reports/monthly-summary?month=1&year=2025 returns totalIncome, totalExpense, and netSavings",
+                description:
+                  "`GET /api/reports/monthly-summary?month=1&year=2025` returns 200 with `totalIncome` 2000, `totalExpense` 600 and `netSavings` 1400, scoped to the authenticated caller",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Monthly summary includes transactionCount",
+                description:
+                  "The summary body exposes the count as `transactionCount` with a value of 4. The name `numberOfTransactions` is also accepted",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "GET /api/reports/trends?months=3 returns an array sorted chronologically",
+                description:
+                  "`GET /api/reports/trends?months=3` returns 200 and the response body is a bare JSON array with 3 or fewer entries rather than a `{ data: ... }` envelope",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Each trend entry has month, year, totalIncome, totalExpense, and netSavings",
+                description:
+                  "Trend entries are sorted so that `year * 100 + month` never decreases across the array",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Every trend entry, checked with `?months=6`, has the fields `month`, `year`, `totalIncome`, `totalExpense` and `netSavings`",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -1167,18 +1228,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Implement `category-breakdown` in `reports.service.ts` using `prisma.transaction.groupBy` with `_sum` and `_count`, then enrich each entry with the category name.",
+                  "The category breakdown groups spending by category for the period, gives each group its share of the overall total as a percentage, and comes back largest first. Every entry needs `categoryName`, `total`, `percentage` and `transactionCount`. The risk is leaving the ordering out, since the result is read positionally.",
                 order: 1,
               },
               {
                 description:
-                  "For `budget-alerts`, reuse the same budget-enrichment logic as the budgets endpoint, then `.filter(b => b.percentUsed >= 80)` and `.sort((a, b) => b.percentUsed - a.percentUsed)`.",
+                  "The `type` query param is optional. The route is called once as `?month=1&year=2025&type=EXPENSE` and once as `?month=1&year=2025` with no type at all, and both must return 200 with the same entry shape. Read it with `@Query('type')` and add it to the filter only when it is present.",
                 order: 2,
               },
               {
                 description:
-                  "The test expects the breakdown to be sorted by total descending, and expects alerts to exclude budgets under 80% used. Verify both orderings.",
+                  "`GET /api/reports/budget-alerts` is called with no query params at all, so the reporting window has to be defaulted inside the service, for example to the current month and year. Enrich every budget with `spent`, `remaining`, `percentUsed` and `exceeded`, keep only `percentUsed >= 80`, and sort descending. Duplicating that maths in a second place is the risk, because the two copies drift apart.",
                 order: 3,
+              },
+              {
+                description:
+                  "The alert list is read as `(res.body.data ?? res.body).map(b => b.categoryName ?? b.category?.name)`, so a bare array or a `{ data: [...] }` envelope both work. Each row must carry the category name under one of those two keys, otherwise `Food` cannot be found.",
+                order: 4,
               },
             ],
           },
@@ -1186,24 +1252,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/reports/category-breakdown returns entries sorted by total descending",
+                description:
+                  "`GET /api/reports/category-breakdown?month=1&year=2025&type=EXPENSE` returns 200 with a bare JSON array of 2 or more entries. It is ordered so `body[0].total` is greater than or equal to `body[1].total`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Each breakdown entry has categoryName, total, percentage, and transactionCount",
+                description:
+                  "`GET /api/reports/category-breakdown?month=1&year=2025` with the optional `type` param left out also returns 200, and every entry has `categoryName`, `total`, `percentage` and `transactionCount`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "GET /api/reports/budget-alerts only returns budgets with percentUsed >= 80",
+                description:
+                  "`GET /api/reports/budget-alerts` is called with no query parameters and returns 200, and the Food budget at 600 of 700, which is about 86%, is included",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Alerts are sorted by percentUsed descending (highest first)",
+                description:
+                  "The Transport budget at 200 of 500, which is 40%, is left out of the alerts, because the threshold is percentUsed >= 80",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Alerts are sorted by `percentUsed` descending, so each entry's percentUsed is greater than or equal to the next entry's percentUsed",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -1326,18 +1402,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Wrap the balance update and transaction creation in `prisma.$transaction(async (tx) => { ... })`. This ensures both succeed or both rollback.",
+                  "A created transaction has to be removable again, and `DELETE /api/transactions/:id` has to honour the same `Authorization: Bearer <accessToken>` token as the create. The id it takes is the `id` from the create response body.",
                 order: 1,
               },
               {
                 description:
-                  "For timezone consistency, construct the month start and end as UTC Dates in the controller: `new Date(Date.UTC(year, month - 1, 1))` and `new Date(Date.UTC(year, month, 1))`. Pass these exact values to every query.",
+                  "The delete has to be the exact inverse of the create. Subtract the stored `amount` back onto the account for an EXPENSE, and add it for an INCOME. 10000 in, 500 out, 10000 back. A wrong sign leaves 9500, and so does skipping the reversal entirely.",
                 order: 2,
               },
               {
                 description:
-                  "Add `if (Number(budget.amount) === 0) return 0;` before computing `percentUsed` in both the budgets service and the alerts endpoint.",
+                  "A budget of `amount: 0` is located by a bare `categoryId` with no category relation. Its `percentUsed` must not be NaN, `isFinite(percentUsed) === true` must hold, and `Number(percentUsed) === 0`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Two calls to `GET /api/reports/monthly-summary?month=1&year=2025` carry the same query, so their `totalExpense` must be identical. Build the range from the request parameters with UTC boundaries such as `new Date(Date.UTC(year, month - 1, 1))` and reuse that exact range. Recomputing it on each call is the trap.",
+                order: 4,
               },
             ],
           },
@@ -1345,19 +1426,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Balance stays consistent after sequential create-delete cycle",
+                description:
+                  "`POST /api/transactions` returns 201, and the `id` in its response body is accepted by `DELETE /api/transactions/:id`. That route must exist and honour the same `Authorization: Bearer <accessToken>` token",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "percentUsed is 0 and not NaN/Infinity when budgetAmount is zero",
+                description:
+                  "On an account with a balance of 10000, creating a 500 EXPENSE and then deleting it leaves `accounts.balance`, read from the database, at exactly 10000. The balance change is reversed exactly, not approximately",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Monthly summary returns consistent totals on repeated calls",
+                description:
+                  "With a budget row whose amount is 0, `GET /api/budgets?month=1&year=2025` returns 200. The budget found by a bare `categoryId` reports a `percentUsed` that is not NaN, is finite, and equals 0",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Two consecutive calls to `GET /api/reports/monthly-summary?month=1&year=2025` both return 200 and report an identical `totalExpense`",
+                is_required: true,
+                order: 4,
               },
             ],
           },
@@ -1448,17 +1538,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Create a file named `POSTMORTEM.md` at the project root (same level as `package.json`).",
+                  "Create `POSTMORTEM.md` at the project root, the directory that contains `package.json`. The file is resolved four levels up from `tests/server/level-5/task-2/`, so `docs/POSTMORTEM.md` or `src/POSTMORTEM.md` will not be found.",
                 order: 1,
               },
               {
                 description:
-                  "The test checks for lowercase mentions of 'balance', 'concurrency', 'race condition', 'timezone', 'utc', 'division', 'nan', 'infinity', and 'zero'. Make sure each concept appears at least once.",
+                  "The file is read and lowercased before matching, and each of the three checks accepts any one term from a keyword group. Take one term from each group. `balance`, `concurren`, `race condition` or `locking` for the first. `timezone`, `utc` or `date boundary` for the second. `division`, `nan`, `infinity`, `zero` or `budget amount` for the third. Treating these as nine required words is the trap.",
                 order: 2,
               },
               {
                 description:
-                  "Structure the document with clear headings for each bug, followed by symptom, root cause, fix, and action items.",
+                  "Give each bug its own heading, followed by its symptom, root cause, fix and action items. Putting all three concepts into one heading is the most reliable way to cover the three keyword groups, because only the file's raw text is inspected.",
                 order: 3,
               },
             ],
@@ -1467,22 +1557,26 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "POSTMORTEM.md exists at the project root",
+                description:
+                  "A file named `POSTMORTEM.md` exists at the project root, in the same directory as `package.json` and four levels above `tests/server/level-5/task-2/`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Document mentions balance drift / race condition / concurrency root cause",
+                description:
+                  "The lowercased contents include at least one of `balance`, `concurren`, `race condition` or `locking`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Document mentions timezone / UTC root cause",
+                description:
+                  "The lowercased contents include at least one of `timezone`, `utc` or `date boundary`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Document mentions division-by-zero / NaN / Infinity root cause",
+                description:
+                  "The lowercased contents include at least one of `division`, `nan`, `infinity`, `zero` or `budget amount`",
                 is_required: true,
                 order: 4,
               },

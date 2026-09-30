@@ -80,13 +80,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "If `prisma migrate dev` fails, check that the Postgres user can create databases — the migration creates the schema from scratch on a fresh DB.",
+                  "Run these commands from the project root, in this order. First `pnpm install`, which creates `node_modules/` holding `node_modules/next` and `node_modules/@prisma/client`. Then `pnpm exec prisma generate` to rebuild the typed Prisma Client from `prisma/schema.prisma`. Then `pnpm exec prisma migrate deploy` to apply every pending migration without prompting. Then `pnpm exec tsx scripts/db-check.ts`.",
                 order: 1,
               },
               {
                 description:
-                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — all three should pass locally before submitting.",
+                  "Each of those three `pnpm exec` commands has to finish with exit code 0 against a database that is actually reachable. Check that `DATABASE_URL` in `.env` names a database that accepts connections.",
                 order: 2,
+              },
+              {
+                description:
+                  "The `scripts/db-check.ts` script prints `DB_OK` and a `ROWS=<n>` value, where `n` is the row count in the `products` table. A `ROWS=0` count fails even though the database is up. Run `pnpm prisma:seed` to insert the sample products, then run the script again.",
+                order: 3,
+              },
+              {
+                description:
+                  "A `DB_CHECK_FAILED` message on stderr almost always means one of three things, and the order matters: a missing or wrong `DATABASE_URL`, an unapplied migration, or an empty `products` table. Work down that list before touching any application code.",
+                order: 4,
               },
             ],
           },
@@ -95,21 +105,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "Dependencies installed cleanly via `pnpm install`",
+                  "`node_modules/` sits at the project root and holds both `node_modules/next` and `node_modules/@prisma/client`, so the app can start and reach Prisma",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Prisma migrations applied and seed data inserted (`pnpm prisma:migrate` and `pnpm prisma:seed` succeed)",
+                  "`pnpm exec prisma generate` exits with status 0, so the typed Prisma Client regenerates from prisma/schema.prisma with no errors",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`pnpm dev` boots the app on http://localhost:3000 without errors",
+                  "`pnpm exec prisma migrate deploy` exits with status 0, so every pending migration is applied to the database named in `DATABASE_URL`",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "`pnpm exec tsx scripts/db-check.ts` exits with status 0 and prints `DB_OK`, which means Postgres is reachable, the `products` table exists, and the seed has run",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "The `DB_OK` line reports `ROWS=<n>` and `n` is greater than 0, so at least one seeded product row exists. Run `pnpm prisma:seed` if the count is zero",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -187,18 +209,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "`Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })` provides thousands separators and 2-decimal padding for free.",
+                  "Create `src/lib/format.ts` and export the function there as a named export, with the signature `export function formatPeso(amount: number): string`. A default export will not be found, because callers read it as `{ formatPeso }`.",
                 order: 1,
               },
               {
                 description:
-                  "For the negative case, format the absolute value first, then prepend the minus sign so the symbol stays adjacent to the digits.",
+                  "`amount.toFixed(2)` handles every required case on its own. It pads whole numbers (5 gives \"5.00\"), keeps an existing single decimal (3.1 gives \"3.10\"), and rounds to the nearest centavo (9.999 gives \"10.00\", 2.345 gives \"2.35\").",
                 order: 2,
               },
               {
                 description:
-                  "After creating the helper, search the POS and Inventory pages for any remaining `toFixed` or template-literal price displays and replace them with `formatPeso`.",
+                  "Put the peso sign directly in front of the fixed string with `return '₱' + amount.toFixed(2)`. The result is compared as an exact string, so the sign has to sit immediately before the first digit. `formatPeso(0)` returns `'₱0.00'` and `formatPeso(120)` returns `'₱120.00'`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Keep `src/lib/format.ts` free of side effects. Do not import React or `@/lib/prisma` into it, because the file has to load on its own in a plain `node` environment with no DOM and either import would break that load.",
+                order: 4,
               },
             ],
           },
@@ -207,27 +234,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "`formatPeso` is exported from `src/lib/format.ts`",
+                  "`formatPeso` is a named export of `src/lib/format.ts`, so `const { formatPeso } = await import('../../../src/lib/format')` gives a function",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Positive amounts produce `₱` + comma-separated integer part + 2 decimals (1234.5 → \"₱1,234.50\")",
+                  "Every result carries the peso sign `₱` and shows exactly two decimal places: `formatPeso(0)` → `'₱0.00'`, `formatPeso(5)` → `'₱5.00'`, `formatPeso(120)` → `'₱120.00'`",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Negative amounts put the minus before the peso sign (-5 → \"-₱5.00\")",
+                  "Fractional amounts keep both decimals: `formatPeso(3.1)` → `'₱3.10'` and `formatPeso(95.5)` → `'₱95.50'`",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "The helper is used to render prices on the POS and Inventory pages",
+                  "Amounts round to the nearest centavo: `formatPeso(9.999)` → `'₱10.00'` and `formatPeso(2.345)` → `'₱2.35'`. Both match `(amount).toFixed(2)`",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "The module can be dynamically imported and `formatPeso` retrieved as a named export, so the function is testable in isolation",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -321,18 +354,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Use `prisma.product.findUnique({ where: { product_id: productId } })` — the column is `product_id`, not `id`.",
+                  "Add `getStockStatusForProduct` to `src/lib/actions/inventory.ts` as a named async export that looks the product up through `prisma.product.findUnique` and classifies the quantity that comes back. Use that one database method and nothing else, because any other Prisma call fails.",
                 order: 1,
               },
               {
                 description:
-                  "Throw an Error when the product is not found; the grader asserts the action rejects in that case.",
+                  "Call it as `prisma.product.findUnique({ where: { product_id: productId } })`, passing a single object. The column is `product_id`, not `id`, and the most common mistake is splitting `where` and the rest into separate arguments.",
                 order: 2,
               },
               {
                 description:
-                  "The 5-vs-6 boundary is the trick: 5 is the last LOW_STOCK value, 6 is the first IN_STOCK.",
+                  "When `findUnique` gives you `null`, throw before building the result with `if (!product) throw new Error('Product not found')`. The action has to reject rather than return a status for a product that does not exist.",
                 order: 3,
+              },
+              {
+                description:
+                  "The bands are `<= 0` → OUT_OF_STOCK, `1..5` → LOW_STOCK, `> 5` → IN_STOCK, so 5 is still low and 6 flips to in stock. Return the raw database quantity alongside the status, so a LOW_STOCK result carries the live value, and echo back the `productId` you were given.",
+                order: 4,
               },
             ],
           },
@@ -341,27 +379,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getStockStatusForProduct` is exported as an async function from `src/app/actions/inventory.ts`",
+                  "`getStockStatusForProduct` is a named export of `src/lib/actions/inventory.ts` and is an async server action, so `typeof getStockStatusForProduct === 'function'`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "The action queries Prisma via `product.findUnique` keyed by `product_id`",
+                  "`prisma.product.findUnique` is called with a single argument `{ where: { product_id: <id> } }`. The column is `product_id`, not `id`",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Missing product throws; otherwise the response includes `productId`, `quantity`, and a status of `OUT_OF_STOCK` / `LOW_STOCK` / `IN_STOCK`",
+                  "A quantity of 0 comes back as `status: 'OUT_OF_STOCK'`",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Quantities classify as: `<= 0` → OUT_OF_STOCK, `1..5` → LOW_STOCK, `> 5` → IN_STOCK",
+                  "A quantity of 3 comes back as `status: 'LOW_STOCK'` with the live database value `3` in the returned `quantity`",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "A quantity of 42 comes back as `status: 'IN_STOCK'`. The bands are `<= 0` → OUT_OF_STOCK, `1..5` → LOW_STOCK, `> 5` → IN_STOCK",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "When the product is not found and `findUnique` gives back `null`, the action throws instead of returning a status",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -409,18 +459,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Short-circuit the empty-cart case at the top of the function — return zeroes before any Prisma call.",
+                  "Add `getCartTotals` to `src/lib/actions/cart.ts` as a named async export that reads prices with `prisma.product.findMany` and computes the three money values from those database prices. Use that one database method and nothing else.",
                 order: 1,
               },
               {
                 description:
-                  "Build a `Map<product_id, price>` from the `findMany` result so the subtotal loop is O(n) instead of O(n × m).",
+                  "Collect every cart `product_id` into one array and pass it as the `in` filter, so the call is `{ where: { product_id: { in: [...ids] } } }` with the cart ids such as `p1` and `p2` in there. Looking products up one at a time is the pattern code reviewers reject.",
                 order: 2,
               },
               {
                 description:
-                  "`Math.round(n * 100) / 100` is the clean way to round to two decimals while keeping the return type `number`.",
+                  "Handle the empty cart before any Prisma call: `if (items.length === 0) return { subtotal: 0, discount: 0, total: 0 }`. Touching the database with an empty id list fails, and a missing `discountPercent` counts as 0.",
                 order: 3,
+              },
+              {
+                description:
+                  "Round only the three outgoing numbers, at the very end, with `Math.round(n * 100) / 100`. Three lines of `9.99` at `discountPercent: 15` come out as subtotal `29.97`, discount `4.5`, total `25.47`.",
+                order: 4,
               },
             ],
           },
@@ -429,27 +484,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getCartTotals` is exported as an async function from `src/app/actions/cart.ts`",
+                  "`getCartTotals` is a named export of `src/lib/actions/cart.ts` and is an async server action, so `typeof getCartTotals === 'function'`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Prices are fetched from Prisma via `product.findMany` with an `in` filter on `product_id`",
+                  "`prisma.product.findMany` is called with a single argument `{ where: { product_id: { in: [...] } } }` where `in` holds every cart product id",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Empty `items` returns zeroes without calling Prisma; missing `discountPercent` is treated as 0",
+                  "The subtotal is summed from database prices times cart quantities, never from prices the client sends. Prices `p1: 100` × 2 and `p2: 50` × 3 give `{ subtotal: 350, discount: 0, total: 350 }`",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`subtotal`, `discount`, and `total` are computed from DB prices and rounded to 2 decimals",
+                  "A percentage discount applies to the subtotal. Prices `p1: 100` × 2 with `discountPercent: 10` give `{ subtotal: 200, discount: 20, total: 180 }`, and leaving out `discountPercent` gives a discount of `0`",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "An empty cart (`{ items: [] }`) gives back exactly `{ subtotal: 0, discount: 0, total: 0 }` and does not depend on any database result",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "The three money values are rounded to two decimals. Prices `p1: 9.99` × 3 with `discountPercent: 15` give `{ subtotal: 29.97, discount: 4.5, total: 25.47 }`",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -546,18 +613,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Two branches: `errors.length === 0` renders a confirmation; otherwise an alert.",
+                  "The banner is the default export of `src/components/CheckoutErrors.tsx` and takes an `errors` array of strings. Use `export default function CheckoutErrors({ errors })`, or default-export a named function.",
                 order: 1,
               },
               {
                 description:
-                  "The empty branch is a polite live region (`role=\"status\"`); the non-empty branch is assertive (`role=\"alert\"`) with one `<li>` per error.",
+                  "Branch on `errors.length === 0` and keep the two branches exclusive. The clean branch needs an element carrying `role=\"status\"` whose text matches `/ready to checkout/i`, so include the literal words \"Ready to checkout\".",
                 order: 2,
               },
               {
                 description:
-                  "The grader imports the default export — `export default function CheckoutErrors(...)`.",
+                  "The error branch puts `role=\"alert\"` on a `<ul>` with exactly one `<li>` per message, so three errors means exactly three list items. Each message has to appear as its own text node.",
                 order: 3,
+              },
+              {
+                description:
+                  "With any error present there must be no element with `role=\"status\"` anywhere on the page. Never render the confirmation banner alongside the alert.",
+                order: 4,
               },
             ],
           },
@@ -566,21 +638,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "`CheckoutErrors` is the default export of `src/components/CheckoutErrors.tsx`",
+                  "`CheckoutErrors` is the default export of `src/components/CheckoutErrors.tsx`, so `typeof mod.default === 'function'`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Empty errors → renders an element with `role=\"status\"` and \"Ready to checkout\" text",
+                  "With `errors={[]}` the page shows an element with `role=\"status\"` whose text matches `/ready to checkout/i`",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Non-empty errors → renders an element with `role=\"alert\"` containing a `<ul>` with one `<li>` per message",
+                  "With three errors the page shows an element with `role=\"alert\"` holding exactly 3 list items, one `<li>` per error",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Each error message appears as its own text node. With `errors={['p2 exceeds available stock']}`, the text matching `/p2 exceeds available stock/i` is on the page",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "When at least one error exists there is no element with `role=\"status\"` on the page. The confirmation banner never appears alongside the alert",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -652,18 +736,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "Required `data-testid`s: `customer-name`, `order-item` (one per line), `order-total`, and `order-discount`.",
+                  "The summary is the default export of `src/components/OrderSummary.tsx`. Use `export default function OrderSummary({ customerName, items, coupon })`.",
                 order: 1,
               },
               {
                 description:
-                  "Render `order-discount` ONLY when a coupon prop is supplied — wrap it in `{coupon && (...)}` so `queryByTestId` returns null when none is passed.",
+                  "You need these `data-testid` values: `customer-name` (text = `customerName`), `order-item` (one per item), `order-total`, and `order-discount`.",
                 order: 2,
               },
               {
                 description:
-                  "Reuse `formatPeso` from Level 1 for every money value; the grader matches the `₱` prefix and two decimals.",
+                  "Each `order-item` row has to hold BOTH the product name and its own peso-formatted line subtotal. For `price: 100, cartQuantity: 2` the row text must contain `₱200.00`.",
                 order: 3,
+              },
+              {
+                description:
+                  "The cart `[{100, 2}, {50, 1}]` sums to 250, so with no coupon `order-total` reads `₱250.00`. With `coupon={{ coupon_id: 'c1', code: 'SAVE20', discount_percent: 20 }}` the discount row reads `₱50.00` (20% of 250) and the total becomes `₱200.00`.",
+                order: 4,
+              },
+              {
+                description:
+                  "Render `order-discount` ONLY when a coupon prop is supplied, wrapped in `{coupon && (...)}`, so nothing with that `data-testid` is on the page when no coupon is passed.",
+                order: 5,
+              },
+              {
+                description:
+                  "Run every money value through `formatPeso` from Level 1. The required text has the `₱` prefix and exactly two decimals.",
+                order: 6,
               },
             ],
           },
@@ -672,27 +771,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "`OrderSummary` is the default export of `src/components/OrderSummary.tsx`",
+                  "`OrderSummary` is the default export of `src/components/OrderSummary.tsx`, so `typeof mod.default === 'function'`. It takes props `customerName`, `items`, and an optional `coupon`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Renders `data-testid=\"customer-name\"` with the customer's name and one `data-testid=\"order-item\"` per cart line",
+                  "`data-testid=\"customer-name\"` shows the customer name. With `customerName=\"Ada Lovelace\"` its text is `Ada Lovelace`",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`data-testid=\"order-total\"` shows the peso-formatted total; `data-testid=\"order-discount\"` is only emitted when a coupon is supplied",
+                  "There is one `order-item` row per cart item, so 2 for a two-line cart. The first row holds both the product name (`/Espresso/`) and that line's peso-formatted subtotal (`/₱200\\.00/` for price 100 × quantity 2)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "All money values are rendered via the `formatPeso` helper from Level 1 (₱X.XX)",
+                  "With no coupon, `data-testid=\"order-total\"` contains `₱250.00`, the sum of the line subtotals 200 + 50, and no `order-discount` element is on the page",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "With `coupon={{ coupon_id: 'c1', code: 'SAVE20', discount_percent: 20 }}`, `data-testid=\"order-discount\"` contains `₱50.00` and `data-testid=\"order-total\"` becomes `₱200.00`",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Money values are formatted with the `₱` sign, comma thousands separator, and exactly two decimals",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -784,18 +895,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Placeholder must contain the word \"coupon\" (grader uses `getByPlaceholderText(/coupon/i)`).",
+                  "The coupon field is a controlled text input with an Apply button beside it, and it hands the normalized code to `onApply` instead of the raw text. Declare it as the default export of `src/components/CouponInput.tsx`.",
                 order: 1,
               },
               {
                 description:
-                  "Derive `disabled` from `value.trim().length` during render — don't store it in its own state.",
+                  "The Apply button's accessible name has to contain \"Apply\", so an icon-only button will not do.",
                 order: 2,
               },
               {
                 description:
-                  "Normalize before emitting: trim, uppercase, strip internal whitespace.",
+                  "Derive `disabled` during render from the controlled value with `const isDisabled = value.trim().length === 0;`, then pass `disabled={isDisabled}`. The button has to be disabled on mount and stay disabled after typing only spaces.",
                 order: 3,
+              },
+              {
+                description:
+                  "Normalize before emitting, in this order: trim, uppercase, remove internal whitespace. Typing `  save 10 ` and clicking Apply has to call `onApply` with exactly `'SAVE10'`.",
+                order: 4,
+              },
+              {
+                description:
+                  "Clear the field after a successful apply by resetting the value state to `''` in the click handler. Leaving the old code in the box is the usual mistake.",
+                order: 5,
               },
             ],
           },
@@ -804,27 +925,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "`CouponInput` is the default export of `src/components/CouponInput.tsx`",
+                  "`CouponInput` is the default export of `src/components/CouponInput.tsx`, so `typeof mod.default === 'function'`. It takes an `onApply: (normalizedCode: string) => void` prop",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Renders a textbox (with `coupon` in the placeholder) and an Apply button",
+                  "It shows a textbox, conventionally with `coupon` in the placeholder, plus an Apply button whose accessible name contains \"Apply\"",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Apply is disabled for empty or whitespace-only input; clicking Apply on valid input calls `onApply` with the trimmed, uppercased, whitespace-stripped code",
+                  "On mount, with an empty input, the Apply button is disabled",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Input clears after a successful apply",
+                  "Typing `  save 10 ` and clicking Apply calls `onApply` with exactly `'SAVE10'`. The code is trimmed, uppercased, and internal whitespace removed",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Typing only whitespace (`'   '`) leaves the Apply button disabled and `onApply` is never called",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "After a successful apply the input value is reset to the empty string, so `input.value === ''`",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -896,18 +1029,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Don't skip the schema change — add `expires_at DateTime?` to the Coupon model and migrate before writing the action.",
+                  "Do the schema change first. Add `expires_at DateTime?` to the Coupon model in `prisma/schema.prisma` and run `prisma migrate dev --name add_coupon_expires_at` before writing the action. The coupon rows carry an `expires_at` field, so the action has to read it.",
                 order: 1,
               },
               {
                 description:
-                  "Validity is a gate, not a tiebreaker — drop expired coupons before ranking discounts.",
+                  "`applyBestCoupon(subtotal: number, now?: Date)` is the named export in the coupons action module, and the query it makes has to contain `is_active: true` in its `where` object.",
                 order: 2,
               },
               {
                 description:
-                  "`now` defaults to `new Date()` so production callers can omit it; tests inject a fixed clock.",
+                  "Default `now` to `new Date()` so production callers can omit it, and also accept an injected clock such as `2026-06-01T00:00:00Z`. Return `{ coupon, discount }` or `null`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Validity is a gate, not a tiebreaker. Drop coupons where `expires_at !== null && expires_at < now` BEFORE ranking, then pick the highest `discount_percent`. Return `null` when nothing qualifies, not an error and not an empty object.",
+                order: 4,
+              },
+              {
+                description:
+                  "`discount` is the absolute amount off the subtotal: 25% of 200 is `50`, 10% of 200 is `20`.",
+                order: 5,
               },
             ],
           },
@@ -916,27 +1059,45 @@ export const levels = [
             create: [
               {
                 description:
-                  "`Coupon.expires_at DateTime?` added to `schema.prisma` and a Prisma migration applied",
+                  "The `Coupon` model in prisma/schema.prisma gains an optional `expires_at DateTime?` field and a Prisma migration is applied, so the action can read `expires_at` off the coupon row",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`applyBestCoupon` is exported as an async function from `src/app/actions/coupons.ts`",
+                  "`applyBestCoupon` is a named export of `src/lib/actions/coupons.ts` with the signature `applyBestCoupon(subtotal: number, now?: Date)`. It is async and returns `{ coupon, discount } | null`",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "The action calls `prisma.coupon.findMany({ where: { is_active: true } })` and ignores coupons whose `expires_at` is in the past relative to `now`",
+                  "`prisma.coupon.findMany` is called with a single argument whose `where` object contains `is_active: true`, so the active-coupon filter happens in the database",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Returns the largest-discount valid coupon with the computed `discount`, or `null` when none qualify",
+                  "Among valid coupons the largest discount wins. For a subtotal of 200 with unexpired `A10` (10%) and `B25` (25%), the result has `coupon.coupon_id === 'b'` and `discount === 50`",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Expired coupons are discarded before ranking even when their percent is higher. With `A10` (10%, `expires_at: null`) and `D40` (40%, `expires_at: 2026-05-01`) against `now = 2026-06-01`, the result has `coupon.coupon_id === 'a'` and `discount === 20`",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "The result is `null` when there are no active coupons",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "The result is `null` when every active coupon is expired",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1027,18 +1188,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Mind the zero-orders branch when computing the average.",
+                  "The card has to show total revenue, total discount, order count and average order value, each in its own labelled element carrying the `total-revenue`, `total-discount`, `order-count` and `average-order` hooks.",
                 order: 1,
               },
               {
                 description:
-                  "Money values flow through `formatPeso`.",
+                  "The first three numbers are plain sums over the orders, and the average is the revenue total divided by the order count. All four come from one pass, so they can never disagree with each other.",
                 order: 2,
               },
               {
                 description:
-                  "Anchor on the documented `data-testid`s.",
+                  "An empty order list has to render real zeros everywhere, including the average. Divide without a count check and the average shows `₱NaN`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Every money value comes from the peso formatter built in Level 1, with the `₱` sign and exactly two decimals, so 750 of revenue reads `₱750.00` and nothing reads `₱0.00` by accident.",
+                order: 4,
               },
             ],
           },
@@ -1047,27 +1213,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "`SalesSummary` is the default export of `src/components/SalesSummary.tsx`",
+                  "`SalesSummary` is the default export of `src/components/SalesSummary.tsx`, so `typeof mod.default === 'function'`. It takes an `orders` prop of `{ total_amount: number; discount_amount: number }[]`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Renders `total-revenue`, `total-discount`, `order-count`, and `average-order` test ids with the correct sums",
+                  "For orders totalling 750 with 75 of discount across 3 orders, `data-testid=\"total-revenue\"` contains `₱750.00`, `data-testid=\"total-discount\"` contains `₱75.00`, and `data-testid=\"order-count\"` contains `3`",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Empty orders → `average-order` is `0` (peso-formatted), never `NaN` or `Infinity`",
+                  "`data-testid=\"average-order\"` shows the average order value rounded to two decimals and formatted in pesos, so `₱250.00` for 750 across 3 orders",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Money values are rendered via `formatPeso` (₱ + 2 decimals + comma separators)",
+                  "With `orders={[]}`, `total-revenue` contains `₱0.00`, `total-discount` contains `₱0.00`, `order-count` contains `0`, and `average-order` contains `₱0.00`. The division is guarded, so no `NaN` or `Infinity` is rendered",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Money values go through `formatPeso`, with the `₱` sign, comma thousands separator, and exactly two decimals",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -1139,18 +1311,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Ties on `unitsSold` need a deterministic tiebreaker.",
+                  "`getTopSellingProducts` has to return one entry per product carrying the product id, the product name, the units sold and the revenue, and nothing else. An extra property on an entry makes the result fail to match.",
                 order: 1,
               },
               {
                 description:
-                  "`include` the related product to carry its name on the result row.",
+                  "Units and revenue are summed per product, so p1 with a quantity of 5 plus 1 and a subtotal of 600 plus 120 is 6 units and 720 of revenue.",
                 order: 2,
               },
               {
                 description:
-                  "Slice to `limit` after sorting, not during the aggregation.",
+                  "Every row has to arrive carrying its product, so the name is available without chasing each id down separately.",
                 order: 3,
+              },
+              {
+                description:
+                  "Ties on units sold need a deterministic tiebreaker: units sold descending, then revenue descending, so with p2 and p3 both at 8 units p2 at 1200 outranks p3 at 760.",
+                order: 4,
+              },
+              {
+                description:
+                  "The limit is applied after the ranking, never during the aggregation, and with no rows the result is an empty array rather than nothing at all.",
+                order: 5,
               },
             ],
           },
@@ -1159,27 +1341,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getTopSellingProducts` is exported as an async function from `src/app/actions/reports.ts`",
+                  "`getTopSellingProducts` is a named export of `src/lib/actions/reports.ts` with the signature `getTopSellingProducts(limit: number)`. It is async and returns `{ product_id: string; product_name: string; unitsSold: number; revenue: number }[]`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "The action queries Prisma via `orderItem.findMany({ include: { product: true } })`",
+                  "`prisma.orderItem.findMany` is called with a single argument whose `include` object includes the related `product`, so the product name arrives on each row",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Rows are aggregated per `product_id` with summed `unitsSold` and `revenue`, and the related `product_name` is carried through",
+                  "Rows are aggregated per `product_id`. For p1 with rows `(quantity 5, subtotal 600)` and `(quantity 1, subtotal 120)` the entry is exactly `{ product_id: 'p1', product_name: 'Espresso', unitsSold: 6, revenue: 720 }`, where `unitsSold` sums `quantity` and `revenue` sums `subtotal`",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Results are sorted by `unitsSold` desc with `revenue` desc as the tie-breaker, then sliced to `limit`",
+                  "Results are sorted by `unitsSold` descending with `revenue` descending as the tie-breaker. For the sample rows the order is `p2`, `p3`, `p1`, since p2 and p3 both sold 8 units and p2 has the higher revenue of 1200 against 760",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "The limit is respected: `getTopSellingProducts(2)` returns exactly 2 entries",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "When there are no items, the action returns an empty array `[]`",
+                is_required: true,
+                order: 6,
               },
             ],
           },

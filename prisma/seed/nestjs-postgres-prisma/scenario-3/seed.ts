@@ -131,13 +131,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has a single root package.json, run pnpm install from the project root, not from any subfolder.",
+                  "Run `pnpm install` from the project root, which is the directory that holds `package.json`, not from a subfolder such as `src/` or `prisma/`. Dependencies such as NestJS, Prisma, bcrypt, and supertest must all resolve before you touch anything else, and a partial install only shows up later as confusing module errors.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions, follow them carefully.",
+                  "Run `pnpm exec prisma migrate dev` and then `pnpm exec prisma generate`, in that order. The first applies the migrations in `prisma/migrations/` to the database named by `DATABASE_URL`, the second refreshes the client. Skipping `generate` leaves the Prisma Client types out of step with the schema, and the raw `SELECT 1` query then never reaches the database.",
                 order: 2,
+              },
+              {
+                description:
+                  "Start the app with `pnpm run start:dev` and open `GET /api`. The bootstrap file is `src/main.ts` and the module tree is wired in `src/app.module.ts`, so a module that fails to load keeps the answer at 500 or above. Any status below 500 means the app is up, and NestJS's default 404 already qualifies, so there is no root controller to add.",
+                order: 3,
+              },
+              {
+                description:
+                  "The admin and cashier accounts come from `prisma/seed.ts`. Send `POST /api/auth/login` with a seeded email and `password123` and you get a JWT back in the `accessToken` field. The same request with a wrong password answers 401, and every later call sends that token as `Authorization: Bearer <accessToken>`.",
+                order: 4,
               },
             ],
           },
@@ -145,22 +155,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Dependencies installed in root without errors",
+                description: "The NestJS application starts and `GET /api` answers with a status below 500",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Prisma migrations applied successfully (pnpm exec prisma migrate dev)",
+                description: "Prisma reaches the database, so a `SELECT 1` query succeeds",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description: "`POST /api/auth/login` with the wrong credentials answers 401",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "NestJS dev server starts without errors",
+                description: "`POST /api/auth/login` with valid seeded credentials answers with a JWT in the `accessToken` field",
                 is_required: true,
                 order: 4,
               },
@@ -261,17 +271,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `prisma/schema.prisma` and find the `Setting` model. Add `phoneNumber String?` at the end of the model.",
+                  "Open `prisma/schema.prisma`, find the `Setting` model, and add `phoneNumber String?` at the end of the model, after `acceptCash` and `acceptCard`. The `?` is what makes the field optional, so do not leave it off.",
                 order: 1,
               },
               {
                 description:
-                  "Run `pnpm exec prisma migrate dev --name add_setting_phone_number` to apply the schema change, then `pnpm exec prisma generate` to update the TypeScript types.",
+                  "Run `pnpm exec prisma migrate dev --name add_setting_phone_number` to put the change in the database, then `pnpm exec prisma generate` to refresh the TypeScript types.",
                 order: 2,
               },
               {
                 description:
-                  "Add `@IsOptional()` and `@IsString()` decorators for the `phoneNumber` field in the settings DTO.",
+                  "Add `@IsOptional()` and `@IsString()` to the `phoneNumber` field in both `CreateSettingDto` and `UpdateSettingDto` under `src/settings/`. Leaving out `@IsOptional()` turns the field into a required one. The settings service then passes the value straight through on create and on update, and `GET /api/settings` includes it, where it may be `null`.",
                 order: 3,
               },
             ],
@@ -280,27 +290,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Setting model in schema.prisma includes `phoneNumber String?`",
+                description: "The `Setting` model in `schema.prisma` includes `phoneNumber String?`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Migration file is created and applied to the database",
+                description: "A migration file has been created and applied to the database",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Settings DTO includes an optional phoneNumber field with validation decorators",
+                description: "The settings DTO has an optional `phoneNumber` field with validation decorators",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "GET /api/settings returns the phoneNumber field (may be null)",
+                description: "`GET /api/settings` includes `phoneNumber`, which may be `null`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "PUT /api/settings persists phoneNumber value",
+                description: "`PUT /api/settings` saves the `phoneNumber` value",
                 is_required: true,
                 order: 5,
               },
@@ -398,12 +408,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `inventory.service.ts`, change the low-stock filter from `lt` to `lte`.",
+                  "The low-stock list lives in `getLowStock()` in `src/inventory/inventory.service.ts`, and the query needs to be inclusive so a product whose stock equals the threshold is included. Change the comparison from `lt` to `lte`.",
                 order: 1,
               },
               {
                 description:
-                  "Add a `quantity >= 0` check in the inventory update endpoint. Use @Min(0) from class-validator.",
+                  "The inventory update endpoint has to reject a negative quantity. Use `@Min(0)` from class-validator on the `quantity` field of the update DTO in `src/inventory/`, or an equivalent check in `src/inventory/inventory.service.ts`. `quantity: -1` answers 400, while `quantity: 0` and a valid positive quantity are accepted. Without the guard a negative quantity slips through and stock goes below zero.",
                 order: 2,
               },
             ],
@@ -412,27 +422,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/inventory/low-stock includes products at threshold (stock === lowStock)",
+                description: "`GET /api/inventory/low-stock` includes a product whose stock equals `lowStock`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "GET /api/inventory/low-stock excludes products above threshold",
+                description: "`GET /api/inventory/low-stock` leaves out products above the threshold",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "PUT /api/inventory/:productId with quantity: -1 returns 400",
+                description: "`PUT /api/inventory/:productId` with `quantity: -1` answers 400",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "PUT /api/inventory/:productId with quantity: 0 is accepted",
+                description: "`PUT /api/inventory/:productId` with `quantity: 0` is accepted",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "PUT /api/inventory/:productId with valid positive quantity succeeds",
+                description: "`PUT /api/inventory/:productId` with a valid positive quantity succeeds",
                 is_required: true,
                 order: 5,
               },
@@ -516,17 +526,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller already receives query params via `@Query()`. Use `parseInt` with a fallback (e.g., `page = 1`, `limit = 10`) to ensure integers.",
+                  "The controller already reads query params through `@Query()`. They arrive as strings, so convert them with `parseInt` and fall back to `page = 1` and `limit = 10`. Passing them straight to the offset and the row cap breaks the pagination.",
                 order: 1,
               },
               {
                 description:
-                  "Build a `where` object that conditionally includes a `name` search filter with `mode: 'insensitive'`. Pass the same `where` object to both `findMany` and `count`.",
+                  "The list in `findAll()` in `src/products/products.service.ts` is built from one `where` object that adds a `name` filter with `mode: 'insensitive'` when a search term is present. That same object feeds both `findMany` and `count`, otherwise `total` drifts out of sync with `data`.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks for `res.body.data`, `res.body.total`, `res.body.page`, `res.body.limit`, and `res.body.totalPages`. Make sure all five keys are present.",
+                  "The response body needs all five keys: `data`, `total`, `page`, `limit`, and `totalPages`. Forgetting `totalPages` is the most common miss.",
                 order: 3,
               },
             ],
@@ -535,27 +545,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/products returns a paginated envelope with data, total, page, limit, totalPages",
+                description: "`GET /api/products` answers with a paginated envelope holding `data`, `total`, `page`, `limit`, and `totalPages`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Defaults to page=1, limit=10 when no query params are provided",
+                description: "With no query params the endpoint uses `page=1` and `limit=10`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?page=2&limit=5 returns the second page of 5 products",
+                description: "`?page=2&limit=5` answers with the second page of 5 products",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "total reflects the full count across all pages",
+                description: "`total` counts every matching product across all pages",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "?search= filter works alongside pagination",
+                description: "`?search=` filters the results and works together with pagination",
                 is_required: true,
                 order: 5,
               },
@@ -670,17 +680,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `orders.service.ts -> create()`, wrap the entire checkout logic in `prisma.$transaction(async (tx) => { ... })`.",
+                  "The product list in `orders.service.ts` has to run as a single unit of work. Put the whole checkout inside `prisma.$transaction(async (tx) => { ... })`. Running the steps outside the transaction lets a failure leave stock deducted with no order behind it, and any query that leaves the unit runs on a different connection.",
                 order: 1,
               },
               {
                 description:
-                  "Use `tx.inventory.update({ where: { productId }, data: { quantity: { decrement: item.quantity } } })` for atomic stock deduction inside the transaction.",
+                  "Stock is deducted inside the same unit, keyed on the product, with `tx.inventory.update({ where: { productId }, data: { quantity: { decrement: item.quantity } } })`. The delta is applied rather than a new quantity written, and a request that fails afterwards has to leave inventory exactly as it found it.",
                 order: 2,
               },
               {
                 description:
-                  "Fetch settings inside the transaction to get the tax rate. Calculate tax, then apply discount, then round to 2 decimals.",
+                  "The tax rate is read from settings inside the same unit. Tax is added first, the discount comes off next, and the result is rounded to 2 decimals. A discount larger than the total still leaves 0, never a negative amount.",
                 order: 3,
               },
             ],
@@ -689,32 +699,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Successful checkout creates an order with correct subtotal, tax, and total",
+                description: "A successful checkout creates an order with the correct subtotal, tax, and total",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "tax equals subtotal Ã— (taxRate / 100) from Settings",
+                description: "`tax` equals `subtotal` × (`taxRate / 100`), with the rate coming from Settings",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "discountAmount is subtracted from the total",
+                description: "`discountAmount` is taken off the total",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Inventory quantity is decremented by the ordered amount after checkout",
+                description: "After checkout the inventory quantity is down by the ordered amount",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Checkout with insufficient stock returns 4xx and leaves inventory unchanged",
+                description: "A checkout with insufficient stock answers with a status between 400 and 499 and leaves inventory unchanged",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Order total has at most 2 decimal places",
+                description: "The order total has at most 2 decimal places",
                 is_required: true,
                 order: 6,
               },
@@ -803,12 +813,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "Import the PaymentMethod enum from @prisma/client for use in decorators.",
+                  "Payment methods are restricted to the `PaymentMethod` enum from `@prisma/client`, which holds `CASH` and `CARD`. The validation decorator on `paymentMethod` in the order DTO uses that enum, and the service keeps its own guard as a second line of defence.",
                 order: 1,
               },
               {
                 description:
-                  "Empty string and missing paymentMethod should both be rejected.",
+                  "Both an empty string and a missing `paymentMethod` have to be refused with 400, and so do `CRYPTO` and `BITCOIN`. A simple truthy check lets `\"\"` through, which is the trap here.",
                 order: 2,
               },
             ],
@@ -817,32 +827,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "CASH payment method is accepted",
+                description: "The `CASH` payment method is accepted",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "CARD payment method is accepted",
+                description: "The `CARD` payment method is accepted",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "CRYPTO payment method returns 400",
+                description: "The `CRYPTO` payment method answers 400",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "BITCOIN payment method returns 400",
+                description: "The `BITCOIN` payment method answers 400",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Empty string payment method returns 400",
+                description: "An empty string payment method answers 400",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Missing paymentMethod returns 400",
+                description: "A missing `paymentMethod` answers 400",
                 is_required: true,
                 order: 6,
               },
@@ -951,17 +961,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `reports.service.ts`, implement `daily()` with `prisma.order.aggregate` for revenue and `prisma.order.count` for order count, both filtered by `createdAt`.",
+                  "The daily report adds up order revenue and counts orders over the same window and the same filter, reporting them as `totalRevenue` and `orderCount`. The risk is two queries over two different windows, which makes the two numbers disagree.",
                 order: 1,
               },
               {
                 description:
-                  "Use explicit UTC boundaries for the date range to avoid timezone issues.",
+                  "The date range has explicit UTC boundaries. Server-local time makes the numbers shift depending on where the app runs.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks: `totalRevenue`, `orderCount` for daily; and admin-only access (401-403 for cashiers).",
+                  "`topProducts` is a ranking of the best sellers by summed quantity with at most 5 entries, and each one carries `productName` and `quantitySold`. The route stays admin-only, so a cashier gets 401 or 403.",
                 order: 3,
               },
             ],
@@ -970,27 +980,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Returns totalRevenue and orderCount",
+                description: "The report returns `totalRevenue` and `orderCount`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "totalRevenue reflects the sum of all today's order totals",
+                description: "`totalRevenue` is the sum of every order total from today",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Returns topProducts array with at most 5 entries",
+                description: "The report returns a `topProducts` array with at most 5 entries",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "topProducts entries include productName and quantitySold",
+                description: "Each `topProducts` entry has `productName` and `quantitySold`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Is admin-only â€” cashier gets 401/403",
+                description: "Only an admin can read the report, a cashier gets 401 or 403",
                 is_required: true,
                 order: 5,
               },
@@ -1074,12 +1084,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "For `weekly()`, loop from 6 days ago to today, creating 7 date buckets. Query revenue and order count for each bucket.",
+                  "The weekly report loops from 6 days ago through today to build 7 date buckets, and asks for revenue and order count in each one. The `dailyBreakdown` array has exactly 7 entries, each with `date`, `revenue` and `orderCount`, and the top level carries `totalRevenue` and `totalOrders`.",
                 order: 1,
               },
               {
                 description:
-                  "Use UTC date boundaries: `new Date()` then `setUTCHours(0,0,0,0)`.",
+                  "Build each bucket with UTC boundaries: `new Date()` then `setUTCHours(0,0,0,0)`. Local time pushes orders into the wrong day.",
                 order: 2,
               },
             ],
@@ -1088,22 +1098,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Returns totalRevenue and totalOrders",
+                description: "The report returns `totalRevenue` and `totalOrders`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Returns a dailyBreakdown array with exactly 7 entries",
+                description: "The report returns a `dailyBreakdown` array with exactly 7 entries",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Each dailyBreakdown entry has date, revenue, and orderCount",
+                description: "Each `dailyBreakdown` entry has `date`, `revenue`, and `orderCount`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Is admin-only â€” cashier gets 401/403",
+                description: "Only an admin can read the report, a cashier gets 401 or 403",
                 is_required: true,
                 order: 4,
               },
@@ -1224,17 +1234,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Wrap the stock check and deduction in `prisma.$transaction(async (tx) => { ... })`. Only one concurrent checkout can pass the stock check at a time.",
+                  "The stock check and the deduction belong to the same unit of work, so only one of two checkouts racing for the last item succeeds. A read that happens outside that unit reopens the race.",
                 order: 1,
               },
               {
                 description:
-                  "Add `Math.round(value * 100) / 100` to every financial value before returning it: subtotal, tax, total, and discount.",
+                  "Apply `Math.round(value * 100) / 100` to every money value before you return it: `subtotal`, `tax`, `total`, and `discount`. A third digit after the decimal point is the trap.",
                 order: 2,
               },
               {
                 description:
-                  "For timezone consistency, construct the day start/end as UTC Dates in the controller: `new Date()` then `setUTCHours(0,0,0,0)`. Pass these exact values to every query.",
+                  "For a consistent timezone, build the day start and end as UTC dates in the controller with `new Date()` then `setUTCHours(0,0,0,0)`. Pass those exact values to every query.",
                 order: 3,
               },
             ],
@@ -1243,22 +1253,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Only one of two concurrent checkouts succeeds for a 1-stock product",
+                description: "Of two checkouts that race for a product with 1 item in stock, only one succeeds",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Inventory quantity never goes negative after concurrent checkouts",
+                description: "Inventory never drops below zero after concurrent checkouts",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Order total has at most 2 decimal places",
+                description: "The order total has at most 2 decimal places",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Daily report returns consistent orderCount on repeated calls",
+                description: "The daily report gives the same `orderCount` every time it is called",
                 is_required: true,
                 order: 4,
               },
@@ -1349,17 +1359,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Create a file named `POSTMORTEM.md` at the project root (same level as `package.json`).",
+                  "Create a file named `POSTMORTEM.md` at the project root, on the same level as `package.json`.",
                 order: 1,
               },
               {
                 description:
-                  "The test checks for lowercase mentions of 'race condition', 'concurrency', 'oversell', 'decimal', 'precision', 'rounding', 'timezone', 'utc', and 'date boundary'. Make sure each concept appears at least once.",
+                  "Grading is case-insensitive and needs only one term from each of three groups. Group one: `race condition`, `concurrency`, `oversell`, or `locking`. Group two: `decimal`, `precision`, `rounding`, or `float`. Group three: `timezone`, `utc`, `date boundary`, or `midnight`. One term from each is enough, and treating the twelve as all required is the trap.",
                 order: 2,
               },
               {
                 description:
-                  "Structure the document with clear headings for each bug, followed by symptom, root cause, fix, and action items.",
+                  "Give each bug its own heading, then list the symptom, the root cause, the fix, and the action items under it.",
                 order: 3,
               },
             ],
@@ -1368,22 +1378,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "POSTMORTEM.md exists at the project root",
+                description: "`POSTMORTEM.md` exists at the project root",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Document mentions race condition / concurrency / oversell root cause",
+                description: "The document covers the race condition, concurrency, or oversell root cause",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Document mentions decimal / precision / rounding root cause",
+                description: "The document covers the decimal, precision, or rounding root cause",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Document mentions timezone / UTC / date boundary root cause",
+                description: "The document covers the timezone, UTC, or date boundary root cause",
                 is_required: true,
                 order: 4,
               },
