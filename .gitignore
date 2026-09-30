@@ -31,3 +31,7 @@ ROADMAP.md
 tsconfig.tsbuildinfo
 .kilo
 .agents
+
+# Data exports
+*.xlsx
+assessment_export.csv

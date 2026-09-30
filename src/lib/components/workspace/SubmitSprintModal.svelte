@@ -824,10 +824,10 @@ improvements: "",
         // Collect rewards (last one will have the full reward)
         submitRewards = submitData.rewards;
 
-        // Collect any achievements unlocked by this task (deduped by tier).
+        // Collect any achievements unlocked by this task (deduped by tier key).
         for (const u of (submitData.newlyUnlocked ??
           []) as UnlockedAchievement[]) {
-          unlockedThisRun.set(`${u.achievementId}:${u.tier}`, u);
+          unlockedThisRun.set(u.achievementKey, u);
         }
 
         // Check if all levels are now complete

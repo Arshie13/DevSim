@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
-import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from '$lib/utils/reward-constants';
+import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from '$lib/server/learnerPass/schedule';
 
 export const POST: RequestHandler = async (event) => {
   const session = await event.locals.auth();
@@ -25,43 +25,46 @@ export const POST: RequestHandler = async (event) => {
 
       if (!enrollment) throw error(400, 'No active pass');
 
-      if (enrollment.expires_at && new Date() > enrollment.expires_at) throw error(410, 'Pass expired');
+      const now = new Date();
 
-      if (!enrollment.claimed_day_numbers.includes(dayNumber)) {
-        throw error(400, 'Day not claimed');
-      }
+      if (now > enrollment.expires_at) throw error(410, 'Pass expired');
+
+      // The claim row *is* the record that the day was claimed.
+      const claim = await tx.learner_pass_claim.findUnique({
+        where: {
+          enrollment_id_day_number: {
+            enrollment_id: enrollment.id,
+            day_number: dayNumber,
+          },
+        },
+      });
+
+      if (!claim) throw error(400, 'Day not claimed');
 
       if (!SPECIAL_UNLOCK_DAYS.includes(dayNumber)) throw error(400, 'Not a special unlock day');
 
-      const choices = (enrollment.unlock_choices as string[]) || [];
-      if (choices.includes(scenarioId)) throw error(409, 'Choice already made for this day');
+      // Scoped to this day's claim, not a global list — each special day gets its own
+      // choice, which the old flat `unlock_choices` array could not express.
+      if (claim.unlocked_scenario) throw error(409, 'Choice already made for this day');
 
       const available = getSpecialUnlocksForDay(dayNumber);
       if (!available.includes(scenarioId)) throw error(400, 'Invalid scenario for this day');
 
-      // Access may already exist from another source (coin purchase, admin
-      // grant, a previous pass). That is not an error: the choice is still
-      // satisfied, so record it and report it instead of dead-ending the user.
-      const existing = await tx.user_project_access.findFirst({
-        where: { user_id: userId, scenario_id: scenarioId },
+      // Already owned, possibly via an earlier pass. Source-agnostic by design: the unlock is
+      // the fact, whoever granted it — and only a claim can grant it now.
+      const existing = await tx.learner_pass_claim.findFirst({
+        where: {
+          unlocked_scenario: scenarioId,
+          enrollment: { user_id: userId },
+        },
+        select: { id: true },
       });
 
-      if (!existing) {
-        await tx.user_project_access.create({
-          data: {
-            user_id: userId,
-            scenario_id: scenarioId,
-            source: 'LEARNER_PASS',
-            learner_pass_enrollment_id: enrollment.id,
-            granted_at: new Date(),
-          },
-        });
-      }
-
-      const newChoices = [...choices, scenarioId];
-      await tx.learner_pass_enrollment.update({
-        where: { id: enrollment.id },
-        data: { unlock_choices: newChoices },
+      // The claim row IS the grant. `unlocked_at` records when the choice was made, which is
+      // often well after the day was claimed.
+      await tx.learner_pass_claim.update({
+        where: { id: claim.id },
+        data: { unlocked_scenario: scenarioId, unlocked_at: now },
       });
 
       return Response.json({

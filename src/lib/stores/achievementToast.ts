@@ -5,7 +5,8 @@ import { toast } from "./toast";
  * Kept structural (not imported from server code) so it stays client-safe.
  */
 export interface UnlockedAchievement {
-  achievementId: string;
+  /** Stable code-defined key, e.g. `stack_master:PRO`. */
+  achievementKey: string;
   name: string;
   icon: string;
   tier: string;
@@ -38,9 +39,9 @@ export function notifyAchievementUnlocks(
   if (!unlocks || unlocks.length === 0) return;
 
   const fresh = unlocks.filter((u) => {
-    const key = `${u.achievementId}:${u.tier}`;
-    if (announced.has(key)) return false;
-    announced.add(key);
+    // `achievementKey` already encodes the tier (e.g. `stack_master:PRO`).
+    if (announced.has(u.achievementKey)) return false;
+    announced.add(u.achievementKey);
     return true;
   });
   if (fresh.length === 0) return;

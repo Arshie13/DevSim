@@ -18,7 +18,7 @@
     ? {
         id: data.user.id,
         name: data.user.name ?? "No Name",
-        fullName: data.user.fullName ?? data.user.name,
+        fullName: data.user.fullName ?? data.user.name ?? undefined,
         email: data.user.email ?? undefined,
         image: data.user.image ?? undefined,
         avatar: data.user.avatar ?? data.user.image ?? "",
@@ -41,7 +41,6 @@
 
   let enrollment = data.enrollment;
   let claimedDays: number[] = enrollment?.claimedDayNumbers ?? [];
-  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   let isClaiming = false;
   let currentAvatar = data.currentAvatar ?? null;
   let equippingDay: number | null = null;
@@ -80,11 +79,11 @@
   });
 
   $: currentLevel = enrollment?.currentDay || 1;
-  $: nextAvailableAt = enrollment?.lastClaimedAt
-    ? new Date(new Date(enrollment.lastClaimedAt).getTime() + ONE_DAY_MS).toISOString()
-    : null;
-  // currentTime is referenced so the countdown recomputes on every tick.
-  $: timeUntilNext = nextAvailableAt && currentTime ? getTimeUntilNext(nextAvailableAt) : "";
+  // The server owns the reset rule. This used to be re-derived here as
+  // `lastClaimedAt + 24h`, which stopped being true once availability moved to a fixed
+  // 16:00 UTC+8 boundary — the countdown was pointing at the wrong instant.
+  $: nextAvailableAt = enrollment?.nextAvailableAt ?? null;
+  $: timeUntilNext = nextAvailableAt ? getTimeUntilNext(nextAvailableAt) : "";
   $: isWaitingForNext = nextAvailableAt && currentTime && new Date(nextAvailableAt) > currentTime;
   $: progressPct = Math.min(100, (currentLevel / 30) * 100);
   $: nextClaimReady =
@@ -172,11 +171,9 @@
     // Past missed days are always claimable (no cooldown).
     if (reward.day < currentLevel) return true;
 
-    // Current day: enforce one-claim-per-real-day cooldown (24h ms comparison,
-    // avoids timezone issues with toDateString()).
-    if (!enrollment.lastClaimedAt) return true;
-
-    return Date.now() - new Date(enrollment.lastClaimedAt).getTime() >= 24 * 60 * 60 * 1000;
+    // Current day: the server decides. It becomes available at the fixed daily reset
+    // (16:00 UTC+8), not 24h after the last claim, so the rule is not re-derived here.
+    return enrollment.canClaimNow;
   }
 
   function handleClaim(dayNumber: number = enrollment?.currentDay || 1) {
@@ -202,13 +199,20 @@
               totalClaimedDays: newTotalClaimed,
               status: newTotalClaimed >= 30 ? "COMPLETED" : enrollment.status,
               lastClaimedAt: new Date().toISOString(),
+              // Straight from the server, so the countdown points at the real reset instant.
+              canClaimNow: claimData.canClaimNow ?? false,
+              nextAvailableAt: claimData.nextAvailableAt ?? null,
             };
             startTimer();
           }
 
-          if (claimData.unlockedScenarios && claimData.unlockedScenarios.length > 0) {
-            unlockedScenarioId = claimData.unlockedScenarios[0];
-            showUnlockedScenarioModal = true;
+          // Current (server-owned) flow: a scenario-granting reward is a choice, so the
+          // claim response carries the pending unlock and the picker opens.
+          if (claimData.pendingUnlocks && claimData.pendingUnlocks.length > 0) {
+            showUnlockPicker = true;
+            pickerDay = claimData.pendingUnlocks[0].day;
+            pickerAvailable = claimData.pendingUnlocks[0].available;
+            pendingUnlocks = [...pendingUnlocks, ...claimData.pendingUnlocks];
           }
         }
       })

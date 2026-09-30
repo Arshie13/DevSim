@@ -2,18 +2,17 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
 import { detectNewlyUnlockedAchievements } from '$lib/server/achievements/unlocks';
+import {
+  CYCLE_LENGTH,
+  deriveCycleState,
+  rewardDayDate,
+  rewardFor,
+  toClaimRefs,
+} from '$lib/server/dailyRewards/schedule';
+import { getDailyLoginState } from '$lib/server/dailyRewards/queries';
 
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-const REWARD_SCHEDULE = [
-  { day: 1, coins: 50, xp: 10, aiHelps: 1 },
-  { day: 2, coins: 75, xp: 20, aiHelps: 1 },
-  { day: 3, coins: 100, xp: 30, aiHelps: 2 },
-  { day: 4, coins: 150, xp: 40, aiHelps: 2 },
-  { day: 5, coins: 200, xp: 50, aiHelps: 2 },
-  { day: 6, coins: 300, xp: 75, aiHelps: 3 },
-  { day: 7, coins: 500, xp: 100, aiHelps: 5 },
-];
+const MS_PER_HOUR = 60 * 60 * 1000;
+const MS_PER_MINUTE = 60 * 1000;
 
 export const POST: RequestHandler = async (event) => {
   const session = await event.locals.auth();
@@ -24,83 +23,61 @@ export const POST: RequestHandler = async (event) => {
   const userId = session.user.id;
 
   const body = await event.request.json().catch(() => null);
-  const dayIndex = body?.dayIndex;
-
-  if (typeof dayIndex !== 'number' || dayIndex < 0 || dayIndex > 6) {
-    throw error(400, 'Invalid day index');
-  }
-
-  const dayNumber = dayIndex + 1;
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      let daily = await tx.daily_login.findUnique({
-        where: { user_id: userId },
-        include: { claims: { select: { day_index: true } } },
-      });
-
       const now = new Date();
 
-      if (!daily) {
-        // First-ever claim: create the daily_login row and the first claim.
-        daily = await tx.daily_login.create({
-          data: {
-            user_id: userId,
-            streak: 1,
-            last_claimed_at: now,
-            claims: { create: { day_index: dayIndex } },
-          },
-          include: { claims: { select: { day_index: true } } },
-        });
-      } else {
-        // 24-hour cooldown guard.
-        if (daily.last_claimed_at) {
-          const timeSinceLast = now.getTime() - daily.last_claimed_at.getTime();
-          if (timeSinceLast < ONE_DAY_MS) {
-            const remainingMs = ONE_DAY_MS - timeSinceLast;
-            const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-            const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-            throw error(429, `Please wait ${hours}h ${minutes}m before next claim`);
-          }
-        }
+      // No parent row to create — the claim rows ARE the state. An empty history
+      // is a valid input, so the first-ever claim takes the same path as any
+      // other, and there is nothing to keep in sync.
+      const claims = await tx.daily_login_claim.findMany({
+        where: { user_id: userId },
+        select: {
+          cycle_index: true,
+          day_index: true,
+          claimed_on: true,
+          claimed_at: true,
+        },
+      });
 
-        // Derive which day is next claimable from the highest claimed day_index.
-        const highestClaimed = daily.claims.reduce(
-          (max, c) => Math.max(max, c.day_index),
-          -1,
-        );
+      const state = deriveCycleState(toClaimRefs(claims), now);
 
-        // Sequential unlock: can only claim up to highestClaimed + 1.
-        if (dayIndex > highestClaimed + 1) {
-          throw error(400, 'Reward not yet available — claim previous days first');
-        }
-
-        // Idempotency: unique constraint on (daily_login_id, day_index) also
-        // enforces this at the DB level, but we return a friendlier error here.
-        if (daily.claims.some((c) => c.day_index === dayIndex)) {
-          throw error(409, 'Reward already claimed');
-        }
-
-        // Reset streak if user skipped a day (>48h since last claim).
-        const skippedADay =
-          daily.last_claimed_at != null &&
-          now.getTime() - daily.last_claimed_at.getTime() > 2 * ONE_DAY_MS;
-        const newStreak = skippedADay ? 1 : daily.streak + 1;
-
-        // Insert claim row — DB unique constraint prevents races.
-        await tx.daily_login_claim.create({
-          data: { daily_login_id: daily.id, day_index: dayIndex },
-        });
-
-        daily = await tx.daily_login.update({
-          where: { user_id: userId },
-          data: { streak: newStreak, last_claimed_at: now },
-          include: { claims: { select: { day_index: true } } },
-        });
+      // A stale client may offer the wrong rung; a forged one may offer any rung.
+      // The old fresh-account branch trusted `dayIndex` outright, so POSTing
+      // { dayIndex: 6 } on a new account granted day 7 (500 coins) immediately.
+      if (body?.dayIndex !== undefined && body.dayIndex !== state.dayIndex) {
+        throw error(409, `Day ${state.dayNumber} is next — refresh and try again`);
       }
 
-      const reward = REWARD_SCHEDULE[dayIndex];
+      // Availability is the fixed daily reset, not elapsed time: a claim is
+      // allowed exactly when today's reward day has no claim against it.
+      if (!state.canClaim) {
+        const hours = Math.floor(state.msUntilReset / MS_PER_HOUR);
+        const minutes = Math.floor((state.msUntilReset % MS_PER_HOUR) / MS_PER_MINUTE);
+        throw error(
+          429,
+          `Already claimed today — next reward in ${hours}h ${minutes}m (resets 16:00 UTC+8)`,
+        );
+      }
+
+      const reward = rewardFor(state.dayIndex);
       if (!reward) throw error(500, 'Invalid reward schedule');
+
+      // No read-then-write pre-check: the primary key
+      // (daily_login_id, cycle_index, day_index) absorbs a concurrent duplicate
+      // at the DB level, so a race surfaces as P2002 rather than a double payout.
+      await tx.daily_login_claim.create({
+        data: {
+          user_id: userId,
+          claimed_on: rewardDayDate(state.today),
+          cycle_index: state.cycleIndex,
+          day_index: state.dayIndex,
+          coins_awarded: reward.coins,
+          xp_awarded: reward.xp,
+          ai_helps_awarded: reward.aiHelps,
+        },
+      });
 
       const updatedUser = await tx.user.update({
         where: { id: userId },
@@ -112,47 +89,51 @@ export const POST: RequestHandler = async (event) => {
         select: { coins: true, xp: true, ai_help_credits: true },
       });
 
-      return {
-        daily,
-        updatedUser,
-        reward: {
-          day: reward.day,
-          coins: reward.coins,
-          xp: reward.xp,
-          aiHelps: reward.aiHelps,
-        },
-      };
+      return { state, updatedUser, reward };
     });
 
     const newlyUnlocked = await detectNewlyUnlockedAchievements(userId);
 
-    // Derive next claimable day for the response.
-    const highestClaimed = result.daily.claims.reduce(
-      (max, c) => Math.max(max, c.day_index),
-      -1,
-    );
-    const nextClaimableDay = highestClaimed + 2;
+    // Where the user stands *after* this claim — so a completed ladder reports
+    // the fresh cycle (day 1, nothing claimed) instead of dead-ending at day 8.
+    // Re-read after commit so the response matches exactly what was stored.
+    const after = await getDailyLoginState(userId);
 
     return Response.json({
       success: true,
-      day: dayNumber,
+      // What was just granted.
+      day: result.state.dayNumber,
+      cycleIndex: result.state.cycleIndex,
+      cycleCompleted: result.state.dayIndex === CYCLE_LENGTH - 1,
       coins: result.reward.coins,
       xp: result.reward.xp,
       aiHelps: result.reward.aiHelps,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,
-      currentDay: nextClaimableDay,
-      claimedDays: result.daily.claims.map((c) => c.day_index),
-      canClaimToday: false,
-      nextAvailableAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
-      cooldown: { remainingMs: ONE_DAY_MS, hours: 24, minutes: 0 },
+      streak: after.streak,
+      // Where the user stands next.
+      currentDay: after.dayNumber,
+      claimedDays: after.claimedDays,
+      canClaimToday: after.canClaim,
+      nextAvailableAt: after.nextResetAt.toISOString(),
+      cooldown: {
+        remainingMs: after.msUntilReset,
+        hours: Math.floor(after.msUntilReset / MS_PER_HOUR),
+        minutes: Math.floor((after.msUntilReset % MS_PER_HOUR) / MS_PER_MINUTE),
+      },
       newlyUnlocked,
     });
   } catch (err) {
-    console.error('Error claiming daily reward:', err);
-    // Re-throw SvelteKit errors (429, 409, 400, 500) as-is.
+    // Re-throw SvelteKit errors (400/409/429/500) as-is.
     if (typeof err === 'object' && err !== null && 'status' in err) throw err;
+
+    // A concurrent claim won the race and the unique key rejected ours.
+    if (typeof err === 'object' && err !== null && (err as { code?: string }).code === 'P2002') {
+      throw error(409, 'Reward already claimed');
+    }
+
+    console.error('Error claiming daily reward:', err);
     throw error(500, 'Failed to claim reward');
   }
 };

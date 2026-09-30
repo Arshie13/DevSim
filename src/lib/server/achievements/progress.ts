@@ -1,8 +1,10 @@
 import prisma from "$lib/server/client";
+import type { AchievementCriterion } from "./definitions";
+import { getLoginStreak } from "$lib/server/dailyRewards/queries";
 
 /**
  * Per-user scalar snapshot used to evaluate achievement tier criteria.
- * All values come from existing Prisma sources — see docs/ACHIEVEMENTS_SPEC.md §5.
+ * All values come from existing Prisma sources.
  */
 export interface UserProgressSnapshot {
   xp: number;
@@ -24,7 +26,7 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
       where: { id: userId },
       select: { xp: true, coins: true, has_completed_tutorial: true, trivia_correct_count: true },
     }),
-    prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
+    getLoginStreak(userId),
     prisma.task_activity.count({ where: { user_id: userId } }),
     prisma.file_changes.count({
       where: {
@@ -54,7 +56,7 @@ export async function getUserProgressSnapshot(userId: string): Promise<UserProgr
   return {
     xp: dbUser?.xp ?? 0,
     coins: dbUser?.coins ?? 0,
-    loginStreak: streak?.streak ?? 0,
+    loginStreak: streak,
     tasksCompleted: tasks,
     fileEdits,
     scenariosCompleted: archivedContainers.length,
@@ -72,37 +74,44 @@ export interface CriterionProgress {
 }
 
 /**
- * Given a tier's JSON criteria and a user snapshot, return (current, target).
- * Unknown criterion types return zero progress — safe fallback.
+ * Given a typed criterion and a user snapshot, return (current, target).
+ *
+ * The switch is exhaustive over `AchievementCriterion`: adding a criterion type
+ * without handling it here is a *compile* error, not a silently-unearnable
+ * achievement (which is what the old `unknown`-typed JSON version allowed).
  */
-export function evaluateCriterion(criteria: unknown, snap: UserProgressSnapshot): CriterionProgress {
-  if (!criteria || typeof criteria !== "object") return { current: 0, target: 1 };
-  const c = criteria as { type?: string; count?: number; days?: number; xp?: number; coins?: number };
-
+export function evaluateCriterion(
+  c: AchievementCriterion,
+  snap: UserProgressSnapshot,
+): CriterionProgress {
   switch (c.type) {
     case "scenarios_in_stack":
-      return { current: snap.maxScenariosInAnyStack, target: c.count ?? 1 };
+      return { current: snap.maxScenariosInAnyStack, target: c.count };
     case "distinct_stacks":
-      return { current: snap.distinctStacks, target: c.count ?? 1 };
-    case "tasks_completed":
-      return { current: snap.tasksCompleted, target: c.count ?? 1 };
-    case "levels_completed":
-      return { current: snap.levelsCompleted, target: c.count ?? 1 };
+      return { current: snap.distinctStacks, target: c.count };
     case "scenarios_completed":
-      return { current: snap.scenariosCompleted, target: c.count ?? 1 };
+      return { current: snap.scenariosCompleted, target: c.count };
+    case "levels_completed":
+      return { current: snap.levelsCompleted, target: c.count };
+    case "tasks_completed":
+      return { current: snap.tasksCompleted, target: c.count };
     case "login_streak":
-      return { current: snap.loginStreak, target: c.days ?? 1 };
-    case "xp_total":
-      return { current: snap.xp, target: c.xp ?? 1 };
-    case "coins_earned":
-      return { current: snap.coins, target: c.coins ?? 1 };
+      return { current: snap.loginStreak, target: c.days };
     case "file_edits":
-      return { current: snap.fileEdits, target: c.count ?? 1 };
+      return { current: snap.fileEdits, target: c.count };
+    case "xp_total":
+      return { current: snap.xp, target: c.xp };
+    case "coins_earned":
+      return { current: snap.coins, target: c.coins };
+    case "trivia_correct":
+      return { current: snap.triviaCorrectCount, target: c.count };
     case "tutorial_completed":
       return { current: snap.tutorialCompleted ? 1 : 0, target: 1 };
-    case "trivia_correct":
-      return { current: snap.triviaCorrectCount, target: c.count ?? 1 };
-    default:
-      return { current: 0, target: 1 };
+    default: {
+      // Exhaustiveness guard — unreachable while every member is handled above.
+      const unhandled: never = c;
+      console.error("[achievements] unhandled criterion", unhandled);
+      return { current: 0, target: Number.POSITIVE_INFINITY };
+    }
   }
 }

@@ -24,6 +24,7 @@
 		"prod:prisma": "pm2 start pnpm --name prisma-studio -- exec prisma studio --browser none",
 		"prod:studio": "ngrok http 51212",
 		"db:seed": "pnpm exec tsx prisma/seed.ts",
+		"export:users-assessment": "pnpm exec tsx scripts/export-users-xlsx.ts",
 		"db:migrate": "pnpm prisma migrate dev",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -33,6 +34,9 @@
 		"db:push": "prisma db push",
 		"db:studio": "pnpm prisma studio",
 		"db:reset": "pnpm prisma migrate reset",
+		"dev:pass-unlock": "pnpm exec tsx scripts/dev-pass-rewards.ts apply",
+		"dev:pass-revert": "pnpm exec tsx scripts/dev-pass-rewards.ts revert",
+		"dev:pass-status": "pnpm exec tsx scripts/dev-pass-rewards.ts status",
 		"test": "jest",
 		"test:run": "jest --passWithNoTests",
 		"test:coverage": "vitest run --coverage"
