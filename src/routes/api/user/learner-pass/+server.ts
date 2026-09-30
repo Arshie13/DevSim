@@ -1,135 +1,89 @@
-import { error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import prisma from "$lib/server/client";
-import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
-import { getCurrentStreak } from "$lib/utils/learnerPassStreak";
-
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+import { error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import prisma from '$lib/server/client';
+import {
+  PASS_LADDER,
+  derivePassState,
+  derivePendingUnlocks,
+  rewardFor,
+  toClaimRefs,
+  toRewardPayload,
+} from '$lib/server/learnerPass/schedule';
 
 export const GET: RequestHandler = async (event) => {
   const session = await event.locals.auth();
 
   if (!session?.user?.id) {
-    throw error(401, "Unauthorized");
+    throw error(401, 'Unauthorized');
   }
 
   const userId = session.user.id;
 
   const enrollment = await prisma.learner_pass_enrollment.findFirst({
     where: { user_id: userId },
-    orderBy: { created_at: "desc" },
+    orderBy: { created_at: 'desc' },
   });
 
   if (!enrollment) {
     return Response.json({
-      status: "NOT_ENROLLED",
+      status: 'NOT_ENROLLED',
       hasEnrollment: false,
     });
   }
 
   const now = new Date();
-  const isExpired = !!enrollment.expires_at && now > enrollment.expires_at;
 
-  // Use a Set to deduplicate before comparing to 30 to avoid false positives
-  // from any legacy duplicate entries in the array.
-  const uniqueClaimedDays = new Set(enrollment.claimed_day_numbers);
-  const isCompleted = uniqueClaimedDays.size >= 30;
-  const isActive = !isExpired && !isCompleted;
-
-  // Derive status — an enrollment always has created_at so it's always started.
-  const status = isCompleted
-    ? "COMPLETED"
-    : isExpired
-      ? "EXPIRED"
-      : isActive
-        ? "ACTIVE"
-        : "INACTIVE";
-
-  const start = enrollment.created_at;
-  const currentDay = Math.min(
-    30,
-    Math.floor((now.getTime() - start.getTime()) / ONE_DAY_MS) + 1,
-  );
-
-  // Use 24h millisecond comparison — avoids timezone issues with toDateString().
-  const canClaimNow =
-    isActive &&
-    (enrollment.last_claimed_at === null ||
-      now.getTime() - new Date(enrollment.last_claimed_at).getTime() >= ONE_DAY_MS);
-
-  const daysRemaining = enrollment.expires_at
-    ? Math.max(
-        0,
-        Math.ceil(
-          (enrollment.expires_at.getTime() - now.getTime()) / ONE_DAY_MS,
-        ),
-      )
-    : 0;
-
-  const nextAvailableAt =
-    !canClaimNow && enrollment.last_claimed_at
-      ? new Date(
-          new Date(enrollment.last_claimed_at).getTime() + ONE_DAY_MS,
-        ).toISOString()
-      : null;
-
-  const rewards = await prisma.learner_pass_reward.findMany({
-    orderBy: { reward_index: "asc" },
+  const claims = await prisma.learner_pass_claim.findMany({
+    where: { enrollment_id: enrollment.id },
+    select: {
+      day_number: true,
+      claimed_at: true,
+      unlocked_scenario: true,
+      unlocked_at: true,
+    },
   });
 
-  const currentDayReward = rewards.find((r) => r.reward_index === currentDay);
-  const upcomingRewards = rewards
-    .filter(
-      (r) => r.reward_index > currentDay && r.reward_index <= currentDay + 3,
-    )
-    .slice(0, 3);
+  const state = derivePassState(enrollment, toClaimRefs(claims), now);
 
-  const unlockedProjects = await prisma.user_project_access.findMany({
-    where: { user_id: userId, source: "LEARNER_PASS" },
-    select: { scenario_id: true, granted_at: true },
-  });
+  const currentDayReward = rewardFor(state.currentDay);
+  const upcomingRewards = PASS_LADDER.filter(
+    (r) => r.day > state.currentDay && r.day <= state.currentDay + 3,
+  ).slice(0, 3);
 
-  // Validate unlock_choices defensively — it's a JSON column, shape not guaranteed.
-  const choices: string[] = Array.isArray(enrollment.unlock_choices)
-    ? (enrollment.unlock_choices as unknown[]).filter(
-        (c): c is string => typeof c === "string",
-      )
-    : [];
+  // Unlocks come straight from the claims — the claim IS the grant now that
+  // `user_project_access` is gone. `unlocked_at` is when the choice was made, which can be
+  // well after `claimed_at`: a day is claimed, then its reward is spent later.
+  const unlockedProjects = claims
+    .filter((c) => typeof c.unlocked_scenario === 'string')
+    .map((c) => ({
+      scenarioId: c.unlocked_scenario as string,
+      grantedAt: c.unlocked_at ?? c.claimed_at,
+    }));
 
-  const pendingUnlocks = [];
-  for (const day of uniqueClaimedDays) {
-    if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
-    const available = getSpecialUnlocksForDay(day).filter(
-      (id) =>
-        !choices.includes(id) &&
-        !unlockedProjects.some((p) => p.scenario_id === id),
-    );
-    if (available.length > 0) {
-      pendingUnlocks.push({ day, available });
-    }
-  }
-
-  const streak = getCurrentStreak(enrollment.streak, enrollment.last_claimed_at, now);
+  // A special day stops being "pending" once a choice is recorded for it. Scoping that check
+  // per day is the fix: the old flat `unlock_choices` array was checked globally, so a single
+  // choice silently suppressed the prompt for every other special day.
+  const alreadyUnlocked = new Set(unlockedProjects.map((p) => p.scenarioId));
 
   return Response.json({
-    status,
+    status: state.status,
     hasEnrollment: true,
-    currentDay,
-    totalClaimedDays: uniqueClaimedDays.size,
-    streak,
-    claimedDays: [...uniqueClaimedDays],
-    canClaimNow,
-    nextAvailableAt,
-    expiresAt: enrollment.expires_at?.toISOString(),
-    daysRemaining,
+    currentDay: state.currentDay,
+    totalClaimedDays: state.totalClaimedDays,
+    streak: state.streak,
+    claimedDays: state.claimedDays,
+    canClaimNow: state.canClaimNow,
+    nextAvailableAt: state.nextAvailableAt?.toISOString() ?? null,
+    expiresAt: enrollment.expires_at.toISOString(),
+    daysRemaining: state.daysRemaining,
     rewards: {
-      current: currentDayReward,
-      upcoming: upcomingRewards,
+      current: currentDayReward ? toRewardPayload(currentDayReward) : undefined,
+      upcoming: upcomingRewards.map(toRewardPayload),
     },
     unlockedProjects: unlockedProjects.map((p) => ({
-      projectId: p.scenario_id,
-      grantedAt: p.granted_at.toISOString(),
+      projectId: p.scenarioId,
+      grantedAt: p.grantedAt.toISOString(),
     })),
-    pendingUnlocks,
+    pendingUnlocks: derivePendingUnlocks(state.claimedDays, alreadyUnlocked),
   });
 };

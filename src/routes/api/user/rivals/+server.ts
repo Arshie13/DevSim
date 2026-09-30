@@ -33,9 +33,9 @@ export const GET: RequestHandler = async ({ locals }) => {
             id: true,
           },
         },
-        achievements: {
+        _count: {
           select: {
-            id: true,
+            achievements: true,
           },
         },
       },
@@ -50,7 +50,7 @@ export const GET: RequestHandler = async ({ locals }) => {
       xp: u.xp,
       level: 1,
       completedProjects: u.workspaces.length,
-      achievementsCount: u.achievements.length,
+      achievementsCount: u._count.achievements,
       isCurrentUser: u.id === session.user?.id,
     }));
 

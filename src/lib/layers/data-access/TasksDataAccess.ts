@@ -32,7 +32,13 @@ export class TasksDataAccess {
     }
   }
 
-  async createCompletedTask(workspaceId: string, taskId: string, userId: string, level: number) {
+  async createCompletedTask(
+    workspaceId: string,
+    scenarioId: string,
+    taskName: string,
+    userId: string,
+    level: number
+  ) {
     try {
       await prisma.$transaction(async (tx) => {
         const workspace = await tx.workspace.findUnique({
@@ -40,25 +46,25 @@ export class TasksDataAccess {
           select: { completed_tasks: true }
         });
 
-        if (!workspace?.completed_tasks.includes(taskId)) {
+        if (!workspace?.completed_tasks.includes(taskName)) {
           await tx.workspace.update({
             where: { id: workspaceId },
             data: {
               completed_tasks: {
-                push: taskId
+                push: taskName
               }
             }
           });
         }
 
-        const existing = await tx.task_activity.findFirst({
-          where: { user_id: userId, task_name: taskId }
+        // De-duplication is the unique constraint's job now, not a read-then-write check.
+        // The old guard keyed on (user_id, task_name), which is not unique across scenarios
+        // — "Prepare Development Environment" exists in 12 of them — so completing that task
+        // in a second scenario recorded nothing at all.
+        await tx.task_activity.createMany({
+          data: [{ user_id: userId, scenario_id: scenarioId, task_name: taskName, level }],
+          skipDuplicates: true,
         });
-        if (!existing) {
-          await tx.task_activity.create({
-            data: { user_id: userId, task_name: taskId, level }
-          });
-        }
       });
     } catch (error) {
       console.error('Error adding completed task to workspace:', error);

@@ -1,11 +1,14 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
-import { SCENARIO_3_IDS } from '$lib/utils/reward-constants';
-import { getRewardUnlockIds } from '$lib/server/learnerPassRewards';
-import { calculateNextStreak } from '$lib/utils/learnerPassStreak';
-
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+import {
+  PASS_LENGTH,
+  derivePassState,
+  requiresCooldown,
+  rewardFor,
+  toClaimRefs,
+} from '$lib/server/learnerPass/schedule';
+import { rewardDayNumber } from '$lib/server/rewards/reset';
 
 export const POST: RequestHandler = async (event) => {
   const session = await event.locals.auth();
@@ -18,7 +21,7 @@ export const POST: RequestHandler = async (event) => {
   const body = await event.request.json().catch(() => null);
   const dayNumber = body?.dayNumber;
 
-  if (typeof dayNumber !== 'number' || dayNumber < 1 || dayNumber > 30) {
+  if (typeof dayNumber !== 'number' || dayNumber < 1 || dayNumber > PASS_LENGTH) {
     throw error(400, 'Invalid day number');
   }
 
@@ -29,56 +32,60 @@ export const POST: RequestHandler = async (event) => {
         orderBy: { created_at: 'desc' },
       });
 
-      const now = new Date();
-
       if (!enrollment) {
         throw error(400, 'No active learner pass');
       }
 
-      if (enrollment.expires_at && now > enrollment.expires_at) {
+      const now = new Date();
+
+      if (now > enrollment.expires_at) {
         throw error(410, 'Pass has expired');
       }
 
-      const daysSinceStart =
-        Math.floor((now.getTime() - enrollment.created_at.getTime()) / ONE_DAY_MS) + 1;
-      const currentDay = Math.min(30, Math.max(1, daysSinceStart));
+      const claims = await tx.learner_pass_claim.findMany({
+        where: { enrollment_id: enrollment.id },
+        select: { day_number: true, claimed_at: true },
+      });
+
+      const state = derivePassState(enrollment, toClaimRefs(claims), now);
+
+      // Reset-days elapsed, so this agrees with `currentDay` instead of counting 24h blocks
+      // from `created_at`.
+      const daysSinceStart = rewardDayNumber(now) - rewardDayNumber(enrollment.created_at) + 1;
 
       if (dayNumber > daysSinceStart) {
         throw error(400, 'Cannot claim rewards for future days');
       }
 
-      if (dayNumber > currentDay) {
+      if (dayNumber > state.currentDay) {
         throw error(400, 'Can only claim up to the current day');
       }
 
-      // Use a Set to deduplicate and check — guards against legacy duplicate entries.
-      const uniqueClaimed = new Set(enrollment.claimed_day_numbers);
-
-      if (uniqueClaimed.has(dayNumber)) {
+      if (state.claimedDays.includes(dayNumber)) {
         throw error(409, 'Reward already claimed for this day');
       }
 
-      const reward = await tx.learner_pass_reward.findUnique({
-        where: { reward_index: dayNumber },
-      });
+      // Past, missed allowance days back-fill freely — the pass is prepaid, so a day not
+      // redeemed in its window is still owed. Only the current day is rate-limited. This
+      // matches what pass/+page.svelte already enforced client-side.
+      if (requiresCooldown(dayNumber, state.currentDay) && !state.canClaimNow) {
+        throw error(429, 'Rewards become available again after the next reset (16:00 UTC+8)');
+      }
+
+      const reward = rewardFor(dayNumber);
 
       if (!reward) {
         throw error(500, 'Reward not configured');
       }
 
-      const newClaimedDays = [...uniqueClaimed, dayNumber];
-      const newStreak = calculateNextStreak(
-        enrollment.streak,
-        enrollment.last_claimed_at,
-        now,
-      );
-
-      const updatedEnrollment = await tx.learner_pass_enrollment.update({
-        where: { id: enrollment.id },
+      await tx.learner_pass_claim.create({
         data: {
-          streak: newStreak,
-          last_claimed_at: now,
-          claimed_day_numbers: newClaimedDays,
+          enrollment_id: enrollment.id,
+          day_number: dayNumber,
+          claimed_at: now,
+          coins_awarded: reward.coins,
+          xp_awarded: reward.xp,
+          ai_helps_awarded: reward.aiHelps,
         },
       });
 
@@ -87,51 +94,29 @@ export const POST: RequestHandler = async (event) => {
         data: {
           coins: { increment: reward.coins },
           xp: { increment: reward.xp },
-          ai_help_credits: { increment: reward.ai_helps },
+          ai_help_credits: { increment: reward.aiHelps },
         },
         select: { coins: true, xp: true, ai_help_credits: true },
       });
 
-      const projectGrants: string[] = [];
-      const pendingUnlocks: { day: number; available: string[] }[] = [];
-      const rewardUnlocks = getRewardUnlockIds(reward);
+      // A scenario-granting reward is always a CHOICE, resolved later by choose-unlock:
+      // claiming only makes the choice available. `unlockChoices` is by construction a subset
+      // of `SCENARIO_3_IDS` (that set is derived from it), so there is no "grant outright"
+      // path left to take and no access row to write — the claim itself becomes the grant.
+      const pendingUnlocks =
+        reward.unlockChoices.length > 0 ? [{ day: dayNumber, available: reward.unlockChoices }] : [];
 
-      if (rewardUnlocks.length > 0) {
-        const normalUnlocks = rewardUnlocks.filter((id) => !SCENARIO_3_IDS.has(id));
-        const specialUnlocks = rewardUnlocks.filter((id) => SCENARIO_3_IDS.has(id));
-
-        for (const projectId of normalUnlocks) {
-          const existingAccess = await tx.user_project_access.findFirst({
-            where: { user_id: userId, scenario_id: projectId, source: 'LEARNER_PASS' },
-          });
-
-          if (!existingAccess) {
-            await tx.user_project_access.create({
-              data: {
-                user_id: userId,
-                scenario_id: projectId,
-                source: 'LEARNER_PASS',
-                learner_pass_enrollment_id: enrollment.id,
-                granted_at: now,
-              },
-            });
-            projectGrants.push(projectId);
-          }
-        }
-
-        if (specialUnlocks.length > 0) {
-          pendingUnlocks.push({ day: dayNumber, available: specialUnlocks });
-        }
-      }
+      const updatedState = derivePassState(
+        enrollment,
+        [...toClaimRefs(claims), { dayNumber, claimedAt: now }],
+        now,
+      );
 
       return {
         updatedUser,
-        updatedEnrollment,
-        newClaimedDays,
+        updatedState,
         reward,
-        projectGrants,
         pendingUnlocks,
-        currentDay,
       };
     });
 
@@ -141,16 +126,21 @@ export const POST: RequestHandler = async (event) => {
       reward: {
         coins: result.reward.coins,
         xp: result.reward.xp,
-        aiHelps: result.reward.ai_helps,
-        unlocks: result.projectGrants,
+        aiHelps: result.reward.aiHelps,
+        // Always empty: a scenario-granting reward is a choice, never an immediate grant.
+        // Kept in the payload so the response shape is unchanged.
+        unlocks: [] as string[],
       },
       pendingUnlocks: result.pendingUnlocks,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,
-      streak: result.updatedEnrollment.streak,
-      totalClaimedDays: result.newClaimedDays.length,
-      currentDay: result.currentDay,
+      streak: result.updatedState.streak,
+      totalClaimedDays: result.updatedState.totalClaimedDays,
+      currentDay: result.updatedState.currentDay,
+      // Additive fields: the client no longer re-derives the cooldown from `lastClaimedAt + 24h`.
+      canClaimNow: result.updatedState.canClaimNow,
+      nextAvailableAt: result.updatedState.nextAvailableAt?.toISOString() ?? null,
     });
   } catch (err) {
     if (err && typeof err === 'object' && 'status' in err) throw err;

@@ -1,7 +1,13 @@
-import type { PageServerLoad } from "./$types";
-import prisma from "$lib/server/client";
-import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from "$lib/utils/reward-constants";
-import { getCurrentStreak } from "$lib/utils/learnerPassStreak";
+import type { PageServerLoad } from './$types';
+import prisma from '$lib/server/client';
+import type { PassState } from '$lib/server/learnerPass/schedule';
+import {
+  PASS_LADDER,
+  derivePassState,
+  derivePendingUnlocks,
+  toClaimRefs,
+  toRewardPayload,
+} from '$lib/server/learnerPass/schedule';
 
 export const load: PageServerLoad = async (event) => {
   const session = await event.locals.auth();
@@ -15,77 +21,57 @@ export const load: PageServerLoad = async (event) => {
 
   const userId = session.user.id;
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { image: true },
-  });
+  const [dbUser, enrollment] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { image: true },
+    }),
+    prisma.learner_pass_enrollment.findFirst({
+      where: { user_id: userId },
+      orderBy: { created_at: 'desc' },
+    }),
+  ]);
 
-  const enrollment = await prisma.learner_pass_enrollment.findFirst({
-    where: { user_id: userId },
-    orderBy: { created_at: "desc" },
-  });
+  // Ladder comes from code now, emitted in the field names pass/+page.svelte already reads.
+  const rewards = PASS_LADDER.map(toRewardPayload);
 
-  const rewards = await prisma.learner_pass_reward.findMany({
-    orderBy: { reward_index: "asc" },
-  });
-
-  const start = enrollment?.created_at ?? new Date();
-  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-  const currentDay = Math.min(30, Math.floor((Date.now() - start.getTime()) / ONE_DAY_MS) + 1);
-
+  let state: PassState | null = null;
   let pendingUnlocks: { day: number; available: string[] }[] = [];
+
   if (enrollment) {
-    const unlockedProjects = await prisma.user_project_access.findMany({
-      where: { user_id: userId, source: 'LEARNER_PASS' },
-      select: { scenario_id: true },
+    const claims = await prisma.learner_pass_claim.findMany({
+      where: { enrollment_id: enrollment.id },
+      select: { day_number: true, claimed_at: true, unlocked_scenario: true },
     });
-    const unlockedIds = new Set(unlockedProjects.map((p) => p.scenario_id));
-    const choices = (enrollment.unlock_choices as string[]) || [];
-    for (const day of enrollment.claimed_day_numbers) {
-      if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
-      const dayScenario = getSpecialUnlocksForDay(day)[0];
-      if (!dayScenario || choices.includes(dayScenario)) continue;
-      const available = getSpecialUnlocksForDay(day).filter((id) => !unlockedIds.has(id));
-      if (available.length > 0) {
-        pendingUnlocks.push({ day, available });
-      }
-    }
+
+    state = derivePassState(enrollment, toClaimRefs(claims), new Date());
+
+    // The claim's choice IS the grant now that `user_project_access` is gone.
+    const alreadyUnlocked = new Set(
+      claims
+        .map((c) => c.unlocked_scenario)
+        .filter((id): id is string => typeof id === 'string'),
+    );
+
+    pendingUnlocks = derivePendingUnlocks(state.claimedDays, alreadyUnlocked);
   }
 
-  const claimedDayNumbers: number[] = enrollment?.claimed_day_numbers ?? [];
-  const uniqueClaimedDays = new Set(claimedDayNumbers);
-
-  const now = new Date();
-  const isExpired = !!(enrollment?.expires_at && now > enrollment.expires_at);
-  const isCompleted = uniqueClaimedDays.size >= 30;
-  const isActive = !!enrollment?.created_at && !isExpired && !isCompleted;
-
-  const status = isCompleted
-    ? "COMPLETED"
-    : isExpired
-      ? "EXPIRED"
-      : isActive
-        ? "ACTIVE"
-        : enrollment
-          ? "ACTIVE"
-          : "INACTIVE";
-
-  const streak = enrollment
-    ? getCurrentStreak(enrollment.streak, enrollment.last_claimed_at, now)
-    : 0;
-
   return {
-    enrollment: enrollment
-      ? {
-          status,
-          currentDay,
-          streak,
-          totalClaimedDays: uniqueClaimedDays.size,
-          lastClaimedAt: enrollment.last_claimed_at?.toISOString() ?? null,
-          expiresAt: enrollment.expires_at?.toISOString(),
-          claimedDayNumbers: [...uniqueClaimedDays],
-        }
-      : null,
+    enrollment:
+      enrollment && state
+        ? {
+            status: state.status,
+            currentDay: state.currentDay,
+            streak: state.streak,
+            totalClaimedDays: state.totalClaimedDays,
+            lastClaimedAt: state.lastClaimedAt?.toISOString() ?? null,
+            expiresAt: enrollment.expires_at.toISOString(),
+            claimedDayNumbers: state.claimedDays,
+            // Sent rather than re-derived client-side, so the reset rule has one definition.
+            canClaimNow: state.canClaimNow,
+            nextAvailableAt: state.nextAvailableAt?.toISOString() ?? null,
+          }
+        : null,
     rewards,
     currentAvatar: dbUser?.image ?? null,
     pendingUnlocks,

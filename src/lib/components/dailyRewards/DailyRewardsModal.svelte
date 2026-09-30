@@ -20,18 +20,14 @@
     claimed: boolean;
   }
 
-  const REWARD_SCHEDULE: DailyReward[] = [
-    { day: 1, coins: 50, xp: 10, aiHelps: 1, claimed: false },
-    { day: 2, coins: 75, xp: 20, aiHelps: 1, claimed: false },
-    { day: 3, coins: 100, xp: 30, aiHelps: 2, claimed: false },
-    { day: 4, coins: 150, xp: 40, aiHelps: 2, claimed: false },
-    { day: 5, coins: 200, xp: 50, aiHelps: 2, claimed: false },
-    { day: 6, coins: 300, xp: 75, aiHelps: 3, claimed: false },
-    { day: 7, coins: 500, xp: 100, aiHelps: 5, claimed: false },
-  ];
+  // The ladder is served by `/api/user/daily-rewards`, which reads it from
+  // `$lib/server/dailyRewards/schedule.ts` — the single source of truth. It used
+  // to be duplicated here, so editing a reward could silently desync the UI from
+  // the actual payout.
 
   // -- State --------------------------------------------------------------------
-  let rewards: DailyReward[] = REWARD_SCHEDULE.map((reward) => ({ ...reward }));
+  let rewards: DailyReward[] = [];
+  let ladderLength = 0;
   let currentDay = 1;
   let isClaiming = false;
   let claimingDay: number | null = null;
@@ -63,10 +59,13 @@
         minutes: data.cooldown?.minutes ?? 0,
       };
 
-      rewards = REWARD_SCHEDULE.map((r) => ({
+      // `claimedDays` is scoped to the CURRENT cycle, so it resets when a cycle
+      // completes and the ladder becomes claimable again.
+      rewards = ((data.rewards ?? []) as Omit<DailyReward, 'claimed'>[]).map((r) => ({
         ...r,
         claimed: claimedIndices.includes(r.day - 1),
       }));
+      ladderLength = rewards.length;
 
       loadError = false;
     } catch (err) {
@@ -103,7 +102,7 @@
         if (res.status === 429) {
           // Parse cooldown from error message or fetch fresh state
           await fetchRewardState();
-          throw new Error(err.message || 'Please wait 24h between claims');
+          throw new Error(err.message || 'Already claimed today — come back after the reset');
         }
         throw new Error(err.message || 'Failed to claim');
       }
@@ -116,7 +115,7 @@
         hours: result.cooldown?.hours ?? 0,
         minutes: result.cooldown?.minutes ?? 0,
       };
-      rewards = REWARD_SCHEDULE.map((r) => ({
+      rewards = rewards.map((r) => ({
         ...r,
         claimed: result.claimedDays.includes(r.day - 1),
       }));
@@ -180,7 +179,7 @@
               </p>
             {:else}
               <p class="mt-1 font-mono text-[0.65rem] text-obsidian-text-muted">
-                Claim your daily streak bonuses (Day {currentDay}/7)
+                Claim your daily streak bonuses (Day {currentDay}/{ladderLength || 7})
               </p>
             {/if}
           </div>

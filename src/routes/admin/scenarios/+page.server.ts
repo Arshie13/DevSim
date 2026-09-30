@@ -4,6 +4,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { Prisma } from '$prismaclient';
 import prisma from '$lib/server/client';
 import { resolveStackName, resolveScenarioId } from '$lib/utils/scenario-mapping';
+import { parseInteractiveConfig } from '$lib/utils/interactive-config';
 import { docker } from '$lib/server/docker/client';
 
 function getMappedId(imageTag: string): string | null {
@@ -33,6 +34,11 @@ async function listDevsimImages(): Promise<string[]> {
   }
 }
 
+/** Split a "one per line" textarea into trimmed, non-empty entries. */
+function toLines(raw: string): string[] {
+  return raw.split('\n').map((line) => line.trim()).filter(Boolean);
+}
+
 export const load: PageServerLoad = async () => {
   const [scenarios, availableImages] = await Promise.all([
     prisma.scenario.findMany({
@@ -44,6 +50,7 @@ export const load: PageServerLoad = async () => {
             orderBy: { order: 'asc' },
             include: {
               acceptance_criteria: { orderBy: { order: 'asc' } },
+              hints: { orderBy: { order: 'asc' } },
               learning_sections: { orderBy: { order: 'asc' } }
             }
           }
@@ -92,6 +99,11 @@ export const load: PageServerLoad = async () => {
             description: ac.description,
             isRequired: ac.is_required,
             order: ac.order
+          })),
+          hints: t.hints.map(h => ({
+            id: h.id,
+            description: h.description,
+            order: h.order
           })),
           learningSections: t.learning_sections.map(ls => ({
             id: ls.id,
@@ -251,12 +263,14 @@ export const actions: Actions = {
     const order = parseInt(formData.get('order') as string) || 0;
     const testType = formData.get('testType') as string;
     const criteriaRaw = (formData.get('acceptanceCriteria') as string) || '';
+    const hintsRaw = (formData.get('hints') as string) || '';
 
     if (!levelId || !taskName) {
       return fail(400, { message: 'Level ID and task name are required' });
     }
 
-    const criteriaLines = criteriaRaw.split('\n').map(s => s.trim()).filter(Boolean);
+    const criteriaLines = toLines(criteriaRaw);
+    const hintLines = toLines(hintsRaw);
 
     await prisma.level_task.create({
       data: {
@@ -267,6 +281,9 @@ export const actions: Actions = {
         test_type: testType || 'none',
         acceptance_criteria: criteriaLines.length > 0
           ? { create: criteriaLines.map((desc, i) => ({ description: desc, is_required: true, order: i + 1 })) }
+          : undefined,
+        hints: hintLines.length > 0
+          ? { create: hintLines.map((desc, i) => ({ description: desc, order: i + 1 })) }
           : undefined
       }
     });
@@ -282,6 +299,7 @@ export const actions: Actions = {
     const order = parseInt(formData.get('order') as string) || 0;
     const testType = formData.get('testType') as string;
     const criteriaRaw = (formData.get('acceptanceCriteria') as string) || '';
+    const hintsRaw = (formData.get('hints') as string) || '';
 
     if (!id) {
       return fail(400, { message: 'Missing task ID' });
@@ -293,13 +311,23 @@ export const actions: Actions = {
     if (order !== undefined) data.order = order;
     if (testType) data.test_type = testType;
 
-    const criteriaLines = criteriaRaw.split('\n').map(s => s.trim()).filter(Boolean);
-    if (criteriaLines.length > 0) {
-      data.acceptance_criteria = {
-        deleteMany: {},
-        create: criteriaLines.map((desc, i) => ({ description: desc, is_required: true, order: i + 1 }))
-      };
-    }
+    const criteriaLines = toLines(criteriaRaw);
+    const hintLines = toLines(hintsRaw);
+
+    // Always replace, so emptying the textarea actually removes the rows. The old
+    // `length > 0` guard made it impossible to delete the last criterion.
+    data.acceptance_criteria = {
+      deleteMany: {},
+      ...(criteriaLines.length > 0
+        ? { create: criteriaLines.map((desc, i) => ({ description: desc, is_required: true, order: i + 1 })) }
+        : {})
+    };
+    data.hints = {
+      deleteMany: {},
+      ...(hintLines.length > 0
+        ? { create: hintLines.map((desc, i) => ({ description: desc, order: i + 1 })) }
+        : {})
+    };
 
     await prisma.level_task.update({ where: { id }, data });
 
@@ -324,26 +352,29 @@ export const actions: Actions = {
     const title = formData.get('title') as string;
     const content = formData.get('content') as string;
     const order = parseInt(formData.get('order') as string) || 0;
-    const sectionType = formData.get('sectionType') as string;
-    const interactiveModeRaw = formData.get('interactiveMode') as string;
-    const interactiveConfigRaw = formData.get('interactiveConfig') as string;
+    const sectionType = (formData.get('sectionType') as string) || 'PLAIN_TEXT';
+    const interactiveModeRaw = (formData.get('interactiveMode') as string) || null;
 
     if (!taskId || !title) {
       return fail(400, { message: 'Task ID and title are required' });
     }
 
-    const interactiveMode = interactiveModeRaw || null;
-    let interactiveConfig: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | null = null;
+    const isInteractive = sectionType === 'INTERACTIVE';
 
-    if (interactiveConfigRaw) {
-      try {
-        interactiveConfig = JSON.parse(interactiveConfigRaw) as Prisma.InputJsonValue;
-      } catch {
-        return fail(400, { message: 'Invalid interactive config JSON' });
-      }
-    } else {
-      interactiveConfig = Prisma.JsonNull;
+    if (isInteractive && !interactiveModeRaw) {
+      return fail(400, { message: 'An interactive mode is required for INTERACTIVE sections' });
     }
+
+    const parsedConfig = parseInteractiveConfig(formData);
+    if (!parsedConfig.ok) {
+      return fail(400, { message: parsedConfig.message });
+    }
+
+    // Plain text sections never carry a mode or a config.
+    const interactiveMode = isInteractive ? interactiveModeRaw : null;
+    const interactiveConfig = isInteractive && parsedConfig.config
+      ? (parsedConfig.config as unknown as Prisma.InputJsonValue)
+      : Prisma.JsonNull;
 
     await prisma.learning_section.create({
       data: {
@@ -351,7 +382,7 @@ export const actions: Actions = {
         title,
         content: content || '',
         order,
-        section_type: sectionType || 'PLAIN_TEXT',
+        section_type: sectionType,
         interactive_mode: interactiveMode,
         interactive_config: interactiveConfig
       }
@@ -366,32 +397,35 @@ export const actions: Actions = {
     const title = formData.get('title') as string;
     const content = formData.get('content') as string;
     const order = parseInt(formData.get('order') as string) || 0;
-    const sectionType = formData.get('sectionType') as string;
-    const interactiveModeRaw = formData.get('interactiveMode') as string;
-    const interactiveConfigRaw = formData.get('interactiveConfig') as string;
+    const sectionType = (formData.get('sectionType') as string) || 'PLAIN_TEXT';
+    const interactiveModeRaw = (formData.get('interactiveMode') as string) || null;
 
     if (!id) {
       return fail(400, { message: 'Missing learning section ID' });
+    }
+
+    const isInteractive = sectionType === 'INTERACTIVE';
+
+    if (isInteractive && !interactiveModeRaw) {
+      return fail(400, { message: 'An interactive mode is required for INTERACTIVE sections' });
+    }
+
+    const parsedConfig = parseInteractiveConfig(formData);
+    if (!parsedConfig.ok) {
+      return fail(400, { message: parsedConfig.message });
     }
 
     const data: Record<string, unknown> = {};
     if (title) data.title = title;
     if (content !== null) data.content = content;
     data.order = order;
-    if (sectionType) data.section_type = sectionType;
+    data.section_type = sectionType;
 
-    const interactiveMode = interactiveModeRaw || null;
-    data.interactive_mode = interactiveMode;
-
-    if (interactiveConfigRaw) {
-      try {
-        data.interactive_config = JSON.parse(interactiveConfigRaw) as Prisma.InputJsonValue;
-      } catch {
-        return fail(400, { message: 'Invalid interactive config JSON' });
-      }
-    } else {
-      data.interactive_config = Prisma.JsonNull;
-    }
+    // Plain text sections never carry a mode or a config.
+    data.interactive_mode = isInteractive ? interactiveModeRaw : null;
+    data.interactive_config = isInteractive && parsedConfig.config
+      ? (parsedConfig.config as unknown as Prisma.InputJsonValue)
+      : Prisma.JsonNull;
 
     await prisma.learning_section.update({ where: { id }, data });
     return { success: true };

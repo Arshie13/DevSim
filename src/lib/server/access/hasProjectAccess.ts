@@ -1,5 +1,5 @@
 import prisma from "$lib/server/client";
-import { SCENARIO_3_IDS } from "$lib/utils/reward-constants";
+import { SCENARIO_3_IDS } from "$lib/server/learnerPass/schedule";
 
 /**
  * Check whether a user has access to a given scenario (by DB scenario ID).
@@ -8,7 +8,7 @@ import { SCENARIO_3_IDS } from "$lib/utils/reward-constants";
  *   1. The scenario is not paywalled.
  *   2. The scenario is not a SCENARIO_3 project and the user has an active
  *      Learner Pass enrollment (fast path — no per-row lookup needed).
- *   3. The user has a non-expired row in user_project_access for this scenario.
+ *   3. The user has unlocked the scenario by spending a Learner Pass special day on it.
  *
  * @param userId   - The authenticated user's ID.
  * @param scenarioDbId - The resolved database scenario ID (not the folder name).
@@ -36,24 +36,23 @@ export async function hasProjectAccess(
       where: { user_id: userId },
     });
 
-    if (enrollment && (!enrollment.expires_at || now <= enrollment.expires_at)) {
+    if (enrollment && now <= enrollment.expires_at) {
       return true;
     }
   }
 
-  // 3. Per-row access grant — must exist and must not be expired.
-  const access = await prisma.user_project_access.findFirst({
+  // 3. An explicit unlock. The grant IS the Learner Pass choice now that
+  //    `user_project_access` is gone: spending a special day on a scenario is what unlocks
+  //    it, and the unlock outlives the pass (old rows were written with `expires_at = NULL`).
+  const unlock = await prisma.learner_pass_claim.findFirst({
     where: {
-      user_id: userId,
-      scenario_id: scenarioDbId,
-      OR: [
-        { expires_at: null },
-        { expires_at: { gt: now } },
-      ],
+      unlocked_scenario: scenarioDbId,
+      enrollment: { user_id: userId },
     },
+    select: { id: true },
   });
 
-  return !!access;
+  return !!unlock;
 }
 
 export async function hasActiveLearnerPass(userId: string): Promise<boolean> {
@@ -65,7 +64,7 @@ export async function hasActiveLearnerPass(userId: string): Promise<boolean> {
 
   if (!enrollment) return false;
 
-  if (enrollment.expires_at && new Date() > enrollment.expires_at) {
+  if (new Date() > enrollment.expires_at) {
     return false;
   }
 

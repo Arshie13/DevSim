@@ -2,13 +2,14 @@ import prisma from "$lib/server/client";
 import type { UserKpis, ProfileMetricsData, WeeklyStats } from "$lib/types/dashboard";
 import { formatMemberSince } from "./format";
 import { getAchievementsForUser } from "$lib/server/achievements/catalog";
+import { getLoginStreak } from "$lib/server/dailyRewards/queries";
 
 export async function getUserKpis(userId: string): Promise<UserKpis> {
-  const [stacksCompleted, allAchievements, dbUser, dailyLogin] = await Promise.all([
+  const [stacksCompleted, allAchievements, dbUser, dayStreak] = await Promise.all([
     prisma.workspace.count({ where: { user_id: userId, is_archived: true } }),
     getAchievementsForUser(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true } }),
-    prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
+    getLoginStreak(userId),
   ]);
 
   const achievementsUnlocked = allAchievements.filter((a) =>
@@ -18,7 +19,7 @@ export async function getUserKpis(userId: string): Promise<UserKpis> {
   return {
     stacksCompleted,
     totalXp: dbUser?.xp ?? 0,
-    dayStreak: dailyLogin?.streak ?? 0,
+    dayStreak,
     achievementsUnlocked,
   };
 }
@@ -89,7 +90,7 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
     fileEdits,
     allAchievements,
     dbUser,
-    dailyLogin,
+    dayStreak,
     thisWeekCount,
     priorWeekCount,
   ] = await Promise.all([
@@ -98,7 +99,7 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
     prisma.file_changes.count({ where: { workspace: { user_id: userId } } }),
     getAchievementsForUser(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true, coins: true, created_at: true } }),
-    prisma.daily_login.findUnique({ where: { user_id: userId }, select: { streak: true } }),
+    getLoginStreak(userId),
     prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: sevenDaysAgo } } }),
     prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
   ]);
@@ -124,7 +125,7 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
     coinsEarned: dbUser?.coins ?? 0,
     achievementsCount,
     memberSince: dbUser?.created_at ?? new Date(),
-    dayStreak: dailyLogin?.streak ?? 0,
+    dayStreak,
     leaderboardRank,
     weeklyGrowth,
   };

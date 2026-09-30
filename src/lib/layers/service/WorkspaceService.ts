@@ -458,7 +458,13 @@ export class WorkspaceService {
         currentCompletedTasks.completedTasks?.map((t) => t.taskName) ?? [];
 
       if (!completedTaskNames!.includes(taskName)) {
-        const recorded = await this.tasks.createCompletedTask(workspaceRecord.id, taskName, userId, currentLevel);
+        const recorded = await this.tasks.createCompletedTask(
+          workspaceRecord.id,
+          scenarioId,
+          taskName,
+          userId,
+          currentLevel,
+        );
         // Don't fail the whole submission over the activity log, but surface it —
         // a silent failure here is why a completed task can stop showing up in
         // the dashboard "Weekly Activity" chart with no error anywhere.
@@ -600,6 +606,7 @@ export class WorkspaceService {
 
       const recorded = await this.tasks.createCompletedTask(
         workspaceRecord.id,
+        workspaceRecord.currentScenarioId,
         taskName,
         userId,
         workspaceRecord.level,
