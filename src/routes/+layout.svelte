@@ -78,6 +78,10 @@
   // redirecting the background to '/' while the modal is open.
   beforeNavigate((navigation) => {
     if (isPublicPage()) return;
+    if (navigation.type === 'popstate') {
+      if (showSessionExpired) navigation.cancel();
+      return;
+    }
     if (showSessionExpired) {
       navigation.cancel();
       return;

@@ -116,7 +116,7 @@
     overflow: hidden;
     background: linear-gradient(180deg, rgba(18, 25, 42, 0.95), rgba(10, 14, 26, 0.95));
     border: 1px solid var(--card-border);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     padding: 1.1rem 1.15rem 1rem;
     display: flex;
     flex-direction: column;
@@ -170,7 +170,7 @@
     flex-shrink: 0;
     width: 2.4rem;
     height: 2.4rem;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -266,7 +266,7 @@
     font-size: 0.6rem;
     letter-spacing: 0.05em;
     padding: 0.2rem 0.55rem;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     border: 1px solid rgba(7, 165, 201, 0.22);
     background: rgba(7, 165, 201, 0.04);
     color: rgba(208, 215, 221, 0.78);
@@ -279,7 +279,7 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     padding: 0.25rem 0.55rem;
-    border-radius: 2px;
+    border-radius: var(--radius-chrome);
     color: var(--accent);
     background: rgba(7, 165, 201, 0.1);
     border: 1px solid rgba(7, 165, 201, 0.3);

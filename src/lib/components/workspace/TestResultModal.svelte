@@ -88,8 +88,8 @@
     on:click={(e) => e.target === e.currentTarget && close('backdrop')}
     on:keydown={(e) => e.key === 'Escape' && close('escape')}
   >
-    <div class="result-card-in relative flex max-h-[85vh] w-[min(680px,95vw)] flex-col overflow-hidden rounded-[4px] border border-[var(--card-border)] bg-[var(--bg-light)] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_var(--accent-glow),0_24px_60px_rgba(0,0,0,0.6)]">
-      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-30" aria-hidden="true"></div>
+    <div class="result-card-in relative flex max-h-[85vh] w-[min(680px,95vw)] flex-col overflow-hidden rounded-card border border-[var(--card-border)] bg-[var(--bg-light)] shadow-[0_0_0_1px_rgba(7,165,201,0.07),0_0_50px_var(--accent-glow),0_24px_60px_rgba(0,0,0,0.6)]">
+      <div class="pointer-events-none absolute inset-0 bg-grid-cyber opacity-60" aria-hidden="true"></div>
       <!-- Ambient glow top edge -->
       <div class="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent),transparent)]" aria-hidden="true"></div>
 
@@ -97,7 +97,7 @@
       <div class="relative flex items-center justify-between border-b border-[rgba(7,165,201,0.1)] px-6 py-5">
         <div class="flex items-center gap-3.5">
           <div
-            class="status-pulse flex h-10 w-10 items-center justify-center rounded-[4px] border border-[rgba(136,146,160,0.25)] bg-[rgba(136,146,160,0.1)] text-[var(--text-muted)]"
+            class="status-pulse flex h-10 w-10 items-center justify-center rounded-card border border-[rgba(136,146,160,0.25)] bg-[rgba(136,146,160,0.1)] text-[var(--text-muted)]"
             class:border-[rgba(0,229,160,0.3)]={allPassed}
             class:bg-[rgba(0,229,160,0.1)]={allPassed}
             class:text-[var(--success)]={allPassed}
@@ -132,9 +132,9 @@
       <!-- Progress bar -->
       {#if result && !loading}
         <div class="flex items-center gap-3 border-b border-[rgba(7,165,201,0.08)] bg-[rgba(7,165,201,0.03)] px-6 py-3.5">
-          <div class="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-[rgba(136,146,160,0.15)]">
+          <div class="h-1.5 flex-1 overflow-hidden rounded-chrome bg-[rgba(136,146,160,0.15)]">
             <div
-              class="h-full rounded-[3px] bg-[linear-gradient(90deg,var(--danger),var(--warn))] shadow-[0_0_8px_rgba(255,56,96,0.25)] transition-[width] duration-500 ease-in-out"
+              class="h-full rounded-chrome bg-[linear-gradient(90deg,var(--danger),var(--warn))] shadow-[0_0_8px_rgba(255,56,96,0.25)] transition-[width] duration-500 ease-in-out"
               class:bg-[linear-gradient(90deg,var(--success),var(--cyan-bright))]={allPassed}
               class:shadow-[0_0_8px_var(--accent-glow)]={allPassed}
               style="width: {passRate}%"
@@ -163,7 +163,7 @@
             <div class="flex flex-col gap-2">
               {#each result.taskResults as task, idx (task.taskId)}
                 <div
-                  class="result-row overflow-hidden rounded-[4px] border border-[rgba(136,146,160,0.12)] bg-[rgba(10,14,26,0.72)] transition-all duration-200 hover:border-[rgba(7,165,201,0.24)] hover:shadow-[0_0_18px_rgba(7,165,201,0.14)]"
+                  class="result-row overflow-hidden rounded-card border border-[rgba(136,146,160,0.12)] bg-[rgba(10,14,26,0.72)] transition-all duration-200 hover:border-[rgba(7,165,201,0.24)] hover:shadow-[0_0_18px_rgba(7,165,201,0.14)]"
                   class:border-[rgba(255,56,96,0.2)]={!task.passed}
                   style="animation-delay: {idx * 55}ms"
                 >
@@ -184,9 +184,9 @@
                     </div>
                     <span class="flex-1 [font-family:var(--font-body)] text-[0.88rem] font-medium text-[var(--text-primary)]">{getTaskDisplayName(task.taskName, task.taskId)}</span>
                     {#if task.passed && task.keyTakeaway}
-                      <span class="mr-1 rounded-[3px] bg-[rgba(0,229,160,0.1)] px-1.5 py-0.5 text-[0.625rem] text-[var(--success)]">✓</span>
+                      <span class="mr-1 rounded-card bg-[rgba(0,229,160,0.1)] px-1.5 py-0.5 text-[0.625rem] text-[var(--success)]">✓</span>
                     {/if}
-                    <span class="rounded-[3px] bg-[rgba(136,146,160,0.1)] px-2 py-1 [font-family:var(--font-mono)] text-[0.6875rem] text-[var(--text-muted)]">
+                    <span class="rounded-chrome bg-[rgba(136,146,160,0.1)] px-2 py-1 [font-family:var(--font-mono)] text-[0.6875rem] text-[var(--text-muted)]">
                       {task.results.filter(r => r.passed).length}/{task.results.length}
                     </span>
                     <div class="text-[var(--text-muted)]">
@@ -203,7 +203,7 @@
                       {#if task.errors.length > 0}
                         <div class="flex flex-col gap-2 py-3">
                           {#each task.errors as error}
-                            <div class="flex items-start gap-2 rounded-[4px] border border-[rgba(255,56,96,0.15)] bg-[rgba(255,56,96,0.08)] px-3 py-2.5 [font-family:var(--font-body)] text-xs leading-6 text-[var(--danger)]">
+                            <div class="flex items-start gap-2 rounded-card border border-[rgba(255,56,96,0.15)] bg-[rgba(255,56,96,0.08)] px-3 py-2.5 [font-family:var(--font-body)] text-xs leading-6 text-[var(--danger)]">
                               <AlertCircle class="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--danger)]" />
                               <span>{error}</span>
                             </div>
@@ -215,7 +215,7 @@
                         <div class="flex flex-col gap-1.5 pt-3">
                           {#each task.results as test}
                             <div
-                              class="flex items-center gap-2 rounded-[3px] bg-[rgba(136,146,160,0.05)] px-2.5 py-2"
+                              class="flex items-center gap-2 rounded-card bg-[rgba(136,146,160,0.05)] px-2.5 py-2"
                               class:bg-[rgba(0,229,160,0.05)]={test.passed}
                             >
                               <div class="flex items-center text-[var(--danger)]" class:text-[var(--success)]={test.passed}>
@@ -252,7 +252,7 @@
             <div class="mt-4 border-t border-[rgba(7,165,201,0.1)] pt-4">
               <h3 class="mb-2 [font-family:var(--font-heading)] text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">Command Output</h3>
 
-              <details class="rounded-[4px] border border-[rgba(7,165,201,0.12)] bg-[var(--bg)]">
+              <details class="rounded-card border border-[rgba(7,165,201,0.12)] bg-[var(--bg)]">
                 <summary class="cursor-pointer px-3 py-2 [font-family:var(--font-mono)] text-[0.6875rem] text-[var(--accent)]">
                   View raw output
                 </summary>
@@ -323,7 +323,7 @@
 
   .trm-content::-webkit-scrollbar-thumb {
     background: rgba(7, 165, 201, 0.3);
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
   }
 
   .trm-content::-webkit-scrollbar-thumb:hover {

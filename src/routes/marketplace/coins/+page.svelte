@@ -1,5 +1,5 @@
 <script lang='ts'>
-  import { Coins, Sparkles, Zap, Trophy, Crown, ArrowRight, ShoppingCart, Loader2, Lightbulb } from 'lucide-svelte';
+  import { Coins, Sparkles, Zap, Trophy, Crown, ArrowRight, ArrowLeft, ShoppingCart, Loader2, Lightbulb } from 'lucide-svelte';
   import Header from '$components/Header.svelte';
   import PurchaseSuccessModal from '$components/ui/PurchaseSuccessModal.svelte';
   import type { PageData } from './$types';
@@ -88,10 +88,18 @@
 </svelte:head>
 
 <div class='min-h-screen bg-obsidian-bg scanlines ambient-glow bg-grid-cyber pb-20'>
-  <Header userData={{ ...data.user, coins: userCoins, image: data.user.image ?? undefined }} />
+  <Header userData={{ ...data.user, coins: userCoins, image: data.user.image ?? undefined, avatar: data.user.image ?? '' }} />
 
-  <main class='relative z-10 py-12 px-6'>
-    <div class='max-w-[1200px] mx-auto'>
+  <main class='relative z-10 py-12'>
+    <div class='page-container'>
+      <button
+        on:click={() => goto('/dashboard')}
+        class='inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors group mb-6'
+      >
+        <ArrowLeft size={14} class='transition-transform group-hover:-translate-x-1' />
+        <span>Back</span>
+      </button>
+
       <div class='text-center mb-16' in:fade={{ duration: 800 }}>
         <h2 class='text-4xl font-orbitron font-bold text-obsidian-text-muted mb-4 tracking-tighter'>
           COINS <span class='text-cyber-warn'>MARKETPLACE</span>
@@ -115,7 +123,7 @@
               </div>
             {/if}
 
-            <div class='w-16 h-16 rounded-2xl bg-gradient-to-br {pkg.color} p-4 mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500'>
+            <div class='w-16 h-16 rounded-card bg-gradient-to-br {pkg.color} p-4 mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500'>
               <svelte:component this={pkg.icon} class='w-full h-full text-obsidian-bg' />
             </div>
 
@@ -287,7 +295,7 @@
 
       <div class='mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-obsidian-accent/10 pt-12'>
         <div class='flex gap-4'>
-          <div class='p-3 rounded-xl bg-obsidian-surface h-fit'>
+          <div class='p-3 rounded-card bg-obsidian-surface h-fit'>
             <Zap class='w-6 h-6 text-cyber-cyan' />
           </div>
           <div>
@@ -296,7 +304,7 @@
           </div>
         </div>
         <div class='flex gap-4'>
-          <div class='p-3 rounded-xl bg-obsidian-surface h-fit'>
+          <div class='p-3 rounded-card bg-obsidian-surface h-fit'>
             <Crown class='w-6 h-6 text-amber-500' />
           </div>
           <div>
@@ -305,7 +313,7 @@
           </div>
         </div>
         <div class='flex gap-4'>
-          <div class='p-3 rounded-xl bg-obsidian-surface h-fit'>
+          <div class='p-3 rounded-card bg-obsidian-surface h-fit'>
             <Trophy class='w-6 h-6 text-cyber-cyan' />
           </div>
           <div>

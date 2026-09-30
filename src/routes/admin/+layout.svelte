@@ -22,7 +22,7 @@
 </script>
 
 {#if isClient}
-  <div class="admin-shell flex h-screen min-w-0 bg-[var(--bg-primary)]">
+  <div class="admin-shell flex h-screen min-w-0 bg-[var(--bg)]">
     <!-- Sidebar -->
     <aside class="admin-sidebar w-64 shrink-0 border-r border-[rgba(7,165,201,0.12)] bg-[rgba(10,14,26,0.95)]">
       <div class="p-4">

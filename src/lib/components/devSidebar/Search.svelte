@@ -243,7 +243,7 @@
         bind:value={searchQuery}
         on:input={handleSearchInput}
         placeholder="Search in files..."
-        class="w-full bg-[#0a0e1a] border border-[#27272a] rounded-md pl-8 pr-8 py-1.5 text-sm text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]/50 transition-colors"
+        class="w-full bg-[#0a0e1a] border border-[#27272a] rounded-card pl-8 pr-8 py-1.5 text-sm text-[#d0d7dd] placeholder-[#d0d7dd]/30 focus:outline-none focus:border-[#07a5c9]/50 transition-colors"
       />
       {#if searchQuery}
         <button

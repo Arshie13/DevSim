@@ -53,7 +53,7 @@
     width: min(520px, 90vw);
     max-height: min(92vh, 820px);
     overflow-y: auto;
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(0, 194, 255, 0.35);
     background: #0d1425;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -73,7 +73,7 @@
   .pt-eyebrow {
     margin: 0;
     color: #00c2ff;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
@@ -81,7 +81,7 @@
 
   .pt-modal-title {
     margin: 0.45rem 0 0.8rem;
-    font-family: "Orbitron", sans-serif;
+    font-family: var(--font-heading);
     color: #d0d7dd;
     font-size: 1.08rem;
   }
@@ -92,7 +92,7 @@
     font-size: 0.78rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
   }
 
   .pt-modal-body {
@@ -119,10 +119,10 @@
   }
 
   .pt-btn {
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     border: 1px solid transparent;
     padding: 0.42rem 0.62rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     cursor: pointer;
   }

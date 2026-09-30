@@ -81,7 +81,7 @@
     margin: 0 0 2px;
     text-transform: uppercase;
     letter-spacing: 0.18em;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.85rem;
     color: rgba(7, 165, 201, 0.7);
     text-align: center;
@@ -89,7 +89,7 @@
 
   .title {
     margin: 0 0 0.6rem;
-    font-family: "Orbitron", monospace;
+    font-family: var(--font-heading);
     font-size: 1.3rem;
     line-height: 1.35;
     color: #e4f8ff;
@@ -110,7 +110,7 @@
 
   .body {
     margin: 0;
-    font-family: "Exo 2", sans-serif;
+    font-family: var(--font-body);
     font-size: 1rem;
     line-height: 1.5;
     color: #c8d4de;
@@ -134,7 +134,7 @@
     background: rgba(7, 165, 201, 0.08);
     color: #c6f0ff;
     padding: 0.5rem 1rem;
-    font-family: "Share Tech Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 0.78rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;

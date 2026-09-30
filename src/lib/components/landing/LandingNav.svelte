@@ -33,14 +33,13 @@
 </script>
 
 <nav
-  class="fixed top-0 left-0 w-full z-50 border-b border-[var(--card-border)]"
-  style="background: rgba(10,14,26,0.90); backdrop-filter: blur(18px);"
+  class="border-b border-obsidian-accent/20 bg-obsidian-bg-light/85 backdrop-blur-2xl sticky top-0 z-50"
 >
-  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-8">
+  <div class="page-container min-w-0 py-3 lg:py-4 flex items-center justify-between gap-6">
 
     <!-- Logo + tagline -->
     <a href="/" class="flex-shrink-0 group">
-      <Logo markClass="w-8 h-8" textClass="text-xl" />
+      <Logo markClass="w-12 h-12" textClass="text-xl" subtitle="Developer Simulation" />
     </a>
 
     <!-- Center nav links -->
@@ -49,7 +48,7 @@
         <li class="relative pb-1">
           <a
             href={link.href}
-            class="font-label text-[0.68rem] tracking-widest transition-colors duration-200
+            class="font-label text-xs tracking-widest transition-colors duration-200
               {activeSection === link.id
                 ? 'text-[var(--accent)]'
                 : 'text-[var(--text-muted)] hover:text-[var(--accent)]'}"

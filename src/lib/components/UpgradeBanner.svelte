@@ -21,7 +21,7 @@
 
 {#if isActivePremium}
   <!-- Active premium status banner -->
-  <div class="relative overflow-hidden rounded-xl border border-cyber-bright/40 bg-gradient-to-r from-cyber-bright/10 via-obsidian-accent/5 to-transparent p-4">
+  <div class="relative overflow-hidden rounded-card border border-cyber-bright/40 bg-gradient-to-r from-cyber-bright/10 via-obsidian-accent/5 to-transparent p-4">
     <div class="absolute top-0 right-0 w-32 h-32 bg-cyber-bright/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
     
     <div class="relative flex items-center gap-4">
@@ -47,7 +47,7 @@
   </div>
 {:else}
   <!-- Upgrade prompt banner -->
-  <div class="relative overflow-hidden rounded-xl border border-cyber-warn/40 bg-gradient-to-r from-cyber-warn/10 via-obsidian-accent/5 to-transparent p-4">
+  <div class="relative overflow-hidden rounded-card border border-cyber-warn/40 bg-gradient-to-r from-cyber-warn/10 via-obsidian-accent/5 to-transparent p-4">
     <div class="absolute top-0 right-0 w-40 h-40 bg-cyber-warn/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
     <div class="absolute bottom-0 left-0 w-24 h-24 bg-obsidian-accent/10 rounded-full blur-2xl -ml-12 -mb-12"></div>
     
@@ -94,7 +94,7 @@
       
       <button 
         on:click={handleUpgradeClick}
-        class="w-full mt-2 py-3 px-6 rounded-lg bg-gradient-to-r from-cyber-warn via-cyber-bright to-obsidian-accent text-obsidian-bg font-orbitron font-bold text-sm shadow-lg hover:shadow-cyber-warn/40 transition-all active:scale-95 hover:scale-[1.02] flex items-center justify-center gap-2"
+        class="w-full mt-2 py-3 px-6 rounded-card bg-gradient-to-r from-cyber-warn via-cyber-bright to-obsidian-accent text-obsidian-bg font-orbitron font-bold text-sm shadow-lg hover:shadow-cyber-warn/40 transition-all active:scale-95 hover:scale-[1.02] flex items-center justify-center gap-2"
       >
         <Crown class="w-5 h-5" />
         Upgrade to Premium — ₱299

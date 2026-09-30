@@ -80,7 +80,7 @@
         <!-- User Info -->
         <div class="flex-1 min-w-0">
           <p class="text-xs font-label font-medium truncate {entry.isCurrentUser ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]'}">
-            {entry.name?.split(' ')[0] ?? entry.username}
+            {entry.username}
             {#if entry.isCurrentUser}
               <span class="text-[10px] text-[var(--accent)]/70 ml-1">(You)</span>
             {/if}

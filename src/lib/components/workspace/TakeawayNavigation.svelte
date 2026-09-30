@@ -43,10 +43,10 @@
     border: none;
     color: #07a5c9;
     font-size: 0.75rem;
-    font-family: monospace;
+    font-family: var(--font-mono);
     cursor: pointer;
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     transition: all 0.2s ease;
     text-decoration: underline;
   }

@@ -1,3 +1,12 @@
+import type { TutorialStep } from "$components/tutorial/tutorialTypes";
+
+export function stepRequiresTargetClick(step: TutorialStep): boolean {
+  return (
+    step.requireTargetClick ??
+    Boolean(step.target && !step.requireCommand && !step.action && !step.confirmLabel)
+  );
+}
+
 export function normalizeCommand(value: string): string {
   return value
     .replace(/\x1b\[[0-9;]*[A-Za-z]/g, "")

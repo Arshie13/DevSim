@@ -59,7 +59,6 @@ export const POST: RequestHandler = async (event) => {
         },
         select: { id: true },
       });
-      if (existing) throw error(409, 'Scenario already unlocked');
 
       // The claim row IS the grant. `unlocked_at` records when the choice was made, which is
       // often well after the day was claimed.
@@ -68,7 +67,11 @@ export const POST: RequestHandler = async (event) => {
         data: { unlocked_scenario: scenarioId, unlocked_at: now },
       });
 
-      return Response.json({ success: true, grantedProjectId: scenarioId });
+      return Response.json({
+        success: true,
+        grantedProjectId: scenarioId,
+        alreadyOwned: !!existing,
+      });
     });
   } catch (err) {
     if (err && typeof err === 'object' && 'status' in err) throw err;

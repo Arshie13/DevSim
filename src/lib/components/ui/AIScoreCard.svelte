@@ -10,7 +10,7 @@
   $: scoreClass = score >= 75 ? 'text-[var(--success)]' : score >= 50 ? 'text-[var(--warn)]' : 'text-[var(--danger)]';
 </script>
 
-<div class="overflow-hidden rounded-[6px] border border-[rgba(7,165,201,0.25)] bg-[rgba(10,14,26,0.9)]">
+<div class="overflow-hidden rounded-card border border-[rgba(7,165,201,0.25)] bg-[rgba(10,14,26,0.9)]">
   <div class="flex items-center justify-between px-4 py-3">
     <div class="flex items-center gap-2">
       {#each [1, 2, 3] as star}

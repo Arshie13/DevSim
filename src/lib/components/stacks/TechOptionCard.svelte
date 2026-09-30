@@ -15,7 +15,7 @@
     <!-- Top shimmer line -->
     <div class="shimmer-line"></div>
 
-    <!-- Selection check box (16px square, radius 2px) -->
+    <!-- Selection check box -->
     <div class="check-box {selected ? 'check-box--active' : ''}">
       {#if selected}
         <Check class="w-2.5 h-2.5" style="color: #0a0e1a;" />
@@ -61,7 +61,7 @@
     overflow: hidden;
     background: #12192a;
     border: 1px solid rgba(7, 165, 201, 0.12);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
   }
   .tech-card:hover .tech-card-inner {
@@ -89,14 +89,14 @@
     opacity: 1;
   }
 
-  /* 16×16px square check indicator, radius 2px */
+  /* 16×16px square check indicator */
   .check-box {
     position: absolute;
     top: 8px;
     right: 8px;
     width: 16px;
     height: 16px;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     border: 1px solid rgba(7, 165, 201, 0.30);
     background: transparent;
     display: flex;
@@ -112,7 +112,7 @@
   .icon-box {
     background: rgba(7, 165, 201, 0.06);
     border: 1px solid rgba(7, 165, 201, 0.15);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
   }
   .tech-card.selected .icon-box {
     border-color: rgba(7, 165, 201, 0.35);
@@ -120,7 +120,7 @@
   }
 
   .card-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-heading);
     font-size: 0.88rem;
     font-weight: 600;
     color: #d0d7dd;
@@ -133,7 +133,7 @@
   }
 
   .card-desc {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.85rem;
     color: rgba(208, 215, 221, 0.55);
     line-height: 1.35;
@@ -144,13 +144,13 @@
     padding: 0.5rem;
     background: rgba(255, 180, 0, 0.08);
     border: 1px solid rgba(255, 180, 0, 0.15);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
   }
   .badge-icon {
     font-size: 0.75rem;
   }
   .badge-text {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -158,7 +158,7 @@
     margin-left: 0.25rem;
   }
   .badge-desc {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.75rem;
     color: rgba(208, 215, 221, 0.70);
     margin-top: 0.25rem;

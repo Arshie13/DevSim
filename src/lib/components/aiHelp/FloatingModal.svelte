@@ -137,7 +137,7 @@
             </div>
             <button
               onclick={onClose}
-              class="text-gray-400 hover:text-gray-200 p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              class="text-gray-400 hover:text-gray-200 p-1 rounded-card hover:bg-slate-800 transition-colors"
               aria-label="Close chat"
             >
               <X class="w-4 h-4" />
@@ -151,7 +151,7 @@
             type="button"
             onclick={onQuickHint}
             disabled={isLoading}
-            class="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-all shadow-lg hover:shadow-cyan-500/30"
+            class="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-card transition-all shadow-lg hover:shadow-cyan-500/30"
           >
             <span>💡</span>
             <span class="font-medium">Quick Hint</span>
@@ -187,7 +187,7 @@
               <div class="w-8 h-8 rounded-full overflow-hidden border border-cyan-500/30 flex-shrink-0">
                 <img src="/images/saz_thinking.png" alt="SAZ thinking" class="w-full h-full object-cover animate-pulse" />
               </div>
-              <div class="bg-slate-900/60 text-gray-300 px-3 py-2 rounded-lg rounded-bl-none">
+              <div class="bg-slate-900/60 text-gray-300 px-3 py-2 rounded-card rounded-bl-none">
                 <div class="flex gap-1">
                   <span class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style="animation-delay:0ms;"></span>
                   <span class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style="animation-delay:150ms;"></span>
@@ -238,7 +238,7 @@
               type="button"
               onclick={handleToggleFilePicker}
               disabled={!canAttachMore}
-              class="p-1.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="p-1.5 rounded-card text-gray-400 hover:text-gray-200 hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={canAttachMore ? "Attach file" : "Max files attached"}
             >
               <Paperclip class="w-4 h-4" />
@@ -251,7 +251,7 @@
               onkeydown={onKeydown}
               placeholder="Ask SAZ for a hint..."
               rows="1"
-              class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none overflow-y-auto"
+              class="flex-1 bg-slate-900/50 border border-slate-700 rounded-card px-2 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none overflow-y-auto"
               style="max-height: {MAX_TEXTAREA_HEIGHT}px;"
               disabled={isLoading}
             ></textarea>
@@ -260,7 +260,7 @@
               type="button"
               onclick={onSend}
               disabled={!canSend}
-              class="p-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="p-1.5 rounded-card bg-cyan-600 hover:bg-cyan-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Send message"
             >
               <Send class="w-4 h-4" />
@@ -273,7 +273,7 @@
           {@const promptCost = convertPrompt.kind === "quick" ? QUICK_HINT_CREDIT_COST : creditCost}
           <div class="absolute inset-0 z-20 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div
-              class="w-full max-w-[300px] bg-[#0f172a] border border-cyan-500/30 rounded-xl p-4 shadow-xl shadow-cyan-500/10"
+              class="w-full max-w-[300px] bg-[#0f172a] border border-cyan-500/30 rounded-card p-4 shadow-xl shadow-cyan-500/10"
               role="alertdialog"
               aria-labelledby="convert-prompt-title"
             >
@@ -299,14 +299,14 @@
                 <button
                   type="button"
                   onclick={onCancelConvert}
-                  class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-600 text-gray-300 hover:bg-slate-800 transition-colors"
+                  class="flex-1 px-3 py-1.5 text-xs rounded-card border border-slate-600 text-gray-300 hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onclick={onConfirmConvert}
-                  class="flex-1 px-3 py-1.5 text-xs rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all"
+                  class="flex-1 px-3 py-1.5 text-xs rounded-card bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all"
                 >
                   {convertPrompt.kind === "quick" ? "Exchange & Hint" : "Exchange & Send"}
                 </button>
@@ -335,7 +335,7 @@
   }
   .chat-scroll::-webkit-scrollbar-thumb {
     background: #27272a;
-    border-radius: 3px;
+    border-radius: var(--radius-chrome);
   }
   .chat-scroll::-webkit-scrollbar-thumb:hover {
     background: #3f3f46;

@@ -267,7 +267,7 @@
     z-index: 10010;
     pointer-events: none;
     border: 2px solid;
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     transition:
       top    0.42s cubic-bezier(0.4, 0, 0.2, 1),
       left   0.42s cubic-bezier(0.4, 0, 0.2, 1),
@@ -282,7 +282,7 @@
     width: 300px;
     background: #0d1425;
     border: 1px solid rgba(7, 165, 201, 0.22);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(7, 165, 201, 0.05);
     overflow: visible;
     animation: calloutIn 0.26s ease;
@@ -358,13 +358,13 @@
     padding: 1rem 1rem 0.875rem;
   }
   .wt-step-num {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
   }
   .wt-title {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 0.88rem;
     font-weight: 700;
     color: #d0d7dd;
@@ -401,13 +401,13 @@
     flex: 1;
     border: none;
     padding: 0.42rem 0.75rem;
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-heading);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     transition: opacity 0.18s;
   }
   .wt-btn-next:hover {

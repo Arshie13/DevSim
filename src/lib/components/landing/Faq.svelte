@@ -10,7 +10,7 @@
     },
     {
       q: "Who is DevSim designed for?",
-      a: "DevSim is built for aspiring and intermediate developers who want to move beyond tutorials and build actual project experience with modern, production-grade tech stacks.",
+      a: "DevSim is built for aspiring developers who want to move beyond tutorials and build actual project experience with modern, production-grade tech stacks.",
     },
     {
       q: "Is DevSim free to use?",
@@ -19,8 +19,8 @@
   ];
 </script>
 
-<section id="faq" class="py-24 px-6 border-t border-[rgba(7,165,201,0.05)]">
-  <div class="max-w-3xl mx-auto">
+<section id="faq" class="py-24 border-t border-[rgba(7,165,201,0.05)]">
+  <div class="page-container max-w-3xl">
     <div class="text-center mb-16">
       <span class="tag-cyber tag-cyan inline-block mb-5">// FAQ</span>
       <h2 class="font-heading font-bold text-[1.8rem] md:text-[2.6rem]">FREQUENTLY ASKED</h2>
@@ -33,7 +33,7 @@
             <span class="font-heading font-bold text-[0.9rem] text-[var(--text-primary)]">{faq.q}</span>
             <span
               class="flex-shrink-0 w-6 h-6 border border-[var(--accent)] text-[var(--accent)] flex items-center justify-center text-sm group-open:rotate-45 transition-transform duration-200"
-              style="clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));"
+              style="border-radius: var(--radius-card);"
             >+</span>
           </summary>
           <p

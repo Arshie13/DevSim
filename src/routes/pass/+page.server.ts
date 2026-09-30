@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
+import { computeLevel } from '$lib/utils/level';
 import type { PassState } from '$lib/server/learnerPass/schedule';
 import {
   PASS_LADDER,
@@ -14,6 +15,7 @@ export const load: PageServerLoad = async (event) => {
 
   if (!session?.user?.id) {
     return {
+      user: null,
       enrollment: null,
       rewards: [],
     };
@@ -24,13 +26,24 @@ export const load: PageServerLoad = async (event) => {
   const [dbUser, enrollment] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { image: true },
+      select: {
+        name: true,
+        email: true,
+        image: true,
+        coins: true,
+        xp: true,
+        owned_avatars: true,
+        has_completed_tutorial: true,
+      },
     }),
     prisma.learner_pass_enrollment.findFirst({
       where: { user_id: userId },
       orderBy: { created_at: 'desc' },
     }),
   ]);
+
+  // The User model has no level column: level is derived from xp (same mapping as /profile).
+  const levelData = computeLevel(dbUser?.xp ?? 0);
 
   // Ladder comes from code now, emitted in the field names pass/+page.svelte already reads.
   const rewards = PASS_LADDER.map(toRewardPayload);
@@ -57,6 +70,20 @@ export const load: PageServerLoad = async (event) => {
   }
 
   return {
+    user: {
+      ...session.user,
+      name: dbUser?.name ?? session.user.name ?? null,
+      email: dbUser?.email ?? session.user.email ?? null,
+      // Override session image with live DB value so avatar changes are
+      // reflected immediately without requiring a re-login.
+      image: dbUser?.image ?? session.user.image ?? null,
+      avatar: dbUser?.image ?? session.user.avatar ?? null,
+      coins: dbUser?.coins ?? 0,
+      xp: dbUser?.xp ?? 0,
+      level: levelData.level,
+      ownedAvatars: dbUser?.owned_avatars ?? [],
+      hasCompletedTutorial: dbUser?.has_completed_tutorial ?? false,
+    },
     enrollment:
       enrollment && state
         ? {

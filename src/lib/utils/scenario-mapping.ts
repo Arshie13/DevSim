@@ -76,3 +76,29 @@ export function resolveStackName(dbScenarioId: string): string | null {
   const match = dbScenarioId.match(/^(.+)-scenario-\d+$/);
   return match ? match[1] : null;
 }
+
+/**
+ * Reverse map for deep links: given a DB scenario id, return the tech stack and
+ * the frontend scenario folder name (`scenario-3`) needed to build a
+ * `/scenario?stack=…&scenario=…` URL.
+ *
+ * The folder name cannot always be derived from the id — e.g.
+ * `nextjs-postgres-prisma-3` maps to folder `scenario-3` — so the legacy map is
+ * consulted first.
+ */
+export function resolveScenarioRef(
+  dbScenarioId: string,
+): { stackName: string; folderScenarioId: string } | null {
+  for (const [stackName, scenarios] of Object.entries(SCENARIO_ID_MAP)) {
+    for (const [folderScenarioId, dbId] of Object.entries(scenarios)) {
+      if (dbId === dbScenarioId) return { stackName, folderScenarioId };
+    }
+  }
+
+  const match = dbScenarioId.match(/^(.+)-scenario-(\d+)$/);
+  if (match) {
+    return { stackName: match[1], folderScenarioId: `scenario-${match[2]}` };
+  }
+
+  return null;
+}
