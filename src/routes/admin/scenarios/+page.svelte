@@ -132,7 +132,7 @@
         <Layers class="inline h-6 w-6 mr-2" />
         Scenario Manager
       </h1>
-      <p class="mt-1 font-label text-sm text-obsidian-text-muted">
+      <p class="mt-1 font-body text-base text-obsidian-text-muted">
         Manage scenarios, levels, and tasks
       </p>
     </div>
@@ -158,7 +158,7 @@
   {#if showCreateForm}
     <div class="card-cyber mb-8" style="border-color: rgb(var(--accent-rgb) / 0.15)">
       <div class="card-cyber-body">
-      <h2 class="font-heading text-lg font-semibold text-obsidian-text-primary mb-4">Create Scenario</h2>
+      <h2 class="font-heading text-xl font-semibold text-obsidian-text-primary mb-4">Create Scenario</h2>
       <form
         method="POST"
         action="?/createScenario"
@@ -180,7 +180,7 @@
       >
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="docker_image">Docker Image</label>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="docker_image">Docker Image</label>
             <select
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary font-mono"
               bind:value={selectedImage}
@@ -191,11 +191,11 @@
               {/each}
             </select>
             {#if data.availableImages.length === 0}
-              <p class="text-[0.6rem] text-obsidian-text-muted mt-1">No unused devsim-project images found (all already mapped to a scenario)</p>
+              <p class="text-sm text-obsidian-text-muted mt-1">No unused devsim-project images found (all already mapped to a scenario)</p>
             {/if}
           </div>
           <div>
-            <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="scenario_id">
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="scenario_id">
               {selectedImage ? "ID" : "ID (manual)"}
             </label>
             {#if selectedImage}
@@ -208,17 +208,17 @@
             {/if}
           </div>
           <div>
-            <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="name">Name</label>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="name">Name</label>
             <input id="name" type="text" name="name" required
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
           </div>
           <div class="col-span-2">
-            <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="description">Description</label>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="description">Description</label>
             <input id="description" type="text" name="description" required
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
           </div>
           <div>
-            <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="difficulty">Difficulty</label>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="difficulty">Difficulty</label>
             <input id="difficulty" type="text" name="difficulty" value="Easy" placeholder="Easy / Medium / Hard"
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
           </div>
@@ -266,22 +266,22 @@
               <input type="hidden" name="id" value={scenario.id} />
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="name">Name</label>
+                  <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="name">Name</label>
                   <input id="name" type="text" name="name" value={scenario.name} required
                     class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
                 </div>
                 <div>
-                  <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="difficulty">Difficulty</label>
+                  <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="difficulty">Difficulty</label>
                   <input id="difficulty" type="text" name="difficulty" value={scenario.difficulty}
                     class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
                 </div>
                 <div class="col-span-2">
-                  <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="description">Description</label>
+                  <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="description">Description</label>
                   <input id="description" type="text" name="description" value={scenario.description} required
                     class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
                 </div>
                 <div>
-                  <label class="block font-label text-xs text-obsidian-text-muted mb-1" for="paywalled">Paywalled</label>
+                  <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="paywalled">Paywalled</label>
                   <select id="paywalled" name="isPaywalled"
                     class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary"
                   >
@@ -310,7 +310,7 @@
               <div class="min-w-0">
                 <h3 class="font-heading text-lg font-semibold text-obsidian-text-primary">{scenario.name}</h3>
                 <p class="text-sm text-obsidian-text-muted truncate">{scenario.description}</p>
-                <span class="text-xs font-mono text-obsidian-accent px-1.5 py-0.5 rounded bg-obsidian-accent/10">{scenario.stackName}</span>
+                <span class="text-sm font-mono text-obsidian-accent px-1.5 py-0.5 rounded bg-obsidian-accent/10">{scenario.stackName}</span>
               </div>
               <span class="text-sm font-mono text-obsidian-text-muted">[{scenario.difficulty}]</span>
               <span class="text-sm text-obsidian-text-muted">{scenario.levels.length} level{scenario.levels.length !== 1 ? 's' : ''}</span>
@@ -366,42 +366,42 @@
                   <input type="hidden" name="scenarioId" value={scenario.id} />
                   <div class="grid grid-cols-3 gap-2">
                     <div>
-                      <label class="text-obsidian-text-muted text-xs" for="title">Title</label>
+                      <label class="text-obsidian-text-muted text-sm" for="title">Title</label>
                       <input id="title" type="text" name="title" required
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div>
-                      <label class="text-obsidian-text-muted text-xs" for="order">Order</label>
+                      <label class="text-obsidian-text-muted text-sm" for="order">Order</label>
                       <input id="order" type="number" name="order" value={scenario.levels.length + 1}
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div>
-                      <label class="text-obsidian-text-muted text-xs" for="sprint">Sprint</label>
+                      <label class="text-obsidian-text-muted text-sm" for="sprint">Sprint</label>
                       <input id="sprint" type="number" name="sprintNumber" value="1"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div>
-                      <label class="text-obsidian-text-muted text-xs" for="deadline">Deadline</label>
+                      <label class="text-obsidian-text-muted text-sm" for="deadline">Deadline</label>
                       <input id="deadline" type="date" name="deadline"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div>
-                      <label class="text-obsidian-text-muted text-xs" for="xp">XP</label>
+                      <label class="text-obsidian-text-muted text-sm" for="xp">XP</label>
                       <input id="xp" type="number" name="xpReward" value="100"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div>
-                      <label class="text-obsidian-text-muted text-xs" for="coins">Coins</label>
+                      <label class="text-obsidian-text-muted text-sm" for="coins">Coins</label>
                       <input id="coins" type="number" name="coinReward" value="50"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div class="col-span-3">
-                      <label class="text-obsidian-text-muted text-xs" for="description">Description</label>
+                      <label class="text-obsidian-text-muted text-sm" for="description">Description</label>
                       <input id="description" type="text" name="levelDescription"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div class="col-span-3">
-                      <label class="text-obsidian-text-muted text-xs" for="key_takeaways">Key Takeaways</label>
+                      <label class="text-obsidian-text-muted text-sm" for="key_takeaways">Key Takeaways</label>
                       <input id="key_takeaways" type="text" name="keyTakeaways"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
@@ -448,42 +448,42 @@
                         <input type="hidden" name="id" value={level.id} />
                         <div class="grid grid-cols-3 gap-2">
                           <div>
-                            <label class="text-obsidian-text-muted text-xs" for="title">Title</label>
+                            <label class="text-obsidian-text-muted text-sm" for="title">Title</label>
                             <input id="title" type="text" name="title" value={level.title}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div>
-                            <label class="text-obsidian-text-muted text-xs" for="order">Order</label>
+                            <label class="text-obsidian-text-muted text-sm" for="order">Order</label>
                             <input id="order" type="number" name="order" value={level.order}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div>
-                            <label class="text-obsidian-text-muted text-xs" for="sprint">Sprint</label>
+                            <label class="text-obsidian-text-muted text-sm" for="sprint">Sprint</label>
                             <input id="sprint" type="number" name="sprintNumber" value={level.sprintNumber}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div>
-                            <label class="text-obsidian-text-muted text-xs" for="deadline">Deadline</label>
+                            <label class="text-obsidian-text-muted text-sm" for="deadline">Deadline</label>
                             <input id="deadline" type="date" name="deadline" value={level.deadline}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div>
-                            <label class="text-obsidian-text-muted text-xs" for="xp">XP</label>
+                            <label class="text-obsidian-text-muted text-sm" for="xp">XP</label>
                             <input id="xp" type="number" name="xpReward" value={level.xpReward}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div>
-                            <label class="text-obsidian-text-muted text-xs" for="coins">Coins</label>
+                            <label class="text-obsidian-text-muted text-sm" for="coins">Coins</label>
                             <input id="coins" type="number" name="coinReward" value={level.coinReward}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div class="col-span-3">
-                            <label class="text-obsidian-text-muted text-xs" for="description">Description</label>
+                            <label class="text-obsidian-text-muted text-sm" for="description">Description</label>
                             <input id="description" type="text" name="levelDescription" value={level.levelDescription}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div class="col-span-3">
-                            <label class="text-obsidian-text-muted text-xs" for="key_takeaways">Key Takeaways</label>
+                            <label class="text-obsidian-text-muted text-sm" for="key_takeaways">Key Takeaways</label>
                             <input id="key_takeaways" type="text" name="keyTakeaways" value={level.keyTakeaways}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
@@ -566,17 +566,17 @@
                             <input type="hidden" name="levelId" value={level.id} />
                             <div class="grid grid-cols-2 gap-2">
                               <div>
-                                <label class="text-obsidian-text-muted text-xs" for="task_name">Task Name</label>
+                                <label class="text-obsidian-text-muted text-sm" for="task_name">Task Name</label>
                                 <input id="task_name" type="text" name="taskName" required
                                   class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                               </div>
                               <div>
-                                <label class="text-obsidian-text-muted text-xs" for="order">Order</label>
+                                <label class="text-obsidian-text-muted text-sm" for="order">Order</label>
                                 <input id="order" type="number" name="order" value={level.tasks.length + 1}
                                   class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                               </div>
                               <div>
-                                <label class="text-obsidian-text-muted text-xs" for="test_type">Test Type</label>
+                                <label class="text-obsidian-text-muted text-sm" for="test_type">Test Type</label>
                                 <select id="test_type" name="testType"
                                   class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary"
                                 >
@@ -586,17 +586,17 @@
                                 </select>
                               </div>
                               <div class="col-span-2">
-                                <label class="text-obsidian-text-muted text-xs" for="user_story">User Story</label>
+                                <label class="text-obsidian-text-muted text-sm" for="user_story">User Story</label>
                                 <input id="user_story" type="text" name="userStory"
                                   class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                               </div>
                               <div class="col-span-2">
-                                <label class="text-obsidian-text-muted text-xs" for="acceptance_criteria_one_per_line">Acceptance Criteria (one per line)</label>
+                                <label class="text-obsidian-text-muted text-sm" for="acceptance_criteria_one_per_line">Acceptance Criteria (one per line)</label>
                                 <textarea id="acceptance_criteria_one_per_line" name="acceptanceCriteria" rows="3" placeholder="A member can view all books&#10;Search filters by title&#10;Empty state when no results"
                                   class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary font-mono"></textarea>
                               </div>
                               <div class="col-span-2">
-                                <label class="text-obsidian-text-muted text-xs" for="task_hints_one_per_line">Hints (one per line)</label>
+                                <label class="text-obsidian-text-muted text-sm" for="task_hints_one_per_line">Hints (one per line)</label>
                                 <textarea id="task_hints_one_per_line" name="hints" rows="3" placeholder="Check the useEffect dependency array&#10;Reuse the existing formatDate helper"
                                   class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary font-mono"></textarea>
                               </div>
@@ -643,17 +643,17 @@
                                   <input type="hidden" name="id" value={task.id} />
                                   <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                      <label class="text-obsidian-text-muted text-xs" for="task_name">Task Name</label>
+                                      <label class="text-obsidian-text-muted text-sm" for="task_name">Task Name</label>
                                       <input id="task_name" type="text" name="taskName" value={task.taskName}
                                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                                     </div>
                                     <div>
-                                      <label class="text-obsidian-text-muted text-xs" for="order">Order</label>
+                                      <label class="text-obsidian-text-muted text-sm" for="order">Order</label>
                                       <input id="order" type="number" name="order" value={task.order}
                                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                                     </div>
                                     <div>
-                                      <label class="text-obsidian-text-muted text-xs" for="test_type">Test Type</label>
+                                      <label class="text-obsidian-text-muted text-sm" for="test_type">Test Type</label>
                                       <select id="test_type" name="testType"
                                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary"
                                       >
@@ -663,18 +663,18 @@
                                       </select>
                                     </div>
                                     <div class="col-span-2">
-                                      <label class="text-obsidian-text-muted text-xs" for="user_story">User Story</label>
+                                      <label class="text-obsidian-text-muted text-sm" for="user_story">User Story</label>
                                       <input id="user_story" type="text" name="userStory" value={task.userStory}
                                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                                     </div>
                                     <div class="col-span-2">
-                                      <label class="text-obsidian-text-muted text-xs" for="acceptance_criteria_one_per_line">Acceptance Criteria (one per line)</label>
+                                      <label class="text-obsidian-text-muted text-sm" for="acceptance_criteria_one_per_line">Acceptance Criteria (one per line)</label>
                                       <textarea id="acceptance_criteria_one_per_line" name="acceptanceCriteria" rows="3"
                                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary font-mono"
                                       >{task.acceptanceCriteria.map(ac => ac.description).join('\n')}</textarea>
                                     </div>
                                     <div class="col-span-2">
-                                      <label class="text-obsidian-text-muted text-xs" for="task_hints_one_per_line">Hints (one per line)</label>
+                                      <label class="text-obsidian-text-muted text-sm" for="task_hints_one_per_line">Hints (one per line)</label>
                                       <textarea id="task_hints_one_per_line" name="hints" rows="3"
                                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary font-mono"
                                       >{task.hints.map(h => h.description).join('\n')}</textarea>
@@ -699,7 +699,7 @@
                                   <div class="flex items-center gap-2 min-w-0">
                                     <ListTodo class="h-3 w-3 text-obsidian-text-muted shrink-0" />
                                     <span class="text-sm text-obsidian-text-primary font-mono">{task.taskName}</span>
-                                    <span class="text-xs text-obsidian-text-muted">({task.testType})</span>
+                                    <span class="text-sm text-obsidian-text-muted">({task.testType})</span>
                                     {#if task.acceptanceCriteria.length > 0}
                                       <span class="text-[0.65rem] text-obsidian-text-muted bg-obsidian-accent/10 px-1 py-0.5 rounded">{task.acceptanceCriteria.length} crit</span>
                                     {/if}
@@ -725,7 +725,7 @@
                                     {#each task.acceptanceCriteria as ac}
                                       <div class="flex items-start gap-1.5">
                                         <span class="text-[0.65rem] text-obsidian-text-muted shrink-0">{ac.order}.</span>
-                                        <span class="text-xs text-obsidian-text-muted min-w-0">{ac.description}</span>
+                                        <span class="text-sm text-obsidian-text-muted min-w-0">{ac.description}</span>
                                       </div>
                                     {/each}
                                   </div>
@@ -736,7 +736,7 @@
                                     {#each task.hints as hint}
                                       <div class="flex items-start gap-1.5">
                                         <span class="text-[0.65rem] text-obsidian-text-muted shrink-0">{hint.order}.</span>
-                                        <span class="text-xs text-obsidian-text-muted min-w-0">{hint.description}</span>
+                                        <span class="text-sm text-obsidian-text-muted min-w-0">{hint.description}</span>
                                       </div>
                                     {/each}
                                   </div>
@@ -780,12 +780,12 @@
                                     <input type="hidden" name="order" value={task.learningSections.length + 1} />
                                     <div class="grid grid-cols-2 gap-2">
                                       <div class="col-span-2">
-                                        <label class="text-obsidian-text-muted text-xs" for="title">Title</label>
+                                        <label class="text-obsidian-text-muted text-sm" for="title">Title</label>
                                         <input id="title" type="text" name="title" required
                                           class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                                       </div>
                                       <div>
-                                        <label class="text-obsidian-text-muted text-xs" for="section_type">Section Type</label>
+                                        <label class="text-obsidian-text-muted text-sm" for="section_type">Section Type</label>
                                         <select id="section_type" name="sectionType"
                                           class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary"
                                           value={createSectionType}
@@ -800,7 +800,7 @@
                                         </select>
                                       </div>
                                       <div>
-                                        <label class="text-obsidian-text-muted text-xs" for="interactive_mode">Interactive Mode</label>
+                                        <label class="text-obsidian-text-muted text-sm" for="interactive_mode">Interactive Mode</label>
                                         <select id="interactive_mode" name="interactiveMode"
                                           class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                           value={createInteractiveMode}
@@ -816,7 +816,7 @@
                                         </select>
                                       </div>
                                       <div class="col-span-2">
-                                        <label class="text-obsidian-text-muted text-xs" for="content">Content</label>
+                                        <label class="text-obsidian-text-muted text-sm" for="content">Content</label>
                                         <textarea id="content" name="content" rows="3"
                                           class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary font-mono"></textarea>
                                       </div>
@@ -867,17 +867,17 @@
                                           <input type="hidden" name="id" value={section.id} />
                                           <div class="grid grid-cols-2 gap-2">
                                             <div class="col-span-2">
-                                              <label class="text-obsidian-text-muted text-xs" for="title">Title</label>
+                                              <label class="text-obsidian-text-muted text-sm" for="title">Title</label>
                                               <input id="title" type="text" name="title" value={section.title}
                                                 class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                                             </div>
                                             <div>
-                                              <label class="text-obsidian-text-muted text-xs" for="order">Order</label>
+                                              <label class="text-obsidian-text-muted text-sm" for="order">Order</label>
                                               <input id="order" type="number" name="order" value={section.order}
                                                 class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                                             </div>
                                             <div>
-                                              <label class="text-obsidian-text-muted text-xs" for="section_type">Section Type</label>
+                                              <label class="text-obsidian-text-muted text-sm" for="section_type">Section Type</label>
                                               <select id="section_type" name="sectionType"
                                                 class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary"
                                                 value={editSectionType}
@@ -892,7 +892,7 @@
                                               </select>
                                             </div>
                                             <div>
-                                              <label class="text-obsidian-text-muted text-xs" for="interactive_mode">Interactive Mode</label>
+                                              <label class="text-obsidian-text-muted text-sm" for="interactive_mode">Interactive Mode</label>
                                               <select id="interactive_mode" name="interactiveMode"
                                                 class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                                 value={editInteractiveMode}
@@ -908,7 +908,7 @@
                                               </select>
                                             </div>
                                             <div class="col-span-2">
-                                              <label class="text-obsidian-text-muted text-xs" for="content">Content</label>
+                                              <label class="text-obsidian-text-muted text-sm" for="content">Content</label>
                                               <textarea id="content" name="content" rows="3"
                                                 class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary font-mono"
                                               >{section.content}</textarea>
@@ -937,7 +937,7 @@
                                         <div class="flex items-center gap-2 min-w-0">
                                           <BookOpen class="h-3 w-3 text-obsidian-text-muted shrink-0" />
                                           <span class="text-sm text-obsidian-text-primary font-mono">{section.title}</span>
-                                          <span class="text-xs text-obsidian-text-muted">({section.sectionType})</span>
+                                          <span class="text-sm text-obsidian-text-muted">({section.sectionType})</span>
                                           {#if section.interactiveMode}
                                             <span class="text-[0.65rem] text-obsidian-accent bg-obsidian-accent/10 px-1 py-0.5 rounded">{section.interactiveMode}</span>
                                           {/if}

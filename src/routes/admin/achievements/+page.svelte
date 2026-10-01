@@ -52,7 +52,7 @@
      <Trophy class="inline h-6 w-6 mr-2" />
       Achievement Catalog
     </h1>
-    <p class="mt-1 font-label text-sm text-obsidian-text-muted">
+    <p class="mt-1 font-body text-md text-obsidian-text-muted">
       Read-only · {data.families.length} families · {data.totalTiers} tiers
     </p>
   </div>
@@ -62,7 +62,7 @@
     style="border-color: rgb(var(--warn-rgb) / 0.25)"
   >
     <FileCode2 class="mt-0.5 h-4 w-4 shrink-0 text-cyber-warn" />
-    <p class="font-label text-sm leading-relaxed text-obsidian-text-muted">
+    <p class="font-body text-md text-obsidian-text-muted">
       Definitions live in
       <code class="font-mono text-obsidian-accent">src/lib/server/achievements/definitions.ts</code>.
       Edit that file and deploy — there is no supported runtime mutation path.
@@ -88,13 +88,13 @@
             {:else}
               <ChevronRight class="h-4 w-4 shrink-0 text-obsidian-text-muted" />
             {/if}
-            <span class="text-lg" aria-hidden="true">{family.icon}</span>
+            <span class="text-xl" aria-hidden="true">{family.icon}</span>
             <div>
               <div class="flex flex-wrap items-center gap-2">
-                <span class="font-heading text-base font-semibold text-obsidian-text-primary">
+                <span class="font-heading text-xl font-semibold text-obsidian-text-primary">
                   {family.name}
                 </span>
-                <span class="font-mono text-xs text-obsidian-text-muted">
+                <span class="font-mono text-sm text-obsidian-text-muted">
                   {family.key}
                 </span>
                 {#if family.retired}
@@ -121,7 +121,7 @@
             {#each family.tiers as tier (tier.tier)}
               <div class="rounded-card bg-obsidian-surface/40 p-2">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="font-heading text-sm font-bold uppercase text-obsidian-accent">
+                  <span class="font-heading text-md font-bold uppercase text-obsidian-accent">
                     {tier.tier}
                   </span>
                   <span class="font-mono text-sm tabular-nums text-obsidian-text-muted">
@@ -129,7 +129,7 @@
                   </span>
                 </div>
                 <p class="mt-1 text-sm text-obsidian-text-muted">{tier.description}</p>
-                <pre class="mt-1 overflow-x-auto rounded-chrome bg-obsidian-bg/60 p-2 font-mono text-xs leading-relaxed text-obsidian-text-primary">{tier.criteria}</pre>
+                <pre class="mt-1 overflow-x-auto rounded-chrome bg-obsidian-bg/60 p-2 font-mono text-sm leading-relaxed text-obsidian-text-primary">{tier.criteria}</pre>
               </div>
             {/each}
           </div>

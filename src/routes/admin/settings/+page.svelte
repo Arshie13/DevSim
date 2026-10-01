@@ -66,7 +66,7 @@
      <Settings class="inline h-6 w-6 mr-2" />
       Application Settings
     </h1>
-    <p class="mt-1 font-body text-sm text-obsidian-text-muted">
+    <p class="mt-1 font-body text-md text-obsidian-text-muted">
       Manage global application configuration
     </p>
   </div>
@@ -90,10 +90,10 @@
       <div class="card-cyber-body">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="font-heading text-lg font-semibold text-obsidian-text-primary">
+            <h2 class="font-heading text-xl font-semibold text-obsidian-text-primary">
               Mastery Checkpoint
             </h2>
-            <p class="mt-1 font-body text-sm text-obsidian-text-muted">
+            <p class="mt-1 font-body text-md text-obsidian-text-muted">
               When enabled, users must complete the mastery checkpoint to progress
               to the next level.
             </p>
@@ -142,11 +142,11 @@
       <div class="card-cyber-body">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h2 class="flex items-center gap-2 font-heading text-lg font-semibold text-obsidian-text-primary">
+            <h2 class="flex items-center gap-2 font-heading text-xl font-semibold text-obsidian-text-primary">
               <Lock class="h-5 w-5" />
               Scenario Paywall
             </h2>
-            <p class="mt-1 font-body text-sm text-obsidian-text-muted">
+            <p class="mt-1 font-body text-md text-obsidian-text-muted">
               Lock individual scenarios behind the Learner Pass. Users must have an active Learner Pass and project access to launch locked scenarios.
             </p>
           </div>
@@ -161,7 +161,7 @@
                 <p class="truncate font-body text-base text-obsidian-text-primary">
                   {scenario.name}
                 </p>
-                <p class="mt-0.5 font-label text-xs text-obsidian-text-muted">
+                <p class="mt-0.5 font-label text-sm text-obsidian-text-muted">
                   {scenario.stackName}
                 </p>
               </div>
@@ -222,7 +222,7 @@
               <Trash2 class="h-5 w-5" />
               Reset Docker Containers
             </h2>
-            <p class="mt-1 font-body text-sm text-obsidian-text-muted">
+            <p class="mt-1 font-body text-md text-obsidian-text-muted">
               Stop and remove all active DevSim Docker containers and clear the
               database workspaces. Avoid using this if users are active.
             </p>
@@ -258,7 +258,7 @@
             <button
               type="submit"
               disabled={isResettingDocker}
-              class="btn-cyber btn-cyber-danger flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-cyber-danger/40 disabled:opacity-50"
+              class=" text-sm btn-cyber btn-cyber-danger flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-cyber-danger/40 disabled:opacity-50"
             >
               {#if isResettingDocker}
                 <Loader2 class="h-4 w-4 animate-spin" />

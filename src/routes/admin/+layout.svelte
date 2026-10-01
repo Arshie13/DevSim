@@ -27,11 +27,15 @@
   <div class="admin-shell flex h-screen min-w-0 bg-obsidian-bg bg-grid-cyber scanlines ambient-glow">
     <!-- Sidebar -->
     <aside
-      class="admin-sidebar relative z-10 flex w-64 shrink-0 flex-col border-r border-obsidian-accent/10 bg-[rgb(var(--bg-rgb)/0.95)] transition-[width] duration-200"
+      class="admin-sidebar relative z-10 flex w-64 shrink-0 flex-col overflow-hidden border-r border-obsidian-accent/10 bg-[rgb(var(--bg-rgb)/0.95)] transition-[width] duration-200"
       class:admin-collapsed={collapsed}
     >
       <div class="flex items-center justify-between p-4 mt-4 {collapsed ? 'flex-col gap-2' : ''}">
-        <h1 class="font-heading text-2xl font-semibold text-obsidian-accent">
+        <h1
+          class="font-heading text-2xl font-semibold whitespace-nowrap text-obsidian-accent transition-opacity {collapsed
+            ? 'w-0 opacity-0 duration-[0ms]'
+            : 'opacity-100 delay-200 duration-150'}"
+        >
           Admin Panel
         </h1>
         <button
@@ -49,14 +53,18 @@
         </button>
       </div>
 
-      <nav class="mt-2 px-4">
+      <nav class="mt-2 {collapsed ? 'px-0' : 'px-4'}">
         {#each navItems as item}
           <a
             href={item.href}
-            class="flex items-center gap-2 px-2 py-3 mb-1 rounded-card transition-colors {collapsed ? 'justify-center px-0' : ''} {currentPath === item.href ? 'bg-obsidian-accent/15 text-obsidian-accent' : 'text-obsidian-text-muted hover:text-obsidian-text-primary hover:bg-obsidian-accent/10'}"
+            class="flex items-center gap-2 overflow-hidden px-2 py-3 mb-1 rounded-card transition-colors {collapsed ? 'justify-center px-0' : ''} {currentPath === item.href ? 'bg-obsidian-accent/15 text-obsidian-accent' : 'text-obsidian-text-muted hover:text-obsidian-text-primary hover:bg-obsidian-accent/10'}"
           >
             <item.icon class="h-5 w-5 shrink-0" />
-            <span class="font-body text-base font-medium">
+            <span
+              class="font-body text-base font-medium whitespace-nowrap transition-opacity {collapsed
+                ? 'w-0 opacity-0 duration-[0ms]'
+                : 'opacity-100 delay-200 duration-150'}"
+            >
               {item.label}
             </span>
           </a>
@@ -66,10 +74,16 @@
       <!-- Back to app -->
       <a
         href="/dashboard"
-        class="admin-backlink mx-4 mb-4 mt-auto flex items-center gap-2 font-body text-base text-obsidian-text-muted transition-colors hover:text-obsidian-accent {collapsed ? 'justify-center px-0' : ''}"
+        class="admin-backlink overflow-hidden mb-5 mt-auto flex items-center gap-2 font-body text-base text-obsidian-text-muted transition-colors hover:text-obsidian-accent {collapsed ? 'justify-center px-0 mx-0' : 'mx-4'}"
       >
         <ArrowLeft class="h-5 w-5 shrink-0" />
-        <span>Back to app</span>
+        <span
+          class="whitespace-nowrap transition-opacity {collapsed
+            ? 'w-0 opacity-0 duration-[0ms]'
+            : 'opacity-100 delay-200 duration-150'}"
+        >
+          Back to app
+        </span>
       </a>
     </aside>
 
@@ -79,28 +93,16 @@
         <slot />
       </Scrollbar>
     </main>
-  </div>
+  </div>  
 {/if}
 
 <style>
-  /* Manual collapse (the toggle overrides the responsive widths everywhere). */
+  /* Manual collapse (the toggle overrides the responsive widths everywhere).
+     Text hides instantly on collapse and fades back only after the width
+     transition settles on expand — markup drives that timing, CSS just sets
+     the rail width. */
   .admin-sidebar.admin-collapsed {
     width: 3.5rem;
-  }
-
-  .admin-sidebar.admin-collapsed h1 {
-    overflow: hidden;
-    white-space: nowrap;
-    font-size: 0;
-  }
-
-  .admin-sidebar.admin-collapsed h1::first-letter {
-    font-size: 1.3rem;
-  }
-
-  .admin-sidebar.admin-collapsed nav span,
-  .admin-sidebar.admin-collapsed .admin-backlink span {
-    display: none;
   }
 
   @media (max-width: 900px) {

@@ -23,7 +23,7 @@
        <Boxes class="inline h-6 w-6 mr-2" />
         Container Overview
       </h1>
-      <p class="mt-1 font-body text-sm text-obsidian-text-muted">
+      <p class="mt-1 font-body text-md text-obsidian-text-muted">
         Stop containers for inactive users. Presence updates only while a user is on a
         workspace or tutorial page.
       </p>
@@ -51,7 +51,7 @@
 
   {#if data.dockerError}
     <div class="mb-4 rounded-card border border-cyber-danger/30 bg-cyber-danger/10 p-3 text-cyber-danger">
-      <p class="font-label text-sm">
+      <p class="font-label text-md  ">
         Docker daemon unreachable — states shown as stopped.
       </p>
     </div>
@@ -65,13 +65,13 @@
       <table class="w-full text-left">
         <thead>
           <tr class="border-b border-obsidian-accent/15">
-            <th class="px-4 py-3 font-label text-xs uppercase tracking-[0.04em] text-obsidian-text-muted">User</th>
-            <th class="px-4 py-3 font-label text-xs uppercase tracking-[0.04em] text-obsidian-text-muted">Stack</th>
-            <th class="px-4 py-3 font-label text-xs uppercase tracking-[0.04em] text-obsidian-text-muted">Scenario / Level</th>
-            <th class="px-4 py-3 font-label text-xs uppercase tracking-[0.04em] text-obsidian-text-muted">Workspace</th>
-            <th class="px-4 py-3 font-label text-xs uppercase tracking-[0.04em] text-obsidian-text-muted">Docker</th>
-            <th class="px-4 py-3 font-label text-xs uppercase tracking-[0.04em] text-obsidian-text-muted">Presence</th>
-            <th class="px-4 py-3 font-label text-xs uppercase tracking-[0.04em] text-obsidian-text-muted">Action</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">User</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Stack</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Scenario / Level</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Workspace</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Docker</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Presence</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Action</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-obsidian-accent/10">

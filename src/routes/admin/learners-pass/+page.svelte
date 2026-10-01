@@ -39,7 +39,7 @@
         <Gift class="mr-2 inline h-7 w-7" />
         Learner Pass Manager
       </h1>
-      <p class="mt-1 PLACEHOLDER-SKIP">
+      <p class="mt-1 font-body text-md text-obsidian-text-muted">
         Read-only view of the 30-day reward calendar
       </p>
     </div>
@@ -66,9 +66,9 @@
     class="mb-8 rounded-card border bg-[rgb(var(--gold-rgb)/0.05)] p-3"
     style="border-color: rgb(var(--gold-rgb) / 0.25)"
   >
-    <p class="PLACEHOLDER-SKIP">
+    <p class="font-body text-md text-obsidian-text-muted">
       The reward ladder is defined in code at
-      <span class="font-mono text-obsidian-text-primary">src/lib/server/learnerPass/schedule.ts</span>
+      <span class="font-mono text-obsidian-accent">src/lib/server/learnerPass/schedule.ts</span>
       and was made read-only here on purpose: an unvalidated editor could empty a day's
       payout, point a day at an arbitrary scenario, or set a display type the UI has no
       icon for. Change it in code so the change is reviewed.
