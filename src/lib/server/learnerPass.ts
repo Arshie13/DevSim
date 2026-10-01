@@ -9,8 +9,8 @@ export interface PaymentConfirmationResult {
     id: string;
     user_id: string;
     status: string;
-    expires_at: Date | null;
-    payment_id: string | null;
+    expires_at: Date;
+    payment_id: string;
   } | null;
   message?: string;
   error?: string;

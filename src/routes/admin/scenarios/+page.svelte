@@ -2,6 +2,8 @@
   import { enhance } from "$app/forms";
   import { Loader2, Plus, Trash2, Edit3, ChevronDown, ChevronRight, Lock, Unlock, Layers, ListTodo, BookOpen, Code, Terminal, FileCode } from "lucide-svelte";
   import type { IInteractiveConfig } from "$lib/types/IContainer";
+  import InteractiveConfigEditor from "$lib/components/admin/InteractiveConfigEditor.svelte";
+  import type { InteractiveMode } from "$lib/utils/interactive-config";
 
   interface Task {
     id: string;
@@ -11,6 +13,7 @@
     testType: string;
     levelId: string;
     acceptanceCriteria: { id: string; description: string; isRequired: boolean; order: number }[];
+    hints: { id: string; description: string; order: number }[];
     learningSections: LearningSection[];
   }
 
@@ -87,6 +90,39 @@
   const SECTION_TYPES = ['PLAIN_TEXT', 'INTERACTIVE'] as const;
   const INTERACTIVE_MODES = ['CODE_EDITOR', 'TERMINAL_CD', 'TERMINAL_CMD'] as const;
   const LANGUAGES = ['javascript', 'typescript', 'python', 'java', 'cpp', 'c', 'go', 'rust', 'sql', 'bash'];
+
+  type SectionType = (typeof SECTION_TYPES)[number];
+
+  // Only one create form and one edit form are open at a time, so a single set of
+  // variables per form is enough to drive the section type / interactive mode selectors.
+  let createSectionType: SectionType = 'PLAIN_TEXT';
+  let createInteractiveMode: InteractiveMode | '' = '';
+  let editSectionType: SectionType = 'PLAIN_TEXT';
+  let editInteractiveMode: InteractiveMode | '' = '';
+  let editConfig: Record<string, unknown> | null = null;
+
+  function toggleCreateSection(taskId: string) {
+    if (showCreateLearningSectionForTask === taskId) {
+      showCreateLearningSectionForTask = null;
+      return;
+    }
+    showCreateLearningSectionForTask = taskId;
+    createSectionType = 'PLAIN_TEXT';
+    createInteractiveMode = '';
+  }
+
+  /** Section type is PLAIN_TEXT unless INTERACTIVE, in which case a mode is mandatory. */
+  function onSectionTypeChange(sectionType: SectionType, currentMode: InteractiveMode | ''): InteractiveMode | '' {
+    if (sectionType !== 'INTERACTIVE') return '';
+    return currentMode || INTERACTIVE_MODES[0];
+  }
+
+  function startEditLearningSection(section: LearningSection) {
+    editingLearningSectionId = section.id;
+    editSectionType = section.sectionType;
+    editInteractiveMode = section.interactiveMode ?? '';
+    editConfig = (section.interactiveConfig as unknown as Record<string, unknown> | null) ?? null;
+  }
 </script>
 
 <div class="p-6">
@@ -557,6 +593,11 @@
                                 <textarea id="acceptance_criteria_one_per_line" name="acceptanceCriteria" rows="3" placeholder="A member can view all books&#10;Search filters by title&#10;Empty state when no results"
                                   class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"></textarea>
                               </div>
+                              <div class="col-span-2">
+                                <label class="text-[var(--text-muted)] text-xs" for="task_hints_one_per_line">Hints (one per line)</label>
+                                <textarea id="task_hints_one_per_line" name="hints" rows="3" placeholder="Check the useEffect dependency array&#10;Reuse the existing formatDate helper"
+                                  class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"></textarea>
+                              </div>
                             </div>
                             <div class="flex justify-end gap-2">
                               <button type="button" on:click={() => (showCreateTaskForLevel = null)}
@@ -630,6 +671,12 @@
                                         class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"
                                       >{task.acceptanceCriteria.map(ac => ac.description).join('\n')}</textarea>
                                     </div>
+                                    <div class="col-span-2">
+                                      <label class="text-[var(--text-muted)] text-xs" for="task_hints_one_per_line">Hints (one per line)</label>
+                                      <textarea id="task_hints_one_per_line" name="hints" rows="3"
+                                        class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"
+                                      >{task.hints.map(h => h.description).join('\n')}</textarea>
+                                    </div>
                                   </div>
                                   <div class="flex justify-end gap-2">
                                     <button type="button" on:click={() => (editingTaskId = null)}
@@ -654,6 +701,9 @@
                                     {#if task.acceptanceCriteria.length > 0}
                                       <span class="text-[0.55rem] text-[var(--text-muted)] bg-[rgba(7,165,201,0.1)] px-1 py-0.5 rounded">{task.acceptanceCriteria.length} crit</span>
                                     {/if}
+                                    {#if task.hints.length > 0}
+                                      <span class="text-[0.55rem] text-[var(--text-muted)] bg-[rgba(255,180,0,0.1)] px-1 py-0.5 rounded">{task.hints.length} hint{task.hints.length === 1 ? '' : 's'}</span>
+                                    {/if}
                                   </div>
                                   <div class="flex items-center gap-1 shrink-0">
                                     <button on:click={() => (editingTaskId = task.id)}
@@ -668,11 +718,23 @@
                                   </div>
                                 </div>
                                 {#if task.acceptanceCriteria.length > 0}
-                                  <div class="px-6 pb-1.5 space-y-0.5">
+                                  <div class="px-6 pb-1 space-y-0.5">
+                                    <p class="text-[0.5rem] uppercase tracking-wider text-[var(--text-muted)] opacity-60">Acceptance Criteria</p>
                                     {#each task.acceptanceCriteria as ac}
-                                      <div class="flex items-center gap-1.5">
-                                        <span class="text-[0.5rem] text-[var(--text-muted)]">{ac.order}.</span>
-                                        <span class="text-[0.6rem] text-[var(--text-muted)]">{ac.description}</span>
+                                      <div class="flex items-start gap-1.5">
+                                        <span class="text-[0.5rem] text-[var(--text-muted)] shrink-0">{ac.order}.</span>
+                                        <span class="text-[0.6rem] text-[var(--text-muted)] min-w-0">{ac.description}</span>
+                                      </div>
+                                    {/each}
+                                  </div>
+                                {/if}
+                                {#if task.hints.length > 0}
+                                  <div class="px-6 pb-1.5 space-y-0.5">
+                                    <p class="text-[0.5rem] uppercase tracking-wider text-[var(--text-muted)] opacity-60">Hints</p>
+                                    {#each task.hints as hint}
+                                      <div class="flex items-start gap-1.5">
+                                        <span class="text-[0.5rem] text-[var(--text-muted)] shrink-0">{hint.order}.</span>
+                                        <span class="text-[0.6rem] text-[var(--text-muted)] min-w-0">{hint.description}</span>
                                       </div>
                                     {/each}
                                   </div>
@@ -684,7 +746,7 @@
                               <div class="flex items-center justify-between mb-2">
                                 <h5 class="[font-family:var(--font-mono)] text-xs text-[var(--text-muted)] uppercase tracking-wider">Learning Sections</h5>
                                 <button
-                                  on:click={() => (showCreateLearningSectionForTask = showCreateLearningSectionForTask === task.id ? null : task.id)}
+                                  on:click={() => toggleCreateSection(task.id)}
                                   class="flex items-center gap-1 rounded bg-[rgba(7,165,201,0.1)] px-2 py-0.5 text-[0.65rem] text-[var(--accent)] hover:bg-[rgba(7,165,201,0.2)]"
                                 >
                                   <Plus class="h-3 w-3" /> Add Section
@@ -724,6 +786,11 @@
                                         <label class="text-[var(--text-muted)] text-xs" for="section_type">Section Type</label>
                                         <select id="section_type" name="sectionType"
                                           class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
+                                          value={createSectionType}
+                                          on:change={(e) => {
+                                            createSectionType = e.currentTarget.value as SectionType;
+                                            createInteractiveMode = onSectionTypeChange(createSectionType, createInteractiveMode);
+                                          }}
                                         >
                                           {#each SECTION_TYPES as st}
                                             <option value={st}>{st}</option>
@@ -733,9 +800,14 @@
                                       <div>
                                         <label class="text-[var(--text-muted)] text-xs" for="interactive_mode">Interactive Mode</label>
                                         <select id="interactive_mode" name="interactiveMode"
-                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
+                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                                          value={createInteractiveMode}
+                                          disabled={createSectionType !== 'INTERACTIVE'}
+                                          on:change={(e) => (createInteractiveMode = e.currentTarget.value as InteractiveMode | '')}
                                         >
-                                          <option value="">-- None --</option>
+                                          {#if createSectionType !== 'INTERACTIVE'}
+                                            <option value="">-- None --</option>
+                                          {/if}
                                           {#each INTERACTIVE_MODES as im}
                                             <option value={im}>{im}</option>
                                           {/each}
@@ -746,11 +818,10 @@
                                         <textarea id="content" name="content" rows="3"
                                           class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"></textarea>
                                       </div>
-                                      <div class="col-span-2">
-                                        <label class="text-[var(--text-muted)] text-xs" for="interactive_config_json">Interactive Config (JSON)</label>
-                                        <textarea id="interactive_config_json" name="interactiveConfig" rows="4" placeholder="Paste JSON config here"
-                                          class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"></textarea>
-                                      </div>
+                                      <InteractiveConfigEditor
+                                        mode={createInteractiveMode}
+                                        disabled={createSectionType !== 'INTERACTIVE'}
+                                      />
                                     </div>
                                     <div class="flex justify-end gap-2">
                                       <button type="button" on:click={() => (showCreateLearningSectionForTask = null)}
@@ -807,37 +878,44 @@
                                               <label class="text-[var(--text-muted)] text-xs" for="section_type">Section Type</label>
                                               <select id="section_type" name="sectionType"
                                                 class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
+                                                value={editSectionType}
+                                                on:change={(e) => {
+                                                  editSectionType = e.currentTarget.value as SectionType;
+                                                  editInteractiveMode = onSectionTypeChange(editSectionType, editInteractiveMode);
+                                                }}
                                               >
                                                 {#each SECTION_TYPES as st}
-                                                  <option value={st} selected={section.sectionType === st}>{st}</option>
+                                                  <option value={st}>{st}</option>
                                                 {/each}
                                               </select>
                                             </div>
-                                            {#if section.sectionType === "INTERACTIVE"}
-                                              <div>
-                                                <label class="text-[var(--text-muted)] text-xs" for="interactive_mode">Interactive Mode</label>
-                                                <select id="interactive_mode" name="interactiveMode"
-                                                  class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)]"
-                                                >
+                                            <div>
+                                              <label class="text-[var(--text-muted)] text-xs" for="interactive_mode">Interactive Mode</label>
+                                              <select id="interactive_mode" name="interactiveMode"
+                                                class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                                                value={editInteractiveMode}
+                                                disabled={editSectionType !== 'INTERACTIVE'}
+                                                on:change={(e) => (editInteractiveMode = e.currentTarget.value as InteractiveMode | '')}
+                                              >
+                                                {#if editSectionType !== 'INTERACTIVE'}
                                                   <option value="">-- None --</option>
-                                                  {#each INTERACTIVE_MODES as im}
-                                                    <option value={im} selected={section.interactiveMode === im}>{im}</option>
-                                                  {/each}
-                                                </select>
-                                              </div>
-                                              <div>
-                                                <label class="text-[var(--text-muted)] text-xs" for="interactive_config_json">Interactive Config (JSON)</label>
-                                                <textarea id="interactive_config_json" name="interactiveConfig" rows="3"
-                                                  class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"
-                                                >{section.interactiveConfig ? JSON.stringify(section.interactiveConfig, null, 2) : ''}</textarea>
-                                              </div>
-                                            {/if}
+                                                {/if}
+                                                {#each INTERACTIVE_MODES as im}
+                                                  <option value={im}>{im}</option>
+                                                {/each}
+                                              </select>
+                                            </div>
                                             <div class="col-span-2">
                                               <label class="text-[var(--text-muted)] text-xs" for="content">Content</label>
                                               <textarea id="content" name="content" rows="3"
                                                 class="w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono"
                                               >{section.content}</textarea>
                                             </div>
+                                            <InteractiveConfigEditor
+                                              mode={editInteractiveMode}
+                                              config={editConfig}
+                                              disabled={editSectionType !== 'INTERACTIVE'}
+                                            />
                                           </div>
                                           <div class="flex justify-end gap-2">
                                             <button type="button" on:click={() => (editingLearningSectionId = null)}
@@ -863,7 +941,7 @@
                                           {/if}
                                         </div>
                                         <div class="flex items-center gap-1 shrink-0">
-                                          <button on:click={() => (editingLearningSectionId = section.id)}
+                                          <button on:click={() => startEditLearningSection(section)}
                                             class="rounded bg-[rgba(7,165,201,0.1)] p-0.5 text-[var(--accent)] hover:bg-[rgba(7,165,201,0.2)]"
                                           ><Edit3 class="h-3 w-3" /></button>
                                           <form method="POST" action="?/deleteLearningSection" use:enhance>

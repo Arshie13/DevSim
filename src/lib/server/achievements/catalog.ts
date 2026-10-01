@@ -1,77 +1,62 @@
 import prisma from "$lib/server/client";
-import type { AchievementCategory, achievement_tier_level, AchievementView, AchievementFeedItem } from "$types";
+import type { AchievementView, AchievementFeedItem } from "$types";
+import { getActiveFamilies, tierKey, TIER_ORDER } from "./definitions";
 import { getUserProgressSnapshot, evaluateCriterion } from "./progress";
 
-const TIER_ORDER: Record<achievement_tier_level, number> = {
-  ROOKIE: 0,
-  AMATEUR: 1,
-  PRO: 2,
-};
-
 export async function getAchievementsForUser(userId: string): Promise<AchievementView[]> {
-  const [achievements, unlocked, snapshot] = await Promise.all([
-    prisma.achievement.findMany({ orderBy: { name: "asc" } }),
+  const [unlocked, snapshot] = await Promise.all([
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true },
+      select: { family: true, tier: true },
     }),
     getUserProgressSnapshot(userId),
   ]);
 
-  const unlockedTierIds = new Set(unlocked.map((u) => u.achievement_id));
-  const families = new Map<string, typeof achievements>();
-  for (const achievement of achievements) {
-    const family = families.get(achievement.name) ?? [];
-    family.push(achievement);
-    families.set(achievement.name, family);
-  }
+  const unlockedKeys = new Set(unlocked.map((u) => tierKey(u.family, u.tier)));
 
-  return Array.from(families.values()).map((family) => {
-    const first = family[0];
-    return {
-      id: first.name,
-      name: first.name,
-      description: first.description,
-      icon: first.icon,
-      category: first.category as AchievementCategory,
-      tiers: family
+  return getActiveFamilies().map((family) => ({
+    id: family.key,
+    name: family.name,
+    description: family.description,
+    icon: family.icon,
+    category: family.category,
+    tiers: family.tiers
       .slice()
-      .sort((x, y) => TIER_ORDER[x.tier as achievement_tier_level] - TIER_ORDER[y.tier as achievement_tier_level])
+      .sort((x, y) => TIER_ORDER[x.tier] - TIER_ORDER[y.tier])
       .map((t) => {
+        const key = tierKey(family.key, t.tier);
         const { current, target } = evaluateCriterion(t.criteria, snapshot);
         const ratio = target > 0 ? Math.min(1, current / target) : 0;
-        const isUnlocked = unlockedTierIds.has(t.id);
         return {
-          id: t.id,
-          tier: t.tier as achievement_tier_level,
-          description: t.tier_description,
-          xpReward: t.xp_reward,
-          coinReward: t.coin_reward,
-          unlocked: isUnlocked,
+          id: key,
+          tier: t.tier,
+          description: t.description,
+          xpReward: t.xpReward,
+          coinReward: t.coinReward,
+          unlocked: unlockedKeys.has(key),
           currentValue: current,
           targetValue: target,
           progress: ratio,
         };
       }),
-    };
-  });
+  }));
 }
 
 /**
- * Returns the 5 most recently updated achievements (any tier unlocked),
- * including fully completed ones, ordered by earnedAt desc.
+ * Returns the 5 most recently earned achievements (any tier unlocked),
+ * ordered by earn time desc.
  */
 export async function getAchievementFeedItems(userId: string, limit = 5): Promise<AchievementFeedItem[]> {
   const [achievements, userAchievements] = await Promise.all([
     getAchievementsForUser(userId),
     prisma.user_achievement.findMany({
       where: { user_id: userId },
-      select: { achievement_id: true, created_at: true },
+      select: { family: true, tier: true, earned_at: true },
     }),
   ]);
 
   const earnedAtMap = new Map(
-    userAchievements.map((ua) => [ua.achievement_id, ua.created_at]),
+    userAchievements.map((ua) => [tierKey(ua.family, ua.tier), ua.earned_at]),
   );
 
   type Ranked = AchievementFeedItem & { _earnedAt: Date };

@@ -28,7 +28,7 @@ export const load: PageServerLoad = async (event) => {
           id: true, username: true, name: true, image: true,
           owned_avatars: true, xp: true,
           workspaces: { where: { status: "completed" }, select: { id: true } },
-          achievements: { select: { id: true } },
+          _count: { select: { achievements: true } },
         },
       }),
       prisma.user.findMany({
@@ -39,7 +39,7 @@ export const load: PageServerLoad = async (event) => {
           id: true, username: true, name: true, image: true,
           owned_avatars: true, xp: true,
           workspaces: { where: { status: "completed" }, select: { id: true } },
-          achievements: { select: { id: true } },
+          _count: { select: { achievements: true } },
         },
       }),
     ]);
@@ -65,7 +65,7 @@ export const load: PageServerLoad = async (event) => {
         image: u.owned_avatars[0] || u.image || "",
         xp: u.xp,
         completedProjects: u.workspaces.length,
-        achievementsCount: u.achievements.length,
+        achievementsCount: u._count.achievements,
         isCurrentUser: u.id === session.user?.id,
       };
     });

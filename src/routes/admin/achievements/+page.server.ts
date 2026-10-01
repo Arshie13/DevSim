@@ -1,164 +1,30 @@
-import { fail } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
-import type { Prisma } from '$prismaclient';
-import prisma from '$lib/server/client';
+import type { PageServerLoad } from './$types';
+import { getActiveFamilies } from '$lib/server/achievements/definitions';
 
+/**
+ * The achievement catalog is code-defined, so this page is read-only.
+ *
+ * See `src/lib/server/achievements/definitions.ts` — that file is the single
+ * source of truth. To add, edit, or retire an achievement, change it and deploy;
+ * there is no runtime mutation path and no `achievements` table to write to.
+ */
 export const load: PageServerLoad = async () => {
-  const rows = await prisma.achievement.findMany({ orderBy: { created_at: 'asc' } });
-  const families = new Map<string, typeof rows>();
-  for (const row of rows) {
-    const family = families.get(row.name) ?? [];
-    family.push(row);
-    families.set(row.name, family);
-  }
-
   return {
-    achievements: Array.from(families.values()).map(family => ({
-      id: family[0].id,
-      name: family[0].name,
-      description: family[0].description,
-      icon: family[0].icon,
-      category: family[0].category,
-      tiers: family.map(t => ({
-        id: t.id,
+    families: getActiveFamilies().map((family) => ({
+      key: family.key,
+      name: family.name,
+      description: family.description,
+      icon: family.icon,
+      category: family.category,
+      retired: family.retired ?? false,
+      tiers: family.tiers.map((t) => ({
         tier: t.tier,
-        description: t.tier_description,
-        icon: t.icon,
-        criteria: t.criteria,
-        xpReward: t.xp_reward,
-        coinReward: t.coin_reward,
-      }))
-    }))
+        description: t.description,
+        criteria: JSON.stringify(t.criteria, null, 2),
+        xpReward: t.xpReward,
+        coinReward: t.coinReward,
+      })),
+    })),
+    totalTiers: getActiveFamilies().reduce((sum, f) => sum + f.tiers.length, 0),
   };
-};
-
-export const actions: Actions = {
-  createAchievement: async ({ request }) => {
-    const formData = await request.formData();
-    const name = formData.get('name') as string;
-    const description = formData.get('description') as string;
-    const icon = formData.get('icon') as string;
-    const category = formData.get('category') as string;
-
-    if (!name || !description) {
-      return fail(400, { message: 'Name and description are required' });
-    }
-
-    const validCategories = ['progress', 'exploration', 'consistency', 'mastery'];
-    if (!validCategories.includes(category)) {
-      return fail(400, { message: `Category must be one of: ${validCategories.join(', ')}` });
-    }
-
-    const tiers: { tier: string; description: string; criteria: Prisma.InputJsonValue; xp_reward: number; coin_reward: number }[] = [];
-    let tierIndex = 0;
-    while (formData.has(`tier_${tierIndex}_tier`)) {
-      const tier = formData.get(`tier_${tierIndex}_tier`) as string;
-      const tierDesc = formData.get(`tier_${tierIndex}_description`) as string;
-      const criteriaStr = formData.get(`tier_${tierIndex}_criteria`) as string;
-      const tierXp = parseInt(formData.get(`tier_${tierIndex}_xp`) as string) || 100;
-      const tierCoins = parseInt(formData.get(`tier_${tierIndex}_coins`) as string) || 50;
-
-      let criteria: Prisma.InputJsonValue;
-      try {
-        criteria = JSON.parse(criteriaStr || '{}') as Prisma.InputJsonValue;
-      } catch {
-        return fail(400, { message: `Tier ${tierIndex + 1} criteria is not valid JSON` });
-      }
-
-      tiers.push({ tier: tier, description: tierDesc, criteria, xp_reward: tierXp, coin_reward: tierCoins });
-      tierIndex++;
-    }
-
-    if (tiers.length === 0) {
-      return fail(400, { message: 'At least one tier is required' });
-    }
-
-    try {
-      await prisma.achievement.createMany({
-        data: tiers.map(t => ({
-          name,
-          description,
-          icon,
-          category,
-          tier: t.tier,
-          tier_description: t.description,
-          criteria: t.criteria,
-          xp_reward: t.xp_reward,
-          coin_reward: t.coin_reward,
-        }))
-      });
-    } catch (e: unknown) {
-      const err = e as { code?: string; meta?: { target?: string[] } };
-      if (err.code === 'P2002') {
-        return fail(400, { message: 'An achievement with this name already exists' });
-      }
-      throw e;
-    }
-
-    return { success: true };
-  },
-
-  updateAchievement: async ({ request }) => {
-    const formData = await request.formData();
-    const id = formData.get('id') as string;
-    const name = formData.get('name') as string;
-    const description = formData.get('description') as string;
-    const icon = formData.get('icon') as string;
-    const category = formData.get('category') as string;
-
-    if (!id || !name) {
-      return fail(400, { message: 'ID and name are required' });
-    }
-
-    const current = await prisma.achievement.findUnique({ where: { id }, select: { name: true } });
-    if (!current) return fail(404, { message: 'Achievement not found' });
-    await prisma.achievement.updateMany({
-      where: { name: current.name },
-      data: { name, description, icon, category }
-    });
-
-    return { success: true };
-  },
-
-  deleteAchievement: async ({ request }) => {
-    const formData = await request.formData();
-    const id = formData.get('id') as string;
-
-    if (!id) {
-      return fail(400, { message: 'Missing achievement ID' });
-    }
-
-    const current = await prisma.achievement.findUnique({ where: { id }, select: { name: true } });
-    if (!current) return fail(404, { message: 'Achievement not found' });
-    await prisma.achievement.deleteMany({ where: { name: current.name } });
-    return { success: true };
-  },
-
-  updateTier: async ({ request }) => {
-    const formData = await request.formData();
-    const id = formData.get('id') as string;
-    const description = formData.get('description') as string;
-    const icon = formData.get('icon') as string;
-    const criteriaStr = formData.get('criteria') as string;
-    const xpReward = parseInt(formData.get('xpReward') as string) || 100;
-    const coinReward = parseInt(formData.get('coinReward') as string) || 50;
-
-    if (!id) {
-      return fail(400, { message: 'Missing tier ID' });
-    }
-
-    let criteria: Prisma.InputJsonValue;
-    try {
-      criteria = JSON.parse(criteriaStr || '{}') as Prisma.InputJsonValue;
-    } catch {
-      return fail(400, { message: 'Criteria is not valid JSON' });
-    }
-
-    await prisma.achievement.update({
-      where: { id },
-      data: { tier_description: description, icon, criteria, xp_reward: xpReward, coin_reward: coinReward }
-    });
-
-    return { success: true };
-  },
 };

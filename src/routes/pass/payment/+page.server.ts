@@ -48,7 +48,7 @@ export const load: PageServerLoad = async (event) => {
       orderBy: { created_at: 'desc' },
       select: { expires_at: true },
     });
-    expiresAt = enrollment?.expires_at?.toISOString() ?? null;
+    expiresAt = enrollment?.expires_at.toISOString() ?? null;
   }
 
   return {
