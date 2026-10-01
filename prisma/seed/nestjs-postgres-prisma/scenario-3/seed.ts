@@ -131,17 +131,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Run `pnpm install` from the project root, which is the directory that holds `package.json`, not from a subfolder such as `src/` or `prisma/`. Dependencies such as NestJS, Prisma, bcrypt, and supertest must all resolve before you touch anything else, and a partial install only shows up later as confusing module errors.",
+                  "Run `pnpm install` from the project root, which is the directory that holds `package.json`, not from a subfolder such as `src/` or `prisma/`. Dependencies such as NestJS, Prisma, bcrypt, and supertest must all resolve before you touch anything else.",
                 order: 1,
               },
               {
                 description:
-                  "Run `pnpm exec prisma migrate dev` and then `pnpm exec prisma generate`, in that order. The first applies the migrations in `prisma/migrations/` to the database named by `DATABASE_URL`, the second refreshes the client. Skipping `generate` leaves the Prisma Client types out of step with the schema, and the raw `SELECT 1` query then never reaches the database.",
+                  "Run `pnpm exec prisma migrate dev` and then `pnpm exec prisma generate`, in that order. The first applies the migrations in `prisma/migrations/` to the database named by `DATABASE_URL`, the second refreshes the client.",
                 order: 2,
               },
               {
                 description:
-                  "Start the app with `pnpm run start:dev` and open `GET /api`. The bootstrap file is `src/main.ts` and the module tree is wired in `src/app.module.ts`, so a module that fails to load keeps the answer at 500 or above. Any status below 500 means the app is up, and NestJS's default 404 already qualifies, so there is no root controller to add.",
+                  "Start the app with `pnpm run start:dev` and open `GET /api`. The bootstrap file is `src/main.ts` and the module tree is wired in `src/app.module.ts`. Any status below 500 means the app is up, and NestJS's default 404 already qualifies, so there is no root controller to add.",
                 order: 3,
               },
               {
@@ -271,7 +271,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `prisma/schema.prisma`, find the `Setting` model, and add `phoneNumber String?` at the end of the model, after `acceptCash` and `acceptCard`. The `?` is what makes the field optional, so do not leave it off.",
+                  "Open `prisma/schema.prisma`, find the `Setting` model, and add `phoneNumber String?` at the end of the model, after `acceptCash` and `acceptCard`. Do not leave the `?` off.",
                 order: 1,
               },
               {
@@ -281,7 +281,7 @@ export const levels = [
               },
               {
                 description:
-                  "Add `@IsOptional()` and `@IsString()` to the `phoneNumber` field in both `CreateSettingDto` and `UpdateSettingDto` under `src/settings/`. Leaving out `@IsOptional()` turns the field into a required one. The settings service then passes the value straight through on create and on update, and `GET /api/settings` includes it, where it may be `null`.",
+                  "Add `@IsOptional()` and `@IsString()` to the `phoneNumber` field in both `CreateSettingDto` and `UpdateSettingDto` under `src/settings/`. The settings service then passes the value straight through on create and on update, and `GET /api/settings` includes it, where it may be `null`.",
                 order: 3,
               },
             ],
@@ -413,7 +413,7 @@ export const levels = [
               },
               {
                 description:
-                  "The inventory update endpoint has to reject a negative quantity. Use `@Min(0)` from class-validator on the `quantity` field of the update DTO in `src/inventory/`, or an equivalent check in `src/inventory/inventory.service.ts`. `quantity: -1` answers 400, while `quantity: 0` and a valid positive quantity are accepted. Without the guard a negative quantity slips through and stock goes below zero.",
+                  "The inventory update endpoint has to reject a negative quantity. Use `@Min(0)` from class-validator on the `quantity` field of the update DTO in `src/inventory/`, or an equivalent check in `src/inventory/inventory.service.ts`. `quantity: -1` answers 400, while `quantity: 0` and a valid positive quantity are accepted.",
                 order: 2,
               },
             ],
@@ -526,17 +526,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller already reads query params through `@Query()`. They arrive as strings, so convert them with `parseInt` and fall back to `page = 1` and `limit = 10`. Passing them straight to the offset and the row cap breaks the pagination.",
+                  "The controller already reads query params through `@Query()`. They arrive as strings, so convert them with `parseInt` and fall back to `page = 1` and `limit = 10`.",
                 order: 1,
               },
               {
                 description:
-                  "The list in `findAll()` in `src/products/products.service.ts` is built from one `where` object that adds a `name` filter with `mode: 'insensitive'` when a search term is present. That same object feeds both `findMany` and `count`, otherwise `total` drifts out of sync with `data`.",
+                  "The list in `findAll()` in `src/products/products.service.ts` is built from one `where` object that adds a `name` filter with `mode: 'insensitive'` when a search term is present. That same object feeds both `findMany` and `count`.",
                 order: 2,
               },
               {
                 description:
-                  "The response body needs all five keys: `data`, `total`, `page`, `limit`, and `totalPages`. Forgetting `totalPages` is the most common miss.",
+                  "The response body needs all five keys: `data`, `total`, `page`, `limit`, and `totalPages`.",
                 order: 3,
               },
             ],
@@ -680,7 +680,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The product list in `orders.service.ts` has to run as a single unit of work. Put the whole checkout inside `prisma.$transaction(async (tx) => { ... })`. Running the steps outside the transaction lets a failure leave stock deducted with no order behind it, and any query that leaves the unit runs on a different connection.",
+                  "The product list in `orders.service.ts` has to run as a single unit of work. Put the whole checkout inside `prisma.$transaction(async (tx) => { ... })`.",
                 order: 1,
               },
               {
@@ -813,12 +813,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "Payment methods are restricted to the `PaymentMethod` enum from `@prisma/client`, which holds `CASH` and `CARD`. The validation decorator on `paymentMethod` in the order DTO uses that enum, and the service keeps its own guard as a second line of defence.",
+                  "Payment methods are restricted to the `PaymentMethod` enum from `@prisma/client`, which holds `CASH` and `CARD`. The validation decorator on `paymentMethod` in the order DTO uses that enum.",
                 order: 1,
               },
               {
                 description:
-                  "Both an empty string and a missing `paymentMethod` have to be refused with 400, and so do `CRYPTO` and `BITCOIN`. A simple truthy check lets `\"\"` through, which is the trap here.",
+                  "Both an empty string and a missing `paymentMethod` have to be refused with 400, and so do `CRYPTO` and `BITCOIN`.",
                 order: 2,
               },
             ],
@@ -961,12 +961,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "The daily report adds up order revenue and counts orders over the same window and the same filter, reporting them as `totalRevenue` and `orderCount`. The risk is two queries over two different windows, which makes the two numbers disagree.",
+                  "The daily report adds up order revenue and counts orders over the same window and the same filter, reporting them as `totalRevenue` and `orderCount`.",
                 order: 1,
               },
               {
                 description:
-                  "The date range has explicit UTC boundaries. Server-local time makes the numbers shift depending on where the app runs.",
+                  "The date range has explicit UTC boundaries.",
                 order: 2,
               },
               {
@@ -1089,7 +1089,7 @@ export const levels = [
               },
               {
                 description:
-                  "Build each bucket with UTC boundaries: `new Date()` then `setUTCHours(0,0,0,0)`. Local time pushes orders into the wrong day.",
+                  "Build each bucket with UTC boundaries: `new Date()` then `setUTCHours(0,0,0,0)`.",
                 order: 2,
               },
             ],
@@ -1234,12 +1234,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "The stock check and the deduction belong to the same unit of work, so only one of two checkouts racing for the last item succeeds. A read that happens outside that unit reopens the race.",
+                  "The stock check and the deduction belong to the same unit of work, so only one of two checkouts racing for the last item succeeds.",
                 order: 1,
               },
               {
                 description:
-                  "Apply `Math.round(value * 100) / 100` to every money value before you return it: `subtotal`, `tax`, `total`, and `discount`. A third digit after the decimal point is the trap.",
+                  "Apply `Math.round(value * 100) / 100` to every money value before you return it: `subtotal`, `tax`, `total`, and `discount`.",
                 order: 2,
               },
               {
@@ -1364,7 +1364,7 @@ export const levels = [
               },
               {
                 description:
-                  "Grading is case-insensitive and needs only one term from each of three groups. Group one: `race condition`, `concurrency`, `oversell`, or `locking`. Group two: `decimal`, `precision`, `rounding`, or `float`. Group three: `timezone`, `utc`, `date boundary`, or `midnight`. One term from each is enough, and treating the twelve as all required is the trap.",
+                  "Grading is case-insensitive and needs only one term from each of three groups. Group one: `race condition`, `concurrency`, `oversell`, or `locking`. Group two: `decimal`, `precision`, `rounding`, or `float`. Group three: `timezone`, `utc`, `date boundary`, or `midnight`. One term from each is enough.",
                 order: 2,
               },
               {

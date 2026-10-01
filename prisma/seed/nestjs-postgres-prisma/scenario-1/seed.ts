@@ -134,17 +134,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `src/app.module.ts` and make sure it exports an `AppModule` class that imports every feature module the app needs, each of which `providers` and `exports` what its own files inject. In `src/prisma/prisma.service.ts` add a `PrismaService` class that extends `PrismaClient` and calls `await this.$connect()` from an `onModuleInit` lifecycle method, and export the class so it can be pulled out of the running app. Without the `$connect()` call the connection never opens and `SELECT 1` cannot run.",
+                  "Open `src/app.module.ts` and make sure it exports an `AppModule` class that imports every feature module the app needs, each of which `providers` and `exports` what its own files inject. In `src/prisma/prisma.service.ts` add a `PrismaService` class that extends `PrismaClient` and calls `await this.$connect()` from an `onModuleInit` lifecycle method, and export the class.",
                 order: 1,
               },
               {
                 description:
-                  "The server calls `app.setGlobalPrefix('api')`, so every controller has to sit under that prefix for `GET /api` to answer at all. A `@Get()` handler in a module that `AppModule` imports gives you the path `/api`. You do not need a root controller. Any status below 500 counts, so the default 404 for an unmatched route is good enough. A status of 500 or higher is the only thing that fails, and that comes from a module that fails to load or an unhandled error escaping a filter.",
+                  "The server calls `app.setGlobalPrefix('api')`, so every controller has to sit under that prefix for `GET /api` to answer at all. A `@Get()` handler in a module that `AppModule` imports gives you the path `/api`. You do not need a root controller. Any status below 500 counts.",
                 order: 2,
               },
               {
                 description:
-                  "Build `POST /api/auth/login` under `src/auth/`, taking an email and a password in the body. Look the user up by email, and when nothing comes back throw `UnauthorizedException` so NestJS answers 401. The status has to be exactly 401. Letting a failed user lookup bubble up on its own gives a 500, which is the usual mistake here.",
+                  "Build `POST /api/auth/login` under `src/auth/`, taking an email and a password in the body. Look the user up by email, and when nothing comes back throw `UnauthorizedException`. The status has to be exactly 401.",
                 order: 3,
               },
             ],
@@ -160,12 +160,12 @@ export const levels = [
               },
               {
                 description:
-                  "`PrismaService` is available from the running app, and a raw `SELECT 1` query through it reaches PostgreSQL, so the connection is live",
+                  "`PrismaService` is available from the running app, and a raw `SELECT 1` query through it reaches PostgreSQL",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`GET /api` answers with a status code below 500, so the HTTP server is running",
+                description: "`GET /api` answers with a status code below 500",
                 is_required: true,
                 order: 3,
               },
@@ -280,22 +280,22 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `prisma/schema.prisma`, find the `Transaction` model, and add `note String?` as a field on it. The `?` is what makes the column nullable. Then run `pnpm exec prisma migrate dev --name add_transaction_note` and, once that finishes, `pnpm exec prisma generate`. Skipping `generate` leaves `note` out of the generated Prisma types.",
+                  "Open `prisma/schema.prisma`, find the `Transaction` model, and add `note String?` as a field on it. Then run `pnpm exec prisma migrate dev --name add_transaction_note` and, once that finishes, `pnpm exec prisma generate`.",
                 order: 1,
               },
               {
                 description:
-                  "In `src/transactions/dto/create-transaction.dto.ts` add a `note?: string` property to `CreateTransactionDto` and decorate it with `@IsOptional()` and `@IsString()`. In `src/transactions/transactions.service.ts` the `create` method passes the DTO straight through, so nothing changes there. In `src/transactions/transactions.controller.ts` the create handler returns the raw Prisma result, so the saved value comes back in the 201 response body on its own. Leaving off one of the two decorators is the usual mistake, since the request is then rejected before it reaches the service.",
+                  "In `src/transactions/dto/create-transaction.dto.ts` add a `note?: string` property to `CreateTransactionDto` and decorate it with `@IsOptional()` and `@IsString()`. In `src/transactions/transactions.service.ts` the `create` method passes the DTO straight through, so nothing changes there. In `src/transactions/transactions.controller.ts` the create handler returns the raw Prisma result, so the saved value comes back in the 201 response body on its own.",
                 order: 2,
               },
               {
                 description:
-                  "`POST /api/auth/login` returns the JWT in a field named `accessToken`, and it is sent back as `Authorization: Bearer <accessToken>`. The create handler in `src/transactions/transactions.controller.ts` has to read the current user from that token, for example through the auth guard and the request object it decorates. If it does not, the request is rejected before the note is ever stored.",
+                  "`POST /api/auth/login` returns the JWT in a field named `accessToken`, and it is sent back as `Authorization: Bearer <accessToken>`. The create handler in `src/transactions/transactions.controller.ts` has to read the current user from that token, for example through the auth guard and the request object it decorates.",
                 order: 3,
               },
               {
                 description:
-                  "The list handler in `src/transactions/transactions.controller.ts` has to include `note` in what it selects, or the column is dropped from the returned rows. `GET /api/transactions` may answer with a bare JSON array or with a `{ data: [...] }` envelope, because the list is read as `(listRes.body.data ?? listRes.body).map(t => t.note)`. Make sure a transaction saved with `groceries` shows that exact value on the list.",
+                  "The list handler in `src/transactions/transactions.controller.ts` has to include `note` in what it selects. `GET /api/transactions` may answer with a bare JSON array or with a `{ data: [...] }` envelope, because the list is read as `(listRes.body.data ?? listRes.body).map(t => t.note)`. Make sure a transaction saved with `groceries` shows that exact value on the list.",
                 order: 4,
               },
             ],
@@ -317,7 +317,7 @@ export const levels = [
               },
               {
                 description:
-                  "Creating a transaction with no `note` at all still returns 201, and no non-empty note string comes back in the response because the field is optional",
+                  "Creating a transaction with no `note` at all still returns 201, and no non-empty note string comes back in the response",
                 is_required: true,
                 order: 3,
               },
@@ -448,22 +448,22 @@ export const levels = [
             create: [
               {
                 description:
-                  "The list is assembled in `findAll()` in `src/transactions/transactions.controller.ts`, which reads one query param at a time. It needs the whole `@Query()` object, with `page` and `limit` read from it and parsed with `parseInt`, falling back to `page = 1` and `limit = 20`. Passing the raw string straight through is the usual mistake, because `NaN` then leaks into the response.",
+                  "The list is assembled in `findAll()` in `src/transactions/transactions.controller.ts`. It needs the whole `@Query()` object, with `page` and `limit` read from it and parsed with `parseInt`, falling back to `page = 1` and `limit = 20`.",
                 order: 1,
               },
               {
                 description:
-                  "Pagination is offset-based, not cursor-based, so `findAll()` in `src/transactions/transactions.service.ts` skips `(page - 1) * limit` rows and takes `limit`. A cursor, or anything without an offset, cannot satisfy the `page=1&limit=5` request, which expects 5 rows.",
+                  "Pagination is offset-based, not cursor-based, so `findAll()` in `src/transactions/transactions.service.ts` skips `(page - 1) * limit` rows and takes `limit`.",
                 order: 2,
               },
               {
                 description:
-                  "In `findAll()` in `src/transactions/transactions.service.ts` the filter has to be one single object that conditionally spreads in `type`, `categoryId` and the `date: { gte, lte }` range, and that same object goes to both `findMany` and `count`, because `total` has to be the filtered count and not the size of the whole table.",
+                  "In `findAll()` in `src/transactions/transactions.service.ts` the filter has to be one single object that conditionally spreads in `type`, `categoryId` and the `date: { gte, lte }` range, and that same object goes to both `findMany` and `count`.",
                 order: 3,
               },
               {
                 description:
-                  "The response body has to carry all five keys: `data`, `total`, `page`, `limit` and `totalPages`. A `?type=EXPENSE` request returns `total` 15 with every row in `data` at `type === \"EXPENSE\"`. Leaving out `totalPages` and counting before filtering are the two common failures.",
+                  "The response body has to carry all five keys: `data`, `total`, `page`, `limit` and `totalPages`. A `?type=EXPENSE` request returns `total` 15 with every row in `data` at `type === \"EXPENSE\"`.",
                 order: 4,
               },
             ],
@@ -601,7 +601,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The list lives in `findAll()` in `src/categories/categories.service.ts`, and the query needs to skip inactive categories, so add `where: { isActive: true }` to the `prisma.category.findMany` call. Leaving the filter off is what lets retired categories leak into the list.",
+                  "The list lives in `findAll()` in `src/categories/categories.service.ts`, and the query needs to skip inactive categories, so add `where: { isActive: true }` to the `prisma.category.findMany` call.",
                 order: 1,
               },
               {
@@ -611,7 +611,7 @@ export const levels = [
               },
               {
                 description:
-                  "The transaction guard belongs in `create()` in `src/transactions/transactions.service.ts`, which looks the category up with `prisma.category.findUnique({ where: { id: dto.categoryId } })` and throws when `!category || !category.isActive`. Any status from 400 to 499 is accepted, so `400 BadRequestException` and `404 NotFoundException` both work. A success status (200 to 299) is the failure to avoid, because the transaction would then be created against a retired category.",
+                  "The transaction guard belongs in `create()` in `src/transactions/transactions.service.ts`, which looks the category up with `prisma.category.findUnique({ where: { id: dto.categoryId } })` and throws when `!category || !category.isActive`. Any status from 400 to 499 is accepted. A success status (200 to 299) is the failure to avoid.",
                 order: 3,
               },
             ],
@@ -758,7 +758,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The transactions service has to move the account balance by letting the database apply the delta in one operation, rather than reading the balance, working it out in JavaScript and writing a new value back. The `accounts` row is read straight from the database afterwards, so the delta has to be exact. Reading the balance first and writing a new value back is the mistake, because the rounding shows up.",
+                  "The transactions service has to move the account balance by letting the database apply the delta in one operation, rather than reading the balance, working it out in JavaScript and writing a new value back. The `accounts` row is read straight from the database afterwards, so the delta has to be exact.",
                 order: 1,
               },
               {
@@ -1080,7 +1080,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The monthly summary adds up income and expenses separately over the same window and then subtracts one from the other. A transaction count belongs alongside them as `transactionCount`, with `numberOfTransactions` accepted as an alternative name. The risk is running the two aggregates over different windows, which makes the net drift.",
+                  "The monthly summary adds up income and expenses separately over the same window and then subtracts one from the other. A transaction count belongs alongside them as `transactionCount`, with `numberOfTransactions` accepted as an alternative name.",
                 order: 1,
               },
               {
@@ -1095,7 +1095,7 @@ export const levels = [
               },
               {
                 description:
-                  "The trend rows run oldest to newest, so `year * 100 + month` never decreases as you read the array, and every entry carries `month`, `year`, `totalIncome`, `totalExpense` and `netSavings`. The risk is leaving the sort out, because database default ordering is not a guarantee.",
+                  "The trend rows run oldest to newest, so `year * 100 + month` never decreases as you read the array, and every entry carries `month`, `year`, `totalIncome`, `totalExpense` and `netSavings`.",
                 order: 4,
               },
             ],
@@ -1228,7 +1228,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The category breakdown groups spending by category for the period, gives each group its share of the overall total as a percentage, and comes back largest first. Every entry needs `categoryName`, `total`, `percentage` and `transactionCount`. The risk is leaving the ordering out, since the result is read positionally.",
+                  "The category breakdown groups spending by category for the period, gives each group its share of the overall total as a percentage, and comes back largest first. Every entry needs `categoryName`, `total`, `percentage` and `transactionCount`.",
                 order: 1,
               },
               {
@@ -1238,7 +1238,7 @@ export const levels = [
               },
               {
                 description:
-                  "`GET /api/reports/budget-alerts` is called with no query params at all, so the reporting window has to be defaulted inside the service, for example to the current month and year. Enrich every budget with `spent`, `remaining`, `percentUsed` and `exceeded`, keep only `percentUsed >= 80`, and sort descending. Duplicating that maths in a second place is the risk, because the two copies drift apart.",
+                  "`GET /api/reports/budget-alerts` is called with no query params at all, so the reporting window has to be defaulted inside the service, for example to the current month and year. Enrich every budget with `spent`, `remaining`, `percentUsed` and `exceeded`, keep only `percentUsed >= 80`, and sort descending.",
                 order: 3,
               },
               {
@@ -1407,7 +1407,7 @@ export const levels = [
               },
               {
                 description:
-                  "The delete has to be the exact inverse of the create. Subtract the stored `amount` back onto the account for an EXPENSE, and add it for an INCOME. 10000 in, 500 out, 10000 back. A wrong sign leaves 9500, and so does skipping the reversal entirely.",
+                  "The delete has to be the exact inverse of the create. Subtract the stored `amount` back onto the account for an EXPENSE, and add it for an INCOME. 10000 in, 500 out, 10000 back.",
                 order: 2,
               },
               {
@@ -1417,7 +1417,7 @@ export const levels = [
               },
               {
                 description:
-                  "Two calls to `GET /api/reports/monthly-summary?month=1&year=2025` carry the same query, so their `totalExpense` must be identical. Build the range from the request parameters with UTC boundaries such as `new Date(Date.UTC(year, month - 1, 1))` and reuse that exact range. Recomputing it on each call is the trap.",
+                  "Two calls to `GET /api/reports/monthly-summary?month=1&year=2025` carry the same query, so their `totalExpense` must be identical. Build the range from the request parameters with UTC boundaries such as `new Date(Date.UTC(year, month - 1, 1))` and reuse that exact range.",
                 order: 4,
               },
             ],
@@ -1543,12 +1543,12 @@ export const levels = [
               },
               {
                 description:
-                  "The file is read and lowercased before matching, and each of the three checks accepts any one term from a keyword group. Take one term from each group. `balance`, `concurren`, `race condition` or `locking` for the first. `timezone`, `utc` or `date boundary` for the second. `division`, `nan`, `infinity`, `zero` or `budget amount` for the third. Treating these as nine required words is the trap.",
+                  "The file is read and lowercased before matching, and each of the three checks accepts any one term from a keyword group. Take one term from each group. `balance`, `concurren`, `race condition` or `locking` for the first. `timezone`, `utc` or `date boundary` for the second. `division`, `nan`, `infinity`, `zero` or `budget amount` for the third.",
                 order: 2,
               },
               {
                 description:
-                  "Give each bug its own heading, followed by its symptom, root cause, fix and action items. Putting all three concepts into one heading is the most reliable way to cover the three keyword groups, because only the file's raw text is inspected.",
+                  "Give each bug its own heading, followed by its symptom, root cause, fix and action items. Putting all three concepts into one heading is the most reliable way to cover the three keyword groups.",
                 order: 3,
               },
             ],

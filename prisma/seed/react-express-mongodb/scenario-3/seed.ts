@@ -147,7 +147,7 @@ export const levels = [
               },
               {
                 description:
-                  "From `client/`, run `pnpm run dev -- --port 3000` to start Vite. The HTML it serves must still contain the `<div id=\"root\">` mount point from `client/index.html`, since that div is where React attaches.",
+                  "From `client/`, run `pnpm run dev -- --port 3000` to start Vite. The HTML it serves must still contain the `<div id=\"root\">` mount point from `client/index.html`.",
                 order: 4,
               },
             ],
@@ -296,7 +296,7 @@ export const levels = [
               },
               {
                 description:
-                  "Leave the element visible. Hiding it with `hidden`, `sr-only` or `display: none` is treated as a failure even though the words are still in the DOM, and it has to stay inside the `<header>` element that carries the `banner` role.",
+                  "Leave the element visible. Hiding it with `hidden`, `sr-only` or `display: none` is treated as a failure, and it has to stay inside the `<header>` element that carries the `banner` role.",
                 order: 3,
               },
             ],
@@ -448,17 +448,17 @@ export const levels = [
               },
               {
                 description:
-                  "The three test ids are matched literally, so they must be exactly `category-badge`, `day-label` and `vote-count`. The title, location and Vote button are matched as text and by accessible role instead, so those have to be real text content rather than attributes.",
+                  "The three test ids must be exactly `category-badge`, `day-label` and `vote-count`. The title, location and Vote button are matched as text and by accessible role, so those have to be real text content rather than attributes.",
                 order: 2,
               },
               {
                 description:
-                  "Put the title in an `<h3>` so it exposes the `heading` role with the title as its accessible name, and make the Vote control a real `<button>` whose accessible name contains `Vote`. Wire its `onClick` straight to the `onVote` prop, since the parent owns the state.",
+                  "Put the title in an `<h3>` so it exposes the `heading` role with the title as its accessible name, and make the Vote control a real `<button>` whose accessible name contains `Vote`. Wire its `onClick` straight to the `onVote` prop.",
                 order: 3,
               },
               {
                 description:
-                  "The risk is test ids that never reach the DOM: if the shared `Card`, `Badge` and `Button` primitives do not forward `data-testid`, none of the three lookups will resolve even though the markup looks right.",
+                  "If the shared `Card`, `Badge` and `Button` primitives do not forward `data-testid`, none of the three lookups will resolve even though the markup looks right.",
                 order: 4,
               },
             ],
@@ -627,7 +627,7 @@ export const levels = [
               },
               {
                 description:
-                  "Keep `aria-pressed={activeDay === day}` in place so the selected chip reports itself as pressed. That accessibility state, not a Tailwind class, is what marks the active chip.",
+                  "Keep `aria-pressed={activeDay === day}` in place so the selected chip reports itself as pressed.",
                 order: 3,
               },
               {
@@ -637,12 +637,12 @@ export const levels = [
               },
               {
                 description:
-                  "While you are there, `filterByDay` in `client/src/utils/helpers.ts` still returns every item. Make it return all stops for `\"all\"` and otherwise match on the stop's day key, so the chips actually filter the feed.",
+                  "Make `filterByDay` in `client/src/utils/helpers.ts` return all stops for `\"all\"` and otherwise match on the stop's day key.",
                 order: 5,
               },
               {
                 description:
-                  "The risk is the empty click handler being left in place, which renders a filter bar that looks finished and does nothing at all.",
+                  "The empty click handler being left in place renders a filter bar that looks finished and does nothing at all.",
                 order: 6,
               },
             ],
@@ -795,7 +795,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The pipeline in `getTripStats` in `server/src/controllers/trip.controller.ts` carries four labelled defects, marked `// L3-T1 BUG 1` through `// L3-T1 BUG 4`, each sitting directly above the offending stage. Start by moving the `$match` on `tripId` plus `dayDate` between `trip.startDate` and `trip.endDate` ahead of the `$lookup`, so the join only processes this trip's own stops.",
+                  "The pipeline in `getTripStats` in `server/src/controllers/trip.controller.ts` carries four labelled defects, marked `// L3-T1 BUG 1` through `// L3-T1 BUG 4`, each sitting directly above the offending stage. Move the `$match` on `tripId` plus `dayDate` between `trip.startDate` and `trip.endDate` ahead of the `$lookup`, so the join only processes this trip's own stops.",
                 order: 1,
               },
               {
@@ -805,7 +805,7 @@ export const levels = [
               },
               {
                 description:
-                  "The vote total has to be accumulated as `voteCount: { $sum: \"$voteCount\" }` rather than `$size: \"$votes\"`, since a joined array's length is not the number of votes on the stop. Then append `{ $sort: { voteCount: -1 } }` and `{ $limit: topN }` after the `$project` stage so the ranking is ordered and bounded.",
+                  "The vote total has to be accumulated as `voteCount: { $sum: \"$voteCount\" }` rather than `$size: \"$votes\"`. Then append `{ $sort: { voteCount: -1 } }` and `{ $limit: topN }` after the `$project` stage so the ranking is ordered and bounded.",
                 order: 3,
               },
               {
@@ -815,7 +815,7 @@ export const levels = [
               },
               {
                 description:
-                  "The separate `Expense.aggregate()` that sums `totalSpent` is already correct, so a `totalSpent` of 0 means the trip is not being found or filtered, not that the sum is wrong.",
+                  "The separate `Expense.aggregate()` that sums `totalSpent` is already correct.",
                 order: 5,
               },
             ],
@@ -973,12 +973,12 @@ export const levels = [
               },
               {
                 description:
-                  "In `getTripStats`, replace `res.send(data)` with `res.status(200).json({ success: true, data })` and type the parameters as `Request` and `Response` instead of `any` so the validated query stays typed.",
+                  "In `getTripStats`, replace `res.send(data)` with `res.status(200).json({ success: true, data })` and type the parameters as `Request` and `Response` instead of `any`.",
                 order: 4,
               },
               {
                 description:
-                  "Wrap the aggregation work in `try/catch` and forward failures with `next(err)`. A bad `tripId` makes Mongoose throw a CastError, and the global `errorHandler` has to turn that into a 400 or a 404 rather than an unhandled rejection.",
+                  "Wrap the aggregation work in `try/catch` and forward failures with `next(err)`. A bad `tripId` makes Mongoose throw a CastError, and the global `errorHandler` has to turn that into a 400 or a 404.",
                 order: 5,
               },
               {
@@ -1167,22 +1167,22 @@ export const levels = [
               },
               {
                 description:
-                  "Make `unvote` delete the Vote document and only then run `$inc: { voteCount: -1 }`, so a DELETE against a stop that was never voted cannot push the count below zero.",
+                  "Make `unvote` delete the Vote document and only then run `$inc: { voteCount: -1 }`.",
                 order: 3,
               },
               {
                 description:
-                  "Both routes already sit behind `requireAuth` in `server/src/routes/stop.routes.ts`, so the 401 behaviour is handled by the existing middleware. Do not add a second auth check inside the controller.",
+                  "Both routes already sit behind `requireAuth` in `server/src/routes/stop.routes.ts`. Do not add a second auth check inside the controller.",
                 order: 4,
               },
               {
                 description:
-                  "On the client, `voteStop` and `unvoteStop` in `client/src/services/stop.service.ts` just throw. Implement them with the shared `api` axios instance against `POST` and `DELETE /trips/:tripId/stops/:stopId/vote` so the optimistic update has a real call to make.",
+                  "Implement `voteStop` and `unvoteStop` in `client/src/services/stop.service.ts` with the shared `api` axios instance against `POST` and `DELETE /trips/:tripId/stops/:stopId/vote`.",
                 order: 5,
               },
               {
                 description:
-                  "`StopCard` only has to hand the click up through its `onVote` prop. The count itself lives in the parent's state, so keep the card presentational and update the displayed `voteCount` in `TripDetail`.",
+                  "`StopCard` only has to hand the click up through its `onVote` prop. Keep the card presentational and update the displayed `voteCount` in `TripDetail`.",
                 order: 6,
               },
             ],
@@ -1355,7 +1355,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "`createExpense` currently answers with a hardcoded `{ ok: true }`, so nothing real is stored. A new expense has to leave the trip's `totalSpent` and the per-member balances consistent, and the payer has to be whoever is actually logged in. The schema stores the payer in `paidById`, so default it to `req.user!.userId` when the body omits it.",
+                  "`createExpense` currently answers with a hardcoded `{ ok: true }`. A new expense has to leave the trip's `totalSpent` and the per-member balances consistent, and the payer has to be whoever is actually logged in. The schema stores the payer in `paidById`, so default it to `req.user!.userId` when the body omits it.",
                 order: 1,
               },
               {
@@ -1365,7 +1365,7 @@ export const levels = [
               },
               {
                 description:
-                  "Add the amount to the trip with `Trip.findByIdAndUpdate(tripId, { $inc: { totalSpent: amount } })` rather than a read-modify-write, or two expenses recorded at once leave the total short.",
+                  "Add the amount to the trip with `Trip.findByIdAndUpdate(tripId, { $inc: { totalSpent: amount } })` rather than a read-modify-write.",
                 order: 3,
               },
               {
@@ -1375,7 +1375,7 @@ export const levels = [
               },
               {
                 description:
-                  "The risk is rounding. Each share is `Math.round(amount * 100 / splitBetween.length) / 100`, and the payer's net is the full amount minus their own share, which is what makes the nets sum to zero. Credit the payer the whole amount without subtracting their share and the total comes out wrong.",
+                  "Each share is `Math.round(amount * 100 / splitBetween.length) / 100`, and the payer's net is the full amount minus their own share, which is what makes the nets sum to zero.",
                 order: 5,
               },
             ],
@@ -1539,17 +1539,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "One user gets one vote per stop, and the database has to be what guarantees it. Two requests that both look for an existing vote, both find nothing, and both insert is the case an application check cannot handle.",
+                  "One user gets one vote per stop, and the database has to be what guarantees it.",
                 order: 1,
               },
               {
                 description:
-                  "A uniqueness rule over the user and stop pair is the fix, and it has to reach the actual collection rather than sitting only in the model definition. Until it does, the constraint is decorative.",
+                  "A uniqueness rule over the user and stop pair is the fix, and it has to reach the actual collection rather than sitting only in the model definition.",
                 order: 2,
               },
               {
                 description:
-                  "Counting every request instead of counting new votes inflates `voteCount` on every retry, and a user pressing twice is a retry. A rejected duplicate still means the vote is there, so it has to succeed without moving the counter again.",
+                  "Counting every request instead of counting new votes inflates `voteCount` on every retry. A rejected duplicate still means the vote is there, so it has to succeed without moving the counter again.",
                 order: 3,
               },
               {
@@ -1702,17 +1702,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Stops have to be grouped by the calendar day at the destination, not by UTC. A stop at 15:30Z is 00:30 the next day in Tokyo, so grouping on the UTC date files it a day early, which is the bug users reported.",
+                  "Stops have to be grouped by the calendar day at the destination, not by UTC.",
                 order: 1,
               },
               {
                 description:
-                  "The timezone belongs to the trip rather than to whoever is asking, so a Manila owner and a Tokyo collaborator hitting the same trip have to see the same grouping. Default to `\"UTC\"` when the trip has none, or a trip with no timezone set files every stop wrongly.",
+                  "The timezone belongs to the trip rather than to whoever is asking, so a Manila owner and a Tokyo collaborator hitting the same trip have to see the same grouping. Default to `\"UTC\"` when the trip has none.",
                 order: 2,
               },
               {
                 description:
-                  "Each group is emitted as `{ date, stops }`, and the grouping key stays under the property name `date` as a `YYYY-MM-DD` string because the response is built on it. A UTC trip with a single stop at `2026-04-12T09:00:00Z` still has to produce the group `2026-04-12`.",
+                  "Each group is emitted as `{ date, stops }`, and the grouping key stays under the property name `date` as a `YYYY-MM-DD` string. A UTC trip with a single stop at `2026-04-12T09:00:00Z` still has to produce the group `2026-04-12`.",
                 order: 3,
               },
               {
@@ -1722,7 +1722,7 @@ export const levels = [
               },
               {
                 description:
-                  "A timezone helper for this already exists and formats straight to `YYYY-MM-DD`. Import it rather than hand-rolling offset maths, which is where the off-by-one day comes back.",
+                  "A timezone helper for this already exists and formats straight to `YYYY-MM-DD`. Import it rather than hand-rolling offset maths.",
                 order: 5,
               },
             ],

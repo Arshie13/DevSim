@@ -116,7 +116,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "The database check is a real query: `cd server && pnpm exec tsx scripts/db-check.ts` runs `SELECT 1` and prints `DB_OK`. If it exits non-zero, your `DATABASE_URL` is wrong or Postgres is not running.",
+                    "`cd server && pnpm exec tsx scripts/db-check.ts` runs `SELECT 1` and prints `DB_OK`. If it exits non-zero, your `DATABASE_URL` is wrong or Postgres is not running.",
                   order: 2,
                 },
                 {
@@ -278,7 +278,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Put the string in live JSX (for example inside the `<p>` under the `<h1>`). A commented-out line does not count — the check strips `//` and block comments before looking.",
+                    "Put the string in live JSX (for example inside the `<p>` under the `<h1>`). A commented-out line does not count.",
                   order: 3,
                 },
                 {
@@ -305,13 +305,13 @@ export const levels = [
                 },
                 {
                   description:
-                    "IPPO Software Solutions still appears after all `//` line comments and all `/* ... */` block comments are stripped from Sidebar.tsx, proving it is rendered in the JSX markup and not only in a comment",
+                    "IPPO Software Solutions still appears after all `//` line comments and all `/* ... */` block comments are stripped from Sidebar.tsx",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "After every occurrence of IPPO Software Solutions is removed from Sidebar.tsx, the remaining text no longer contains the string IPPO Solutions — the old subtitle is gone from the file entirely",
+                    "After every occurrence of IPPO Software Solutions is removed from Sidebar.tsx, the remaining text no longer contains the string IPPO Solutions",
                   is_required: true,
                   order: 4,
                 },
@@ -814,7 +814,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Create `server/src/controllers/order.controller.ts` exporting a `voidOrder` function — the test checks `typeof mod.voidOrder === 'function'`.",
+                    "Create `server/src/controllers/order.controller.ts` exporting a `voidOrder` function.",
                   order: 1,
                 },
                 {
@@ -1260,7 +1260,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "PromoCode declares `code String @unique` so a code can be looked up by its exact value",
+                    "PromoCode declares `code String @unique`",
                   is_required: true,
                   order: 2,
                 },
@@ -1302,7 +1302,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Inside the checkout transaction, PromoCode.usedCount is raised with an increment operation so two concurrent sales cannot both take the same slot",
+                    "Inside the checkout transaction, PromoCode.usedCount is raised with an increment operation",
                   is_required: true,
                   order: 9,
                 },
@@ -1437,7 +1437,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Do not rely on a pre-read of `usedCount`/`maxUses` — concurrent checkouts pass a read-then-increment. The ceiling belongs in the `where` clause.",
+                    "Do not rely on a pre-read of `usedCount`/`maxUses`. The ceiling belongs in the `where` clause.",
                   order: 2,
                 },
                 {
@@ -1657,7 +1657,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "A stale-status regression case is a voided order whose status was flipped back to COMPLETED. Only the `voidedAt` timestamp distinguishes it — a status filter will keep counting it as revenue.",
+                    "A stale-status regression case is a voided order whose status was flipped back to COMPLETED. Only the `voidedAt` timestamp distinguishes it.",
                   order: 4,
                 },
               ],
@@ -1703,7 +1703,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "The revenue filter in orders.ts is not a status-only filter — there must be no `status: 'COMPLETED'` line marked as the revenue filter, because a status field alone cannot detect a voided order whose status was flipped back",
+                    "The revenue filter in orders.ts is not a status-only filter — there must be no `status: 'COMPLETED'` line marked as the revenue filter",
                   is_required: true,
                   order: 7,
                 },
@@ -1820,7 +1820,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Add a `revenueWhereClause` utility that returns `{ voidedAt: null, ...extra }` so the voidedAt predicate is always present and caller predicates merge in.",
+                    "Add a `revenueWhereClause` utility that returns `{ voidedAt: null, ...extra }`.",
                   order: 1,
                 },
                 {
@@ -1835,7 +1835,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Write a postmortem with level-2 headings: Symptom, Root Cause, Fix, Prevention. This turns the incident into institutional knowledge.",
+                    "Write a postmortem with level-2 headings: Symptom, Root Cause, Fix, Prevention.",
                   order: 4,
                 },
               ],

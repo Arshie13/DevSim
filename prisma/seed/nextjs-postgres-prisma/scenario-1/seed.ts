@@ -80,22 +80,22 @@ export const levels = [
             create: [
               {
                 description:
-                  "Run these commands from the project root, in this order. First `pnpm install`, which creates `node_modules/` holding `node_modules/next` and `node_modules/@prisma/client`. Then `pnpm exec prisma generate` to rebuild the typed Prisma Client from `prisma/schema.prisma`. Then `pnpm exec prisma migrate deploy` to apply every pending migration without prompting. Then `pnpm exec tsx scripts/db-check.ts`.",
+                  "Run these commands from the project root, in this order. First `pnpm install`. Then `pnpm exec prisma generate`. Then `pnpm exec prisma migrate deploy`. Then `pnpm exec tsx scripts/db-check.ts`.",
                 order: 1,
               },
               {
                 description:
-                  "Each of those three `pnpm exec` commands has to finish with exit code 0 against a database that is actually reachable. Check that `DATABASE_URL` in `.env` names a database that accepts connections.",
+                  "Each of those three `pnpm exec` commands has to finish with exit code 0. Check that `DATABASE_URL` in `.env` names a database that accepts connections.",
                 order: 2,
               },
               {
                 description:
-                  "The `scripts/db-check.ts` script prints `DB_OK` and a `ROWS=<n>` value, where `n` is the row count in the `products` table. A `ROWS=0` count fails even though the database is up. Run `pnpm prisma:seed` to insert the sample products, then run the script again.",
+                  "The `scripts/db-check.ts` script prints `DB_OK` and a `ROWS=<n>` value. A `ROWS=0` count fails. Run `pnpm prisma:seed` to insert the sample products, then run the script again.",
                 order: 3,
               },
               {
                 description:
-                  "A `DB_CHECK_FAILED` message on stderr almost always means one of three things, and the order matters: a missing or wrong `DATABASE_URL`, an unapplied migration, or an empty `products` table. Work down that list before touching any application code.",
+                  "A `DB_CHECK_FAILED` message on stderr means a missing or wrong `DATABASE_URL`, an unapplied migration, or an empty `products` table.",
                 order: 4,
               },
             ],
@@ -105,31 +105,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`node_modules/` sits at the project root and holds both `node_modules/next` and `node_modules/@prisma/client`, so the app can start and reach Prisma",
+                  "`node_modules/` sits at the project root and holds both `node_modules/next` and `node_modules/@prisma/client`",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`pnpm exec prisma generate` exits with status 0, so the typed Prisma Client regenerates from prisma/schema.prisma with no errors",
+                  "`pnpm exec prisma generate` exits with status 0",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`pnpm exec prisma migrate deploy` exits with status 0, so every pending migration is applied to the database named in `DATABASE_URL`",
+                  "`pnpm exec prisma migrate deploy` exits with status 0",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`pnpm exec tsx scripts/db-check.ts` exits with status 0 and prints `DB_OK`, which means Postgres is reachable, the `products` table exists, and the seed has run",
+                  "`pnpm exec tsx scripts/db-check.ts` exits with status 0 and prints `DB_OK`",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "The `DB_OK` line reports `ROWS=<n>` and `n` is greater than 0, so at least one seeded product row exists. Run `pnpm prisma:seed` if the count is zero",
+                  "The `DB_OK` line reports `ROWS=<n>` and `n` is greater than 0. Run `pnpm prisma:seed` if the count is zero",
                 is_required: true,
                 order: 5,
               },
@@ -209,7 +209,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Create `src/lib/format.ts` and export the function there as a named export, with the signature `export function formatPeso(amount: number): string`. A default export will not be found, because callers read it as `{ formatPeso }`.",
+                  "Create `src/lib/format.ts` and export the function there as a named export, with the signature `export function formatPeso(amount: number): string`. A default export will not be found.",
                 order: 1,
               },
               {
@@ -219,12 +219,12 @@ export const levels = [
               },
               {
                 description:
-                  "Put the peso sign directly in front of the fixed string with `return '₱' + amount.toFixed(2)`. The result is compared as an exact string, so the sign has to sit immediately before the first digit. `formatPeso(0)` returns `'₱0.00'` and `formatPeso(120)` returns `'₱120.00'`.",
+                  "Put the peso sign directly in front of the fixed string with `return '₱' + amount.toFixed(2)`. The sign has to sit immediately before the first digit. `formatPeso(0)` returns `'₱0.00'` and `formatPeso(120)` returns `'₱120.00'`.",
                 order: 3,
               },
               {
                 description:
-                  "Keep `src/lib/format.ts` free of side effects. Do not import React or `@/lib/prisma` into it, because the file has to load on its own in a plain `node` environment with no DOM and either import would break that load.",
+                  "Keep `src/lib/format.ts` free of side effects. Do not import React or `@/lib/prisma` into it. The file has to load on its own in a plain `node` environment with no DOM.",
                 order: 4,
               },
             ],
@@ -354,12 +354,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "Add `getStockStatusForProduct` to `src/lib/actions/inventory.ts` as a named async export that looks the product up through `prisma.product.findUnique` and classifies the quantity that comes back. Use that one database method and nothing else, because any other Prisma call fails.",
+                  "Add `getStockStatusForProduct` to `src/lib/actions/inventory.ts` as a named async export that looks the product up through `prisma.product.findUnique` and classifies the quantity that comes back. Use that one database method and nothing else.",
                 order: 1,
               },
               {
                 description:
-                  "Call it as `prisma.product.findUnique({ where: { product_id: productId } })`, passing a single object. The column is `product_id`, not `id`, and the most common mistake is splitting `where` and the rest into separate arguments.",
+                  "Call it as `prisma.product.findUnique({ where: { product_id: productId } })`, passing a single object. The column is `product_id`, not `id`.",
                 order: 2,
               },
               {
@@ -385,7 +385,7 @@ export const levels = [
               },
               {
                 description:
-                  "`prisma.product.findUnique` is called with a single argument `{ where: { product_id: <id> } }`. The column is `product_id`, not `id`",
+                  "`prisma.product.findUnique` is called with a single argument `{ where: { product_id: <id> } }`",
                 is_required: true,
                 order: 2,
               },

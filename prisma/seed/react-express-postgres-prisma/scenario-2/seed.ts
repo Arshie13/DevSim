@@ -126,7 +126,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "From `server/`, run `pnpm exec tsx scripts/db-check.ts` — it must exit 0 and print `DB_OK` to prove the database is reachable.",
+                    "From `server/`, run `pnpm exec tsx scripts/db-check.ts` — it must exit 0 and print `DB_OK`.",
                   order: 4,
                 },
                 {
@@ -755,7 +755,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Check the `POST /orders` checkout path — the stock check and decrement are separate steps with no guard condition.",
+                    "Check the `POST /orders` checkout path — the stock check and decrement are separate steps.",
                   order: 2,
                 },
                 {
@@ -1260,7 +1260,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Update the coupon validation to use `updateMany` with a `usedCount: { lt: maxUses }` guard so concurrent requests cannot both pass.",
+                    "Update the coupon validation to use `updateMany` with a `usedCount: { lt: maxUses }` guard.",
                   order: 1,
                 },
                 {
@@ -1425,7 +1425,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "The revenue query must exclude cancelled orders using `cancelledAt: null` as the filter. Filtering by status alone misses stale-status orders where `cancelledAt` is set but status was changed back.",
+                    "The revenue query must exclude cancelled orders using `cancelledAt: null` as the filter.",
                   order: 1,
                 },
                 {
@@ -1590,7 +1590,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Write a postmortem with four sections: Symptom, Root Cause, Fix, Prevention. This turns the incident into institutional knowledge.",
+                    "Write a postmortem with four sections: Symptom, Root Cause, Fix, Prevention.",
                   order: 3,
                 },
               ],

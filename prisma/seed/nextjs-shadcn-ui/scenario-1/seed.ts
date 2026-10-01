@@ -16,11 +16,11 @@ export const levels = [
     order: 1,
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The library has onboarded a new developer and needs the system running locally with minor UI tweaks. Set up the Next.js development environment, install dependencies, add the required shadcn/ui components, and verify the dev server starts cleanly.",
+      "Mission Briefing: The library has onboarded a new developer and needs the system running locally with minor UI tweaks. Set up the Next.js development environment, install dependencies, add the `alert`, `dialog` and `input` shadcn/ui components, and verify the dev server starts cleanly.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Installing project dependencies with pnpm install ensures all required libraries (React, Next.js, shadcn/ui, Tailwind CSS) are available. Running the dev server verifies the project boots without errors before any feature work begins. Adding shadcn/ui components via the CLI copies them into the project source, giving full ownership and easy customization.",
+      "Installing project dependencies with pnpm install ensures all required libraries (React, Next.js, shadcn/ui, Tailwind CSS) are available. Running the dev server verifies the project boots without errors before any feature work begins. Adding shadcn/ui components via the CLI copies them into the project source, giving full ownership and easy customization.\n\nThree components are graded here: `src/components/ui/alert.tsx` with `Alert`, `AlertTitle` and `AlertDescription`, `src/components/ui/dialog.tsx` with `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`, and `src/components/ui/input.tsx` with `Input` and `forwardRef`.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
@@ -46,7 +46,7 @@ export const levels = [
               {
                 title: "What is shadcn/ui?",
                 content:
-                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.",
+                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.\n\nThe CLI copies one component per run into `src/components/ui/`. `pnpm dlx shadcn@latest add alert` writes `alert.tsx` with `Alert`, `AlertTitle` and `AlertDescription`, `add dialog` writes `dialog.tsx` with `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`, and `add input` writes `input.tsx` with `Input` built on `forwardRef`. Every export name is what later levels import by name.",
                 order: 3,
               },
               {
@@ -64,14 +64,16 @@ export const levels = [
               {
                 title: "Practice Lab: Adding shadcn/ui Components",
                 content:
-                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn@latest add select",
+                  "Practice adding shadcn/ui components using the CLI. Running the commands below downloads each component's source into the project's `components/ui` folder, where it can be customized.\n\npnpm dlx shadcn@latest add alert\npnpm dlx shadcn@latest add dialog\npnpm dlx shadcn@latest add input",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "TERMINAL_CMD" as const,
                 interactive_config: {
                   instructions:
-                    "Run the shadcn/ui CLI command to add the Select component. Type the exact command and click Check to verify.",
+                    "Run the shadcn/ui CLI commands that add the Alert, Dialog and Input components. Type the exact commands and click Check to verify.",
                   expected_commands: [
-                    "pnpm dlx shadcn@latest add select",
+                    "pnpm dlx shadcn@latest add alert",
+                    "pnpm dlx shadcn@latest add dialog",
+                    "pnpm dlx shadcn@latest add input",
                   ],
                 },
                 order: 6,
@@ -87,16 +89,20 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Run `pnpm install` in the project root so `node_modules/`, `node_modules/next` and `node_modules/react` all exist",
+                description: "Run `pnpm install` in the project root and let it finish; `node_modules/` should then hold both `next` and `react`.",
                 order: 1,
               },
               {
-                description: "Run `pnpm dlx shadcn@latest add alert` to write `src/components/ui/alert.tsx`; keep the shadcn file that exports `Alert`, `AlertTitle` and `AlertDescription`",
+                description: "Run `pnpm dlx shadcn@latest add alert`, `pnpm dlx shadcn@latest add dialog` and `pnpm dlx shadcn@latest add input`; they write `src/components/ui/alert.tsx`, `src/components/ui/dialog.tsx` and `src/components/ui/input.tsx`, and each file must name its exported components.",
                 order: 2,
               },
               {
-                description: "Run `pnpm dev` in the project root and leave it running until the output contains `ready` or `Local:` within 30 seconds",
+                description: "Run `pnpm dev` in the project root and leave it running; the output should print `ready` or `Local:` within 30 seconds and exit without a non-zero code.",
                 order: 3,
+              },
+              {
+                description: "Do the three in that order, so a failure points at one step: dependencies, then the components, then the server.",
+                order: 4,
               },
             ],
           },
@@ -104,7 +110,8 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "A `node_modules` directory exists in the project root containing both `next` and `react`",
+                description:
+                  "The user runs `pnpm install` in the project root, which creates a `node_modules` directory containing both `next` and `react`",
                 is_required: true,
                 order: 1,
               },
@@ -118,6 +125,16 @@ export const levels = [
                 is_required: true,
                 order: 3,
               },
+              {
+                description: "`src/components/ui/dialog.tsx` exists and its source references `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "`src/components/ui/input.tsx` exists and its source references `Input` and `forwardRef`",
+                is_required: true,
+                order: 5,
+              },
             ],
           },
         },
@@ -125,7 +142,7 @@ export const levels = [
           task_name: "Update UI Text",
           test_type: "both",
           user_story:
-            "As a user, I want to see the correct library name and page titles so that I know which system I'm using.",
+            "As a visitor, I want the signup button to read Register so that the page uses the wording the library standardised on.",
           learning_sections: {
             create: [
               {
@@ -149,13 +166,13 @@ export const levels = [
               {
                 title: "How to Find What to Change",
                 content:
-                  "To locate the source of a UI element visible in the browser, the following questions help:\nWhat element is it? (header, footer, page title?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state?\nFor a page title, layout.tsx is where to look for a hardcoded string or a metadata export.",
+                  "To locate the source of a UI element visible in the browser, the following questions help:\nWhat element is it? (header, footer, button label?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state?\nThe signup button is hardcoded in `src/app/signup/page.tsx`, so that is the file to open.",
                 order: 4,
               },
               {
                 title: "JSX Text Content",
                 content:
-                  "Changing text in JSX is straightforward — it's just like editing HTML:\n// Before\n<h1>Old Library</h1>\n// After\n<h1>BookStop Public Library</h1>",
+                  "Changing text in JSX is straightforward — it's just like editing HTML:\n// Before\n<Button>Sign Up</Button>\n// After\n<Button>Register</Button>\n\nThe text has to change everywhere it appears in the file, because a leftover copy inside a comment is stripped before the check and any copy left in live JSX is what a reader still sees.",
                 order: 5,
               },
               {
@@ -202,7 +219,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "UI changes in Next.js always trace back to a component file. Layout components are the primary location for global elements such as page titles. The source text is found inside the component and modified there.",
+                  "UI changes in Next.js always trace back to a component file. The signup page is `src/app/signup/page.tsx`, the label lives in the JSX, and every copy of the old wording outside a comment has to go with it.",
                 order: 8,
               },
             ],
@@ -210,12 +227,16 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Open `src/app/signup/page.tsx` and locate the button whose visible label is 'Sign Up'",
+                description: "Open `src/app/signup/page.tsx` and find the button whose visible label in the JSX reads 'Sign Up'.",
                 order: 1,
               },
               {
-                description: "Change that button label from 'Sign Up' to 'Register', then remove every other occurrence of the string 'Sign Up' in the file that is not inside a comment",
+                description: "Change that label to 'Register', then replace every other 'Sign Up' left in the file outside comments so no occurrence survives.",
                 order: 2,
+              },
+              {
+                description: "Save and reload `/signup`; the page should show 'Register' and no 'Sign Up' outside a comment.",
+                order: 3,
               },
             ],
           },
@@ -235,91 +256,90 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-level-2",
-    title: "Bug Fixing & Refactoring",
-    subtitle: "Fix status display issues and refactor code",
+    title: "Overdue Alert Banner and BookRow Refactor",
+    subtitle: "Warn about overdue books at the top of the dashboard, then extract the table row into a BookRow component with memoized collections",
     order: 2,
     deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Users report that the book status display is inconsistent and the code needs cleanup. Fix the status badge colors and refactor the book filtering logic to use proper React patterns.",
+      "Mission Briefing: Nothing on the dashboard says that late books exist, so a librarian has to open the overdue tab to find out. Add an overdue warning banner at the top of the dashboard styled as a destructive shadcn Alert, with a link that filters the table to the overdue books, then pull the repeated table row out of `src/app/dashboard/page.tsx` into a `BookRow` component that renders one book and is reused for every row.",
     xp_reward: 25,
     coin_reward: 50,
     key_takeaways:
-      "useMemo optimizes expensive calculations in React components. Extracting components improves code reusability and makes testing easier. Shadcn/ui components integrate seamlessly with React hooks for state management.",
+      "`Alert`, `AlertTitle` and `AlertDescription` come from `src/components/ui/alert.tsx`. The banner is the element with the `alert` role, so the border, background and text classes are read straight off it: `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`, and `AlertTitle` renders the level 5 heading.\n\nA `BookRow` component takes a single `book` prop and renders the `title`, `author`, `isbn` and status for that book, so one row can be rendered and inspected on its own. A default export and a named `BookRow` export are both accepted.\n\n`useMemo` imported from `react` wraps at least one of the derived lists, `availableBooks`, `borrowedBooks` or `overdueBooks`, so those filters are not rebuilt on every render.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
         {
-          task_name: "Fix Status Badge Colors",
+          task_name: "Add an Overdue Books Alert Banner",
           test_type: "both",
           user_story:
-            "As a user, I want to see distinct colors for different book statuses so that I can quickly identify book availability.",
+            "As a librarian, I want a warning at the top of the dashboard whenever books are overdue so that I notice late loans without hunting for them.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nStyling Status Badges with Tailwind",
+                title: "Overview\nAdding the Overdue Alert Banner",
                 content:
-                  "This section introduces the crash course for styling status badges using Tailwind CSS classes in a shadcn/ui project. It explains how to map semantic states to accessible color palettes.",
+                  "This level has two tasks. The first adds an overdue warning banner to the dashboard using the shadcn Alert component. The second extracts the repeated table row into a `BookRow` component and memoizes the derived lists.",
                 order: 1,
               },
               {
-                title: "The Badge Component",
+                title: "The Alert Role",
                 content:
-                  "shadcn/ui provides a Badge component that wraps content in a small pill. Its appearance can be overridden by passing custom className props with Tailwind utility classes.",
+                  "`Alert`, `AlertTitle` and `AlertDescription` come from `src/components/ui/alert.tsx`. The wrapper is the element that carries the `alert` role, so it is the element whose classes and text a reader sees first.\n\nRendering the dashboard gives exactly one element with the `alert` role, so put the banner above the `Tabs` rather than inside one `TabsContent`: outside the tabs it is on screen whichever tab is active.",
                 order: 2,
               },
               {
-                title: "Accessible Color Palettes",
+                title: "Styling the Warning",
                 content:
-                  "For status indicators, a *-100 background with *-800 text provides high contrast and readability:\n\n• bg-green-100 + text-green-800 → Available\n• bg-blue-100 + text-blue-800 → Borrowed\n• bg-red-100 + text-red-800 → Overdue\n\nThese combinations pass WCAG contrast guidelines and look consistent across themes.",
+                  "A destructive warning reads as a thick red rule down the left edge of a pale panel, and the four classes live on the same `Alert` element:\n\n- `border-l-4` for the thick left rule\n- `border-red-500` for the rule colour\n- `bg-red-50` for the pale background\n- `text-red-900` for the dark red text\n\n`AlertTitle` renders a heading at level 5, and its text has to say `overdue`.",
                 order: 3,
               },
               {
-                title: "Mapping States to Colors",
+                title: "Counting and Linking",
                 content:
-                  "A helper function maps each status string to its color className:\n\nfunction getStatusBadge(status: string) {\n  switch (status) {\n    case 'available': return 'bg-green-100 text-green-800';\n    case 'borrowed': return 'bg-blue-100 text-blue-800';\n    case 'overdue': return 'bg-red-100 text-red-800';\n    default: return 'bg-gray-100 text-gray-800';\n  }\n}",
+                  "The description carries the count, and a link beside it points at the filtered dashboard so the banner is actionable:\n\nconst overdueCount = books.filter((book) => book.status === 'overdue').length;\n\n<AlertDescription>{overdueCount} overdue books need attention</AlertDescription>\n<Link href=\"/dashboard?status=overdue\">View overdue</Link>\n\nThe link has to render an `a`, because a link is what carries the `link` role, and the `status=overdue` query is what puts the table in its overdue state.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Badge Classifier",
+                title: "Practice Lab: Banner Text",
                 content:
-                  "Practice writing a pure function that maps status strings to Tailwind classes.",
+                  "Practice the count the description shows: turn a number of overdue books into one line of text.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getBadgeClass(status) returning Tailwind classes: available→green, borrowed→blue, overdue→red.\n\nExamples: getBadgeClass(\"available\")→\"bg-green-100 text-green-800\".",
+                    "Implement `overdueBannerText(count)` returning the sentence shown in the alert description.\n\n- the text always contains the number then ` overdue book`\n- exactly `1` adds no `s`\n- `0` and any count above `1` add an `s`\n\nExample: `overdueBannerText(2)` returns `2 overdue books`.",
                   language: "javascript",
                   starter_code:
-                    "export function getBadgeClass(status) {\n  // TODO\n}\n",
+                    "export function overdueBannerText(count) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getBadgeClass",
+                  entry_point: "overdueBannerText",
                   test_cases: [
                     {
-                      input: ["available"],
-                      expected: "bg-green-100 text-green-800",
-                      label: "available badge",
+                      input: [1],
+                      expected: "1 overdue book",
+                      label: "one overdue book stays singular",
                     },
                     {
-                      input: ["borrowed"],
-                      expected: "bg-blue-100 text-blue-800",
-                      label: "borrowed badge",
+                      input: [2],
+                      expected: "2 overdue books",
+                      label: "two overdue books are plural",
                     },
                     {
-                      input: ["overdue"],
-                      expected: "bg-red-100 text-red-800",
-                      label: "overdue badge",
+                      input: [0],
+                      expected: "0 overdue books",
+                      label: "none left is still plural",
                     },
                   ],
-                
                   hints: [
-                    "Map status to class.",
-                    "return {available:\"bg-green-100 text-green-800\",borrowed:\"bg-blue-100 text-blue-800\",overdue:\"bg-red-100 text-red-800\"}[status];",
-                    "return {available:\"___\",borrowed:\"___\",overdue:\"___\"}[___];"
+                    "Build the sentence from the number and one branch on the count.",
+                    "return `${count} overdue book${count === 1 ? '' : 's'}`;",
+                    "return `${___} overdue book${___ === 1 ? '___' : '___'}`;",
                   ],
                 },
                 order: 5,
@@ -327,7 +347,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Consistent color mapping makes status badges instantly scannable. Centralizing the mapping in a helper ensures every badge in the app follows the same rules.",
+                  "One banner, one `alert` element, four destructive classes, and a heading that says `overdue`. The count comes from the same books list the table reads, and the link takes the reader straight to the overdue view.",
                 order: 6,
               },
             ],
@@ -335,15 +355,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "The dashboard is `src/app/dashboard/page.tsx`, and it needs data to show. Store a logged-in librarian record in localStorage under the `librarian` key so the page renders",
+                description: "Add `Alert`, `AlertTitle` and `AlertDescription` from `@/components/ui/alert` to `src/app/dashboard/page.tsx` and render the banner above the `Tabs`, so it is on screen on every tab.",
                 order: 1,
               },
               {
-                description: "Each book's status renders as a badge inside its table cell (`<td>`)",
+                description: "Put `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900` on the `Alert` itself, and give the `AlertTitle` text containing `overdue`; the description carries the number and the words `overdue book`.",
                 order: 2,
               },
               {
-                description: "Each status carries its own color classes: `bg-green-100 text-green-800` for available, `bg-blue-100 text-blue-800` for borrowed, `bg-red-100 text-red-800` for overdue",
+                description: "Finish with a `Link` whose `href` carries `status=overdue` and whose label matches `view overdue`, `filter overdue` or `show overdue`. Keep the words `overdue book` on that one element only, so the description stays the only text match for it.",
                 order: 3,
               },
             ],
@@ -352,104 +372,132 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The dashboard shows at least one status badge containing 'available' inside a table cell, and every such badge carries the classes `bg-green-100` and `text-green-800`",
+                description: "Rendering `src/app/dashboard/page.tsx` shows exactly one element with the accessible role `alert`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The dashboard shows at least one status badge containing 'borrowed' inside a table cell, and every such badge carries the classes `bg-blue-100` and `text-blue-800`",
+                description: "That `alert` element carries all four classes `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "The dashboard shows at least one status badge containing 'overdue' inside a table cell, and every such badge carries the classes `bg-red-100` and `text-red-800`",
+                description: "Rendering `src/app/dashboard/page.tsx` shows exactly one heading at level 5 and its text matches `/overdue/i`",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "Rendering `src/app/dashboard/page.tsx` shows text matching `/overdue book/i`",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "Rendering `src/app/dashboard/page.tsx` shows a link whose accessible name matches `/view overdue|filter overdue|show overdue/i` and whose `href` matches `/status=overdue/`",
+                is_required: true,
+                order: 5,
               },
             ],
           },
         },
         {
-          task_name: "Refactor Book Filtering",
+          task_name: "Extract BookRow and Memoize the Derived Lists",
           test_type: "both",
           user_story:
-            "As a developer, I want to use useMemo for book filtering so that the application performs better and the code is more maintainable.",
+            "As a developer, I want the dashboard table row extracted into a `BookRow` component and the derived lists memoized so that a single book row can be rendered on its own and the filters are not rebuilt on every render.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nReact Hooks and Performance",
+                title: "Overview\nExtracting the BookRow Component",
                 content:
-                  "This section introduces the crash course for optimizing React rendering with useMemo and extracting reusable components. It explains why these patterns matter for large lists and complex UIs.",
+                  "This level has two tasks. The first adds the overdue alert banner to the dashboard. The second pulls the inline table row out of `src/app/dashboard/page.tsx` into its own component file and wraps the derived lists in `useMemo`.",
                 order: 1,
               },
               {
-                title: "What is useMemo?",
+                title: "The Inline Row Today",
                 content:
-                  "useMemo is a React hook that caches the result of an expensive calculation. It only recomputes when its dependencies change.\n\nconst filtered = useMemo(() => {\n  return books.filter(b => b.status === 'available');\n}, [books]);\n\nWithout useMemo, the filter runs on every render. With useMemo, it only runs when books changes.",
+                  "The All Books table maps over `mockBooks` and builds each row inline:\n\n{books.map((book) => (\n  <TableRow key={book.id}>\n    <TableCell className=\"font-medium\">{book.title}</TableCell>\n    <TableCell>{book.author}</TableCell>\n    <TableCell>{book.isbn}</TableCell>\n    <TableCell><Badge>{/* status */}</Badge></TableCell>\n    <TableCell>{book.borrowedBy || '-'}</TableCell>\n  </TableRow>\n))}\n\nThe five `TableCell`s line up with the `TableHead`s: `Title`, `Author`, `ISBN`, `Status`, `Borrowed By`.",
                 order: 2,
               },
               {
-                title: "When to Use useMemo",
+                title: "One Row, One Component",
                 content:
-                  "useMemo is appropriate when:\n\n• Filtering or sorting large arrays\n• Deriving multiple values from the same source\n• The calculation is noticeably slow\n\nIt should not be used for trivial operations — the overhead of useMemo can outweigh the benefit for simple math.",
+                  "Moving that row into `src/components/BookRow.tsx` gives it a single `book` prop typed with the `Book` interface from `src/lib/mockData.ts`:\n\nimport { Book } from '@/lib/mockData';\n\nexport default function BookRow({ book }: { book: Book }) {\n  return (\n    <TableRow>\n      <TableCell className=\"font-medium\">{book.title}</TableCell>\n      ...\n    </TableRow>\n  );\n}\n\nThe test imports the whole module and uses `module.default ?? module.BookRow`, so a default export and a named `BookRow` export are both accepted.",
                 order: 3,
               },
               {
-                title: "Extracting Reusable Components",
+                title: "Why the Row Needs a Table",
                 content:
-                  "When the same JSX appears in multiple places, extracting it into a component is beneficial:\n\n// Before — inline in Dashboard\n{books.map(b => <tr key={b.id}>...</tr>)}\n\n// After — reusable BookRow\nimport { BookRow } from '@/components/BookRow';\n{books.map(b => <BookRow key={b.id} book={b} />)}\n\nThis keeps the parent clean and makes the row testable in isolation.",
+                  "`BookRow` renders a `TableRow`, which is a `tr`. A `tr` is only valid inside `tbody`, which is only valid inside `table`, so the row is always rendered in that order:\n\nrender(\n  <table>\n    <tbody>\n      <BookRow book={book} />\n    </tbody>\n  </table>\n)\n\nReturning a fragment of `TableCell`s instead of a `TableRow` also works, as long as the cells stay inside a `table`.",
                 order: 4,
               },
               {
-                title: "Returning Multiple Derived Values",
+                title: "Counts Still Belong to the Page",
                 content:
-                  "When multiple filtered views are needed, they can be computed in one useMemo result and returned as an object:\n\nconst { available, borrowed, overdue } = useMemo(() => {\n  return {\n    available: books.filter(b => b.status === 'available'),\n    borrowed: books.filter(b => b.status === 'borrowed'),\n    overdue: books.filter(b => b.status === 'overdue'),\n  };\n}, [books]);\n\nThis avoids three separate filter passes on every render.",
+                  "The three stat cards at the top of the page are not part of the row. They keep reading the whole list, and `useMemo` from `react` is what keeps those filters from being rebuilt on every render:\n\nimport { useMemo } from 'react';\n\nconst availableBooks = useMemo(\n  () => books.filter((book) => book.status === 'available'),\n  [books]\n);\nconst overdueBooks = useMemo(\n  () => books.filter((book) => book.status === 'overdue'),\n  [books]\n);\n\nThe `Available` card renders `availableBooks.length` and the `Overdue` card renders `overdueBooks.length`, so the numbers stay on screen after the row is extracted.",
                 order: 5,
               },
               {
-                title: "Practice Lab: Derive a Value",
+                title: "Practice Lab: Row Values",
                 content:
-                  "Practice writing a pure function that derives a value from input.",
+                  "Practice the pure part of the row: pick the four values a row shows for a book.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getDoubledValue(value) returning value * 2.\n\nExamples: getDoubledValue(5)→10, getDoubledValue(0)→0.",
+                    "Implement `getRowValues(book)` returning an array with the row's four visible values in order.\n\n- index 0 is `book.title`\n- index 1 is `book.author`\n- index 2 is `book.isbn`\n- index 3 is `book.status`\n\nExample: `getRowValues({ title: '1984', author: 'George Orwell', isbn: '978-0-452-28423-4', status: 'overdue' })` returns `['1984', 'George Orwell', '978-0-452-28423-4', 'overdue']`.",
                   language: "javascript",
                   starter_code:
-                    "export function getDoubledValue(value) {\n  // TODO\n}\n",
+                    "export function getRowValues(book) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getDoubledValue",
+                  entry_point: "getRowValues",
                   test_cases: [
                     {
-                      input: [5],
-                      expected: 10,
-                      label: "doubles five",
+                      input: [
+                        {
+                          title: "1984",
+                          author: "George Orwell",
+                          isbn: "978-0-452-28423-4",
+                          status: "overdue",
+                        },
+                      ],
+                      expected: ["1984", "George Orwell", "978-0-452-28423-4", "overdue"],
+                      label: "row values in header order",
                     },
                     {
-                      input: [0],
-                      expected: 0,
-                      label: "handles zero",
+                      input: [
+                        {
+                          title: "The Hobbit",
+                          author: "J.R.R. Tolkien",
+                          isbn: "978-0-547-92822-7",
+                          status: "borrowed",
+                        },
+                      ],
+                      expected: [
+                        "The Hobbit",
+                        "J.R.R. Tolkien",
+                        "978-0-547-92822-7",
+                        "borrowed",
+                      ],
+                      label: "second book keeps the same order",
                     },
                   ],
-                
                   hints: [
-    "Multiply by 2.",
-    "Combine the two numbers using the right mathematical operator. What symbol means multiplication in JavaScript?",
-    "return value * ___;"
-  ],
+                    "Return four values in the order the table headers appear: Title, Author, ISBN, Status.",
+                    "return [book.title, book.author, book.isbn, book.status];",
+                    "return [book.___, book.___, book.___, book.___];",
+                  ],
                 },
                 order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "useMemo prevents redundant work. Extracted components prevent redundant code. Together, they keep large lists fast and maintainable.",
+                  "The page keeps the list and the counts behind `useMemo`; the row component keeps the markup. Each side stays small, and a single book row can be rendered without the page around it.",
                 order: 7,
               },
             ],
@@ -457,20 +505,16 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Extract the repeated table row into a `BookRow` component in `src/components/BookRow.tsx` that takes a single `book` prop",
+                description: "Create `src/components/BookRow.tsx` exporting the component as its default export or as a named `BookRow` export; both are accepted.",
                 order: 1,
               },
               {
-                description: "`BookRow` renders a `<tr>` with the book's `title`, `author`, `isbn` and status as visible text",
+                description: "Give it one `book` prop typed `Book` and render a `TableRow` whose `TableCell`s show `title`, `author`, `isbn` and the status text.",
                 order: 2,
               },
               {
-                description: "Use it from `src/app/dashboard/page.tsx` in place of the inline rows, passing `key={book.id}` and `book={book}`, so every book from `@/lib/mockData` still renders",
+                description: "In `src/app/dashboard/page.tsx` render `<BookRow book={book} />` for each book, keeping the titles and both counts on screen, and wrap at least one of `availableBooks`, `borrowedBooks` or `overdueBooks` in `useMemo` imported from `react`.",
                 order: 3,
-              },
-              {
-                description: "Leave the dashboard stat cards in place, still showing the numeric available and overdue counts as visible text",
-                order: 4,
               },
             ],
           },
@@ -478,29 +522,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/components/BookRow.tsx` exports a React component function, either as its default export or as a named `BookRow` export",
+                description: "The source of `src/app/dashboard/page.tsx` imports `useMemo` from `react` and declares at least one of `availableBooks`, `borrowedBooks` or `overdueBooks` with `useMemo`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Given a `book` prop, `BookRow` renders that book's title, author and ISBN as visible text",
+                description: "`src/components/BookRow.tsx` exports a component function, either as its default export or as a named `BookRow` export",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Given a book whose status is 'borrowed', `BookRow` renders text matching 'borrowed'",
+                description: "Rendered inside a `table` with a `tbody` and a `book` prop of `mockBooks[0]`, `BookRow` shows that book's `title`, `author` and `isbn` as visible text",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "The dashboard renders a row for every book in the mock data set, with each book's title visible",
+                description: "Rendered with a `book` whose `status` is `borrowed`, `BookRow` shows text matching `/borrowed/i`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The dashboard displays the available book count and the overdue book count as visible text",
+                description: "Rendering `src/app/dashboard/page.tsx` shows the `title` of every book in `mockBooks` from `@/lib/mockData` as visible text",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description: "Rendering `src/app/dashboard/page.tsx` shows the number of books in `mockBooks` with `status` `available` and the number with `status` `overdue` as visible text",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -510,65 +559,59 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-level-3",
-    title: "Feature Development",
-    subtitle: "Add search and borrow functionality",
+    title: "Book Search and the Returns Page",
+    subtitle: "Filter the dashboard books from a search input and add a /returns route that processes returns behind a confirmation",
     order: 3,
     deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The library wants to expand functionality with new features for better book management. Implement search functionality and a borrow system with modal dialogs.",
+      "Mission Briefing: Librarians cannot find a book on a list of eight without reading every row, and there is nowhere to process a return. Add a search input to the dashboard that filters by title and author, and add a `/returns` page that lists the borrowed books and takes one through a confirmation before the book leaves the list.",
     xp_reward: 40,
     coin_reward: 100,
     key_takeaways:
-      "Search and filter functionality improves user experience with large datasets. Confirmation dialogs prevent accidental actions. Shadcn/ui Dialog components provide accessible modal interfaces.",
+      "A controlled `Input` carries a `placeholder` of `Search books...` and an `onChange` that writes each keystroke to state, so the visible list follows the query.\n\nFiltering matches the lowercased query against `book.title` and `book.author`, which is what makes a lowercase search term still find `Orwell`.\n\nA new App Router route is a folder plus a `page.tsx`, and a return that is confirmed in a dialog removes the book from the borrowed list.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
         {
-          task_name: "Add Search & Borrow Features",
+          task_name: "Add a Search Box to the Dashboard",
           test_type: "both",
           user_story:
-            "As a user, I want to search for books and borrow available books so that I can find and reserve books easily.",
+            "As a librarian, I want to type into a search box on the dashboard so that only the books matching that title or author stay on screen.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nBuilding Interactive Features in React",
+                title: "Overview\nAdding Book Search",
                 content:
-                  "This section introduces the crash course for building interactive search and modal dialogs in React. It covers state management, controlled inputs, and accessible UI patterns.",
+                  "This level has two tasks. The first adds a search input to the dashboard. The second adds a `/returns` page that lists borrowed books.",
                 order: 1,
               },
               {
-                title: "Controlled Inputs",
+                title: "A Controlled Input",
                 content:
-                  "A controlled input's value is driven by React state:\n\nconst [query, setQuery] = useState('');\n\n<input\n  value={query}\n  onChange={(e) => setQuery(e.target.value)}\n  placeholder=\"Search books...\"\n/>\n\nEvery keystroke updates the state, which triggers a re-render. The UI always reflects the current state.",
+                  "`Input` from `src/components/ui/input.tsx` forwards its props to the underlying `input`. Driving its `value` from state and writing back in `onChange` is what makes it controlled:\n\nconst [query, setQuery] = useState('');\n\n<Input\n  placeholder=\"Search books...\"\n  value={query}\n  onChange={(e) => setQuery(e.target.value)}\n/>\n\n`placeholder=\"Search books...\"` is the visible hint a reader sees before typing, and it is matched case-insensitively by `getByPlaceholderText(/search books/i)`. The sizing classes are passed in as `className` and land on the same `input`: `h-10`, `px-3`, `rounded-md`, `border`, `focus:outline-none` and `focus:ring-2`.",
                 order: 2,
               },
               {
-                title: "Real-Time Filtering",
+                title: "Filtering Title and Author",
                 content:
-                  "A controlled input combined with useMemo creates real-time list filtering:\n\nconst filtered = useMemo(() => {\n  return books.filter(b =>\n    b.title.toLowerCase().includes(query.toLowerCase()) ||\n    b.author.toLowerCase().includes(query.toLowerCase())\n  );\n}, [books, query]);\n\nThe user sees results instantly as they type.",
+                  "`mockBooks` entries carry a `title` and an `author`, so both are worth matching:\n\nconst term = query.trim().toLowerCase();\nconst filteredBooks = books.filter(\n  (book) =>\n    book.title.toLowerCase().includes(term) ||\n    book.author.toLowerCase().includes(term)\n);\n\nLowercasing both sides is what makes `orwell` and `Orwell` behave the same. An empty query lowercases to an empty string, which every title contains, so nothing is filtered out while the box is empty.",
                 order: 3,
               },
               {
-                title: "Empty States",
+                title: "The Empty State",
                 content:
-                  "A friendly message should be shown when filters yield no results:\n\n{filtered.length === 0 && (\n  <p>No books found</p>\n)}\n\nThis prevents the UI from looking broken when a search returns nothing.",
+                  "A search that matches nothing must say so:\n\n{filteredBooks.length === 0 && (\n  <p className=\"text-amber-600\">No books found</p>\n)}\n\nThe text `No books found` is the only thing on screen in that branch, so nothing else can match the title queries while it is showing.",
                 order: 4,
               },
               {
-                title: "Modal Dialogs with shadcn/ui",
+                title: "Practice Lab: Match a Query",
                 content:
-                  "shadcn/ui provides a Dialog component that handles focus trapping, keyboard navigation, and accessibility.\n\n<Dialog>\n  <DialogTrigger>Open</DialogTrigger>\n  <DialogContent>\n    <DialogTitle>Borrow Book</DialogTitle>\n    ...\n  </DialogContent>\n</Dialog>\n\nDialog is appropriate for actions that need confirmation or additional input before proceeding.",
-                order: 5,
-              },
-              {
-                title: "Practice Lab: Search Filter",
-                content:
-                  "Practice writing a filter function that searches by name and author.",
+                  "Practice the match on its own: write the pure filter that the dashboard state calls.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement searchBooks(books, query) returning books where title or author contains query (case-insensitive).\n\nExamples: searchBooks([{title:\"React Guide\",author:\"Dan\"}],\"react\")→matched.",
+                    "Implement `searchBooks(books, query)` returning the books whose `title` or `author` contains `query`, compared case-insensitively.\n\n- matching is a substring check, not an exact comparison\n- an empty or whitespace-only `query` returns every book\n- books that match neither field are dropped\n\nExample: `searchBooks([{ title: '1984', author: 'George Orwell' }], 'orwell')` returns that one book.",
                   language: "javascript",
                   starter_code:
                     "export function searchBooks(books, query) {\n  // TODO\n}\n",
@@ -581,55 +624,79 @@ export const levels = [
                   entry_point: "searchBooks",
                   test_cases: [
                     {
-                      input: [[{ title: "React Guide", author: "Dan" }], "react"],
-                      expected: [{ title: "React Guide", author: "Dan" }],
-                      label: "finds by title",
+                      input: [
+                        [
+                          { title: "1984", author: "George Orwell" },
+                          { title: "The Hobbit", author: "J.R.R. Tolkien" },
+                        ],
+                        "orwell",
+                      ],
+                      expected: [{ title: "1984", author: "George Orwell" }],
+                      label: "matches by author regardless of case",
                     },
                     {
-                      input: [[{ title: "React Guide", author: "Dan" }], "dan"],
-                      expected: [{ title: "React Guide", author: "Dan" }],
-                      label: "finds by author",
+                      input: [
+                        [
+                          { title: "1984", author: "George Orwell" },
+                          { title: "Animal Farm", author: "George Orwell" },
+                        ],
+                        " Orwell ",
+                      ],
+                      expected: [
+                        { title: "1984", author: "George Orwell" },
+                        { title: "Animal Farm", author: "George Orwell" },
+                      ],
+                      label: "trims the query and keeps both books",
                     },
                     {
-                      input: [[{ title: "React Guide", author: "Dan" }], "vue"],
+                      input: [
+                        [
+                          { title: "1984", author: "George Orwell" },
+                          { title: "The Hobbit", author: "J.R.R. Tolkien" },
+                        ],
+                        "",
+                      ],
+                      expected: [
+                        { title: "1984", author: "George Orwell" },
+                        { title: "The Hobbit", author: "J.R.R. Tolkien" },
+                      ],
+                      label: "empty query keeps every book",
+                    },
+                    {
+                      input: [[{ title: "1984", author: "George Orwell" }], "xyznonexistent"],
                       expected: [],
-                      label: "returns empty when no match",
+                      label: "no match returns an empty list",
                     },
                   ],
-                
                   hints: [
-                    "Filter on both fields, lowercase.",
-                    "Walk through the array and build a new one keeping only the items that pass your check. What method lets you test each item against a condition?",
-                    "return books.filter(b => b.___.toLowerCase().includes(query.toLowerCase()) || b.___.toLowerCase().includes(query.toLowerCase()));"
-                    ],
+                    "Walk the list and keep only the books that pass the check, after lowercasing the query and both fields.",
+                    "const term = query.trim().toLowerCase(); if (!term) return books; return books.filter((book) => book.title.toLowerCase().includes(term) || book.___.toLowerCase().includes(term));",
+                    "const term = query.trim().toLowerCase(); if (!term) return books; return books.filter((book) => book.___.toLowerCase().includes(term) || book.___.toLowerCase().includes(term));",
+                  ],
                 },
-                order: 6,
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Controlled inputs combined with useMemo create responsive search. Dialog components make complex workflows feel simple and safe. The empty state should always be handled as a first-class UI concern.",
-                order: 7,
+                  "The state, the filter and the empty branch live together on the dashboard page. `Search books...` in the placeholder is what makes the box findable, and `No books found` is what covers the empty branch.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "The dashboard search needs a controlled input the user can type a book query into",
+                description: "In `src/app/dashboard/page.tsx` import `Input` from `@/components/ui/input`, hold the search term in state and feed it to the `Input` through `onChange`, with the `placeholder` reading `Search books...`.",
                 order: 1,
               },
               {
-                description: "The visible book list filters on every keystroke, matching the query against both `book.title` and `book.author` case-insensitively",
+                description: "Pass `className` on that `Input` so the element carries `h-10`, `px-3`, `rounded-md`, `border`, `focus:outline-none` and `focus:ring-2`, and filter the list by comparing the lowercased term against `book.title` and `book.author`.",
                 order: 2,
               },
               {
-                description: "A search that matches nothing shows the message 'No books found'",
+                description: "Self-check: before typing, every `mockBooks` title is visible; type `xyznonexistent` and only `No books found` should be left on the page.",
                 order: 3,
-              },
-              {
-                description: "An empty search box keeps every book visible",
-                order: 4,
               },
             ],
           },
@@ -637,332 +704,154 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The dashboard renders an input field whose placeholder text matches 'Search books'",
+                description: "Rendering `src/app/dashboard/page.tsx` produces an input whose placeholder text matches `/search books/i`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Typing the first word of a book's title into the search input shows that book and hides books whose titles do not contain the query",
+                description: "That input carries all six classes `h-10`, `px-3`, `rounded-md`, `border`, `focus:outline-none` and `focus:ring-2`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Typing an author's name into the search input shows every book by that author",
+                description: "The source of `src/app/dashboard/page.tsx` imports from `@/components/ui/input`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "The search matches titles and authors case-insensitively",
+                description: "Typing the first word of a `mockBooks` title that contains `Gatsby` into the search input keeps that book's `title` visible, and any other book whose title does not contain that query has its `title` removed from the page",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "A search that matches nothing displays the text 'No books found'",
+                description: "Typing `Orwell` into the search input keeps the `title` of every `mockBooks` entry whose `author` contains `Orwell` visible",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "With an empty search input, every book in the list remains visible",
+                description: "Typing the lowercased first word of a `mockBooks` title that contains `Gatsby` still keeps that book's `title` visible, so the match is case-insensitive",
                 is_required: true,
                 order: 6,
+              },
+              {
+                description: "Typing `xyznonexistent` into the search input shows text matching `/no books found/i`",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description: "Before anything is typed, the `title` of every book in `mockBooks` is visible",
+                is_required: true,
+                order: 8,
               },
             ],
           },
         },
         {
-          task_name: "Create Returns Page",
+          task_name: "Build the Returns Page",
           test_type: "both",
           user_story:
-            "As a librarian, I want to process book returns so that I can update the system when books are returned.",
+            "As a librarian, I want a returns page that lists the borrowed books so that I can take each one back after confirming the return.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nBuilding New Pages in Next.js",
+                title: "Overview\nBuilding the Returns Page",
                 content:
-                  "This section introduces the crash course for adding new routes and pages in a Next.js App Router project. It covers file-based routing, shared layouts, and page-specific state.",
+                  "This level has two tasks. The first adds a search input to the dashboard. The second adds a new route that lists borrowed books and processes a confirmed return.",
                 order: 1,
               },
               {
-                title: "File-Based Routing",
+                title: "A Route Is a Folder",
                 content:
-                  "In Next.js App Router, every folder inside app/ becomes a route.\n\napp/\n    ├── page.tsx ← /\n    ├── dashboard/page.tsx ← /dashboard\n    └── returns/page.tsx ← /returns\n\nTo add a route, a new folder and a page.tsx file are created inside the app directory.",
+                  "App Router turns each folder under `src/app` into a route, and the `page.tsx` inside it is that route's page:\n\nsrc/app/\n  dashboard/page.tsx  /dashboard\n  returns/page.tsx    /returns\n\nThe page must be the default export of `src/app/returns/page.tsx`, and it starts with `'use client'` because the page holds state and handles clicks.",
                 order: 2,
               },
               {
-                title: "Reusing Layouts",
+                title: "Listing Only the Borrowed Books",
                 content:
-                  "Pages inside a route group or under the same parent share layouts. If /dashboard uses a sidebar layout, /dashboard/returns can use the same layout by nesting the page inside the dashboard folder.\n\napp/dashboard/\n    ├── layout.tsx ← wraps all dashboard pages\n    ├── page.tsx ← /dashboard\n    └── returns/page.tsx ← /dashboard/returns",
+                  "`mockBooks` carries a `status` of `'available' | 'borrowed' | 'overdue'`, so the page filters once and works from that list:\n\nconst borrowedBooks = books.filter((book) => book.status === 'borrowed');\n\n`Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead` and `TableCell` come from `src/components/ui/table.tsx`. A `TableHead` renders a `th`, which is what gives the page a column header an accessible name.",
                 order: 3,
               },
               {
-                title: "Table Components",
+                title: "One Return Button per Borrowed Book",
                 content:
-                  "shadcn/ui provides a Table component built on top of Tailwind. It is well-suited for data-heavy pages:\n\n<Table>\n  <TableHeader>\n    <TableRow>\n      <TableHead>Title</TableHead>\n      <TableHead>Status</TableHead>\n    </TableRow>\n  </TableHeader>\n  <TableBody>\n    {books.map(b => (...))}\n  </TableBody>\n</Table>\n\nThis provides a styled, accessible table out of the box.",
+                  "Each row ends with a `Button` labelled `Return`, and only the borrowed rows are rendered, so the count of buttons and the count of borrowed books agree:\n\n{borrowedBooks.map((book) => (\n  <TableRow key={book.id}>\n    ...\n    <TableCell>\n      <Button onClick={() => setPendingBook(book)}>Return</Button>\n    </TableCell>\n  </TableRow>\n))}\n\nNothing else on the page should be a button whose accessible name contains `Return`, or the count comes out higher than the row count.",
                 order: 4,
               },
               {
-                title: "Updating State on Action",
+                title: "Confirming the Return",
                 content:
-                  "When a user clicks 'Return', the local state is updated to reflect the change immediately:\n\nconst handleReturn = (bookId) => {\n  setBooks(prev => prev.map(b =>\n    b.id === bookId ? { ...b, status: 'returned' } : b\n  ));\n};\n\nThis keeps the UI responsive without waiting for a server round-trip.",
+                  "Clicking `Return` sets `pendingBook`, which opens the confirmation. `Dialog`, `DialogContent`, `DialogTitle`, `DialogDescription` and `DialogFooter` are imported from `@/components/ui/dialog`, and the body text carries `Are you sure`.\n\nThe open dialog is the element with the `dialog` role, and it has to carry `aria-modal=\"true\"`, because that is what tells assistive technology the rest of the page is blocked while it is open. `DialogTitle` renders the heading inside it.\n\nThe `Confirm` button is the only place the state changes:\n\nconst handleConfirm = () => {\n  setBooks((prev) =>\n    prev.map((book) =>\n      book.id === pendingBook.id ? { ...book, status: 'available' } : book\n    )\n  );\n  setPendingBook(null);\n};\n\nBecause the page recomputes `borrowedBooks` from `books`, the returned book drops out of the table on its own, and `Cancel` only sets `pendingBook` back to `null`, which unmounts the dialog without touching the list.",
                 order: 5,
               },
               {
-                title: "Key Takeaway",
+                title: "Practice Lab: Applying a Return",
                 content:
-                  "New pages are created by adding folders and files to the app directory. Layouts and table components are reused to keep the UI consistent, and state is updated immediately for a responsive feel.",
-                order: 6,
-              },
-            ],
-          },
-          hints: {
-            create: [
-              {
-                description: "A returns page lists only the books that are currently borrowed, with one action per book",
-                order: 1,
-              },
-              {
-                description: "The page shows a 'Returns' heading and a shadcn/ui `Table` whose header row has a `TableHead` (column header) labelled 'Title'",
-                order: 2,
-              },
-              {
-                description: "Each borrowed book gets one button labelled 'Return'. There must be exactly one of these per borrowed book",
-                order: 3,
-              },
-              {
-                description: "Clicking a Return button opens a confirmation dialog showing 'Are you sure' with a 'Confirm' button",
-                order: 4,
-              },
-              {
-                description: "Confirming the return removes that book from the borrowed list, so its title is no longer on the page",
-                order: 5,
-              },
-            ],
-          },
-          order: 2,
-          acceptance_criteria: {
-            create: [
-              {
-                description: "The returns page renders visible text matching 'Returns' and a table column header whose accessible name matches 'Title'",
-                is_required: true,
-                order: 1,
-              },
-              {
-                description: "Every currently borrowed book is listed on the returns page with its title visible",
-                is_required: true,
-                order: 2,
-              },
-              {
-                description: "The page renders exactly one button whose accessible name matches 'Return' for each borrowed book",
-                is_required: true,
-                order: 3,
-              },
-              {
-                description: "Clicking a Return button displays a confirmation message containing 'Are you sure'",
-                is_required: true,
-                order: 4,
-              },
-              {
-                description: "Confirming the return removes that book's title from the page",
-                is_required: true,
-                order: 5,
-              },
-            ],
-          },
-        },
-      ],
-    },
-  },
-  {
-    id: "nextjs-shadcn-ui-level-4",
-    title: "Integration & Edge Cases",
-    subtitle: "Handle validation and data persistence",
-    order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
-    level_description:
-      "Mission Briefing: Edge cases and data integrity issues arise when multiple operations happen. Add validation, confirmation dialogs, and data persistence to ensure a robust application.",
-    xp_reward: 60,
-    coin_reward: 150,
-    key_takeaways:
-      "Date calculations require careful handling of timezones and edge cases. localStorage provides client-side persistence for better UX. Proper error handling ensures robust user experiences.",
-    scenario_id: "nextjs-shadcn-ui-scenario-1",
-    tasks: {
-      create: [
-        {
-          task_name: "Add Validation & Date Handling",
-          test_type: "both",
-          user_story:
-            "As a user, I want proper validation and date handling so that the system prevents invalid operations.",
-          learning_sections: {
-            create: [
-              {
-                title: "Overview\nValidation and Date Handling in React",
-                content:
-                  "This section introduces the crash course for adding client-side validation and date handling in a React application. It covers guard conditions, date math, and formatting.",
-                order: 1,
-              },
-              {
-                title: "Guard Conditions",
-                content:
-                  "Guard conditions prevent invalid operations before they happen. Instead of letting an invalid borrow attempt proceed and then showing an error, the action is disabled upfront:\n\nconst canBorrow = book.status !== 'overdue' && book.status === 'available';\n\n<button disabled={!canBorrow}>Borrow</button>\n\nThis approach prevents invalid operations before they occur rather than handling them retroactively.",
-                order: 2,
-              },
-              {
-                title: "Date Math in JavaScript",
-                content:
-                  "JavaScript's Date object makes date math straightforward:\n\nconst today = new Date();\nconst dueDate = new Date(today);\ndueDate.setDate(today.getDate() + 14);\n\nThis creates a due date 14 days from today. Timezones require careful handling — when comparing dates, setHours(0,0,0,0) is called to ignore time of day.",
-                order: 3,
-              },
-              {
-                title: "Formatting Dates",
-                content:
-                  "toLocaleDateString or a library such as date-fns can be used for consistent formatting. For YYYY-MM-DD format, the following approach works:\n\nconst yyyy = dueDate.getFullYear();\nconst mm = String(dueDate.getMonth() + 1).padStart(2, '0');\nconst dd = String(dueDate.getDate()).padStart(2, '0');\nconst formatted = `${yyyy}-${mm}-${dd}`;\n\nThis guarantees exactly 2 digits for month and day.",
-                order: 4,
-              },
-              {
-                title: "Practice Lab: Date Formatter",
-                content:
-                  "Practice formatting a date as YYYY-MM-DD.",
+                  "Practice the pure part of the handler: flip one book's status without touching the rest of the list.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatDate(date) returning YYYY-MM-DD string.\n\nExamples: formatDate(new Date(\"2026-06-10\"))→\"2026-06-10\".",
+                    "Implement `markReturned(books, bookId)` returning a new list where the book whose `id` is `bookId` has `status` `available`, and every other book is unchanged.\n\n- the input list is not mutated\n- a `bookId` that is not in the list returns an equivalent list\n\nExample: `markReturned([{ id: '1', status: 'borrowed' }], '1')` returns `[{ id: '1', status: 'available' }]`.",
                   language: "javascript",
                   starter_code:
-                    "export function formatDate(date) {\n  // TODO\n}\n",
+                    "export function markReturned(books, bookId) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "formatDate",
+                  entry_point: "markReturned",
                   test_cases: [
                     {
-                      input: [new Date("2026-06-10")],
-                      expected: "2026-06-10",
-                      label: "formats June date",
+                      input: [
+                        [
+                          { id: "1", title: "1984", status: "borrowed" },
+                          { id: "2", title: "The Hobbit", status: "borrowed" },
+                        ],
+                        "1",
+                      ],
+                      expected: [
+                        { id: "1", title: "1984", status: "available" },
+                        { id: "2", title: "The Hobbit", status: "borrowed" },
+                      ],
+                      label: "one book becomes available",
                     },
                     {
-                      input: [new Date("2026-01-05")],
-                      expected: "2026-01-05",
-                      label: "formats January date",
+                      input: [[{ id: "1", title: "1984", status: "borrowed" }], "99"],
+                      expected: [{ id: "1", title: "1984", status: "borrowed" }],
+                      label: "unknown id changes nothing",
                     },
                   ],
-                
                   hints: [
-                    "Use getFullYear, getMonth+1, getDate, padStart.",
-                    "const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,\"0\"); const d=String(date.getDate()).padStart(2,\"0\"); return `${y}-${m}-${d}`;",
-                    "const m=String(date.getMonth()+___).padStart(2,\"0\"); const d=String(date.___()).padStart(2,\"0\");"
+                    "Walk the list and replace only the entry whose `id` matches, spreading the original book.",
+                    "return books.map((book) => (book.id === bookId ? { ...book, status: 'available' } : book));",
+                    "return books.map((book) => (book.___ === ___ ? { ...book, ___: '___' } : book));",
                   ],
                 },
-                order: 5,
-              },
-              {
-                title: "Key Takeaway",
-                content:
-                  "Invalid actions are prevented with guard conditions. Dates should be calculated carefully and formatted consistently. These small checks make an app feel reliable.",
                 order: 6,
               },
-            ],
-          },
-          hints: {
-            create: [
-              {
-                description: "The dashboard status filter keeps working as tabs, one labelled 'All Books' and one labelled 'Overdue'",
-                order: 1,
-              },
-              {
-                description: "Only books that are available offer a Borrow action, so the overdue tab shows no Borrow button at all. The risk is deriving the actions from the whole book list instead of the filtered one",
-                order: 2,
-              },
-              {
-                description: "Overdue books still appear on the overdue tab with their title and an 'overdue' label",
-                order: 3,
-              },
-            ],
-          },
-          order: 1,
-          acceptance_criteria: {
-            create: [
-              {
-                description: "Selecting the 'Overdue' tab shows the overdue books by title and renders no Borrow buttons at all",
-                is_required: true,
-                order: 1,
-              },
-              {
-                description: "The 'Overdue' tab displays text matching 'overdue'",
-                is_required: true,
-                order: 2,
-              },
-              {
-                description: "Selecting the 'All Books' tab renders exactly one Borrow button per available book",
-                is_required: true,
-                order: 3,
-              },
-            ],
-          },
-        },
-        {
-          task_name: "Add Confirmation & Persistence",
-          test_type: "both",
-          user_story:
-            "As a user, I want confirmation dialogs and data persistence so that I don't lose data accidentally.",
-          learning_sections: {
-            create: [
-              {
-                title: "Overview\nPersistence and Confirmation in React",
-                content:
-                  "This section introduces the crash course for persisting state to localStorage and adding confirmation dialogs. It covers the useLocalStorage hook pattern and the shadcn/ui Alert Dialog.",
-                order: 1,
-              },
-              {
-                title: "localStorage Basics",
-                content:
-                  "localStorage is a browser API that stores key-value pairs persistently. Data survives page refreshes and browser restarts.\n\nlocalStorage.setItem('books', JSON.stringify(books));\nconst stored = JSON.parse(localStorage.getItem('books') || '[]');\n\nObjects should always be serialized with JSON.stringify and parsed back with JSON.parse.",
-                order: 2,
-              },
-              {
-                title: "The useLocalStorage Hook",
-                content:
-                  "A reusable hook encapsulates the read-write logic:\n\nfunction useLocalStorage<T>(key: string, initialValue: T) {\n  const [value, setValue] = useState<T>(() => {\n    const stored = localStorage.getItem(key);\n    return stored ? JSON.parse(stored) : initialValue;\n  });\n\n  useEffect(() => {\n    localStorage.setItem(key, JSON.stringify(value));\n  }, [key, value]);\n\n  return [value, setValue];\n}\n\nThis hook hydrates on mount and persists on every change.",
-                order: 3,
-              },
-              {
-                title: "Confirmation Dialogs",
-                content:
-                  "An Alert Dialog is used for destructive or irreversible actions:\n\n<AlertDialog>\n  <AlertDialogTrigger>Return Book</AlertDialogTrigger>\n  <AlertDialogContent>\n    <AlertDialogTitle>Are you sure?</AlertDialogTitle>\n    <AlertDialogAction onClick={handleConfirm}>\n      Confirm\n    </AlertDialogAction>\n  </AlertDialogContent>\n</AlertDialog>\n\nThis prevents accidental clicks from causing data loss.",
-                order: 4,
-              },
               {
                 title: "Key Takeaway",
                 content:
-                  "State should be persisted to localStorage for resilience. Confirmation dialogs should be added for actions that are hard to undo. These two patterns together make a frontend app feel reliable.",
-                order: 5,
+                  "The page owns the list, filters to `borrowed`, and renders one `Return` button per row. The status change happens on confirm, and the filtered list re-renders without the returned book.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Borrow and Return are confirmed through a shadcn/ui `AlertDialog` whose body text reads 'Are you sure' and which offers 'Confirm' and 'Cancel' buttons",
+                description: "Add `src/app/returns/page.tsx` with `'use client'`, importing `Dialog` and friends from `@/components/ui/dialog`, plus a heading and a `Title` column header and one row per borrowed book.",
                 order: 1,
               },
               {
-                description: "The borrow or return happens only when Confirm fires. Cancelling leaves the book untouched",
+                description: "Give each borrowed row exactly one `Button` labelled `Return`; the button count must equal the number of borrowed books.",
                 order: 2,
               },
               {
-                description: "The borrow dialog has labelled text inputs named 'Borrower Name' and 'Borrower Email'",
+                description: "Opening the confirmation shows `Are you sure` inside an element with the `dialog` role whose `aria-modal` attribute is `true`, only `Confirm` turns that book to `available` so its title leaves the page, and `Cancel` closes the dialog again.",
                 order: 3,
-              },
-              {
-                description: "Persistence comes from one reusable `useLocalStorage(key, initialValue)` hook in `src/hooks/useLocalStorage.ts` that returns a `[value, setValue]` tuple",
-                order: 4,
-              },
-              {
-                description: "Books live under the `books` localStorage key. Seed state from it on mount and write it back on every change",
-                order: 5,
               },
             ],
           },
@@ -970,42 +859,42 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Clicking a Borrow button on the dashboard opens a confirmation dialog showing text matching 'Are you sure', with buttons whose accessible names match 'Cancel' and 'Confirm'",
+                description: "Rendering `src/app/returns/page.tsx` shows visible text matching `/returns/i` and a column header whose accessible name matches `/title/i`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Clicking a Return button on the returns page opens a confirmation dialog showing text matching 'Are you sure'",
+                description: "Rendering `src/app/returns/page.tsx` shows the `title` of the first `mockBooks` entry whose `status` is `borrowed`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Clicking Cancel in the borrow confirmation dialog closes it, removing the 'Are you sure' text from the page",
+                description: "Rendering `src/app/returns/page.tsx` produces exactly as many buttons with an accessible name matching `/return/i` as there are `mockBooks` entries with `status` `borrowed`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Filling in the borrower name and email inputs and confirming the borrow writes the updated books to localStorage under the `books` key",
+                description: "Clicking the first button whose accessible name matches `/return/i` on `src/app/returns/page.tsx` shows an element with the `dialog` role whose `aria-modal` attribute is `true` and whose `role` attribute is `dialog`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "When books have been saved to localStorage under the `books` key, the dashboard renders those stored books on mount",
+                description: "Clicking the first button whose accessible name matches `/return/i` on `src/app/returns/page.tsx` shows text matching `/are you sure/i`, one button whose accessible name matches `/confirm/i` and one matching `/cancel/i`",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "`useLocalStorage(key, initialValue)` returns the initial value when nothing is stored under that key",
+                description: "After clicking the first button whose accessible name matches `/return/i` and then the button whose accessible name matches `/confirm/i`, the `title` of the first borrowed book in `mockBooks` is no longer on the page",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "Calling the setter returned by `useLocalStorage` updates the value and persists it to localStorage under the same key",
+                description: "After clicking the first button whose accessible name matches `/return/i` and then the button whose accessible name matches `/cancel/i`, no element with the `dialog` role is on the page",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "`useLocalStorage` returns an existing stored value instead of the initial value when the key already holds one",
+                description: "The source of `src/app/returns/page.tsx` imports from `@/components/ui/dialog` and references a `Dialog` export such as `DialogContent` or `DialogTitle`",
                 is_required: true,
                 order: 8,
               },
@@ -1016,80 +905,127 @@ export const levels = [
     },
   },
   {
-    id: "nextjs-shadcn-ui-level-5",
-    title: "Real Client Issue",
-    subtitle: "Fix overdue bug and create utilities",
-    order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+    id: "nextjs-shadcn-ui-level-4",
+    title: "Borrow Validation and Confirmation with Persistence",
+    subtitle: "Offer Borrow only on available books, confirm every borrow and return, and keep books in localStorage through a useLocalStorage hook",
+    order: 4,
+    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Fix a critical overdue status bug reported by clients and create reusable date utilities while updating documentation for maintainability.",
-    xp_reward: 75,
-    coin_reward: 200,
+      "Mission Briefing: A librarian can still act on a book that should be off limits, and every action goes through unchecked. Restrict the dashboard to one `Borrow` button per available book so the overdue tab offers none, keep the destructive `Alert` banner readable on that tab, put an `Are you sure` confirmation with `Cancel` and `Confirm` in front of both borrow and return, and back the books list with a `useLocalStorage` hook so a refresh keeps the data.",
+    xp_reward: 60,
+    coin_reward: 150,
     key_takeaways:
-      "Bug fixing requires systematic debugging and testing. Utility functions improve code reusability. Good documentation ensures long-term maintainability of React applications.",
+      "The Borrow button is offered by the row, not by the page, so a tab showing only `overdue` books renders zero `Borrow` buttons while `All Books` renders exactly one per `available` book.\n\nThe `Alert` from `@/components/ui/alert` sits above the `Tabs`, so it is the single `alert` element on screen on the overdue tab as well, and its `AlertTitle` is the page's single level 5 heading.\n\n`Dialog` from `@/components/ui/dialog` carries the `Are you sure` body text plus `Cancel` and `Confirm`, and cancelling closes it without touching state.\n\n`useLocalStorage(key, initialValue)` in `src/hooks/useLocalStorage.ts` returns a `[value, setValue]` tuple: the initial value when the key is empty, the stored value when it is not, and every setter call writes the value back as JSON.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
         {
-          task_name: "Fix Overdue Bug & Build Report",
+          task_name: "Offer Borrow Only on Available Books",
           test_type: "both",
           user_story:
-            "As a client, I want overdue statuses to be accurate so that library operations run smoothly.",
+            "As a librarian, I want a Borrow button on available books and none on overdue books so that I cannot start a new loan on something that is already late.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nDebugging Frontend State Bugs",
+                title: "Overview\nRestricting the Borrow Action",
                 content:
-                  "This section introduces the crash course for debugging frontend state bugs. It covers systematic tracing, root cause analysis, and fixing state synchronization issues.",
+                  "This level has two tasks. The first decides which rows offer a Borrow action and warns about overdue books. The second puts a confirmation in front of borrow and return, and moves the books list into `localStorage`.",
                 order: 1,
               },
               {
-                title: "Symptoms vs Root Causes",
+                title: "The Tab Decides the Row",
                 content:
-                  "A bug where overdue statuses are wrong could be caused by:\n\n• Incorrect date comparison logic\n• State not updating when a book is returned\n• Timezone issues in date math\n• A stale closure capturing old state\n\nGuessing is not productive — the code path that produces the status should be traced systematically.",
+                  "`src/app/dashboard/page.tsx` drives its three tables from `activeTab`, and `TabsTrigger` renders a `button` with `role=\"tab\"`. The triggers are labelled `All Books`, `Borrowed Books` and `Overdue Books`, and `Overdue Books` is the trigger found by the name `overdue`.\n\nClicking a trigger swaps which table is on screen, so any `Borrow` button is only on screen because of the tab that is active.",
                 order: 2,
               },
               {
-                title: "Tracing the Data Flow",
+                title: "One Button per Available Book",
                 content:
-                  "The data can be traced from source to screen:\n\n1. Where is the status computed? (useMemo? inline render?)\n2. What inputs does it depend on? (borrowDate, dueDate, returnedAt?)\n3. What happens when those inputs change?\n4. Is there a mismatch between the computed value and what's displayed?\n\nconsole.log can be added at each step to verify assumptions.",
+                  "A `Button` labelled `Borrow` belongs inside the row of a book whose `status` is `available`:\n\n{book.status === 'available' && (\n  <TableCell>\n    <Button>Borrow</Button>\n  </TableCell>\n)}\n\nA `Borrowed Books` column header that reads `Borrowed` does not make a button, so the count stays equal to the number of `available` books in `mockBooks`.",
                 order: 3,
               },
               {
-                title: "Building Report Pages",
+                title: "The Overdue Warning",
                 content:
-                  "A report page is just a filtered view of existing data. The same patterns used in the dashboard apply:\n\n• Filter books where status === 'overdue'\n• Render them in a table\n• Add actions like 'Mark as Returned'\n\nThe report page should be kept simple — it reads from the same state source as the dashboard.",
+                  "The overdue view also has to say out loud that something is wrong. The destructive banner from the dashboard banner already does that, and because it sits above the `Tabs` it is still on screen once the overdue tab is active, which is what the check looks for.\n\nThe four classes live on the `Alert` element itself: `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`. `AlertTitle` renders a heading at level 5, and its text has to contain `overdue`. Keep it to one banner on the page, so there is a single `alert` element and a single level 5 heading.",
                 order: 4,
+              },
+              {
+                title: "Reading a Tab by Name",
+                content:
+                  "A tab is found by role plus accessible name, so the label is what matters:\n\nconst overdueTab = screen.getByRole('tab', { name: /overdue/i });\nfireEvent.click(overdueTab);\n\nAfter that click the overdue table is the one on screen, showing each overdue book's `title` beside text matching `overdue`, and `queryAllByRole('button', { name: /borrow/i })` comes back empty because the conditional branch never renders there.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Gate the Action",
+                content:
+                  "Practice the gate on its own: write the predicate that decides whether a row shows Borrow.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Implement `canBorrow(book)` returning `true` only when `book.status` is `available`.\n\n- `borrowed` returns `false`\n- `overdue` returns `false`\n- a book with no `status` returns `false`\n\nExample: `canBorrow({ status: 'available' })` returns `true`.",
+                  language: "javascript",
+                  starter_code:
+                    "export function canBorrow(book) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "canBorrow",
+                  test_cases: [
+                    {
+                      input: [{ status: "available" }],
+                      expected: true,
+                      label: "available books can be borrowed",
+                    },
+                    {
+                      input: [{ status: "borrowed" }],
+                      expected: false,
+                      label: "borrowed books cannot",
+                    },
+                    {
+                      input: [{ status: "overdue" }],
+                      expected: false,
+                      label: "overdue books cannot",
+                    },
+                    {
+                      input: [{ title: "1984" }],
+                      expected: false,
+                      label: "a missing status cannot",
+                    },
+                  ],
+                  hints: [
+                    "Compare the book's `status` against the one string that allows the action.",
+                    "return book.status === 'available';",
+                    "return book.___ === '___';",
+                  ],
+                },
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Debugging is a systematic process, not a guess. The data flow should be traced to identify the exact line where the bug originates, and the fix should be applied there. Report pages are simply filtered views of the same underlying data.",
-                order: 5,
+                  "The gate belongs on the row. Available books get one `Borrow` button each, and the overdue tab renders none, because every cell on that table is overdue. The destructive `Alert` is what makes the tab itself say so.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "A new page lists only overdue books, and every row offers a 'Mark as Returned' action. Leaving the page out means the report has nowhere to live",
+                description: "In `src/app/dashboard/page.tsx` let the row decide: render the `Borrow` `Button` only when that book's `status` is `available`. Gating on the active tab instead of on the book's `status` leaves the wrong buttons on the wrong table.",
                 order: 1,
               },
               {
-                description: "Each overdue book shows its title, its author, the borrower's name, and the borrower's email taken from its borrow record",
+                description: "Reuse the one overdue banner you already built, above the `Tabs` so it is still on screen on the overdue tab, and keep it as the page's only `alert` element and only level 5 heading.",
                 order: 2,
               },
               {
-                description: "Every row states how many days the book is overdue, for example '5 days overdue'",
+                description: "Self-check: on the `Overdue Books` tab nothing matches `/borrow/i` and the destructive `Alert` is on screen, while on `All Books` the count equals the available books in `mockBooks`.",
                 order: 3,
-              },
-              {
-                description: "Marking a book returned takes it off the list. A row that survives the click means the list and the stored status disagree",
-                order: 4,
-              },
-              {
-                description: "The overdue status shown everywhere else has to agree with the due date. Fixing only the report leaves the rest of the app wrong",
-                order: 5,
               },
             ],
           },
@@ -1097,147 +1033,155 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The overdue report page lists every overdue book with both its title and its author",
+                description: "After clicking the tab whose accessible name matches `/overdue/i` on `src/app/dashboard/page.tsx`, the `title` of the first `mockBooks` entry with `status` `overdue` is visible",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Each overdue book is shown with the borrower's name",
+                description: "After clicking the tab whose accessible name matches `/overdue/i`, the page contains no button whose accessible name matches `/borrow/i`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Each overdue book is shown with the borrower's email from its borrow record",
+                description: "After clicking the tab whose accessible name matches `/overdue/i`, at least one element's visible text matches `/overdue/i`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "The page displays text matching 'days overdue' for the overdue books",
+                description: "After clicking the tab whose accessible name matches `/all books/i`, the page contains exactly as many buttons whose accessible name matches `/borrow/i` as there are `mockBooks` entries with `status` `available`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The page renders exactly one button whose accessible name matches 'Mark as Returned' for each overdue book",
+                description: "After clicking the tab whose accessible name matches `/overdue/i`, the page shows exactly one element with the accessible role `alert`, and that element carries all four classes `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Clicking 'Mark as Returned' removes that book's title from the overdue list",
+                description: "After clicking the tab whose accessible name matches `/overdue/i`, the page shows exactly one heading at level 5 and its text matches `/overdue/i`",
                 is_required: true,
                 order: 6,
+              },
+              {
+                description: "The source of `src/app/dashboard/page.tsx` imports from `@/components/ui/alert` and references an `Alert`, `AlertTitle` or `AlertDescription` export",
+                is_required: true,
+                order: 7,
               },
             ],
           },
         },
         {
-          task_name: "Create Utilities & Documentation",
+          task_name: "Confirm Every Action and Persist Books",
           test_type: "both",
           user_story:
-            "As a developer, I want reusable date utilities and documentation so that the codebase is maintainable.",
+            "As a librarian, I want a confirmation before a book is borrowed or returned and my changes kept across a refresh so that no loan happens by accident and none is lost.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nCreating Reusable Utilities and Documentation",
+                title: "Overview\nConfirmation Dialogs and Persistence",
                 content:
-                  "This section introduces the crash course for building reusable utility modules and writing documentation. It covers module design, safe defaults, and README best practices.",
+                  "This level has two tasks. The first restricts the Borrow action to available books. The second puts a confirmation in front of borrow and return, and moves the books list into `localStorage`.",
                 order: 1,
               },
               {
-                title: "Utility Modules",
+                title: "The Confirmation Dialog",
                 content:
-                  "Utility functions belong in a dedicated folder such as src/lib/ or src/utils/. Each module should have a single responsibility:\n\n// src/lib/dateUtils.ts\nexport function isOverdue(dueDate: string): boolean {\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  return new Date(dueDate) < today;\n}\n\nexport function formatDueDate(dueDate: string): string {\n  ...\n}\n\nUtilities should be kept pure — they should receive inputs and return outputs without side effects.",
+                  "`Dialog`, `DialogContent`, `DialogTitle`, `DialogDescription` and `DialogFooter` come from `@/components/ui/dialog`, which takes `open` and `onOpenChange`. Body text reading `Are you sure` plus two buttons covers both actions:\n\n<Dialog open={pending !== null} onOpenChange={setPending}>\n  <DialogContent>\n    <DialogTitle>Confirm</DialogTitle>\n    <DialogDescription>Are you sure?</DialogDescription>\n    <DialogFooter>\n      <Button onClick={() => setPending(null)}>Cancel</Button>\n      <Button onClick={handleConfirm}>Confirm</Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>\n\n`Cancel` sets the pending action back to `null`, which closes the dialog and leaves the books untouched. The same dialog is used by the `Return` button on `src/app/returns/page.tsx`.",
                 order: 2,
               },
               {
-                title: "Safe Defaults for Invalid Input",
+                title: "Labelled Inputs Inside the Dialog",
                 content:
-                  "Invalid or missing input should always be handled gracefully:\n\nexport function isOverdue(dueDate: string): boolean {\n  if (!dueDate) return false;\n  ...\n}\n\nThis prevents crashes when the input is undefined, null, or malformed.",
+                  "The borrow dialog collects who the loan is for. `Label` from `src/components/ui/label.tsx` renders a `label`, and an `id` on the `Input` plus `htmlFor` on the label ties the two together, which is what lets the field be found by its label text:\n\n<Label htmlFor=\"borrower-name\">Borrower Name</Label>\n<Input id=\"borrower-name\" value={borrowerName} onChange={onBorrowerName} />\n\n`Borrower Name` and `Borrower Email` are the two label texts the borrow form must use.",
                 order: 3,
               },
               {
-                title: "Writing a README",
+                title: "The useLocalStorage Hook",
                 content:
-                  "A good README should include:\n\n• Project overview (what it does, who it's for)\n• Demo credentials (if any)\n• Dev workflow (pnpm install, pnpm run dev)\n• Route list (what pages exist)\n• Key utilities and how to use them\n\nKeeping it current is important — outdated documentation is worse than no documentation.",
+                  "One hook in `src/hooks/useLocalStorage.ts` covers read, write and hydrate, and returns a tuple:\n\nfunction useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {\n  const [value, setValue] = useState<T>(() => {\n    const stored = localStorage.getItem(key);\n    return stored ? (JSON.parse(stored) as T) : initialValue;\n  });\n\n  useEffect(() => {\n    localStorage.setItem(key, JSON.stringify(value));\n  }, [key, value]);\n\n  return [value, setValue];\n}\n\nThe lazy initializer reads the key on mount, so a key that already holds JSON wins over `initialValue`. Every call to the setter updates the value and the effect writes the new value back under the same key.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Safe Utility",
+                title: "Wiring the Books List",
                 content:
-                  "Practice writing a utility that returns a safe default for invalid input.",
+                  "The dashboard holds its books with the hook instead of `useState`:\n\nconst [books, setBooks] = useLocalStorage<Book[]>('books', mockBooks);\n\nA confirmed borrow calls `setBooks`, the effect writes the new list to `localStorage` under `books`, and a later mount reads that same key, so the dashboard opens on the stored books rather than on `mockBooks`.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Store and Read",
+                content:
+                  "Practice the fallback behaviour the hook depends on: choosing between what is stored and the default.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement safeParseInt(value) returning parseInt when valid, 0 when invalid.\n\nExamples: safeParseInt(\"42\")→42, safeParseInt(\"abc\")→0.",
+                    "Implement `readStored(raw, fallback)` returning the parsed value of `raw`, or `fallback` when `raw` is `null`, an empty string, or does not parse.\n\n- a missing key (`null`) returns `fallback`\n- a stored JSON string is parsed and returned\n- an empty string returns `fallback`\n- an unparseable string returns `fallback`\n\nExample: `readStored(null, [])` returns `[]`.",
                   language: "javascript",
                   starter_code:
-                    "export function safeParseInt(value) {\n  // TODO\n}\n",
+                    "export function readStored(raw, fallback) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "safeParseInt",
+                  entry_point: "readStored",
                   test_cases: [
                     {
-                      input: ["42"],
-                      expected: 42,
-                      label: "parses valid number",
+                      input: [null, []],
+                      expected: [],
+                      label: "missing key returns the fallback",
                     },
                     {
-                      input: ["abc"],
-                      expected: 0,
-                      label: "returns default for invalid",
+                      input: ["[]", []],
+                      expected: [],
+                      label: "stored value is parsed and returned",
                     },
                     {
-                      input: [null],
-                      expected: 0,
-                      label: "handles null",
+                      input: ['"hello"', "initial"],
+                      expected: "hello",
+                      label: "a stored string is returned unquoted",
+                    },
+                    {
+                      input: ["", "initial"],
+                      expected: "initial",
+                      label: "empty string returns the fallback",
+                    },
+                    {
+                      input: ["{oops", "initial"],
+                      expected: "initial",
+                      label: "unparseable value returns the fallback",
                     },
                   ],
-                
                   hints: [
-                    "Parse and check NaN.",
-                    "Before you can check the number, you need to convert it from its string form. Then you need to decide: is this a valid number, and is it within the allowed range?",
-                    "const num = parseInt(value); return ___(num) ? ___ : num;"
-                    ],
+                    "Guard the parse so a bad stored value cannot throw.",
+                    "if (!raw) return fallback; try { return JSON.parse(raw); } catch { return fallback; }",
+                    "if (!___) return ___; try { return JSON.___(___); } catch { return ___; }",
+                  ],
                 },
-                order: 5,
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Utilities are the shared vocabulary of a codebase. They should be documented, tested, and kept safe. A current README is the fastest way to onboard the next developer.",
-                order: 6,
+                  "Nothing changes until `Confirm` is pressed, and cancelling puts nothing back. `useLocalStorage('books', mockBooks)` then makes that change survive the next mount.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "A reusable date module exposes a formatter and an overdue check. Without one, both behaviours get reimplemented wherever they are needed",
+                description: "In `src/app/dashboard/page.tsx` and `src/app/returns/page.tsx`, put one `Dialog` in front of `Borrow` and `Return` carrying `Are you sure`, `Cancel` and `Confirm`.",
                 order: 1,
               },
               {
-                description: "Formatting '2026-01-15' has to produce exactly 'Jan 15, 2026'",
+                description: "Easiest to get wrong: `Cancel` must close the dialog and leave the list untouched, and the dialog needs the labelled `Borrower Name` and `Borrower Email` fields.",
                 order: 2,
               },
               {
-                description: "Unparseable input must not throw. Both 'invalid' and '' format to an empty string, and the overdue check answers false for both",
+                description: "Self-check: `Confirm` leaves a non-null value under the `books` key via `useLocalStorage` from `src/hooks/useLocalStorage`, and a stored `Test Book` then renders.",
                 order: 3,
-              },
-              {
-                description: "The overdue check compares a `YYYY-MM-DD` date string against today, answering true for past dates and false for future ones",
-                order: 4,
-              },
-              {
-                description: "The project README describes a library management app, mentions 'library management', 'book' and 'feature', and runs to more than 100 characters",
-                order: 5,
-              },
-              {
-                description: "At least 80% of the TypeScript source files in the project carry a code comment. Leaving them bare makes the codebase undiscoverable",
-                order: 6,
               },
             ],
           },
@@ -1245,39 +1189,363 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`formatDate` exported from `src/lib/dateUtils` converts '2026-01-15' to 'Jan 15, 2026'",
+                description: "Clicking the first button whose accessible name matches `/borrow/i` on `src/app/dashboard/page.tsx` shows text matching `/are you sure/i`, plus one button whose accessible name matches `/cancel/i` and one whose accessible name matches `/confirm/i`",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`formatDate` returns an empty string for the inputs 'invalid' and ''",
+                description: "Clicking the first button whose accessible name matches `/return/i` on `src/app/returns/page.tsx` shows text matching `/are you sure/i`",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`isOverdue` exported from `src/lib/dateUtils` returns true for a date one day in the past",
+                description: "After clicking a `Borrow` button and then the button whose accessible name matches `/cancel/i`, `src/app/dashboard/page.tsx` no longer contains text matching `/are you sure/i`",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`isOverdue` returns false for a date in the future",
+                description: "While the borrow dialog is open, `src/app/dashboard/page.tsx` exposes a labelled field matching `/borrower name/i` and a labelled field matching `/borrower email/i`",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`isOverdue` returns false for the invalid date strings 'invalid' and '' instead of throwing",
+                description: "After typing into those two fields and clicking the button whose accessible name matches `/confirm/i`, `localStorage` holds a non-null value under the `books` key",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "`README.md` exists at the project root, is longer than 100 characters, and mentions 'library management', 'book' and 'feature'",
+                description: "With `books` already set in `localStorage` to a list containing a book whose `title` is `Test Book`, rendering `src/app/dashboard/page.tsx` shows the text `Test Book`",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "At least 80% of the `.ts` and `.tsx` files under `src/` contain at least one code comment",
+                description: "`useLocalStorage` imported from `src/hooks/useLocalStorage` returns `[value, setValue]`, and with nothing stored under `test-key` its `value` is `initial`",
                 is_required: true,
                 order: 7,
+              },
+              {
+                description: "Calling the `setValue` returned by `useLocalStorage('test-key', 'initial')` with `updated` makes `value` read `updated` and leaves `JSON.parse(localStorage.getItem('test-key'))` reading `updated`",
+                is_required: true,
+                order: 8,
+              },
+              {
+                description: "`useLocalStorage('test-key', 'initial')` reads `stored` from `value` when `test-key` already holds `stored` before the hook is called",
+                is_required: true,
+                order: 9,
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    id: "nextjs-shadcn-ui-level-5",
+    title: "Overdue Report Page and Date Utilities",
+    subtitle: "Add /overdue with borrower details and a Mark as Returned action, expose formatDate and isOverdue from src/lib/dateUtils, and open a book details dialog from the dashboard",
+    order: 5,
+    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+    level_description:
+      "Mission Briefing: Chasing late books means reading three tables and cross-referencing the borrow records by hand. Build an `/overdue` route that shows each overdue book's title, author, borrower name, borrower email and how many days late it is, with a `Mark as Returned` action that clears the row, move the date work into `src/lib/dateUtils.ts` behind `formatDate` and `isOverdue`, and turn a click on a dashboard row into a `Book Details` dialog.",
+    xp_reward: 75,
+    coin_reward: 200,
+    key_takeaways:
+      "The borrower name on a book is `book.borrowedBy` and the borrower email comes from the `mockBorrowRecords` entry whose `bookId` matches, which is why both live in different arrays.\n\n`formatDate('2026-01-15')` returns `Jan 15, 2026` and returns an empty string for `'invalid'` and for `''`; `isOverdue` compares a `YYYY-MM-DD` string against today and returns `false` rather than throwing on input it cannot parse.\n\nThe dashboard imports the `Dialog` family from `@/components/ui/dialog` and opens it from a row click, with a `DialogTitle` reading `Book Details` rendered as a level 2 heading and a close button whose accessible name matches `close`.",
+    scenario_id: "nextjs-shadcn-ui-scenario-1",
+    tasks: {
+      create: [
+        {
+          task_name: "Build the Overdue Report Page",
+          test_type: "both",
+          user_story:
+            "As a librarian, I want one page listing every overdue book with its borrower and how late it is so that I can chase late loans without cross-referencing two tables.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nBuilding the Overdue Report",
+                content:
+                  "This level has two tasks. The first builds the `/overdue` route. The second moves the date work into `src/lib/dateUtils.ts` and opens a book details dialog from the dashboard.",
+                order: 1,
+              },
+              {
+                title: "Where the Borrower Details Live",
+                content:
+                  "The two pieces of borrower data come from different places in `src/lib/mockData.ts`:\n\n- `Book.borrowedBy` holds the borrower's name\n- `BorrowRecord.borrowerEmail` holds the email, reached by finding the record whose `bookId` is the book's `id`\n\nconst record = mockBorrowRecords.find((r) => r.bookId === book.id);\n\nSo a row showing the email has to look the record up rather than read a field on the book.",
+                order: 2,
+              },
+              {
+                title: "Days Overdue",
+                content:
+                  "`BorrowRecord.dueDate` and `Book.dueDate` are `YYYY-MM-DD` strings, so the difference against today is a plain subtraction:\n\nconst daysOverdue = Math.floor(\n  (Date.now() - new Date(book.dueDate!).getTime()) / 86400000\n);\n\nThe row text keeps the word `days overdue`, for example `5 days overdue`, which is what a reader scans the column for.",
+                order: 3,
+              },
+              {
+                title: "One Action per Row",
+                content:
+                  "Every overdue row ends with a `Button` labelled `Mark as Returned`, and only overdue rows are rendered, so the button count equals the overdue book count:\n\n{overdueBooks.map((book) => (\n  <TableRow key={book.id}>\n    <TableCell>{book.title}</TableCell>\n    <TableCell>{book.author}</TableCell>\n    <TableCell>{book.borrowedBy}</TableCell>\n    <TableCell>{record?.borrowerEmail}</TableCell>\n    <TableCell>{daysOverdue} days overdue</TableCell>\n    <TableCell><Button onClick={...}>Mark as Returned</Button></TableCell>\n  </TableRow>\n))}\n\nThe handler sets that book's `status` to `available`, and the page recomputes `overdueBooks` from state, so the row disappears.",
+                order: 4,
+              },
+              {
+                title: "Practice Lab: Days Late",
+                content:
+                  "Practice the pure part of the cell: turn a due date and a reference day into a day count.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Implement `daysOverdue(dueDate, now)` returning the whole days between `dueDate` and `now`, both `YYYY-MM-DD` strings, using the `YYYY-MM-DD` form rather than the browser's time of day.\n\n- `2026-01-20` against `2026-01-15` is `5`\n- the same due date is `0`\n- a due date in the future is negative\n\nExample: `daysOverdue('2026-01-20', '2026-01-15')` returns `5`.",
+                  language: "javascript",
+                  starter_code:
+                    "export function daysOverdue(dueDate, now) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "daysOverdue",
+                  test_cases: [
+                    {
+                      input: ["2026-01-20", "2026-01-15"],
+                      expected: 5,
+                      label: "five days late",
+                    },
+                    {
+                      input: ["2026-01-15", "2026-01-15"],
+                      expected: 0,
+                      label: "due today is zero",
+                    },
+                    {
+                      input: ["2026-01-10", "2026-01-15"],
+                      expected: -5,
+                      label: "future due date is negative",
+                    },
+                  ],
+                  hints: [
+                    "Read both strings as dates, clear the time of day, then take the difference in milliseconds and divide by the length of a day.",
+                    "const due = new Date(`${dueDate}T00:00:00`); const today = new Date(`${now}T00:00:00`); return Math.floor((today - due) / 86400000);",
+                    "const due = new Date(`${___}T00:00:00`); const today = new Date(`${___}T00:00:00`); return Math.floor((today - due) / ____);",
+                  ],
+                },
+                order: 5,
+              },
+              {
+                title: "Key Takeaway",
+                content:
+                  "The report joins `mockBooks` and `mockBorrowRecords` on `bookId`, so both borrower fields appear on the same row. Marking a book returned changes its `status` and the row leaves the table.",
+                order: 6,
+              },
+            ],
+          },
+          hints: {
+            create: [
+              {
+                description: "Build the route at `src/app/overdue/page.tsx`: one row per `overdue` book in `mockBooks`, showing its `title`, `author` and `borrowedBy`.",
+                order: 1,
+              },
+              {
+                description: "The email is not on the book: look it up in `mockBorrowRecords` by matching `bookId` to the book's `id`, and keep the words `days overdue` on the row.",
+                order: 2,
+              },
+              {
+                description: "Then give every row one `Mark as Returned` button; the button count must equal the overdue book count, and clicking the first clears that title.",
+                order: 3,
+              },
+            ],
+          },
+          order: 1,
+          acceptance_criteria: {
+            create: [
+              {
+                description: "Rendering `src/app/overdue/page.tsx` shows the `title` and the `author` of every `mockBooks` entry with `status` `overdue`",
+                is_required: true,
+                order: 1,
+              },
+              {
+                description: "Rendering `src/app/overdue/page.tsx` shows the `borrowedBy` value of every `mockBooks` entry with `status` `overdue`",
+                is_required: true,
+                order: 2,
+              },
+              {
+                description: "Rendering `src/app/overdue/page.tsx` shows the `borrowerEmail` of the `mockBorrowRecords` entry whose `bookId` matches each overdue book",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "Rendering `src/app/overdue/page.tsx` produces at least one element whose visible text matches `/days?\\s*overdue/i`",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "Rendering `src/app/overdue/page.tsx` produces exactly as many buttons whose accessible name matches `/mark as returned/i` as there are `mockBooks` entries with `status` `overdue`",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "After clicking the first button whose accessible name matches `/mark as returned/i` on `src/app/overdue/page.tsx`, the `title` of the first overdue book is no longer on the page",
+                is_required: true,
+                order: 6,
+              },
+            ],
+          },
+        },
+        {
+          task_name: "Add Date Utilities and the Book Details Dialog",
+          test_type: "both",
+          user_story:
+            "As a developer, I want `formatDate` and `isOverdue` in `src/lib/dateUtils.ts` and a book details dialog on the dashboard so that date handling is shared and I can read a book's details without leaving the page.",
+          learning_sections: {
+            create: [
+              {
+                title: "Overview\nDate Utilities and the Book Details Dialog",
+                content:
+                  "This level has two tasks. The first builds the `/overdue` route. The second extracts `formatDate` and `isOverdue` into `src/lib/dateUtils.ts` and turns a click on a dashboard row into a dialog.",
+                order: 1,
+              },
+              {
+                title: "One Module, Two Exports",
+                content:
+                  "`src/lib/dateUtils.ts` is imported by its path, so both functions need named exports from that one file:\n\nexport function formatDate(dateString: string): string { ... }\nexport function isOverdue(dateString: string): boolean { ... }\n\nBoth take a `YYYY-MM-DD` string and nothing else, which keeps them pure and easy to call from a page or a component.",
+                order: 2,
+              },
+              {
+                title: "Formatting to Jan 15, 2026",
+                content:
+                  "The month names are the three-letter English abbreviations joined with the day and year:\n\nconst months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\n\nfunction formatDate(dateString: string): string {\n  const date = parseDate(dateString);\n  if (!date) return '';\n  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;\n}\n\n`formatDate('2026-01-15')` gives `Jan 15, 2026`.",
+                order: 3,
+              },
+              {
+                title: "Parsing That Fails Softly",
+                content:
+                  "A helper builds the date and reports failure instead of throwing:\n\nfunction parseDate(dateString: string): Date | null {\n  if (!dateString) return null;\n  const date = new Date(dateString);\n  return Number.isNaN(date.getTime()) ? null : date;\n}\n\nBoth public functions go through it, so `formatDate('invalid')` and `formatDate('')` both return the empty string, and `isOverdue('invalid')` and `isOverdue('')` both return `false`.",
+                order: 4,
+              },
+              {
+                title: "Comparing Against Today",
+                content:
+                  "`isOverdue` only cares whether the date is in the past, so both sides are read at the start of their day:\n\nfunction isOverdue(dateString: string): boolean {\n  const date = parseDate(dateString);\n  if (!date) return false;\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  return date.getTime() < today.getTime();\n}\n\nA date one day ago is `true` and a date well in the future is `false`.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Safe Date Utils",
+                content:
+                  "Practice the guard the two utilities share: turning an untrusted string into a date or `null`.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Implement `parseDate(value)` returning a `Date` for a `YYYY-MM-DD` string, or `null` for anything unusable.\n\n- an empty string returns `null`\n- `invalid` returns `null`\n- `2026-01-15` returns a Date whose year is 2026, month is 0 and day is 15\n\nExample: `parseDate('2026-01-15')` returns a Date, and `parseDate('nope')` returns `null`.",
+                  language: "javascript",
+                  starter_code:
+                    "export function parseDate(value) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "parseDate",
+                  test_cases: [
+                    {
+                      input: [""],
+                      expected: null,
+                      label: "empty string is not a date",
+                    },
+                    {
+                      input: ["nope"],
+                      expected: null,
+                      label: "unparseable text is not a date",
+                    },
+                    {
+                      input: ["2026-01-15"],
+                      expected: "2026-01-15T00:00:00.000Z",
+                      label: "parses at the start of the day",
+                    },
+                  ],
+                  hints: [
+                    "Reject the empty string first, then build the date and reject it if its time value is `NaN`.",
+                    "if (!value) return null; const date = new Date(value); return Number.isNaN(date.getTime()) ? null : date;",
+                    "if (!value) return null; const date = new Date(value); return Number.isNaN(date.___()) ? null : date;",
+                  ],
+                },
+                order: 6,
+              },
+              {
+                title: "Opening the Dialog From a Row",
+                content:
+                  "The `dialog.tsx` added in Level 1 is reused here. `src/app/dashboard/page.tsx` imports `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` and `DialogFooter` from `@/components/ui/dialog`, and the row becomes the trigger:\n\nconst [selectedBook, setSelectedBook] = useState<Book | null>(null);\n\n<TableRow onClick={() => setSelectedBook(book)}>\n\n<Dialog open={selectedBook !== null} onOpenChange={(open) => !open && setSelectedBook(null)}>\n  <DialogContent>\n    <DialogHeader>\n      <DialogTitle>Book Details</DialogTitle>\n      <DialogDescription>{selectedBook?.title}</DialogDescription>\n    </DialogHeader>\n    <DialogFooter>\n      <Button onClick={() => setSelectedBook(null)}>Close</Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>\n\n`DialogTitle` renders the heading, and the close button is what a reader presses to dismiss the dialog without borrowing anything.",
+                order: 7,
+              },
+            ],
+          },
+          hints: {
+            create: [
+              {
+                description: "Export both `formatDate` and `isOverdue` from `src/lib/dateUtils.ts`, each taking a `YYYY-MM-DD` string and failing softly rather than throwing.",
+                order: 1,
+              },
+              {
+                description: "`2026-01-15` formats as `Jan 15, 2026`, a past date makes `isOverdue` `true`, and input you cannot read gives an empty string or `false`.",
+                order: 2,
+              },
+              {
+                description: "In `src/app/dashboard/page.tsx` import from `@/components/ui/dialog`, open the dialog on a row click, and give it a `Book Details` title plus a `Close` button so the level 2 heading and the close control are both there.",
+                order: 3,
+              },
+            ],
+          },
+          order: 2,
+          acceptance_criteria: {
+            create: [
+              {
+                description: "`formatDate` exported from `src/lib/dateUtils` returns `Jan 15, 2026` for the input `2026-01-15`",
+                is_required: true,
+                order: 1,
+              },
+              {
+                description: "`formatDate` exported from `src/lib/dateUtils` returns the empty string for the input `invalid` and for the input ``",
+                is_required: true,
+                order: 2,
+              },
+              {
+                description: "`isOverdue` exported from `src/lib/dateUtils` returns `true` for a `YYYY-MM-DD` string one day before today",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "`isOverdue` exported from `src/lib/dateUtils` returns `false` for a `YYYY-MM-DD` string fourteen days after today",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "`isOverdue` exported from `src/lib/dateUtils` returns `false` for the input `invalid` and for the input `` rather than throwing",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "`src/components/ui/dialog.tsx` exists and its source references `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "Clicking a table row whose accessible name matches `/book/i` on `src/app/dashboard/page.tsx` shows an element with the `dialog` role",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description: "Once that dialog is open on `src/app/dashboard/page.tsx`, the page shows exactly one heading at level 2 and its text matches `/book details/i`",
+                is_required: true,
+                order: 8,
+              },
+              {
+                description: "Once that dialog is open on `src/app/dashboard/page.tsx`, the page shows one button whose accessible name matches `/close/i`",
+                is_required: true,
+                order: 9,
+              },
+              {
+                description: "The source of `src/app/dashboard/page.tsx` imports from `@/components/ui/dialog` and references a `Dialog` export such as `DialogContent` or `DialogTitle`",
+                is_required: true,
+                order: 10,
               },
             ],
           },

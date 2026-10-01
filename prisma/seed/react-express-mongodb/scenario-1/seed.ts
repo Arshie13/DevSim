@@ -140,12 +140,12 @@ export const levels = [
               },
               {
                 description:
-                  "Start the API by running `pnpm run dev` in `server/`, then request `GET http://127.0.0.1:5000/api/health`. You should get a 200 and a body containing `ok`. Do not move on until that works.",
+                  "Start the API by running `pnpm run dev` in `server/`, then request `GET http://127.0.0.1:5000/api/health`. You should get a 200 and a body containing `ok`.",
                 order: 3,
               },
               {
                 description:
-                  "Finally start the frontend with `pnpm run dev -- --port 3000` in `client/` and request `http://127.0.0.1:3000`. The body must contain `<div id=\"root\">`. That div is the React mount point in `client/index.html`, so if it is missing the entry file is broken.",
+                  "Finally start the frontend with `pnpm run dev -- --port 3000` in `client/` and request `http://127.0.0.1:3000`. The body must contain `<div id=\"root\">`. That div is the React mount point in `client/index.html`.",
                 order: 4,
               },
             ],
@@ -448,17 +448,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `RecipeCard`, import `Link` from `react-router-dom` and wrap the whole card in `<Link to={\\`/recipes/${recipe._id}\\`}>` so the card becomes a single link.",
+                  "In `RecipeCard`, import `Link` from `react-router-dom` and wrap the whole card in `<Link to={\`/recipes/${recipe._id}\`}>`.",
                 order: 1,
               },
               {
                 description:
-                  "The `<Link>` has to wrap the `<h3>` title too, so the whole card is one click target, and the card should end up with exactly one `role=\"link\"` element.",
+                  "The `<Link>` has to wrap the `<h3>` title too, and the card should end up with exactly one `role=\"link\"` element.",
                 order: 2,
               },
               {
                 description:
-                  "Router components need a router to render, so if a `useHref outside Router` error turns up, make sure `main.tsx` already provides a `<BrowserRouter>`.",
+                  "If a `useHref outside Router` error turns up, make sure `main.tsx` already provides a `<BrowserRouter>`.",
                 order: 3,
               },
             ],
@@ -599,7 +599,7 @@ export const levels = [
               },
               {
                 description:
-                  "Wrap the filtered list in `useMemo` so the filter does not re-run on every unrelated render.",
+                  "Wrap the filtered list in `useMemo`.",
                 order: 3,
               },
             ],
@@ -772,12 +772,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "The trending pipeline needs a `$match` on `createdAt` for the last 7 days before the `$lookup` into `saves`, so the join only ever touches recent recipes.",
+                  "The trending pipeline needs a `$match` on `createdAt` for the last 7 days before the `$lookup` into `saves`.",
                 order: 1,
               },
               {
                 description:
-                  "A `$lookup` leaves an array behind, so derive a numeric `savedCount` from it before sorting. Without that number the sort has nothing to work with.",
+                  "A `$lookup` leaves an array behind, so derive a numeric `savedCount` from it before sorting.",
                 order: 2,
               },
               {
@@ -899,17 +899,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Wire `validateRequest(zodSchema)` onto `GET /api/recipes/trending` with a query schema that coerces `limit` to an integer between 1 and 50, so `?limit=999`, `?limit=0` and `?limit=abc` are all turned away with 400 before the controller runs.",
+                  "Wire `validateRequest(zodSchema)` onto `GET /api/recipes/trending` with a query schema that coerces `limit` to an integer between 1 and 50, so `?limit=999`, `?limit=0` and `?limit=abc` are all turned away with 400.",
                 order: 1,
               },
               {
                 description:
-                  "Type the controller handler as `(req: Request, res: Response, next: NextFunction)` and wrap the body in `try/catch` that calls `next(err)`, so the central error handler deals with failures instead of the process crashing.",
+                  "Type the controller handler as `(req: Request, res: Response, next: NextFunction)` and wrap the body in `try/catch` that calls `next(err)`.",
                 order: 2,
               },
               {
                 description:
-                  "Answer with `res.status(200).json({ success: true, data: [...] })` so trending has the same response shape as every other endpoint in the app.",
+                  "Answer with `res.status(200).json({ success: true, data: [...] })`.",
                 order: 3,
               },
             ],
@@ -1079,17 +1079,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Saving has to be idempotent on the server, so that a first save and a repeat save can be told apart in a single round trip. One insert-or-update call does that.",
+                  "Saving has to be idempotent on the server. One insert-or-update call does that.",
                 order: 1,
               },
               {
                 description:
-                  "Only bump `recipe.savedCount` when a Save document was really created, otherwise every retry inflates the count. The raw result tells you which of the two happened.",
+                  "Only bump `recipe.savedCount` when a Save document was really created. The raw result tells you which of the two happened.",
                 order: 2,
               },
               {
                 description:
-                  "The client toggle is optimistic: flip it immediately so the user gets instant feedback, send the request, and revert the button if the call fails.",
+                  "The client toggle is optimistic: flip it immediately, send the request, and revert the button if the call fails.",
                 order: 3,
               },
             ],
@@ -1240,7 +1240,7 @@ export const levels = [
               },
               {
                 description:
-                  "Ordering matters: sort by `savedAt` descending so the recipe saved last appears first, and render a real empty state carrying `data-testid=\"empty-state\"` when the user has saved nothing.",
+                  "Ordering matters: sort by `savedAt` descending and render a real empty state carrying `data-testid=\"empty-state\"` when the user has saved nothing.",
                 order: 3,
               },
             ],
@@ -1411,17 +1411,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "One save per `userId` and `recipeId` has to be impossible, and a uniqueness rule in the database is the only thing that survives two requests arriving at the same moment. Application code that looks for an existing save and then writes one still has a gap in between.",
+                  "One save per `userId` and `recipeId` has to be impossible, and a uniqueness rule in the database is the only thing that survives two requests arriving at the same moment.",
                 order: 1,
               },
               {
                 description:
-                  "Counters drift when they are read, changed and stored back as three separate steps, because a concurrent request reads the same starting value. Move the counter in a single atomic step so the database does the arithmetic.",
+                  "Move the counter in a single atomic step so the database does the arithmetic.",
                 order: 2,
               },
               {
                 description:
-                  "Count saves, not requests. Bumping the counter every time a save is attempted means a retry inflates the count, and a retry is exactly what a user double-clicking produces.",
+                  "Count saves, not requests. Bumping the counter every time a save is attempted means a retry inflates the count.",
                 order: 3,
               },
             ],
@@ -1578,17 +1578,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Elapsed time has to be measured from the raw timestamps, not from a date string that has already been cut down to a calendar day. The cut-down version quietly depends on whose timezone you are standing in.",
+                  "Elapsed time has to be measured from the raw timestamps, not from a date string that has already been cut down to a calendar day.",
                 order: 1,
               },
               {
                 description:
-                  "A day has to be complete before the label moves on, so round down. Rounding to the nearest flips the label at twelve hours, which is what makes a fresh post look a day old in the evening.",
+                  "A day has to be complete before the label moves on, so round down.",
                 order: 2,
               },
               {
                 description:
-                  "The helper has to take the current instant as an input rather than read the clock itself. Otherwise every timezone and daylight saving case is untestable and the answer depends on the machine running it.",
+                  "The helper has to take the current instant as an input rather than read the clock itself.",
                 order: 3,
               },
             ],

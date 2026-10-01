@@ -130,22 +130,22 @@ export const levels = [
             create: [
               {
                 description:
-                  "The app is built in `tests/server/setup.ts` with `Test.createTestingModule({ imports: [AppModule] })` and then `app.setGlobalPrefix('api')`. `AppModule` lives in `src/app.module.ts` and has to export itself, and every module it imports has to `providers` and `exports` what its own files inject, or startup throws before anything else happens.",
+                  "The app is built in `tests/server/setup.ts` with `Test.createTestingModule({ imports: [AppModule] })` and then `app.setGlobalPrefix('api')`. `AppModule` lives in `src/app.module.ts` and has to export itself, and every module it imports has to `providers` and `exports` what its own files inject.",
                 order: 1,
               },
               {
                 description:
-                  "`SELECT 1` runs through `getPrisma().$queryRaw`, and `getPrisma()` returns the instance from `src/prisma/prisma.service.ts`. That file needs an exported `PrismaService` class that extends `PrismaClient` and calls `$connect()` on init, or the query never reaches PostgreSQL. `DATABASE_URL` comes from the environment (see `tests/server/setup.ts`), so do not hardcode a connection string in the service.",
+                  "`SELECT 1` runs through `getPrisma().$queryRaw`, and `getPrisma()` returns the instance from `src/prisma/prisma.service.ts`. That file needs an exported `PrismaService` class that extends `PrismaClient` and calls `$connect()` on init. `DATABASE_URL` comes from the environment (see `tests/server/setup.ts`), so do not hardcode a connection string in the service.",
                 order: 2,
               },
               {
                 description:
-                  "`GET /api` only has to answer with a status below 500. NestJS's default 404 already does that, so you do not need a root controller. A server error (500 or higher) is not allowed, so a crash while loading a module or an unhandled exception in a global filter will break this.",
+                  "`GET /api` only has to answer with a status below 500. NestJS's default 404 already does that, so you do not need a root controller. A server error (500 or higher) is not allowed.",
                 order: 3,
               },
               {
                 description:
-                  "Build `POST /api/auth/login` under `src/auth/`, taking an email and a password in the body. In `AuthService.login` in `src/auth/auth.service.ts` look the user up with `prisma.user.findUnique` and, when no user comes back, throw `new UnauthorizedException('Invalid credentials')`. An unknown email and a wrong password has to answer exactly 401. A plain `Error` would come back as 500 and fail.",
+                  "Build `POST /api/auth/login` under `src/auth/`, taking an email and a password in the body. In `AuthService.login` in `src/auth/auth.service.ts` look the user up with `prisma.user.findUnique` and, when no user comes back, throw `new UnauthorizedException('Invalid credentials')`. An unknown email and a wrong password has to answer exactly 401.",
                 order: 4,
               },
             ],
@@ -166,7 +166,7 @@ export const levels = [
                 order: 2,
               },
               {
-                description: "`GET /api` answers with a status code below 500, so the server is up and not crashing",
+                description: "`GET /api` answers with a status code below 500",
                 is_required: true,
                 order: 3,
               },
@@ -280,12 +280,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `prisma/schema.prisma`, find the `Product` model and add `roastLevel String?` to it. The `?` makes the column nullable. Then run `pnpm exec prisma migrate dev --name add_product_roast_level` and, once that finishes, `pnpm exec prisma generate` so the generated client knows the field.",
+                  "In `prisma/schema.prisma`, find the `Product` model and add `roastLevel String?` to it. Then run `pnpm exec prisma migrate dev --name add_product_roast_level` and, once that finishes, `pnpm exec prisma generate`.",
                 order: 1,
               },
               {
                 description:
-                  "DTOs in this project are Zod schemas, not class-validator classes. In `src/products/dto/create-product.dto.ts`, add `roastLevel: z.string().optional()` to `createProductSchema`. `ZodValidationPipe` in `src/common/pipes/zod-validation.pipe.ts` runs `schema.parse()` and quietly strips any key the schema does not declare, so a field left out of the schema never reaches the service.",
+                  "DTOs in this project are Zod schemas, not class-validator classes. In `src/products/dto/create-product.dto.ts`, add `roastLevel: z.string().optional()` to `createProductSchema`. `ZodValidationPipe` in `src/common/pipes/zod-validation.pipe.ts` runs `schema.parse()` and quietly strips any key the schema does not declare.",
                 order: 2,
               },
               {
@@ -454,12 +454,12 @@ export const levels = [
               },
               {
                 description:
-                  "Build `where` by spreading conditionals onto the base filter: `...(categoryId && { categoryId })` plus an `OR` array of `{ name: { contains: search, mode: 'insensitive' } }`. Include description/sku too if you want a wider match. Putting them in the same object ANDs them, which is what the combined `categoryId` + `search` case needs.",
+                  "Build `where` by spreading conditionals onto the base filter: `...(categoryId && { categoryId })` plus an `OR` array of `{ name: { contains: search, mode: 'insensitive' } }`. Include description/sku too if you want a wider match.",
                 order: 3,
               },
               {
                 description:
-                  "`Product` has a plain `categoryId` column, so the category filter is a scalar match and no relation join is needed. Every returned item's `categoryId` must equal the requested id, so do not return the category relation in place of the column.",
+                  "`Product` has a plain `categoryId` column. Every returned item's `categoryId` must equal the requested id, so do not return the category relation in place of the column.",
                 order: 4,
               },
             ],
@@ -601,7 +601,7 @@ export const levels = [
               },
               {
                 description:
-                  "The product list in `findAll()` in `src/products/products.service.ts` only checks the product's own `isActive`, so it needs the relation filter `category: { isActive: true }` in the same `where` object. Otherwise products under a soft-deleted category stay in `GET /api/products`.",
+                  "The product list in `findAll()` in `src/products/products.service.ts` only checks the product's own `isActive`, so it needs the relation filter `category: { isActive: true }` in the same `where` object.",
                 order: 2,
               },
               {
@@ -755,12 +755,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "`OrdersService.create(userId, dto)` in `src/orders/orders.service.ts` currently hardcodes `const tax = 0` and never touches stock. Wrap the whole method body in `this.prisma.$transaction(async (tx) => { ... })` and issue every query through `tx`. A call on `this.prisma` inside the callback runs on a different connection and escapes the transaction.",
+                  "`OrdersService.create(userId, dto)` in `src/orders/orders.service.ts` currently hardcodes `const tax = 0` and never touches stock. Wrap the whole method body in `this.prisma.$transaction(async (tx) => { ... })` and issue every query through `tx`.",
                 order: 1,
               },
               {
                 description:
-                  "Inside the transaction: read the product, turn the order away when `product.stock < quantity`, then deduct with `tx.product.update({ where: { id }, data: { stock: { decrement: quantity } } })`, then `tx.order.create`. `product.stock` is read again after a rejected request, so the guard has to fire before any deduction is committed.",
+                  "Inside the transaction: read the product, turn the order away when `product.stock < quantity`, then deduct with `tx.product.update({ where: { id }, data: { stock: { decrement: quantity } } })`, then `tx.order.create`.",
                 order: 2,
               },
               {
@@ -770,12 +770,12 @@ export const levels = [
               },
               {
                 description:
-                  "No per-item `price` is sent in the request body, so subtotal must fall back to the product's price with `item.price ?? product.price`. Pricing from the request body alone would compute a subtotal of 0 and break the check that `total` is close to 27.",
+                  "No per-item `price` is sent in the request body, so subtotal must fall back to the product's price with `item.price ?? product.price`.",
                 order: 4,
               },
               {
                 description:
-                  "Payment validation is already covered. `createOrderSchema` uses `z.nativeEnum(PaymentMethod)`, and the enum only has `CASH` and `CARD`, so `ZodValidationPipe` rejects `\"CRYPTO\"` with 400. Keep that pipe on the route. An unhandled enum error would come back as a server error, and only a client error between 400 and 499 is accepted.",
+                  "Payment validation is already covered. `createOrderSchema` uses `z.nativeEnum(PaymentMethod)`, and the enum only has `CASH` and `CARD`, so `ZodValidationPipe` rejects `\"CRYPTO\"` with 400. Keep that pipe on the route. Only a client error between 400 and 499 is accepted.",
                 order: 5,
               },
             ],
@@ -791,7 +791,7 @@ export const levels = [
               },
               {
                 description:
-                  "The 201 response body's `tax` is greater than 0, and `total` is close to 27 for a single $25 item, which is 8% tax on a $25 subtotal",
+                  "The 201 response body's `tax` is greater than 0, and `total` is close to 27 for a single $25 item",
                 is_required: true,
                 order: 2,
               },
@@ -815,7 +815,7 @@ export const levels = [
               },
               {
                 description:
-                  "A rejected order with quantity 100 leaves the product's `stock` exactly equal to its value before the request, so no partial deduction survives",
+                  "A rejected order with quantity 100 leaves the product's `stock` exactly equal to its value before the request",
                 is_required: true,
                 order: 6,
               },
@@ -1092,12 +1092,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "The daily report comes back as hard-coded zeros. It sums order revenue and counts orders over the same window and the same filter, and reports them as `totalRevenue` and `orderCount`. The risk is two queries over two different windows.",
+                  "The daily report comes back as hard-coded zeros. It sums order revenue and counts orders over the same window and the same filter, and reports them as `totalRevenue` and `orderCount`.",
                 order: 1,
               },
               {
                 description:
-                  "Revenue comes back as a Decimal object, so it is converted with `Number(...)` before it goes into the response. `orderCount` is read directly and `Number(res.body.orderCount)` is applied to it, so plain numbers are safest.",
+                  "Revenue comes back as a Decimal object, so it is converted with `Number(...)` before it goes into the response. `orderCount` is read directly and `Number(res.body.orderCount)` is applied to it.",
                 order: 2,
               },
               {
@@ -1266,12 +1266,12 @@ export const levels = [
               },
               {
                 description:
-                  "Sorting is separate from filtering, and it belongs in the query. Each item's stock must be <= the next item's stock, so a sort applied afterwards that can reorder the envelope is a failure.",
+                  "Sorting is separate from filtering, and it belongs in the query. Each item's stock must be <= the next item's stock.",
                 order: 3,
               },
               {
                 description:
-                  "With the default threshold of 10 the response must contain the stock=3 and stock=0 products and not the stock=15 one. The `?threshold=5` case is stricter than `lte`: the stock=3 product must also be absent at threshold=5, so read the requirement literally instead of assuming an inclusive bound.",
+                  "With the default threshold of 10 the response must contain the stock=3 and stock=0 products and not the stock=15 one. The `?threshold=5` case is stricter than `lte`: the stock=3 product must also be absent at threshold=5.",
                 order: 4,
               },
               {
@@ -1592,7 +1592,7 @@ export const levels = [
               },
               {
                 description:
-                  "Structure the document by bug, and under each one write symptom, root cause, fix and action items. Only the four requirements above are checked, so the keywords are the hard part. The structure is what makes the document useful.",
+                  "Structure the document by bug, and under each one write symptom, root cause, fix and action items.",
                 order: 4,
               },
             ],

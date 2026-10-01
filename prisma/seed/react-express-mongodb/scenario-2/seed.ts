@@ -131,12 +131,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "Work from the project root and run `pnpm install` three times: once in the root folder, once in `client/`, once in `server/`. Each of those has its own `package.json` and its own `node_modules`, so a single install at the root covers none of them. The root `package.json` must list `concurrently`.",
+                  "Work from the project root and run `pnpm install` three times: once in the root folder, once in `client/`, once in `server/`. Each of those has its own `package.json` and its own `node_modules`. The root `package.json` must list `concurrently`.",
                 order: 1,
               },
               {
                 description:
-                  "After installing, check `client/node_modules` for `react` and `axios`, and `server/node_modules` for `express` and `mongoose`. If one of those is missing, that dependency is not in the matching `package.json` yet.",
+                  "After installing, check `client/node_modules` for `react` and `axios`, and `server/node_modules` for `express` and `mongoose`.",
                 order: 2,
               },
               {
@@ -296,7 +296,7 @@ export const levels = [
               },
               {
                 description:
-                  "That `<header>` already carries `role=\"banner\"`, and the tagline has to stay a descendant of it and stay visible. The check looks inside the banner element for the text, so moving the tagline out of the `<header>` or hiding it breaks the match even though the words are still in the DOM.",
+                  "That `<header>` already carries `role=\"banner\"`, and the tagline has to stay a descendant of it and stay visible. The check looks inside the banner element for the text, so moving the tagline out of the `<header>` or hiding it breaks the match.",
                 order: 4,
               },
             ],
@@ -442,7 +442,7 @@ export const levels = [
               },
               {
                 description:
-                  "Four values are found by test id rather than by text, so put `data-testid=\"category-badge\"`, `data-testid=\"exercise-count\"`, `data-testid=\"duration\"` and `data-testid=\"cheer-count\"` on the exact elements that hold those values.",
+                  "Put `data-testid=\"category-badge\"`, `data-testid=\"exercise-count\"`, `data-testid=\"duration\"` and `data-testid=\"cheer-count\"` on the exact elements that hold those values.",
                 order: 2,
               },
               {
@@ -457,7 +457,7 @@ export const levels = [
               },
               {
                 description:
-                  "Reuse the primitives already in `client/src/components/ui/`, namely `Card`, `Badge`, `Avatar` and `Button`, but check that each one actually forwards `data-testid` and `aria-label` or the test ids never reach the DOM.",
+                  "Reuse the primitives already in `client/src/components/ui/`, namely `Card`, `Badge`, `Avatar` and `Button`, but check that each one actually forwards `data-testid` and `aria-label`.",
                 order: 5,
               },
             ],
@@ -628,17 +628,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The behaviour belongs in `filterByCategory` in `client/src/utils/helpers.ts`, with the signature `filterByCategory(workouts: Workout[], category: WorkoutCategory | \"all\"): Workout[]`. No chip, click or router behaviour is measured at this level.",
+                  "The behaviour belongs in `filterByCategory` in `client/src/utils/helpers.ts`, with the signature `filterByCategory(workouts: Workout[], category: WorkoutCategory | \"all\"): Workout[]`.",
                 order: 1,
               },
               {
                 description:
-                  "Return the input unchanged when `category === \"all\"`, otherwise return `workouts.filter((w) => w.category === category)`. The current stub does `return workouts;`, which only covers the \"all\" case.",
+                  "Return the input unchanged when `category === \"all\"`, otherwise return `workouts.filter((w) => w.category === category)`.",
                 order: 2,
               },
               {
                 description:
-                  "`Array.prototype.filter` already hands back a new array, so the no-mutation requirement is satisfied. Do not sort in place or push into the input.",
+                  "`Array.prototype.filter` already hands back a new array. Do not sort in place or push into the input.",
                 order: 3,
               },
               {
@@ -648,7 +648,7 @@ export const levels = [
               },
               {
                 description:
-                  "The chips and the feed are the surrounding story rather than the measured part: `CategoryFilter.tsx` holds the chip state and `Feed.tsx` decides when to call the helper. Wire those up as normal.",
+                  "Wire `CategoryFilter.tsx` chip state and `Feed.tsx` helper call as normal.",
                 order: 5,
               },
             ],
@@ -812,27 +812,27 @@ export const levels = [
             create: [
               {
                 description:
-                  "The leaderboard pipeline in the workout controller has several labelled defects, and the first one is stage order: match on the last 7 days before the `$lookup`, so the join only processes recent workouts. The date filter is currently `const sevenDaysAgo = new Date();`, which nothing in the last week can match. It needs `new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)`.",
+                  "Match on the last 7 days before the `$lookup`, so the join only processes recent workouts. The date filter is currently `const sevenDaysAgo = new Date();`, which nothing in the last week can match. It needs `new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)`.",
                 order: 1,
               },
               {
                 description:
-                  "`totalCheers` has to accumulate `$cheerCount`, not `$cheers`, and `workoutCount` stays `$sum: 1`. A misspelled accumulator quietly returns 0 rather than throwing, so confirm the field name against the `Workout` model.",
+                  "`totalCheers` has to accumulate `$cheerCount`, not `$cheers`, and `workoutCount` stays `$sum: 1`. Confirm the field name against the `Workout` model.",
                 order: 2,
               },
               {
                 description:
-                  "Each entry needs `userId`, `username`, `totalCheers` and `workoutCount`. That means a `$lookup` into the `users` collection for `username`, since `Workout` only stores `authorId`, and a `$project` that keeps those four fields while dropping the raw joined array with `{ workouts: 0 }`.",
+                  "Each entry needs `userId`, `username`, `totalCheers` and `workoutCount`. A `$lookup` into the `users` collection for `username`, since `Workout` only stores `authorId`, and a `$project` that keeps those four fields while dropping the raw joined array with `{ workouts: 0 }`.",
                 order: 3,
               },
               {
                 description:
-                  "A ranked query has to be sorted and capped, so add `{ $sort: { totalCheers: -1 } }` and `{ $limit: 10 }` after the `$group`.",
+                  "Add `{ $sort: { totalCheers: -1 } }` and `{ $limit: 10 }` after the `$group`.",
                 order: 4,
               },
               {
                 description:
-                  "The entries are read from `res.body?.data ?? res.body`, so the array you return has to be what ends up in that position once the endpoint wraps it.",
+                  "The array you return has to be what ends up in `res.body?.data ?? res.body` once the endpoint wraps it.",
                 order: 5,
               },
             ],
@@ -990,7 +990,7 @@ export const levels = [
               },
               {
                 description:
-                  "Type the handler with `Request`, `Response` and `NextFunction` (or Express's `RequestHandler`) so `req.query` is not `any`, and wrap the body in `try/catch` forwarding to `next(err)` so the central error handler deals with failures.",
+                  "Type the handler with `Request`, `Response` and `NextFunction` (or Express's `RequestHandler`) so `req.query` is not `any`, and wrap the body in `try/catch` forwarding to `next(err)`.",
                 order: 4,
               },
             ],
@@ -1168,7 +1168,7 @@ export const levels = [
               },
               {
                 description:
-                  "Take the acting user from `req.user`, which `server/src/middleware/auth.ts` sets, never from the request body. Check for an existing `Cheer.findOne({ workoutId, userId })` before inserting, so a repeat cheer from the same user short-circuits.",
+                  "Take the acting user from `req.user`, which `server/src/middleware/auth.ts` sets, never from the request body. Check for an existing `Cheer.findOne({ workoutId, userId })` before inserting.",
                 order: 2,
               },
               {
@@ -1183,7 +1183,7 @@ export const levels = [
               },
               {
                 description:
-                  "On the client, the card only has to export a function component whose Cheer button has an accessible name matching `/cheer/i`, and `cheerWorkout` in `client/src/services/workout.service.ts` only has to be a function. Nothing clicks the button, so the optimistic update is yours to get right rather than something the test measures.",
+                  "On the client, the card only has to export a function component whose Cheer button has an accessible name matching `/cheer/i`, and `cheerWorkout` in `client/src/services/workout.service.ts` only has to be a function.",
                 order: 5,
               },
             ],
@@ -1349,7 +1349,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The streak calculation is about turning a pile of timestamps into one number the user recognises as correct. Consecutive means consecutive calendar days, and today and yesterday both count as a live streak so a user who has not trained yet today is not punished.",
+                  "The streak calculation is about turning a pile of timestamps into one number the user recognises as correct. Consecutive means consecutive calendar days, and today and yesterday both count as a live streak.",
                 order: 1,
               },
               {
@@ -1359,17 +1359,17 @@ export const levels = [
               },
               {
                 description:
-                  "The risk is day grouping. Grouping timestamps by their raw date is what produces streaks that are off by one depending on where the server thinks it is.",
+                  "Grouping timestamps by their raw date produces streaks that are off by one depending on where the server thinks it is.",
                 order: 3,
               },
               {
                 description:
-                  "The page pulls its numbers from the service layer rather than fetching inline. Call `getMyStreak` once on mount inside a `useEffect`, because the mocked call is counted.",
+                  "Call `getMyStreak` once on mount inside a `useEffect`, because the mocked call is counted.",
                 order: 4,
               },
               {
                 description:
-                  "Expose the two numbers on `data-testid=\"current-streak\"` and `data-testid=\"longest-streak\"`. For the zero case either keep rendering `current-streak` or add a `data-testid=\"empty-streak\"` empty state, since the lookup matches either.",
+                  "Expose the two numbers on `data-testid=\"current-streak\"` and `data-testid=\"longest-streak\"`. For the zero case either keep rendering `current-streak` or add a `data-testid=\"empty-streak\"` empty state.",
                 order: 5,
               },
             ],
@@ -1561,22 +1561,22 @@ export const levels = [
             create: [
               {
                 description:
-                  "One user can cheer a given workout once, and the database has to be what guarantees it. Two requests that both look for an existing cheer, both find nothing, and both insert is exactly the case an application check cannot handle.",
+                  "One user can cheer a given workout once, and the database has to be what guarantees it.",
                 order: 1,
               },
               {
                 description:
-                  "A uniqueness rule over the user and workout pair is the fix. It has to reach the actual collection rather than sitting only in the model definition, or the constraint is never enforced.",
+                  "A uniqueness rule over the user and workout pair is the fix. It has to reach the actual collection rather than sitting only in the model definition.",
                 order: 2,
               },
               {
                 description:
-                  "Counting every request instead of counting new cheers inflates `cheerCount` on every retry, and a user pressing a button twice is a retry. A rejected duplicate still means the cheer is there, so it has to succeed without moving the counter again.",
+                  "Counting every request instead of counting new cheers inflates `cheerCount` on every retry. A rejected duplicate still means the cheer is there, so it has to succeed without moving the counter again.",
                 order: 3,
               },
               {
                 description:
-                  "Nothing about the losing requests' status is checked, only the documents and the counter afterwards. Everything else that fails still goes to the central error handler.",
+                  "Only the documents and the counter afterwards are checked. Everything else that fails still goes to the central error handler.",
                 order: 4,
               },
               {
@@ -1706,12 +1706,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "A streak is counted in the user's own calendar, not the server's. Two workouts fifteen and a half hours apart in UTC can be the same local day for one user and two for another, and only the user's timezone tells you which.",
+                  "A streak is counted in the user's own calendar, not the server's.",
                 order: 1,
               },
               {
                 description:
-                  "The timezone has to come from the user rather than being assumed, and grouping on the server's own date is what files an evening workout under the wrong day. With the conversion in place, a UTC user must be unaffected.",
+                  "The timezone has to come from the user rather than being assumed. With the conversion in place, a UTC user must be unaffected.",
                 order: 2,
               },
               {

@@ -111,7 +111,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Run `pnpm install` three times, one per directory that has a `package.json`: first at the project root, then inside `client/`, then inside `server/`. The root `node_modules` must contain `concurrently`, `client/node_modules` must contain `react`, and `server/node_modules` must contain both `express` and `@prisma/client`. Run each install from the correct directory so its own `node_modules` is populated.",
+                    "Run `pnpm install` three times, one per directory that has a `package.json`: first at the project root, then inside `client/`, then inside `server/`. The root `node_modules` must contain `concurrently`, `client/node_modules` must contain `react`, and `server/node_modules` must contain both `express` and `@prisma/client`. Run each install from the correct directory.",
                   order: 1,
                 },
                 {
@@ -131,7 +131,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "The frontend must render its React root into an element whose id is exactly `root` — the served HTML must contain `<div id=\"root\">`. If the mount node uses a different id the client check never passes.",
+                    "The frontend must render its React root into an element whose id is exactly `root` — the served HTML must contain `<div id=\"root\">`.",
                   order: 5,
                 },
               ],
@@ -159,7 +159,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "`pnpm exec tsx scripts/db-check.ts` run from `server` exits with code 0 and its stdout contains `DB_OK`, proving the `DATABASE_URL` connection actually reaches PostgreSQL",
+                    "`pnpm exec tsx scripts/db-check.ts` run from `server` exits with code 0 and its stdout contains `DB_OK`",
                   is_required: true,
                   order: 4,
                 },
@@ -279,7 +279,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Put `BookWise Public Library` on its own element rather than concatenating it with other words, so the text matches exactly.",
+                    "Put `BookWise Public Library` on its own element rather than concatenating it with other words.",
                   order: 2,
                 },
                 {
@@ -452,7 +452,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Do not round the input. Values like `0.0001` must return `true` — any rounding collapses them to `0` and wrongly returns `false`.",
+                    "Do not round the input. Values like `0.0001` must return `true`.",
                   order: 3,
                 },
                 {
@@ -462,7 +462,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "The function takes a single `number` argument and returns `boolean`. An object or `book` parameter would receive `undefined` and fail.",
+                    "The function takes a single `number` argument and returns `boolean`.",
                   order: 5,
                 },
               ],
@@ -630,12 +630,12 @@ export const levels = [
                 },
                 {
                   description:
-                    "The select must have a placeholder option `Select a book` and an accessible name (label or aria-label) so it can be found.",
+                    "The select must have a placeholder option `Select a book` and an accessible name (label or aria-label).",
                   order: 5,
                 },
                 {
                   description:
-                    "The trigger button must be reachable by `+ Issue Book` and the dismiss by `Cancel`. Closing the modal must clear the selected book so reopening produces the same option list.",
+                    "The trigger button must be reachable by `+ Issue Book` and the dismiss by `Cancel`. Closing the modal must clear the selected book.",
                   order: 6,
                 },
               ],
@@ -693,7 +693,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "`BorrowRecords` reads its data from `useLibrary()` in `client/src/context/LibraryContext` and issues borrows through the context's `borrowBookMember`, so the component renders correctly with only the values the context provides",
+                    "`BorrowRecords` reads its data from `useLibrary()` in `client/src/context/LibraryContext` and issues borrows through the context's `borrowBookMember`",
                   is_required: true,
                   order: 9,
                 },
@@ -833,7 +833,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Inside the transaction, re-read the record and reject with HTTP 400 if it is already returned — this also prevents double-increment under concurrent requests.",
+                    "Inside the transaction, re-read the record and reject with HTTP 400 if it is already returned",
                   order: 4,
                 },
                 {
@@ -860,7 +860,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "When the `Book` update fails, the endpoint responds HTTP 500 and the `BorrowRecord` is unchanged - `status` is still `BORROWED` and `returnedAt` is still `null`, so no partial write persists",
+                    "When the `Book` update fails, the endpoint responds HTTP 500 and the `BorrowRecord` is unchanged - `status` is still `BORROWED` and `returnedAt` is still `null`",
                   is_required: true,
                   order: 3,
                 },
@@ -1005,7 +1005,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Use the interactive `prisma.$transaction(async (tx) => ...)` form — it lets you read, decide, and write atomically.",
+                    "Use the interactive `prisma.$transaction(async (tx) => ...)` form.",
                   order: 5,
                 },
               ],
@@ -1600,7 +1600,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "The overdue endpoint must return only unreturned records past their due date. Filtering on the derived `status` field includes stale records and misses genuinely overdue ones.",
+                    "The overdue endpoint must return only unreturned records past their due date.",
                   order: 1,
                 },
                 {
@@ -1615,7 +1615,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "Read the current time inside the request handler so the boundary respects a frozen clock. Capturing time at module load ignores the frozen time.",
+                    "Read the current time inside the request handler so the boundary respects a frozen clock.",
                   order: 4,
                 },
                 {
@@ -1625,7 +1625,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "The response must include each record's `id` so membership can be verified. Include `book` and `member` for the report but keep the flat `id` intact.",
+                    "The response must include each record's `id`. Include `book` and `member` for the report but keep the flat `id` intact.",
                   order: 6,
                 },
               ],
@@ -1677,7 +1677,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "The overdue comparison reads the current time inside the request handler (respecting the frozen system clock) and evaluates the boundary in UTC, so the same records always classify the same way",
+                    "The overdue comparison reads the current time inside the request handler (respecting the frozen system clock) and evaluates the boundary in UTC",
                   is_required: true,
                   order: 8,
                 },
@@ -1853,7 +1853,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "After the request, the past-due unreturned record's stored `status` is `OVERDUE` in the database, so the incorrect `BORROWED` marking is actually corrected",
+                    "After the request, the past-due unreturned record's stored `status` is `OVERDUE` in the database",
                   is_required: true,
                   order: 7,
                 },
