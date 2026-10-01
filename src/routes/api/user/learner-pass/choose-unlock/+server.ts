@@ -1,7 +1,14 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import prisma from '$lib/server/client';
-import { SPECIAL_UNLOCK_DAYS, getSpecialUnlocksForDay } from '$lib/server/learnerPass/schedule';
+import {
+  SPECIAL_UNLOCK_DAYS,
+  fallbackAmount,
+  getSpecialUnlocksForDay,
+  type FallbackKind,
+} from '$lib/server/learnerPass/schedule';
+
+const FALLBACK_KINDS: readonly FallbackKind[] = ['COINS', 'AI_HELPS'];
 
 export const POST: RequestHandler = async (event) => {
   const session = await event.locals.auth();
@@ -11,8 +18,9 @@ export const POST: RequestHandler = async (event) => {
   const body = await event.request.json().catch(() => null);
   const dayNumber = body?.dayNumber;
   const scenarioId = body?.scenarioId;
+  const fallback = body?.fallback;
 
-  if (typeof dayNumber !== 'number' || typeof scenarioId !== 'string') {
+  if (typeof dayNumber !== 'number') {
     throw error(400, 'Invalid request');
   }
 
@@ -44,21 +52,76 @@ export const POST: RequestHandler = async (event) => {
       if (!SPECIAL_UNLOCK_DAYS.includes(dayNumber)) throw error(400, 'Not a special unlock day');
 
       // Scoped to this day's claim, not a global list — each special day gets its own
-      // choice, which the old flat `unlock_choices` array could not express.
-      if (claim.unlocked_scenario) throw error(409, 'Choice already made for this day');
+      // choice, which the old flat `unlock_choices` array could not express. Guarding on both
+      // outcomes keeps the fallback path idempotent too, since it leaves `unlocked_scenario`
+      // null.
+      if (claim.unlocked_scenario || claim.fallback_reward) {
+        throw error(409, 'Choice already made for this day');
+      }
 
-      const available = getSpecialUnlocksForDay(dayNumber);
-      if (!available.includes(scenarioId)) throw error(400, 'Invalid scenario for this day');
-
-      // Already owned, possibly via an earlier pass. Source-agnostic by design: the unlock is
-      // the fact, whoever granted it — and only a claim can grant it now.
-      const existing = await tx.learner_pass_claim.findFirst({
-        where: {
-          unlocked_scenario: scenarioId,
-          enrollment: { user_id: userId },
-        },
-        select: { id: true },
+      // Ownership is source-agnostic and spans every pass the user has ever had: an unlock
+      // outlives the pass that granted it, so one bought on an earlier pass still counts.
+      const ownedRows = await tx.learner_pass_claim.findMany({
+        where: { enrollment: { user_id: userId }, unlocked_scenario: { not: null } },
+        select: { unlocked_scenario: true },
       });
+      const owned = new Set(ownedRows.map((r) => r.unlocked_scenario as string));
+
+      const offers = getSpecialUnlocksForDay(dayNumber);
+      const stillAvailable = offers.filter((id) => !owned.has(id));
+
+      if (fallback !== undefined) {
+        if (typeof fallback !== 'string' || !FALLBACK_KINDS.includes(fallback as FallbackKind)) {
+          throw error(400, 'Invalid fallback reward');
+        }
+
+        // The fallback exists so a milestone day is never a dead reward — not so an ordinary
+        // player can skip the unlock — so it is only on the table once nothing is left.
+        if (stillAvailable.length > 0) {
+          throw error(400, 'You do not own this scenario yet — unlock it instead');
+        }
+
+        const kind = fallback as FallbackKind;
+        const amount = fallbackAmount(dayNumber, kind);
+
+        if (amount === undefined) throw error(400, 'No fallback for this day');
+
+        const updatedUser = await tx.user.update({
+          where: { id: userId },
+          data:
+            kind === 'COINS'
+              ? { coins: { increment: amount } }
+              : { ai_help_credits: { increment: amount } },
+          select: { coins: true, ai_help_credits: true },
+        });
+
+        // Fold the payout into the snapshot columns rather than adding a third amount column,
+        // so "what did this day pay" stays one read. `fallback_reward` marks the day resolved.
+        await tx.learner_pass_claim.update({
+          where: { id: claim.id },
+          data:
+            kind === 'COINS'
+              ? { fallback_reward: kind, coins_awarded: { increment: amount } }
+              : { fallback_reward: kind, ai_helps_awarded: { increment: amount } },
+        });
+
+        return Response.json({
+          success: true,
+          choice: kind,
+          amount,
+          newCoins: updatedUser.coins,
+          newAiHelpCredits: updatedUser.ai_help_credits,
+        });
+      }
+
+      if (typeof scenarioId !== 'string') throw error(400, 'Invalid request');
+      if (!offers.includes(scenarioId)) throw error(400, 'Invalid scenario for this day');
+
+      // Already owned — the client should have offered the fallback. Rejecting here is the
+      // whole point: the old path wrote the grant anyway and silently wasted the day.
+      if (owned.has(scenarioId)) {
+        throw error(409, 'You already own this scenario — choose a reward instead');
+      }
 
       // The claim row IS the grant. `unlocked_at` records when the choice was made, which is
       // often well after the day was claimed.
@@ -69,8 +132,9 @@ export const POST: RequestHandler = async (event) => {
 
       return Response.json({
         success: true,
+        choice: 'SCENARIO',
+        scenarioId,
         grantedProjectId: scenarioId,
-        alreadyOwned: !!existing,
       });
     });
   } catch (err) {

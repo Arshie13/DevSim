@@ -32,6 +32,18 @@ export interface PassReward {
   /** Scenario ids this slot offers to unlock. Empty for ordinary days. */
   unlockChoices: string[];
   /**
+   * Consolation when every scenario this slot offers is already owned — the user picks one.
+   * Milestone days hand out a single SCENARIO_3 project each and unlocks outlive the pass, so
+   * without this a repeat buyer's milestone day pays nothing. Absent on ordinary days.
+   *
+   * Kept hand-tuned rather than derived from `unlockChoices`: a scenario's price is not what a
+   * player paid for the pass, so there is no exchange rate to infer it from. The values sit at
+   * or above the neighbouring coin/AI-help days (≈25 coins per AI help, the rate the ladder
+   * itself implies, e.g. day 27 = 900 coins vs day 28 = 35 AI helps) so a milestone day never
+   * feels cheaper than an ordinary one, and escalate with position in the pass.
+   */
+  fallback?: { coins: number; aiHelps: number };
+  /**
    * Display metadata, consumed verbatim by `pass/+page.svelte`'s `getRewardIcon()`,
    * which switches on `displayType` ("coins" | "help" | "avatar" | "badge" | …).
    * Keep these strings in sync with that component.
@@ -46,31 +58,31 @@ export const PASS_LADDER: readonly PassReward[] = [
   { day: 3, coins: 150, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '150 Coins' },
   { day: 4, coins: 0, xp: 0, aiHelps: 5, unlockChoices: [], displayType: 'help', displayValue: '+5 AI Helps' },
   { day: 5, coins: 200, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '200 Coins' },
-  { day: 6, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['pern-pos-scenario-3'], displayType: 'scenario_unlock', displayValue: 'PERN Scenario 3' },
+  { day: 6, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['pern-pos-scenario-3'], fallback: { coins: 300, aiHelps: 12 }, displayType: 'scenario_unlock', displayValue: 'PERN Scenario 3' },
   { day: 7, coins: 0, xp: 0, aiHelps: 7, unlockChoices: [], displayType: 'help', displayValue: '+7 AI Helps' },
   { day: 8, coins: 250, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '250 Coins' },
   { day: 9, coins: 0, xp: 0, aiHelps: 9, unlockChoices: [], displayType: 'help', displayValue: '+9 AI Helps' },
   { day: 10, coins: 300, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '300 Coins' },
   { day: 11, coins: 0, xp: 0, aiHelps: 11, unlockChoices: [], displayType: 'help', displayValue: '+11 AI Helps' },
-  { day: 12, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['mern-tw-scenario-3'], displayType: 'scenario_unlock', displayValue: 'MERN Scenario 3' },
+  { day: 12, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['mern-tw-scenario-3'], fallback: { coins: 400, aiHelps: 16 }, displayType: 'scenario_unlock', displayValue: 'MERN Scenario 3' },
   { day: 13, coins: 400, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '400 Coins' },
   { day: 14, coins: 0, xp: 0, aiHelps: 13, unlockChoices: [], displayType: 'help', displayValue: '+13 AI Helps' },
   { day: 15, coins: 500, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '500 Coins' },
   { day: 16, coins: 0, xp: 0, aiHelps: 16, unlockChoices: [], displayType: 'help', displayValue: '+16 AI Helps' },
   { day: 17, coins: 600, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '600 Coins' },
-  { day: 18, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nestjs-pos-scenario-3'], displayType: 'scenario_unlock', displayValue: 'NestJS Scenario 3' },
+  { day: 18, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nestjs-pos-scenario-3'], fallback: { coins: 550, aiHelps: 22 }, displayType: 'scenario_unlock', displayValue: 'NestJS Scenario 3' },
   { day: 19, coins: 0, xp: 0, aiHelps: 20, unlockChoices: [], displayType: 'help', displayValue: '+20 AI Helps' },
   { day: 20, coins: 700, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '700 Coins' },
   { day: 21, coins: 0, xp: 0, aiHelps: 24, unlockChoices: [], displayType: 'help', displayValue: '+24 AI Helps' },
   { day: 22, coins: 750, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '750 Coins' },
   { day: 23, coins: 0, xp: 0, aiHelps: 28, unlockChoices: [], displayType: 'help', displayValue: '+28 AI Helps' },
-  { day: 24, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nextjs-postgres-prisma-3'], displayType: 'scenario_unlock', displayValue: 'Next.js + Prisma Scenario 3' },
+  { day: 24, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nextjs-postgres-prisma-3'], fallback: { coins: 700, aiHelps: 28 }, displayType: 'scenario_unlock', displayValue: 'Next.js + Prisma Scenario 3' },
   { day: 25, coins: 800, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '800 Coins' },
   { day: 26, coins: 0, xp: 0, aiHelps: 32, unlockChoices: [], displayType: 'help', displayValue: '+32 AI Helps' },
   { day: 27, coins: 900, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '900 Coins' },
   { day: 28, coins: 0, xp: 0, aiHelps: 35, unlockChoices: [], displayType: 'help', displayValue: '+35 AI Helps' },
   { day: 29, coins: 950, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '950 Coins' },
-  { day: 30, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nextjs-shadcn-ui-scenario-3'], displayType: 'scenario_unlock', displayValue: 'Next.js Shadcn Scenario 3' },
+  { day: 30, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nextjs-shadcn-ui-scenario-3'], fallback: { coins: 900, aiHelps: 36 }, displayType: 'scenario_unlock', displayValue: 'Next.js Shadcn Scenario 3' },
 ];
 
 /** Number of allowance days in one pass. */
@@ -98,6 +110,21 @@ export const SCENARIO_3_IDS: ReadonlySet<string> = new Set(
 
 export function getSpecialUnlocksForDay(day: number): string[] {
   return rewardFor(day)?.unlockChoices ?? [];
+}
+
+/** Which consolation a user took on a milestone day they already owned. */
+export type FallbackKind = 'COINS' | 'AI_HELPS';
+
+/** Fallback rewards for a day, or `undefined` for ordinary days that never need one. */
+export function fallbackFor(day: number): { coins: number; aiHelps: number } | undefined {
+  return rewardFor(day)?.fallback;
+}
+
+/** Amount a fallback pays for the chosen kind, or `undefined` if the day has no fallback. */
+export function fallbackAmount(day: number, kind: FallbackKind): number | undefined {
+  const fallback = fallbackFor(day);
+  if (!fallback) return undefined;
+  return kind === 'COINS' ? fallback.coins : fallback.aiHelps;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -272,20 +299,56 @@ export function derivePassState(
 }
 
 /**
- * Pending scenario choices: claimed special days whose unlock has not been taken yet.
- * `alreadyUnlocked` comes from the claims' `unlocked_scenario` — which is itself the grant,
- * now that `user_project_access` is gone — so this stays a derived view, not a stored one.
+ * A claimed milestone day still waiting on its choice, priced by what the user already owns.
+ *
+ * When `available` is empty the user owns every scenario on offer, so `fallback` is the only
+ * thing left to take — that is the whole point of the field, not an edge case.
+ */
+export interface PendingUnlock {
+  day: number;
+  /** Scenarios this slot offers, owned or not. */
+  offers: string[];
+  /** Subset the user can still unlock; empty once they own them all. */
+  available: string[];
+  fallback?: { coins: number; aiHelps: number };
+}
+
+/** A pending entry for one claimed milestone day, or `undefined` for an ordinary day. */
+export function pendingUnlockForDay(
+  day: number,
+  ownedScenarios: ReadonlySet<string>,
+): PendingUnlock | undefined {
+  const offers = getSpecialUnlocksForDay(day);
+  if (offers.length === 0) return undefined;
+  return {
+    day,
+    offers,
+    available: offers.filter((id) => !ownedScenarios.has(id)),
+    fallback: fallbackFor(day),
+  };
+}
+
+/**
+ * Pending scenario choices: claimed milestone days whose reward has not been taken yet.
+ *
+ * `ownedScenarios` is user-scoped — every pass the user has ever had — because an unlock
+ * outlives the pass that granted it, which is exactly what turns a repeat buyer's milestone
+ * day into a fallback choice. `resolvedDays` is the per-day "choice already made" set covering
+ * both outcomes (`unlocked_scenario` and `fallback_reward`); without it a day resolved by
+ * fallback would resurface as pending forever, since it leaves no `unlocked_scenario` behind.
  */
 export function derivePendingUnlocks(
   claimedDays: number[],
-  alreadyUnlocked: ReadonlySet<string>,
-): { day: number; available: string[] }[] {
-  const pending: { day: number; available: string[] }[] = [];
+  ownedScenarios: ReadonlySet<string>,
+  resolvedDays: ReadonlySet<number>,
+): PendingUnlock[] {
+  const pending: PendingUnlock[] = [];
 
   for (const day of claimedDays) {
     if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
-    const available = getSpecialUnlocksForDay(day).filter((id) => !alreadyUnlocked.has(id));
-    if (available.length > 0) pending.push({ day, available });
+    if (resolvedDays.has(day)) continue;
+    const entry = pendingUnlockForDay(day, ownedScenarios);
+    if (entry) pending.push(entry);
   }
 
   return pending;

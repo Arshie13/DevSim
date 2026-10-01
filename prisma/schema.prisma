@@ -424,6 +424,14 @@ model learner_pass_claim {
   /// When the choice was made: a day can be claimed long before its reward is spent.
   /// Preserves `user_project_access.granted_at`, which dropping that table would lose.
   unlocked_at       DateTime? @map("unlocked_at")
+  /// Consolation taken instead of the scenario, when the user already owned it: `COINS` or
+  /// `AI_HELPS`. Milestone days each grant one SCENARIO_3 project and an unlock outlives the
+  /// pass that granted it, so on a later pass every milestone day would otherwise be a dead
+  /// reward. Like `unlocked_scenario`, the presence of this column is what marks the day's
+  /// choice as made — the two are mutually exclusive. The amount is NOT duplicated here: it is
+  /// folded into `coins_awarded` / `ai_helps_awarded`, so the payout snapshot stays the one
+  /// place that records what a day ultimately paid.
+  fallback_reward   String?   @map("fallback_reward")
 
   enrollment learner_pass_enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
   /// `Restrict`: once a user has unlocked a scenario, that scenario cannot be deleted out from

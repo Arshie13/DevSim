@@ -4,6 +4,7 @@ import prisma from '$lib/server/client';
 import {
   PASS_LENGTH,
   derivePassState,
+  pendingUnlockForDay,
   requiresCooldown,
   rewardFor,
   toClaimRefs,
@@ -100,11 +101,17 @@ export const POST: RequestHandler = async (event) => {
       });
 
       // A scenario-granting reward is always a CHOICE, resolved later by choose-unlock:
-      // claiming only makes the choice available. `unlockChoices` is by construction a subset
-      // of `SCENARIO_3_IDS` (that set is derived from it), so there is no "grant outright"
-      // path left to take and no access row to write — the claim itself becomes the grant.
-      const pendingUnlocks =
-        reward.unlockChoices.length > 0 ? [{ day: dayNumber, available: reward.unlockChoices }] : [];
+      // claiming only makes the choice available. Priced against everything the user already
+      // owns — every pass, not just this one — so a milestone day they cannot spend offers a
+      // fallback instead of silently granting a scenario they already have.
+      const ownedRows = await tx.learner_pass_claim.findMany({
+        where: { enrollment: { user_id: userId }, unlocked_scenario: { not: null } },
+        select: { unlocked_scenario: true },
+      });
+      const owned = new Set(ownedRows.map((r) => r.unlocked_scenario as string));
+
+      const pending = pendingUnlockForDay(dayNumber, owned);
+      const pendingUnlocks = pending ? [pending] : [];
 
       const updatedState = derivePassState(
         enrollment,

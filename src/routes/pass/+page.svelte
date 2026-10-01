@@ -48,6 +48,8 @@
   let showUnlockPicker = false;
   let pickerDay = 0;
   let pickerAvailable: string[] = [];
+  let pickerFallback: { coins: number; aiHelps: number } | null = null;
+  let pickerOwnedScenario: string | null = null;
   let isChoosing = false;
   let chooseUnlockError = "";
 
@@ -55,7 +57,16 @@
   // scenario per unlock day, so no picker is needed.
   let showUnlockedScenarioModal = false;
   let unlockedScenarioId: string | null = null;
-  let pendingUnlocks = data.pendingUnlocks ?? [];
+
+  // Milestone days whose reward has not been taken yet. The server prices each one against
+  // what the user already owns: an empty `available` means only the fallback is left.
+  type PendingUnlock = {
+    day: number;
+    offers: string[];
+    available: string[];
+    fallback?: { coins: number; aiHelps: number };
+  };
+  let pendingUnlocks: PendingUnlock[] = data.pendingUnlocks ?? [];
 
   const SCENARIO_NAMES: Record<string, string> = {
     "pern-pos-scenario-3": "IPPO POS (PERN)",
@@ -206,13 +217,12 @@
             startTimer();
           }
 
-          // Current (server-owned) flow: a scenario-granting reward is a choice, so the
-          // claim response carries the pending unlock and the picker opens.
+          // The server prices the day against what the user already owns, so the picker opens
+          // straight onto either the scenario or the fallback.
           if (claimData.pendingUnlocks && claimData.pendingUnlocks.length > 0) {
-            showUnlockPicker = true;
-            pickerDay = claimData.pendingUnlocks[0].day;
-            pickerAvailable = claimData.pendingUnlocks[0].available;
-            pendingUnlocks = [...pendingUnlocks, ...claimData.pendingUnlocks];
+            const [pending] = claimData.pendingUnlocks as PendingUnlock[];
+            pendingUnlocks = [...pendingUnlocks, pending];
+            openPicker(pending);
           }
         }
       })
@@ -244,7 +254,52 @@
         showUnlockPicker = false;
         // The choice is now recorded server-side, so drop this day's pending
         // entry (the scenario may have been owned already via another source).
-        pendingUnlocks = pendingUnlocks.filter((p: any) => p.day !== pickerDay);
+        pendingUnlocks = pendingUnlocks.filter((p) => p.day !== pickerDay);
+      })
+      .catch((err) => {
+        console.error(err);
+        chooseUnlockError = "Something went wrong. Please try again.";
+      })
+      .finally(() => {
+        isChoosing = false;
+      });
+  }
+
+  function openPicker(pending: PendingUnlock) {
+    chooseUnlockError = "";
+    pickerDay = pending.day;
+    pickerAvailable = pending.available;
+    pickerFallback = pending.fallback ?? null;
+    // Only meaningful when the scenario is already owned, which is the only time the
+    // fallback is offered — the server enforces the same rule.
+    pickerOwnedScenario = pending.available.length === 0 ? pending.offers[0] ?? null : null;
+    showUnlockPicker = true;
+  }
+
+  function handleChooseFallback(kind: "COINS" | "AI_HELPS") {
+    if (isChoosing) return;
+    isChoosing = true;
+    chooseUnlockError = "";
+
+    fetch("/api/user/learner-pass/choose-unlock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dayNumber: pickerDay, fallback: kind }),
+    })
+      .then(async (res) => {
+        const resp = await res.json().catch(() => null);
+
+        if (!res.ok || !resp?.success) {
+          chooseUnlockError = resp?.message ?? `Could not claim reward (${res.status})`;
+          return;
+        }
+
+        if (resp.newCoins !== undefined) {
+          headerUserData = { ...headerUserData, coins: resp.newCoins };
+        }
+
+        showUnlockPicker = false;
+        pendingUnlocks = pendingUnlocks.filter((p) => p.day !== pickerDay);
       })
       .catch((err) => {
         console.error(err);
@@ -630,25 +685,30 @@
       {#if pendingUnlocks.length > 0}
         <div class="card-cyber mb-8" style="border-color: rgb(var(--accent-rgb) / 0.3)">
           <div class="card-cyber-body">
-            <h3 class="font-heading text-lg font-semibold text-obsidian-text-primary mb-1">Unlock a Scenario</h3>
+            <h3 class="font-heading text-lg font-semibold text-obsidian-text-primary mb-1">Claim a Milestone Reward</h3>
             <p class="text-sm text-obsidian-text-muted mb-3">
-              You have unclaimed scenario unlocks from your Learner Pass rewards.
+              You have unclaimed rewards from your Learner Pass milestone days. Days whose
+              scenario you already own can be swapped for coins or AI helps.
             </p>
             <div class="flex flex-wrap gap-2">
               {#each pendingUnlocks as pending (pending.day)}
-                {#each pending.available as scenarioId}
+                {#if pending.available.length > 0}
+                  {#each pending.available as scenarioId}
+                    <button
+                      on:click={() => openPicker(pending)}
+                      class="font-label text-xs uppercase tracking-wide px-3 py-1.5 rounded bg-cyber-cyan/10 hover:bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/20 hover:border-cyber-cyan/40 transition-colors"
+                    >
+                      {SCENARIO_NAMES[scenarioId] ?? scenarioId}
+                    </button>
+                  {/each}
+                {:else if pending.fallback}
                   <button
-                    on:click={() => {
-                      chooseUnlockError = "";
-                      pickerDay = pending.day;
-                      pickerAvailable = pending.available;
-                      showUnlockPicker = true;
-                    }}
-                    class="font-label text-xs uppercase tracking-wide px-3 py-1.5 rounded bg-cyber-cyan/10 hover:bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/20 hover:border-cyber-cyan/40 transition-colors"
+                    on:click={() => openPicker(pending)}
+                    class="font-label text-xs uppercase tracking-wide px-3 py-1.5 rounded bg-cyber-warn/10 hover:bg-cyber-warn/20 text-cyber-warn border border-cyber-warn/20 hover:border-cyber-warn/40 transition-colors"
                   >
-                    {SCENARIO_NAMES[scenarioId] ?? scenarioId}
+                    Day {pending.day} — Choose a Reward
                   </button>
-                {/each}
+                {/if}
               {/each}
             </div>
           </div>
@@ -694,25 +754,56 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--bg-rgb)/0.6)] backdrop-blur-sm" on:click={() => showUnlockPicker = false}>
       <div class="w-full max-w-md mx-4 p-6 rounded-card bg-obsidian-bg-light border border-cyber-cyan/30" on:click|stopPropagation>
-        <h3 class="font-heading text-lg font-bold text-cyber-cyan mb-2">Choose Your Unlock</h3>
-        <p class="text-sm text-obsidian-text-muted mb-4">
-          Pick a scenario to unlock. This choice is permanent for this reward day.
-        </p>
-        <div class="space-y-2">
-          {#each pickerAvailable as scenarioId}
+        <h3 class="font-heading text-lg font-bold text-cyber-cyan mb-2">Choose Your Reward</h3>
+        {#if pickerAvailable.length > 0}
+          <p class="text-sm text-obsidian-text-muted mb-4">
+            Pick a scenario to unlock. This choice is permanent for this reward day.
+          </p>
+          <div class="space-y-2">
+            {#each pickerAvailable as scenarioId}
+              <button
+                on:click={() => handleChooseUnlock(scenarioId)}
+                disabled={isChoosing}
+                class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyber-cyan/20 bg-cyber-cyan/5 hover:bg-cyber-cyan/10 hover:border-cyber-cyan/40 transition-colors disabled:opacity-50 text-left"
+              >
+                <Zap class="w-4 h-4 text-cyber-cyan flex-shrink-0" />
+                <div>
+                  <p class="text-sm font-heading text-obsidian-text-primary">{SCENARIO_NAMES[scenarioId] ?? scenarioId}</p>
+                  <p class="text-xs font-label text-obsidian-text-muted">{scenarioId}</p>
+                </div>
+              </button>
+            {/each}
+          </div>
+        {:else if pickerFallback}
+          <p class="text-sm text-obsidian-text-muted mb-4">
+            You already own {pickerOwnedScenario ? SCENARIO_NAMES[pickerOwnedScenario] ?? pickerOwnedScenario : "this scenario"}.
+            Take a reward instead — this choice is permanent for this reward day.
+          </p>
+          <div class="space-y-2">
             <button
-              on:click={() => handleChooseUnlock(scenarioId)}
+              on:click={() => handleChooseFallback("COINS")}
               disabled={isChoosing}
-              class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyber-cyan/20 bg-cyber-cyan/5 hover:bg-cyber-cyan/10 hover:border-cyber-cyan/40 transition-colors disabled:opacity-50 text-left"
+              class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyber-warn/20 bg-cyber-warn/5 hover:bg-cyber-warn/10 hover:border-cyber-warn/40 transition-colors disabled:opacity-50 text-left"
             >
-              <Zap class="w-4 h-4 text-cyber-cyan flex-shrink-0" />
+              <Coins class="w-4 h-4 text-cyber-warn flex-shrink-0" />
               <div>
-                <p class="text-sm font-heading text-obsidian-text-primary">{SCENARIO_NAMES[scenarioId] ?? scenarioId}</p>
-                <p class="text-xs font-label text-obsidian-text-muted">{scenarioId}</p>
+                <p class="text-sm font-heading text-obsidian-text-primary">{pickerFallback.coins} Coins</p>
+                <p class="text-xs font-label text-obsidian-text-muted">Spend them in the marketplace</p>
               </div>
             </button>
-          {/each}
-        </div>
+            <button
+              on:click={() => handleChooseFallback("AI_HELPS")}
+              disabled={isChoosing}
+              class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyber-purple/20 bg-cyber-purple/5 hover:bg-cyber-purple/10 hover:border-cyber-purple/40 transition-colors disabled:opacity-50 text-left"
+            >
+              <Bot class="w-4 h-4 text-cyber-purple flex-shrink-0" />
+              <div>
+                <p class="text-sm font-heading text-obsidian-text-primary">+{pickerFallback.aiHelps} AI Helps</p>
+                <p class="text-xs font-label text-obsidian-text-muted">Used in the workspace AI helper</p>
+              </div>
+            </button>
+          </div>
+        {/if}
         {#if chooseUnlockError}
           <p class="mt-3 font-label text-sm text-cyber-danger">{chooseUnlockError}</p>
         {/if}
@@ -756,11 +847,5 @@
     justify-content: center;
     width: 3.5rem;
     height: 3.5rem;
-  }
-
-  .hex-frame img {
-    width: 2.5rem;
-    height: 2.5rem;
-    object-fit: contain;
   }
 </style>

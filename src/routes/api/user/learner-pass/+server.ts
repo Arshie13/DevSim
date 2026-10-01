@@ -40,6 +40,7 @@ export const GET: RequestHandler = async (event) => {
       claimed_at: true,
       unlocked_scenario: true,
       unlocked_at: true,
+      fallback_reward: true,
     },
   });
 
@@ -62,8 +63,23 @@ export const GET: RequestHandler = async (event) => {
 
   // A special day stops being "pending" once a choice is recorded for it. Scoping that check
   // per day is the fix: the old flat `unlock_choices` array was checked globally, so a single
-  // choice silently suppressed the prompt for every other special day.
-  const alreadyUnlocked = new Set(unlockedProjects.map((p) => p.scenarioId));
+  // choice silently suppressed the prompt for every other special day. Both outcomes count,
+  // since a fallback leaves `unlocked_scenario` null.
+  const resolvedDays = new Set(
+    claims
+      .filter(
+        (c) => typeof c.unlocked_scenario === 'string' || typeof c.fallback_reward === 'string',
+      )
+      .map((c) => c.day_number),
+  );
+
+  // Ownership spans every pass, so it is queried user-scoped — the claims above are this pass
+  // only, which is all the state derivation needs.
+  const ownedRows = await prisma.learner_pass_claim.findMany({
+    where: { enrollment: { user_id: userId }, unlocked_scenario: { not: null } },
+    select: { unlocked_scenario: true },
+  });
+  const ownedScenarios = new Set(ownedRows.map((r) => r.unlocked_scenario as string));
 
   return Response.json({
     status: state.status,
@@ -84,6 +100,6 @@ export const GET: RequestHandler = async (event) => {
       projectId: p.scenarioId,
       grantedAt: p.grantedAt.toISOString(),
     })),
-    pendingUnlocks: derivePendingUnlocks(state.claimedDays, alreadyUnlocked),
+    pendingUnlocks: derivePendingUnlocks(state.claimedDays, ownedScenarios, resolvedDays),
   });
 };

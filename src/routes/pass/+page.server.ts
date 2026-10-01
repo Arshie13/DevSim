@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
 import { computeLevel } from '$lib/utils/level';
-import type { PassState } from '$lib/server/learnerPass/schedule';
+import type { PassState, PendingUnlock } from '$lib/server/learnerPass/schedule';
 import {
   PASS_LADDER,
   derivePassState,
@@ -18,6 +18,8 @@ export const load: PageServerLoad = async (event) => {
       user: null,
       enrollment: null,
       rewards: [],
+      currentAvatar: null,
+      pendingUnlocks: [],
     };
   }
 
@@ -49,24 +51,43 @@ export const load: PageServerLoad = async (event) => {
   const rewards = PASS_LADDER.map(toRewardPayload);
 
   let state: PassState | null = null;
-  let pendingUnlocks: { day: number; available: string[] }[] = [];
+  let pendingUnlocks: PendingUnlock[] = [];
 
   if (enrollment) {
+    // Scoped to the user, not the enrollment: ownership spans every pass, while the state
+    // derivation below only cares about this pass's claims.
     const claims = await prisma.learner_pass_claim.findMany({
-      where: { enrollment_id: enrollment.id },
-      select: { day_number: true, claimed_at: true, unlocked_scenario: true },
+      where: { enrollment: { user_id: userId } },
+      select: {
+        enrollment_id: true,
+        day_number: true,
+        claimed_at: true,
+        unlocked_scenario: true,
+        fallback_reward: true,
+      },
     });
 
-    state = derivePassState(enrollment, toClaimRefs(claims), new Date());
+    const currentClaims = claims.filter((c) => c.enrollment_id === enrollment.id);
+
+    state = derivePassState(enrollment, toClaimRefs(currentClaims), new Date());
 
     // The claim's choice IS the grant now that `user_project_access` is gone.
-    const alreadyUnlocked = new Set(
+    const ownedScenarios = new Set(
       claims
         .map((c) => c.unlocked_scenario)
         .filter((id): id is string => typeof id === 'string'),
     );
 
-    pendingUnlocks = derivePendingUnlocks(state.claimedDays, alreadyUnlocked);
+    // A day is resolved by either outcome, so a fallback day stops prompting too.
+    const resolvedDays = new Set(
+      currentClaims
+        .filter(
+          (c) => typeof c.unlocked_scenario === 'string' || typeof c.fallback_reward === 'string',
+        )
+        .map((c) => c.day_number),
+    );
+
+    pendingUnlocks = derivePendingUnlocks(state.claimedDays, ownedScenarios, resolvedDays);
   }
 
   return {
