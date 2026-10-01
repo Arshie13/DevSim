@@ -1,12 +1,15 @@
 <script lang="ts">
   import { signOut } from "@auth/sveltekit/client";
   import { goto } from "$app/navigation";
-  import { User, Settings, LogOut, ChevronDown, Award, LayoutDashboard, Users } from "lucide-svelte";
+  import { page } from "$app/stores";
+  import { User, LogOut, Award, LayoutDashboard, Users, ShieldCheck } from "lucide-svelte";
   import type { UserData } from "$types";
 
   export let userData: Partial<UserData>;
 
   let open = false;
+
+  $: isAdmin = $page.data.session?.user?.role === "ADMIN";
 
   function toggle() {
     open = !open;
@@ -115,13 +118,15 @@
           Developer Rivals
         </button>
 
-        <button
-          on:click={() => navigateTo("/profile")}
-          class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-body font-medium text-obsidian-text-primary hover:text-obsidian-accent hover:bg-obsidian-accent/5 transition-all"
-        >
-          <Settings class="w-4 h-4 text-obsidian-accent/70" />
-          Settings
-        </button>
+        {#if isAdmin}
+          <button
+            on:click={() => navigateTo("/admin")}
+            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-body font-medium text-obsidian-text-primary hover:text-obsidian-accent hover:bg-obsidian-accent/5 transition-all"
+          >
+            <ShieldCheck class="w-4 h-4 text-obsidian-accent/70" />
+            Admin Panel
+          </button>
+        {/if}
       </div>
 
       <!-- Divider -->

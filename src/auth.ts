@@ -134,11 +134,12 @@ export const { handle } = SvelteKitAuth({
         const dbUser = token.id
           ? await prisma.user.findUnique({
               where: { id: token.id as string },
-              select: { username: true, name: true },
+              select: { username: true, name: true, role: true },
             })
           : null;
         if (token.id) session.user.id = token.id as string;
         session.user.username = dbUser?.username ?? (token.username as string | null);
+        session.user.role = dbUser?.role ?? "USER";
         // Surface the DB image (may be an OAuth URL or a local /avatars/ path)
         if (token.image !== undefined) {
           session.user.image = token.image as string | null;

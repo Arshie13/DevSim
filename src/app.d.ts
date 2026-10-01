@@ -30,6 +30,7 @@ declare module "@auth/sveltekit" {
 			username?: string | null;
 			hasCompletedPretest?: boolean;
 			avatar?: string | null;
+			role?: string;
 		};
 	}
 }
