@@ -440,23 +440,24 @@ import {
 
       if (containerId) {
         try {
+          // List every file in the workspace so the AI sees the student's work.
+          // (`/files/logs` never existed; the real route is `/files/list`.)
           const listRes = await fetch(
-            `/api/docker/container/${containerId}/files/logs`,
+            `/api/docker/container/${containerId}/files/list`,
             {
-              method: "GET",
+              method: "POST",
               headers: { "Content-Type": "application/json" },
               signal,
-              body: JSON.stringify({}),
+              body: JSON.stringify({ path: "/workspace" }),
             },
           );
 
           const listData: {
             success: boolean;
-            data: Array<{ filePath: string }>;
+            files?: string[];
           } = await listRes.json();
           if (listData.success) {
-            const unfilteredFilesToCheck =
-              listData.data.map((data) => data.filePath) || [];
+            const unfilteredFilesToCheck = listData.files ?? [];
             filesToCheck = unfilteredFilesToCheck.filter(
               (value, index) => unfilteredFilesToCheck.indexOf(value) === index,
             );
@@ -710,6 +711,7 @@ import {
             level,
             completedTasks: completedTaskTexts,
             fileContents: contentsToCheck,
+            filePaths: filesToCheck,
             testResults: testData,
             masteryReflection: masteryReflection.trim(),
             impactedLayers,

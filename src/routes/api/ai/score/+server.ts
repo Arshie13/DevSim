@@ -1,9 +1,33 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { ScoringService } from '$lib/layers/service/ScoringService';
+import { getFileChanges } from '$lib/server/fileChangeLogger';
 import prisma from '$lib/server/client';
 
 const scoringService = new ScoringService();
+
+/**
+ * Collect the paths the user created or modified for a container. The scoring
+ * service uses these to guarantee the student's real work is read and shown to
+ * the model, rather than relying on an alphabetical/truncated file snapshot.
+ */
+async function resolveChangedFiles(containerId: unknown): Promise<string[]> {
+  if (typeof containerId !== 'string' || !containerId) return [];
+  try {
+    const changes = await getFileChanges(containerId);
+    return Array.from(
+      new Set(
+        changes
+          .filter((change) => change.action !== 'DELETE')
+          .map((change) => change.filePath)
+          .filter((filePath): filePath is string => typeof filePath === 'string' && filePath.length > 0)
+      )
+    );
+  } catch (error) {
+    console.warn('[ai/score] Could not resolve changed files:', error);
+    return [];
+  }
+}
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -32,7 +56,10 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    const result = await scoringService.processScore(body);
+    const result = await scoringService.processScore({
+      ...body,
+      changedFiles: await resolveChangedFiles(body?.containerId)
+    });
 
     if (result.error) {
       return json({

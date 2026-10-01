@@ -10,6 +10,9 @@ interface TestResults {
   passed: boolean;
   results?: TestValidationResult;
   failedTasks?: Array<{ taskId: number; taskText: string; errors: string[] }>;
+  /** Shape sent by SubmitSprintModal (raw /tests/run response). */
+  summary?: { total: number; passed: number; failed: number };
+  taskResults?: Array<{ taskId?: string; taskName?: string; passed: boolean; errors?: string[] }>;
 }
 
 interface ScoringRequest {
@@ -18,6 +21,8 @@ interface ScoringRequest {
   completedTasks: string[];
   fileContents?: Record<string, string>;
   filePaths?: string[];
+  /** Paths the user created or modified (from file_changes). Given priority when reading + prompting. */
+  changedFiles?: string[];
   testResults?: TestResults;
   masteryReflection: string;
   impactedLayers: string[];
@@ -58,6 +63,7 @@ export class ScoringService {
       completedTasks = [],
       fileContents,
       filePaths,
+      changedFiles = [],
       testResults,
       masteryReflection,
       impactedLayers = []
@@ -83,11 +89,25 @@ export class ScoringService {
         ? impactedLayers.filter((layer): layer is string => typeof layer === 'string')
         : [];
 
-      // Fetch and collect file contents
+      // Normalize the set of files the user actually created/modified so we can
+      // guarantee they are read and surfaced to the model.
+      const normalizedChangedFiles = Array.isArray(changedFiles)
+        ? Array.from(
+            new Set(
+              changedFiles
+                .filter((f): f is string => typeof f === 'string')
+                .map((f) => this.toWorkspaceRelative(f))
+                .filter(Boolean)
+            )
+          )
+        : [];
+
+      // Fetch and collect file contents (changed files first)
       const userFileContents = await this.collectFileContents(
         containerId,
         fileContents,
-        filePaths
+        filePaths,
+        normalizedChangedFiles
       );
 
       // Build scoring prompt
@@ -99,7 +119,8 @@ export class ScoringService {
         completedTasks,
         normalizedReflection,
         normalizedImpactedLayers,
-        testResults
+        testResults,
+        normalizedChangedFiles
       );
 
       // Call AI for scoring
@@ -154,27 +175,57 @@ export class ScoringService {
     }
   }
 
+  /** Strip a leading `/workspace/` so paths from the DB and container keys align. */
+  private toWorkspaceRelative(inputPath: string): string {
+    return inputPath
+      .replace(/\\/g, '/')
+      .replace(/^\/workspace\/?/, '')
+      .replace(/^\.\//, '')
+      .trim();
+  }
+
+  /** Build an absolute in-container path that works regardless of the exec cwd. */
+  private toContainerAbsolute(inputPath: string): string {
+    const relative = this.toWorkspaceRelative(inputPath);
+    return `/workspace/${relative}`;
+  }
+
   private async collectFileContents(
     containerId: string,
     fileContents?: Record<string, string>,
-    filePaths?: string[]
+    filePaths?: string[],
+    changedFiles: string[] = []
   ): Promise<Record<string, string>> {
     const userFileContents: Record<string, string> = {};
 
     // Use provided file contents if available
     if (fileContents && typeof fileContents === 'object' && Object.keys(fileContents).length > 0) {
-      Object.assign(userFileContents, fileContents);
+      for (const [key, value] of Object.entries(fileContents)) {
+        userFileContents[this.toWorkspaceRelative(key)] = value;
+      }
     }
 
-    // Always fetch ALL relevant files from container to ensure we have complete context
+    const changedSet = new Set(changedFiles);
+
+    // Always fetch from the container so we have complete, current context.
     if (containerId) {
       try {
           const { files } = await this.containerService.listFiles(containerId);
 
           if (files) {
-            const filesToAnalyze = this.filterSourceFiles(files);
-            const filesToFetch = filesToAnalyze.filter(file => !userFileContents[file]);
-            
+            const normalizedFiles = files.map((file) => this.toWorkspaceRelative(file));
+
+            // 1. The files the user actually edited/created — read these first and
+            //    regardless of extension so real work is never missed.
+            const changedToFetch = changedFiles.filter((file) => !userFileContents[file]);
+
+            // 2. Remaining implementation sources for surrounding context.
+            const otherToFetch = this.filterSourceFiles(normalizedFiles).filter(
+              (file) => !userFileContents[file] && !changedSet.has(file)
+            );
+
+            const filesToFetch = Array.from(new Set([...changedToFetch, ...otherToFetch]));
+
             if (filesToFetch.length > 0) {
               const fetchedContents = await this.fetchFileContents(containerId, filesToFetch);
               Object.assign(userFileContents, fetchedContents);
@@ -197,13 +248,19 @@ export class ScoringService {
   private async fetchFileContents(containerId: string, filePaths: string[]): Promise<Record<string, string>> {
     const results = await Promise.all(
       filePaths.map(async (filePath) => {
+        const relative = this.toWorkspaceRelative(filePath);
         try {
-          const result = await this.containerService.readFile(containerId, filePath);
+          // Always read via an absolute path — listFiles returns workspace-relative
+          // paths, and `cat <relative>` depends on the exec working directory.
+          const result = await this.containerService.readFile(
+            containerId,
+            this.toContainerAbsolute(filePath)
+          );
           if (result?.content) {
-            return { path: filePath, content: result.content };
+            return { path: relative, content: result.content };
           }
         } catch (e) {
-          console.log('[ScoringService] Error reading file:', filePath, e);
+          console.log('[ScoringService] Error reading file:', relative, e);
         }
         return null;
       })
@@ -249,34 +306,49 @@ export class ScoringService {
     completedTasks: string[],
     masteryReflection: string,
     impactedLayers: string[],
-    testResults?: TestResults
+    testResults?: TestResults,
+    changedFiles: string[] = []
   ): string {
-    // Prioritize important files and reduce content length to avoid token limits
+    // Files the user actually created/modified get a large budget so the model
+    // can see their full implementation. Other files are context and are capped.
+    const MAX_CHARS_CHANGED = 12000;
+    const MAX_CHARS_OTHER = 1500;
+    const MAX_OTHER_FILES = 12;
     const importantFiles = ['package.json', 'prisma/schema.prisma', 'tsconfig.json'];
-    const maxCharsPerFile = 1000;
-    const maxFiles = 10;
 
-    const sortedFileEntries = Object.entries(fileContents).sort(([a], [b]) => {
-      if (importantFiles.includes(a) && !importantFiles.includes(b)) return -1;
-      if (!importantFiles.includes(a) && importantFiles.includes(b)) return 1;
-      return a.localeCompare(b);
-    });
-
-    const implementationExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs'];
-    const filteredEntries = sortedFileEntries.filter(([file]) => 
-      implementationExtensions.some(ext => file.endsWith(ext))
+    const changedSet = new Set(changedFiles.map((file) => this.toWorkspaceRelative(file)));
+    const allEntries = Object.entries(fileContents).map(
+      ([file, content]) => [this.toWorkspaceRelative(file), content] as const
     );
-    
-    const limitedFileEntries = filteredEntries.slice(0, maxFiles);
 
-    const fileSection = limitedFileEntries.length > 0
-      ? limitedFileEntries.map(([file, content]) => {
-          const truncated = content.length > maxCharsPerFile
-            ? content.substring(0, maxCharsPerFile) + '\n... (truncated)'
-            : content;
-          return `--- File: ${file} ---\n${truncated}`;
-        }).join('\n\n')
-      : 'No file contents available.';
+    const renderFile = (file: string, content: string, limit: number) => {
+      const truncated = content.length > limit
+        ? content.substring(0, limit) + '\n... (truncated)'
+        : content;
+      return `--- File: ${file} ---\n${truncated}`;
+    };
+
+    // 1. Files the user created or modified — always shown in full (up to the larger cap).
+    const changedEntries = allEntries.filter(([file]) => changedSet.has(file));
+    const changedFileSection = changedEntries.length > 0
+      ? changedEntries.map(([file, content]) => renderFile(file, content, MAX_CHARS_CHANGED)).join('\n\n')
+      : 'No created or modified files were recorded.';
+
+    // 2. Everything else is supporting context, prioritised then capped.
+    const implementationExtensions = ['.ts', '.tsx', '.js', '.jsx', '.svelte', '.vue', '.py', '.java', '.go', '.rs'];
+    const otherEntries = allEntries
+      .filter(([file]) => !changedSet.has(file))
+      .filter(([file]) => implementationExtensions.some((ext) => file.endsWith(ext)))
+      .sort(([a], [b]) => {
+        if (importantFiles.includes(a) && !importantFiles.includes(b)) return -1;
+        if (!importantFiles.includes(a) && importantFiles.includes(b)) return 1;
+        return a.localeCompare(b);
+      })
+      .slice(0, MAX_OTHER_FILES);
+
+    const otherFileSection = otherEntries.length > 0
+      ? otherEntries.map(([file, content]) => renderFile(file, content, MAX_CHARS_OTHER)).join('\n\n')
+      : 'No other file contents available.';
 
     const taskList = tasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n');
     const completedList = completedTasks.length > 0
@@ -287,15 +359,48 @@ export class ScoringService {
       : '  (none)';
 
     let testResultsSection = 'No test results available.';
+    let testsPassed = false;
     if (testResults) {
       const passed = testResults.passed === true;
-      const summary = testResults.results?.summary || { total: 0, passed: 0, failed: 0 };
-      const failedTasks = testResults.failedTasks || [];
-      
+      testsPassed = passed;
+
+      // The modal sends the raw /tests/run payload (summary + taskResults), while
+      // other callers send a normalised `results`/`failedTasks` shape. Support both.
+      const summary =
+        testResults.results?.summary ??
+        testResults.summary ??
+        { total: 0, passed: 0, failed: 0 };
+
+      const failedTasks =
+        testResults.failedTasks ??
+        (testResults.taskResults ?? [])
+          .filter((task) => task.passed === false)
+          .map((task) => ({
+            taskId: 0,
+            taskText: task.taskName || 'Unnamed task',
+            errors: task.errors ?? ['validation failed'],
+          }));
+
+      const verifiedNote = passed
+        ? `\nVERIFIED: the automated tests for this level ran and PASSED, which means every required task listed above has been completed.`
+        : '';
+
       testResultsSection = `Tests: ${passed ? 'PASSED' : 'FAILED'}
-Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed
-${failedTasks.length > 0 ? '\nFailed tasks:\n' + failedTasks.map((t: { taskId: number; taskText: string; errors?: string[] }) => `  - ${t.taskText}: ${t.errors?.join(', ') || 'validation failed'}`).join('\n') : ''}`;
+Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed${verifiedNote}
+${failedTasks.length > 0 ? '\nFailed tasks:\n' + failedTasks.map((t) => `  - ${t.taskText}: ${t.errors?.join(', ') || 'validation failed'}`).join('\n') : ''}`;
     }
+
+    // Ground the grader in what the tests actually proved. When the level's own
+    // tests pass, the tasks they cover ARE complete — the model must not claim
+    // they are missing just because it cannot spot them in the submitted files.
+    const completionGuidance = !testResults
+      ? `No automated test results were provided. Judge task completion from the submitted files above and be fair: if the required behaviour is clearly present, treat the task as complete.`
+      : testsPassed
+        ? `The automated tests for this level PASSED. Tests are a GATE, not a quality signal: every submission that reaches you has already passed them, so test results must NOT influence the star rating.
+- Treat all required tasks as DONE. Never describe a required task as missing, unimplemented, incomplete, "not found", or "not visible in the files".
+- Because every graded submission passes the tests, "tests passed" carries no signal — you cannot use it to justify 3 stars.
+- Differentiate submissions by the QUALITY of the submitted code and the strength of the student's explanation: naming, duplication, dead code, structure, robustness, and whether they understand why their change works.`
+        : `Some tests FAILED. Use the failed task list above to identify exactly which required tasks are incomplete or incorrect, and focus your feedback on those.`;
 
     return `You are a friendly and encouraging senior developer mentor who loves helping beginners learn. You're like a supportive tech lead who gives constructive feedback with humor and warmth. You've seen lots of code and know that everyone starts somewhere — your goal is to help students improve while celebrating their wins.
 
@@ -317,20 +422,25 @@ ${impactedLayerList}
 ${testResultsSection}
 === END OF TEST RESULTS ===
 
-=== SUBMITTED FILES ===
-${fileSection}
-=== END OF FILES ===
+=== FILES THE STUDENT CREATED OR MODIFIED (PRIMARY EVIDENCE - READ FIRST) ===
+${changedFileSection}
+=== END OF CHANGED FILES ===
+
+=== OTHER PROJECT FILES (CONTEXT ONLY) ===
+${otherFileSection}
+=== END OF OTHER FILES ===
 
 Your job - BE SPECIFIC TO THIS LEVEL'S TASKS:
 1. FIRST, read the REQUIRED TASKS FOR THIS LEVEL above carefully - these are the specific requirements for level ${level}.
-2. Compare each required task to the submitted code - check if the code actually implements what's required.
-3. Look at TEST RESULTS to see which tasks passed or failed.
-4. For EACH task, check if it's done correctly according to the task requirements - not generic improvements.
-5. Check for CLEAN CODE (only if it affects task functionality):
+2. READ THE TEST RESULTS FIRST. The tests for this level were written to check exactly these required tasks. ${completionGuidance}
+3. The student's actual work is in the "FILES THE STUDENT CREATED OR MODIFIED" section above. Judge the tasks against THOSE files first - a task is only missing if it is absent from the changed files AND the tests did not pass it.
+4. Compare each required task to the submitted code - check if the code actually implements what's required.
+5. For EACH task, check if it's done correctly according to the task requirements - not generic improvements.
+6. Check for CLEAN CODE (only if it affects task functionality):
    - Critical naming issues that make code hard to understand
    - Obvious code duplication within the same file
-6. Give feedback SPECIFICALLY about the tasks - don't give generic programming advice.
-7. Evaluate mastery based on evidence:
+7. Give feedback SPECIFICALLY about the tasks - don't give generic programming advice.
+8. Evaluate mastery based on evidence:
    - Can the student explain why their change works?
    - Does their explanation connect multiple layers (frontend/backend/database/infra)?
    - Are they demonstrating debugging and reasoning, not cargo-cult changes?
@@ -340,11 +450,15 @@ IMPORTANT:
 - If a task asks for feature X, mention if feature X is implemented or missing
 - Don't suggest adding features that aren't part of this level's requirements
 - Keep feedback focused on what was required vs what was submitted
+- When the tests PASSED, the required tasks are complete — do NOT report them as missing or not implemented
+- Never blame the student for something the passing tests already verified
 
 STAR RATING GUIDE:
-- 3 stars: ALL required tasks completed correctly according to the task requirements
-- 2 stars: Most tasks completed but some missing or incorrect
-- 1 star: Few tasks completed or tasks done incorrectly
+The tests are a pass/fail gate, not a grading signal — every submission you grade has already passed them, so test results must NOT raise or lower the stars. Grade the quality of what was submitted:
+- 3 stars: Required tasks complete AND the code is clean and idiomatic (clear naming, no notable duplication, no dead code) AND the explanation shows genuine understanding of why the change works.
+- 2 stars: Tasks complete and the code works, but there are real quality issues (duplicated logic, confusing naming, dead code) OR the explanation is shallow.
+- 1 star: The code passes, but it is poor quality (hacky, heavily duplicated, hard to maintain) OR the student cannot explain how or why it works.
+Never lower a star rating because a required task "seems" missing — the tests already verified completion.
 
 IMPORTANT: Keep your response SHORT and concise. Focus on the actual required tasks for this level.
 
@@ -355,15 +469,15 @@ Respond ONLY using this exact format:
 [/STAR_RATING]
 
 [FEEDBACK]
-<1-2 short sentences about which tasks were completed vs missing for THIS LEVEL>
+<1-2 short sentences confirming the required tasks are complete (the tests passed) and assessing the quality of the code and the student's explanation.>
 [/FEEDBACK]
 
 [IMPROVEMENTS]
-<max 3 bullet points tied to the SPECIFIC REQUIRED TASKS - what they need to fix for THIS level's tasks>
+<max 3 bullet points on genuine code-quality improvements tied to THIS level's tasks (duplication, naming, structure, robustness). Do NOT list tasks as missing when the tests passed.>
 [/IMPROVEMENTS]
 
 [NEXT_TIME]
-<max 2 bullet points of what to do for the specific tasks they missed in THIS level>
+<max 2 bullet points of concrete quality improvements for THIS level.>
 [/NEXT_TIME]
 
 [MASTERY_VERDICT]
@@ -399,10 +513,9 @@ Respond ONLY using this exact format:
         if (parsedStars >= 1 && parsedStars <= 3) stars = parsedStars;
       }
 
-      // Score is proportional to stars: 1 star = ~33, 2 stars = ~67, 3 stars = 100
-      if (stars === 3) score = Math.floor(Math.random() * 16) + 85;
-      else if (stars === 2) score = Math.floor(Math.random() * 18) + 50;
-      else score = Math.floor(Math.random() * 9) + 25;
+      // Score is deterministic and derived from the star rating so identical
+      // submissions always score the same: 1 star = 33, 2 stars = 67, 3 stars = 100.
+      score = Math.round((stars / 3) * 100);
 
       const extract = (tag: string) => {
         const m = response.match(new RegExp(`\\[${tag}\\]([\\s\\S]*?)\\[\\/${tag}\\]`, 'i'));
@@ -425,9 +538,10 @@ Respond ONLY using this exact format:
 
   private async callOmniRouteAPI(apiKey: string, prompt: string, model?: string): Promise<string> {
     const models = model ? [model] : [
-      'oc/muse-spark-1.3-contributor-free',
-      'oc/muse-spark-1.2-contributor-free',
-      'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
+      // 'oc/muse-spark-1.3-contributor-free',
+      // 'oc/muse-spark-1.2-contributor-free',
+      // 'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
+      'ollama/gpt-oss:120b',
     ];
 
     let lastError = null;
