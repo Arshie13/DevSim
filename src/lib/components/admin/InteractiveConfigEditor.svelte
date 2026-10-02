@@ -16,10 +16,10 @@
   const uid = `cfg${Math.random().toString(36).slice(2, 8)}`;
 
   const INPUT_CLASS =
-    "w-full rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2 py-1 text-sm text-[var(--text-primary)] font-mono disabled:cursor-not-allowed disabled:opacity-40";
+    "w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary font-mono disabled:cursor-not-allowed disabled:opacity-40";
   const KEY_CELL_CLASS =
-    "flex items-start rounded border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-2 py-1 text-xs font-mono text-[var(--accent)] break-all";
-  const HINT_CLASS = "text-[0.6rem] font-mono text-[var(--text-muted)]";
+    "flex items-start rounded-chrome border border-[var(--card-border)] bg-obsidian-surface/30 px-2 py-1 text-xs font-mono text-obsidian-accent break-all";
+  const HINT_CLASS = "text-xs font-label text-obsidian-text-muted";
 
   $: fields = mode ? INTERACTIVE_CONFIG_FIELDS[mode] ?? [] : [];
   $: source = (config ?? {}) as Record<string, unknown>;
@@ -32,7 +32,7 @@
 {#if fields.length > 0}
   <div class="col-span-2 space-y-1.5">
     <div class="flex items-center justify-between">
-      <span class="text-xs text-[var(--text-muted)]">Interactive Config</span>
+      <span class="font-label text-xs text-obsidian-text-muted">Interactive Config</span>
       <span class={HINT_CLASS}>interactive_config · {mode}</span>
     </div>
 
@@ -73,7 +73,7 @@
   </div>
 {:else}
   <div class="col-span-2">
-    <p class="text-xs italic text-[var(--text-muted)]">
+    <p class="text-xs italic text-obsidian-text-muted">
       {disabled
         ? "Not applicable to plain text sections."
         : "Select an interactive mode to configure it."}

@@ -1,19 +1,21 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  
+  import { Settings, Boxes, CreditCard, Trophy, Layers, ArrowLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-svelte';
+  import Scrollbar from '$lib/components/ui/Scrollbar.svelte';
+
   // Admin navigation items
   const navItems = [
-    { label: 'Settings', href: '/admin/settings' },
-    { label: 'Containers', href: '/admin/containers' },
-    { label: 'Learner Pass', href: '/admin/learners-pass' },
-    { label: 'Achievements', href: '/admin/achievements' },
-    { label: 'Scenarios', href: '/admin/scenarios' },
+    { label: 'Settings', href: '/admin/settings', icon: Settings },
+    { label: 'Containers', href: '/admin/containers', icon: Boxes },
+    { label: 'Learner Pass', href: '/admin/learners-pass', icon: CreditCard },
+    { label: 'Achievements', href: '/admin/achievements', icon: Trophy },
+    { label: 'Scenarios', href: '/admin/scenarios', icon: Layers }
   ];
 
   let isClient = false;
-  
+  let collapsed = false;
+
   onMount(() => {
     isClient = true;
   });
@@ -22,37 +24,87 @@
 </script>
 
 {#if isClient}
-  <div class="admin-shell flex h-screen min-w-0 bg-[var(--bg)]">
+  <div class="admin-shell flex h-screen min-w-0 bg-obsidian-bg bg-grid-cyber scanlines ambient-glow">
     <!-- Sidebar -->
-    <aside class="admin-sidebar w-64 shrink-0 border-r border-[rgba(7,165,201,0.12)] bg-[rgba(10,14,26,0.95)]">
-      <div class="p-4">
-        <h1 class="[font-family:var(--font-heading)] text-lg font-medium text-[var(--accent)]">
+    <aside
+      class="admin-sidebar relative z-10 flex w-64 shrink-0 flex-col overflow-hidden border-r border-obsidian-accent/10 bg-[rgb(var(--bg-rgb)/0.95)] transition-[width] duration-200"
+      class:admin-collapsed={collapsed}
+    >
+      <div class="flex items-center justify-between p-4 mt-4 {collapsed ? 'flex-col gap-2' : ''}">
+        <h1
+          class="font-heading text-2xl font-semibold whitespace-nowrap text-obsidian-accent transition-opacity {collapsed
+            ? 'w-0 opacity-0 duration-[0ms]'
+            : 'opacity-100 delay-200 duration-150'}"
+        >
           Admin Panel
         </h1>
+        <button
+          type="button"
+          on:click={() => (collapsed = !collapsed)}
+          aria-label={collapsed ? 'Expand admin sidebar' : 'Collapse admin sidebar'}
+          aria-expanded={!collapsed}
+          class="cursor-pointer rounded p-1 text-obsidian-text-muted transition-colors hover:bg-obsidian-accent/10 hover:text-obsidian-accent"
+        >
+          {#if collapsed}
+            <PanelLeftOpen class="h-5 w-5" />
+          {:else}
+            <PanelLeftClose class="h-5 w-5" />
+          {/if}
+        </button>
       </div>
-      
-      <nav class="mt-2 px-2">
+
+      <nav class="mt-2 {collapsed ? 'px-0' : 'px-4'}">
         {#each navItems as item}
           <a
             href={item.href}
-            class="flex items-center px-3 py-2 mb-1 rounded transition-colors {currentPath === item.href ? 'bg-[rgba(7,165,201,0.15)] text-[var(--accent)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[rgba(7,165,201,0.08)]'}"
+            class="flex items-center gap-2 overflow-hidden px-2 py-3 mb-1 rounded-card transition-colors {collapsed ? 'justify-center px-0' : ''} {currentPath === item.href ? 'bg-obsidian-accent/15 text-obsidian-accent' : 'text-obsidian-text-muted hover:text-obsidian-text-primary hover:bg-obsidian-accent/10'}"
           >
-            <span class="[font-family:var(--font-mono)] text-[0.75rem] uppercase tracking-[0.05em]">
+            <item.icon class="h-5 w-5 shrink-0" />
+            <span
+              class="font-body text-base font-medium whitespace-nowrap transition-opacity {collapsed
+                ? 'w-0 opacity-0 duration-[0ms]'
+                : 'opacity-100 delay-200 duration-150'}"
+            >
               {item.label}
             </span>
           </a>
         {/each}
       </nav>
+
+      <!-- Back to app -->
+      <a
+        href="/dashboard"
+        class="admin-backlink overflow-hidden mb-5 mt-auto flex items-center gap-2 font-body text-base text-obsidian-text-muted transition-colors hover:text-obsidian-accent {collapsed ? 'justify-center px-0 mx-0' : 'mx-4'}"
+      >
+        <ArrowLeft class="h-5 w-5 shrink-0" />
+        <span
+          class="whitespace-nowrap transition-opacity {collapsed
+            ? 'w-0 opacity-0 duration-[0ms]'
+            : 'opacity-100 delay-200 duration-150'}"
+        >
+          Back to app
+        </span>
+      </a>
     </aside>
 
     <!-- Main content area -->
-    <main class="min-w-0 flex-1 overflow-auto">
-      <slot />
+    <main class="relative z-10 flex min-w-0 flex-1 flex-col">
+      <Scrollbar className="min-h-0 flex-1">
+        <slot />
+      </Scrollbar>
     </main>
-  </div>
+  </div>  
 {/if}
 
 <style>
+  /* Manual collapse (the toggle overrides the responsive widths everywhere).
+     Text hides instantly on collapse and fades back only after the width
+     transition settles on expand — markup drives that timing, CSS just sets
+     the rail width. */
+  .admin-sidebar.admin-collapsed {
+    width: 3.5rem;
+  }
+
   @media (max-width: 900px) {
     .admin-sidebar {
       width: 12rem;
@@ -71,10 +123,11 @@
     }
 
     .admin-sidebar h1::first-letter {
-      font-size: 1rem;
+      font-size: 1.3rem;
     }
 
-    .admin-sidebar nav span {
+    .admin-sidebar nav span,
+    .admin-backlink span {
       display: none;
     }
   }
