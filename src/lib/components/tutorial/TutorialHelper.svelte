@@ -256,22 +256,32 @@
     }
   }
 
-  // Close any open tutorial modal, then reopen the one (if any) required by
-  // the given step. Forward and Back navigation both funnel through here so
-  // the visible modal always matches the current step.
-  function syncModalsForStep(s: TutorialStep) {
-    if (!browser) return;
-    window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
-    window.dispatchEvent(new CustomEvent("devsim-tour-close-result-modal"));
-    window.dispatchEvent(new CustomEvent("devsim-tour-close-test-selection"));
-    window.dispatchEvent(new CustomEvent("devsim-tour-close-submit-modal"));
+   // Extracts the task order (1 or 2) from a step ID like "task-two-close-modal"
+   // or "test-task-one-open-modal". Falls back to undefined when no task number
+   // is present.
+   function inferTaskOrderFromStepId(stepId: string): number | undefined {
+     const match = /task-(one|two)/.exec(stepId);
+     if (!match) return undefined;
+     return match[1] === "one" ? 1 : 2;
+   }
 
-    if (s.target === "board-task-modal" || s.lockBoardTaskModalToTaskOrder) {
-      window.dispatchEvent(new CustomEvent("devsim-tour-open-task-modal", {
-        detail: { order: s.lockBoardTaskModalToTaskOrder },
-      }));
-      return;
-    }
+   // Close any open tutorial modal, then reopen the one (if any) required by
+   // the given step. Forward and Back navigation both funnel through here so
+   // the visible modal always matches the current step.
+   function syncModalsForStep(s: TutorialStep) {
+     if (!browser) return;
+     window.dispatchEvent(new CustomEvent("devsim-tour-close-task-modal"));
+     window.dispatchEvent(new CustomEvent("devsim-tour-close-result-modal"));
+     window.dispatchEvent(new CustomEvent("devsim-tour-close-test-selection"));
+     window.dispatchEvent(new CustomEvent("devsim-tour-close-submit-modal"));
+
+     if (s.target === "board-task-modal" || s.lockBoardTaskModalToTaskOrder) {
+       const order = s.lockBoardTaskModalToTaskOrder ?? inferTaskOrderFromStepId(s.id);
+       window.dispatchEvent(new CustomEvent("devsim-tour-open-task-modal", {
+         detail: { order },
+       }));
+       return;
+     }
     if (s.spotlightTarget === "test-selection-modal") {
       window.dispatchEvent(new CustomEvent("devsim-tour-open-test-selection"));
       return;
