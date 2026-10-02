@@ -320,7 +320,7 @@ export const levels = [
       xp_reward: 25,
       coin_reward: 125,
       key_takeaways:
-        "Pure functions returning union types are more expressive than booleans when there are more than two meaningful states. Centralising threshold logic in a shared helper eliminates drift between components. A user-facing filter toggle driven by the helper proves the abstraction is working end-to-end.",
+        "Pure functions returning union types are more expressive than booleans when there are more than two meaningful states. Centralising threshold logic in a shared helper eliminates drift between components. The automated checks cover classifier behavior and inspect source for helper references and toggle markup; they do not render the shop or click the toggle.",
       scenario_id: "pern-oe-scenario-2",
       tasks: {
         create: [

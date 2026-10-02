@@ -20,7 +20,7 @@ export const levels = [
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "A Next.js + Prisma portal starts the same way every project does: install deps, point DATABASE_URL at a local DB, run migrations, seed sample data, start the dev server. Knowing the recipe by heart means setup stops being an obstacle and becomes routine.\n\nFormatting helpers belong in src/lib/ as small pure functions. A shared formatMemberName / formatShortDate means the portal header, the membership card, and every future feature display names and dates the exact same way.",
+      "A Next.js + Prisma portal starts the same way every project does: install deps, point DATABASE_URL at a local DB, run migrations, seed sample data, and start the dev server. The automated setup check verifies dependencies, migrations, and that the database contains rows; it does not run the seed command or verify particular records.\n\nFormatting helpers belong in src/lib/ as small pure functions. The formatter tests cover `formatMemberName` and `formatShortDate` in isolation; they do not verify that the portal header or membership card calls them.",
     scenario_id: "nextjs-postgres-prisma-2",
     tasks: {
       create: [
@@ -144,7 +144,7 @@ export const levels = [
           task_name: "Add Member Name and Short Date Helpers",
           test_type: "both",
           user_story:
-            "As a member, I want my name and dates to render consistently on the portal so that the header and membership card always look right regardless of whether middle parts are missing.",
+            "As a developer, I want pure `formatMemberName` and `formatShortDate` helpers with consistent output, so name and date formatting can be reused and tested independently.",
           learning_sections: {
             create: [
               {
@@ -168,7 +168,7 @@ export const levels = [
               {
                 title: "Wiring Them Into the UI",
                 content:
-                  "Replace any `${user.first_name} ${user.last_name}` template-literal with `formatMemberName(user.first_name, user.last_name)`, and any inline `new Date(d).toLocaleDateString()` with `formatShortDate(d)`. The portal header and the membership-details card are the two obvious call sites.",
+                  "In a complete UI integration, replace inline name/date formatting in the portal header and membership card with these helpers. The automated tests only import the helpers and check their return values; they do not inspect UI call sites.",
                 order: 4,
               },
               {

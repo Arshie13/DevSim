@@ -331,7 +331,7 @@ export const levels = [
       xp_reward: 150,
       coin_reward: 125,
       key_takeaways:
-        "Pure two-argument classifiers return richer information than booleans. Per-product thresholds let each SKU set its own LOW_STOCK boundary. Centralising the logic eliminates drift between the POS grid and the Inventory table, and a visible toggle proves the abstraction reaches the user.",
+        "Pure two-argument classifiers return richer information than booleans. Per-product thresholds let each SKU set its own LOW_STOCK boundary. The automated checks cover classifier behavior and inspect source for helper references, toggle state, and label markup; they do not render POS or Inventory pages or click the toggle.",
       scenario_id: "pern-pos-scenario-3",
       tasks: {
         create: [

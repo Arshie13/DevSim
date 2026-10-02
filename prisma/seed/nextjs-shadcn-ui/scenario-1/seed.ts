@@ -116,7 +116,7 @@ export const levels = [
               },
               {
                 description:
-                  "Verify src/components/ui/alert.tsx exists and contains Alert, AlertTitle and AlertDescription",
+                  "Install the Alert component from shadcn and verify that the component exist in src/components/ui",
                 is_required: true,
                 order: 3,
               },
@@ -127,7 +127,7 @@ export const levels = [
           task_name: "Update UI Text",
           test_type: "both",
           user_story:
-            "As a visitor, I want the signup button to read Login so that the page uses the wording the library standardised on.",
+            "As a visitor, I want the signup button to read Login so that it properly reflects what the intent of the button is.",
           learning_sections: {
             create: [
               {

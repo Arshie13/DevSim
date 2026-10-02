@@ -40,7 +40,7 @@ export const levels = [
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "Setting up a MERN project requires installing dependencies in three separate locations (root, client, server), configuring environment variables for MongoDB connection strings, and running a seed script to populate realistic data. Understanding this separation of concerns is foundational for every full-stack developer working with Node.js-based projects.\n\nReact components are the building blocks of every UI. Layout components like Header are shared across pages, meaning a single text change affects the entire application consistently. Knowing where to find and edit a component is as important as knowing how to write one.",
+      "Setting up a MERN project requires installing dependencies in three separate locations (root, client, server), configuring environment variables for MongoDB connection strings, and checking that the API and client can start. Seeding realistic data is a useful manual setup step, but the automated setup test does not run or verify the seed script. Understanding this separation of concerns is foundational for every full-stack developer working with Node.js-based projects.\n\nReact components are the building blocks of every UI. Layout components like Header are shared across pages, meaning a single text change affects the entire application consistently. Knowing where to find and edit a component is as important as knowing how to write one.",
     scenario_id: "mern-tw-scenario-3",
     tasks: {
       create: [
@@ -337,7 +337,7 @@ export const levels = [
     subtitle: "Build the StopCard component and add day filtering to the itinerary.",
     order: 2,
     level_description:
-      "Mission Briefing: The TripWeaver itinerary page is barely functional — stops are not displaying and there is no way to filter by day. The tasks are to build the StopCard presentational component from a stub and then wire up the DayFilter so travelers can focus on a single day of their trip.",
+      "Mission Briefing: Build the StopCard presentational component and complete the controlled DayFilter chip behavior. The automated DayFilter checks cover its supplied chips, selection callback, and pressed state; they do not verify date-range chip generation, filtering the itinerary list, or a filter helper.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
@@ -509,7 +509,7 @@ export const levels = [
           task_name: "Filter the Itinerary by Day",
           test_type: "client",
           user_story:
-            "As a member, I want to filter the itinerary by day so I can focus on a single date when planning.",
+            "As a developer, I want the controlled DayFilter to render the supplied day chips and report selections through its callback, so its selection behavior is accessible and testable.",
           learning_sections: {
             create: [
               {
@@ -521,7 +521,7 @@ export const levels = [
               {
                 title: "Lifting State Up",
                 content:
-                  "When two sibling components need to share the same value, move that value up to their nearest common ancestor. DayFilter reads activeDay to highlight the selected chip. ItineraryFeed reads filteredStops (derived from activeDay). Neither component manages the state — they just receive and display it.",
+                  "When sibling components need to share a value, move it to their nearest common ancestor. The automated component test focuses on DayFilter: it receives the active day and callback as props, renders the supplied chips, and reports a selected day. The test does not assert that TripDetail filters the itinerary feed.",
                 order: 2,
               },
               {
@@ -539,13 +539,13 @@ export const levels = [
               {
                 title: "useMemo for Derived State",
                 content:
-                  "Instead of storing filteredStops in state, derive it from existing state with useMemo. This is more reliable than keeping a separate filtered array in state — it stays in sync automatically whenever the source data or filter changes. Only recomputes when the dependencies change.",
+                  "In a complete integration, derive filtered stops from existing state (optionally with useMemo) rather than storing a second copy. This integration is not covered by the DayFilter component test.",
                 order: 5,
               },
               {
                 title: "Chip Group Pattern",
                 content:
-                  "A chip group is a row of pill-shaped buttons where one is active at a time. Generate the day chips dynamically from the trip's startDate and endDate so they always match the trip duration. The 'All' chip always comes first and resets the filter.",
+                  "A chip group is a row of buttons where one is active at a time. DayFilter receives its day keys through `days`; the component test checks that it renders each supplied key plus an All chip, and that selecting a chip calls the callback. Generating keys from trip dates is outside that test.",
                 order: 6,
               },
               {
@@ -636,7 +636,7 @@ export const levels = [
               },
               {
                 description:
-                  "Make `filterByDay` in `client/src/utils/helpers.ts` return all stops for `\"all\"` and otherwise match on the stop's day key.",
+                  "The automated task tests `DayFilter` props, rendered chips, callback calls, and `aria-pressed`; it does not test `filterByDay` or itinerary-list filtering.",
                 order: 5,
               },
               {

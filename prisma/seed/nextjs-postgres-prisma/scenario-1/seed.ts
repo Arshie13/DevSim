@@ -20,7 +20,7 @@ export const levels = [
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "A Next.js + PostgreSQL + Prisma app comes up in three steps: install dependencies, point DATABASE_URL at a local database, then run Prisma migrations so the schema and the generated client match. Seeding loads the sample data the UI renders.\n\nFormatting helpers belong in src/lib/ as small, pure functions. Centralizing currency formatting in one exported helper keeps every price display consistent and makes the rule easy to test in isolation.",
+      "A Next.js + PostgreSQL + Prisma app comes up in three steps: install dependencies, point DATABASE_URL at a local database, then run Prisma migrations so the schema and the generated client match. Seeding loads the sample data the UI renders; the setup check only requires the database check to succeed with at least one row and does not verify the seed command or specific sample records.\n\nFormatting helpers belong in src/lib/ as small, pure functions. The currency tests check the exported helper's output, not whether the POS and Inventory pages call it.",
     scenario_id: "nextjs-postgres-prisma-1",
     tasks: {
       create: [
@@ -128,7 +128,7 @@ export const levels = [
               },
               {
                 description:
-                  "Confirm sample data is loaded (database shows rows).",
+                  "Confirm the database check reports at least one row; it does not verify that specific sample data was loaded.",
                 is_required: true,
                 order: 5,
               },
@@ -139,7 +139,7 @@ export const levels = [
           task_name: "Add Peso Formatting Helper",
           test_type: "both",
           user_story:
-            "As a cashier, I want every price on the POS and Inventory screens formatted consistently in pesos so that I can scan amounts without second-guessing.",
+            "As a developer, I want an exported `formatPeso` helper that consistently formats peso amounts, so the currency-formatting rule is testable and reusable.",
           learning_sections: {
             create: [
               {
@@ -163,7 +163,7 @@ export const levels = [
               {
                 title: "Wiring It Into the UI",
                 content:
-                  "Once formatPeso exists, replace ad-hoc `${price}` and `price.toFixed(2)` expressions in the POS and Inventory pages with `formatPeso(price)`. The goal is that every visible price on screen flows through the same helper.",
+                  "In a complete UI integration, replace ad-hoc price formatting in the POS and Inventory pages with `formatPeso(price)`. The automated tests only import the helper and check its return values; they do not check page call sites.",
                 order: 4,
               },
               {

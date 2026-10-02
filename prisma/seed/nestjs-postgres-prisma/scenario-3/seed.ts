@@ -553,7 +553,7 @@ export const levels = [
                 order: 2,
               },
               {
-                description: "View page 2 with limit 5 and verify it returns the second page of 5 products",
+                description: "Verify the response reports page 2 and limit 5 and contains at most 5 rows; the test does not compare rows with page 1 to confirm offset behavior",
                 is_required: true,
                 order: 3,
               },

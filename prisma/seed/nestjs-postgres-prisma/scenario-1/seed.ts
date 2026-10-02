@@ -342,7 +342,7 @@ export const levels = [
     subtitle: "Build paginated transaction lists and guard visibility with soft-delete categories.",
     order: 2,
     level_description:
-      "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. The job is to implement offset-based pagination (page/limit) with filters and enforce soft-delete visibility rules across the API.",
+      "Mission Briefing: FlexiSpend users need to browse transactions efficiently, and inactive categories should be hidden from daily use. Implement page/limit pagination and filters, then enforce soft-delete visibility rules. The tests check response shape/counts and category visibility/use; they do not verify row ordering, exact date-filter membership, or preservation of pre-existing historical transactions.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
@@ -477,7 +477,7 @@ export const levels = [
               },
               {
                 description:
-                  "Verify pagination uses offset-based approach (page 1 returns first 5 items)",
+                  "Verify page 1 with limit 5 returns five rows and the paginated response metadata; row identity/order is not asserted",
                 is_required: true,
                 order: 2,
               },
@@ -501,7 +501,7 @@ export const levels = [
               },
               {
                 description:
-                  "Filter transactions by date range and verify results match the date filter",
+                  "Filter transactions by date range and verify the total is within the test's asserted range (1–6); individual row dates are not checked",
                 is_required: true,
                 order: 6,
               },
@@ -514,7 +514,7 @@ export const levels = [
           task_name: "Soft-Deleted Categories Visibility",
           test_type: "both",
           user_story:
-            "As a user, I want inactive categories to be hidden from my category list so I don't accidentally use them, but I don't want to lose historical transactions tied to them.",
+            "As a user, I want inactive categories hidden from my category list and rejected for new transactions so that I do not accidentally use them.",
           learning_sections: {
             create: [
               {
@@ -526,7 +526,7 @@ export const levels = [
               {
                 title: "Hard Delete vs Soft Delete",
                 content:
-                  "A hard delete removes a row permanently:\n\nawait prisma.category.delete({ where: { id } });\n\nThis is dangerous when other tables have foreign keys pointing to it. Prisma will throw a foreign-key constraint error, or worse, cascade and delete 500 linked transactions.\n\nA soft delete keeps the row but sets a flag:\n\nawait prisma.category.update({\n  where: { id },\n  data: { isActive: false },\n});\n\nHistorical transactions remain intact. The category simply disappears from active lists.",
+                  "A hard delete removes a row permanently:\n\nawait prisma.category.delete({ where: { id } });\n\nThis is dangerous when other tables have foreign keys pointing to it. Prisma will throw a foreign-key constraint error, or worse, cascade and delete 500 linked transactions.\n\nA soft delete keeps the row but sets a flag:\n\nawait prisma.category.update({\n  where: { id },\n  data: { isActive: false },\n});\n\nThe soft-delete pattern is intended to preserve historical transactions while hiding the category from active lists. This scenario's tests verify visibility and rejection of new transactions, but do not create or check historical transactions.",
                 order: 2,
               },
               {
