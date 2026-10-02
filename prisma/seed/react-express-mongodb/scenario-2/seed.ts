@@ -95,7 +95,7 @@ export const levels = [
                   directory_tree: {
                     "/workspace": ["client", "server", "README.md", "package.json"],
                     "/workspace/client": ["src", "package.json", "vite.config.ts"],
-                    "/workspace/server": ["src", "package.json", ".env.example"],
+                    "/workspace/server": ["src", "package.json"],
                   },
                 },
                 order: 6,
@@ -103,7 +103,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/fittrackr\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGO_URI=mongodb://localhost:27017/fittrackr\nPORT=5000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGO_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
                 order: 7,
               },
               {
@@ -115,7 +115,7 @@ export const levels = [
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The FitTrackr seed creates 8 users, 18 workouts, 20 cheers, and 15 comments.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The FitTrackr seed creates 8 users, 18 workouts, 20 cheers, and 15 comments.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via tsx.",
                 order: 9,
               },
               {
@@ -876,7 +876,7 @@ export const levels = [
               {
                 title: "Response Envelopes",
                 content:
-                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, message: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
+                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, error: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
                 order: 4,
               },
               {
@@ -1196,7 +1196,7 @@ export const levels = [
                 order: 8,
               },
               {
-                description: "Verify cheerWorkout service function exists and is not a stub",
+                description: "Verify cheerWorkout service function exists",
                 is_required: true,
                 order: 9,
               },
@@ -1403,7 +1403,7 @@ export const levels = [
     xp_reward: 300,
     coin_reward: 150,
     key_takeaways:
-      "Database-level unique indexes are the only reliable way to enforce uniqueness under concurrent load. Application-level checks (findOne then create) have a race window — two requests can both find no existing document and both insert. The MongoDB unique index catches the second insert and returns E11000, which the application handles as an idempotent no-op.\n\nDate objects in JavaScript are always UTC instants. Converting a UTC timestamp to a local calendar day requires timezone-aware formatting. Naive toISOString().slice(0,10) gives the UTC date — for a UTC+8 user this assigns late-night workouts to the next UTC calendar day, which is actually the same local day. Always use Intl.DateTimeFormat or a tz-aware library when grouping by user-local date.",
+      "Database-level unique indexes are the only reliable way to enforce uniqueness under concurrent load. Application-level checks (findOne then create) have a race window — two requests can both find no existing document and both insert. The MongoDB unique index catches the second insert and returns E11000, which the application handles as an idempotent no-op.\n\nDate objects in JavaScript are always UTC instants. Converting a UTC timestamp to a local calendar day requires timezone-aware formatting. Naive toISOString().slice(0,10) gives the UTC date — for a UTC+8 user a workout just after local midnight is still the previous UTC day, so it is grouped under the wrong local date. Always use Intl.DateTimeFormat or a tz-aware library when grouping by user-local date.",
     scenario_id: "mern-ft-scenario-2",
     tasks: {
       create: [
@@ -1571,7 +1571,7 @@ export const levels = [
               {
                 title: "The Bug: Wrong Day Assignment",
                 content:
-                  'Client Report: "I log a workout at 11:30 PM on Monday (I\'m in Manila, UTC+8) but my streak page says it counts as Tuesday and breaks my streak."\n\nRoot cause: the streak controller uses performedAt.toISOString().slice(0, 10), which always returns the UTC date. For a user in UTC+8, a workout timestamp that is 00:30 local the next day gets assigned to the wrong calendar day. The problem only affects users in timezones with positive offsets where late-night workouts cross the UTC date boundary.',
+                  'Client Report: "I log a workout at 12:30 AM on Tuesday (I\'m in Manila, UTC+8) but my streak page counts it as Monday and breaks my streak."\n\nRoot cause: the streak controller uses performedAt.toISOString().slice(0, 10), which always returns the UTC date. For a user in UTC+8, a workout at 00:30 local on Tuesday is 16:30Z on Monday, so the UTC slice assigns it to Monday. The problem only affects timezones with positive offsets, where a workout just after local midnight belongs to the previous UTC date.',
                 order: 2,
               },
               {
@@ -1660,7 +1660,7 @@ export const levels = [
               },
               {
                 description:
-                  "The grouping key still has to be a `YYYY-MM-DD` string, because the response is built on a `date` property holding a local calendar day, not an instant. Two workouts at 15:30Z on consecutive UTC dates are 23:30 on consecutive local days for a Manila user, so they have to produce a streak of 2.",
+                  "The grouping key still has to be a `YYYY-MM-DD` string, because the response is built on a `lastWorkoutDate` property holding a local calendar day, not an instant. Two workouts at 15:30Z on consecutive UTC dates are 23:30 on consecutive local days for a Manila user, so they have to produce a streak of 2.",
                 order: 3,
               },
             ],

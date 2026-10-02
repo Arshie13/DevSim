@@ -938,7 +938,7 @@ export const levels = [
                 },
                 {
                   description:
-                    "The POST /api/orders checkout handler uses product.updateMany with a stock guard condition (get: quantity).",
+                    "The POST /api/orders checkout handler uses product.updateMany with a stock guard condition (gte: quantity).",
                   is_required: true,
                   order: 6,
                 },

@@ -13,28 +13,28 @@ export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-3-level-1",
     title: "Onboarding the Student Portal",
-    subtitle: "Install dependencies, add four shadcn/ui primitives, and fix the login button copy",
+    subtitle: "Install dependencies, add the shadcn/ui Alert component, and fix the login button copy",
     order: 1,
     level_description:
-      "Mission Briefing: Riverside University has onboarded a new developer and the student portal has to run on their machine before any feature work starts. Install the project dependencies with `pnpm install` and confirm `pnpm dev` prints `ready` or `Local:`. Then add four shadcn/ui components to the project source: `src/components/ui/alert.tsx` naming `Alert`, `AlertTitle` and `AlertDescription`; `src/components/ui/dropdown-menu.tsx` naming `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuSeparator`, `DropdownMenuLabel` and `DropdownMenuGroup`; `src/components/ui/collapsible.tsx` naming `Collapsible`, `CollapsibleTrigger` and `CollapsibleContent`; and `src/components/ui/dialog.tsx` naming `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` and `DialogFooter`. Finally update `src/app/login/page.tsx` so the submit button reads `Log In` and the old `Sign In` copy is gone.",
+      "Mission Briefing: Riverside University has onboarded a new developer and the student portal has to run on their machine before any feature work starts. Install the project dependencies with `pnpm install` and confirm `pnpm dev` prints `ready` or `Local:`. Then add the shadcn/ui Alert component to the project source: `src/components/ui/alert.tsx` naming `Alert`, `AlertTitle` and `AlertDescription`. Finally update `src/app/login/page.tsx` so the submit button reads `Log In` and the old `Sign In` copy is gone.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "A project only counts as set up once `node_modules/next` and `node_modules/react` exist on disk and `pnpm dev` prints `ready` or `Local:`. shadcn/ui components are copied into `src/components/ui/`, so the graded check is that each of `alert.tsx`, `dropdown-menu.tsx`, `collapsible.tsx` and `dialog.tsx` exists and names the identifiers listed for it; three of those four files are reused by later levels. Branding copy is graded from source: `src/app/login/page.tsx` must contain `Log In` and must not contain `Sign In` once comments are stripped.",
+      "A project only counts as set up once `node_modules/next` and `node_modules/react` exist on disk and `pnpm dev` prints `ready` or `Local:`. shadcn/ui components are copied into `src/components/ui/`, so the graded check is that `alert.tsx` exists and names `Alert`, `AlertTitle` and `AlertDescription`. Branding copy is graded from source: `src/app/login/page.tsx` must contain `Log In` and must not contain `Sign In` once comments are stripped.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
-          task_name: "Dependencies and shadcn/ui Primitives",
+          task_name: "Dependencies and the shadcn/ui Alert Component",
           test_type: "both",
           user_story:
-            "As a developer, I want the portal dependencies installed, the four shadcn/ui components this project builds on copied into `src/components/ui/`, and `pnpm dev` booting so that the rest of the levels have a project that actually runs.",
+            "As a developer, I want the portal dependencies installed, the shadcn/ui Alert component copied into `src/components/ui/`, and `pnpm dev` booting so that the rest of the levels have a project that actually runs.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nGetting the Portal Running Locally",
                 content:
-                  "This level works on three things, all checked from the command line and the filesystem: dependencies are installed, the four shadcn/ui components this project relies on are present in the project source, and the Next.js dev server starts. Nothing here touches application features.",
+                  "This level works on three things, all checked from the command line and the filesystem: dependencies are installed, the shadcn/ui Alert component is present in the project source, and the Next.js dev server starts. Nothing here touches application features.",
                 order: 1,
               },
               {
@@ -44,9 +44,9 @@ export const levels = [
                 order: 2,
               },
               {
-                title: "Adding the shadcn/ui Components",
+                title: "Adding the shadcn/ui Alert Component",
                 content:
-                  "shadcn/ui components are copied into your own source instead of installed as a package, and this project needs four of them. Each is checked by reading its file from disk and looking for the names below.\n\nsrc/components/ui/alert.tsx names `Alert`, `AlertTitle` and `AlertDescription`.\nsrc/components/ui/dropdown-menu.tsx names `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuSeparator`, `DropdownMenuLabel` and `DropdownMenuGroup`.\nsrc/components/ui/collapsible.tsx names `Collapsible`, `CollapsibleTrigger` and `CollapsibleContent`.\nsrc/components/ui/dialog.tsx names `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` and `DialogFooter`.\n\nOne command adds all four:\npnpm dlx shadcn@latest add alert dropdown-menu collapsible dialog\n\nThe dropdown menu is used by the dashboard header in the last level, the collapsible by the semester accordion in level two, and the dialog by the document request flow in level four.",
+                  "shadcn/ui components are copied into your own source instead of installed as a package. This level's graded component is the Alert primitive, checked by reading its file from disk and looking for the names below.\n\nsrc/components/ui/alert.tsx names `Alert`, `AlertTitle` and `AlertDescription`.\n\nOne command adds it:\npnpm dlx shadcn@latest add alert",
                 order: 3,
               },
               {
@@ -97,7 +97,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "The checks in this level are: `node_modules` with `next` and `react` inside it, a dev server that prints `ready` or `Local:` within 30 seconds without a non-zero exit, and four files in `src/components/ui/` whose source names `Alert`, `AlertTitle`, `AlertDescription`, the seven `DropdownMenu` names, `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`, `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` and `DialogFooter`.",
+                  "The checks in this level are: `node_modules` with `next` and `react` inside it, a dev server that prints `ready` or `Local:` within 30 seconds without a non-zero exit, and `src/components/ui/alert.tsx` whose source names `Alert`, `AlertTitle` and `AlertDescription`.",
                 order: 6,
               },
             ],
@@ -109,7 +109,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Run `pnpm dlx shadcn@latest add alert dropdown-menu collapsible dialog` so `src/components/ui/alert.tsx`, `src/components/ui/dropdown-menu.tsx`, `src/components/ui/collapsible.tsx` and `src/components/ui/dialog.tsx` are all written.",
+                description: "Run `pnpm dlx shadcn@latest add alert` so `src/components/ui/alert.tsx` is written.",
                 order: 2,
               },
               {
@@ -117,7 +117,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description: "Work through them in that order from the project root: install, add the four components, then start the server and leave it up.",
+                description: "Work through them in that order from the project root: install, add the Alert component, then start the server and leave it up.",
                 order: 4,
               },
             ],
@@ -143,24 +143,6 @@ export const levels = [
                 is_required: true,
                 order: 3,
               },
-              {
-                description:
-                  "Add the dropdown-menu shadcn/ui component using the CLI and verify it exports DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, and DropdownMenuGroup",
-                is_required: true,
-                order: 4,
-              },
-              {
-                description:
-                  "Add the collapsible shadcn/ui component using the CLI and verify it exports Collapsible, CollapsibleTrigger, and CollapsibleContent",
-                is_required: true,
-                order: 5,
-              },
-              {
-                description:
-                  "Add the dialog shadcn/ui component using the CLI and verify it exports Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, and DialogFooter",
-                is_required: true,
-                order: 6,
-              },
             ],
           },
         },
@@ -180,7 +162,7 @@ export const levels = [
               {
                 title: "Where the Copy Lives",
                 content:
-                  "The login form is a client component at `src/app/login/page.tsx`. The submit button currently renders a ternary:\n\n{isLoading ? 'Signing in...' : 'Sign In'}\n\nBoth strings are in that file, so both have to change together.",
+                  "The login form is a client component at `src/app/login/page.tsx`. The submit button currently renders a ternary:\n\n{isLoading ? 'Signing in...' : 'Sign In'}\n\nThe check reads this file for `Log In` and for the absence of `Sign In`; only the idle branch contains `Sign In`, so that is the one the check depends on.",
                 order: 2,
               },
               {
@@ -269,21 +251,9 @@ export const levels = [
               },
               {
                 description:
-                  "Update the loading label from 'Signing in...' to 'Logging In...'",
+                  "Confirm the login page source (with `//` and `/* */` comments stripped) contains 'Log In' and no remaining 'Sign In'",
                 is_required: true,
                 order: 2,
-              },
-              {
-                description:
-                  "Remove all remaining instances of 'Sign In' from the login page source (outside of comments)",
-                is_required: true,
-                order: 3,
-              },
-              {
-                description:
-                  "Verify the login page shows 'Log In' and 'Logging In...' and no 'Sign In' text is visible",
-                is_required: true,
-                order: 4,
               },
             ],
           },
@@ -293,89 +263,83 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-3-level-2",
-    title: "Warning the Student and Collapsing the Grades Table",
-    subtitle: "Add an academic probation `Alert` banner to the standing page, and a `SemesterGroup` accordion for the grades page",
+    title: "Explaining Standing Badges and Collapsing the Grades Table",
+    subtitle: "Add an `InfoTooltip` to the standing status badges, and a `SemesterGroup` accordion for the grades page",
     order: 2,
     level_description:
-      "Mission Briefing: the standing page prints a `Good Standing` badge with no warning about what the three tiers mean and no way to act on them. Put a shadcn/ui `Alert` banner at the top of `src/app/dashboard/standing/page.tsx`, carrying a level 5 title, the GPA threshold the student has to clear, and a link to an advisor meeting. Then build `src/components/SemesterGroup.tsx` on the shadcn/ui `Collapsible` component added in level one and use it in the All Semesters tab of `src/app/dashboard/grades/page.tsx` to render one group per unique `(semester, academicYear)` pair, with the first group open.",
+      "Mission Briefing: the standing page prints a `Good Standing` badge with no explanation of what the three tiers mean. Wrap each academic-status badge on `src/app/dashboard/standing/page.tsx` in a new `InfoTooltip` so hovering it explains the GPA rule for that tier. Then create `src/components/SemesterGroup.tsx`, an accordion section that shows its title on a real button and reveals its children only when open, and use it in the All Semesters tab of `src/app/dashboard/grades/page.tsx` to render one group per unique `(semester, academicYear)` pair, with the first group open.",
     xp_reward: 25,
     coin_reward: 50,
     key_takeaways:
-      "A live region is what makes an `Alert` announce itself: the shadcn/ui `Alert` primitive renders the `alert` role, and the destructive styling the standing banner needs is four extra Tailwind classes, `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`. An accordion trigger built on shadcn/ui `Collapsible` is a real `button` whose accessible name is its `title` prop and whose `aria-expanded` flips from `false` to `true` on click, or starts `true` when `defaultOpen` is passed; each trigger also carries `flex`, `w-full`, `items-center`, `justify-between`, `py-2`, `px-4`, `rounded-md` and `hover:bg-accent`. Grouping the All Semesters tab by the pair `(semester, academicYear)` produces exactly two triggers for the shipped mock data, `1st Semester — 2025-2026` and `2nd Semester — 2024-2025`.",
+      "A tooltip is a labelled surface: `InfoTooltip` renders an element with the `tooltip` role whose accessible name is its `label` prop, and it stays out of the way until hover by combining `opacity-0` and `pointer-events-none` on the tooltip with `group` on the wrapper and `group-hover:opacity-100` on the tooltip. The three tier strings the standing page has to include are the source of truth for what each badge means. A `SemesterGroup` is a real `button` whose accessible name is its `title` prop and whose `aria-expanded` flips from `false` to `true` on click, or starts `true` when `defaultOpen` is passed; the children are unmounted while collapsed rather than merely hidden. Grouping the All Semesters tab by the pair `(semester, academicYear)` produces exactly two triggers for the shipped mock data, `1st Semester — 2025-2026` and `2nd Semester — 2024-2025`.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
-          task_name: "Academic Probation Alert Banner",
+          task_name: "InfoTooltip on the Standing Status Badges",
           test_type: "both",
           user_story:
-            "As a student, I want a prominent warning banner at the top of the standing page that names my probation status, the GPA I have to clear and where to book an advisor meeting, so that I know what I have to fix.",
+            "As a student, I want each academic-status badge on the standing page to explain what that status means, so that I know how the GPA tiers are defined.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nA Live Region, Not Just Styling",
+                title: "Overview\nExplaining a Badge",
                 content:
-                  "The standing page at `src/app/dashboard/standing/page.tsx` renders a status badge and nothing else about what the tiers mean. This task adds a banner at the top of that page, built from the shadcn/ui `Alert` primitive installed in level one.",
+                  "The standing page at `src/app/dashboard/standing/page.tsx` renders one status badge per academic tier through its `getStatusBadge` helper, and nothing explains what the tiers mean. This task adds a small `InfoTooltip` component and wraps each badge with it.",
                 order: 1,
               },
               {
-                title: "The alert Role",
+                title: "The InfoTooltip Component",
                 content:
-                  "The shadcn/ui `Alert` component renders its wrapper with `role='alert'`, which is a live region: assistive technology announces the banner when it appears. Because the role comes from the primitive, the banner has to be an `Alert` element rather than a plain `div`.\n\n<Alert className='border-l-4 border-red-500 bg-red-50 text-red-900'>\n  ...\n</Alert>\n\nThe check queries the rendered page with the `alert` role, so anything that does not carry that role is invisible to it.",
+                  "Create `src/components/InfoTooltip.tsx` exporting `InfoTooltip`, which takes a `label` string and the `children` it wraps:\n\n<InfoTooltip label='Good Standing — cumulative GPA of 3.0 or higher'>\n  <Badge>Good Standing</Badge>\n</InfoTooltip>\n\nIt renders a wrapper around `children` and, inside it, an element with the `tooltip` role whose accessible name is the `label`. The check imports the component and renders it directly, so the export has to be named `InfoTooltip`.",
                 order: 2,
               },
               {
-                title: "The Destructive Styling",
+                title: "Hidden Until Hover",
                 content:
-                  "Four Tailwind classes carry the whole visual treatment and each is checked by name on the `alert` element:\n\nborder-l-4\nborder-red-500\nbg-red-50\ntext-red-900\n\n`border-l-4` plus a red border colour gives the thick left rule, `bg-red-50` the tinted panel, and `text-red-900` the readable text colour.",
+                  "The tooltip is always in the document but visually out of the way until the wrapper is hovered. Four class names carry that behaviour, and the check reads them off the rendered elements:\n\nthe wrapper carries `group`\nthe tooltip carries `opacity-0`\nthe tooltip carries `pointer-events-none`\nthe tooltip carries `group-hover:opacity-100`\n\nMissing any one of them fails the check: `opacity-0` hides it, `pointer-events-none` keeps it from intercepting the pointer, `group` opts the wrapper into group-hover, and `group-hover:opacity-100` is what reveals it.",
                 order: 3,
               },
               {
-                title: "The Heading Level",
+                title: "The Three Tier Strings",
                 content:
-                  "Inside the banner the title is a real `heading` element at level 5, and its text mentions probation or academic standing:\n\n<AlertTitle asChild><h5>Academic Probation Warning</h5></AlertTitle>\n\nThe page already has an `h1` for the page title and the card titles around it, so the banner deliberately sits one level below the card headings rather than competing with the `h1`.",
+                  "The standing page has to state what each tier means. The check reads `src/app/dashboard/standing/page.tsx` as source and matches three strings, so they have to appear literally in the file:\n\ngood standing ... cumulative gpa ... 3.0\nwarning ... gpa ... 2.0 ... 2.99\nprobation ... gpa below 2.0 ... advisor\n\nThat gives three concrete labels, for example:\n\nGood Standing — cumulative GPA of 3.0 or higher\nWarning — cumulative GPA between 2.0 and 2.99\nProbation — cumulative GPA below 2.0, book a meeting with your advisor\n\nThe rendered `good` tooltip is also queried by its accessible name, so the good label has to be attached to the badge shown for `currentStanding.academicStatus`, which is `good`.",
                 order: 4,
               },
               {
-                title: "The GPA Line and the Advisor Link",
+                title: "Practice Lab: Status Tooltip Copy",
                 content:
-                  "The banner body states the GPA situation and the threshold the student has to clear, so a single element in the banner carries text about GPA or grade points together with `2.0` or the words minimum or required.\n\nIt also carries a real `link` for booking the meeting, so the student has somewhere to go from the warning. Its accessible name mentions an advisor, scheduling or a meeting, and its `href` points at an advisor or scheduling destination.",
-                order: 5,
-              },
-              {
-                title: "Practice Lab: Tier Thresholds",
-                content:
-                  "Practice the pure function that maps an academic status to the GPA threshold it has to clear.",
+                  "Practice the pure lookup behind the three tier labels.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement `gpaThresholdFor(status)` returning `3.0` for `good`, `2.5` for `warning` and `2.0` for `probation`, and `null` for anything else.",
+                    "Implement `tooltipForStatus(status)` returning the tooltip copy for a tier: `'Good Standing — cumulative GPA of 3.0 or higher'` for `good`, `'Warning — cumulative GPA between 2.0 and 2.99'` for `warning`, `'Probation — cumulative GPA below 2.0, book a meeting with your advisor'` for `probation`, and `null` for anything else.",
                   language: "typescript",
                   starter_code:
-                    "export function gpaThresholdFor(status: string): number | null {\n  // TODO\n}\n",
+                    "export function tooltipForStatus(status: string): string | null {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "gpaThresholdFor",
+                  entry_point: "tooltipForStatus",
                   test_cases: [
                     {
                       input: ["good"],
-                      expected: 3,
-                      label: "good standing threshold",
+                      expected: "Good Standing — cumulative GPA of 3.0 or higher",
+                      label: "good standing copy",
                     },
                     {
                       input: ["warning"],
-                      expected: 2.5,
-                      label: "warning threshold",
+                      expected: "Warning — cumulative GPA between 2.0 and 2.99",
+                      label: "warning copy",
                     },
                     {
                       input: ["probation"],
-                      expected: 2,
-                      label: "probation threshold",
+                      expected: "Probation — cumulative GPA below 2.0, book a meeting with your advisor",
+                      label: "probation copy",
                     },
                     {
                       input: ["unknown"],
@@ -385,32 +349,32 @@ export const levels = [
                   ],
                   hints: [
                     "Use a plain object keyed by status.",
-                    "const table: Record<string, number> = { good: 3.0, warning: 2.5, probation: 2.0 }; return table[status] ?? null;",
-                    "const table: Record<string, number> = { good: ___, warning: ___, probation: ___ }; return table[status] ?? ___;",
+                    "const table: Record<string, string> = { good: '…', warning: '…', probation: '…' }; return table[status] ?? null;",
+                    "const table: Record<string, string> = { good: ___, warning: ___, probation: ___ }; return table[status] ?? ___;",
                   ],
                 },
-                order: 6,
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "The banner is an `Alert` with `role='alert'`, the classes `border-l-4 border-red-500 bg-red-50 text-red-900`, a level 5 heading naming probation, a line stating the GPA threshold and a link to book an advisor meeting.",
-                order: 7,
+                  "`InfoTooltip` renders a `tooltip`-role element named by its `label`, hidden with `opacity-0` and `pointer-events-none` and revealed with `group` + `group-hover:opacity-100`, and the standing page wraps each status badge with it and carries the three tier strings in its source.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Import `Alert`, `AlertTitle` and `AlertDescription` from `@/components/ui/alert` at the top of `src/app/dashboard/standing/page.tsx` and render the banner above the status card.",
+                description: "Create `src/components/InfoTooltip.tsx` exporting `InfoTooltip`, rendering an element with `role='tooltip'` whose accessible name is the `label` prop.",
                 order: 1,
               },
               {
-                description: "Put `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900` on the `Alert` itself, and make the title a level 5 heading whose text mentions probation or academic standing.",
+                description: "Put `group` on the wrapper, and `opacity-0`, `pointer-events-none` and `group-hover:opacity-100` on the tooltip, so it is hidden until hover.",
                 order: 2,
               },
               {
-                description: "In the body, state the GPA threshold using `2.0` or the words minimum or required, and add a real `link` to an advisor or scheduling destination.",
+                description: "In `getStatusBadge` on the standing page, wrap each badge in `InfoTooltip` with the matching tier copy, and make sure all three strings appear literally in the page source.",
                 order: 3,
               },
             ],
@@ -420,37 +384,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "Add an Alert banner to the top of the standing page with alert role",
+                  "Create src/components/InfoTooltip.tsx exporting InfoTooltip that renders an element with role='tooltip' whose text is the label prop",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Style the Alert with border-l-4, border-red-500, bg-red-50, and text-red-900 classes",
+                  "Verify the tooltip is hidden by default with the classes opacity-0 and pointer-events-none",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Add a level 5 heading in the Alert mentioning probation or academic standing",
+                  "Verify the wrapper carries the `group` class and the tooltip reveals on hover via group-hover:opacity-100",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Include GPA threshold text (mentioning GPA/grade point and 2.0/minimum/required) in the Alert body",
+                  "Wrap the academic status badge on the standing page in InfoTooltip with a label matching 'good standing ... cumulative GPA ... 3.0'",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Add a link in the Alert for booking an advisor meeting (accessible name mentions advisor/schedule/meeting, href matches advisor/schedule)",
+                  "Include the Warning tier tooltip copy in standing/page.tsx (matches 'warning ... GPA ... 2.0 ... 2.99')",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Import Alert components in the standing page",
+                  "Include the Probation tier tooltip copy in standing/page.tsx (matches 'probation ... GPA below 2.0 ... advisor')",
                 is_required: true,
                 order: 6,
               },
@@ -458,28 +422,28 @@ export const levels = [
           },
         },
         {
-          task_name: "SemesterGroup Accordion on the shadcn Collapsible",
+          task_name: "SemesterGroup Accordion on the Grades Page",
           test_type: "both",
           user_story:
-            "As a student, I want the All Semesters tab collapsed into one expandable group per term, built on the shadcn `Collapsible` component, so that I can open only the term I care about.",
+            "As a student, I want the All Semesters tab collapsed into one expandable group per term so that I can open only the term I care about.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nA Collapsible Section",
+                title: "Overview\nAn Expandable Section",
                 content:
-                  "`SemesterGroup` takes a `title` string, an optional `defaultOpen` boolean, and `children`. It renders one `button` for the title and a body region that holds the children.\n\nIt is built on the shadcn/ui `Collapsible` component installed in level one, so `src/components/SemesterGroup.tsx` imports `Collapsible`, `CollapsibleTrigger` and `CollapsibleContent` from `@/components/ui/collapsible` and nests the trigger and the body inside them.",
+                  "Create `src/components/SemesterGroup.tsx` exporting `SemesterGroup`, which takes a `title` string, an optional `defaultOpen` boolean, and `children`. It renders one `button` for the title and a body that holds the children, and the body is only in the document while the group is open.",
                 order: 1,
               },
               {
                 title: "The Trigger Button",
                 content:
-                  "The trigger is a real `button` element, not a `div` with an onClick. Its accessible name is the `title` prop, so `<SemesterGroup title='Section A'>` is queried with the name `Section A`.\n\nIt also carries the expansion state and the full-width header row layout:\n\n<CollapsibleTrigger className='flex w-full items-center justify-between py-2 px-4 rounded-md hover:bg-accent'>\n\nWithout `defaultOpen`, the expanded state starts `false`, so `aria-expanded` starts `false`.",
+                  "The trigger is a real `button` element, not a `div` with an onClick. Its accessible name is the `title` prop, so `<SemesterGroup title='Section A'>` is queried with the name `Section A`.\n\nIt also reports the expansion state through `aria-expanded`, which is `true` while the body is showing and `false` while it is not:\n\n<button type='button' aria-expanded={open} onClick={() => setOpen((value) => !value)}>\n  {title}\n</button>\n\nWithout `defaultOpen`, the expanded state starts `false`, so `aria-expanded` starts `false`.",
                 order: 2,
               },
               {
                 title: "Conditional Body",
                 content:
-                  "The body is not rendered at all while collapsed. The children sit inside the `CollapsibleContent` region, which stays out of the tree until the trigger reports that it is open:\n\n<CollapsibleContent>{children}</CollapsibleContent>\n\nThat is why the child text is absent from the document before the click and present after it. Hiding with a class alone would leave the text queryable, so the content has to be unmounted while collapsed.",
+                  "The body is not rendered at all while collapsed, so the children are returned only when the group is open:\n\n{open && <div>{children}</div>}\n\nThat is why the child text is absent from the document before the click and present after it. Hiding with a class alone would leave the text queryable, so the content has to be unmounted while collapsed.",
                 order: 3,
               },
               {
@@ -536,7 +500,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "The component imports from `@/components/ui/collapsible`, the trigger is a `button` named by its `title` prop carrying the eight layout classes, the body is absent from the document while collapsed, and `aria-expanded` reports the current state with `defaultOpen` seeding it.",
+                  "The trigger is a `button` named by its `title` prop, the body is absent from the document while collapsed, and `aria-expanded` reports the current state with `defaultOpen` seeding it.",
                 order: 7,
               },
             ],
@@ -544,11 +508,11 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/components/SemesterGroup.tsx` exporting `SemesterGroup` with `title`, an optional `defaultOpen` and `children`, importing `Collapsible`, `CollapsibleTrigger` and `CollapsibleContent` from `@/components/ui/collapsible`.",
+                description: "Create `src/components/SemesterGroup.tsx` exporting `SemesterGroup` with `title`, an optional `defaultOpen` and `children`.",
                 order: 1,
               },
               {
-                description: "Render `title` inside a `CollapsibleTrigger` carrying `flex`, `w-full`, `items-center`, `justify-between`, `py-2`, `px-4`, `rounded-md` and `hover:bg-accent`, and put `{children}` in `CollapsibleContent` so they are absent while collapsed.",
+                description: "Render `title` on a real `button` that toggles `aria-expanded`, and render `{children}` only while it is open so they are absent from the document when collapsed.",
                 order: 2,
               },
               {
@@ -562,45 +526,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "Verify a Collapsible file exists and exports Collapsible, CollapsibleTrigger, and CollapsibleContent",
+                  "Create src/components/SemesterGroup.tsx exporting SemesterGroup that renders a button named by its `title` prop with aria-expanded",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Create a Semester Group file importing from @/components/ui/collapsible",
+                  "Render SemesterGroup without defaultOpen and verify the button's aria-expanded is 'false'",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Render SemesterGroup without defaultOpen and verify it shows a button with accessible name matching '1st semester — 2025-2026' and aria-expanded='false'",
+                  "Verify children are not in the document when collapsed, and clicking the button shows children and sets aria-expanded='true'",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Verify children are not in the document when collapsed, and clicking the button shows children and sets aria-expanded='true'",
+                  "Render SemesterGroup with defaultOpen and verify children are visible on first render with aria-expanded='true'",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Render SemesterGroup with defaultOpen and verify children are visible on first render with aria-expanded='true'",
+                  "Switch to All Semesters tab and verify two buttons exist for '1st semester — 2025-2026' and '2nd semester — 2024-2025'",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Switch to All Semesters tab and verify two buttons exist for '1st semester — 2025-2026' and '2nd semester — 2024-2025'",
+                  "Verify the first semester group has aria-expanded='true' by default",
                 is_required: true,
                 order: 6,
-              },
-              {
-                description:
-                  "Verify all semester buttons have the required styling classes (flex, w-full, items-center, justify-between, py-2, px-4, rounded-md, hover:bg-accent) and the first one has aria-expanded='true'",
-                is_required: true,
-                order: 7,
               },
             ],
           },
@@ -926,14 +884,14 @@ export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-3-level-4",
     title: "Course Details and Document Requests",
-    subtitle: "Add `/dashboard/courses/[courseCode]`, plus a shadcn `Dialog` and a three-step `RequestDocumentDialog`",
+    subtitle: "Add `/dashboard/courses/[courseCode]`, plus a `Modal` primitive and a three-step `RequestDocumentDialog`",
     order: 4,
     level_description:
-      "Mission Briefing: the grades table has no way into a single course, and there is no way for a student to ask the registrar for a document. Create `src/app/dashboard/courses/[courseCode]/page.tsx` as a dynamic route that decodes the `courseCode` segment, merges the matching entry from `grades` in `src/lib/mockData.ts` with the matching entry from `schedule` for the professor, and falls back to a `Course not found` state with a link back to `/dashboard/grades`. Add a `View Details` link per grade row pointing at the URL-encoded route. Then build `src/components/RequestDocumentDialog.tsx`, a three-step request flow rendered inside the shadcn/ui `Dialog` component installed in level one, and put a `Request Document` trigger on the dashboard.",
+      "Mission Briefing: the grades table has no way into a single course, and there is no way for a student to ask the registrar for a document. Create `src/app/dashboard/courses/[courseCode]/page.tsx` as a dynamic route that decodes the `courseCode` segment, merges the matching entry from `grades` in `src/lib/mockData.ts` with the matching entry from `schedule` for the professor, and falls back to a `Course not found` state with a link back to `/dashboard/grades`. Add a `View Details` link per grade row pointing at the URL-encoded route. Then create `src/components/ui/modal.tsx` exporting a `Modal` primitive and build `src/components/RequestDocumentDialog.tsx`, a three-step request flow rendered inside it, and put a `Request Document` trigger on the dashboard.",
     xp_reward: 60,
     coin_reward: 150,
     key_takeaways:
-      "A dynamic route segment arrives percent-encoded, so `CS 301` reaches the page as `params.courseCode === 'CS%20301'` and has to be decoded before it is matched against `grade.courseCode`. A course detail view needs two mock arrays: `grades` for the code, name, units and grade, and `schedule` for the professor, because `CS 301` is a `3` unit `A` taught by `Dr. Sarah Johnson`. A dialog that is closed must render nothing at all rather than a hidden container, so `RequestDocumentDialog` returns nothing while `open` is false, and when it is open the shadcn `DialogContent` supplies `role='dialog'` with `aria-modal='true'`, a level 2 title matching `/request document/i` and a description reading `Select the type of document`. A multi-step form has to gate each step: `Next` waits for a document type, `Submit` waits for a purpose of at least 10 characters, and the confirmation step prints the chosen type, the purpose text and a reference number matching `/REQ-[A-Z0-9]{6}/`.",
+      "A dynamic route segment arrives percent-encoded, so `CS 301` reaches the page as `params.courseCode === 'CS%20301'` and has to be decoded before it is matched against `grade.courseCode`. A course detail view needs two mock arrays: `grades` for the code, name, units and grade, and `schedule` for the professor, because `CS 301` is a `3` unit `A` taught by `Dr. Sarah Johnson`. A modal that is closed must render nothing at all rather than a hidden container, so the `Modal` primitive returns nothing while `open` is false, and while it is open it renders `role='dialog'` with `aria-modal='true'`. A multi-step form has to gate each step: `Next` waits for a document type, `Submit` waits for a purpose of at least 10 characters, and the confirmation step prints the chosen type, the purpose text and a reference number matching `/REQ-[A-Z0-9]{6}/`.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
@@ -1079,22 +1037,22 @@ export const levels = [
           },
         },
         {
-          task_name: "Multi-Step Request Document Flow on the shadcn Dialog",
+          task_name: "Multi-Step Request Document Flow on a Modal Primitive",
           test_type: "both",
           user_story:
             "As a student, I want a `Request Document` dialog that walks me through picking a document and writing a purpose, so that I can send the registrar a valid request.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nOne Dialog, Three Steps",
+                title: "Overview\nA Modal Primitive and a Three-Step Flow",
                 content:
-                  "`src/components/RequestDocumentDialog.tsx` exports `RequestDocumentDialog`, which takes `open` and `onClose`, owns the three steps, and renders its whole body inside the shadcn/ui `Dialog` component installed in level one. The dialog primitive itself is not rewritten; it is imported from `@/components/ui/dialog`.",
+                  "Two files. First `src/components/ui/modal.tsx` exporting a `Modal` primitive that takes `open`, `onClose` and `children`. Then `src/components/RequestDocumentDialog.tsx` exporting `RequestDocumentDialog`, which takes the same `open` and `onClose`, owns the three steps, and renders its body inside `Modal`.",
                 order: 1,
               },
               {
-                title: "The Dialog Contract",
+                title: "The Modal Contract",
                 content:
-                  "When `open` is true the shadcn `DialogContent` contributes `role='dialog'` with `aria-modal='true'`, and the dialog also needs the parts the component ships: `DialogHeader`, `DialogTitle` and `DialogDescription` inside it, plus `DialogFooter` for the row of buttons. The title is a level 2 heading reading `Request Document`, and the description reads `Select the type of document`.\n\nWhen `open` is false the component returns nothing, so the render container has no first child at all:\n\nif (!open) return null;\n\nReturning nothing matters: rendering a hidden wrapper would leave an empty element in the document.",
+                  "When `open` is true the modal renders an element with `role='dialog'` and `aria-modal='true'`. When `open` is false it renders nothing at all, so the container has no first child:\n\nif (!open) return null;\n\nReturning nothing is graded directly: the check renders `Modal` with `open={false}` and requires `container.firstChild` to be `null`. A hidden wrapper would leave an empty element in the document and fail.",
                 order: 2,
               },
               {
@@ -1106,7 +1064,7 @@ export const levels = [
               {
                 title: "Step 2: Purpose",
                 content:
-                  "Step 2 is a single textbox plus `Submit` and `Back`. `Submit` starts `disabled`, stays `disabled` for the nine-character string `too short`, and becomes enabled at ten characters, for example `For my job application portfolio.`.\n\nconst purposeOk = purpose.trim().length >= 10;\n\nThe step keeps a `Next` button on screen alongside `Submit`, so the footer holds `Back`, `Submit` and `Next` together. `Back` returns to step 1, which is verified by the `Next` button being back on screen.",
+                  "Step 2 is a single textbox plus `Submit` and `Back`. `Submit` starts `disabled`, stays `disabled` for the nine-character string `too short`, and becomes enabled at ten characters, for example `For my job application portfolio.`.\n\nconst purposeOk = purpose.trim().length >= 10;\n\n`Back` returns to step 1, which is verified by the `Next` button being back on screen.",
                 order: 4,
               },
               {
@@ -1162,7 +1120,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "The flow is built on `@/components/ui/dialog`: nothing at all is rendered while `open` is false, the open state exposes `role=dialog` with `aria-modal=true` plus a level 2 title and the `Select the type of document` description, the three steps gate `Next` on a type and `Submit` on a 10-character purpose, and the confirmation prints the type, the purpose and a `REQ-` reference.",
+                  "`Modal` renders `role='dialog'` with `aria-modal='true'` while open and nothing while closed; `RequestDocumentDialog` builds on it, gates `Next` on a chosen type and `Submit` on a 10-character purpose, and prints the type, the purpose and a `REQ-` reference on the confirmation step.",
                 order: 7,
               },
             ],
@@ -1170,15 +1128,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/components/RequestDocumentDialog.tsx` importing `Dialog` parts from `@/components/ui/dialog`, returning nothing while `open` is false.",
+                description: "Create `src/components/ui/modal.tsx` exporting `Modal({ open, onClose, children })` that returns `null` when closed and otherwise renders `role='dialog'` with `aria-modal='true'`.",
                 order: 1,
               },
               {
-                description: "Rendering a hidden wrapper instead of nothing when closed is the easiest failure — the container must have no first child at all.",
+                description: "Create `src/components/RequestDocumentDialog.tsx` rendering inside `Modal`; rendering a hidden wrapper instead of nothing when closed is the easiest failure.",
                 order: 2,
               },
               {
-                description: "Self-check: title `Request Document`; step 1 `Next` disabled until chosen; step 2 `Submit` at 10+ chars; step 3 shows type, purpose, `REQ-` ref; trigger opens dialog.",
+                description: "Self-check: step 1 `Next` disabled until chosen; step 2 `Submit` at 10+ chars and `Back` returns to step 1; step 3 shows 'Request submitted!', the type, the purpose and a `REQ-` ref with a `Done` button; the dashboard shows a `Request Document` trigger.",
                 order: 3,
               },
             ],
@@ -1188,63 +1146,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "Verify src/components/ui/dialog.tsx exists and exports Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, and DialogFooter",
+                  "Create src/components/ui/modal.tsx exporting Modal that renders role='dialog' with aria-modal='true' when open and nothing when closed",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Render RequestDocumentDialog with open=true and verify it shows a dialog with role='dialog' and aria-modal='true'",
+                  "Render Modal with open=false and verify the container's first child is null",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Verify the open dialog shows a level 2 heading 'Request Document' and description 'Select the type of document'",
+                  "Verify step 1 shows a disabled 'Next' button, and selecting a document type (e.g., Transcript) enables it",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Verify RequestDocumentDialog with open=false renders nothing (no first child in container)",
+                  "Verify step 2 shows a purpose textbox with a disabled 'Submit' button and a 'Back' button; 'Submit' enables at 10+ chars; clicking 'Back' returns to step 1",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Verify step 1 shows disabled 'Next' button, and selecting a document type (e.g., Transcript) enables it",
+                  "Complete the flow: choose 'Enrollment Certificate', enter 'Visa application requirement.', click 'Submit', and verify the confirmation shows 'Request submitted!', the document type, the purpose, and a reference matching REQ-[A-Z0-9]{6}, plus a 'Done' button",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Verify step 2 shows purpose textbox with disabled 'Submit' button, 'Back' and 'Next' buttons; 'Submit' enables at 10+ chars; clicking 'Back' returns to step 1",
-                is_required: true,
-                order: 6,
-              },
-              {
-                description:
-                  "Complete the flow: choose 'Enrollment Certificate', enter 'Visa application requirement.', click 'Submit', and verify confirmation shows request submitted, document type, purpose, and a REQ- reference number",
-                is_required: true,
-                order: 7,
-              },
-              {
-                description:
-                  "Verify the confirmation step shows a reference number matching REQ-[A-Z0-9]{6} pattern and a 'Done' button",
-                is_required: true,
-                order: 8,
-              },
-              {
-                description:
-                  "Import Dialog components from @/components/ui/dialog in RequestDocumentDialog",
-                is_required: true,
-                order: 9,
-              },
-              {
-                description:
                   "Add a 'Request Document' trigger button on the dashboard that opens the dialog",
                 is_required: true,
-                order: 10,
+                order: 6,
               },
             ],
           },
@@ -1255,14 +1189,14 @@ export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-3-level-5",
     title: "Derived Aggregates and an Accessibility Sweep",
-    subtitle: "Compute units and earned credits from `grades`, then fix the skip link, landmarks, labels and user menu in the dashboard layout",
+    subtitle: "Compute units and earned credits from `grades`, then fix the skip link, landmarks and labels in the dashboard layout",
     order: 5,
     level_description:
-      "Mission Briefing: the standing and dashboard pages both read `currentStanding.totalUnits` and `currentStanding.earnedCredits`, which are stale numbers that disagree with the eight-row `grades` array. Export `computeCurrentSemesterUnits` and `computeEarnedCredits` from `src/lib/mockData.ts`, use them on `src/app/dashboard/standing/page.tsx` and `src/app/dashboard/page.tsx`, and remove every `currentStanding.totalUnits` and `currentStanding.earnedCredits` read from those two files. Then sweep `src/app/dashboard/layout.tsx` for accessibility: a `Skip to main content` link as the very first focusable element targeting `#main-content`, a `main` landmark with `id='main-content'` and `tabindex='-1'`, a `nav` named `Primary`, exactly one `aria-current='page'` on the active sidebar item, `aria-label` on the two icon-only buttons, an `sr-only` `h1` reading `Riverside University` inside the `header`, and a user `DropdownMenu` in the `header` built on the shadcn/ui `dropdown-menu` component installed in level one.",
+      "Mission Briefing: the standing and dashboard pages both read `currentStanding.totalUnits` and `currentStanding.earnedCredits`, which are stale numbers that disagree with the eight-row `grades` array. Export `computeCurrentSemesterUnits` and `computeEarnedCredits` from `src/lib/mockData.ts`, use them on `src/app/dashboard/standing/page.tsx` and `src/app/dashboard/page.tsx`, and remove every `currentStanding.totalUnits` and `currentStanding.earnedCredits` read from those two files. Then sweep `src/app/dashboard/layout.tsx` for accessibility: a `Skip to main content` link as the very first focusable element targeting `#main-content`, a `main` landmark with `id='main-content'` and `tabindex='-1'`, a `nav` named `Primary`, exactly one `aria-current='page'` on the active sidebar item, `aria-label` on the two icon-only buttons, and an `sr-only` `h1` reading `Riverside University` inside the `header`.",
     xp_reward: 75,
     coin_reward: 200,
     key_takeaways:
-      "Aggregate numbers that live in a hand-maintained object drift from the rows they describe, so they get derived instead: `computeCurrentSemesterUnits(grades)` sums only the current `(semester, academicYear)` rows and returns 12, and `computeEarnedCredits(grades)` sums `units` for every grade that is not `F` and returns 24. The two pages are then checked as source, not just as render output, so a leftover `currentStanding.totalUnits` reference fails even when the rendered number happens to look right. The layout sweep is the same shape: each fix is a specific attribute on a specific element, the skip link has to be the first element matching `a, button, [tabindex]`, exactly one element may carry `aria-current='page'`, and the visually hidden page title is an `h1` with the `sr-only` class inside the `header` landmark rather than a second visible heading. The user menu reuses the `dropdown-menu` component from level one, where the trigger needs a name matching `/user|profile|account/i` and the open content needs the `menu` role plus a `menuitem` for profile, one for settings or preferences, and one for signing out.",
+      "Aggregate numbers that live in a hand-maintained object drift from the rows they describe, so they get derived instead: `computeCurrentSemesterUnits(grades)` sums only the current `(semester, academicYear)` rows and returns 12, and `computeEarnedCredits(grades)` sums `units` for every grade that is not `F` and returns 24. The two pages are then checked as source, not just as render output, so a leftover `currentStanding.totalUnits` reference fails even when the rendered number happens to look right. The layout sweep is the same shape: each fix is a specific attribute on a specific element, the skip link has to be the first element matching `a, button, [tabindex]`, exactly one element may carry `aria-current='page'`, and the visually hidden page title is an `h1` with the `sr-only` class inside the `header` landmark rather than a second visible heading.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
@@ -1436,10 +1370,10 @@ export const levels = [
           },
         },
         {
-          task_name: "Dashboard Layout Accessibility Sweep and User DropdownMenu",
+          task_name: "Dashboard Layout Accessibility Sweep",
           test_type: "both",
           user_story:
-            "As a keyboard or screen reader user, I want a skip link, real landmarks, named buttons and a reachable user menu in the dashboard shell so that I can navigate the portal without seeing it.",
+            "As a keyboard or screen reader user, I want a skip link, real landmarks and named icon buttons in the dashboard shell so that I can navigate the portal without seeing it.",
           learning_sections: {
             create: [
               {
@@ -1469,7 +1403,7 @@ export const levels = [
               {
                 title: "The Screen-Reader Heading",
                 content:
-                  "The `header` needs an `h1`, but the visible brand text is a `span`, so the heading is added as a visually hidden duplicate with the `sr-only` class:\n\n<header ...><h1 className='sr-only'>Riverside University</h1>...</header>\n\nThe `h1` has to be inside the `header` element, which is why it cannot live in the `layout.tsx` of the app root. The two icon buttons are looked up by accessible name matching `/toggle sidebar/i` and `/sign out/i`.\n\nThe `header` also grows a user menu built on the shadcn/ui `dropdown-menu` component installed in level one. Its trigger is a `button` whose accessible name mentions the user, a profile or the account, and clicking it puts an element with the `menu` role in the document. That content holds three `menuitem` elements: one for the profile, one for settings or preferences, and one for signing out.\n\n<DropdownMenu>\n  <DropdownMenuTrigger aria-label='User account' ... />\n  <DropdownMenuContent>\n    <DropdownMenuItem>Profile</DropdownMenuItem>\n    <DropdownMenuItem>Settings</DropdownMenuItem>\n    <DropdownMenuSeparator />\n    <DropdownMenuItem>Sign out</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>\n\nThe `menu` and `menuitem` roles come from the primitive, so a plain list of links would not answer the `menu` and `menuitem` queries.",
+                  "The `header` needs an `h1`, but the visible brand text is a `span`, so the heading is added as a visually hidden duplicate with the `sr-only` class:\n\n<header ...><h1 className='sr-only'>Riverside University</h1>...</header>\n\nThe `h1` has to be inside the `header` element, which is why it cannot live in the `layout.tsx` of the app root. The two icon buttons are looked up by accessible name matching `/toggle sidebar/i` and `/sign out/i`.",
                 order: 5,
               },
               {
@@ -1519,7 +1453,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Skip link first, `main` with the id it targets, a nav named `Primary`, one `aria-current='page'`, two `aria-label`led icon buttons, an `sr-only` `h1` reading `Riverside University` inside the `header`, and a user `DropdownMenu` whose trigger is named and whose content is a `menu` of profile, settings or preferences, and sign out `menuitem`s.",
+                  "Skip link first, `main` with the id it targets, a nav named `Primary`, one `aria-current='page'`, two `aria-label`led icon buttons, and an `sr-only` `h1` reading `Riverside University` inside the `header`.",
                 order: 7,
               },
             ],
@@ -1527,11 +1461,11 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "`src/app/dashboard/layout.tsx`: skip link first; focusable `main`; `nav` named; `aria-current=page`; `aria-label` icons; `sr-only` h1; `DropdownMenu`, 3 items.",
+                description: "`src/app/dashboard/layout.tsx`: skip link first; focusable `main`; `nav` named; `aria-current=page`; `aria-label` icons; `sr-only` h1.",
                 order: 1,
               },
               {
-                description: "Self-check: skip link first focusable; `main` `tabIndex={-1}`; one `aria-current=page`; icons named; hidden h1; user trigger opens `menu` with 3 `menuitem`s.",
+                description: "Self-check: skip link first focusable; `main` `tabIndex={-1}`; one `aria-current=page`; icons named; hidden h1 inside the header.",
                 order: 2,
               },
             ],
@@ -1580,24 +1514,6 @@ export const levels = [
                   "Add an sr-only h1 with text 'Riverside University' inside the header element",
                 is_required: true,
                 order: 7,
-              },
-              {
-                description:
-                  "Verify a dropdown page component from shadcn/ui exists and exports all DropdownMenu components",
-                is_required: true,
-                order: 8,
-              },
-              {
-                description:
-                  "Add a user menu dropdown with trigger named 'user/profile/account' that opens a menu with menu role containing menuitem for Profile, Settings/Preferences, and Sign out/Logout",
-                is_required: true,
-                order: 9,
-              },
-              {
-                description:
-                  "Import DropdownMenu components from shadcn/ui in the dashboard layout",
-                is_required: true,
-                order: 10,
               },
             ],
           },

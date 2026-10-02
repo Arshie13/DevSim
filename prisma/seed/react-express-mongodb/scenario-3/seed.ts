@@ -47,7 +47,7 @@ export const levels = [
         // ── L1-T1: Prepare Development Environment ──────────────
         {
           task_name: "Prepare Development Environment",
-          test_type: "none",
+          test_type: "client",
           user_story:
             "As a developer, I want to set up my local development environment so that I can run and modify the TripWeaver application.",
           learning_sections: {
@@ -96,7 +96,7 @@ export const levels = [
                   directory_tree: {
                     "/workspace": ["client", "server", "README.md", "package.json"],
                     "/workspace/client": ["src", "package.json", "vite.config.ts"],
-                    "/workspace/server": ["src", "package.json", ".env.example"],
+                    "/workspace/server": ["src", "package.json"],
                   },
                 },
                 order: 6,
@@ -104,7 +104,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/tripweaver\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGO_URI=mongodb://localhost:27017/tripweaver\nPORT=5000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGO_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
                 order: 7,
               },
               {
@@ -116,7 +116,7 @@ export const levels = [
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The TripWeaver seed creates 8 users, 4 trips, ~20 stops, ~12 expenses, and ~10 votes.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The TripWeaver seed creates 8 users, 4 trips, ~20 stops, ~12 expenses, and ~10 votes.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via tsx.",
                 order: 9,
               },
               {
@@ -136,7 +136,7 @@ export const levels = [
               },
               {
                 description:
-                  "The connection string is read from `MONGO_URI`, which `server/src/env.ts` expects and `server/.env.example` shows the shape of. Put `MONGO_URI` in `server/.env`, and make sure MongoDB is running and reachable before a connect/disconnect script that prints `DB_OK` can exit 0.",
+                  "The connection string is read from `MONGO_URI`, which `server/src/env.ts` expects. Put `MONGO_URI` in `server/.env`, and make sure MongoDB is running and reachable before a connect/disconnect script that prints `DB_OK` can exit 0.",
                 order: 2,
               },
               {
@@ -651,7 +651,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Add an 'All' filter chip button to the DayFilter component",
+                  "Wire the existing 'All' filter chip button to select every day",
                 is_required: true,
                 order: 1,
               },
@@ -890,7 +890,7 @@ export const levels = [
               {
                 title: "Response Envelopes",
                 content:
-                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, message: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
+                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, error: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
                 order: 4,
               },
               {
@@ -977,7 +977,7 @@ export const levels = [
               },
               {
                 description:
-                  "Wrap the aggregation work in `try/catch` and forward failures with `next(err)`. A bad `tripId` makes Mongoose throw a CastError, and the global `errorHandler` has to turn that into a 400 or a 404.",
+                  "Wrap the aggregation work in `try/catch` and forward failures with `next(err)`. A well-formed but unknown `tripId` has to resolve to a 404 through the not-found branch rather than crashing to a 500.",
                 order: 5,
               },
               {
@@ -1711,7 +1711,7 @@ export const levels = [
               },
               {
                 description:
-                  "Each group is emitted as `{ date, stops }`, and the grouping key stays under the property name `date` as a `YYYY-MM-DD` string. A UTC trip with a single stop at `2026-04-12T09:00:00Z` still has to produce the group `2026-04-12`.",
+                  "Each group has to be emitted as `{ date, stops }` — the grouping key must be exposed under the property name `date` (the starter currently names it `day`) as a `YYYY-MM-DD` string. A UTC trip with a single stop at `2026-04-12T09:00:00Z` still has to produce the group `2026-04-12`.",
                 order: 3,
               },
               {

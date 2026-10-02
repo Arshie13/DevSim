@@ -108,7 +108,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  'Sensitive config (like database connection strings) is stored in `.env` files — never hardcoded in source code.\n\nMONGO_URI="mongodb://localhost:27017/app"\nPORT=4000\nJWT_SECRET="some-long-random-string"\n\nThe `dotenv` package reads these files and makes them available as `process.env.MONGO_URI` in the code. ⚠️ `.env` files are listed in `.gitignore` intentionally — they contain secrets that should never be committed to version control.',
+                  'Sensitive config (like database connection strings) is stored in `.env` files — never hardcoded in source code.\n\nMONGO_URI="mongodb://localhost:27017/recipenest"\nPORT=5000\nJWT_SECRET="some-long-random-string"\n\nThe `dotenv` package reads these files and makes them available as `process.env.MONGO_URI` in the code. ⚠️ `.env` files are listed in `.gitignore` intentionally — they contain secrets that should never be committed to version control.',
                 order: 7,
               },
               {
@@ -269,7 +269,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `client/src/components/layout/Header.tsx`. The brand area is the `<span>Your Tagline Here</span>` rendered under the RecipeNest heading. Replace only that span's text and leave the surrounding `<header>` element exactly as it is.",
+                  "Open `client/src/components/layout/Header.tsx`. The brand area is the `<p className=\"brand-subtitle\">Your kitchen, online</p>` rendered under the RecipeNest heading. Replace only that element's text and leave the surrounding `<header>` element exactly as it is.",
                 order: 1,
               },
               {
@@ -279,7 +279,7 @@ export const levels = [
               },
               {
                 description:
-                  "The new text has to be exactly `Cook. Share. Inspire.`, character for character, with capitals, periods and single spaces. The old placeholder `Your Tagline Here` must be gone from the rendered header, and the subtitle has to stay visible inside the `<header>` element.",
+                  "The new text has to be exactly `Cook. Share. Inspire.`, character for character, with capitals, periods and single spaces. The old placeholder `Your kitchen, online` must be gone from the rendered header, and the subtitle has to stay visible inside the `<header>` element.",
                 order: 3,
               },
             ],
@@ -293,7 +293,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Remove the old placeholder text \"Your Tagline Here\" from the header",
+                description: "Remove the old placeholder text \"Your kitchen, online\" from the header",
                 is_required: true,
                 order: 2,
               },
@@ -511,7 +511,7 @@ export const levels = [
               {
                 title: "Empty States",
                 content:
-                  'When the filter returns nothing, an empty-state element should be rendered. Tests look for `data-testid="empty-state"`. A good empty state explains why and suggests a next action: "No recipes match the search. Try a different keyword."',
+                  'When the filter returns nothing, an empty-state element should be rendered. A good empty state explains why and suggests a next action: "No recipes match the search. Try a different keyword."',
                 order: 6,
               },
               {
@@ -992,7 +992,7 @@ export const levels = [
               {
                 title: "curl/Postman Walkthrough",
                 content:
-                  "Test the endpoint independent of the UI:\n\ncurl -X POST http://localhost:4000/api/recipes/<id>/save \\\n  -H 'Authorization: Bearer <token>'\n\nThe second call should return the same logical 'saved' state without inflating savedCount.",
+                  "Test the endpoint independent of the UI:\n\ncurl -X POST http://localhost:5000/api/recipes/<id>/save \\\n  -H 'Authorization: Bearer <token>'\n\nThe second call should return the same logical 'saved' state without inflating savedCount.",
                 order: 8,
               },
               {
@@ -1472,7 +1472,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement daysAgo(postedAt, now) returning \"Posted today\" when < 24h, or \"Posted N day(s) ago\". N = Math.floor(elapsedMs/86400000).\n\nExamples: daysAgo(sameInstant)→\"Posted today\", daysAgo(24h)→\"Posted 1 day ago\".",
+                    "Implement daysAgo(now, iso) returning \"Posted today\" when < 24h, or \"Posted N day(s) ago\". N = Math.floor(elapsedMs/86400000).\n\nExamples: daysAgo(sameInstant)→\"Posted today\", daysAgo(24h)→\"Posted 1 day ago\".",
                   language: "javascript",
                   starter_code:
                     "export function daysAgo(now, iso) {\n  // TODO — accept now (Date or ISO string) and iso (post timestamp)\n}\n",

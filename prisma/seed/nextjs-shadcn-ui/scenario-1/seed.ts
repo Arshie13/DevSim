@@ -15,11 +15,11 @@ export const levels = [
     subtitle: "Configure environment and make minor UI updates",
     order: 1,
     level_description:
-      "Mission Briefing: The library has onboarded a new developer and needs the system running locally with minor UI tweaks. Set up the Next.js development environment, install dependencies, add the `alert`, `dialog` and `input` shadcn/ui components, and verify the dev server starts cleanly.",
+      "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Install the project dependencies, verify the Next.js development server starts cleanly, and add the shadcn/ui Alert component with its expected exports.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Installing project dependencies with pnpm install ensures all required libraries (React, Next.js, shadcn/ui, Tailwind CSS) are available. Running the dev server verifies the project boots without errors before any feature work begins. Adding shadcn/ui components via the CLI copies them into the project source, giving full ownership and easy customization.\n\nThree components are graded here: `src/components/ui/alert.tsx` with `Alert`, `AlertTitle` and `AlertDescription`, `src/components/ui/dialog.tsx` with `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`, and `src/components/ui/input.tsx` with `Input` and `forwardRef`.",
+      "Installing project dependencies with pnpm install ensures Next.js and React are available. Running the dev server verifies the project boots without errors. Adding a shadcn/ui component via the CLI copies its source into the project. This task checks for `src/components/ui/alert.tsx` and the `Alert`, `AlertTitle` and `AlertDescription` names; it does not grade the Dialog or Input component or require a particular ref-forwarding implementation.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
@@ -45,7 +45,7 @@ export const levels = [
               {
                 title: "What is shadcn/ui?",
                 content:
-                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.\n\nThe CLI copies one component per run into `src/components/ui/`. `pnpm dlx shadcn@latest add alert` writes `alert.tsx` with `Alert`, `AlertTitle` and `AlertDescription`, `add dialog` writes `dialog.tsx` with `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`, and `add input` writes `input.tsx` with `Input` built on `forwardRef`. Every export name is what later levels import by name.",
+                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. Components are copied into the project source, giving the project ownership and room to customize them.\n\nFor this task, the setup test checks that `src/components/ui/alert.tsx` exists and contains the `Alert`, `AlertTitle` and `AlertDescription` component names. It does not check that Dialog or Input has been installed.",
                 order: 3,
               },
               {
@@ -63,16 +63,14 @@ export const levels = [
               {
                 title: "Practice Lab: Adding shadcn/ui Components",
                 content:
-                  "Practice adding shadcn/ui components using the CLI. Running the commands below downloads each component's source into the project's `components/ui` folder, where it can be customized.\n\npnpm dlx shadcn@latest add alert\npnpm dlx shadcn@latest add dialog\npnpm dlx shadcn@latest add input",
+                  "Practice adding the shadcn/ui Alert component using the CLI. The command copies the component source into `src/components/ui/`, where it can be customized.\n\npnpm dlx shadcn@latest add alert",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "TERMINAL_CMD" as const,
                 interactive_config: {
                   instructions:
-                    "Run the shadcn/ui CLI commands that add the Alert, Dialog and Input components. Type the exact commands and click Check to verify.",
+                    "Run the shadcn/ui CLI command that adds the Alert component. Type the exact command and click Check to verify.",
                   expected_commands: [
                     "pnpm dlx shadcn@latest add alert",
-                    "pnpm dlx shadcn@latest add dialog",
-                    "pnpm dlx shadcn@latest add input",
                   ],
                 },
                 order: 6,
@@ -92,7 +90,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Run `pnpm dlx shadcn@latest add alert`, `pnpm dlx shadcn@latest add dialog` and `pnpm dlx shadcn@latest add input`; they write `src/components/ui/alert.tsx`, `src/components/ui/dialog.tsx` and `src/components/ui/input.tsx`, and each file must name its exported components.",
+                description: "Run `pnpm dlx shadcn@latest add alert`; verify `src/components/ui/alert.tsx` exists and contains `Alert`, `AlertTitle` and `AlertDescription`.",
                 order: 2,
               },
               {
@@ -118,21 +116,9 @@ export const levels = [
               },
               {
                 description:
-                  "Add the alert shadcn/ui component using the CLI",
+                  "Verify src/components/ui/alert.tsx exists and contains Alert, AlertTitle and AlertDescription",
                 is_required: true,
                 order: 3,
-              },
-              {
-                description:
-                  "Add the dialog shadcn/ui component using the CLI",
-                is_required: true,
-                order: 4,
-              },
-              {
-                description:
-                  "Add the input shadcn/ui component using the CLI",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -234,7 +220,7 @@ title: "JSX Text Content",
                 order: 2,
               },
               {
-                description: "Save and reload `/signup`; the page should show 'Login' and no 'Sign Up' outside a comment.",
+                description: "Verify the source of `/signup` contains `Login` and no `Sign Up` outside comments; the test checks source text rather than rendering the page.",
                 order: 3,
               },
             ],
@@ -256,7 +242,7 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Verify the signup page displays 'Login' and no 'Sign Up' text is visible",
+                  "Verify the signup page source contains 'Login' and no 'Sign Up' outside comments",
                 is_required: true,
                 order: 3,
               },
@@ -268,89 +254,89 @@ title: "JSX Text Content",
   },
   {
     id: "nextjs-shadcn-ui-level-2",
-    title: "Overdue Alert Banner and BookRow Refactor",
-    subtitle: "Warn about overdue books at the top of the dashboard, then extract the table row into a BookRow component with memoized collections",
+    title: "Book Status Badge Colors and BookRow Refactor",
+    subtitle: "Give each book status a distinct badge color, then extract the table row into a BookRow component",
     order: 2,
     level_description:
-      "Mission Briefing: Nothing on the dashboard says that late books exist, so a librarian has to open the overdue tab to find out. Add an overdue warning banner at the top of the dashboard styled as a destructive shadcn Alert, with a link that filters the table to the overdue books, then pull the repeated table row out of `src/app/dashboard/page.tsx` into a `BookRow` component that renders one book and is reused for every row.",
+      "Mission Briefing: The status badges are too easy to confuse. Give available, borrowed and overdue books the distinct colors required by the tests. Then extract a reusable `BookRow` component, memoize at least one derived book collection, and keep the dashboard's book titles and status counts visible.",
     xp_reward: 25,
     coin_reward: 50,
     key_takeaways:
-      "`Alert`, `AlertTitle` and `AlertDescription` come from `src/components/ui/alert.tsx`. The banner is the element with the `alert` role, so the border, background and text classes are read straight off it: `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`, and `AlertTitle` renders the level 5 heading.\n\nA `BookRow` component takes a single `book` prop and renders the `title`, `author`, `isbn` and status for that book, so one row can be rendered and inspected on its own. A default export and a named `BookRow` export are both accepted.\n\n`useMemo` imported from `react` wraps at least one of the derived lists, `availableBooks`, `borrowedBooks` or `overdueBooks`, so those filters are not rebuilt on every render.",
+      "The dashboard renders status text inside table cells with distinct badge classes: available uses `bg-green-100 text-green-800`, borrowed uses `bg-blue-100 text-blue-800`, and overdue uses `bg-red-100 text-red-800`. The test checks these classes on each matching status badge.\n\nA `BookRow` component takes a single `book` prop and renders its title, author, ISBN and status; either a default or named `BookRow` export is accepted. The tests render it inside a table.\n\nThe dashboard source must import `useMemo` from `react` and use it for at least one of `availableBooks`, `borrowedBooks` or `overdueBooks`. The rendered dashboard is also checked for every starter-book title and the available/overdue counts.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
         {
-          task_name: "Add an Overdue Books Alert Banner",
+          task_name: "Fix Book Status Badge Colors",
           test_type: "both",
           user_story:
-            "As a librarian, I want a warning at the top of the dashboard whenever books are overdue so that I notice late loans without hunting for them.",
+            "As a librarian, I want available, borrowed and overdue books to have distinct, correct badge colors so that I can recognize each status at a glance.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nAdding the Overdue Alert Banner",
+                title: "Overview\nFixing Book Status Badge Colors",
                 content:
-                  "This level has two tasks. The first adds an overdue warning banner to the dashboard using the shadcn Alert component. The second extracts the repeated table row into a `BookRow` component and memoizes the derived lists.",
+                  "This level has two tasks. The first fixes the status badge colors on the dashboard. The second creates a reusable `BookRow` component and verifies the dashboard's book rows, counts and memoized collections.",
                 order: 1,
               },
               {
-                title: "The Alert Role",
+                title: "Status-to-Color Mapping",
                 content:
-                  "`Alert`, `AlertTitle` and `AlertDescription` come from `src/components/ui/alert.tsx`. The wrapper is the element that carries the `alert` role, so it is the element whose classes and text a reader sees first.\n\nRendering the dashboard gives exactly one element with the `alert` role, so put the banner above the `Tabs` rather than inside one `TabsContent`: outside the tabs it is on screen whichever tab is active.",
+                  "Each book's status badge is rendered in a dashboard table cell. The test finds those cells by their visible status text and checks the badge classes:\n\n- `available`: `bg-green-100 text-green-800`\n- `borrowed`: `bg-blue-100 text-blue-800`\n- `overdue`: `bg-red-100 text-red-800`\n\nThe test checks the badges that render for each status; it does not require an Alert banner or a particular shadcn component for the badge.",
                 order: 2,
               },
               {
-                title: "Styling the Warning",
+                title: "Apply Classes to the Status Badge",
                 content:
-                  "A destructive warning reads as a thick red rule down the left edge of a pale panel, and the four classes live on the same `Alert` element:\n\n- `border-l-4` for the thick left rule\n- `border-red-500` for the rule colour\n- `bg-red-50` for the pale background\n- `text-red-900` for the dark red text\n\n`AlertTitle` renders a heading at level 5, and its text has to say `overdue`.",
+                  "Apply both expected utility classes to the element that displays each status, for example:\n\n<span className=\"bg-green-100 text-green-800\">Available</span>\n\nThe tests assert both classes on each matching status element, so styling a parent while leaving the status element unstyled will not satisfy the check.",
                 order: 3,
               },
               {
-                title: "Counting and Linking",
+                title: "Render Every Status",
                 content:
-                  "The description carries the count, and a link beside it points at the filtered dashboard so the banner is actionable:\n\nconst overdueCount = books.filter((book) => book.status === 'overdue').length;\n\n<AlertDescription>{overdueCount} overdue books need attention</AlertDescription>\n<Link href=\"/dashboard?status=overdue\">View overdue</Link>\n\nThe link has to render an `a`, because a link is what carries the `link` role, and the `status=overdue` query is what puts the table in its overdue state.",
+                  "The starter data includes books in all three statuses. The dashboard tests render the page and verify that at least one badge for each status exists, then check the expected classes on every matching badge. Keep the visible status words so the badges are discoverable.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Banner Text",
+                title: "Practice Lab: Choose Badge Classes",
                 content:
-                  "Practice the count the description shows: turn a number of overdue books into one line of text.",
+                  "Practice selecting the same status classes used by the dashboard badges.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement `overdueBannerText(count)` returning the sentence shown in the alert description.\n\n- the text always contains the number then ` overdue book`\n- exactly `1` adds no `s`\n- `0` and any count above `1` add an `s`\n\nExample: `overdueBannerText(2)` returns `2 overdue books`.",
+                    "Implement `statusBadgeClasses(status)` returning the two expected CSS classes for each known status as a space-separated string.\n\n- `available` returns `bg-green-100 text-green-800`\n- `borrowed` returns `bg-blue-100 text-blue-800`\n- `overdue` returns `bg-red-100 text-red-800`",
                   language: "javascript",
                   starter_code:
-                    "export function overdueBannerText(count) {\n  // TODO\n}\n",
+                    "export function statusBadgeClasses(status) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "overdueBannerText",
+                  entry_point: "statusBadgeClasses",
                   test_cases: [
                     {
-                      input: [1],
-                      expected: "1 overdue book",
-                      label: "one overdue book stays singular",
+                      input: ["available"],
+                      expected: "bg-green-100 text-green-800",
+                      label: "available uses green classes",
                     },
                     {
-                      input: [2],
-                      expected: "2 overdue books",
-                      label: "two overdue books are plural",
+                      input: ["borrowed"],
+                      expected: "bg-blue-100 text-blue-800",
+                      label: "borrowed uses blue classes",
                     },
                     {
-                      input: [0],
-                      expected: "0 overdue books",
-                      label: "none left is still plural",
+                      input: ["overdue"],
+                      expected: "bg-red-100 text-red-800",
+                      label: "overdue uses red classes",
                     },
                   ],
                   hints: [
-                    "Build the sentence from the number and one branch on the count.",
-                    "return `${count} overdue book${count === 1 ? '' : 's'}`;",
-                    "return `${___} overdue book${___ === 1 ? '___' : '___'}`;",
+                    "Choose a class pair based on the status string.",
+                    "if (status === 'available') return 'bg-green-100 text-green-800';",
+                    "if (status === '___') return 'bg-___-100 text-___-800';",
                   ],
                 },
                 order: 5,
@@ -358,7 +344,7 @@ title: "JSX Text Content",
               {
                 title: "Key Takeaway",
                 content:
-                  "One banner, one `alert` element, four destructive classes, and a heading that says `overdue`. The count comes from the same books list the table reads, and the link takes the reader straight to the overdue view.",
+                  "Use green classes for available books, blue for borrowed books and red for overdue books. Keep the status text on the badge so the tests can identify each rendered status.",
                 order: 6,
               },
             ],
@@ -366,15 +352,15 @@ title: "JSX Text Content",
           hints: {
             create: [
               {
-                description: "Add `Alert`, `AlertTitle` and `AlertDescription` from `@/components/ui/alert` to `src/app/dashboard/page.tsx` and render the banner above the `Tabs`, so it is on screen on every tab.",
+                description: "In the dashboard table, locate the element displaying each book's status and give it the matching badge classes: available green, borrowed blue and overdue red.",
                 order: 1,
               },
               {
-                description: "Put `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900` on the `Alert` itself, and give the `AlertTitle` text containing `overdue`; the description carries the number and the words `overdue book`.",
+                description: "The exact class pairs checked are `bg-green-100 text-green-800`, `bg-blue-100 text-blue-800` and `bg-red-100 text-red-800`; apply both classes to every matching status badge.",
                 order: 2,
               },
               {
-                description: "Finish with a `Link` whose `href` carries `status=overdue` and whose label matches `view overdue`, `filter overdue` or `show overdue`. Keep the words `overdue book` on that one element only, so the description stays the only text match for it.",
+                description: "Use the visible labels `available`, `borrowed` and `overdue` on the respective badges; the tests locate the status elements by that text.",
                 order: 3,
               },
             ],
@@ -384,31 +370,31 @@ title: "JSX Text Content",
             create: [
               {
                 description:
-                  "Add an overdue books alert banner to the dashboard page above the tabs",
+                  "Display at least one available book status badge in the dashboard table",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Style the alert banner with a thick red left border, pale pink background, and dark red text",
+                  "Give every available status badge the classes bg-green-100 and text-green-800",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Add a heading to the alert banner containing the word 'overdue'",
+                  "Display at least one borrowed book status badge in the dashboard table",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Include the overdue book count and the words 'overdue book' in the alert description",
+                  "Give every borrowed status badge the classes bg-blue-100 and text-blue-800",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Add a link labeled 'View overdue', 'Filter overdue', or 'Show overdue' that navigates to the dashboard filtered to overdue books",
+                  "Display at least one overdue book status badge and give every overdue badge the classes bg-red-100 and text-red-800",
                 is_required: true,
                 order: 5,
               },
@@ -425,7 +411,7 @@ title: "JSX Text Content",
               {
                 title: "Overview\nExtracting the BookRow Component",
                 content:
-                  "This level has two tasks. The first adds the overdue alert banner to the dashboard. The second pulls the inline table row out of `src/app/dashboard/page.tsx` into its own component file and wraps the derived lists in `useMemo`.",
+                  "This level has two tasks. The first assigns the tested green, blue and red class pairs to the available, borrowed and overdue status badges. The second creates a `BookRow` component and memoizes at least one derived book collection.",
                 order: 1,
               },
               {
@@ -529,7 +515,7 @@ title: "JSX Text Content",
                 order: 2,
               },
               {
-                description: "In `src/app/dashboard/page.tsx` render `<BookRow book={book} />` for each book, keeping the titles and both counts on screen, and wrap at least one of `availableBooks`, `borrowedBooks` or `overdueBooks` in `useMemo` imported from `react`.",
+                description: "The tests verify `BookRow` renders a supplied book's title, author, ISBN and status, and the dashboard displays starter-book titles and available/overdue counts. They check `useMemo` in the dashboard source, but do not explicitly verify the dashboard imports or renders `BookRow`.",
                 order: 3,
               },
             ],
@@ -589,7 +575,7 @@ title: "JSX Text Content",
     xp_reward: 40,
     coin_reward: 100,
     key_takeaways:
-      "A controlled `Input` carries a `placeholder` of `Search books...` and an `onChange` that writes each keystroke to state, so the visible list follows the query.\n\nFiltering matches the lowercased query against `book.title` and `book.author`, which is what makes a lowercase search term still find `Orwell`.\n\nA new App Router route is a folder plus a `page.tsx`, and a return that is confirmed in a dialog removes the book from the borrowed list.",
+      "The dashboard search input has a placeholder matching `Search books` and filters visible books as the query changes. The tests check title search, author search, case-insensitive matching, the no-results message and the initial unfiltered list; they do not require a particular input component or styling.\n\nA new App Router route is a folder plus a `page.tsx`. The returns page lists borrowed books, shows confirmation when Return is clicked, and removes the selected book after Confirm. Its test also checks that the page imports the shared shadcn Dialog component.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
@@ -609,7 +595,7 @@ title: "JSX Text Content",
               {
                 title: "A Controlled Input",
                 content:
-                  "`Input` from `src/components/ui/input.tsx` forwards its props to the underlying `input`. Driving its `value` from state and writing back in `onChange` is what makes it controlled:\n\nconst [query, setQuery] = useState('');\n\n<Input\n  placeholder=\"Search books...\"\n  value={query}\n  onChange={(e) => setQuery(e.target.value)}\n/>\n\n`placeholder=\"Search books...\"` is the visible hint a reader sees before typing, and it is matched case-insensitively by `getByPlaceholderText(/search books/i)`. The sizing classes are passed in as `className` and land on the same `input`: `h-10`, `px-3`, `rounded-md`, `border`, `focus:outline-none` and `focus:ring-2`.",
+                  "A controlled input uses state for its value and updates that state in `onChange`:\n\nconst [query, setQuery] = useState('');\n\n<input\n  placeholder=\"Search books...\"\n  value={query}\n  onChange={(e) => setQuery(e.target.value)}\n/>\n\nThe test locates the field with a placeholder matching `/search books/i`, so wording such as `Search books...` is sufficient. A shared shadcn `Input` is welcome, but the test does not require that component or particular sizing/focus classes.",
                 order: 2,
               },
               {
@@ -708,11 +694,11 @@ title: "JSX Text Content",
           hints: {
             create: [
               {
-                description: "In `src/app/dashboard/page.tsx` import `Input` from `@/components/ui/input`, hold the search term in state and feed it to the `Input` through `onChange`, with the `placeholder` reading `Search books...`.",
+                description: "In `src/app/dashboard/page.tsx`, provide an input whose placeholder matches `Search books`, keep the query in state, and update it on change. The test does not require importing the shared Input component.",
                 order: 1,
               },
               {
-                description: "Pass `className` on that `Input` so the element carries `h-10`, `px-3`, `rounded-md`, `border`, `focus:outline-none` and `focus:ring-2`, and filter the list by comparing the lowercased term against `book.title` and `book.author`.",
+                description: "Filter the list by comparing the query against both `book.title` and `book.author`, ignoring case; show `No books found` when nothing matches.",
                 order: 2,
               },
               {
@@ -732,45 +718,21 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Style the search box using the shared Input component with proper sizing, border, and focus ring",
+                  "Filter books by title and author, case-insensitively, when the search input changes",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Import the shared Input component in the dashboard page",
+                  "Show 'No books found' when a search query has no matching books",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Filter the book list by title when typing in the search box",
+                  "Show every starter-book title on the initial unfiltered dashboard",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description:
-                  "Filter the book list by author when typing in the search box",
-                is_required: true,
-                order: 5,
-              },
-              {
-                description:
-                  "Make the search case-insensitive so lowercase queries still find matching books",
-                is_required: true,
-                order: 6,
-              },
-              {
-                description:
-                  "Show 'No books found' message when the search returns no results",
-                is_required: true,
-                order: 7,
-              },
-              {
-                description:
-                  "Verify all book titles are visible before any search is performed",
-                is_required: true,
-                order: 8,
               },
             ],
           },
@@ -809,7 +771,7 @@ title: "JSX Text Content",
               {
                 title: "Confirming the Return",
                 content:
-                  "Clicking `Return` sets `pendingBook`, which opens the confirmation. `Dialog`, `DialogContent`, `DialogTitle`, `DialogDescription` and `DialogFooter` are imported from `@/components/ui/dialog`, and the body text carries `Are you sure`.\n\nThe open dialog is the element with the `dialog` role, and it has to carry `aria-modal=\"true\"`, because that is what tells assistive technology the rest of the page is blocked while it is open. `DialogTitle` renders the heading inside it.\n\nThe `Confirm` button is the only place the state changes:\n\nconst handleConfirm = () => {\n  setBooks((prev) =>\n    prev.map((book) =>\n      book.id === pendingBook.id ? { ...book, status: 'available' } : book\n    )\n  );\n  setPendingBook(null);\n};\n\nBecause the page recomputes `borrowedBooks` from `books`, the returned book drops out of the table on its own, and `Cancel` only sets `pendingBook` back to `null`, which unmounts the dialog without touching the list.",
+                  "Clicking `Return` opens a confirmation containing `Are you sure`; clicking `Confirm` changes the selected book to `available`, so it leaves the borrowed list. The test also checks that the page source imports and uses a component from `@/components/ui/dialog`. It does not assert `aria-modal` or test cancellation on this page; the Level 4 test checks that Cancel closes the borrow confirmation.",
                 order: 5,
               },
               {
@@ -879,7 +841,7 @@ title: "JSX Text Content",
                 order: 2,
               },
               {
-                description: "Opening the confirmation shows `Are you sure` inside an element with the `dialog` role whose `aria-modal` attribute is `true`, only `Confirm` turns that book to `available` so its title leaves the page, and `Cancel` closes the dialog again.",
+                description: "Opening Return shows `Are you sure`; clicking `Confirm` changes the selected book to `available` so its title leaves the borrowed list. Use the shared Dialog import from `@/components/ui/dialog`.",
                 order: 3,
               },
             ],
@@ -907,13 +869,13 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Open a confirmation dialog when clicking Return that blocks the rest of the page",
+                  "Show confirmation text containing 'Are you sure' after clicking Return",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Show 'Are you sure' with Confirm and Cancel buttons in the confirmation dialog",
+                  "Provide a Confirm button in the return confirmation so the test can confirm a return",
                 is_required: true,
                 order: 5,
               },
@@ -925,15 +887,9 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Close the dialog without changes when Cancel is clicked",
+                  "Import and use a Dialog component from the shared shadcn dialog module",
                 is_required: true,
                 order: 7,
-              },
-              {
-                description:
-                  "Build the confirmation dialog using the shared dialog component.",
-                is_required: true,
-                order: 8,
               },
             ],
           },
@@ -947,11 +903,11 @@ title: "JSX Text Content",
     subtitle: "Offer Borrow only on available books, confirm every borrow and return, and keep books in localStorage through a useLocalStorage hook",
     order: 4,
     level_description:
-      "Mission Briefing: A librarian can still act on a book that should be off limits, and every action goes through unchecked. Restrict the dashboard to one `Borrow` button per available book so the overdue tab offers none, keep the destructive `Alert` banner readable on that tab, put an `Are you sure` confirmation with `Cancel` and `Confirm` in front of both borrow and return, and back the books list with a `useLocalStorage` hook so a refresh keeps the data.",
+      "Mission Briefing: A librarian can still act on a book that should be off limits, and every action goes through unchecked. Restrict the dashboard to one `Borrow` button per available book and none on the overdue tab, then put confirmations in front of borrow and return and back the books list with a `useLocalStorage` hook so changes persist.",
     xp_reward: 60,
     coin_reward: 150,
     key_takeaways:
-      "The Borrow button is offered by the row, not by the page, so a tab showing only `overdue` books renders zero `Borrow` buttons while `All Books` renders exactly one per `available` book.\n\nThe `Alert` from `@/components/ui/alert` sits above the `Tabs`, so it is the single `alert` element on screen on the overdue tab as well, and its `AlertTitle` is the page's single level 5 heading.\n\n`Dialog` from `@/components/ui/dialog` carries the `Are you sure` body text plus `Cancel` and `Confirm`, and cancelling closes it without touching state.\n\n`useLocalStorage(key, initialValue)` in `src/hooks/useLocalStorage.ts` returns a `[value, setValue]` tuple: the initial value when the key is empty, the stored value when it is not, and every setter call writes the value back as JSON.",
+      "The dashboard tests click the `Overdue Books` tab and check that an overdue book is visible with no `Borrow` button present. They also click `All Books` and check the Borrow-button count equals the number of available starter books.\n\n`Dialog` from `@/components/ui/dialog` carries the `Are you sure` body text plus `Cancel` and `Confirm`; the tests check that Cancel closes the borrow dialog and that the returns page shows confirmation before returning a book.\n\n`useLocalStorage(key, initialValue)` in `src/hooks/useLocalStorage.ts` returns a `[value, setValue]` tuple: the initial value when the key is empty, the stored value when it is not, and every setter call writes the value back as JSON.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
@@ -965,7 +921,7 @@ title: "JSX Text Content",
               {
                 title: "Overview\nRestricting the Borrow Action",
                 content:
-                  "This level has two tasks. The first decides which rows offer a Borrow action and warns about overdue books. The second puts a confirmation in front of borrow and return, and moves the books list into `localStorage`.",
+                  "This level has two tasks. The first verifies that only available books offer a Borrow button and that the overdue tab has none. The second puts confirmations in front of borrow and return, and moves the books list into `localStorage`.",
                 order: 1,
               },
               {
@@ -981,9 +937,9 @@ title: "JSX Text Content",
                 order: 3,
               },
               {
-                title: "The Overdue Warning",
+                title: "Check Borrow Actions by Tab",
                 content:
-                  "The overdue view also has to say out loud that something is wrong. The destructive banner from the dashboard banner already does that, and because it sits above the `Tabs` it is still on screen once the overdue tab is active, which is what the check looks for.\n\nThe four classes live on the `Alert` element itself: `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`. `AlertTitle` renders a heading at level 5, and its text has to contain `overdue`. Keep it to one banner on the page, so there is a single `alert` element and a single level 5 heading.",
+                  "The test selects the `Overdue Books` tab, verifies an overdue starter-book title is visible, and checks that no button with the name `Borrow` is present. On `All Books`, it checks that the number of Borrow buttons equals the count of available books. The test does not check a disabled button: it expects no Borrow button in the overdue view.",
                 order: 4,
               },
               {
@@ -1044,7 +1000,7 @@ title: "JSX Text Content",
               {
                 title: "Key Takeaway",
                 content:
-                  "The gate belongs on the row. Available books get one `Borrow` button each, and the overdue tab renders none, because every cell on that table is overdue. The destructive `Alert` is what makes the tab itself say so.",
+                  "Available books get one `Borrow` button each in the all-books view, and the overdue view has no Borrow buttons. The tests also require an overdue book title and an overdue indication to remain visible.",
                 order: 7,
               },
             ],
@@ -1056,11 +1012,7 @@ title: "JSX Text Content",
                 order: 1,
               },
               {
-                description: "Reuse the one overdue banner you already built, above the `Tabs` so it is still on screen on the overdue tab, and keep it as the page's only `alert` element and only level 5 heading.",
-                order: 2,
-              },
-              {
-                description: "Self-check: on the `Overdue Books` tab nothing matches `/borrow/i` and the destructive `Alert` is on screen, while on `All Books` the count equals the available books in `mockBooks`.",
+                description: "Self-check: the overdue tab shows an overdue title and no Borrow buttons; All Books shows one Borrow button per available book.",
                 order: 3,
               },
             ],
@@ -1094,21 +1046,9 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Click the Overdue Books tab and verify exactly one alert element is shown with the four destructive styling classes",
+                  "Verify there are no Borrow buttons in the overdue view and the overdue indication remains visible",
                 is_required: true,
                 order: 5,
-              },
-              {
-                description:
-                  "Click the Overdue Books tab and verify exactly one level 5 heading is shown with text matching 'overdue'",
-                is_required: true,
-                order: 6,
-              },
-              {
-                description:
-                  "Verify the dashboard page imports Alert components.",
-                is_required: true,
-                order: 7,
               },
             ],
           },
@@ -1129,7 +1069,7 @@ title: "JSX Text Content",
               {
                 title: "The Confirmation Dialog",
                 content:
-                  "`Dialog`, `DialogContent`, `DialogTitle`, `DialogDescription` and `DialogFooter` come from `@/components/ui/dialog`, which takes `open` and `onOpenChange`. Body text reading `Are you sure` plus two buttons covers both actions:\n\n<Dialog open={pending !== null} onOpenChange={setPending}>\n  <DialogContent>\n    <DialogTitle>Confirm</DialogTitle>\n    <DialogDescription>Are you sure?</DialogDescription>\n    <DialogFooter>\n      <Button onClick={() => setPending(null)}>Cancel</Button>\n      <Button onClick={handleConfirm}>Confirm</Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>\n\n`Cancel` sets the pending action back to `null`, which closes the dialog and leaves the books untouched. The same dialog is used by the `Return` button on `src/app/returns/page.tsx`.",
+                  "`Dialog`, `DialogContent`, `DialogTitle`, `DialogDescription` and `DialogFooter` come from `@/components/ui/dialog`, which takes `open` and `onOpenChange`. Body text reading `Are you sure` plus two buttons covers both actions:\n\n<Dialog open={pending !== null} onOpenChange={setPending}>\n  <DialogContent>\n    <DialogTitle>Confirm</DialogTitle>\n    <DialogDescription>Are you sure?</DialogDescription>\n    <DialogFooter>\n      <Button onClick={() => setPending(null)}>Cancel</Button>\n      <Button onClick={handleConfirm}>Confirm</Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>\n\nThe test checks that `Cancel` closes the borrow confirmation by making `Are you sure` disappear. The returns-page test checks confirmation and successful return, but not cancellation on that page.",
                 order: 2,
               },
               {
@@ -1207,7 +1147,7 @@ title: "JSX Text Content",
               {
                 title: "Key Takeaway",
                 content:
-                  "Nothing changes until `Confirm` is pressed, and cancelling puts nothing back. `useLocalStorage('books', mockBooks)` then makes that change survive the next mount.",
+                  "The Level 4 tests verify that Cancel closes the borrow dialog, Confirm persists a borrow to the `books` key, and `useLocalStorage('books', mockBooks)` restores stored data on mount.",
                 order: 7,
               },
             ],
@@ -1219,7 +1159,7 @@ title: "JSX Text Content",
                 order: 1,
               },
               {
-                description: "Easiest to get wrong: `Cancel` must close the dialog and leave the list untouched, and the dialog needs the labelled `Borrower Name` and `Borrower Email` fields.",
+                description: "The tests check that Cancel closes the borrow confirmation and that the borrow dialog exposes fields labelled `Borrower Name` and `Borrower Email`; they do not check that cancellation leaves data unchanged or test Cancel on the returns page.",
                 order: 2,
               },
               {
@@ -1245,7 +1185,7 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Click Cancel on the borrow dialog and verify the dialog closes without changes",
+                  "Click Cancel on the borrow dialog and verify the confirmation closes",
                 is_required: true,
                 order: 3,
               },
@@ -1294,14 +1234,14 @@ title: "JSX Text Content",
   {
     id: "nextjs-shadcn-ui-level-5",
     title: "Overdue Report Page and Date Utilities",
-    subtitle: "Add /overdue with borrower details and a Mark as Returned action, expose formatDate and isOverdue from src/lib/dateUtils, and open a book details dialog from the dashboard",
+    subtitle: "Add /overdue with borrower details and a Mark as Returned action, then expose formatDate and isOverdue and document the project",
     order: 5,
     level_description:
-      "Mission Briefing: Chasing late books means reading three tables and cross-referencing the borrow records by hand. Build an `/overdue` route that shows each overdue book's title, author, borrower name, borrower email and how many days late it is, with a `Mark as Returned` action that clears the row, move the date work into `src/lib/dateUtils.ts` behind `formatDate` and `isOverdue`, and turn a click on a dashboard row into a `Book Details` dialog.",
+      "Mission Briefing: Chasing late books means reading three tables and cross-referencing borrow records by hand. Build an `/overdue` route with each overdue book's title, author, borrower name, borrower email, a `day(s) overdue` indicator and a `Mark as Returned` action. Then implement `formatDate` and `isOverdue` in `src/lib/dateUtils.ts`, write README feature documentation, and add comments across at least 80% of the source files under `src`.",
     xp_reward: 75,
     coin_reward: 200,
     key_takeaways:
-      "The borrower name on a book is `book.borrowedBy` and the borrower email comes from the `mockBorrowRecords` entry whose `bookId` matches, which is why both live in different arrays.\n\n`formatDate('2026-01-15')` returns `Jan 15, 2026` and returns an empty string for `'invalid'` and for `''`; `isOverdue` compares a `YYYY-MM-DD` string against today and returns `false` rather than throwing on input it cannot parse.\n\nThe dashboard imports the `Dialog` family from `@/components/ui/dialog` and opens it from a row click, with a `DialogTitle` reading `Book Details` rendered as a level 2 heading and a close button whose accessible name matches `close`.",
+      "The borrower name on a book is `book.borrowedBy`, while the borrower email comes from the `mockBorrowRecords` entry whose `bookId` matches. The overdue report test verifies each overdue book's title, author, borrower name and email, looks for text matching `day overdue` or `days overdue`, checks one `Mark as Returned` button per overdue book, and confirms the first clicked item disappears. It does not validate the numeric day count.\n\n`formatDate('2026-01-15')` returns `Jan 15, 2026` and returns an empty string for invalid or empty input. `isOverdue` returns true for a date yesterday, false for a date fourteen days ahead, and false for invalid or empty input.\n\nThe documentation test checks that README contains `library management`, `book` and `feature` and is longer than 100 characters; it also checks that comment markers occur in at least 80% of `.ts` and `.tsx` files under `src`.",
     scenario_id: "nextjs-shadcn-ui-scenario-1",
     tasks: {
       create: [
@@ -1315,7 +1255,7 @@ title: "JSX Text Content",
               {
                 title: "Overview\nBuilding the Overdue Report",
                 content:
-                  "This level has two tasks. The first builds the `/overdue` route. The second moves the date work into `src/lib/dateUtils.ts` and opens a book details dialog from the dashboard.",
+                  "This level has two tasks. The first builds the `/overdue` route. The second moves date formatting and overdue checks into `src/lib/dateUtils.ts` and adds the README and source comments the tests require.",
                 order: 1,
               },
               {
@@ -1327,7 +1267,7 @@ title: "JSX Text Content",
               {
                 title: "Days Overdue",
                 content:
-                  "`BorrowRecord.dueDate` and `Book.dueDate` are `YYYY-MM-DD` strings, so the difference against today is a plain subtraction:\n\nconst daysOverdue = Math.floor(\n  (Date.now() - new Date(book.dueDate!).getTime()) / 86400000\n);\n\nThe row text keeps the word `days overdue`, for example `5 days overdue`, which is what a reader scans the column for.",
+                  "`BorrowRecord.dueDate` and `Book.dueDate` are date strings. Show a human-readable number with a singular or plural label, such as `1 day overdue` or `5 days overdue`. The test checks that at least one row contains `day overdue` or `days overdue`; it does not validate the numeric calculation, so treat the number as useful UI information rather than a tested requirement.",
                 order: 3,
               },
               {
@@ -1427,7 +1367,7 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Show 'days overdue' text for each overdue book row",
+                  "Show text matching 'day overdue' or 'days overdue' on overdue report rows",
                 is_required: true,
                 order: 4,
               },
@@ -1447,16 +1387,16 @@ title: "JSX Text Content",
           },
         },
         {
-          task_name: "Add Date Utilities and the Book Details Dialog",
+          task_name: "Add Date Utilities and Documentation",
           test_type: "both",
           user_story:
-            "As a developer, I want `formatDate` and `isOverdue` in `src/lib/dateUtils.ts` and a book details dialog on the dashboard so that date handling is shared and I can read a book's details without leaving the page.",
+            "As a developer, I want reusable date utilities and clear project documentation so that dates are handled consistently and future contributors can understand the library app.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nDate Utilities and the Book Details Dialog",
+                title: "Overview\nDate Utilities and Documentation",
                 content:
-                  "This level has two tasks. The first builds the `/overdue` route. The second extracts `formatDate` and `isOverdue` into `src/lib/dateUtils.ts` and turns a click on a dashboard row into a dialog.",
+                  "This level has two tasks. The first builds the `/overdue` route. The second implements `formatDate` and `isOverdue` in `src/lib/dateUtils.ts`, documents the library-management features in README, and adds comments across most TypeScript source files.",
                 order: 1,
               },
               {
@@ -1468,7 +1408,7 @@ title: "JSX Text Content",
               {
                 title: "Formatting to Jan 15, 2026",
                 content:
-                  "The month names are the three-letter English abbreviations joined with the day and year:\n\nconst months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\n\nfunction formatDate(dateString: string): string {\n  const date = parseDate(dateString);\n  if (!date) return '';\n  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;\n}\n\n`formatDate('2026-01-15')` gives `Jan 15, 2026`.",
+                  "The month names are the three-letter English abbreviations joined with the day and year. Parse a date-only string in UTC and use UTC getters so the result does not shift with the machine's timezone:\n\nfunction formatDate(dateString: string): string {\n  const date = parseDate(dateString);\n  if (!date) return '';\n  return `${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;\n}\n\n`formatDate('2026-01-15')` gives `Jan 15, 2026` in every timezone.",
                 order: 3,
               },
               {
@@ -1480,7 +1420,7 @@ title: "JSX Text Content",
               {
                 title: "Comparing Against Today",
                 content:
-                  "`isOverdue` only cares whether the date is in the past, so both sides are read at the start of their day:\n\nfunction isOverdue(dateString: string): boolean {\n  const date = parseDate(dateString);\n  if (!date) return false;\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  return date.getTime() < today.getTime();\n}\n\nA date one day ago is `true` and a date well in the future is `false`.",
+                  "`isOverdue` compares date-only values by calendar day. Normalize both values to UTC midnight (or compare validated `YYYY-MM-DD` strings) so the result does not depend on the machine's timezone. Return `false` for an empty or invalid string. A date one day ago is `true` and a date fourteen days in the future is `false`.",
                 order: 5,
               },
               {
@@ -1528,9 +1468,9 @@ title: "JSX Text Content",
                 order: 6,
               },
               {
-                title: "Opening the Dialog From a Row",
+                title: "Document the Project",
                 content:
-                  "The `dialog.tsx` added in Level 1 is reused here. `src/app/dashboard/page.tsx` imports `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` and `DialogFooter` from `@/components/ui/dialog`, and the row becomes the trigger:\n\nconst [selectedBook, setSelectedBook] = useState<Book | null>(null);\n\n<TableRow onClick={() => setSelectedBook(book)}>\n\n<Dialog open={selectedBook !== null} onOpenChange={(open) => !open && setSelectedBook(null)}>\n  <DialogContent>\n    <DialogHeader>\n      <DialogTitle>Book Details</DialogTitle>\n      <DialogDescription>{selectedBook?.title}</DialogDescription>\n    </DialogHeader>\n    <DialogFooter>\n      <Button onClick={() => setSelectedBook(null)}>Close</Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>\n\n`DialogTitle` renders the heading, and the close button is what a reader presses to dismiss the dialog without borrowing anything.",
+                  "Add a README that explains this library-management project and its features. The test checks for text matching `library management`, `book` and `feature`, and requires more than 100 characters. It also scans `.ts` and `.tsx` files under `src` and requires comment markers in at least 80% of those files; add meaningful comments where they clarify non-obvious code.",
                 order: 7,
               },
             ],
@@ -1546,7 +1486,7 @@ title: "JSX Text Content",
                 order: 2,
               },
               {
-                description: "In `src/app/dashboard/page.tsx` import from `@/components/ui/dialog`, open the dialog on a row click, and give it a `Book Details` title plus a `Close` button so the level 2 heading and the close control are both there.",
+                description: "Add README feature documentation containing `library management`, `book` and `feature` (more than 100 characters), and add source comments so at least 80% of `.ts`/`.tsx` files under `src` contain comment markers.",
                 order: 3,
               },
             ],
@@ -1586,33 +1526,15 @@ title: "JSX Text Content",
               },
               {
                 description:
-                  "Verify Dialog Page exists and exports Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, and DialogDescription",
+                  "Add a README longer than 100 characters that documents the library management project, books and its features",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "Click a table row on the dashboard and verify a dialog opens",
+                  "Include comment markers in at least 80% of TypeScript files under src",
                 is_required: true,
                 order: 7,
-              },
-              {
-                description:
-                  "Verify the open dialog shows a level 2 heading with text matching 'Book Details'",
-                is_required: true,
-                order: 8,
-              },
-              {
-                description:
-                  "Verify the open dialog has a Close button",
-                is_required: true,
-                order: 9,
-              },
-              {
-                description:
-                  "Verify the dashboard page imports Dialog components.",
-                is_required: true,
-                order: 10,
               },
             ],
           },

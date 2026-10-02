@@ -1722,7 +1722,7 @@ export const levels = [
                 {
                   title: "Why Centralise the Revenue Predicate?",
                   content:
-                    "If the same canceledAt: null filter is copied into three report endpoints and one of them is updated while the others are forgotten, the bug returns. A single isEligibleForRevenue function is the single point of change.",
+                    "If the same canceledAt: null filter is copied into three report endpoints and one of them is updated while the others are forgotten, the bug returns. In this POS the equivalent shared predicate is `revenueWhereClause` (and the per-order check is `isRevenueEligibleOrder`) — a single point of change.",
                   order: 2,
                 },
                 {

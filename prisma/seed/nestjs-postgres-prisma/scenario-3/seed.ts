@@ -1,5 +1,5 @@
 ﻿/**
- * Prisma Seed Script â€” IPPO POS System (NestJS Scenario 3)
+ * Prisma Seed Script — IPPO POS System (NestJS Scenario 3)
  *
  * Seeds the database with Level and Scenario data for the IPPO POS learning scenario.
  */
@@ -22,7 +22,7 @@ export const levels = [
     subtitle: "Set up the development environment and make a first schema change.",
     order: 1,
     level_description:
-      "Mission Briefing: A new developer has joined the IPPO POS engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change â€” adding a phoneNumber field to store settings â€” so the codebase structure becomes clear end-to-end.",
+      "Mission Briefing: A new developer has joined the IPPO POS engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change — adding a phoneNumber field to store settings — so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
@@ -46,19 +46,19 @@ export const levels = [
               {
                 title: "What is the IPPO POS System?",
                 content:
-                  "The IPPO POS System is a NestJS application using Prisma ORM with PostgreSQL. It has standard NestJS module structure with modules for Auth, Users, Products, Categories, Orders, Inventory, Reports, and Settings.\n\nNestJS â€” provides a modular architecture with decorators, dependency injection, and built-in support for REST APIs.\nPostgreSQL â€” stores users, products, categories, orders, and inventory.\nPrisma â€” defines the schema and generates the type-safe client.",
+                  "The IPPO POS System is a NestJS application using Prisma ORM with PostgreSQL. It has standard NestJS module structure with modules for Auth, Users, Products, Categories, Orders, Inventory, Reports, and Settings.\n\nNestJS — provides a modular architecture with decorators, dependency injection, and built-in support for REST APIs.\nPostgreSQL — stores users, products, categories, orders, and inventory.\nPrisma — defines the schema and generates the type-safe client.",
                 order: 2,
               },
               {
                 title: "How a NestJS App is Structured",
                 content:
-                  "A typical NestJS project is organized by feature modules:\n\nsrc/\n  â”œâ”€â”€ auth/          â† authentication module (JWT strategy, guards)\n  â”œâ”€â”€ users/         â† user management\n  â”œâ”€â”€ products/      â† product catalog\n  â”œâ”€â”€ categories/    â† product categories\n  â”œâ”€â”€ orders/        â† order management\n  â”œâ”€â”€ inventory/     â† stock tracking\n  â”œâ”€â”€ reports/       â† analytics endpoints\n  â”œâ”€â”€ settings/      â† store settings\n  â”œâ”€â”€ prisma/        â† schema, migrations, seed\n  â””â”€â”€ main.ts        â† application bootstrap\n\nEach module contains its own controller, service, DTOs, and tests.",
+                  "A typical NestJS project is organized by feature modules:\n\nsrc/\n  ├── auth/          ← authentication module (JWT strategy, guards)\n  ├── users/         ← user management\n  ├── products/      ← product catalog\n  ├── categories/    ← product categories\n  ├── orders/        ← order management\n  ├── inventory/     ← stock tracking\n  ├── reports/       ← analytics endpoints\n  ├── settings/      ← store settings\n  ├── prisma/        ← schema, migrations, seed\n  └── main.ts        ← application bootstrap\n\nEach module contains its own controller, service, DTOs, and tests.",
                 order: 3,
               },
               {
                 title: "Package Management in a NestJS Project",
                 content:
-                  "When a project is cloned, no dependencies are installed yet â€” node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common â€” framework runtime\n- @nestjs/platform-express â€” HTTP server adapter\n- @prisma/client â€” type-safe database client\n- prisma â€” CLI for migrations and schema management\n- bcrypt â€” password hashing\n- class-validator, class-transformer â€” DTO validation\n- supertest â€” HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
+                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- zod — request-body validation through Zod schemas and ZodValidationPipe\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
                 order: 4,
               },
               {
@@ -109,7 +109,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files â€” never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/pos_system\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. âš ï¸ .env files are listed in .gitignore intentionally â€” they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/pos_system\nJWT_SECRET=changeme\nJWT_EXPIRES_IN=1d\nPORT=3000\n\nThe app reads these values straight from `process.env`, and `src/main.ts` falls back to port 3000 when `PORT` is unset. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
                 order: 8,
               },
               {
@@ -121,7 +121,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a project is more than running one command â€” it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first enables building features with confidence.",
+                  "Setting up a project is more than running one command — it means aligning the local environment (dependencies, env vars, database) so the app runs identically for every developer on the team. Getting this right first enables building features with confidence.",
                 order: 10,
               },
             ],
@@ -202,9 +202,9 @@ export const levels = [
                 order: 3,
               },
               {
-                title: "Updating the DTO",
+                title: "Updating the Controller and Service",
                 content:
-                  "Update the CreateSettingDto and UpdateSettingDto to include the optional phoneNumber field. Use @IsOptional() and @IsString() decorators.",
+                  "This settings module has no DTO classes: settings.controller.ts types the request body inline and settings.service.ts builds an explicit safeData object. Add phoneNumber?: string to the controller's inline body type, and add phoneNumber: data.phoneNumber to safeData so the service writes and returns it.",
                 order: 4,
               },
               {
@@ -261,7 +261,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "In a Prisma + NestJS stack, schema changes flow in one direction: schema.prisma â†’ migration â†’ generated client â†’ DTO â†’ service â†’ controller â†’ API response. Master this pipeline and every feature becomes predictable to implement.",
+                  "In a Prisma + NestJS stack, schema changes flow in one direction: schema.prisma → migration → generated client → DTO → service → controller → API response. Master this pipeline and every feature becomes predictable to implement.",
                 order: 7,
               },
             ],
@@ -280,7 +280,7 @@ export const levels = [
               },
               {
                 description:
-                  "Add `@IsOptional()` and `@IsString()` to the `phoneNumber` field in both `CreateSettingDto` and `UpdateSettingDto` under `src/settings/`. The settings service then passes the value straight through on create and on update, and `GET /api/settings` includes it, where it may be `null`.",
+                  "There are no DTO classes under `src/settings/` — only controller, module and service. Add `phoneNumber` to the inline body type in `src/settings/settings.controller.ts`, and add `phoneNumber` to the explicit `safeData` object the service writes in `src/settings/settings.service.ts`. Then `GET /api/settings` includes it, where it may be `null`.",
                 order: 3,
               },
             ],
@@ -330,7 +330,7 @@ export const levels = [
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
-      "Inventory integrity requires both correct comparison operators (`lte` instead of `lt`) and input validation (rejecting negative quantities). These guards prevent silent data corruption.\n\nPagination is not a UI convenience â€” it is a performance requirement. A proper paginated API uses `skip` and `take` in Prisma, and returns a consistent envelope with `data`, `total`, `page`, `limit`, and `totalPages`.",
+      "Inventory integrity requires both correct comparison operators (`lte` instead of `lt`) and input validation (rejecting negative quantities). These guards prevent silent data corruption.\n\nPagination is not a UI convenience — it is a performance requirement. A proper paginated API uses `skip` and `take` in Prisma, and returns a consistent envelope with `data`, `total`, `page`, `limit`, and `totalPages`.",
     scenario_id: "nestjs-pos-scenario-3",
     tasks: {
       create: [
@@ -350,13 +350,13 @@ export const levels = [
               {
                 title: "Bug #INV-001: Low-Stock Comparison",
                 content:
-                  "The low-stock endpoint currently filters products where stock < lowStock. It should include products where stock is exactly at the threshold too (stock <= lowStock).\n\nconst lowStock = await prisma.inventory.findMany({\n  where: {\n    quantity: { lte: threshold },\n  },\n});\n\nUse `lte` (less than or equal) instead of `lt`.",
+                  "The low-stock endpoint currently returns inventory rows where `quantity < lowStock`. It should also include rows whose quantity is exactly at their own low-stock level, i.e. the comparison has to be `quantity <= lowStock` (inclusive).\n\nThere is no request parameter here — each row is compared against its own `lowStock` column, so the fix is simply the `<` versus `<=` operator.",
                 order: 2,
               },
               {
                 title: "Bug #INV-002: Negative Inventory",
                 content:
-                  "The inventory update endpoint should validate that the quantity parameter is non-negative before updating.\n\nif (dto.quantity < 0) {\n  throw new BadRequestException('Quantity cannot be negative');\n}\n\nUse @Min(0) from class-validator on the quantity DTO field, or validate manually in the service.",
+                  "The inventory update endpoint should validate that the quantity parameter is non-negative before updating.\n\nif (dto.quantity < 0) {\n  throw new BadRequestException('Quantity cannot be negative');\n}\n\n`updateInventorySchema` in `src/inventory/dto/update-inventory.dto.ts` is a Zod schema — add `.min(0)` to its `quantity` field, or add an equivalent check in the service.",
                 order: 3,
               },
               {
@@ -406,12 +406,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "The low-stock list lives in `getLowStock()` in `src/inventory/inventory.service.ts`, and the query needs to be inclusive so a product whose stock equals the threshold is included. Change the comparison from `lt` to `lte`.",
+                  "The controller calls `this.inventoryService.getLowStockProducts()` in `src/inventory/inventory.service.ts` (the stub `getLowStock()` is not wired up). Implement it so a row whose `quantity` equals its own `lowStock` is included — change the comparison from `lt` to `lte`.",
                 order: 1,
               },
               {
                 description:
-                  "The inventory update endpoint has to reject a negative quantity. Use `@Min(0)` from class-validator on the `quantity` field of the update DTO in `src/inventory/`, or an equivalent check in `src/inventory/inventory.service.ts`. `quantity: -1` answers 400, while `quantity: 0` and a valid positive quantity are accepted.",
+                  "The inventory update endpoint has to reject a negative quantity. Add `.min(0)` to the `quantity` field of the Zod `updateInventorySchema` in `src/inventory/dto/update-inventory.dto.ts`, or add an equivalent check in `src/inventory/inventory.service.ts`. `quantity: -1` answers 400, while `quantity: 0` and a valid positive quantity are accepted.",
                 order: 2,
               },
             ],
@@ -524,7 +524,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller already reads query params through `@Query()`. They arrive as strings, so convert them with `parseInt` and fall back to `page = 1` and `limit = 10`.",
+                  "`products.controller.ts` currently reads only `search` through `@Query()`; `page` and `limit` have to be added. They arrive as strings, so convert them with `parseInt` and fall back to `page = 1` and `limit = 10`.",
                 order: 1,
               },
               {
@@ -548,7 +548,7 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "View products without filters and verify default pagination (page 1, 10 items)",
+                description: "View products without filters and verify default pagination (page 1, at most 20 items)",
                 is_required: true,
                 order: 2,
               },
@@ -677,7 +677,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "The product list in `orders.service.ts` has to run as a single unit of work. Put the whole checkout inside `prisma.$transaction(async (tx) => { ... })`.",
+                  "The checkout in `orders.service.ts` (`create()`) has to run as a single unit of work. Put the whole order creation inside `prisma.$transaction(async (tx) => { ... })`.",
                 order: 1,
               },
               {
@@ -744,7 +744,7 @@ export const levels = [
               {
                 title: "PaymentMethod Enum",
                 content:
-                  "The Prisma schema defines a PaymentMethod enum with CASH and CARD values. The order creation endpoint should validate that the incoming paymentMethod matches one of these values.\n\nenum PaymentMethod {\n  CASH\n  CARD\n}\n\nUse @IsEnum(PaymentMethod) from class-validator on the paymentMethod field in the CreateOrderDto.",
+                  "The Prisma schema defines a PaymentMethod enum with CASH and CARD values. The order creation endpoint should validate that the incoming paymentMethod matches one of these values.\n\nenum PaymentMethod {\n  CASH\n  CARD\n}\n\n`src/orders/dto/create-order.dto.ts` is a Zod schema — restrict the field with `paymentMethod: z.enum(['CASH', 'CARD'])` (or `z.nativeEnum(PaymentMethod)`) so `ZodValidationPipe` rejects anything else.",
                 order: 2,
               },
               {
@@ -801,7 +801,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Validate payment methods at both the DTO level (with class-validator) and the service level (with custom guards). Reject unsupported methods before any database writes occur.",
+                  "Validate payment methods at both the DTO level (with the Zod enum) and the service level (with custom guards). Reject unsupported methods before any database writes occur.",
                 order: 5,
               },
             ],
@@ -810,7 +810,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Payment methods are restricted to the `PaymentMethod` enum from `@prisma/client`, which holds `CASH` and `CARD`. The validation decorator on `paymentMethod` in the order DTO uses that enum.",
+                  "Payment methods are restricted to the `PaymentMethod` enum from `@prisma/client`, which holds `CASH` and `CARD`. The Zod schema on `paymentMethod` in the order DTO declares `z.enum(['CASH', 'CARD'])`, so `ZodValidationPipe` rejects anything outside it.",
                 order: 1,
               },
               {
@@ -896,13 +896,13 @@ export const levels = [
               {
                 title: "Top Products Ranking",
                 content:
-                  "To find the top 5 best-selling products, aggregate order items by productId and sum the quantities:\n\nconst topProducts = await prisma.orderItem.groupBy({\n  by: ['productId'],\n  _sum: { quantity: true },\n  where: {\n    order: { createdAt: { gte: today, lt: tomorrow } },\n  },\n  orderBy: { _sum: { quantity: 'desc' } },\n  take: 5,\n});\n\nThen join with the Product model to get names. The test checks for `productName` and `quantitySold` in each entry.",
+                  "To find the top 5 best-selling products, aggregate order items by productId and sum the quantities:\n\nconst topProducts = await prisma.orderItem.groupBy({\n  by: ['productId'],\n  _sum: { quantity: true },\n  where: {\n    order: { createdAt: { gte: today, lt: tomorrow } },\n  },\n  orderBy: { _sum: { quantity: 'desc' } },\n  take: 5,\n});\n\nThen join with the Product model to get names. The test accepts either `productName`/`quantitySold` or the raw `name`/`quantity` on each entry.",
                 order: 3,
               },
               {
                 title: "Admin-Only Routes",
                 content:
-                  "Sales reports contain sensitive business data. Protect them with admin guards:\n\n@Get('daily')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles('ADMIN')\nasync dailyReport() { ... }\n\nThe test verifies that non-admin users (cashiers) receive 401-403.",
+                  "Sales reports contain sensitive business data. Protect them with admin guards:\n\n@Get('daily')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles(UserRole.ADMIN)\nasync dailyReport() { ... }\n\nThe test verifies that non-admin users (cashiers) receive 401-403.",
                 order: 4,
               },
               {
@@ -967,7 +967,7 @@ export const levels = [
               },
               {
                 description:
-                  "`topProducts` is a ranking of the best sellers by summed quantity with at most 5 entries, and each one carries `productName` and `quantitySold`. The route stays admin-only, so a cashier gets 401 or 403.",
+                  "`topProducts` is a ranking of the best sellers by summed quantity with at most 5 entries; each entry may name the product as `productName` or `name` and the count as `quantitySold` or `quantity`. The route stays admin-only, so a cashier gets 401 or 403.",
                 order: 3,
               },
             ],
@@ -1150,7 +1150,7 @@ export const levels = [
               {
                 title: "Bug #1: Race Condition / Oversell",
                 content:
-                  "Client Report: 'Two customers both successfully bought the last Ethiopian Yirgacheffe!'\n\nRoot cause: The checkout reads inventory, checks if stock >= quantity, then deducts stock. If two requests read stock=1 simultaneously, both pass the check and both deduct, resulting in stock=-1.\n\nFix: Use `SELECT ... FOR UPDATE` (pessimistic locking) inside a Prisma interactive transaction. Prisma's `$transaction` with the native `update` with `decrement` both work:\n\nawait prisma.$transaction(async (tx) => {\n  const inventory = await tx.inventory.findUnique({\n    where: { productId: item.productId },\n  });\n\n  if (inventory.quantity < item.quantity) {\n    throw new BadRequestException('Out of stock');\n  }\n\n  await tx.inventory.update({\n    where: { productId: item.productId },\n    data: { quantity: { decrement: item.quantity } },\n  });\n});\n\nThe transaction serializes concurrent requests. Only one can deduct stock at a time.",
+                  "Client Report: 'Two customers both successfully bought the last Ethiopian Yirgacheffe!'\n\nRoot cause: The checkout reads inventory, checks if stock >= quantity, then deducts stock. If two requests read stock=1 simultaneously, both pass the check and both deduct, resulting in stock=-1.\n\nFix: Use `SELECT ... FOR UPDATE` (pessimistic locking) inside a Prisma interactive transaction. Prisma's `$transaction` with the native `update` with `decrement` both work:\n\nawait prisma.$transaction(async (tx) => {\n  const inventory = await tx.inventory.findUnique({\n    where: { productId: item.productId },\n  });\n\n  if (inventory.quantity < item.quantity) {\n    throw new BadRequestException('Out of stock');\n  }\n\n  await tx.inventory.update({\n    where: { productId: item.productId },\n    data: { quantity: { decrement: item.quantity } },\n  });\n});\n\nWrapping the check and the decrement in `$transaction` is necessary but not sufficient: under PostgreSQL's default READ COMMITTED isolation both requests can still read `quantity=1` before either writes, so both pass the check and inventory lands at -1. To genuinely serialise them, fold the guard into an atomic conditional write (see below) or take an explicit row lock.",
                 order: 2,
               },
               {
@@ -1168,13 +1168,13 @@ export const levels = [
               {
                 title: "Prisma Interactive Transactions with Locking",
                 content:
-                  "For the oversell fix, wrap the stock check and deduction in a transaction. Prisma handles the locking automatically when `$transaction is used` with related queries on the same rows. The key insight is that the stock check and the decrement must happen in the same transaction - not as separate queries.\n\nIf explicit row-level locking, use a raw query:\n\nawait prisma.$executeRaw`SELECT * FROM inventory WHERE productId = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
+                  "For the oversell fix, wrap the stock check and deduction in a transaction — and make the check atomic. Prisma does not take row locks automatically inside an interactive transaction; under READ COMMITTED two overlapping transactions can each read the same quantity before either writes. Fold the guard into the write instead:\n\nconst updated = await tx.inventory.updateMany({\n  where: { productId, quantity: { gte: item.quantity } },\n  data: { quantity: { decrement: item.quantity } },\n});\n\nif (updated.count === 0) {\n  throw new BadRequestException('Out of stock');\n}\n\nIf you prefer an explicit lock, run it with `tx.$queryRaw` *inside* the transaction (note `$queryRaw`, not `$executeRaw`, since `$executeRaw` cannot run a `SELECT`; the camelCase column also needs quoting):\n\nawait tx.$queryRaw`SELECT * FROM inventory WHERE \"productId\" = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
                 order: 5,
               },
               {
                 title: "Consistent Report Totals",
                 content:
-                  "The test verifies that calling the same report twice returns the same total. This catches non-deterministic queries caused by:\n- Missing `ORDER BY` clauses\n- Using `new Date()` inside the query instead of fixed boundaries\n- Timezone-dependent date truncation\n\nAlways pass explicit `start` and `end` dates from the controller, and use them consistently in both `aggregate` and `count` calls.",
+                  "The test verifies that calling the same report twice returns the same order count. This catches non-deterministic queries caused by:\n- Missing `ORDER BY` clauses\n- Using `new Date()` inside the query instead of fixed boundaries\n- Timezone-dependent date truncation\n\nAlways compute explicit `start` and `end` UTC boundaries inside the service, and use them consistently in both `aggregate` and `count` calls.",
                 order: 6,
               },
               {

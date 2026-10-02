@@ -61,7 +61,7 @@ export const levels = [
               {
                 title: "Package Management in a NestJS Project",
                 content:
-                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- class-validator, class-transformer — DTO validation\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
+                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- zod — request-body validation through Zod schemas and ZodValidationPipe\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
                 order: 4,
               },
               {
@@ -112,7 +112,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/flexispend\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/flexispend\nJWT_SECRET=changeme\nPORT=3000\n\nThe app reads these values straight from `process.env`, and `src/main.ts` falls back to port 3000 when `PORT` is unset. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
                 order: 8,
               },
               {
@@ -207,7 +207,7 @@ export const levels = [
               {
                 title: "DTOs: Data Transfer Objects",
                 content:
-                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateTransactionDto tells NestJS what fields to expect when someone POSTs to /api/transactions. Class-validator decorators (@IsString, @IsOptional, etc.) enforce validation rules before the data reaches the service layer.",
+                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateTransactionDto tells NestJS what fields to expect when someone POSTs to /api/transactions. In this project DTOs are Zod schemas — `CreateTransactionDtoSchema` in `src/transactions/dto/create-transaction.dto.ts` — and the `ZodValidationPipe` on the route runs `schema.parse()` to reject invalid data before the service layer sees it. Only keys declared in the schema survive parsing.",
                 order: 4,
               },
               {
@@ -284,7 +284,7 @@ export const levels = [
               },
               {
                 description:
-                  "In `src/transactions/dto/create-transaction.dto.ts` add a `note?: string` property to `CreateTransactionDto` and decorate it with `@IsOptional()` and `@IsString()`. In `src/transactions/transactions.service.ts` the `create` method passes the DTO straight through, so nothing changes there. In `src/transactions/transactions.controller.ts` the create handler returns the raw Prisma result, so the saved value comes back in the 201 response body on its own.",
+                  "In `src/transactions/dto/create-transaction.dto.ts` add `note: z.string().optional()` to `CreateTransactionDtoSchema` — the schema, not a decorator on a class, because `ZodValidationPipe` strips any key it does not declare. Then in `src/transactions/transactions.service.ts` the `create` method builds an explicit `data` object, so add `note: dto.note` to it. In `src/transactions/transactions.controller.ts` the create handler returns the raw Prisma result, so the saved value comes back in the 201 response body on its own.",
                 order: 2,
               },
               {
@@ -294,7 +294,7 @@ export const levels = [
               },
               {
                 description:
-                  "The list handler in `src/transactions/transactions.controller.ts` has to include `note` in what it selects. `GET /api/transactions` may answer with a bare JSON array or with a `{ data: [...] }` envelope, because the list is read as `(listRes.body.data ?? listRes.body).map(t => t.note)`. Make sure a transaction saved with `groceries` shows that exact value on the list.",
+                  "The list handler in `src/transactions/transactions.controller.ts` returns the Prisma result, which already includes every scalar field, so once the model and schema carry `note` it shows up automatically. `GET /api/transactions` may answer with a bare JSON array or with a `{ data: [...] }` envelope, because the list is read as `(listRes.body.data ?? listRes.body).map(t => t.note)`. Make sure a transaction saved with `groceries` shows that exact value on the list.",
                 order: 4,
               },
             ],
@@ -342,7 +342,7 @@ export const levels = [
     subtitle: "Build paginated transaction lists and guard visibility with soft-delete categories.",
     order: 2,
     level_description:
-      "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. The job is to implement cursor-based pagination with filters and enforce soft-delete visibility rules across the API.",
+      "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. The job is to implement offset-based pagination (page/limit) with filters and enforce soft-delete visibility rules across the API.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
@@ -456,7 +456,7 @@ export const levels = [
               },
               {
                 description:
-                  "In `findAll()` in `src/transactions/transactions.service.ts` the filter has to be one single object that conditionally spreads in `type`, `categoryId` and the `date: { gte, lte }` range, and that same object goes to both `findMany` and `count`.",
+                  "In `findAll()` in `src/transactions/transactions.service.ts` the filter has to be one single object that conditionally spreads in `type`, `categoryId` and a `date` range built from the `startDate` and `endDate` query params (`date: { gte, lte }`), and that same object goes to both `findMany` and `count`.",
                 order: 3,
               },
               {
@@ -670,7 +670,7 @@ export const levels = [
               {
                 title: "Overview\nAtomic Financial Operations in Prisma",
                 content:
-                  "This section introduces the crash course for implementing safe balance updates in a financial application. It covers Prisma atomic operations, funds guards, field validation with class-validator, and the allowNegativeBalance flag.",
+                  "This section introduces the crash course for implementing safe balance updates in a financial application. It covers Prisma atomic operations, funds guards, field validation with Zod schemas, and the allowNegativeBalance flag.",
                 order: 1,
               },
               {
@@ -692,15 +692,15 @@ export const levels = [
                 order: 4,
               },
               {
-                title: "Field Validation with class-validator",
+                title: "Field Validation with Zod Schemas",
                 content:
-                  "Use class-validator decorators to reject bad data before it reaches business logic. class-validator runs automatically when the `ValidationPipe` is applied globally in main.ts. This means negative amounts, invalid dates, and unknown enum values all return 400 before service code executes.",
+                  "Use the Zod schema for each route to reject bad data before it reaches business logic. Routes attach `ZodValidationPipe`, which calls `schema.parse()` and throws a 400 when parsing fails. Rules such as `z.number().positive()` or `z.string().datetime()` on the schema mean negative amounts, invalid dates, and unknown enum values all return 400 before service code executes.",
                 order: 5,
               },
               {
                 title: "Rejecting Future Dates",
                 content:
-                  "For accurate financial records, transactions should not be dated in the future. Add a custom validation in the service or a `@MaxDate(new Date())` decorator in the DTO:\n\nconst transactionDate = new Date(dto.date);\nif (transactionDate > new Date()) {\n  throw new BadRequestException('Transaction date cannot be in the future');\n}\n\nThis prevents users from backloading future budget periods or gaming the trend reports.",
+                  "For accurate financial records, transactions should not be dated in the future. Add a custom validation in the service, or a `.refine()` on the date field of the Zod schema:\n\nconst transactionDate = new Date(dto.date);\nif (transactionDate > new Date()) {\n  throw new BadRequestException('Transaction date cannot be in the future');\n}\n\nThis prevents users from backloading future budget periods or gaming the trend reports.",
                 order: 6,
               },
               {
@@ -746,7 +746,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Never read-modify-write financial counters. Use Prisma's atomic `increment` / `decrement` operations. Guard expenses with a funds check that respects the `allowNegativeBalance` flag. Validate all inputs with class-validator and custom service checks before touching the database.",
+                  "Never read-modify-write financial counters. Use Prisma's atomic `increment` / `decrement` operations. Guard expenses with a funds check that respects the `allowNegativeBalance` flag. Validate all inputs with Zod schemas and custom service checks before touching the database.",
                 order: 8,
               },
             ],
@@ -1019,9 +1019,9 @@ export const levels = [
                 order: 5,
               },
               {
-                title: "Admin-Only Routes with Guards",
+                title: "Authenticated Routes with Guards",
                 content:
-                  "Summary and trend endpoints should be protected by an admin or authenticated-user guard. NestJS guards intercept requests before they reach the controller. The JWT strategy extracts the user from the Authorization header; the guard ensures only valid tokens proceed.",
+                  "Summary and trend endpoints are protected by `JwtAuthGuard`, which requires a valid JWT — any authenticated user, not only admins. NestJS guards intercept requests before they reach the controller. The JWT strategy extracts the user from the Authorization header; the guard ensures only valid tokens proceed.",
                 order: 6,
               },
               {
@@ -1234,7 +1234,7 @@ export const levels = [
               },
               {
                 description:
-                  "`GET /api/reports/budget-alerts` is called with no query params at all, so the reporting window has to be defaulted inside the service, for example to the current month and year. Enrich every budget with `spent`, `remaining`, `percentUsed` and `exceeded`, keep only `percentUsed >= 80`, and sort descending.",
+                  "`GET /api/reports/budget-alerts` is called with no query params at all, and the seeded budgets live in January 2025, so the query must not be scoped to the current month and year — return every budget for the user. Enrich each budget with `spent`, `remaining`, `percentUsed` and `exceeded`, keep only `percentUsed >= 80`, and sort descending.",
                 order: 3,
               },
               {

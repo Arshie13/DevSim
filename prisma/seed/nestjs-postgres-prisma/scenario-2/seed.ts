@@ -57,7 +57,7 @@ export const levels = [
               {
                 title: "Package Management in a NestJS Project",
                 content:
-                  "When a project is cloned, no dependencies are installed yet - node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common - framework runtime\n- @nestjs/platform-express - HTTP server adapter\n- @prisma/client - type-safe database client\n- prisma - CLI for migrations and schema management\n- bcrypt - password hashing\n- class-validator, class-transformer - DTO validation\n- supertest - HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
+                  "When a project is cloned, no dependencies are installed yet - node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common - framework runtime\n- @nestjs/platform-express - HTTP server adapter\n- @prisma/client - type-safe database client\n- prisma - CLI for migrations and schema management\n- bcrypt - password hashing\n- zod - request-body validation through Zod schemas and ZodValidationPipe\n- supertest - HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
                 order: 4,
               },
               {
@@ -108,7 +108,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files - never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/brewhaven\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. Warning: .env files are listed in .gitignore intentionally - they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files - never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/brewhaven\nJWT_SECRET=changeme\nPORT=3000\n\nThe app reads these values straight from `process.env`, and `src/main.ts` falls back to port 3000 when `PORT` is unset. Prisma reads DATABASE_URL directly from .env. Warning: .env files are listed in .gitignore intentionally - they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
                 order: 8,
               },
               {
@@ -207,7 +207,7 @@ export const levels = [
               {
                 title: "DTOs: Data Transfer Objects",
                 content:
-                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateProductDto tells NestJS what fields to expect when someone POSTs to /api/products:\n\nexport class CreateProductDto {\n  @IsString()\n  name: string;\n\n  @IsNumber()\n  price: number;\n\n  @IsUUID()\n  categoryId: string;\n}\n\nUse class-validator decorators (@IsString, @IsOptional, etc.) to enforce rules before the data reaches the service layer.",
+                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateProductDto tells NestJS what fields to expect when someone POSTs to /api/products:\n\nexport const createProductSchema = z.object({\n  name: z.string().min(1),\n  price: z.number().positive(),\n  categoryId: z.string().min(1),\n  // ...description, image, sku, weight, stock\n});\n\nDTOs in this project are Zod schemas (like `createProductSchema` in `src/products/dto/create-product.dto.ts`), not class-validator classes. `ZodValidationPipe` runs `schema.parse()` before the data reaches the service layer, and only keys declared in the schema survive.",
                 order: 4,
               },
               {
@@ -316,7 +316,7 @@ export const levels = [
               },
               {
                 description:
-                  "View the product list and verify every product includes a roast level field",
+                  "Create a product with a roast level and verify the product list returns that value for it",
                 is_required: true,
                 order: 3,
               },
@@ -527,7 +527,7 @@ export const levels = [
               {
                 title: "Filtering Active Categories",
                 content:
-                  "Every list query must explicitly filter for active records:\n\nconst categories = await prisma.category.findMany({\n  where: { isActive: true },\n});\n\nWithout this, inactive categories leak into the storefront. The test specifically checks that `Inactive Category` does NOT appear in GET /api/categories.",
+                  "Every list query must explicitly filter for active records:\n\nconst categories = await prisma.category.findMany({\n  where: { isActive: true },\n});\n\nWithout this, inactive categories leak into the storefront. The test checks that the inactive category's id is absent from GET /api/categories.",
                 order: 3,
               },
               {
@@ -697,7 +697,7 @@ export const levels = [
               {
                 title: "Payment Method Validation",
                 content:
-                  "Validate the payment method against an allowed enum before creating the order:\n\nconst allowedMethods = ['CASH', 'CARD'];\nif (!allowedMethods.includes(paymentMethod)) {\n  throw new BadRequestException('Invalid payment method');\n}\n\nUse a Zod schema or class-validator `@IsEnum()` to enforce this at the DTO level as well.",
+                  "Validate the payment method against an allowed enum before creating the order:\n\nconst allowedMethods = ['CASH', 'CARD'];\nif (!allowedMethods.includes(paymentMethod)) {\n  throw new BadRequestException('Invalid payment method');\n}\n\nThis is already enforced at the DTO level: `createOrderSchema` declares `paymentMethod: z.nativeEnum(PaymentMethod)`, so `ZodValidationPipe` rejects anything outside the enum.",
                 order: 6,
               },
               {
@@ -848,7 +848,7 @@ export const levels = [
               {
                 title: "Admin-Only Endpoints",
                 content:
-                  "Order status updates should be restricted to admin users. Use NestJS guards and decorators:\n\n@Patch(':id/status')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles('ADMIN')\nasync updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {\n  return this.ordersService.updateStatus(id, dto.status);\n}\n\nThe RolesGuard checks the user's role from the JWT token. Customers should get a 401 or 403 when trying to update order status.",
+                  "Order status updates should be restricted to admin users. Use NestJS guards and decorators:\n\n@Patch(':id/status')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles(UserRole.ADMIN)\nasync updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {\n  return this.ordersService.updateStatus(id, dto.status);\n}\n\nThe RolesGuard checks the user's role from the JWT token. Customers should get a 401 or 403 when trying to update order status.",
                 order: 4,
               },
               {
@@ -1021,7 +1021,7 @@ export const levels = [
               {
                 title: "Top Products Ranking",
                 content:
-                  "To find the top 5 best-selling products, aggregate order items by productId and sum the quantities:\n\nconst topProducts = await prisma.orderItem.groupBy({\n  by: ['productId'],\n  _sum: { quantity: true },\n  where: {\n    order: { createdAt: { gte: today, lt: tomorrow } },\n  },\n  orderBy: { _sum: { quantity: 'desc' } },\n  take: 5,\n});\n\nThen join with the Product model to get names. The test checks for `productName` and `quantitySold` in each entry.",
+                  "To find the top 5 best-selling products, aggregate order items by productId and sum the quantities:\n\nconst topProducts = await prisma.orderItem.groupBy({\n  by: ['productId'],\n  _sum: { quantity: true },\n  where: {\n    order: { createdAt: { gte: today, lt: tomorrow } },\n  },\n  orderBy: { _sum: { quantity: 'desc' } },\n  take: 5,\n});\n\nThen join with the Product model to get names. The test only checks that `topProducts` is an array of at most 5 entries — each entry's name and quantity are read as `productName ?? name` and `quantitySold ?? quantity`.",
                 order: 3,
               },
               {
@@ -1033,7 +1033,7 @@ export const levels = [
               {
                 title: "Admin-Only Routes",
                 content:
-                  "Sales reports contain sensitive business data. Protect them with admin guards:\n\n@Get('daily')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles('ADMIN')\nasync dailyReport() { ... }\n\nThe test verifies that non-admin users (customers) receive 401-403.",
+                  "Sales reports contain sensitive business data. Protect them with admin guards:\n\n@Get('daily')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles(UserRole.ADMIN)\nasync dailyReport() { ... }\n\nThe test verifies that non-admin users (customers) receive 401-403.",
                 order: 5,
               },
               {
@@ -1178,7 +1178,7 @@ export const levels = [
               {
                 title: "Filtering by Stock Threshold",
                 content:
-                  "A low-stock alert returns products where `stock <= threshold`. The default threshold is 10:\n\nconst threshold = parseInt(query.threshold ?? '10', 10);\n\nconst alerts = await prisma.product.findMany({\n  where: {\n    stock: { lte: threshold },\n    isActive: true,\n  },\n  include: { category: true },\n  orderBy: { stock: 'asc' },\n});\n\nUse `lte` (less than or equal) not just `lt`. The test verifies that a product with `stock === threshold` is included.",
+                  "A low-stock alert returns products where `stock <= threshold`. The default threshold is 10:\n\nconst threshold = parseInt(query.threshold ?? '10', 10);\n\nconst alerts = await prisma.product.findMany({\n  where: {\n    stock: { lte: threshold },\n    isActive: true,\n  },\n  include: { category: true },\n  orderBy: { stock: 'asc' },\n});\n\nUse `lte` (less than or equal), not `lt`, so a product whose stock matches the threshold is still reported.",
                 order: 2,
               },
               {
@@ -1190,7 +1190,7 @@ export const levels = [
               {
                 title: "Response Shape",
                 content:
-                  "The alert endpoint should return an array of objects with:\n\n{\n  productName: string;\n  sku: string;\n  currentStock: number;\n  categoryName: string;\n}\n\nInclude `categoryName` (not just `categoryId`) so the admin knows which supplier to contact. Use `include: { category: true }` in Prisma to join the category data.",
+                  "The alert endpoint should return an array of objects. Only `sku` and a stock value are strictly required by the test — the rest is recommended naming:\n\n{\n  productName: string;\n  sku: string;\n  currentStock: number;\n  categoryName: string;\n}\n\nThe test reads the name as `productName ?? name` and the stock as `currentStock ?? stock`, so a raw Prisma row already passes. Adding `categoryName` (via `include: { category: true }`) is optional but useful for the admin.",
                 order: 4,
               },
               {
@@ -1202,7 +1202,7 @@ export const levels = [
               {
                 title: "Admin-Only Access",
                 content:
-                  "Like sales reports, low-stock alerts are admin-only. Use the same RolesGuard pattern:\n\n@Get('low-stock')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles('ADMIN')\nasync lowStock(@Query() query) { ... }\n\nThe test verifies that non-admin users receive 401-403.",
+                  "Like sales reports, low-stock alerts are admin-only. Use the same RolesGuard pattern:\n\n@Get('low-stock')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles(UserRole.ADMIN)\nasync lowStock(@Query() query) { ... }\n\nThe test verifies that non-admin users receive 401-403.",
                 order: 6,
               },
               {
@@ -1353,7 +1353,7 @@ export const levels = [
               {
                 title: "Bug #1: Race Condition / Oversell",
                 content:
-                  "Client Report: 'Two customers both successfully bought the last Ethiopian Yirgacheffe!'\n\nRoot cause: The checkout reads stock, checks if stock >= quantity, then deducts stock. If two requests read stock=1 simultaneously, both pass the check and both deduct, resulting in stock=-1.\n\nFix: Use `SELECT ... FOR UPDATE` (pessimistic locking) inside a Prisma interactive transaction. Prisma's `$transaction` with raw query or the native `update` with `decrement` both work:\n\nawait prisma.$transaction(async (tx) => {\n  const product = await tx.product.findUnique({\n    where: { id: productId },\n  });\n\n  if (product.stock < quantity) {\n    throw new BadRequestException('Out of stock');\n  }\n\n  await tx.product.update({\n    where: { id: productId },\n    data: { stock: { decrement: quantity } },\n  });\n});\n\nThe transaction serializes concurrent requests. Only one can deduct stock at a time.",
+                  "Client Report: 'Two customers both successfully bought the last Ethiopian Yirgacheffe!'\n\nRoot cause: The checkout reads stock, checks if stock >= quantity, then deducts stock. If two requests read stock=1 simultaneously, both pass the check and both deduct, resulting in stock=-1.\n\nFix: Use `SELECT ... FOR UPDATE` (pessimistic locking) inside a Prisma interactive transaction. Prisma's `$transaction` with raw query or the native `update` with `decrement` both work:\n\nawait prisma.$transaction(async (tx) => {\n  const product = await tx.product.findUnique({\n    where: { id: productId },\n  });\n\n  if (product.stock < quantity) {\n    throw new BadRequestException('Out of stock');\n  }\n\n  await tx.product.update({\n    where: { id: productId },\n    data: { stock: { decrement: quantity } },\n  });\n});\n\nWrapping the check and the decrement in `$transaction` is necessary but not sufficient: under PostgreSQL's default READ COMMITTED isolation both requests can still read `stock=1` before either writes, so both pass the check and stock lands at -1. To genuinely serialise them, fold the guard into an atomic conditional write (see the locking section below) or take an explicit row lock.",
                 order: 2,
               },
               {
@@ -1371,13 +1371,13 @@ export const levels = [
               {
                 title: "Prisma Interactive Transactions with Locking",
                 content:
-                  "For the oversell fix, wrap the stock check and deduction in a transaction. Prisma handles the locking automatically when `$transaction` is used with related queries on the same rows. The key insight is that the stock check and the decrement must happen in the same transaction - not as separate queries.\n\nIf explicit row-level locking is needed, a raw query can be used:\n\nawait prisma.$executeRaw`SELECT * FROM products WHERE id = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
+                  "For the oversell fix, wrap the stock check and deduction in a transaction — and make the check atomic. Prisma does not take row locks automatically inside an interactive transaction; under READ COMMITTED two overlapping transactions can each read the same stock before either writes. Fold the guard into the write instead:\n\nconst updated = await tx.product.updateMany({\n  where: { id: productId, stock: { gte: quantity } },\n  data: { stock: { decrement: quantity } },\n});\n\nif (updated.count === 0) {\n  throw new BadRequestException('Out of stock');\n}\n\nIf you prefer an explicit lock, run it with `tx.$queryRaw` *inside* the transaction (note `$queryRaw`, not `$executeRaw`, since `$executeRaw` cannot run a `SELECT`):\n\nawait tx.$queryRaw`SELECT * FROM products WHERE id = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
                 order: 5,
               },
               {
                 title: "Consistent Report Totals",
                 content:
-                  "The test verifies that calling the same report twice returns the same total. This catches non-deterministic queries caused by:\n- Missing `ORDER BY` clauses\n- Using `new Date()` inside the query instead of fixed boundaries\n- Timezone-dependent date truncation\n\nAlways pass explicit `start` and `end` dates from the controller, and use them consistently in both `aggregate` and `count` calls.",
+                  "The test verifies that calling the same report twice returns the same order count. This catches non-deterministic queries caused by:\n- Missing `ORDER BY` clauses\n- Using `new Date()` inside the query instead of fixed boundaries\n- Timezone-dependent date truncation\n\nAlways pass explicit `start` and `end` dates from the controller, and use them consistently in both `aggregate` and `count` calls.",
                 order: 6,
               },
               {

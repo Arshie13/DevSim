@@ -211,7 +211,7 @@ export const levels = [
                 {
                   title: "How to Find What to Change",
                   content:
-                    "To locate the source of a UI element visible in the browser:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, the hardcoded string is located inside the layout's header component, such as \"Public Library\" or a similar label.",
+                    "To locate the source of a UI element visible in the browser:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the sidebar, the hardcoded string is located inside the layout's sidebar component (`Sidebar.tsx`), such as \"Public Library\" or a similar label.",
                   order: 4,
                 },
                 {
@@ -273,7 +273,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "The subtitle lives in the default-exported `Sidebar` component, which is rendered on its own with no props — the component itself must render the new brand text.",
+                    "The subtitle lives in the `Sidebar` component, which is a **named** export (`export function Sidebar`) rendered on its own with no props — the component itself must render the new brand text. Keep it a named export; do not convert it to a default export.",
                   order: 1,
                 },
                 {
@@ -608,7 +608,7 @@ export const levels = [
               create: [
                 {
                   description:
-                    "In `BorrowRecords`, read `books`, `members`, `loading`, `borrowBookMember`, `getBorrowerName`, `error`, and `clearError` from a single `useLibrary()` call — do not import anything else from that context.",
+                    "In `BorrowRecords`, keep reading every field you already read from the single `useLibrary()` call, and import `isBookAvailable` from the shared helper module rather than writing a local copy of the check.",
                   order: 1,
                 },
                 {
@@ -1662,23 +1662,23 @@ export const levels = [
             },
           },
           {
-            task_name: "Deliver Permanent Fix and Documentation",
+            task_name: "Deliver the Permanent Overdue Fix",
             test_type: "server",
             user_story:
-              "As a developer, I want to fix overdue mismatches and document the root cause, So that the client can trust overdue reports.",
+              "As a developer, I want to fix the overdue classification at its root cause so that the client can trust overdue reports.",
             learning_sections: {
               create: [
                 {
                   title:
                     "Overview\nDurable Production Fixes",
                   content:
-                    "Fixing a production bug involves more than patching the immediate symptom. A durable fix follows three phases: a regression test that reproduces the bug, a code change that addresses the root cause, and documentation that prevents recurrence. This pattern applies across all software domains — e-commerce, logistics, finance, and booking systems alike.",
+                    "Fixing a production bug involves more than patching the immediate symptom. A durable fix addresses the root cause rather than the surface symptom, and leaves a regression guard behind so the same bug cannot return unnoticed. This pattern applies across all software domains — e-commerce, logistics, finance, and booking systems alike.",
                   order: 1,
                 },
                 {
                   title: "The Fix Workflow",
                   content:
-                    "A production fix follows a sequence of four steps. First, a regression test is written that reproduces the bug — the test fails, confirming the issue exists in the current code. Second, the root cause is addressed in the code. Third, the test is run again — a pass confirms the fix works. Fourth, the corrected logic is centralized into a shared utility so the same pattern is used everywhere, preventing future drift. This workflow ensures the fix is verifiable and permanent rather than a one-off patch.",
+                    "A production fix follows a sequence of three steps. First, a regression test reproduces the bug — the test fails, confirming the issue exists in the current code. Second, the root cause is addressed in the code. Third, the test is run again — a pass confirms the fix works. This workflow ensures the fix is verifiable and permanent rather than a one-off patch.",
                   order: 2,
                 },
                 {
@@ -1688,70 +1688,10 @@ export const levels = [
                   order: 3,
                 },
                 {
-                  title: "Centralizing Shared Logic",
-                  content:
-                    "When the same classification logic appears in multiple places — a query filter, a display helper, a notification trigger — each copy can drift independently. A shared utility function that encapsulates the condition ensures every part of the system makes the same decision. The function takes the relevant source-of-truth fields as parameters and returns a boolean. All code paths that need the classification call this single function instead of reimplementing the condition. This prevents the original class of bug — where one code path used source fields while another used derived status — from recurring.",
-                  order: 4,
-                },
-                {
-                  title: "Incident Postmortem Structure",
-                  content:
-                    "A postmortem is a short document written after a production incident. It is not about assigning responsibility — it is a technical record that captures what happened and how to prevent it from happening again. A postmortem has four sections. Symptom describes what the user or system observed. Root Cause identifies the technical reason — for example, a query filtering by derived status instead of source-of-truth timestamp. Fix documents what was changed and where. Prevention describes what guardrails — regression tests, centralized utilities, or process changes — now exist to stop the same issue from recurring.",
-                  order: 5,
-                },
-                {
-                  title: "Practice Lab: Incident Timeline Note",
-                  content:
-                    "Practice drafting a concise incident timeline separate from the full postmortem.",
-                  section_type: "INTERACTIVE" as const,
-                  interactive_mode: "CODE_EDITOR" as const,
-                  interactive_config: {
-                    instructions:
-                      "Implement formatIncidentTimeline() returning a 4-line timeline string. Each line: \"- Section: detail\" joined by \\n.",
-                    language: "javascript",
-                    starter_code:
-                      'export function formatIncidentTimeline() {\n  return [\n    "- Detection: [detection detail]",\n    "- Impact Window: [impact window]",\n    "- Mitigation: [mitigation step]",\n    "- Verification: [verification result]",\n  ].join("\\n");\n}\n',
-                    editable_regions: [
-                      {
-                        placeholder: "[detection detail]",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "[impact window]",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "[mitigation step]",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "[verification result]",
-                        case_sensitive: false,
-                      },
-                    ],
-                    entry_point: "formatIncidentTimeline",
-                    test_cases: [
-                      {
-                        input: [],
-                        expected:
-                          "- Detection: Alert from overdue report\n- Impact Window: 09:00-11:00 UTC\n- Mitigation: query patched\n- Verification: regression test passed",
-                        label: "required incident timeline output",
-                      },
-                    ],
-                  
-                    hints: [
-                      "Build 4 strings, join with \\n.",
-                      "[\"- Detection: ...\", \"- Impact Window: ...\", \"- Mitigation: ...\", \"- Verification: ...\"].join(\"\\n\");",
-                      "return [\"- Detection: ___\", \"- Impact Window: ___\", \"- Mitigation: ___\", \"- Verification: ___\"].join(\"___\");"
-                    ],
-                  },
-                  order: 6,
-                },
-                {
                   title: "Key Takeaway",
                   content:
-                    "A durable production fix combines three elements: a regression test that reproduces and guards against the bug, a centralized utility that ensures consistent classification logic across all code paths, and a postmortem that documents the root cause and prevention measures. This triad prevents the same issue from recurring regardless of which developer touches the code in the future.",
-                  order: 7,
+                    "A durable production fix addresses the root cause instead of the symptom: classify overdue records from the source-of-truth fields (`returnedAt` and `dueDate`) rather than the derived `status`, and never rewrite an already-returned record.",
+                  order: 4,
                 },
               ],
             },
@@ -1779,13 +1719,8 @@ export const levels = [
                 },
                 {
                   description:
-                    "Centralize the overdue rule so the read filter, status update, and any notification path cannot drift apart.",
-                  order: 5,
-                },
-                {
-                  description:
                     "Root cause: the query filtered on the derived `status` field instead of the source-of-truth `returnedAt`/`dueDate` fields, so a return that did not update `status` left the record permanently reported as overdue.",
-                  order: 6,
+                  order: 5,
                 },
               ],
             },
@@ -1839,12 +1774,6 @@ export const levels = [
                     "After the request, a returned record still has status 'RETURNED' and a non-null returnedAt - the fix never rewrites a returned record.",
                   is_required: true,
                   order: 8,
-                },
-                {
-                  description:
-                    "The overdue condition is centralized in a single shared helper keyed on returnedAt and dueDate, and the controller calls it rather than duplicating the comparison inline.",
-                  is_required: true,
-                  order: 9,
                 },
               ],
             },

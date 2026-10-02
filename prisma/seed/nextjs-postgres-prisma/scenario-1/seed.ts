@@ -40,7 +40,7 @@ export const levels = [
               {
                 title: "Serverless Architecture Context",
                 content:
-                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/app/actions/ as server actions.",
+                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/lib/actions/ as server actions.",
                 order: 2,
               },
               {
@@ -157,7 +157,7 @@ export const levels = [
               {
                 title: "The formatPeso Contract",
                 content:
-                  "Create src/lib/format.ts and export:\n\nexport function formatPeso(amount: number): string\n\nRules:\n  • Always prefix the peso symbol ₱.\n  • Always show exactly 2 decimal places.\n  • Use comma thousands separators (1234.5 → \"₱1,234.50\").\n  • Negative amounts put the minus before the symbol (-5 → \"-₱5.00\").\nThe `Intl.NumberFormat` API handles thousands separators and fixed decimals out of the box — paired with a sign check for the negative case.",
+                  "Create src/lib/format.ts and export:\n\nexport function formatPeso(amount: number): string\n\nRules:\n  • Always prefix the peso symbol ₱.\n  • Always show exactly 2 decimal places.\n  • Round to the nearest centavo.\nOne stdlib call covers every case: `amount.toFixed(2)` pads whole numbers, keeps a single decimal, and rounds to the nearest centavo.",
                 order: 3,
               },
               {
@@ -278,7 +278,7 @@ export const levels = [
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
-      "Server actions in the Next.js App Router are async functions exported from files under `src/app/actions/`. They run on the server, can read `@/lib/prisma` directly, and are imported into client components just like any other function. Putting the stock-status rule and the cart math behind server actions means the client cannot disagree with the database.\n\nMoney math is unforgiving: round once at the end. Sum at full precision, then round the three outgoing fields. The empty-input case must be handled before Prisma is touched — querying for an empty `in` list is wasted work.",
+      "Server actions in the Next.js App Router are async functions exported from files under `src/lib/actions/`. They run on the server, can read `@/lib/prisma` directly, and are imported into client components just like any other function. Putting the stock-status rule and the cart math behind server actions means the client cannot disagree with the database.\n\nMoney math is unforgiving: round once at the end. Sum at full precision, then round the three outgoing fields. The empty-input case must be handled before Prisma is touched — querying for an empty `in` list is wasted work.",
     scenario_id: "nextjs-postgres-prisma-1",
     tasks: {
       create: [
@@ -292,13 +292,13 @@ export const levels = [
               {
                 title: "Overview\nServer Actions in the App Router",
                 content:
-                  "Server actions are async functions exported from files inside `src/app/actions/`. They run only on the server, can import `@/lib/prisma` directly, and are called from client components like any other async function. They are the right home for any rule that has to agree with the database.",
+                  "Server actions are async functions exported from files inside `src/lib/actions/`. They run only on the server, can import `@/lib/prisma` directly, and are called from client components like any other async function. They are the right home for any rule that has to agree with the database.",
                 order: 1,
               },
               {
                 title: "The getStockStatusForProduct Contract",
                 content:
-                  "Create `src/app/actions/inventory.ts` and export:\n\nexport async function getStockStatusForProduct(productId: string): Promise<{\n  productId: string;\n  quantity: number;\n  status: 'OUT_OF_STOCK' | 'LOW_STOCK' | 'IN_STOCK';\n}>\n\nUse `prisma.product.findUnique({ where: { product_id: productId } })`. Throw when the product does not exist. Classify the quantity: `<= 0` → `OUT_OF_STOCK`, `1..5` → `LOW_STOCK`, `> 5` → `IN_STOCK`.",
+                  "Create `src/lib/actions/inventory.ts` and export:\n\nexport async function getStockStatusForProduct(productId: string): Promise<{\n  productId: string;\n  quantity: number;\n  status: 'OUT_OF_STOCK' | 'LOW_STOCK' | 'IN_STOCK';\n}>\n\nUse `prisma.product.findUnique({ where: { product_id: productId } })`. Throw when the product does not exist. Classify the quantity: `<= 0` → `OUT_OF_STOCK`, `1..5` → `LOW_STOCK`, `> 5` → `IN_STOCK`.",
                 order: 2,
               },
               {
@@ -430,7 +430,7 @@ export const levels = [
               {
                 title: "The getCartTotals Contract",
                 content:
-                  "Create `src/app/actions/cart.ts` and export:\n\nexport async function getCartTotals(input: {\n  items: { product_id: string; cartQuantity: number }[];\n  discountPercent?: number;\n}): Promise<{ subtotal: number; discount: number; total: number }>\n\nFetch prices via `prisma.product.findMany({ where: { product_id: { in: [...] } } })`. Compute `subtotal = Σ price × cartQuantity` using DB prices, `discount = subtotal × discountPercent / 100` (0 when not given), `total = subtotal − discount`. Round all three to 2 decimals.",
+                  "Create `src/lib/actions/cart.ts` and export:\n\nexport async function getCartTotals(input: {\n  items: { product_id: string; cartQuantity: number }[];\n  discountPercent?: number;\n}): Promise<{ subtotal: number; discount: number; total: number }>\n\nFetch prices via `prisma.product.findMany({ where: { product_id: { in: [...] } } })`. Compute `subtotal = Σ price × cartQuantity` using DB prices, `discount = subtotal × discountPercent / 100` (0 when not given), `total = subtotal − discount`. Round all three to 2 decimals.",
                 order: 2,
               },
               {
@@ -798,7 +798,7 @@ export const levels = [
               },
               {
                 description:
-                  "Money values are formatted with the ₱ sign, comma thousands separator, and exactly two decimals.",
+                  "Money values are formatted with the ₱ sign and exactly two decimals.",
                 is_required: true,
                 order: 6,
               },
@@ -1232,7 +1232,7 @@ export const levels = [
               },
               {
                 description:
-                  "Money values go through formatPeso, with the ₱ sign, comma thousands separator, and exactly two decimals.",
+                  "Money values go through formatPeso, with the ₱ sign and exactly two decimals.",
                 is_required: true,
                 order: 5,
               },

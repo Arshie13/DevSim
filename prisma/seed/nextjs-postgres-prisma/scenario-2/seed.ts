@@ -40,7 +40,7 @@ export const levels = [
               {
                 title: "Serverless Architecture Context",
                 content:
-                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/app/actions/ as server actions.",
+                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/lib/actions/ as server actions.",
                 order: 2,
               },
               {
@@ -299,7 +299,7 @@ export const levels = [
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
-      "Server actions in the App Router are async functions exported from `src/app/actions/`. They run only on the server and can read `@/lib/prisma` directly. Putting the membership rules behind one means every screen — badge, booking guard, future analytics — agrees on the answer.\n\nTake `now: Date` as an optional parameter (`now?: Date`) defaulting to `new Date()`. Production callers pass nothing; tests inject a fixed clock. Same input, same output, every time.",
+      "Server actions in the App Router are async functions exported from `src/lib/actions/`. They run only on the server and can read `@/lib/prisma` directly. Putting the membership rules behind one means every screen — badge, booking guard, future analytics — agrees on the answer.\n\nTake `now: Date` as an optional parameter (`now?: Date`) defaulting to `new Date()`. Production callers pass nothing; tests inject a fixed clock. Same input, same output, every time.",
     scenario_id: "nextjs-postgres-prisma-2",
     tasks: {
       create: [
@@ -319,7 +319,7 @@ export const levels = [
               {
                 title: "The getMembershipStatusForUser Contract",
                 content:
-                  "Create `src/app/actions/membership.ts` and export:\n\nexport async function getMembershipStatusForUser(\n  userId: string,\n  now?: Date,\n): Promise<'active' | 'expired' | 'inactive'>\n\nUse `prisma.membership.findFirst({ where: { user_id: userId } })`. Default `now` to `new Date()`. Apply the rules in order:\n  • `now > end_date` → `'expired'`.\n  • Otherwise `status === 'active'` and `now >= start_date` → `'active'`.\n  • Anything else (including no membership) → `'inactive'`.",
+                  "Create `src/lib/actions/membership.ts` and export:\n\nexport async function getMembershipStatusForUser(\n  userId: string,\n  now?: Date,\n): Promise<'active' | 'expired' | 'inactive'>\n\nUse `prisma.membership.findFirst({ where: { user_id: userId } })`. Default `now` to `new Date()`. Apply the rules in order:\n  • `now > end_date` → `'expired'`.\n  • Otherwise `status === 'active'` and `now >= start_date` → `'active'`.\n  • Anything else (including no membership) → `'inactive'`.",
                 order: 2,
               },
               {
@@ -424,7 +424,7 @@ export const levels = [
               {
                 title: "The getDaysUntilExpiry Contract",
                 content:
-                  "Add to `src/app/actions/membership.ts`:\n\nexport async function getDaysUntilExpiry(\n  userId: string,\n  now?: Date,\n): Promise<number | null>\n\nLook up the user's membership end_date via Prisma. Return whole days between `now` and `end_date`, floored.\n  • `0` on the expiry day itself.\n  • Negative once expired (`-1` the day after, etc).\n  • `null` when no membership exists for the user.",
+                  "Add to `src/lib/actions/membership.ts`:\n\nexport async function getDaysUntilExpiry(\n  userId: string,\n  now?: Date,\n): Promise<number | null>\n\nLook up the user's membership end_date via Prisma. Return whole days between `now` and `end_date`, floored.\n  • `0` on the expiry day itself.\n  • Negative once expired (`-1` the day after, etc).\n  • `null` when no membership exists for the user.",
                 order: 2,
               },
               {

@@ -12,28 +12,28 @@ export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-2-level-1",
     title: "Booting the Support Portal",
-    subtitle: "Install dependencies, add four shadcn/ui components, and fix the login wording",
+    subtitle: "Install dependencies, add the shadcn/ui Alert component, and fix the login wording",
     order: 1,
     level_description:
-      "Mission Briefing: A new developer starts on the City Hall support portal and needs a working baseline before any feature work. Install the project dependencies, confirm `pnpm dev` prints a ready line, add the shadcn/ui Alert, Toast, ScrollArea and Badge components, and fix the wording on the agent login page.",
+      "Mission Briefing: A new developer starts on the City Hall support portal and needs a working baseline before any feature work. Install the project dependencies, confirm `pnpm dev` prints a ready line, add the shadcn/ui Alert component, and fix the wording on the agent login page.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "`pnpm install` creates a `node_modules` directory containing both `next` and `react`, which is what the project check looks for.\n\n`pnpm dev` printing `ready` or `Local:` is the signal that the dev server actually started.\n\nshadcn/ui components are copied into `src/components/ui/`, so each component file in that directory has to define the exact export names the rest of the portal imports from it.",
+      "`pnpm install` creates a `node_modules` directory containing both `next` and `react`, which is what the project check looks for.\n\n`pnpm dev` printing `ready` or `Local:` is the signal that the dev server actually started.\n\nshadcn/ui components are copied into `src/components/ui/`, and the file this level grades is `alert.tsx`, which must name `Alert`, `AlertTitle` and `AlertDescription`. `badge.tsx` already ships with the starter and does not need to be added.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
         {
-          task_name: "Project Setup and the shadcn/ui Components",
+          task_name: "Project Setup and the shadcn/ui Alert Component",
           test_type: "both",
           user_story:
-            "As a developer, I want dependencies installed and the Alert, Toast, ScrollArea and Badge components in the project source so that the portal runs locally from a clean checkout.",
+            "As a developer, I want dependencies installed and the shadcn/ui Alert component in the project source so that the portal runs locally from a clean checkout.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nBooting the Support Portal",
                 content:
-                  "This level has two short tasks. The first installs dependencies, adds four shadcn/ui components, and confirms `pnpm dev` starts. The second fixes the submit wording on the agent login page.",
+                  "This level has two short tasks. The first installs dependencies, adds the shadcn/ui Alert component, and confirms `pnpm dev` starts. The second fixes the submit wording on the agent login page.",
                 order: 1,
               },
               {
@@ -45,7 +45,7 @@ export const levels = [
               {
                 title: "Adding a shadcn/ui Component",
                 content:
-                  "shadcn/ui components are copied into the project source instead of being imported from a package, one file per component:\n\npnpm dlx shadcn@latest add alert\npnpm dlx shadcn@latest add toast\npnpm dlx shadcn@latest add scroll-area\npnpm dlx shadcn@latest add badge\n\n`src/components/ui/alert.tsx` defines `Alert`, `AlertTitle` and `AlertDescription`. `src/components/ui/toast.tsx` defines `Toast`, `ToastProvider`, `ToastViewport`, `ToastTitle`, `ToastDescription`, `ToastAction` and the `useToast` hook. `src/components/ui/scroll-area.tsx` defines `ScrollArea`, `ScrollBar` and `ScrollAreaViewport`. `src/components/ui/badge.tsx` defines `Badge`, and it has to keep a `variant` prop and forward its ref.",
+                  "shadcn/ui components are copied into the project source instead of being imported from a package, one file per component. This level needs the Alert component:\n\npnpm dlx shadcn@latest add alert\n\nThe check reads `src/components/ui/alert.tsx` from disk and looks for the names `Alert`, `AlertTitle` and `AlertDescription`. It does not grade a ref-forwarding implementation. `src/components/ui/badge.tsx` already ships with the starter and does not need to be added.",
                 order: 3,
               },
               {
@@ -101,7 +101,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "The baseline is four things: `node_modules` holding `next` and `react`, a dev server that prints `ready` or `Local:`, and four component files in `src/components/ui/` that export the exact names the rest of the portal imports.",
+                  "The baseline is three things: `node_modules` holding `next` and `react`, a dev server that prints `ready` or `Local:`, and `src/components/ui/alert.tsx` naming `Alert`, `AlertTitle` and `AlertDescription`.",
                 order: 6,
               },
             ],
@@ -115,12 +115,12 @@ export const levels = [
               },
               {
                 description:
-                  "Run `pnpm dlx shadcn@latest add alert`, `pnpm dlx shadcn@latest add toast`, `pnpm dlx shadcn@latest add scroll-area` and `pnpm dlx shadcn@latest add badge`, which copy the components into your own source rather than a package",
+                  "Run `pnpm dlx shadcn@latest add alert`, which copies the component into your own source rather than a package; `badge.tsx` already ships with the starter",
                 order: 2,
               },
               {
                 description:
-                  "Open `src/components/ui/alert.tsx`, `src/components/ui/toast.tsx`, `src/components/ui/scroll-area.tsx` and `src/components/ui/badge.tsx`, and check each exports the names the portal imports: `Alert`, `AlertTitle`, `AlertDescription`; `Toast`, `ToastProvider`, `ToastViewport`, `ToastTitle`, `ToastDescription`, `ToastAction`, `useToast`; `ScrollArea`, `ScrollBar`, `ScrollAreaViewport`; and `Badge` with a `variant` prop that forwards its ref",
+                  "Open `src/components/ui/alert.tsx` and check it names `Alert`, `AlertTitle` and `AlertDescription`",
                 order: 3,
               },
               {
@@ -150,24 +150,6 @@ export const levels = [
                   "Add the alert shadcn/ui component using the CLI and verify it exports Alert, AlertTitle, and AlertDescription",
                 is_required: true,
                 order: 3,
-              },
-              {
-                description:
-                  "Add the toast shadcn/ui component using the CLI and verify it exports Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastAction, and useToast",
-                is_required: true,
-                order: 4,
-              },
-              {
-                description:
-                  "Add the scroll-area shadcn/ui component using the CLI and verify it exports ScrollArea, ScrollBar, and ScrollAreaViewport",
-                is_required: true,
-                order: 5,
-              },
-              {
-                description:
-                  "Add the badge shadcn/ui component using the CLI and verify it exports Badge with variant prop and forwardRef",
-                is_required: true,
-                order: 6,
               },
             ],
           },
@@ -274,15 +256,9 @@ export const levels = [
               },
               {
                 description:
-                  "Remove all instances of 'Sign In' from the login page source (outside of comments)",
+                  "Confirm the login page source (with `//` and `/* */` comments stripped) contains 'Login' and no remaining 'Sign In'",
                 is_required: true,
                 order: 2,
-              },
-              {
-                description:
-                  "Verify the login page shows 'Login' and no 'Sign In' text is visible",
-                is_required: true,
-                order: 3,
               },
             ],
           },
@@ -292,98 +268,107 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-2-level-2",
-    title: "Escalate Unmatched Chat and Add Quick Replies",
-    subtitle: "Offer a handoff to a human when the helper cannot answer, and give agents one-click reply snippets",
+    title: "Score Chat Intents and Add Quick Replies",
+    subtitle: "Match each message to the right city service, then give agents one-click reply snippets",
     order: 2,
     level_description:
-      "Mission Briefing: The citizen chat on `/support` answers with the first keyword it finds, and when nothing matches the citizen gets a generic line with no route to a human. Replace that silence with a shadcn/ui Alert banner offering an escalation, then add a `src/lib/quickReplies.ts` snippet library rendered inside a shadcn/ui ScrollArea on the agent dashboard.",
+      "Mission Briefing: The citizen chat on `/support` answers with the first keyword it finds, so a message that mentions more than one city service can get the wrong reply and there is no route to a human when nothing matches. Replace that lookup with a scored intent matcher in `src/lib/intentMatcher.ts` that returns the best-matching intent plus a `fallback` intent whose reply names a human, then add a `src/lib/quickReplies.ts` snippet library rendered on the agent dashboard.",
     xp_reward: 25,
     coin_reward: 50,
     key_takeaways:
-      "A banner that is already on screen when the page renders means the citizen never has to guess that a human exists, and the heading is what names the outcome in the alert itself.\n\nThe warning look is written as classes on the alert element, `border-l-4`, `border-amber-500`, `bg-amber-50` and `text-amber-900`, rather than left to a variant name.\n\nSnippet data as `{ id, label, text }` lets the dashboard render one button per snippet inside a named `region`, use `label` as the accessible name, and append `text` to whatever the agent already typed.",
+      "Scoring keyword hits instead of returning the first matching key makes the reply depend on the message rather than the order of the `aiResponses` map; the intent with the most hits wins.\n\n`matchIntent` returns `{ intent, score }`, and a message with no keyword hits resolves to the sentinel `'fallback'` intent with a score of `0`, whose reply copy has to name a human agent (it matches `/agent/i`).\n\nSnippet data as `{ id, label, text }` lets the dashboard render one button per snippet, use `label` as the accessible name, and append `text` to whatever the agent already typed.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
         {
-          task_name: "Fallback Alert for Unmatched Support Chat",
+          task_name: "Scored Intent Matching for Support Chat",
           test_type: "both",
           user_story:
-            "As a citizen, I want an alert offering a handoff to a human agent when the helper cannot answer so that I am not stuck in an automated loop.",
+            "As a citizen, I want the assistant to pick the best-matching city service for my message and to offer a human when nothing matches so that I am not stuck with the wrong automated reply.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nA Visible Route to a Human",
+                title: "Overview\nScored Intent Matching",
                 content:
-                  "This section walks through putting a shadcn/ui Alert on `src/app/support/page.tsx` above the chat messages. Today an unmatched message gets a generic reply line and nothing else. The alert is rendered as soon as the page loads, not after a particular message, so a citizen who has not typed yet still sees that a human is available.",
+                  "This section walks through replacing the first-keyword lookup on `src/app/support/page.tsx` with a scored intent matcher in `src/lib/intentMatcher.ts`. The starter `getAIResponse` loops over its `aiResponses` map and returns the first key found anywhere in the message, so the reply depends on the order of the map rather than on what the citizen actually asked. The new module exports `matchIntent` and `getAssistantReply`, and the support page routes its chat replies through `getAssistantReply`.",
                 order: 1,
               },
               {
-                title: "The Alert Component",
+                title: "The Intent Module",
                 content:
-                  "`src/components/ui/alert.tsx` was added in Level 1. It exports `Alert` as the container plus `AlertTitle` and `AlertDescription` for the two text slots. Import it by its own path:\n\nimport { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';\n\nThe container is the element that carries the alert role, so both the role and the styling belong on `Alert`.",
+                  "Everything for this task lives in one new file, `src/lib/intentMatcher.ts`, and it exports two functions:\n\nmatchIntent(input) -> { intent, score }\ngetAssistantReply(input) -> string\n\n`matchIntent` reports which service the message is about and how strongly it matched; `getAssistantReply` turns that into the reply copy. The check imports both from `@/lib/intentMatcher` and calls them directly, so they have to be real exported functions rather than helpers buried inside the page.",
                 order: 2,
               },
               {
-                title: "Writing the Warning Look",
+                title: "Scoring Keyword Hits",
                 content:
-                  "The container carries the warning colours as classes, so the banner reads as a notice rather than as more chat text:\n\n<Alert className={'border-l-4 border-amber-500 bg-amber-50 text-amber-900'}>\n\nThe four classes are `border-l-4`, `border-amber-500`, `bg-amber-50` and `text-amber-900`.",
+                  "Each intent owns a list of keywords. `matchIntent` lowercases the input, counts how many of an intent's keywords appear anywhere in it, and returns the intent with the most hits together with that count. The intended set covers at least `permits`, `taxes`, `trash` and `parking`.\n\nThree examples from the check:\n\nmatchIntent('How do I apply for a building permit license?')\n// -> { intent: 'permits', score: > 0 }\n\nmatchIntent('I need to pay my property tax bill')\n// -> { intent: 'taxes' }\n\nmatchIntent('my trash and garbage pickup was missed, also a permit question')\n// -> { intent: 'trash' }  // trash + garbage + pickup beats permit\n\nThe last example is the point of scoring: the message mentions both trash and permits, and counting hits picks `trash`.",
                 order: 3,
               },
               {
-                title: "Naming the Outcome in the Title",
+                title: "The Fallback Path",
                 content:
-                  "The title is the part a citizen scans first, so it has to say who is on the other end. `AlertTitle` is rendered as the only level 5 heading, and its text matches `/human agent|escalat/i`. Beside it goes a single `button` whose accessible name matches `/escalate|transfer|human agent/i`, which is what the citizen presses to start the handoff. Clicking it must not throw or unmount the alert.",
+                  "When no keyword matches, `matchIntent` returns the sentinel intent `'fallback'` with a score of `0`:\n\nmatchIntent('zxcvbnm qwerty asdfgh')\n// -> { intent: 'fallback', score: 0 }\n\n`getAssistantReply` returns non-empty copy for every intent, and the fallback copy has to name a human: the check requires it to match `/agent/i`. That is what gives a citizen a route to a person when the automated answer cannot help.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Zero Hits Means Escalate",
+                title: "Practice Lab: Count the Keyword Hits",
                 content:
-                  "Practice the small decision behind the banner: a score of zero keyword hits is the one case that needs a human.",
+                  "Practice the scoring step that decides which intent wins.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement needsEscalation(score) returning true when the keyword score is 0 and false for any higher score. Return false for a negative score too.\n\nExamples: needsEscalation(0) -> true.",
+                    "Implement countKeywordHits(input, keywords) returning how many of the keywords appear in the input, case-insensitively. Count each keyword once.\n\nExamples: countKeywordHits('my trash and garbage pickup was missed', ['trash', 'garbage', 'pickup', 'permit']) -> 3.",
                   language: "javascript",
                   starter_code:
-                    "export function needsEscalation(score) {\n  // TODO\n}\n",
+                    "export function countKeywordHits(input, keywords) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "needsEscalation",
+                  entry_point: "countKeywordHits",
                   test_cases: [
                     {
-                      input: [0],
-                      expected: true,
+                      input: [
+                        "my trash and garbage pickup was missed",
+                        ["trash", "garbage", "pickup", "permit"],
+                      ],
+                      expected: 3,
+                      label: "three trash keywords beat one permit keyword",
+                    },
+                    {
+                      input: ["how do I apply for a permit", ["trash", "permit"]],
+                      expected: 1,
+                      label: "one keyword hit",
+                    },
+                    {
+                      input: ["hello, is anyone there", ["trash"]],
+                      expected: 0,
                       label: "no keyword hits",
-                    },
-                    {
-                      input: [3],
-                      expected: false,
-                      label: "a matched intent answers itself",
-                    },
-                    {
-                      input: [-2],
-                      expected: false,
-                      label: "a negative score is not the fallback case",
                     },
                   ],
                   hints: [
-                    "The fallback case is the single value 0, so compare for equality rather than for less than.",
-                    "return score === 0;",
-                    "return score === ___;",
+                    "Lowercase the input once, then test each keyword with includes.",
+                    "const text = input.toLowerCase(); return keywords.filter((k) => text.includes(k)).length;",
+                    "const text = input.toLowerCase(); return keywords.filter((k) => text.___(k)).length;",
                   ],
                 },
                 order: 5,
               },
               {
+                title: "Wiring the Support Page",
+                content:
+                  "The support page stops calling its local `getAIResponse` and imports the module instead:\n\nimport { getAssistantReply } from '@/lib/intentMatcher';\n\nThe check reads `src/app/support/page.tsx` as text and requires an import path ending in `intentMatcher` plus a use of `getAssistantReply`, so the reply shown in the transcript has to come from the module rather than a copy inside the page.",
+                order: 6,
+              },
+              {
                 title: "Key Takeaway",
                 content:
-                  "Offering a human on the first screen beats offering one after three turns of guessing. Writing the warning colours on the container itself means the banner looks like a notice without needing a separate variant.",
-                order: 6,
+                  "Scoring keyword hits instead of returning the first key makes the reply depend on the message rather than the order of a map. Keeping the intent list and the reply copy in one module means `matchIntent` and `getAssistantReply` cannot drift, and returning the `'fallback'` intent with a score of 0 is what lets the fallback reply hand the citizen to a human.",
+                order: 7,
               },
             ],
           },
@@ -391,17 +376,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `src/app/support/page.tsx`, import from `@/components/ui/alert` and render an `Alert` above the chat messages that is on screen as soon as the page loads, before the citizen has sent anything",
+                  "Create `src/lib/intentMatcher.ts` exporting `matchIntent(input)` and `getAssistantReply(input)`, then import them into `src/app/support/page.tsx`",
                 order: 1,
               },
               {
                 description:
-                  "Give the `Alert` container the classes `border-l-4 border-amber-500 bg-amber-50 text-amber-900`, and make its `AlertTitle` the only level 5 heading with text naming a human agent or escalation",
+                  "Give each service (permits, taxes, trash, parking, …) a keyword list, lowercase the input, and score an intent by how many of its keywords it contains; the highest score wins",
                 order: 2,
               },
               {
                 description:
-                  "Add one `button` whose accessible name matches `/escalate|transfer|human agent/i` beside that title, then reload and confirm it is still the only element with the `alert` role",
+                  "Self-check: `'my trash and garbage pickup was missed, also a permit question'` resolves to `trash`, `'zxcvbnm qwerty asdfgh'` resolves to `{ intent: 'fallback', score: 0 }`, and the fallback reply names a human agent",
                 order: 3,
               },
             ],
@@ -411,54 +396,66 @@ export const levels = [
             create: [
               {
                 description:
-                  "Import Alert components in the support page",
+                  "Create src/lib/intentMatcher.ts exporting matchIntent and getAssistantReply",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Add an Alert banner above the chat messages that is visible immediately when the page loads",
+                  "Verify matchIntent detects the permits intent for 'How do I apply for a building permit license?' with a score above 0",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Style the Alert with border-l-4, border-amber-500, bg-amber-50, and text-amber-900 classes",
+                  "Verify matchIntent detects the taxes intent for 'I need to pay my property tax bill'",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Add an AlertTitle as a level 5 heading with text mentioning 'human agent' or 'escalation'",
+                  "Verify matchIntent returns the intent with the most keyword hits ('my trash and garbage pickup was missed, also a permit question' resolves to trash)",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Add a button beside the title with accessible name matching 'escalate', 'transfer', or 'human agent'",
+                  "Verify matchIntent returns intent 'fallback' with score 0 when no keyword matches",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Verify the button can be clicked without throwing errors or removing the alert",
+                  "Verify getAssistantReply returns a non-empty reply for a known intent",
                 is_required: true,
                 order: 6,
+              },
+              {
+                description:
+                  "Verify getAssistantReply offers a human agent on the fallback path (reply matches /agent/i)",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description:
+                  "Import from a path ending in 'intentMatcher' in the support page and route chat replies through getAssistantReply",
+                is_required: true,
+                order: 8,
               },
             ],
           },
         },
         {
-          task_name: "Quick Reply Snippets in a Scroll Area",
+          task_name: "Quick Reply Snippets on the Agent Dashboard",
           test_type: "both",
           user_story:
-            "As an agent, I want canned replies I can drop into the message box with one click from a scrolled snippet list so that I do not retype the same sentences every day.",
+            "As an agent, I want canned replies I can drop into the message box with one click so that I do not retype the same sentences every day.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nQuick Reply Snippets",
                 content:
-                  "This section walks through building a snippet library in `src/lib/quickReplies.ts` and rendering a row of one-click buttons inside a shadcn/ui ScrollArea on `src/app/agent/page.tsx`. Each snippet is `{ id, label, text }`: `label` is the button text, `text` is what gets inserted.",
+                  "This section walks through building a snippet library in `src/lib/quickReplies.ts` and rendering a row of one-click buttons on `src/app/agent/page.tsx`. Each snippet is `{ id, label, text }`: `label` is the button text, `text` is what gets inserted.",
                 order: 1,
               },
               {
@@ -468,9 +465,9 @@ export const levels = [
                 order: 2,
               },
               {
-                title: "Rendering in a Named Scroll Area",
+                title: "Rendering One Button Per Snippet",
                 content:
-                  "Wrap the snippet buttons in a `ScrollArea` from `@/components/ui/scroll-area`. Give the wrapper `role='region'` and an accessible name containing `Quick replies`, so the whole snippet list is one labelled landmark rather than loose buttons:\n\n<ScrollArea className='w-full' role='region' aria-label='Quick replies'>\n  <ScrollBar />\n  <ScrollAreaViewport>\n    {quickReplies.map((reply) => (\n      <Button key={reply.id} variant='outline' onClick={() => insertSnippet(reply)}>\n        {reply.label}\n      </Button>\n    ))}\n  </ScrollAreaViewport>\n</ScrollArea>\n\nMap the array to buttons so each one is reachable by its label alone. The label is the accessible name, so keep it short and unique: anything else inside the button would change its accessible name and break the match. The scrollbar and the viewport come from the component itself, so they are present without any extra markup.",
+                  "Map the snippet array to buttons on the dashboard so each snippet is reachable by its label alone:\n\n{quickReplies.map((reply) => (\n  <Button key={reply.id} variant='outline' onClick={() => insertSnippet(reply)}>\n    {reply.label}\n  </Button>\n))}\n\nGive each button `reply.label` as its only child. The label becomes the button's accessible name, so keep it short and unique: anything else inside the button would change its accessible name and break the match.",
                 order: 3,
               },
               {
@@ -526,7 +523,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Keeping snippets as data in `src/lib/quickReplies.ts` means the dashboard stays a renderer with no hardcoded copy. Insertion appends to the input, so a snippet never discards a draft the agent already wrote. Putting the buttons in a named `region` means the list can still be found when the dashboard grows.",
+                  "Keeping snippets as data in `src/lib/quickReplies.ts` means the dashboard stays a renderer with no hardcoded copy. Insertion appends to the input, so a snippet never discards a draft the agent already wrote.",
                 order: 6,
               },
             ],
@@ -535,12 +532,12 @@ export const levels = [
             create: [
               {
                 description:
-                  "Export the snippet array from `src/lib/quickReplies.ts` with a string `id`, `label`, and non-empty `text`, and confirm `src/components/ui/scroll-area.tsx` exports `ScrollArea`, `ScrollBar` and `ScrollAreaViewport`",
+                  "Export the snippet array from `src/lib/quickReplies.ts` with a string `id`, `label`, and non-empty `text`",
                 order: 1,
               },
               {
                 description:
-                  "On the dashboard, wrap the snippet buttons in a `ScrollArea` with `role='region'` and an accessible name matching `/quick replies/i`, and give each button `reply.label` as its only child so the name matches exactly",
+                  "On the dashboard, render one button per snippet and give each button `reply.label` as its only child so the accessible name matches the label exactly",
                 order: 2,
               },
               {
@@ -573,33 +570,15 @@ export const levels = [
               },
               {
                 description:
-                  "Verify a Scroll Area file exists and exports ScrollArea, ScrollBar, and ScrollAreaViewport",
+                  "Click a snippet button and verify its text is appended to the input (placeholder 'Type your response...')",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Import ScrollArea components in the agent dashboard",
-                is_required: true,
-                order: 5,
-              },
-              {
-                description:
-                  "Wrap snippet buttons in a ScrollArea with role='region' and accessible name matching 'quick replies', containing a scrollbar",
-                is_required: true,
-                order: 6,
-              },
-              {
-                description:
-                  "Click a snippet button and verify its text is appended to the input (placeholder 'Type your response...')",
-                is_required: true,
-                order: 7,
-              },
-              {
-                description:
                   "Click a snippet button and verify existing typed text in the input is preserved",
                 is_required: true,
-                order: 8,
+                order: 5,
               },
             ],
           },
@@ -810,7 +789,7 @@ export const levels = [
               {
                 title: "Badging the Rows",
                 content:
-                  "Only the awaiting case gets a badge, and it goes inside the row button so it travels with the conversation. Render the text `Awaiting first reply` when the state is `awaiting-first-reply`:\n\nimport { Badge } from '@/components/ui/badge';\n\n{getServiceState(conv) === 'awaiting-first-reply' && (\n  <Badge className='rounded-full font-medium'>Awaiting first reply</Badge>\n)}\n\nThe pill look comes from the component: the badge element carries `inline-flex`, `items-center`, `rounded-full`, `px-2.5`, `py-0.5`, `text-xs`, `font-medium` and `transition-colors`. In the seed data John Smith and Maria Garcia have no agent message, and Robert Johnson already has one.",
+                  "Only the awaiting case gets a badge, and it goes inside the row button so it travels with the conversation. Render the text `Awaiting first reply` when the state is `awaiting-first-reply`:\n\nimport { Badge } from '@/components/ui/badge';\n\n{getServiceState(conv) === 'awaiting-first-reply' && (\n  <Badge className='rounded-full font-medium'>Awaiting first reply</Badge>\n)}\n\n`Badge` already ships with the starter, so the awaiting state is found by its text rather than by hand-rolled styling. In the seed data John Smith and Maria Garcia have no agent message, and Robert Johnson already has one.",
                 order: 4,
               },
               {
@@ -879,7 +858,7 @@ export const levels = [
               },
               {
                 description:
-                  "Self-check: the John Smith and Maria Garcia rows each carry the text `Awaiting first reply` inside a `Badge` imported from `@/components/ui/badge`, with the pill classes `rounded-full` and `font-medium`, and the Robert Johnson row carries no badge",
+                  "Self-check: the John Smith and Maria Garcia rows each carry the text `Awaiting first reply` inside a `Badge` imported from `@/components/ui/badge`, and the Robert Johnson row carries no badge",
                 order: 3,
               },
             ],
@@ -937,21 +916,9 @@ export const levels = [
               },
               {
                 description:
-                  "Verify a badge file exists and exports Badge with variant prop and forwardRef",
+                  "Import Badge from @/components/ui/badge in the agent dashboard and render 'Awaiting first reply' inside it for conversations with no agent message",
                 is_required: true,
                 order: 9,
-              },
-              {
-                description:
-                  "Verify the badge element has the correct styling classes (inline-flex, items-center, rounded-full, etc.)",
-                is_required: true,
-                order: 10,
-              },
-              {
-                description:
-                  "Import Badge from @/components/ui/badge in the agent dashboard",
-                is_required: true,
-                order: 11,
               },
             ],
           },
@@ -1273,11 +1240,11 @@ export const levels = [
     subtitle: "Gate replies on agent status, reset unread badges, and export transcripts",
     order: 5,
     level_description:
-      "Mission Briefing: QA found two dashboard bugs that only show up in use. An agent set to offline can still type and send, and the unread badge never clears when a conversation is opened, which also leaves the priority sort stale. Fix both in `src/app/agent/page.tsx`, then add `src/lib/transcript.ts` with an export button that confirms itself with a toast, and replace the boilerplate `README.md` with real project docs.",
+      "Mission Briefing: QA found two dashboard bugs that only show up in use. An agent set to offline can still type and send, and the unread badge never clears when a conversation is opened, which also leaves the priority sort stale. Fix both in `src/app/agent/page.tsx`, then add `src/lib/transcript.ts` with an export button, and replace the boilerplate `README.md` with real project docs.",
     xp_reward: 75,
     coin_reward: 200,
     key_takeaways:
-      "Mirrored state drifts when only one copy is updated, so clearing `unreadCount` has to write back into the `conversations` array as well as the selected conversation.\n\nGating the input and the send button on `agentStatus` is what makes the status selector real, and the notice tells the agent why the composer is disabled.\n\n`formatTranscript` has to return a string for every conversation, including one with no messages, and confirming the export with a `status` toast turns an invisible action into a visible one.",
+      "Mirrored state drifts when only one copy is updated, so clearing `unreadCount` has to write back into the `conversations` array as well as the selected conversation.\n\nGating the input and the send button on `agentStatus` is what makes the status selector real, and the notice tells the agent why the composer is disabled.\n\n`formatTranscript` has to return a string for every conversation, including one with no messages.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
@@ -1445,16 +1412,16 @@ export const levels = [
           },
         },
         {
-          task_name: "Transcript Export, Export Toast, and Project README",
+          task_name: "Transcript Export and Project README",
           test_type: "both",
           user_story:
-            "As an agent, I want to export the open conversation as a readable transcript and see a confirmation when it lands so that I can attach it to a case, and as a new contributor I want a README that explains how to run the portal.",
+            "As an agent, I want to export the open conversation as a readable transcript so that I can attach it to a case, and as a new contributor I want a README that explains how to run the portal.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nTranscript Formatting and Docs",
                 content:
-                  "This section walks through building `src/lib/transcript.ts` with `formatTranscript`, adding an `Export Transcript` button to `src/app/agent/page.tsx` that confirms itself with a toast, and rewriting `README.md`. A conversation has `customer.fullName`, `status`, and `messages` whose entries carry `role`, `content`, and `timestamp`.",
+                  "This section walks through building `src/lib/transcript.ts` with `formatTranscript`, adding an `Export Transcript` button to `src/app/agent/page.tsx`, and rewriting `README.md`. A conversation has `customer.fullName`, `status`, and `messages` whose entries carry `role`, `content`, and `timestamp`.",
                 order: 1,
               },
               {
@@ -1470,9 +1437,9 @@ export const levels = [
                 order: 3,
               },
               {
-                title: "The Export Button and Its Toast",
+                title: "The Export Button",
                 content:
-                  "Import `formatTranscript` from `@/lib/transcript` and render one button whose accessible name matches `/export transcript/i`, so the export affordance is found by name alone:\n\n<Button onClick={() => downloadTranscript(selectedConversation)}>\n  Export Transcript\n</Button>\n\nThe button sits with the other conversation actions, so it acts on the open conversation. A download that leaves no trace reads as a broken button, so the same click raises a toast from `@/components/ui/toast` using `useToast`. The toast is a live region, so it needs the `status` role and an accessible name that says the export finished, matching `/exported|complete|success/i`:\n\n<Toast>\n  <ToastTitle>Transcript exported</ToastTitle>\n  <ToastDescription>The transcript is ready to attach.</ToastDescription>\n</Toast>",
+                  "Import `formatTranscript` from `@/lib/transcript` and render one button whose accessible name matches `/export transcript/i`, so the export affordance is found by name alone:\n\n<Button onClick={() => downloadTranscript(selectedConversation)}>\n  Export Transcript\n</Button>\n\nThe button sits with the other conversation actions, so it acts on the open conversation, and the click feeds that conversation through `formatTranscript`.",
                 order: 4,
               },
               {
@@ -1523,7 +1490,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "A transcript is just a formatted string, so it can be logged, copied, or downloaded without a second data model. Handling the empty case is what keeps an export button from throwing on a brand new conversation. The toast is what tells the agent the export worked at all, since the file leaves the browser with no other visible sign.",
+                  "A transcript is just a formatted string, so it can be logged, copied, or downloaded without a second data model. Handling the empty case is what keeps an export button from throwing on a brand new conversation.",
                 order: 7,
               },
             ],
@@ -1542,7 +1509,7 @@ export const levels = [
               },
               {
                 description:
-                  "Same file: raise a toast from `@/components/ui/toast` on that click, carrying the `status` role and a name matching `/exported|complete|success/i`, then replace `README.md` with real docs over 400 characters naming City Hall, the credentials `admin` and `admin123`, and the routes `/support` and `/agent`",
+                  "Same file: replace `README.md` with real docs over 400 characters naming City Hall, the credentials `admin` and `admin123`, and the routes `/support` and `/agent`",
                 order: 3,
               },
             ],
@@ -1582,21 +1549,9 @@ acceptance_criteria: {
               },
               {
                 description:
-                  "Verify a toast file exists and exports Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastAction, and useToast",
+                  "Replace README.md with project documentation over 400 characters naming City Hall, the demo credentials 'admin' and 'admin123', and the routes /support and /agent",
                 is_required: true,
                 order: 6,
-              },
-              {
-                description:
-                  "Click the Export Transcript button and verify a status toast appears with text matching 'exported', 'complete', or 'success'",
-                is_required: true,
-                order: 7,
-              },
-              {
-                description:
-                  "Import Toast components from @/components/ui/toast in the agent dashboard",
-                is_required: true,
-                order: 8,
               },
             ],
           },

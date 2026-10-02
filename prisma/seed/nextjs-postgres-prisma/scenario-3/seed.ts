@@ -41,7 +41,7 @@ export const levels = [
               {
                 title: "Serverless Architecture Context",
                 content:
-                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/app/actions/ as server actions.",
+                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/lib/actions/ as server actions.",
                 order: 2,
               },
               {
@@ -252,7 +252,7 @@ export const levels = [
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
-      "Server actions in the App Router live under `src/app/actions/` and run only on the server. They can read `@/lib/prisma` directly and return typed shapes that client components consume like any other async function. Putting status and hour-sum logic behind them keeps every screen consistent with the source of truth.\n\nSumming durations: skip incomplete records explicitly, parse with `new Date(...)`, subtract, divide by 3_600_000, and round once at the end. Open entries (no `clock_out`) are excluded — they aren't payable hours yet.",
+      "Server actions in the App Router live under `src/lib/actions/` and run only on the server. They can read `@/lib/prisma` directly and return typed shapes that client components consume like any other async function. Putting status and hour-sum logic behind them keeps every screen consistent with the source of truth.\n\nSumming durations: skip incomplete records explicitly, parse with `new Date(...)`, subtract, divide by 3_600_000, and round once at the end. Open entries (no `clock_out`) are excluded — they aren't payable hours yet.",
     scenario_id: "nextjs-postgres-prisma-3",
     tasks: {
       create: [
@@ -272,7 +272,7 @@ export const levels = [
               {
                 title: "The getEmployeeStatusForId Contract",
                 content:
-                  "Create `src/app/actions/time.ts` and export:\n\nexport async function getEmployeeStatusForId(\n  employeeId: number,\n): Promise<'off' | 'clocked-in' | 'clocked-out'>\n\nUse `prisma.timeEntry.findFirst({ where: { employee_id: employeeId } })`. Apply the rules:\n  • `null` row → `'off'`.\n  • Row with no `clock_out` → `'clocked-in'`.\n  • Row with a `clock_out` → `'clocked-out'`.",
+                  "Create `src/lib/actions/time.ts` and export:\n\nexport async function getEmployeeStatusForId(\n  employeeId: number,\n): Promise<'off' | 'clocked-in' | 'clocked-out'>\n\nUse `prisma.timeEntry.findFirst({ where: { employee_id: employeeId } })`. Apply the rules:\n  • `null` row → `'off'`.\n  • Row with no `clock_out` → `'clocked-in'`.\n  • Row with a `clock_out` → `'clocked-out'`.",
                 order: 2,
               },
               {
@@ -354,7 +354,7 @@ export const levels = [
               {
                 title: "The sumHoursForEmployee Contract",
                 content:
-                  "Add to `src/app/actions/time.ts`:\n\nexport async function sumHoursForEmployee(employeeId: number): Promise<number>\n\nUse `prisma.timeEntry.findMany({ where: { employee_id: employeeId } })`. Sum the duration in hours of every entry with a `clock_out`. Ignore open entries. Round the total to 2 decimals. Empty result → `0`.",
+                  "Add to `src/lib/actions/time.ts`:\n\nexport async function sumHoursForEmployee(employeeId: number): Promise<number>\n\nUse `prisma.timeEntry.findMany({ where: { employee_id: employeeId } })`. Sum the duration in hours of every entry with a `clock_out`. Ignore open entries. Round the total to 2 decimals. Empty result → `0`.",
                 order: 2,
               },
               {
@@ -906,7 +906,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Create computeGrossPayForEmployee(employeeId, regularHours, overtimeHours) as an async export from the payroll component.",
+                  "Create computeGrossPayForEmployee(employeeId, regularHours, overtimeHours) as an async export from src/lib/actions/payroll.ts.",
                 is_required: true,
                 order: 1,
               },
