@@ -155,22 +155,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The NestJS application starts and `GET /api` answers with a status below 500",
+                description: "Start the application and verify the API root responds successfully",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Prisma reaches the database, so a `SELECT 1` query succeeds",
+                description: "Verify the database connection works",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`POST /api/auth/login` with the wrong credentials answers 401",
+                description: "Attempt login with wrong credentials and verify it's rejected",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`POST /api/auth/login` with valid seeded credentials answers with a JWT in the `accessToken` field",
+                description: "Login with valid seeded credentials and verify you get a JWT",
                 is_required: true,
                 order: 4,
               },
@@ -290,27 +290,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The `Setting` model in `schema.prisma` includes `phoneNumber String?`",
+                description: "The Setting model in schema.prisma includes phoneNumber as an optional field",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "A migration file has been created and applied to the database",
+                description: "A migration has been created and applied to the database",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "The settings DTO has an optional `phoneNumber` field with validation decorators",
+                description: "The settings DTO includes an optional phoneNumber field with validation",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`GET /api/settings` includes `phoneNumber`, which may be `null`",
+                description: "View settings and verify phoneNumber is included (may be null)",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`PUT /api/settings` saves the `phoneNumber` value",
+                description: "Update settings and verify phoneNumber is saved",
                 is_required: true,
                 order: 5,
               },
@@ -422,27 +422,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`GET /api/inventory/low-stock` includes a product whose stock equals `lowStock`",
+                description: "View low-stock inventory and verify items at the threshold are included",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`GET /api/inventory/low-stock` leaves out products above the threshold",
+                description: "View low-stock inventory and verify items above threshold are excluded",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`PUT /api/inventory/:productId` with `quantity: -1` answers 400",
+                description: "Try to update inventory with negative quantity and verify it's rejected",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`PUT /api/inventory/:productId` with `quantity: 0` is accepted",
+                description: "Update inventory with zero quantity and verify it's accepted",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`PUT /api/inventory/:productId` with a valid positive quantity succeeds",
+                description: "Update inventory with valid positive quantity and verify it succeeds",
                 is_required: true,
                 order: 5,
               },
@@ -545,27 +545,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`GET /api/products` answers with a paginated envelope holding `data`, `total`, `page`, `limit`, and `totalPages`",
+                description: "View products list and verify it returns a paginated envelope with all required fields",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "With no query params the endpoint uses `page=1` and `limit=10`",
+                description: "View products without filters and verify default pagination (page 1, 10 items)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`?page=2&limit=5` answers with the second page of 5 products",
+                description: "View page 2 with limit 5 and verify it returns the second page of 5 products",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`total` counts every matching product across all pages",
+                description: "Verify total counts all matching products across all pages",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`?search=` filters the results and works together with pagination",
+                description: "Search products and verify it works with pagination",
                 is_required: true,
                 order: 5,
               },
@@ -699,32 +699,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "A successful checkout creates an order with the correct subtotal, tax, and total",
+                description: "Complete a checkout and verify it creates an order with correct subtotal, tax, and total",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`tax` equals `subtotal` × (`taxRate / 100`), with the rate coming from Settings",
+                description: "Verify tax equals subtotal × (taxRate / 100) from Settings",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`discountAmount` is taken off the total",
+                description: "Verify discount is subtracted from the total",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "After checkout the inventory quantity is down by the ordered amount",
+                description: "After checkout, verify inventory quantity decreased by the ordered amount",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "A checkout with insufficient stock answers with a status between 400 and 499 and leaves inventory unchanged",
+                description: "Try checkout with insufficient stock and verify it's rejected, inventory unchanged",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "The order total has at most 2 decimal places",
+                description: "Verify order total has at most 2 decimal places",
                 is_required: true,
                 order: 6,
               },
@@ -827,32 +827,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The `CASH` payment method is accepted",
+                description: "Place an order with CASH payment and verify it's accepted",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The `CARD` payment method is accepted",
+                description: "Place an order with CARD payment and verify it's accepted",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "The `CRYPTO` payment method answers 400",
+                description: "Try CRYPTO payment and verify it's rejected",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "The `BITCOIN` payment method answers 400",
+                description: "Try BITCOIN payment and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "An empty string payment method answers 400",
+                description: "Try empty payment method and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "A missing `paymentMethod` answers 400",
+                description: "Try missing payment method and verify it's rejected",
                 is_required: true,
                 order: 6,
               },
@@ -980,27 +980,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The report returns `totalRevenue` and `orderCount`",
+                description: "View daily sales report as admin and verify it shows total revenue and order count",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`totalRevenue` is the sum of every order total from today",
+                description: "Verify total revenue is the sum of all today's order totals",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "The report returns a `topProducts` array with at most 5 entries",
+                description: "Verify report includes top products list (up to 5 items)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Each `topProducts` entry has `productName` and `quantitySold`",
+                description: "Verify each top product entry has product name and quantity sold",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Only an admin can read the report, a cashier gets 401 or 403",
+                description: "Try viewing report as cashier and verify it's refused",
                 is_required: true,
                 order: 5,
               },
@@ -1098,22 +1098,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The report returns `totalRevenue` and `totalOrders`",
+                description: "View weekly sales report as admin and verify it shows total revenue and total orders",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The report returns a `dailyBreakdown` array with exactly 7 entries",
+                description: "Verify report includes daily breakdown with exactly 7 entries",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Each `dailyBreakdown` entry has `date`, `revenue`, and `orderCount`",
+                description: "Verify each daily breakdown entry has date, revenue, and order count",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Only an admin can read the report, a cashier gets 401 or 403",
+                description: "Try viewing report as cashier and verify it's refused",
                 is_required: true,
                 order: 4,
               },
@@ -1253,22 +1253,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Of two checkouts that race for a product with 1 item in stock, only one succeeds",
+                description: "Simulate two concurrent checkouts for a product with 1 item in stock: verify only one succeeds",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Inventory never drops below zero after concurrent checkouts",
+                description: "After concurrent checkouts, verify inventory never drops below zero",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "The order total has at most 2 decimal places",
+                description: "Place an order and verify the total has at most 2 decimal places",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "The daily report gives the same `orderCount` every time it is called",
+                description: "View daily report multiple times and verify it gives the same order count each time",
                 is_required: true,
                 order: 4,
               },
@@ -1378,22 +1378,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`POSTMORTEM.md` exists at the project root",
+                description: "Create a POSTMORTEM.md file at the project root (same folder as package.json)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The document covers the race condition, concurrency, or oversell root cause",
+                description: "Document the race condition/oversell bug: include terms about race condition, concurrency, oversell, or locking",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "The document covers the decimal, precision, or rounding root cause",
+                description: "Document the decimal precision bug: include terms about decimal, precision, rounding, or float",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "The document covers the timezone, UTC, or date boundary root cause",
+                description: "Document the timezone bug: include terms about timezone, UTC, date boundary, or midnight",
                 is_required: true,
                 order: 4,
               },

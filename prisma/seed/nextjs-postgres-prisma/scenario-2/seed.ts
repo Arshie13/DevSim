@@ -110,31 +110,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "Your dependencies are installed. A `node_modules` directory sits at the project root and contains the `next` and `@prisma/client` packages.",
+                  "Install all dependencies at the project root.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Your Prisma client is generated. Running `pnpm exec prisma generate` exits with code `0`.",
+                  "Generate the Prisma Client.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Your schema is applied to the database. Running `pnpm exec prisma migrate deploy` exits with code `0`.",
+                  "Apply database migrations.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Your database is reachable. Running `pnpm exec tsx scripts/db-check.ts` exits with code `0` and prints `DB_OK`.",
+                  "Verify database connectivity (prints DB_OK).",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Your database holds seeded data. The `scripts/db-check.ts` output has a `ROWS=<n>` value and `n` is greater than `0`.",
+                  "The database check output shows a ROWS count greater than 0.",
                 is_required: true,
                 order: 5,
               },
@@ -249,37 +249,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "The portal has one place for formatting names. `src/lib/format.ts` exports a `formatMemberName` function.",
+                  "Create a format file and export a formatMemberName function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "The portal has one place for formatting dates. `src/lib/format.ts` exports a `formatShortDate` function.",
+                  "Create a format file and export a formatShortDate function.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`formatMemberName` trims each part and joins them with a single space, so `'Jordan'` plus `'Rivera'` gives `'Jordan Rivera'`.",
+                  "formatMemberName trims each part and joins them with a single space, so 'Jordan' plus 'Rivera' gives 'Jordan Rivera'.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "An empty part leaves no stray whitespace. When either part is an empty string, `formatMemberName` returns the present part alone.",
+                  "An empty part leaves no stray whitespace. When either part is an empty string, formatMemberName returns the present part alone.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`formatShortDate` turns an ISO timestamp string into `YYYY-MM-DD`. `'2025-03-08T00:00:00Z'` gives `'2025-03-08'`.",
+                  "formatShortDate turns an ISO timestamp string into YYYY-MM-DD. '2025-03-08T00:00:00Z' gives '2025-03-08'.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "`formatShortDate` also accepts a `Date` instance and gives the same `YYYY-MM-DD` form. `new Date('2025-12-25T09:30:00Z')` gives `'2025-12-25'`.",
+                  "formatShortDate also accepts a Date instance and gives the same YYYY-MM-DD form. new Date('2025-12-25T09:30:00Z') gives '2025-12-25'.",
                 is_required: true,
                 order: 6,
               },
@@ -373,37 +373,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/lib/actions/membership.ts` exports an async `getMembershipStatusForUser(userId, now?)` function.",
+                  "Create src/lib/actions/membership.ts and export an async getMembershipStatusForUser(userId, now?) function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "It reads the membership with `prisma.membership.findFirst` and a filter containing `where: { user_id: userId }`.",
+                  "The function reads the membership with prisma.membership.findFirst using a filter containing where: { user_id: userId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "A membership with `status` `'active'` whose date range covers `now` gives `'active'`.",
+                  "A membership with status 'active' whose date range covers now returns 'active'.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A membership whose `end_date` is already in the past gives `'expired'`, even when its `status` is still `'active'`.",
+                  "A membership whose end_date is already in the past returns 'expired', even when its status is still 'active'.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "A `status` other than `'active'`, such as `'frozen'`, gives `'inactive'` even while the membership is inside its date range.",
+                  "A status other than 'active', such as 'frozen', returns 'inactive' even while the membership is inside its date range.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "A member with no membership row at all gives `'inactive'`.",
+                  "A member with no membership row at all returns 'inactive'.",
                 is_required: true,
                 order: 6,
               },
@@ -478,43 +478,43 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/lib/actions/membership.ts` exports an async `getDaysUntilExpiry(userId, now?)` function",
+                  "Create a membership file and export a getDaysUntilExpiry function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "It reads the membership with `prisma.membership.findFirst` and a filter containing `where: { user_id: userId }`.",
+                  "The function reads the membership with prisma.membership.findFirst using a filter containing where: { user_id: userId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "An `end_date` three days after `now` resolves to `3`",
+                  "An end_date three days after now resolves to 3.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A partial day is floored, not rounded: an `end_date` 3.5 days after `now` still resolves to `3`",
+                  "A partial day is floored, not rounded: an end_date 3.5 days after now still resolves to 3.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "An `end_date` exactly equal to `now` resolves to `0`",
+                  "An end_date exactly equal to now resolves to 0.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "An `end_date` two days in the past resolves to the negative number `-2`",
+                  "An end_date two days in the past resolves to the negative number -2.",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "When `findFirst` resolves `null` (no membership for the user), the function resolves `null`",
+                  "When findFirst resolves null (no membership for the user), the function resolves null.",
                 is_required: true,
                 order: 7,
               },
@@ -632,37 +632,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/components/ClassSpotsIndicator.tsx` has a default export that is a function, accepting `capacity` and `booked` props",
+                  "Create src/components/ClassSpotsIndicator.tsx with a default export that is a function accepting capacity and booked props.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "With `capacity={15}` and `booked={4}`, the element with `data-testid=\"spots-left\"` shows `11`",
+                  "With capacity={15} and booked={4}, the element with data-testid=\"spots-left\" shows 11.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "With `capacity={10}` and `booked={14}`, `data-testid=\"spots-left\"` shows `0` — the remaining count is clamped and never negative",
+                  "With capacity={10} and booked={14}, data-testid=\"spots-left\" shows 0 — the remaining count is clamped and never negative.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "With `capacity={15}` and `booked={14}`, no element with `data-testid=\"full-badge\"` exists in the document",
+                  "With capacity={15} and booked={14}, no element with data-testid=\"full-badge\" exists in the document.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "With `capacity={15}` and `booked={15}`, an element with `data-testid=\"full-badge\"` exists and its text contains \"full\" (case-insensitive)",
+                  "With capacity={15} and booked={15}, an element with data-testid=\"full-badge\" exists and its text contains \"full\" (case-insensitive).",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "With `capacity={15}` and `booked={16}`, an element with `data-testid=\"full-badge\"` is still present",
+                  "With capacity={15} and booked={16}, an element with data-testid=\"full-badge\" is still present.",
                 is_required: true,
                 order: 6,
               },
@@ -767,37 +767,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/components/BookingButton.tsx` has a default export that is a function, accepting `classId`, `capacity`, `booked`, `userBookedClassIds` and `onBook` props",
+                  "Create src/components/BookingButton.tsx with a default export that is a function accepting classId, capacity, booked, userBookedClassIds, and onBook props.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "When `classId` is absent from `userBookedClassIds` and seats remain, the element with role `button` is enabled and its full text is exactly \"Book\"",
+                  "When classId is absent from userBookedClassIds and seats remain, the button element is enabled and its full text is exactly \"Book\".",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "When `classId` is present in `userBookedClassIds`, the `button` is disabled and its text contains \"already booked\" (case-insensitive)",
+                  "When classId is present in userBookedClassIds, the button is disabled and its text contains \"already booked\" (case-insensitive).",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "When `classId` is not in `userBookedClassIds` and `booked` is at least `capacity`, the `button` is disabled and its text contains \"class full\" (case-insensitive)",
+                  "When classId is not in userBookedClassIds and booked is at least capacity, the button is disabled and its text contains \"class full\" (case-insensitive).",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "When `classId` is in `userBookedClassIds` and `booked` is at least `capacity`, the `button` text contains \"already booked\" — the already-booked state wins",
+                  "When classId is in userBookedClassIds and booked is at least capacity, the button text contains \"already booked\" — the already-booked state wins.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Clicking the enabled `button` calls `onBook` exactly once with the `classId` prop as its argument",
+                  "Clicking the enabled button calls onBook exactly once with the classId prop as its argument.",
                 is_required: true,
                 order: 6,
               },
@@ -915,31 +915,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/components/BookingsByClassList.tsx` has a default export that is a function, accepting `bookings` (`{ class_id }[]`) and `classes` (`{ id, name }[]`) props",
+                  "Create src/components/BookingsByClassList.tsx with a default export that is a function accepting bookings ({ class_id }[]) and classes ({ id, name }[]) props.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Given bookings across classes 1, 2 and 3 where only 1 and 3 have bookings, exactly two elements with `data-testid=\"booking-row\"` are rendered",
+                  "Given bookings across classes 1, 2 and 3 where only 1 and 3 have bookings, exactly two elements with data-testid=\"booking-row\" are rendered.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Each `booking-row` contains the matching class name from `classes` and its booking count as text, e.g. class 1 renders \"Morning Yoga\" and `2`, class 3 renders \"Spin Class\" and `3`",
+                  "Each booking-row contains the matching class name from classes and its booking count as text, e.g., class 1 renders \"Morning Yoga\" and 2, class 3 renders \"Spin Class\" and 3.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`booking-row` elements are ordered by class id ascending, so class 1's row precedes class 3's row",
+                  "Booking-row elements are ordered by class id ascending, so class 1's row precedes class 3's row.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "With `bookings={[]}`, an element with `data-testid=\"empty-state\"` is rendered and no `booking-row` elements exist",
+                  "With bookings={[]}, an element with data-testid=\"empty-state\" is rendered and no booking-row elements exist.",
                 is_required: true,
                 order: 5,
               },
@@ -1038,31 +1038,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/lib/actions/attendance.ts` exports an async `getAttendanceByMonth(userId)` function",
+                  "Create an attendance file and export an async getAttendanceByMonth(userId) function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "It calls `prisma.attendance.findMany` with a filter containing `where: { user_id: userId }`",
+                  "The function calls prisma.attendance.findMany with a filter.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Attendance timestamps are grouped into `YYYY-MM` UTC buckets and returned as `{ month, count }` rows, e.g. two January records and three March records produce exactly `[{ month: '2026-01', count: 2 }, { month: '2026-03', count: 3 }]`",
+                  "Attendance timestamps are grouped into YYYY-MM UTC buckets and returned as { month, count } rows, e.g., two January records and three March records produce exactly [{ month: '2026-01', count: 2 }, { month: '2026-03', count: 3 }].",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "The returned rows are ordered by `month` ascending, so out-of-order input months come back in chronological order",
+                  "The returned rows are ordered by month ascending, so out-of-order input months come back in chronological order.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "When the query resolves with no attendance rows, the function resolves an empty array `[]`",
+                  "When the query resolves with no attendance rows, the function resolves an empty array [].",
                 is_required: true,
                 order: 5,
               },
@@ -1180,31 +1180,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/components/MemberStatsCard.tsx` has a default export that is a function, accepting `bookings`, `attendances` and `classes` props",
+                  "Create src/components/MemberStatsCard.tsx with a default export that is a function accepting bookings, attendances, and classes props.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`data-testid=\"total-booked\"` shows `bookings.length` and `data-testid=\"total-attended\"` shows `attendances.length`",
+                  "data-testid=\"total-booked\" shows bookings.length and data-testid=\"total-attended\" shows attendances.length.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`data-testid=\"attendance-rate\"` shows the attended share of bookings as a rounded whole percentage followed by `%`, e.g. 2 attended out of 3 booked renders `67%`",
+                  "data-testid=\"attendance-rate\" shows the attended share of bookings as a rounded whole percentage followed by %, e.g., 2 attended out of 3 booked renders 67%.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`data-testid=\"favorite-class\"` shows the name of the class with the most attendance, e.g. two attendances for class 1 renders `Morning Yoga`",
+                  "data-testid=\"favorite-class\" shows the name of the class with the most attendance, e.g., two attendances for class 1 renders Morning Yoga.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "With `bookings={[]}` and `attendances={[]}`, `total-booked` shows `0`, `total-attended` shows `0`, `attendance-rate` shows `0%` and `favorite-class` shows the em dash `—`",
+                  "With bookings={[]} and attendances={[]}, total-booked shows 0, total-attended shows 0, attendance-rate shows 0% and favorite-class shows the em dash —.",
                 is_required: true,
                 order: 5,
               },
@@ -1303,37 +1303,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/lib/actions/leaderboard.ts` exports an async `getActiveMembersRanking()` function",
+                  "Create a leaderboard file and export a getActiveMembersRanking() function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "It calls `prisma.user.findMany` with an `include` that contains `attendances`",
+                  "The function calls prisma.user.findMany with an include that contains attendances.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Each returned entry equals exactly `{ user_id, name, attendedCount }`, with `name` built as first name + space + last name and `attendedCount` equal to the number of included attendances",
+                  "Each returned entry equals exactly { user_id, name, attendedCount }, with name built as first name + space + last name and attendedCount equal to the number of included attendances.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Entries are ordered by `attendedCount` descending, so a member with 3 attendances ranks ahead of one with 2",
+                  "Entries are ordered by attendedCount descending, so a member with 3 attendances ranks ahead of one with 2.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "A member with no attendance records still appears in the result with `attendedCount` equal to `0`",
+                  "A member with no attendance records still appears in the result with attendedCount equal to 0.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Members with equal `attendedCount` are ordered by `name` ascending",
+                  "Members with equal attendedCount are ordered by name ascending.",
                 is_required: true,
                 order: 6,
               },

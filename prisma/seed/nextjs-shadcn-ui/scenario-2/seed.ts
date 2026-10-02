@@ -136,36 +136,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "The user runs `pnpm install` in the project root, which creates a `node_modules` directory containing both `next` and `react`",
+                  "Install project dependencies in the project root",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Dev server started by `pnpm dev` at the project root prints output matching `/ready|Local:/i` within 30 seconds",
+                description:
+                  "Run the development server and verify it starts successfully (prints 'ready' or 'Local:')",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`src/components/ui/alert.tsx` exists and its content matches `/\\bAlert\\b/`, `/\\bAlertTitle\\b/`, and `/\\bAlertDescription\\b/`",
+                  "Add the alert shadcn/ui component using the CLI and verify it exports Alert, AlertTitle, and AlertDescription",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`src/components/ui/toast.tsx` exists and its content matches `/\\bToast\\b/`, `/\\bToastProvider\\b/`, `/\\bToastViewport\\b/`, `/\\bToastTitle\\b/`, `/\\bToastDescription\\b/`, `/\\bToastAction\\b/`, and `/\\buseToast\\b/`",
+                  "Add the toast shadcn/ui component using the CLI and verify it exports Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastAction, and useToast",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`src/components/ui/scroll-area.tsx` exists and its content matches `/\\bScrollArea\\b/`, `/\\bScrollBar\\b/`, and `/\\bScrollAreaViewport\\b/`",
+                  "Add the scroll-area shadcn/ui component using the CLI and verify it exports ScrollArea, ScrollBar, and ScrollAreaViewport",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "`src/components/ui/badge.tsx` exists and its content matches `/\\bBadge\\b/`, `/variant/`, and `/forwardRef/`",
+                  "Add the badge shadcn/ui component using the CLI and verify it exports Badge with variant prop and forwardRef",
                 is_required: true,
                 order: 6,
               },
@@ -268,9 +269,21 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/app/agent/login/page.tsx` contains `Login` and does not contain `Sign In` once `//` line comments and `/* */` block comments are stripped",
+                  "Update the agent login page submit button label from 'Sign In' to 'Login'",
                 is_required: true,
                 order: 1,
+              },
+              {
+                description:
+                  "Remove all instances of 'Sign In' from the login page source (outside of comments)",
+                is_required: true,
+                order: 2,
+              },
+              {
+                description:
+                  "Verify the login page shows 'Login' and no 'Sign In' text is visible",
+                is_required: true,
+                order: 3,
               },
             ],
           },
@@ -400,33 +413,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/app/support/page.tsx` imports from `@/components/ui/alert` and its source contains `Alert`, `AlertTitle` or `AlertDescription`",
+                  "Import Alert components in the support page",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Rendering the support page shows exactly one element with the `alert` role, carrying the classes `border-l-4`, `border-amber-500`, `bg-amber-50` and `text-amber-900`",
+                  "Add an Alert banner above the chat messages that is visible immediately when the page loads",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Rendering the support page shows exactly one heading at level 5 whose text matches `/human agent|escalat/i`",
+                  "Style the Alert with border-l-4, border-amber-500, bg-amber-50, and text-amber-900 classes",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Rendering the support page shows exactly one `button` whose accessible name matches `/escalate|transfer|human agent/i`, and clicking that button leaves it in the document instead of throwing",
+                  "Add an AlertTitle as a level 5 heading with text mentioning 'human agent' or 'escalation'",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "The `alert` role element is present on the support page immediately after render, with no chat message sent first",
+                  "Add a button beside the title with accessible name matching 'escalate', 'transfer', or 'human agent'",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "Verify the button can be clicked without throwing errors or removing the alert",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -537,48 +556,50 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/lib/quickReplies.ts` exists",
+                description:
+                  "Create a Quick Replies file exporting a quickReplies array with at least one snippet",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`src/lib/quickReplies.ts` exports an array of at least one snippet, either as the named export `quickReplies` or as the default export, and every snippet has a string `id`, a string `label`, and a non-empty string `text`",
+                description:
+                  "Ensure each snippet has a string id, label, and non-empty text",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`src/app/agent/page.tsx` renders one `button` per snippet whose full accessible name matches that snippet's `label` exactly (anchored, case-insensitive)",
+                  "Render one button per snippet on the agent dashboard with the button's accessible name matching the snippet's label",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`src/components/ui/scroll-area.tsx` exists and its content matches `/\\bScrollArea\\b/`, `/\\bScrollBar\\b/`, and `/\\bScrollAreaViewport\\b/`",
+                  "Verify a Scroll Area file exists and exports ScrollArea, ScrollBar, and ScrollAreaViewport",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`src/app/agent/page.tsx` imports from `@/components/ui/scroll-area` and its source contains `ScrollArea`, `ScrollAreaViewport` or `ScrollBar`",
+                  "Import ScrollArea components in the agent dashboard",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "The agent dashboard renders exactly one element with the `region` role whose accessible name matches `/quick replies/i`, containing an element matching `[data-radix-scroll-area-scrollbar]`",
+                  "Wrap snippet buttons in a ScrollArea with role='region' and accessible name matching 'quick replies', containing a scrollbar",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "Clicking the button for the first snippet puts that snippet's `text` into the input matched by placeholder `/type your response/i`",
+                  "Click a snippet button and verify its text is appended to the input (placeholder 'Type your response...')",
                 is_required: true,
                 order: 7,
               },
               {
                 description:
-                  "Clicking the button for the first snippet leaves text the agent already typed, for example `Hi there.`, present in the input matched by placeholder `/type your response/i`",
+                  "Click a snippet button and verify existing typed text in the input is preserved",
                 is_required: true,
                 order: 8,
               },
@@ -720,42 +741,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/lib/priority.ts` exists and exports `getPriorityScore` and `getPriorityLevel` as functions",
+                description:
+                  "Create src/lib/priority.ts exporting getPriorityScore and getPriorityLevel functions",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`getPriorityScore({ status: 'resolved', unreadCount: 9, createdAt: new Date() })` returns exactly `0`",
+                  "Verify getPriorityScore returns 0 for a resolved conversation regardless of unread count",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`getPriorityScore` for `{ status: 'waiting', unreadCount: 0 }` is greater than its value for `{ status: 'active', unreadCount: 0 }`",
+                  "Verify getPriorityScore gives higher score to 'waiting' status than 'active' status",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`getPriorityScore` for `{ status: 'active', unreadCount: 5 }` is greater than its value for `{ status: 'active', unreadCount: 0 }`",
+                  "Verify getPriorityScore increases with more unread messages for 'active' status",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`getPriorityLevel` returns `'urgent'` for `{ status: 'waiting', unreadCount: 3 }`, `'high'` for `{ status: 'waiting', unreadCount: 0 }`, `'normal'` for `{ status: 'active', unreadCount: 0 }`, and `'low'` for `{ status: 'resolved', unreadCount: 4 }`",
+                  "Verify getPriorityLevel returns correct tiers: 'urgent' for waiting with 3 unread, 'high' for waiting with 0 unread, 'normal' for active with 0 unread, 'low' for resolved",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "`src/app/agent/page.tsx` imports from a path ending in `priority`",
+                description:
+                  "Import priority functions from a path ending in 'priority' in the agent dashboard",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "The rendered conversation rows contain exactly three of the names John Smith, Maria Garcia and Robert Johnson, in this order: Maria Garcia, then John Smith, then Robert Johnson",
+                  "Verify conversation rows display in order: Maria Garcia, then John Smith, then Robert Johnson",
                 is_required: true,
                 order: 7,
               },
@@ -869,67 +892,67 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/lib/sla.ts` exists and exports `hasAgentReplied` and `getServiceState` as functions",
+                  "Create a file exporting hasAgentReplied and getServiceState functions",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`hasAgentReplied({ messages: [{ role: 'system' }, { role: 'customer' }, { role: 'customer' }] })` returns `false`",
+                  "Verify hasAgentReplied returns false for conversations with only system and customer messages",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`hasAgentReplied({ messages: [{ role: 'customer' }, { role: 'agent' }] })` returns `true`",
+                  "Verify hasAgentReplied returns true when an agent message exists",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`getServiceState({ status: 'resolved', messages: [{ role: 'customer' }, { role: 'agent' }] })` returns `'resolved'`",
+                  "Verify getServiceState returns 'resolved' for resolved conversations even with agent messages",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`getServiceState({ status: 'active', messages: [{ role: 'system' }, { role: 'customer' }] })` returns `'awaiting-first-reply'`",
+                  "Verify getServiceState returns 'awaiting-first-reply' for active conversations without agent messages",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "`getServiceState({ status: 'waiting', messages: [{ role: 'system' }, { role: 'customer' }, { role: 'agent' }] })` returns `'in-progress'`",
+                  "Verify getServiceState returns 'in-progress' for waiting conversations with agent messages",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "The row buttons named for John Smith and Maria Garcia each contain text matching `/awaiting first reply/i`, and the row button named for Robert Johnson does not",
+                  "Verify John Smith and Maria Garcia rows show 'Awaiting first reply' badge, but Robert Johnson row does not",
                 is_required: true,
                 order: 7,
               },
               {
                 description:
-                  "At least two elements on the agent dashboard match the text `/awaiting first reply/i`",
+                  "Verify at least two elements on the dashboard match 'awaiting first reply' text",
                 is_required: true,
                 order: 8,
               },
               {
                 description:
-                  "`src/components/ui/badge.tsx` exists and its content matches `/\\bBadge\\b/`, `/variant/`, and `/forwardRef/`",
+                  "Verify a badge file exists and exports Badge with variant prop and forwardRef",
                 is_required: true,
                 order: 9,
               },
               {
                 description:
-                  "The element carrying `/awaiting first reply/i` inside the row button named for John Smith has the classes `inline-flex`, `items-center`, `rounded-full`, `px-2.5`, `py-0.5`, `text-xs`, `font-medium` and `transition-colors`",
+                  "Verify the badge element has the correct styling classes (inline-flex, items-center, rounded-full, etc.)",
                 is_required: true,
                 order: 10,
               },
               {
                 description:
-                  "`src/app/agent/page.tsx` imports from `@/components/ui/badge` and its source contains `Badge`",
+                  "Import Badge from @/components/ui/badge in the agent dashboard",
                 is_required: true,
                 order: 11,
               },
@@ -1066,42 +1089,43 @@ export const levels = [
             create: [
               {
                 description:
-                  "`src/lib/queue.ts` exists and exports `estimateWaitMinutes` and `formatWait` as functions",
+                  "Create a queue file exporting estimateWaitMinutes and formatWait functions",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`estimateWaitMinutes(3)` returns `12`, using the default average handle time of 4 minutes",
+                  "Verify estimateWaitMinutes(3) returns 12 using default 4-minute average handle time",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`estimateWaitMinutes(2, 10)` returns `20`, honouring a custom average handle time of 10 minutes",
+                  "Verify estimateWaitMinutes(2, 10) returns 20 with custom 10-minute average handle time",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`estimateWaitMinutes(-3)` returns `0`, never a negative number",
+                description:
+                  "Verify estimateWaitMinutes returns 0 for negative positions (never negative)",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`formatWait(0)` matches `/less than a minute/i`, `formatWait(12)` matches `/about 12 minutes/i`, and `formatWait(75)` matches `/over an hour/i`",
+                  "Verify formatWait returns 'less than a minute' for 0, 'about N minutes' for 1-59, 'over an hour' for 60+",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "`formatWait(NaN)` and `formatWait(Infinity)` both return the empty string",
+                  "Verify formatWait returns empty string for NaN and Infinity",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "On `src/app/support/page.tsx`, clicking the button matching `/talk to agent/i`, filling the inputs whose placeholders match `/enter your full name/i`, `/enter your address/i`, `/^city$/i`, `/zip code/i` and `/describe your issue/i`, then clicking the button matching `/submit request/i` renders exactly one element whose text matches `/estimated wait/i`, and that element's `textContent` matches `/less than a minute|about \\d+ minutes?|over an hour/i`",
+                  "Submit the agent request form on the support page and verify an 'Estimated wait' element appears with correct wait text",
                 is_required: true,
                 order: 7,
               },
@@ -1225,19 +1249,19 @@ export const levels = [
             create: [
               {
                 description:
-                  "Sending `keydown` with key `ArrowDown` on `document.body` changes the heading showing the selected customer name, and sending `ArrowUp` afterwards returns to the original name",
+                  "Press ArrowDown on the page body to change the selected customer heading, then press ArrowUp to return to the original name",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Ctrl+Enter on the input matched by placeholder `/type your response/i` appends a message whose text matches `/looking into it now/i` and leaves the input value as the empty string",
+                  "Press Ctrl+Enter on the message input (placeholder 'Type your response...') to send a message matching 'looking into it now' and clear the input",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Escape on that input clears its value from `a half-written draft` to the empty string",
+                  "Press Escape on the message input to clear a half-written draft to empty string",
                 is_required: true,
                 order: 3,
               },
@@ -1382,43 +1406,43 @@ export const levels = [
             create: [
               {
                 description:
-                  "With the default status, the input matched by placeholder `/type your response/i` has `disabled` `false` and no element matches `/set your status to online to reply/i`",
+                  "Verify the message input (placeholder 'Type your response...') is enabled by default with no 'Set your status to online to reply' notice",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Changing the status `select` to the value `offline` sets `disabled` to `true` on that input and on the first `button` inside the input's parent element",
+                  "Change the status selector to 'offline' and verify the input and send button become disabled",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "While the status is `offline`, an element with text matching `/set your status to online to reply/i` is present",
+                  "Verify the 'Set your status to online to reply' notice appears when status is offline",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Changing the status back to `online` sets `disabled` `false` on the input again and removes the `/set your status to online to reply/i` notice",
+                  "Change the status back to 'online' and verify the input is enabled again and the notice disappears",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Before any conversation is opened, the row button matching `/john smith/i` contains the text `2`, the seeded unread count",
+                  "Verify the John Smith row shows unread count '2' before opening any conversation",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Clicking the row button matching `/john smith/i` removes the text `2` from that row",
+                  "Click the John Smith row and verify the unread count '2' is removed from that row",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "Clicking the row button matching `/maria garcia/i` leaves the text `2` in the row button matching `/john smith/i`",
+                  "Click the Maria Garcia row and verify the John Smith row still shows unread count '2'",
                 is_required: true,
                 order: 7,
               },
@@ -1529,59 +1553,55 @@ export const levels = [
             ],
           },
           order: 2,
-          acceptance_criteria: {
+acceptance_criteria: {
             create: [
               {
                 description:
-                  "`src/lib/transcript.ts` exists and exports `formatTranscript` as a function",
+                  "Create src/lib/transcript.ts exporting formatTranscript function",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`formatTranscript` for a conversation whose `customer.fullName` is `Jane Tester` returns a string containing `Jane Tester`, containing the content `My streetlight has been out for two weeks.`, containing the content `Thanks for reporting it — I have logged a repair ticket.`, and matching `/customer/i` and `/agent/i`",
+                  "Verify formatTranscript includes customer name, message contents, and both 'customer' and 'agent' role labels in output",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-"`formatTranscript({ customer: { fullName: 'Empty Case' }, status: 'active', messages: [] })` returns a string rather than throwing",
+                  "Verify formatTranscript returns a string (does not throw) for a conversation with empty messages array",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`src/app/agent/page.tsx` imports from a path ending in `transcript`",
+                description:
+                  "Import transcript functions from a path ending in 'transcript' in the agent dashboard",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The agent dashboard renders a `button` whose accessible name matches `/export transcript/i`",
+                description:
+                  "Add an 'Export Transcript' button to the agent dashboard",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "`src/components/ui/toast.tsx` exists and its content matches `/\\bToast\\b/`, `/\\bToastProvider\\b/`, `/\\bToastViewport\\b/`, `/\\bToastTitle\\b/`, `/\\bToastDescription\\b/`, `/\\bToastAction\\b/`, and `/\\buseToast\\b/`",
+                  "Verify a toast file exists and exports Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastAction, and useToast",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "Clicking the `button` matching `/export transcript/i` on the agent dashboard shows an element with the `status` role whose accessible name matches `/exported|complete|success/i`",
+                  "Click the Export Transcript button and verify a status toast appears with text matching 'exported', 'complete', or 'success'",
                 is_required: true,
                 order: 7,
               },
               {
                 description:
-                  "`src/app/agent/page.tsx` imports from `@/components/ui/toast` and its source contains `Toast`, `ToastProvider`, `ToastViewport`, `ToastTitle`, `ToastDescription` or `ToastAction`, plus `useToast`",
+                  "Import Toast components from @/components/ui/toast in the agent dashboard",
                 is_required: true,
                 order: 8,
-              },
-              {
-                description:
-                  "`README.md` exists, is longer than 400 characters, and matches `/city hall/i`, `/admin/`, `/admin123/`, `/\\/support/` and `/\\/agent/`",
-                is_required: true,
-                order: 9,
               },
             ],
           },

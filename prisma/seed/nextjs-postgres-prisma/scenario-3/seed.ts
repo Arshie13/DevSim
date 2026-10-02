@@ -96,21 +96,27 @@ export const levels = [
             create: [
               {
                 description:
-                  "`node_modules/` and `node_modules/next` both exist in the project root",
+                  "Install all dependencies at the project root.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`node_modules/@prisma/client` exists in the project root",
+                  "Generate the Prisma Client.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`pnpm exec prisma generate` exits with status 0, `pnpm exec prisma migrate deploy` exits with status 0, and `pnpm exec tsx scripts/db-check.ts` exits with status 0 printing `DB_OK` with `ROWS=<n>` greater than 0",
+                  "Apply database migrations.",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Verify database connectivity (prints DB_OK with ROWS count > 0).",
+                is_required: true,
+                order: 4,
               },
             ],
           },
@@ -208,25 +214,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`formatHours` is exported as a function from `src/lib/format.ts`",
+                  "Create a file exported from src/lib and export a formatHours function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`formatHours` always returns one decimal place followed by `h`: `formatHours(8)` → `\"8.0h\"` and `formatHours(8.5)` → `\"8.5h\"`",
+                  "formatHours always returns one decimal place followed by h: formatHours(8) → \"8.0h\" and formatHours(8.5) → \"8.5h\".",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`formatHours` rounds to one decimal place: `formatHours(8.46)` → `\"8.5h\"`",
+                  "formatHours rounds to one decimal place: formatHours(8.46) → \"8.5h\".",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`formatCurrency` is exported as a function from `src/lib/format.ts` and returns `$` with two decimals and comma separators: `1234` → `\"$1,234.00\"`, `0` → `\"$0.00\"`, `2750000` → `\"$2,750,000.00\"`",
+                  "Create a file exported from src/lib and export a formatCurrency function that returns $ with two decimals and comma separators: 1234 → \"$1,234.00\", 0 → \"$0.00\", 2750000 → \"$2,750,000.00\".",
                 is_required: true,
                 order: 4,
               },
@@ -315,19 +321,19 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getEmployeeStatusForId` is exported as an async function from `src/lib/actions/time.ts`",
+                  "Create a file exported from src/lib/actions and export an async getEmployeeStatusForId(employeeId) function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Calls `prisma.timeEntry.findFirst` with an options object whose `where` is `{ employee_id: <employeeId> }`",
+                  "The function calls prisma.timeEntry.findFirst with an options object whose where is { employee_id: employeeId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Returns `'off'` when `findFirst` resolves to `null`, `'clocked-in'` when the entry's `clock_out` is `null`, and `'clocked-out'` when the entry has a `clock_out` value",
+                  "Returns 'off' when findFirst resolves to null, 'clocked-in' when the entry's clock_out is null, and 'clocked-out' when the entry has a clock_out value.",
                 is_required: true,
                 order: 3,
               },
@@ -397,25 +403,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`sumHoursForEmployee` is exported as an async function from `src/lib/actions/time.ts`",
+                  "Create a file exported from src/lib/actions and export a sumHoursForEmployee function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Calls `prisma.timeEntry.findMany` with an options object whose `where` is `{ employee_id: <employeeId> }`",
+                  "The function calls prisma.timeEntry.findMany with an options object whose where is { employee_id: employeeId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Returns the summed duration in hours of every completed entry — an 8-hour and a 4.5-hour shift total `12.5`",
+                  "Returns the summed duration in hours of every completed entry — an 8-hour and a 4.5-hour shift total 12.5.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Ignores entries whose `clock_out` is `null` — an 8-hour shift alongside an open shift still returns `8`; returns `0` when the employee has no time entries",
+                  "Ignores entries whose clock_out is null — an 8-hour shift alongside an open shift still returns 8; returns 0 when the employee has no time entries.",
                 is_required: true,
                 order: 4,
               },
@@ -534,25 +540,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`TimeOffRequestForm` is the default export of `src/components/TimeOffRequestForm.tsx`",
+                  "Create TimeOffRequestForm as the default export of a component from src/components.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Renders inputs labelled \"Start date\", \"End date\" and \"Hours\" plus a select labelled \"Type\", each findable by its label text",
+                  "Renders inputs labelled \"Start date\", \"End date\" and \"Hours\" plus a select labelled \"Type\", each findable by its label text.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Renders a submit button whose accessible name matches /submit/i; submitting valid values calls `onSubmit` with an object containing `start_date`, `end_date`, numeric `hours`, and `request_type` set to the selected Type value",
+                  "Renders a submit button whose accessible name matches /submit/i; submitting valid values calls onSubmit with an object containing start_date, end_date, numeric hours, and request_type set to the selected Type value.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Submitting an `end_date` earlier than `start_date` does NOT call `onSubmit` and renders an element with `data-testid=\"form-error\"`; submitting `hours` of `0` does NOT call `onSubmit` and renders an element with `data-testid=\"form-error\"`",
+                  "Submitting an end_date earlier than start_date does NOT call onSubmit and renders an element with data-testid=\"form-error\"; submitting hours of 0 does NOT call onSubmit and renders an element with data-testid=\"form-error\".",
                 is_required: true,
                 order: 4,
               },
@@ -651,25 +657,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`TimeOffBalance` is the default export of `src/components/TimeOffBalance.tsx`",
+                  "Create TimeOffBalance as the default export of the Time Off Balance component.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`data-testid=\"used-hours\"` shows the sum of hours for requests with `status` `approved` and `request_type` other than `unpaid`",
+                  "data-testid=\"used-hours\" shows the sum of hours for requests with status approved and request_type other than unpaid.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`data-testid=\"pending-hours\"` shows the sum of hours for requests with `status` `pending`",
+                  "data-testid=\"pending-hours\" shows the sum of hours for requests with status pending.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`data-testid=\"remaining-hours\"` shows `allowance` minus used; pending hours are not subtracted; given an empty `requests` array, `used-hours` and `pending-hours` show `0` and `remaining-hours` shows the full `allowance`",
+                  "data-testid=\"remaining-hours\" shows allowance minus used; pending hours are not subtracted; given an empty requests array, used-hours and pending-hours show 0 and remaining-hours shows the full allowance.",
                 is_required: true,
                 order: 4,
               },
@@ -787,25 +793,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`HoursBreakdown` is the default export of `src/components/HoursBreakdown.tsx`",
+                  "Create HoursBreakdown as the default export of the HoursBreakdown component.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`data-testid=\"regular-hours\"` and `data-testid=\"overtime-hours\"` are always rendered",
+                  "data-testid=\"regular-hours\" and data-testid=\"overtime-hours\" are always rendered.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "With the default 40-hour threshold, `totalHours` of `35` renders regular `35` and overtime `0`; `totalHours` of `48` renders regular `40` and overtime `8`; `totalHours` of exactly `40` renders regular `40` and overtime `0`",
+                  "With the default 40-hour threshold, totalHours of 35 renders regular 35 and overtime 0; totalHours of 48 renders regular 40 and overtime 8; totalHours of exactly 40 renders regular 40 and overtime 0.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "An explicit `threshold` overrides the default: `totalHours` of `45` with `threshold={35}` renders regular `35` and overtime `10`",
+                  "An explicit threshold overrides the default: totalHours of 45 with threshold={35} renders regular 35 and overtime 10.",
                 is_required: true,
                 order: 4,
               },
@@ -904,25 +910,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`computeGrossPayForEmployee(employeeId, regularHours, overtimeHours)` is exported as an async function from `src/lib/actions/payroll.ts`",
+                  "Create computeGrossPayForEmployee(employeeId, regularHours, overtimeHours) as an async export from the payroll component.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Calls `prisma.employee.findUnique` with an options object whose `where` is `{ id: employeeId }`",
+                  "The function calls prisma.employee.findUnique with an options object whose where is { id: employeeId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Regular hours are paid at the stored `hourly_rate`: 40 regular hours at a rate of 25 returns `1000`; overtime hours are paid at 1.5× the rate: 40 regular and 8 overtime hours at a rate of 25 return `1300`; the result is rounded to two decimals: 40 regular and 2 overtime hours at a rate of 18.33 return `788.19`",
+                  "Regular hours are paid at the stored hourly_rate: 40 regular hours at a rate of 25 returns 1000; overtime hours are paid at 1.5× the rate: 40 regular and 8 overtime hours at a rate of 25 return 1300; the result is rounded to two decimals: 40 regular and 2 overtime hours at a rate of 18.33 return 788.19.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Throws when the employee record has no `hourly_rate`",
+                  "Throws when the employee record has no hourly_rate.",
                 is_required: true,
                 order: 4,
               },
@@ -1034,19 +1040,19 @@ export const levels = [
             create: [
               {
                 description:
-                  "`PayrollSummary` is the default export of `src/components/PayrollSummary.tsx`",
+                  "Create PayrollSummary as the default export of a component from src/components/.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`total-regular`, `total-overtime` and `total-hours` show the sums of `regular_hours`, `overtime_hours` and `total_hours`; `total-gross` shows the sum of `gross_pay` dollar-formatted with a `$` and two decimals (e.g. `\"$8,450.00\"`)",
+                  "total-regular, total-overtime and total-hours show the sums of regular_hours, overtime_hours and total_hours; total-gross shows the sum of gross_pay dollar-formatted with a $ and two decimals (e.g., \"$8,450.00\").",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`average-gross` shows total gross divided by the record count, rounded to two decimals and dollar-formatted (e.g. `\"$2,816.67\"` from `$8,450.00` over 3 records); given an empty `records` array, the three hour totals render `0` and both `total-gross` and `average-gross` render `\"$0.00\"` — never `NaN`",
+                  "average-gross shows total gross divided by the record count, rounded to two decimals and dollar-formatted (e.g., \"$2,816.67\" from $8,450.00 over 3 records); given an empty records array, the three hour totals render 0 and both total-gross and average-gross render \"$0.00\" — never NaN.",
                 is_required: true,
                 order: 3,
               },
@@ -1145,25 +1151,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getDepartmentReport` is exported as an async function from `src/lib/actions/reports.ts`",
+                  "Create getDepartmentReport as an async export from a file in src/lib/actions/.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Calls `prisma.payrollRecord.findMany` with an options object whose `include` contains `employee`",
+                  "The function calls prisma.payrollRecord.findMany with an options object whose include contains employee.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Department is derived from `employee.first_name`: Sarah/Robert → Engineering, Michael → Design, Emily → Marketing, James → Sales, anyone else → HR",
+                  "Department is derived from employee.first_name: Sarah/Robert → Engineering, Michael → Design, Emily → Marketing, James → Sales, anyone else → HR.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Each entry is exactly `{ department, headcount, totalHours, totalGross }`, where `headcount` counts distinct employees, `totalHours` sums `total_hours`, and `totalGross` sums `gross_pay`; the returned array is sorted alphabetically by `department`; returns `[]` when Prisma returns no payroll records",
+                  "Each entry is exactly { department, headcount, totalHours, totalGross }, where headcount counts distinct employees, totalHours sums total_hours, and totalGross sums gross_pay; the returned array is sorted alphabetically by department; returns [] when Prisma returns no payroll records.",
                 is_required: true,
                 order: 4,
               },

@@ -105,31 +105,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`node_modules/` sits at the project root and holds both `node_modules/next` and `node_modules/@prisma/client`",
+                  "Install all project dependencies.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`pnpm exec prisma generate` exits with status 0",
+                  "Generate the Prisma Client.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`pnpm exec prisma migrate deploy` exits with status 0",
+                  "Apply database migrations.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`pnpm exec tsx scripts/db-check.ts` exits with status 0 and prints `DB_OK`",
+                  "Verify the database connection works.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "The `DB_OK` line reports `ROWS=<n>` and `n` is greater than 0. Run `pnpm prisma:seed` if the count is zero",
+                  "Confirm sample data is loaded (database shows rows).",
                 is_required: true,
                 order: 5,
               },
@@ -234,31 +234,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`formatPeso` is a named export of `src/lib/format.ts`, so `const { formatPeso } = await import('../../../src/lib/format')` gives a function",
+                  "Export a formatPeso function as a named export.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Every result carries the peso sign `₱` and shows exactly two decimal places: `formatPeso(0)` → `'₱0.00'`, `formatPeso(5)` → `'₱5.00'`, `formatPeso(120)` → `'₱120.00'`",
+                  "Every result carries the peso sign and shows exactly two decimal places: formatPeso(0) gives ₱0.00, formatPeso(5) gives ₱5.00, formatPeso(120) gives ₱120.00.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Fractional amounts keep both decimals: `formatPeso(3.1)` → `'₱3.10'` and `formatPeso(95.5)` → `'₱95.50'`",
+                  "Fractional amounts keep both decimals: formatPeso(3.1) gives ₱3.10 and formatPeso(95.5) gives ₱95.50.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Amounts round to the nearest centavo: `formatPeso(9.999)` → `'₱10.00'` and `formatPeso(2.345)` → `'₱2.35'`. Both match `(amount).toFixed(2)`",
+                  "Amounts round to the nearest centavo: formatPeso(9.999) gives ₱10.00 and formatPeso(2.345) gives ₱2.35.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "The module can be dynamically imported and `formatPeso` retrieved as a named export, so the function is testable in isolation",
+                  "The module can be imported dynamically and formatPeso retrieved as a named export, so the function works in isolation.",
                 is_required: true,
                 order: 5,
               },
@@ -379,37 +379,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getStockStatusForProduct` is a named export of `src/lib/actions/inventory.ts` and is an async server action, so `typeof getStockStatusForProduct === 'function'`",
+                  "Export a getStockStatusForProduct function from src/lib/actions/inventory.ts as an async server action.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`prisma.product.findUnique` is called with a single argument `{ where: { product_id: <id> } }`",
+                  "The function calls prisma.product.findUnique with a single argument containing the product_id filter.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "A quantity of 0 comes back as `status: 'OUT_OF_STOCK'`",
+                  "A quantity of 0 returns status OUT_OF_STOCK.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A quantity of 3 comes back as `status: 'LOW_STOCK'` with the live database value `3` in the returned `quantity`",
+                  "A quantity of 3 returns status LOW_STOCK with the live database value 3 in the quantity field.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "A quantity of 42 comes back as `status: 'IN_STOCK'`. The bands are `<= 0` → OUT_OF_STOCK, `1..5` → LOW_STOCK, `> 5` → IN_STOCK",
+                  "A quantity of 42 returns status IN_STOCK. The bands are 0 or less for OUT_OF_STOCK, 1 to 5 for LOW_STOCK, and above 5 for IN_STOCK.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "When the product is not found and `findUnique` gives back `null`, the action throws instead of returning a status",
+                  "When the product is not found and findUnique returns null, the action throws an error instead of returning a status.",
                 is_required: true,
                 order: 6,
               },
@@ -484,37 +484,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getCartTotals` is a named export of `src/lib/actions/cart.ts` and is an async server action, so `typeof getCartTotals === 'function'`",
+                  "Export a getCartTotals function from src/lib/actions/cart.ts as an async server action.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`prisma.product.findMany` is called with a single argument `{ where: { product_id: { in: [...] } } }` where `in` holds every cart product id",
+                  "The function calls prisma.product.findMany with a single argument containing an in filter with every cart product ID.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "The subtotal is summed from database prices times cart quantities, never from prices the client sends. Prices `p1: 100` × 2 and `p2: 50` × 3 give `{ subtotal: 350, discount: 0, total: 350 }`",
+                  "The subtotal is summed from database prices times cart quantities, never from prices the client sends. Prices of 100 times 2 and 50 times 3 give subtotal 350, discount 0, total 350.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A percentage discount applies to the subtotal. Prices `p1: 100` × 2 with `discountPercent: 10` give `{ subtotal: 200, discount: 20, total: 180 }`, and leaving out `discountPercent` gives a discount of `0`",
+                  "A percentage discount applies to the subtotal. Prices of 100 times 2 with a 10% discount give subtotal 200, discount 20, total 180. Leaving out the discount gives a discount of 0.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "An empty cart (`{ items: [] }`) gives back exactly `{ subtotal: 0, discount: 0, total: 0 }` and does not depend on any database result",
+                  "An empty cart ({ items: [] }) gives back exactly { subtotal: 0, discount: 0, total: 0 } and does not depend on any database result.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "The three money values are rounded to two decimals. Prices `p1: 9.99` × 3 with `discountPercent: 15` give `{ subtotal: 29.97, discount: 4.5, total: 25.47 }`",
+                  "The three money values are rounded to two decimals. Prices p1: 9.99 × 3 with discountPercent: 15 give { subtotal: 29.97, discount: 4.5, total: 25.47 }.",
                 is_required: true,
                 order: 6,
               },
@@ -638,31 +638,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`CheckoutErrors` is the default export of `src/components/CheckoutErrors.tsx`, so `typeof mod.default === 'function'`",
+                  "CheckoutErrors is the default export of src/components/CheckoutErrors.tsx. It takes an errors array of strings.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "With `errors={[]}` the page shows an element with `role=\"status\"` whose text matches `/ready to checkout/i`",
+                  "With an empty errors array, the page shows an element with role=\"status\" whose text matches 'ready to checkout'.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "With three errors the page shows an element with `role=\"alert\"` holding exactly 3 list items, one `<li>` per error",
+                  "With three errors, the page shows an element with role=\"alert\" holding exactly 3 list items, one <li> per error.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Each error message appears as its own text node. With `errors={['p2 exceeds available stock']}`, the text matching `/p2 exceeds available stock/i` is on the page",
+                  "Each error message appears as its own text node. With errors=['p2 exceeds available stock'], the text matching 'p2 exceeds available stock' is on the page.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "When at least one error exists there is no element with `role=\"status\"` on the page. The confirmation banner never appears alongside the alert",
+                  "When at least one error exists, there is no element with role=\"status\" on the page. The confirmation banner never appears alongside the alert.",
                 is_required: true,
                 order: 5,
               },
@@ -771,37 +771,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`OrderSummary` is the default export of `src/components/OrderSummary.tsx`, so `typeof mod.default === 'function'`. It takes props `customerName`, `items`, and an optional `coupon`",
+                  "OrderSummary is the default export of src/components/OrderSummary.tsx. It takes props customerName, items, and an optional coupon.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`data-testid=\"customer-name\"` shows the customer name. With `customerName=\"Ada Lovelace\"` its text is `Ada Lovelace`",
+                  "data-testid=\"customer-name\" shows the customer name. With customerName=\"Ada Lovelace\" its text is \"Ada Lovelace\".",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "There is one `order-item` row per cart item, so 2 for a two-line cart. The first row holds both the product name (`/Espresso/`) and that line's peso-formatted subtotal (`/₱200\\.00/` for price 100 × quantity 2)",
+                  "There is one order-item row per cart item. The first row holds both the product name and that line's peso-formatted subtotal (e.g., ₱200.00 for price 100 × quantity 2).",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "With no coupon, `data-testid=\"order-total\"` contains `₱250.00`, the sum of the line subtotals 200 + 50, and no `order-discount` element is on the page",
+                  "With no coupon, data-testid=\"order-total\" contains ₱250.00 (the sum of line subtotals 200 + 50), and no order-discount element is on the page.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "With `coupon={{ coupon_id: 'c1', code: 'SAVE20', discount_percent: 20 }}`, `data-testid=\"order-discount\"` contains `₱50.00` and `data-testid=\"order-total\"` becomes `₱200.00`",
+                  "With coupon={{ coupon_id: 'c1', code: 'SAVE20', discount_percent: 20 }}, data-testid=\"order-discount\" contains ₱50.00 and data-testid=\"order-total\" becomes ₱200.00.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Money values are formatted with the `₱` sign, comma thousands separator, and exactly two decimals",
+                  "Money values are formatted with the ₱ sign, comma thousands separator, and exactly two decimals.",
                 is_required: true,
                 order: 6,
               },
@@ -1059,43 +1059,43 @@ export const levels = [
             create: [
               {
                 description:
-                  "The `Coupon` model in prisma/schema.prisma gains an optional `expires_at DateTime?` field and a Prisma migration is applied, so the action can read `expires_at` off the coupon row",
+                  "Add an optional expires_at DateTime? field to the Coupon model in prisma/schema.prisma and run a Prisma migration.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`applyBestCoupon` is a named export of `src/lib/actions/coupons.ts` with the signature `applyBestCoupon(subtotal: number, now?: Date)`. It is async and returns `{ coupon, discount } | null`",
+                  "Export applyBestCoupon as a named async export from src/lib/actions/coupons.ts with the signature applyBestCoupon(subtotal: number, now?: Date). It returns { coupon, discount } or null.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`prisma.coupon.findMany` is called with a single argument whose `where` object contains `is_active: true`, so the active-coupon filter happens in the database",
+                  "The function calls prisma.coupon.findMany with a where object containing is_active: true so the active-coupon filter happens in the database.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Among valid coupons the largest discount wins. For a subtotal of 200 with unexpired `A10` (10%) and `B25` (25%), the result has `coupon.coupon_id === 'b'` and `discount === 50`",
+                  "Among valid coupons the largest discount wins. For a subtotal of 200 with unexpired A10 (10%) and B25 (25%), the result has coupon.coupon_id === 'b' and discount === 50.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Expired coupons are discarded before ranking even when their percent is higher. With `A10` (10%, `expires_at: null`) and `D40` (40%, `expires_at: 2026-05-01`) against `now = 2026-06-01`, the result has `coupon.coupon_id === 'a'` and `discount === 20`",
+                  "Expired coupons are discarded before ranking even when their percent is higher. With A10 (10%, expires_at: null) and D40 (40%, expires_at: 2026-05-01) against now = 2026-06-01, the result has coupon.coupon_id === 'a' and discount === 20.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "The result is `null` when there are no active coupons",
+                  "The result is null when there are no active coupons.",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "The result is `null` when every active coupon is expired",
+                  "The result is null when every active coupon is expired.",
                 is_required: true,
                 order: 7,
               },
@@ -1213,31 +1213,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`SalesSummary` is the default export of `src/components/SalesSummary.tsx`, so `typeof mod.default === 'function'`. It takes an `orders` prop of `{ total_amount: number; discount_amount: number }[]`",
+                  "Export SalesSummary as the default export of src/components/SalesSummary.tsx. It takes an orders prop of { total_amount: number; discount_amount: number }[].",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "For orders totalling 750 with 75 of discount across 3 orders, `data-testid=\"total-revenue\"` contains `₱750.00`, `data-testid=\"total-discount\"` contains `₱75.00`, and `data-testid=\"order-count\"` contains `3`",
+                  "For orders totalling 750 with 75 of discount across 3 orders, data-testid=\"total-revenue\" contains ₱750.00, data-testid=\"total-discount\" contains ₱75.00, and data-testid=\"order-count\" contains 3.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`data-testid=\"average-order\"` shows the average order value rounded to two decimals and formatted in pesos, so `₱250.00` for 750 across 3 orders",
+                  "data-testid=\"average-order\" shows the average order value rounded to two decimals and formatted in pesos, so ₱250.00 for 750 across 3 orders.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "With `orders={[]}`, `total-revenue` contains `₱0.00`, `total-discount` contains `₱0.00`, `order-count` contains `0`, and `average-order` contains `₱0.00`. The division is guarded, so no `NaN` or `Infinity` is rendered",
+                  "With an empty orders array, total-revenue contains ₱0.00, total-discount contains ₱0.00, order-count contains 0, and average-order contains ₱0.00. The division is guarded, so no NaN or Infinity is rendered.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Money values go through `formatPeso`, with the `₱` sign, comma thousands separator, and exactly two decimals",
+                  "Money values go through formatPeso, with the ₱ sign, comma thousands separator, and exactly two decimals.",
                 is_required: true,
                 order: 5,
               },
@@ -1341,37 +1341,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getTopSellingProducts` is a named export of `src/lib/actions/reports.ts` with the signature `getTopSellingProducts(limit: number)`. It is async and returns `{ product_id: string; product_name: string; unitsSold: number; revenue: number }[]`",
+                  "Export getTopSellingProducts as a named async export from src/lib/actions/reports.ts with the signature getTopSellingProducts(limit: number). It returns { product_id: string; product_name: string; unitsSold: number; revenue: number }[].",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`prisma.orderItem.findMany` is called with a single argument whose `include` object includes the related `product`, so the product name arrives on each row",
+                  "The function calls prisma.orderItem.findMany with an include object that includes the related product, so the product name arrives on each row.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Rows are aggregated per `product_id`. For p1 with rows `(quantity 5, subtotal 600)` and `(quantity 1, subtotal 120)` the entry is exactly `{ product_id: 'p1', product_name: 'Espresso', unitsSold: 6, revenue: 720 }`, where `unitsSold` sums `quantity` and `revenue` sums `subtotal`",
+                  "Rows are aggregated per product_id. For p1 with rows (quantity 5, subtotal 600) and (quantity 1, subtotal 120), the entry is exactly { product_id: 'p1', product_name: 'Espresso', unitsSold: 6, revenue: 720 }, where unitsSold sums quantity and revenue sums subtotal.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Results are sorted by `unitsSold` descending with `revenue` descending as the tie-breaker. For the sample rows the order is `p2`, `p3`, `p1`, since p2 and p3 both sold 8 units and p2 has the higher revenue of 1200 against 760",
+                  "Results are sorted by unitsSold descending with revenue descending as the tie-breaker. For the sample rows the order is p2, p3, p1, since p2 and p3 both sold 8 units and p2 has the higher revenue of 1200 against 760.",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "The limit is respected: `getTopSellingProducts(2)` returns exactly 2 entries",
+                  "The limit is respected: getTopSellingProducts(2) returns exactly 2 entries.",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "When there are no items, the action returns an empty array `[]`",
+                  "When there are no items, the action returns an empty array [].",
                 is_required: true,
                 order: 6,
               },

@@ -128,32 +128,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "The user runs `pnpm install` in the project root, which creates a `node_modules` directory containing both `next` and `react`",
+                  "Install project dependencies in the project root",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`pnpm dev` started in the project root prints a line matching `/ready|Local:/i` to stdout or stderr within 30 seconds, and the process does not exit with a non-zero code first",
+                description:
+                  "Run the development server and verify it starts successfully (prints 'ready' or 'Local:')",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`src/components/ui/alert.tsx` exists and its source matches the whole-word patterns `/\\bAlert\\b/`, `/\\bAlertTitle\\b/` and `/\\bAlertDescription\\b/`",
+                description:
+                  "Add the alert shadcn/ui component using the CLI and verify it exports Alert, AlertTitle, and AlertDescription",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`src/components/ui/dropdown-menu.tsx` exists and its source matches the whole-word patterns `/\\bDropdownMenu\\b/`, `/\\bDropdownMenuTrigger\\b/`, `/\\bDropdownMenuContent\\b/`, `/\\bDropdownMenuItem\\b/`, `/\\bDropdownMenuSeparator\\b/`, `/\\bDropdownMenuLabel\\b/` and `/\\bDropdownMenuGroup\\b/`",
+                description:
+                  "Add the dropdown-menu shadcn/ui component using the CLI and verify it exports DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, and DropdownMenuGroup",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`src/components/ui/collapsible.tsx` exists and its source matches the whole-word patterns `/\\bCollapsible\\b/`, `/\\bCollapsibleTrigger\\b/` and `/\\bCollapsibleContent\\b/`",
+                description:
+                  "Add the collapsible shadcn/ui component using the CLI and verify it exports Collapsible, CollapsibleTrigger, and CollapsibleContent",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "`src/components/ui/dialog.tsx` exists and its source matches the whole-word patterns `/\\bDialog\\b/`, `/\\bDialogTrigger\\b/`, `/\\bDialogContent\\b/`, `/\\bDialogHeader\\b/`, `/\\bDialogTitle\\b/`, `/\\bDialogDescription\\b/` and `/\\bDialogFooter\\b/`",
+                description:
+                  "Add the dialog shadcn/ui component using the CLI and verify it exports Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, and DialogFooter",
                 is_required: true,
                 order: 6,
               },
@@ -258,14 +263,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "After `//` and `/* */` comments are stripped from the source, `src/app/login/page.tsx` contains the literal `Log In`",
+                description:
+                  "Update the login page submit button label from 'Sign In' to 'Log In'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "After comments are stripped, the same file no longer contains the literal `Sign In` anywhere",
+                description:
+                  "Update the loading label from 'Signing in...' to 'Logging In...'",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description:
+                  "Remove all remaining instances of 'Sign In' from the login page source (outside of comments)",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description:
+                  "Verify the login page shows 'Log In' and 'Logging In...' and no 'Sign In' text is visible",
+                is_required: true,
+                order: 4,
               },
             ],
           },
@@ -402,29 +421,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Rendering `src/app/dashboard/standing/page.tsx` puts an element with the `alert` role in the document whose class attribute contains `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`",
+                description:
+                  "Add an Alert banner to the top of the standing page with alert role",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "That same render puts a `heading` element with accessible level 5 in the document whose text content matches `/probation|academic standing/i`",
+                description:
+                  "Style the Alert with border-l-4, border-red-500, bg-red-50, and text-red-900 classes",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "In that same render exactly one element has direct text matching `/gpa|grade point/i`, and that element's text content also matches `/2\\.0|minimum|required/i`",
+                description:
+                  "Add a level 5 heading in the Alert mentioning probation or academic standing",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "That same render puts a `link` in the document whose accessible name matches `/advisor|schedule|meeting/i` and whose `href` attribute matches `/advisor|schedule/`",
+                description:
+                  "Include GPA threshold text (mentioning GPA/grade point and 2.0/minimum/required) in the Alert body",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The source of `src/app/dashboard/standing/page.tsx` matches `/from\\s+['\"]@\\/components\\/ui\\/alert['\"]/` and `/Alert(?:Title|Description)?/`",
+                description:
+                  "Add a link in the Alert for booking an advisor meeting (accessible name mentions advisor/schedule/meeting, href matches advisor/schedule)",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "Import Alert components in the standing page",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -533,37 +563,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/components/ui/collapsible.tsx` exists and its source matches the whole-word patterns `/\\bCollapsible\\b/`, `/\\bCollapsibleTrigger\\b/` and `/\\bCollapsibleContent\\b/`",
+                description:
+                  "Verify a Collapsible file exists and exports Collapsible, CollapsibleTrigger, and CollapsibleContent",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The source of `src/components/SemesterGroup.tsx` matches `/from\\s+['\"]@\\/components\\/ui\\/collapsible['\"]/` and `/Collapsible(?:Trigger|Content)?/`",
+                description:
+                  "Create a Semester Group file importing from @/components/ui/collapsible",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Importing the named export `SemesterGroup` from `@/components/SemesterGroup` and rendering it without `defaultOpen` produces a `button` whose accessible name matches `/1st semester — 2025-2026/i` and whose `aria-expanded` attribute is `false`",
+                description:
+                  "Render SemesterGroup without defaultOpen and verify it shows a button with accessible name matching '1st semester — 2025-2026' and aria-expanded='false'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "While collapsed the children are not in the document at all; clicking the title button puts the child text in the document and the same button's `aria-expanded` becomes `true`",
+                description:
+                  "Verify children are not in the document when collapsed, and clicking the button shows children and sets aria-expanded='true'",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rendering `SemesterGroup` with `defaultOpen` puts the children in the document on the first render and the title button reports `aria-expanded='true'`",
+                description:
+                  "Render SemesterGroup with defaultOpen and verify children are visible on first render with aria-expanded='true'",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "After switching `src/app/dashboard/grades/page.tsx` to its All Semesters tab, the document contains a `button` whose accessible name matches `/1st semester[^a-z0-9]*2025-2026/i` and another whose accessible name matches `/2nd semester[^a-z0-9]*2024-2025/i`",
+                description:
+                  "Switch to All Semesters tab and verify two buttons exist for '1st semester — 2025-2026' and '2nd semester — 2024-2025'",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "In that same tab there are at least two `button` elements whose text content matches `/\\d(st|nd|rd|th)?\\s*semester/i`, every one of them carries the classes `flex`, `w-full`, `items-center`, `justify-between`, `py-2`, `px-4`, `rounded-md` and `hover:bg-accent`, and the first of them in document order reports `aria-expanded='true'`",
+                description:
+                  "Verify all semester buttons have the required styling classes (flex, w-full, items-center, justify-between, py-2, px-4, rounded-md, hover:bg-accent) and the first one has aria-expanded='true'",
                 is_required: true,
                 order: 7,
               },
@@ -702,27 +739,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`computeGPABySemester` is exported from `src/lib/mockData.ts` and `computeGPABySemester(grades)` over the shipped `grades` array returns exactly 2 entries whose `` `${semester}|${academicYear}` `` keys are all distinct",
+                description:
+                  "Export computeGPABySemester from src/lib/mockData.ts and verify it returns exactly 2 entries with distinct keys for the shipped grades array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "For a group of 3-unit `A` plus 3-unit `B` in `1st Semester` / `2025-2026` the entry reports `units` `6` and `gpa` `3.5` within 2 decimals, and for a lone 4-unit `C` in `2nd Semester` / `2024-2025` it reports `units` `4` and `gpa` `2.0` within 2 decimals",
+                description:
+                  "Verify the function reports correct units and GPA: 6 units at 3.5 GPA for 'A' + 'B' group, 4 units at 2.0 GPA for lone 'C' group",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "For the four-term sample the returned labels, built as `` `${academicYear} ${semester}` ``, equal `['2024-2025 1st Semester', '2024-2025 2nd Semester', '2025-2026 1st Semester', '2025-2026 2nd Semester']` in that order",
+                description:
+                  "Verify the returned labels are in chronological order: 2024-2025 1st Semester, 2024-2025 2nd Semester, 2025-2026 1st Semester, 2025-2026 2nd Semester",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Rendering `src/app/dashboard/standing/page.tsx` puts an element whose text matches `/gpa by semester/i` in the document",
+                description:
+                  "Add a 'GPA by Semester' card to the standing page with heading matching 'gpa by semester'",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "That same render puts at least one element matching `/1st semester/i` and at least one element matching `/2nd semester/i` in the document",
+                description:
+                  "Verify the standing page shows both 1st Semester and 2nd Semester labels",
                 is_required: true,
                 order: 5,
               },
@@ -843,32 +885,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Importing the named export `Progress` from `@/components/ui/progress` and rendering it with `value={42}` and `max={100}` produces an element with the `progressbar` role whose `aria-valuenow` is `42`, `aria-valuemin` is `0` and `aria-valuemax` is `100`",
+                description:
+                  "Create src/components/ui/progress.tsx exporting Progress component with progressbar role, aria-valuenow, aria-valuemin, aria-valuemax",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "With `value={30}` and `max={60}` the single child element matched by `[role=progressbar] > *` has an inline width whose numeric value is within 1 decimal of `50`",
+                description:
+                  "Verify the Progress component shows correct width (50% for value=30, max=60)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "With `value={250}` and `max={100}` the same child element exists and its inline width parses to a number less than or equal to `100`",
+                description:
+                  "Verify width is clamped to 100% for out-of-range values (value=250, max=100)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "With `value={-50}` and `max={100}` the same child element exists and its inline width parses to a number greater than or equal to `0`",
+                description:
+                  "Verify width is clamped to 0% for negative values (value=-50, max=100)",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rendering `src/app/dashboard/standing/page.tsx` puts at least one `progressbar` element in the document and at least one of them reports `aria-valuemax='90'`, the value of `currentStanding.totalCredits`",
+                description:
+                  "Verify the standing page renders a progressbar with aria-valuemax='90'",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` puts an element whose text matches `/degree progress/i` in the document, together with at least one `progressbar` element whose `aria-valuemax` is `90`",
+                description:
+                  "Verify the dashboard page shows 'Degree Progress' text and a progressbar with aria-valuemax='90'",
                 is_required: true,
                 order: 6,
               },
@@ -1008,29 +1056,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The default export of `@/app/dashboard/courses/[courseCode]/page`, called with `params` `{ courseCode: 'CS%20301' }`, renders text matching `/cs\\s*301/i` and text matching `/data structures and algorithms/i`",
+                description:
+                  "Create the dynamic course detail route at /dashboard/courses/[courseCode] and verify it shows course code, name, and grade for CS 301",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "That same render puts at least one element whose text matches `/\\bA\\b/` in the document, matching the `grade` field of the `CS 301` entry in `grades`",
+                description:
+                  "Verify the course detail page shows the professor name (Dr. Sarah Johnson) from the schedule array",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "That same render puts text matching `/dr\\.\\s*sarah johnson/i` in the document, taken from the `CS 301` entry of `schedule` in `src/lib/mockData.ts`",
+                description:
+                  "Verify the page shows 'Course not found' with a link back to /dashboard/grades for invalid course codes",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Called with `params` `{ courseCode: 'BOGUS%20999' }` the page renders text matching `/course not found/i` and a `link` whose accessible name matches `/grades/i` and whose `href` attribute is exactly `/dashboard/grades`",
+                description:
+                  "Add 'View Details' links to each grade row pointing to the encoded course detail route (e.g., /dashboard/courses/CS%20301)",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description: "Rendering `src/app/dashboard/grades/page.tsx` puts at least one `link` in the document whose accessible name matches `/view details/i`, every such link has an `href` starting with `/dashboard/courses/`, and at least one `href` lowercased contains `cs%20301`",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -1144,52 +1191,62 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/components/ui/dialog.tsx` exists and its source matches the whole-word patterns `/\\bDialog\\b/`, `/\\bDialogTrigger\\b/`, `/\\bDialogContent\\b/`, `/\\bDialogHeader\\b/`, `/\\bDialogTitle\\b/`, `/\\bDialogDescription\\b/` and `/\\bDialogFooter\\b/`",
+                description:
+                  "Verify src/components/ui/dialog.tsx exists and exports Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, and DialogFooter",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Rendering `RequestDocumentDialog` from `@/components/RequestDocumentDialog` with `open` puts a `dialog` role element in the document whose `aria-modal` attribute is `true`",
+                description:
+                  "Render RequestDocumentDialog with open=true and verify it shows a dialog with role='dialog' and aria-modal='true'",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "That same open render puts a `heading` element with accessible level 2 in the document whose text content matches `/request document/i`, together with an element whose text matches `/select the type of document/i`",
+                description:
+                  "Verify the open dialog shows a level 2 heading 'Request Document' and description 'Select the type of document'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Rendering `RequestDocumentDialog` with `open={false}` leaves the render container with no first child at all",
+                description:
+                  "Verify RequestDocumentDialog with open=false renders nothing (no first child in container)",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "In the open render a `button` whose accessible name is exactly `Next` has its `disabled` property `true`, and clicking the element whose accessible label matches `/transcript/i` flips that same button's `disabled` property to `false`",
+                description:
+                  "Verify step 1 shows disabled 'Next' button, and selecting a document type (e.g., Transcript) enables it",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "After choosing a type and clicking `Next`, the step shows exactly one `textbox`, a `button` named exactly `Submit` whose `disabled` property is `true` for the empty value and for `too short` and `false` for `For my job application portfolio.`, and also a `button` named exactly `Back` and a `button` named exactly `Next`; clicking `Back` brings the `Next` button back into the document",
+                description:
+                  "Verify step 2 shows purpose textbox with disabled 'Submit' button, 'Back' and 'Next' buttons; 'Submit' enables at 10+ chars; clicking 'Back' returns to step 1",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "Choosing `Enrollment Certificate`, entering `Visa application requirement.` and clicking `Submit` renders text matching `/request submitted/i`, text matching `/enrollment certificate/i` and text matching `/visa application requirement\\./i`, together with a `button` named exactly `Done`",
+                description:
+                  "Complete the flow: choose 'Enrollment Certificate', enter 'Visa application requirement.', click 'Submit', and verify confirmation shows request submitted, document type, purpose, and a REQ- reference number",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "That confirmation step also leaves a substring matching `/REQ-[A-Z0-9]{6}/` somewhere in the `document.body` text",
+                description:
+                  "Verify the confirmation step shows a reference number matching REQ-[A-Z0-9]{6} pattern and a 'Done' button",
                 is_required: true,
                 order: 8,
               },
               {
-                description: "The source of `src/components/RequestDocumentDialog.tsx` matches `/from\\s+['\"]@\\/components\\/ui\\/dialog['\"]/` and `/Dialog(?:Trigger|Content|Header|Title|Description|Footer)?/`",
+                description:
+                  "Import Dialog components from @/components/ui/dialog in RequestDocumentDialog",
                 is_required: true,
                 order: 9,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` puts either a `button` or a `link` in the document whose accessible name matches `/request document/i`, and clicking it puts a `dialog` role element in the document",
+                description:
+                  "Add a 'Request Document' trigger button on the dashboard that opens the dialog",
                 is_required: true,
                 order: 10,
               },
@@ -1339,37 +1396,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`computeCurrentSemesterUnits` is exported from `src/lib/mockData.ts`, is a function, and returns exactly `12` when called with the shipped `grades` array",
+                description:
+                  "Export computeCurrentSemesterUnits from the mock data file and verify it returns exactly 12 for the shipped grades array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`computeEarnedCredits` is exported from `src/lib/mockData.ts`, is a function, and returns exactly `24` when called with the shipped `grades` array",
+                description:
+                  "Export computeEarnedCredits from the mock data file and verify it returns exactly 24 for the shipped grades array",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`computeEarnedCredits` called with a 3-unit `A`, a 4-unit `F` and a 2-unit `C-` returns exactly `5`, so `F` rows are excluded before the sum",
+                description:
+                  "Verify computeEarnedCredits excludes F grades (returns 5 for 3-unit A, 4-unit F, 2-unit C-)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "The source of `src/app/dashboard/standing/page.tsx` contains neither `currentStanding.totalUnits` nor `currentStanding.earnedCredits`",
+                description:
+                  "Remove all currentStanding.totalUnits and currentStanding.earnedCredits references from the standing page source",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rendering `src/app/dashboard/standing/page.tsx` puts at least one element whose exact text is `12` in the document, and at least one element whose text matches `/\\b24\\b/`",
+                description:
+                  "Verify the standing page renders exact text '12' and '24' as separate elements",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "The source of `src/app/dashboard/page.tsx` does not contain `currentStanding.totalUnits`",
+                description:
+                  "Remove currentStanding.totalUnits reference from the dashboard page source",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` puts at least one element whose exact text is `12` in the document",
+                description:
+                  "Verify the dashboard page renders exact text '12' as a separate element",
                 is_required: true,
                 order: 7,
               },
@@ -1481,52 +1545,62 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The render container of `src/app/dashboard/layout.tsx` has at least one element matching `a, button, [tabindex]`, and the first of them is an `a` with `href='#main-content'`, text matching `/skip to main content/i`, and a class attribute matching both `/\\bsr-only\\b/` and `/focus:not-sr-only/`",
+                description:
+                  "Add a skip link as the first focusable element (a with href='#main-content', text 'Skip to main content', with sr-only and focus:not-sr-only classes)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "That render container includes a `main` element whose `id` attribute is `main-content` and whose `tabindex` attribute is `-1`",
+                description:
+                  "Add a main element with id='main-content' and tabindex='-1'",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "That render puts a `navigation` role element in the document whose accessible name matches `/primary/i`",
+                description:
+                  "Add a nav element with accessible name 'Primary'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "With `usePathname` returning `/dashboard/grades`, exactly one element in that render container carries `aria-current='page'` and its text content matches `/grades/`",
+                description:
+                  "Add exactly one aria-current='page' on the active sidebar item (matching 'grades' when on /dashboard/grades)",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "That render puts a `button` in the document whose accessible name matches `/toggle sidebar/i`",
+                description:
+                  "Add aria-label='Toggle sidebar' to the sidebar toggle button",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "That render puts a `button` in the document whose accessible name matches `/sign out/i`",
+                description:
+                  "Add aria-label='Sign out' to the sign out button",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "That render container includes a `header` element, and the first `h1` inside that `header` has a class attribute matching `/\\bsr-only\\b/` and text content matching `/riverside university/i`",
+                description:
+                  "Add an sr-only h1 with text 'Riverside University' inside the header element",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "`src/components/ui/dropdown-menu.tsx` exists and its source matches the whole-word patterns `/\\bDropdownMenu\\b/`, `/\\bDropdownMenuTrigger\\b/`, `/\\bDropdownMenuContent\\b/`, `/\\bDropdownMenuItem\\b/`, `/\\bDropdownMenuSeparator\\b/`, `/\\bDropdownMenuLabel\\b/` and `/\\bDropdownMenuGroup\\b/`",
+                description:
+                  "Verify a dropdown page component from shadcn/ui exists and exports all DropdownMenu components",
                 is_required: true,
                 order: 8,
               },
               {
-                description: "Clicking the `button` in that render whose accessible name matches `/user|profile|account/i` puts an element with the `menu` role in the document, and that menu contains a `menuitem` named `/profile/i`, a `menuitem` named `/settings|preferences/i` and a `menuitem` named `/sign out|logout/i`",
+                description:
+                  "Add a user menu dropdown with trigger named 'user/profile/account' that opens a menu with menu role containing menuitem for Profile, Settings/Preferences, and Sign out/Logout",
                 is_required: true,
                 order: 9,
               },
               {
-                description: "The source of `src/app/dashboard/layout.tsx` matches `/from\\s+['\"]@\\/components\\/ui\\/dropdown-menu['\"]/` and `/DropdownMenu(?:Trigger|Content|Item|Separator|Label|Group)?/`",
+                description:
+                  "Import DropdownMenu components from shadcn/ui in the dashboard layout",
                 is_required: true,
                 order: 10,
               },

@@ -154,24 +154,24 @@ export const levels = [
             create: [
               {
                 description:
-                  "The app can be built from `AppModule` and started without errors",
+                  "Build and start the application without errors",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`PrismaService` is available from the running app, and a raw `SELECT 1` query through it reaches PostgreSQL",
+                  "Verify the database connection works by running a test query",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`GET /api` answers with a status code below 500",
+                description: "Access the API root endpoint and verify it responds successfully",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Sending an unknown email and a wrong password to `POST /api/auth/login` returns exactly 401",
+                  "Attempt login with invalid credentials and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
@@ -305,25 +305,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`POST /api/transactions` needs the `Authorization: Bearer <accessToken>` header, where the token is the JWT returned by `POST /api/auth/login`, and returns 201 on success",
+                  "Create a transaction with a note and verify it's saved correctly",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Creating an EXPENSE of 100 with `note: \"lunch with team\"` returns 201, and the `note` in the response body is exactly `lunch with team`",
+                  "Create an expense with note \"lunch with team\" and verify the note appears in the response",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Creating a transaction with no `note` at all still returns 201, and no non-empty note string comes back in the response",
+                  "Create a transaction without a note and verify it succeeds without a note",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`GET /api/transactions` returns 200 and the saved note `groceries` appears on one of the listed transactions. The body may be a bare array or a `{ data: [...] }` envelope",
+                  "List transactions and verify the saved note \"groceries\" appears in the results",
                 is_required: true,
                 order: 4,
               },
@@ -473,37 +473,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`GET /api/transactions?page=1&limit=5` returns 200 with all five envelope keys present: `data`, `total`, `page`, `limit` and `totalPages`. `data` has a length of 5 and `total` is 20",
+                  "View page 1 with 5 items per page and verify the paginated response includes all required fields",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Pagination is offset-based, so `page=1&limit=5` returns the first 5 rows rather than the 5 that follow a cursor, and no cursor parameter is offered",
+                  "Verify pagination uses offset-based approach (page 1 returns first 5 items)",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`GET /api/transactions` with no query params returns 200 with `page` 1, `limit` 20 and 20 items in `data`. Those are the server-side defaults",
+                  "View transactions without filters and verify default pagination (page 1, 20 items)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`GET /api/transactions?type=EXPENSE` returns 200 with `total` equal to 15, and that `total` counts only the filtered rows. Every row in `data` has `type` equal to `EXPENSE`",
+                  "Filter transactions by expense type and verify only expenses are returned with correct total",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`GET /api/transactions?categoryId=<id>` returns 200 with `total` equal to 5, which is the number of transactions in that category",
+                  "Filter transactions by category and verify correct count is returned",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "`GET /api/transactions?startDate=2025-01-05&endDate=2025-01-10` returns 200 with a `total` between 1 and 6 inclusive, and the dates are honoured on the returned rows too",
+                  "Filter transactions by date range and verify results match the date filter",
                 is_required: true,
                 order: 6,
               },
@@ -621,19 +621,19 @@ export const levels = [
             create: [
               {
                 description:
-                  "`GET /api/categories` returns 200, and the list, whether a bare array or a `{ data: [...] }` envelope, holds the active category's id and not the inactive category's id",
+                  "View categories list and verify active categories appear while inactive ones are hidden",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`POST /api/transactions` with an inactive `categoryId` is rejected with a client error status between 400 and 499, and no transaction is created. Any status in that range is accepted, not specifically 400",
+                  "Try to create a transaction with an inactive category and verify it's rejected",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`POST /api/transactions` with an active `categoryId` still returns exactly 201",
+                  "Create a transaction with an active category and verify it succeeds",
                 is_required: true,
                 order: 3,
               },
@@ -778,36 +778,36 @@ export const levels = [
             create: [
               {
                 description:
-                  "After `POST /api/transactions` with an EXPENSE of 300 on an account with a balance of 1000, the `accounts.balance` row in the database is exactly 700",
+                  "Record an expense of 300 on an account with 1000 balance and verify balance becomes 700",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "After `POST /api/transactions` with an INCOME of 500 on an account with a balance of 1000, the `accounts.balance` row in the database is exactly 1500",
+                  "Record income of 500 on an account with 1000 balance and verify balance becomes 1500",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "An EXPENSE of 2000 against a balance of 1000 with `allowNegativeBalance` false is rejected with a client error status between 400 and 499. Anything in that range counts",
+                  "Try to spend 2000 from an account with 1000 balance (no negative allowed) and verify it's rejected",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "An EXPENSE of 500 against an account with a balance of 100 and `allowNegativeBalance` true returns exactly 201",
+                  "Spend 500 from an account with 100 balance that allows negative and verify it succeeds",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "A transaction with a negative amount is rejected with a status of 400 or above. No upper bound applies",
+                description: "Try to record a transaction with a negative amount and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "A transaction dated 24 hours in the future is rejected with a status of 400 or above. No upper bound applies",
+                  "Try to record a transaction with a future date and verify it's rejected",
                 is_required: true,
                 order: 6,
               },
@@ -931,31 +931,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`GET /api/budgets?month=1&year=2025` returns 200 with at least one budget, whether the body is a bare array or a `{ data: [...] }` envelope, and the row is matched by `category.name === \"Food\"` or by a bare `categoryId`",
+                  "View budgets for January 2025 and verify at least one budget exists",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "With a budget amount of 500 and January 2025 expenses of 200 plus 100, the budget row reports `spent` exactly 300 and `remaining` exactly 200",
+                  "With a 500 budget and 300 spent, verify spent shows 300 and remaining shows 200",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "The same row reports `percentUsed` of 60, and a small float drift is tolerated",
+                  "Verify percent used shows 60%",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`exceeded` is `false` while spending of 300 stays under the budget amount of 500",
+                  "Verify budget shows not exceeded when spending is under limit",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "After one more January expense of 300 is added, bringing spending to 600, `exceeded` becomes `true`",
+                  "Add more spending to exceed budget and verify it shows as exceeded",
                 is_required: true,
                 order: 5,
               },
@@ -1105,31 +1105,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`GET /api/reports/monthly-summary?month=1&year=2025` returns 200 with `totalIncome` 2000, `totalExpense` 600 and `netSavings` 1400, scoped to the authenticated caller",
+                  "View monthly summary for January 2025 and verify income, expenses, and net savings",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "The summary body exposes the count as `transactionCount` with a value of 4. The name `numberOfTransactions` is also accepted",
+                  "Verify transaction count is shown",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`GET /api/reports/trends?months=3` returns 200 and the response body is a bare JSON array with 3 or fewer entries rather than a `{ data: ... }` envelope",
+                  "View trend report for last 3 months and verify it returns a list of months",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Trend entries are sorted so that `year * 100 + month` never decreases across the array",
+                  "Verify trend data is sorted chronologically (oldest to newest)",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Every trend entry, checked with `?months=6`, has the fields `month`, `year`, `totalIncome`, `totalExpense` and `netSavings`",
+                  "Verify each trend entry has month, year, income, expenses, and net savings",
                 is_required: true,
                 order: 5,
               },
@@ -1253,31 +1253,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "`GET /api/reports/category-breakdown?month=1&year=2025&type=EXPENSE` returns 200 with a bare JSON array of 2 or more entries. It is ordered so `body[0].total` is greater than or equal to `body[1].total`",
+                  "View spending breakdown by category for January 2025 expenses and verify categories ordered by spending (highest first)",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`GET /api/reports/category-breakdown?month=1&year=2025` with the optional `type` param left out also returns 200, and every entry has `categoryName`, `total`, `percentage` and `transactionCount`",
+                  "View spending breakdown without type filter and verify each category shows name, total, percentage, and transaction count",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`GET /api/reports/budget-alerts` is called with no query parameters and returns 200, and the Food budget at 600 of 700, which is about 86%, is included",
+                  "View budget alerts and verify Food budget at 86% appears in alerts",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "The Transport budget at 200 of 500, which is 40%, is left out of the alerts, because the threshold is percentUsed >= 80",
+                  "Verify Transport budget at 40% does not appear in alerts (below 80% threshold)",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Alerts are sorted by `percentUsed` descending, so each entry's percentUsed is greater than or equal to the next entry's percentUsed",
+                  "Verify alerts are sorted by percentage used (highest first)",
                 is_required: true,
                 order: 5,
               },
@@ -1427,25 +1427,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`POST /api/transactions` returns 201, and the `id` in its response body is accepted by `DELETE /api/transactions/:id`. That route must exist and honour the same `Authorization: Bearer <accessToken>` token",
+                  "Create a transaction then delete it, verifying both operations work with the same authentication",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "On an account with a balance of 10000, creating a 500 EXPENSE and then deleting it leaves `accounts.balance`, read from the database, at exactly 10000. The balance change is reversed exactly, not approximately",
+                  "On account with 10000 balance, add 500 expense then delete it, verify balance returns to exactly 10000",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "With a budget row whose amount is 0, `GET /api/budgets?month=1&year=2025` returns 200. The budget found by a bare `categoryId` reports a `percentUsed` that is not NaN, is finite, and equals 0",
+                  "Set a budget to 0 and verify it shows 0% used (not NaN or infinity)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Two consecutive calls to `GET /api/reports/monthly-summary?month=1&year=2025` both return 200 and report an identical `totalExpense`",
+                  "View the same monthly report twice and verify both show identical totals",
                 is_required: true,
                 order: 4,
               },
@@ -1558,25 +1558,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "A file named `POSTMORTEM.md` exists at the project root, in the same directory as `package.json` and four levels above `tests/server/level-5/task-2/`",
+                  "Create a POSTMORTEM.md file at the project root (same folder as package.json)",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "The lowercased contents include at least one of `balance`, `concurren`, `race condition` or `locking`",
+                  "Document the balance drift bug: include terms about balance, concurrency, race condition, or locking",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "The lowercased contents include at least one of `timezone`, `utc` or `date boundary`",
+                  "Document the timezone bug: include terms about timezone, UTC, or date boundaries",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "The lowercased contents include at least one of `division`, `nan`, `infinity`, `zero` or `budget amount`",
+                  "Document the division by zero bug: include terms about division, NaN, infinity, zero, or budget amount",
                 is_required: true,
                 order: 4,
               },

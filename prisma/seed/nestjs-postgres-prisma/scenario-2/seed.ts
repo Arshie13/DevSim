@@ -155,24 +155,24 @@ export const levels = [
             create: [
               {
                 description:
-                  "You can build the app from `AppModule` and start it without any dependency injection errors",
+                  "Build and start the application without errors",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`PrismaService` connects, so a raw `SELECT 1` query through it reaches PostgreSQL",
+                  "Verify the database connection works by running a test query",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`GET /api` answers with a status code below 500",
+                description: "Access the API root endpoint and verify it responds successfully",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`POST /api/auth/login` with an unknown email and a wrong password returns exactly 401",
+                  "Attempt login with invalid credentials and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
@@ -305,25 +305,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`POST /api/products` as an ADMIN with `roastLevel: \"Light\"` in the body returns 201 and the response body's `roastLevel` is `\"Light\"`",
+                  "Create a product with roast level as admin and verify it's saved correctly",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`roastLevel` is optional, so `POST /api/products` as an ADMIN without the field returns 201 and the response body's `roastLevel` is null/undefined",
+                  "Create a product without roast level as admin and verify it succeeds without one",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`GET /api/products` without authentication returns 200 and every product object it lists includes a `roastLevel` key",
+                  "View the product list and verify every product includes a roast level field",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A product stored with `roastLevel: \"Dark\"` is returned by `GET /api/products` with `roastLevel` exactly `\"Dark\"`",
+                  "Verify a product stored with roast level \"Dark\" shows exactly that value",
                 is_required: true,
                 order: 4,
               },
@@ -469,37 +469,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "`GET /api/products?page=1&limit=5` returns 200 and the body has all five keys: `data`, `total`, `page`, `limit`, `totalPages`",
+                  "View page 1 with 5 items per page and verify the paginated response includes all required fields",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "With 13 products seeded, `?page=1&limit=5` returns `data` of length 5 and `total` of 13",
+                  "With 13 products seeded, page 1 with limit 5 returns 5 items and total of 13",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`GET /api/products` with no query params returns 200 with `page` = 1, `limit` = 10 and `data` of length 10",
+                  "View products without filters and verify default pagination (page 1, 10 items)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`GET /api/products?categoryId=<id>` returns 200 with `total` = 5 and every item in `data` carrying that exact `categoryId`",
+                  "Filter products by category and verify correct count and all items have that category",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`GET /api/products?search=Equipment` returns 200 with `total` = 5, matching on name and ignoring case",
+                  "Search products by name (case-insensitive) and verify matching results",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "`GET /api/products?categoryId=<id>&search=Bean 3` returns 200 with `total` >= 1 and every item in `data` carrying the requested `categoryId`",
+                  "Combine category and search filters and verify results match both criteria",
                 is_required: true,
                 order: 6,
               },
@@ -616,25 +616,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`GET /api/categories` returns 200 and its list contains the id of the category with `isActive: true`",
+                  "View categories list and verify active categories appear",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`GET /api/categories` returns 200 and does not contain the id of the category created with `isActive: false`",
+                  "View categories list and verify inactive categories are hidden",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`GET /api/products` returns 200 and does not contain the product whose `categoryId` points at the `isActive: false` category",
+                  "View products list and verify products from inactive categories are hidden",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`GET /api/products` returns 200 and still contains the product whose `categoryId` points at the `isActive: true` category",
+                  "View products list and verify products from active categories still appear",
                 is_required: true,
                 order: 4,
               },
@@ -785,37 +785,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "A CUSTOMER `POST /api/orders` for quantity 2 of a product with stock 5 returns 201, and the product row in the database shows `stock` reduced to 3",
+                  "Place an order for 2 items of a product with 5 in stock and verify stock reduces to 3",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "The 201 response body's `tax` is greater than 0, and `total` is close to 27 for a single $25 item",
+                  "Verify the order response includes tax greater than 0 and total close to 27 for a $25 item",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`String(res.body.total)` for an order has at most 2 decimal places",
+                  "Verify the order total has at most 2 decimal places",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Ordering quantity 10 against a product with 5 in stock returns a client error status between 400 and 499",
+                  "Try to order 10 items when only 5 in stock and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`POST /api/orders` with `paymentMethod: \"CRYPTO\"` returns a client error status between 400 and 499",
+                  "Try to order with invalid payment method and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "A rejected order with quantity 100 leaves the product's `stock` exactly equal to its value before the request",
+                  "Verify a rejected order leaves stock unchanged",
                 is_required: true,
                 order: 6,
               },
@@ -947,37 +947,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "As an ADMIN, `PATCH /api/orders/:id/status` with `{ \"status\": \"PROCESSING\" }` on a PENDING order returns 200 and the response body's `status` is `PROCESSING`",
+                  "As admin, move a PENDING order to PROCESSING and verify it updates",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "As an ADMIN, a PROCESSING order can move to `SHIPPED`: the PATCH returns 200 and the response body's `status` is `SHIPPED`",
+                  "As admin, move a PROCESSING order to SHIPPED and verify it updates",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "As an ADMIN, PENDING to DELIVERED is rejected with exactly 400",
+                  "As admin, try to move PENDING directly to DELIVERED and verify it's rejected",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "As an ADMIN, a PENDING order can be moved to `CANCELLED`: the PATCH returns 200 and the response body's `status` is `CANCELLED`",
+                  "As admin, move a PENDING order to CANCELLED and verify it updates",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "An order whose `status` was forced to `DELIVERED` directly in the database cannot be moved to `CANCELLED`, and the PATCH returns exactly 400",
+                  "Try to cancel a DELIVERED order and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "The same PATCH with a CUSTOMER token is refused with 401 or 403, because the route is admin-only",
+                  "As a customer, try to update order status and verify it's refused",
                 is_required: true,
                 order: 6,
               },
@@ -1122,43 +1122,43 @@ export const levels = [
             create: [
               {
                 description:
-                  "As an ADMIN, `GET /api/reports/daily` returns 200 and the body has both `totalRevenue` and `orderCount`",
+                  "As admin, view daily sales report and verify it shows total revenue and order count",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "After two orders are placed, the daily report's `orderCount` is 2",
+                  "After placing two orders, verify daily report shows order count of 2",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "The daily report body has a `topProducts` key holding an array of at most 5 entries",
+                  "Verify daily report includes top products list (up to 5 items)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "As a CUSTOMER, `GET /api/reports/daily` is refused with 401 or 403",
+                  "As a customer, try to view daily report and verify it's refused",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "As an ADMIN, `GET /api/reports/weekly` returns 200 and the body has both `totalRevenue` and `totalOrders`",
+                  "As admin, view weekly sales report and verify it shows total revenue and total orders",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "The weekly report body has a `dailyBreakdown` array of exactly 7 entries",
+                  "Verify weekly report includes daily breakdown with exactly 7 entries",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "Every `dailyBreakdown` entry has the keys `date`, `revenue` and `orderCount`",
+                  "Verify each daily breakdown entry has date, revenue, and order count",
                 is_required: true,
                 order: 7,
               },
@@ -1286,37 +1286,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "As an ADMIN, `GET /api/reports/low-stock` with no `threshold` param returns 200 and applies the default threshold of 10",
+                  "As admin, view low-stock alerts with default threshold and verify it applies threshold of 10",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "At the default threshold the list includes the stock=3 and stock=0 products and excludes the stock=15 product",
+                  "At default threshold, verify list includes products with stock 3 and 0, excludes stock 15",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`GET /api/reports/low-stock?threshold=5` returns 200 and does not include the stock=15 product or the stock=3 product",
+                  "View low-stock alerts with threshold=5 and verify it excludes stock 15 and stock 3 products",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Every returned alert item carries a `sku` and a stock value under `currentStock`, where a bare `stock` key is also accepted, and a product name under `productName` or `name`",
+                  "Verify each alert item shows SKU, stock value, and product name",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "The list is sorted ascending by that stock value, so each item is <= the one after it",
+                  "Verify list is sorted by stock ascending (lowest stock first)",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "As a CUSTOMER, `GET /api/reports/low-stock` is refused with 401 or 403",
+                  "As a customer, try to view low-stock alerts and verify it's refused",
                 is_required: true,
                 order: 6,
               },
@@ -1467,25 +1467,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "Two concurrent `POST /api/orders` for a product with `stock: 1` produce exactly one 201 and exactly one status >= 400",
+                  "Simulate two concurrent checkouts for a product with 1 in stock: verify exactly one succeeds and one fails",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "After those two concurrent checkouts, the product row in the database shows `stock >= 0`, never negative",
+                  "After concurrent checkouts, verify product stock is never negative",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`POST /api/orders` for 3 units of a $10.01 product returns 201 and `String(res.body.total)` has at most 2 decimal places",
+                  "Place an order for 3 units of a $10.01 product and verify total has at most 2 decimal places",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Two consecutive `GET /api/reports/daily` calls as an ADMIN both return 200 and report the same `orderCount`",
+                  "View daily report twice as admin and verify both show the same order count",
                 is_required: true,
                 order: 4,
               },
@@ -1602,25 +1602,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`POSTMORTEM.md` exists at the project root, which is the directory containing `package.json`. That is four levels above `tests/server/level-5/task-2/`.",
+                  "Create a POSTMORTEM.md file at the project root (same folder as package.json)",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "The lower-cased document contains at least one of `race condition`, `concurren`, `oversell`, `locking`",
+                  "Document the oversell bug: include terms about race condition, concurrency, oversell, or locking",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "The lower-cased document contains at least one of `decimal`, `precision`, `rounding`, `float`",
+                  "Document the decimal precision bug: include terms about decimal, precision, rounding, or float",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "The lower-cased document contains at least one of `timezone`, `utc`, `date boundary`, `midnight`",
+                  "Document the timezone bug: include terms about timezone, UTC, date boundary, or midnight",
                 is_required: true,
                 order: 4,
               },

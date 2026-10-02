@@ -100,10 +100,6 @@ export const levels = [
                 description: "Run `pnpm dev` in the project root and leave it running; the output should print `ready` or `Local:` within 30 seconds and exit without a non-zero code.",
                 order: 3,
               },
-              {
-                description: "Do the three in that order, so a failure points at one step: dependencies, then the components, then the server.",
-                order: 4,
-              },
             ],
           },
           order: 1,
@@ -111,27 +107,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "The user runs `pnpm install` in the project root, which creates a `node_modules` directory containing both `next` and `react`",
+                  "Install project dependencies using pnpm install",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`pnpm dev` starts the development server and prints a line containing `ready` or `Local:` within 30 seconds, exiting without a non-zero code",
+                description:
+                  "Run the development server and verify it starts successfully",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`src/components/ui/alert.tsx` exists and its source references `Alert`, `AlertTitle` and `AlertDescription`",
+                description:
+                  "Add the alert shadcn/ui component using the CLI",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`src/components/ui/dialog.tsx` exists and its source references `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`",
+                description:
+                  "Add the dialog shadcn/ui component using the CLI",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`src/components/ui/input.tsx` exists and its source references `Input` and `forwardRef`",
+                description:
+                  "Add the input shadcn/ui component using the CLI",
                 is_required: true,
                 order: 5,
               },
@@ -244,9 +244,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/app/signup/page.tsx` contains the text 'Register' and no longer contains 'Sign Up' anywhere outside of comments",
+                description:
+                  "Update the signup page button label from 'Sign Up' to 'Register'",
                 is_required: true,
                 order: 1,
+              },
+              {
+                description:
+                  "Remove all other instances of 'Sign Up' from the signup page outside of comments",
+                is_required: true,
+                order: 2,
+              },
+              {
+                description:
+                  "Verify the signup page displays 'Register' and no 'Sign Up' text is visible",
+                is_required: true,
+                order: 3,
               },
             ],
           },
@@ -372,27 +385,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Rendering `src/app/dashboard/page.tsx` shows exactly one element with the accessible role `alert`",
+                description:
+                  "Add an overdue books alert banner to the dashboard page above the tabs",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "That `alert` element carries all four classes `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`",
+                description:
+                  "Style the alert banner with a thick red left border, pale pink background, and dark red text",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` shows exactly one heading at level 5 and its text matches `/overdue/i`",
+                description:
+                  "Add a heading to the alert banner containing the word 'overdue'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` shows text matching `/overdue book/i`",
+                description:
+                  "Include the overdue book count and the words 'overdue book' in the alert description",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` shows a link whose accessible name matches `/view overdue|filter overdue|show overdue/i` and whose `href` matches `/status=overdue/`",
+                description:
+                  "Add a link labeled 'View overdue', 'Filter overdue', or 'Show overdue' that navigates to the dashboard filtered to overdue books",
                 is_required: true,
                 order: 5,
               },
@@ -522,32 +540,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The source of `src/app/dashboard/page.tsx` imports `useMemo` from `react` and declares at least one of `availableBooks`, `borrowedBooks` or `overdueBooks` with `useMemo`",
+                description:
+                  "Wrap at least one of the derived book lists (availableBooks, borrowedBooks, or overdueBooks) with React's useMemo hook",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`src/components/BookRow.tsx` exports a component function, either as its default export or as a named `BookRow` export",
+                description:
+                  "Create a BookRow component as either a default export or named BookRow export",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Rendered inside a `table` with a `tbody` and a `book` prop of `mockBooks[0]`, `BookRow` shows that book's `title`, `author` and `isbn` as visible text",
+                description:
+                  "Render the book's title, author, and ISBN as visible text in the BookRow component",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Rendered with a `book` whose `status` is `borrowed`, `BookRow` shows text matching `/borrowed/i`",
+                description:
+                  "Show borrowed status text for books that are on loan in the BookRow component",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` shows the `title` of every book in `mockBooks` from `@/lib/mockData` as visible text",
+                description:
+                  "Verify the dashboard still displays the title of every book from the starter data",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Rendering `src/app/dashboard/page.tsx` shows the number of books in `mockBooks` with `status` `available` and the number with `status` `overdue` as visible text",
+                description:
+                  "Verify the dashboard still shows the available and overdue book counts",
                 is_required: true,
                 order: 6,
               },
@@ -704,42 +728,50 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Rendering `src/app/dashboard/page.tsx` produces an input whose placeholder text matches `/search books/i`",
+                description:
+                  "Add a search box to the dashboard with placeholder text 'Search books...'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "That input carries all six classes `h-10`, `px-3`, `rounded-md`, `border`, `focus:outline-none` and `focus:ring-2`",
+                description:
+                  "Style the search box using the shared Input component with proper sizing, border, and focus ring",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "The source of `src/app/dashboard/page.tsx` imports from `@/components/ui/input`",
+                description:
+                  "Import the shared Input component in the dashboard page",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Typing the first word of a `mockBooks` title that contains `Gatsby` into the search input keeps that book's `title` visible, and any other book whose title does not contain that query has its `title` removed from the page",
+                description:
+                  "Filter the book list by title when typing in the search box",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Typing `Orwell` into the search input keeps the `title` of every `mockBooks` entry whose `author` contains `Orwell` visible",
+                description:
+                  "Filter the book list by author when typing in the search box",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Typing the lowercased first word of a `mockBooks` title that contains `Gatsby` still keeps that book's `title` visible, so the match is case-insensitive",
+                description:
+                  "Make the search case-insensitive so lowercase queries still find matching books",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "Typing `xyznonexistent` into the search input shows text matching `/no books found/i`",
+                description:
+                  "Show 'No books found' message when the search returns no results",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "Before anything is typed, the `title` of every book in `mockBooks` is visible",
+                description:
+                  "Verify all book titles are visible before any search is performed",
                 is_required: true,
                 order: 8,
               },
@@ -859,42 +891,50 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Rendering `src/app/returns/page.tsx` shows visible text matching `/returns/i` and a column header whose accessible name matches `/title/i`",
+                description:
+                  "Create the returns page with a title mentioning Returns and a Title column header",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Rendering `src/app/returns/page.tsx` shows the `title` of the first `mockBooks` entry whose `status` is `borrowed`",
+                description:
+                  "List every currently borrowed book in the returns page table",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Rendering `src/app/returns/page.tsx` produces exactly as many buttons with an accessible name matching `/return/i` as there are `mockBooks` entries with `status` `borrowed`",
+                description:
+                  "Add a Return button for each borrowed book so the button count matches the borrowed book count",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Clicking the first button whose accessible name matches `/return/i` on `src/app/returns/page.tsx` shows an element with the `dialog` role whose `aria-modal` attribute is `true` and whose `role` attribute is `dialog`",
+                description:
+                  "Open a confirmation dialog when clicking Return that blocks the rest of the page",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Clicking the first button whose accessible name matches `/return/i` on `src/app/returns/page.tsx` shows text matching `/are you sure/i`, one button whose accessible name matches `/confirm/i` and one matching `/cancel/i`",
+                description:
+                  "Show 'Are you sure' with Confirm and Cancel buttons in the confirmation dialog",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "After clicking the first button whose accessible name matches `/return/i` and then the button whose accessible name matches `/confirm/i`, the `title` of the first borrowed book in `mockBooks` is no longer on the page",
+                description:
+                  "Remove the book from the returns list when Confirm is clicked",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "After clicking the first button whose accessible name matches `/return/i` and then the button whose accessible name matches `/cancel/i`, no element with the `dialog` role is on the page",
+                description:
+                  "Close the dialog without changes when Cancel is clicked",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "The source of `src/app/returns/page.tsx` imports from `@/components/ui/dialog` and references a `Dialog` export such as `DialogContent` or `DialogTitle`",
+                description:
+                  "Build the confirmation dialog using the shared dialog component.",
                 is_required: true,
                 order: 8,
               },
@@ -1033,37 +1073,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "After clicking the tab whose accessible name matches `/overdue/i` on `src/app/dashboard/page.tsx`, the `title` of the first `mockBooks` entry with `status` `overdue` is visible",
+                description:
+                  "Click the Overdue Books tab and verify the first overdue book's title is visible",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "After clicking the tab whose accessible name matches `/overdue/i`, the page contains no button whose accessible name matches `/borrow/i`",
+                description:
+                  "Click the Overdue Books tab and verify no Borrow buttons are visible",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "After clicking the tab whose accessible name matches `/overdue/i`, at least one element's visible text matches `/overdue/i`",
+                description:
+                  "Click the Overdue Books tab and verify text matching 'overdue' is visible",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "After clicking the tab whose accessible name matches `/all books/i`, the page contains exactly as many buttons whose accessible name matches `/borrow/i` as there are `mockBooks` entries with `status` `available`",
+                description:
+                  "Click the All Books tab and verify the number of Borrow buttons equals the number of available books",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "After clicking the tab whose accessible name matches `/overdue/i`, the page shows exactly one element with the accessible role `alert`, and that element carries all four classes `border-l-4`, `border-red-500`, `bg-red-50` and `text-red-900`",
+                description:
+                  "Click the Overdue Books tab and verify exactly one alert element is shown with the four destructive styling classes",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "After clicking the tab whose accessible name matches `/overdue/i`, the page shows exactly one heading at level 5 and its text matches `/overdue/i`",
+                description:
+                  "Click the Overdue Books tab and verify exactly one level 5 heading is shown with text matching 'overdue'",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "The source of `src/app/dashboard/page.tsx` imports from `@/components/ui/alert` and references an `Alert`, `AlertTitle` or `AlertDescription` export",
+                description:
+                  "Verify the dashboard page imports Alert components.",
                 is_required: true,
                 order: 7,
               },
@@ -1189,47 +1236,56 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Clicking the first button whose accessible name matches `/borrow/i` on `src/app/dashboard/page.tsx` shows text matching `/are you sure/i`, plus one button whose accessible name matches `/cancel/i` and one whose accessible name matches `/confirm/i`",
+                description:
+                  "Click a Borrow button and verify a confirmation dialog appears with 'Are you sure', Cancel, and Confirm buttons",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Clicking the first button whose accessible name matches `/return/i` on `src/app/returns/page.tsx` shows text matching `/are you sure/i`",
+                description:
+                  "Click a Return button and verify a confirmation dialog appears with 'Are you sure'",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "After clicking a `Borrow` button and then the button whose accessible name matches `/cancel/i`, `src/app/dashboard/page.tsx` no longer contains text matching `/are you sure/i`",
+                description:
+                  "Click Cancel on the borrow dialog and verify the dialog closes without changes",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "While the borrow dialog is open, `src/app/dashboard/page.tsx` exposes a labelled field matching `/borrower name/i` and a labelled field matching `/borrower email/i`",
+                description:
+                  "Verify the borrow dialog has labeled fields for Borrower Name and Borrower Email",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "After typing into those two fields and clicking the button whose accessible name matches `/confirm/i`, `localStorage` holds a non-null value under the `books` key",
+                description:
+                  "Fill in the borrower fields, click Confirm, and verify the data is saved to localStorage under the 'books' key",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "With `books` already set in `localStorage` to a list containing a book whose `title` is `Test Book`, rendering `src/app/dashboard/page.tsx` shows the text `Test Book`",
+                description:
+                  "Pre-populate localStorage with a 'Test Book' and verify it renders on the dashboard page",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "`useLocalStorage` imported from `src/hooks/useLocalStorage` returns `[value, setValue]`, and with nothing stored under `test-key` its `value` is `initial`",
+                description:
+                  "Verify useLocalStorage hook returns [value, setValue] and returns the initial value when nothing is stored",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "Calling the `setValue` returned by `useLocalStorage('test-key', 'initial')` with `updated` makes `value` read `updated` and leaves `JSON.parse(localStorage.getItem('test-key'))` reading `updated`",
+                description:
+                  "Verify calling setValue updates both the value and localStorage",
                 is_required: true,
                 order: 8,
               },
               {
-                description: "`useLocalStorage('test-key', 'initial')` reads `stored` from `value` when `test-key` already holds `stored` before the hook is called",
+                description:
+                  "Verify useLocalStorage reads existing stored data on mount instead of the initial value",
                 is_required: true,
                 order: 9,
               },
@@ -1357,32 +1413,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Rendering `src/app/overdue/page.tsx` shows the `title` and the `author` of every `mockBooks` entry with `status` `overdue`",
+                description:
+                  "Create the overdue report page at src/app/overdue/page.tsx showing title and author of all overdue books",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Rendering `src/app/overdue/page.tsx` shows the `borrowedBy` value of every `mockBooks` entry with `status` `overdue`",
+                description:
+                  "Show the borrower name for each overdue book",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Rendering `src/app/overdue/page.tsx` shows the `borrowerEmail` of the `mockBorrowRecords` entry whose `bookId` matches each overdue book",
+                description:
+                  "Look up and display the borrower email from mockBorrowRecords for each overdue book",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Rendering `src/app/overdue/page.tsx` produces at least one element whose visible text matches `/days?\\s*overdue/i`",
+                description:
+                  "Show 'days overdue' text for each overdue book row",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rendering `src/app/overdue/page.tsx` produces exactly as many buttons whose accessible name matches `/mark as returned/i` as there are `mockBooks` entries with `status` `overdue`",
+                description:
+                  "Add a Mark as Returned button for each overdue book so button count matches overdue book count",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "After clicking the first button whose accessible name matches `/mark as returned/i` on `src/app/overdue/page.tsx`, the `title` of the first overdue book is no longer on the page",
+                description:
+                  "Click Mark as Returned and verify the book title is removed from the page",
                 is_required: true,
                 order: 6,
               },
@@ -1498,52 +1560,62 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`formatDate` exported from `src/lib/dateUtils` returns `Jan 15, 2026` for the input `2026-01-15`",
+                description:
+                  "Implement formatDate in src/lib/dateUtils.ts to return 'Jan 15, 2026' for input '2026-01-15'",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`formatDate` exported from `src/lib/dateUtils` returns the empty string for the input `invalid` and for the input ``",
+                description:
+                  "Make formatDate return an empty string for invalid input and empty string input",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`isOverdue` exported from `src/lib/dateUtils` returns `true` for a `YYYY-MM-DD` string one day before today",
+                description:
+                  "Implement isOverdue in src/lib/dateUtils.ts to return true for a date one day before today",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`isOverdue` exported from `src/lib/dateUtils` returns `false` for a `YYYY-MM-DD` string fourteen days after today",
+                description:
+                  "Make isOverdue return false for a date fourteen days in the future",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`isOverdue` exported from `src/lib/dateUtils` returns `false` for the input `invalid` and for the input `` rather than throwing",
+                description:
+                  "Make isOverdue return false (not throw) for invalid input and empty string input",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "`src/components/ui/dialog.tsx` exists and its source references `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle` and `DialogDescription`",
+                description:
+                  "Verify Dialog Page exists and exports Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, and DialogDescription",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "Clicking a table row whose accessible name matches `/book/i` on `src/app/dashboard/page.tsx` shows an element with the `dialog` role",
+                description:
+                  "Click a table row on the dashboard and verify a dialog opens",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "Once that dialog is open on `src/app/dashboard/page.tsx`, the page shows exactly one heading at level 2 and its text matches `/book details/i`",
+                description:
+                  "Verify the open dialog shows a level 2 heading with text matching 'Book Details'",
                 is_required: true,
                 order: 8,
               },
               {
-                description: "Once that dialog is open on `src/app/dashboard/page.tsx`, the page shows one button whose accessible name matches `/close/i`",
+                description:
+                  "Verify the open dialog has a Close button",
                 is_required: true,
                 order: 9,
               },
               {
-                description: "The source of `src/app/dashboard/page.tsx` imports from `@/components/ui/dialog` and references a `Dialog` export such as `DialogContent` or `DialogTitle`",
+                description:
+                  "Verify the dashboard page imports Dialog components.",
                 is_required: true,
                 order: 10,
               },
