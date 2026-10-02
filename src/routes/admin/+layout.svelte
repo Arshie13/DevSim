@@ -1,20 +1,29 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
-  import { Settings, Boxes, CreditCard, Trophy, Layers, ArrowLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-svelte';
+  import { Settings, Boxes, CreditCard, Trophy, Layers, ShieldCheck, ArrowLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-svelte';
   import Scrollbar from '$lib/components/ui/Scrollbar.svelte';
+  import type { LayoutData } from './$types';
 
-  // Admin navigation items
+  export let data: LayoutData;
+
+  // Admin navigation items. `superAdminOnly` entries are hidden unless the
+  // signed-in user holds the SUPERADMIN role.
   const navItems = [
-    { label: 'Settings', href: '/admin/settings', icon: Settings },
-    { label: 'Containers', href: '/admin/containers', icon: Boxes },
-    { label: 'Learner Pass', href: '/admin/learners-pass', icon: CreditCard },
-    { label: 'Achievements', href: '/admin/achievements', icon: Trophy },
-    { label: 'Scenarios', href: '/admin/scenarios', icon: Layers }
+    { label: 'Settings', href: '/admin/settings', icon: Settings, superAdminOnly: false },
+    { label: 'Containers', href: '/admin/containers', icon: Boxes, superAdminOnly: false },
+    { label: 'Learner Pass', href: '/admin/learners-pass', icon: CreditCard, superAdminOnly: false },
+    { label: 'Achievements', href: '/admin/achievements', icon: Trophy, superAdminOnly: false },
+    { label: 'Scenarios', href: '/admin/scenarios', icon: Layers, superAdminOnly: false },
+    { label: 'Admins', href: '/admin/admins', icon: ShieldCheck, superAdminOnly: true }
   ];
 
   let isClient = false;
   let collapsed = false;
+
+  $: visibleNavItems = navItems.filter(
+    (item) => !item.superAdminOnly || data.isSuperAdmin
+  );
 
   onMount(() => {
     isClient = true;
@@ -54,7 +63,7 @@
       </div>
 
       <nav class="mt-2 {collapsed ? 'px-0' : 'px-4'}">
-        {#each navItems as item}
+        {#each visibleNavItems as item}
           <a
             href={item.href}
             class="flex items-center gap-2 overflow-hidden px-2 py-3 mb-1 rounded-card transition-colors {collapsed ? 'justify-center px-0' : ''} {currentPath === item.href ? 'bg-obsidian-accent/15 text-obsidian-accent' : 'text-obsidian-text-muted hover:text-obsidian-text-primary hover:bg-obsidian-accent/10'}"

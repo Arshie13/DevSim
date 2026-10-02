@@ -1,4 +1,5 @@
 import prisma from '$lib/server/client';
+import { isAdminRole } from '$lib/utils/roles';
 
 export class UserDataAccess {
   async findUserById(userId: string) {
@@ -42,11 +43,7 @@ export class UserDataAccess {
       select: { role: true }
     });
 
-    if (!dbUser || dbUser.role !== 'ADMIN') {
-      return false;
-    }
-
-    return true;
+    return isAdminRole(dbUser?.role);
   }
 
   async getUserCoins(userId: string) {

@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
+import { isAdminRole } from '$lib/utils/roles';
 import { resolveStackName } from '$lib/utils/scenario-mapping';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -15,7 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     select: { role: true }
   });
 
-  if (!dbUser || dbUser.role !== 'ADMIN') {
+  if (!dbUser || !isAdminRole(dbUser.role)) {
     throw redirect(303, '/');
   }
 
@@ -77,7 +78,7 @@ export const actions: Actions = {
       select: { role: true }
     });
 
-    if (!dbUser || dbUser.role !== 'ADMIN') {
+    if (!dbUser || !isAdminRole(dbUser.role)) {
       throw redirect(303, '/');
     }
 
@@ -116,7 +117,7 @@ export const actions: Actions = {
       select: { role: true }
     });
 
-    if (!dbUser || dbUser.role !== 'ADMIN') {
+    if (!dbUser || !isAdminRole(dbUser.role)) {
       throw redirect(303, '/');
     }
 
@@ -140,7 +141,7 @@ export const actions: Actions = {
       where: { id: session.user.id },
       select: { role: true }
     });
-    if (!dbUser || dbUser.role !== 'ADMIN') throw redirect(303, '/');
+    if (!dbUser || !isAdminRole(dbUser.role)) throw redirect(303, '/');
 
     const enrollment = await prisma.learner_pass_enrollment.findFirst({
       where: { user_id: session.user.id },

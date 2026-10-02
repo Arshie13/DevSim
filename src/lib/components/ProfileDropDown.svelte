@@ -4,12 +4,13 @@
   import { page } from "$app/stores";
   import { User, LogOut, Award, LayoutDashboard, Users, ShieldCheck } from "lucide-svelte";
   import type { UserData } from "$types";
+  import { isAdminRole } from "$lib/utils/roles";
 
   export let userData: Partial<UserData>;
 
   let open = false;
 
-  $: isAdmin = $page.data.session?.user?.role === "ADMIN";
+  $: isAdmin = isAdminRole($page.data.session?.user?.role);
 
   function toggle() {
     open = !open;

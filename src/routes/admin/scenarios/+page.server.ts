@@ -113,12 +113,46 @@ export const actions: Actions = {
     const difficulty = formData.get('difficulty') as string;
     const id = formData.get('id') as string;
 
+    // A scenario must own at least one level (enforced in the DB by a deferred
+    // constraint trigger), so its first level is created as a nested write — Prisma
+    // wraps this in one transaction, so the trigger only fires once both rows exist.
+    const levelTitle = formData.get('levelTitle') as string;
+    const levelSubtitle = formData.get('levelSubtitle') as string;
+    const order = parseInt(formData.get('order') as string) || 1;
+    const sprintNumber = parseInt(formData.get('sprintNumber') as string) || 1;
+    const deadline = formData.get('deadline') as string;
+    const levelDescription = formData.get('levelDescription') as string;
+    const xpReward = parseInt(formData.get('xpReward') as string) || 100;
+    const coinReward = parseInt(formData.get('coinReward') as string) || 50;
+    const keyTakeaways = formData.get('keyTakeaways') as string;
+
     if (!name || !description) {
       return fail(400, { message: 'Name and description are required' });
     }
+    if (!levelTitle) {
+      return fail(400, { message: 'A title for the first level is required' });
+    }
 
     await prisma.scenario.create({
-      data: { id: id || undefined, name, description, difficulty: difficulty || 'Easy' }
+      data: {
+        id: id || undefined,
+        name,
+        description,
+        difficulty: difficulty || 'Easy',
+        levels: {
+          create: {
+            title: levelTitle,
+            subtitle: levelSubtitle || '',
+            order,
+            sprint_number: sprintNumber,
+            deadline: deadline ? new Date(deadline) : new Date(),
+            level_description: levelDescription || '',
+            xp_reward: xpReward,
+            coin_reward: coinReward,
+            key_takeaways: keyTakeaways || ''
+          }
+        }
+      }
     });
 
     return { success: true };
@@ -234,7 +268,15 @@ export const actions: Actions = {
       return fail(400, { message: 'Missing level ID' });
     }
 
-    await prisma.level.delete({ where: { id } });
+    try {
+      await prisma.level.delete({ where: { id } });
+    } catch (err) {
+      // The DB blocks deleting a scenario's last level (deferred constraint trigger).
+      if (err instanceof Error && err.message.includes('must have at least one level')) {
+        return fail(400, { message: 'A scenario must keep at least one level — add another level first' });
+      }
+      throw err;
+    }
     return { success: true };
   },
 

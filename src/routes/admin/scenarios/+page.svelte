@@ -222,6 +222,55 @@
             <input id="difficulty" type="text" name="difficulty" value="Easy" placeholder="Easy / Medium / Hard"
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
           </div>
+          <div class="col-span-2 mt-2 border-t border-[var(--card-border)] pt-3">
+            <h3 class="font-heading text-base font-semibold text-obsidian-text-primary">First Level</h3>
+            <p class="text-sm text-obsidian-text-muted">A scenario must have at least one level, so its first level is created with it.</p>
+          </div>
+          <div class="col-span-2">
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="levelTitle">Title</label>
+            <input id="levelTitle" type="text" name="levelTitle" required
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="levelSubtitle">Subtitle</label>
+            <input id="levelSubtitle" type="text" name="levelSubtitle"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="order">Order</label>
+            <input id="order" type="number" name="order" value="1"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="sprint">Sprint</label>
+            <input id="sprint" type="number" name="sprintNumber" value="1"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="deadline">Deadline</label>
+            <input id="deadline" type="date" name="deadline"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="xp">XP</label>
+            <input id="xp" type="number" name="xpReward" value="100"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div>
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="coins">Coins</label>
+            <input id="coins" type="number" name="coinReward" value="50"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div class="col-span-2">
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="levelDescription">Description</label>
+            <input id="levelDescription" type="text" name="levelDescription"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
+          <div class="col-span-2">
+            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="keyTakeaways">Key Takeaways</label>
+            <input id="keyTakeaways" type="text" name="keyTakeaways"
+              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
+          </div>
         </div>
         <div class="flex justify-end gap-2">
           <button type="button" on:click={() => (showCreateForm = false)}

@@ -57,12 +57,28 @@ export class TasksDataAccess {
           });
         }
 
+        // Resolve the task to its level_task so activity is linked by id, not by name.
+        // Callers only know (scenario, level order, task name); the FK needs the row id.
+        const levelTask = await tx.level_task.findFirst({
+          where: {
+            task_name: taskName,
+            level: { scenario_id: scenarioId, order: level },
+          },
+          select: { id: true },
+        });
+
+        if (!levelTask) {
+          // Nothing to link to — e.g. a board task that isn't in the catalog. The board
+          // state above is already saved; don't fail the submission over the activity log.
+          console.warn(
+            `[TasksDataAccess] No level_task for scenario=${scenarioId} level=${level} task="${taskName}"; skipping activity log.`
+          );
+          return;
+        }
+
         // De-duplication is the unique constraint's job now, not a read-then-write check.
-        // The old guard keyed on (user_id, task_name), which is not unique across scenarios
-        // — "Prepare Development Environment" exists in 12 of them — so completing that task
-        // in a second scenario recorded nothing at all.
         await tx.task_activity.createMany({
-          data: [{ user_id: userId, scenario_id: scenarioId, task_name: taskName, level }],
+          data: [{ user_id: userId, level_task_id: levelTask.id }],
           skipDuplicates: true,
         });
       });

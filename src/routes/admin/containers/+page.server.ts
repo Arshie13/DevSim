@@ -1,6 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import prisma from '$lib/server/client';
+import { isAdminRole } from '$lib/utils/roles';
 import { docker } from '$lib/server/docker/client';
 import { WorkspaceService } from '$lib/layers/service/WorkspaceService';
 
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     select: { role: true },
   });
 
-  if (!dbUser || dbUser.role !== 'ADMIN') {
+  if (!dbUser || !isAdminRole(dbUser.role)) {
     throw redirect(303, '/');
   }
 
@@ -120,7 +121,7 @@ export const actions: Actions = {
       select: { role: true },
     });
 
-    if (!dbUser || dbUser.role !== 'ADMIN') {
+    if (!dbUser || !isAdminRole(dbUser.role)) {
       throw redirect(303, '/');
     }
 

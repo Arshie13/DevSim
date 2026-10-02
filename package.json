@@ -25,6 +25,7 @@
 		"prod:studio": "ngrok http 51212",
 		"db:seed": "pnpm exec tsx prisma/seed.ts",
 		"export:users-assessment": "pnpm exec tsx scripts/export-users-xlsx.ts",
+		"make:superadmin": "pnpm exec tsx scripts/make-superadmin.ts",
 		"db:migrate": "pnpm prisma migrate dev",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

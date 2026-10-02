@@ -292,7 +292,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
 // ────────────────────────────────────────────────────────────────────────────
 
 /** Build the `${family}:${tier}` composite string used for UI keys and Sets. */
-export function tierKey(family: string, tier: achievement_tier_level): string {
+export function tierKey(family: string, tier: string): string {
   return `${family}:${tier}`;
 }
 
@@ -337,11 +337,12 @@ const TIER_DEF_BY_PAIR = new Map(ALL_TIER_DEFS.map((t) => [t.key, t]));
 
 /**
  * Resolve a stored `(family, tier)` pair back to its definition. Takes the two
- * DB columns directly; `tier` comes back from Prisma as the enum union.
+ * DB columns directly; `tier` comes back from Prisma as a free-text string, and
+ * an unknown value simply resolves to `undefined`.
  */
 export function findTierDef(
   family: string,
-  tier: achievement_tier_level,
+  tier: string,
 ): ResolvedTier | undefined {
   return TIER_DEF_BY_PAIR.get(tierKey(family, tier));
 }
