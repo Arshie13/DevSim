@@ -54,11 +54,33 @@ const ALL_BACKEND_IDS = ['express', 'fastify', 'nestjs', 'django', 'flask'];
 const ALL_FRONTEND_IDS = ['react', 'nextjs', 'svelte', 'vue', 'angular'];
 
 export function isBackendStack(stackName: string | null | undefined): boolean {
-  if (!stackName) return false;
-  const slugs = stackName.split('-').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  const hasBackend = slugs.some((s) => ALL_BACKEND_IDS.includes(s));
-  const hasFrontend = slugs.some((s) => ALL_FRONTEND_IDS.includes(s));
-  return hasBackend && !hasFrontend;
+   if (!stackName) return false;
+   const slugs = stackName.split('-').map((s) => s.trim().toLowerCase()).filter(Boolean);
+   const hasBackend = slugs.some((s) => ALL_BACKEND_IDS.includes(s));
+   const hasFrontend = slugs.some((s) => ALL_FRONTEND_IDS.includes(s));
+   return hasBackend && !hasFrontend;
+}
+
+export function isFrontendStack(stackName: string | null | undefined): boolean {
+   if (!stackName) return false;
+   const slugs = stackName.split('-').map((s) => s.trim().toLowerCase()).filter(Boolean);
+   const hasFrontend = slugs.some((s) => ALL_FRONTEND_IDS.includes(s));
+   const hasBackend = slugs.some((s) => ALL_BACKEND_IDS.includes(s));
+   return hasFrontend && !hasBackend;
+}
+
+export type StackType = 'fullstack' | 'backend' | 'frontend';
+
+/** Derives the stack category from a compound stack slug or directory name.
+ *  - 'fullstack' when both frontend and backend tech present
+ *  - 'backend'    when a backend tech is present without a frontend tech
+ *  - 'frontend'   when a frontend tech is present without a backend tech
+ */
+export function getStackType(stackName: string | null | undefined): StackType {
+   if (!stackName) return 'frontend';
+   if (isBackendStack(stackName)) return 'backend';
+   if (isFrontendStack(stackName)) return 'frontend';
+   return 'fullstack';
 }
 
 /** Returns an acronym label (e.g. "PERN — PostgreSQL, Express, React, Node.js")
