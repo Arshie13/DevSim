@@ -7,9 +7,7 @@
   import Header from "$components/Header.svelte";
   import DailyRewardsModal from "$lib/components/dailyRewards/DailyRewardsModal.svelte";
   import HelpPanel from "$lib/components/help/HelpPanel.svelte";
-  import ConfirmationModal from "$lib/components/ui/ConfirmationModal.svelte";
   import { helpTrigger } from "$lib/stores/helpTrigger";
-  import { resolveScenarioRef } from "$lib/utils/scenario-mapping";
 
   export let data: PageData;
 
@@ -44,37 +42,6 @@
   let isClaiming = false;
   let currentAvatar = data.currentAvatar ?? null;
   let equippingDay: number | null = null;
-
-  let showUnlockPicker = false;
-  let pickerDay = 0;
-  let pickerAvailable: string[] = [];
-  let pickerFallback: { coins: number; aiHelps: number } | null = null;
-  let pickerOwnedScenario: string | null = null;
-  let isChoosing = false;
-  let chooseUnlockError = "";
-
-  // Confirmation shown after claiming a milestone day — there is only ever one
-  // scenario per unlock day, so no picker is needed.
-  let showUnlockedScenarioModal = false;
-  let unlockedScenarioId: string | null = null;
-
-  // Milestone days whose reward has not been taken yet. The server prices each one against
-  // what the user already owns: an empty `available` means only the fallback is left.
-  type PendingUnlock = {
-    day: number;
-    offers: string[];
-    available: string[];
-    fallback?: { coins: number; aiHelps: number };
-  };
-  let pendingUnlocks: PendingUnlock[] = data.pendingUnlocks ?? [];
-
-  const SCENARIO_NAMES: Record<string, string> = {
-    "pern-pos-scenario-3": "IPPO POS (PERN)",
-    "mern-tw-scenario-3": "TripWeaver (MERN)",
-    "nestjs-pos-scenario-3": "IPPO POS (NestJS)",
-    "nextjs-postgres-prisma-3": "Employee Time Tracking",
-    "nextjs-shadcn-ui-scenario-3": "Student Portal",
-  };
 
   type RewardEntry = { type: string; value: string };
   type DayReward = { day: number; rewards: RewardEntry };
@@ -163,13 +130,6 @@
     }
   }
 
-  function isCrownIcon(entry: RewardEntry): boolean {
-    if (entry.type === "badge") {
-      return entry.value.toLowerCase().includes("crown");
-    }
-    return !["coins", "help", "avatar", "badge"].includes(entry.type);
-  }
-
   function isClaimable(reward: DayReward) {
     if (claimedDays.includes(reward.day)) return false;
 
@@ -216,121 +176,12 @@
             };
             startTimer();
           }
-
-          // The server prices the day against what the user already owns, so the picker opens
-          // straight onto either the scenario or the fallback.
-          if (claimData.pendingUnlocks && claimData.pendingUnlocks.length > 0) {
-            const [pending] = claimData.pendingUnlocks as PendingUnlock[];
-            pendingUnlocks = [...pendingUnlocks, pending];
-            openPicker(pending);
-          }
         }
       })
       .catch(console.error)
       .finally(() => {
         isClaiming = false;
       });
-  }
-
-  function handleChooseUnlock(scenarioId: string) {
-    if (isChoosing) return;
-    isChoosing = true;
-    chooseUnlockError = "";
-
-    fetch("/api/user/learner-pass/choose-unlock", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dayNumber: pickerDay, scenarioId }),
-    })
-      .then(async (res) => {
-        const resp = await res.json().catch(() => null);
-
-        if (!res.ok || !resp?.success) {
-          chooseUnlockError =
-            resp?.message ?? `Could not unlock scenario (${res.status})`;
-          return;
-        }
-
-        showUnlockPicker = false;
-        // The choice is now recorded server-side, so drop this day's pending
-        // entry (the scenario may have been owned already via another source).
-        pendingUnlocks = pendingUnlocks.filter((p) => p.day !== pickerDay);
-      })
-      .catch((err) => {
-        console.error(err);
-        chooseUnlockError = "Something went wrong. Please try again.";
-      })
-      .finally(() => {
-        isChoosing = false;
-      });
-  }
-
-  function openPicker(pending: PendingUnlock) {
-    chooseUnlockError = "";
-    pickerDay = pending.day;
-    pickerAvailable = pending.available;
-    pickerFallback = pending.fallback ?? null;
-    // Only meaningful when the scenario is already owned, which is the only time the
-    // fallback is offered — the server enforces the same rule.
-    pickerOwnedScenario = pending.available.length === 0 ? pending.offers[0] ?? null : null;
-    showUnlockPicker = true;
-  }
-
-  function handleChooseFallback(kind: "COINS" | "AI_HELPS") {
-    if (isChoosing) return;
-    isChoosing = true;
-    chooseUnlockError = "";
-
-    fetch("/api/user/learner-pass/choose-unlock", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dayNumber: pickerDay, fallback: kind }),
-    })
-      .then(async (res) => {
-        const resp = await res.json().catch(() => null);
-
-        if (!res.ok || !resp?.success) {
-          chooseUnlockError = resp?.message ?? `Could not claim reward (${res.status})`;
-          return;
-        }
-
-        if (resp.newCoins !== undefined) {
-          headerUserData = { ...headerUserData, coins: resp.newCoins };
-        }
-
-        showUnlockPicker = false;
-        pendingUnlocks = pendingUnlocks.filter((p) => p.day !== pickerDay);
-      })
-      .catch((err) => {
-        console.error(err);
-        chooseUnlockError = "Something went wrong. Please try again.";
-      })
-      .finally(() => {
-        isChoosing = false;
-      });
-  }
-
-  $: unlockedScenarioName = unlockedScenarioId
-    ? SCENARIO_NAMES[unlockedScenarioId] ?? unlockedScenarioId
-    : "";
-
-  function handleGoToUnlockedScenario() {
-    const scenarioId = unlockedScenarioId;
-    showUnlockedScenarioModal = false;
-    unlockedScenarioId = null;
-    if (!scenarioId) return;
-
-    const ref = resolveScenarioRef(scenarioId);
-    goto(
-      ref
-        ? `/scenario?stack=${ref.stackName}&scenario=${ref.folderScenarioId}`
-        : "/scenario",
-    );
-  }
-
-  function handleDismissUnlockedScenario() {
-    showUnlockedScenarioModal = false;
-    unlockedScenarioId = null;
   }
 
   function handleEquipAvatar(level: number, entry: RewardEntry) {
@@ -448,7 +299,7 @@
       <header class="mb-5">
         <h1 class="font-heading text-3xl font-bold text-obsidian-text-primary">LEARNER PASS</h1>
         <p class="font-label text-xs text-obsidian-text-muted uppercase tracking-wider mt-1">
-          Unlock exclusive rewards daily
+          Daily rewards and access to locked scenarios
         </p>
       </header>
 
@@ -496,7 +347,7 @@
             </div>
 
             <p class="text-sm text-obsidian-text-muted mt-4">
-              Keep the streak alive — claim every day to unlock premium scenario rewards.
+              Keep the streak alive — claim every day to collect coins and AI helps.
             </p>
           </div>
         </div>
@@ -510,7 +361,7 @@
                 </div>
                 <div>
                   <h2 class="font-heading text-xl font-semibold text-obsidian-text-primary">Unlock the Learner Pass</h2>
-                  <p class="text-sm text-obsidian-text-muted">One pass, 30 days of daily rewards — coins, XP, AI helps and exclusive unlocks.</p>
+                  <p class="text-sm text-obsidian-text-muted">One pass, 30 days of daily rewards — coins, XP, AI helps, and every locked scenario unlocked.</p>
                 </div>
               </div>
               <span class="tag-cyber tag-warn">₱299 · 30 days</span>
@@ -534,8 +385,8 @@
               </div>
               <div class="rounded-card border border-obsidian-accent/15 bg-obsidian-bg/60 p-3">
                 <Key class="h-5 w-5 text-cyber-success" />
-                <h3 class="font-label text-xs uppercase tracking-wide text-obsidian-text-primary mt-2">Exclusive Unlocks</h3>
-                <p class="text-xs text-obsidian-text-muted mt-1">Avatars and premium scenarios on milestone days.</p>
+                <h3 class="font-label text-xs uppercase tracking-wide text-obsidian-text-primary mt-2">Scenario Access</h3>
+                <p class="text-xs text-obsidian-text-muted mt-1">Every locked scenario unlocks while your pass is active.</p>
               </div>
             </div>
 
@@ -598,7 +449,7 @@
                   ? 'bg-gradient-to-br from-cyber-success/10 to-cyber-success/5 border-cyber-success/35 hover:border-cyber-success/55 group-hover:shadow-cyber-success/10'
                   : 'bg-gradient-to-br from-cyber-warn/15 to-cyber-warn/5 border-cyber-warn/30 hover:border-cyber-warn/50 group-hover:shadow-cyber-warn/10'}"
               >
-                <div class="hex-frame" style="filter: drop-shadow(0 0 4px rgb(var(--{isCrownIcon(reward.rewards) ? 'gold' : 'accent'}-rgb) / 0.35));">
+                <div class="hex-frame" style="filter: drop-shadow(0 0 4px rgb(var(--accent-rgb) / 0.35));">
                     <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                       <defs>
                         <clipPath id="hex-clip">
@@ -606,7 +457,7 @@
                         </clipPath>
                       </defs>
                       <polygon points="50,2 98,26 98,74 50,98 2,74 2,26" fill="rgb(var(--surface-rgb) / 0.85)" />
-                      <polygon points="50,2 98,26 98,74 50,98 2,74 2,26" fill="none" stroke="rgb(var(--{isCrownIcon(reward.rewards) ? 'gold' : 'accent'}-rgb) / 0.6)" stroke-width="1.5" />
+                      <polygon points="50,2 98,26 98,74 50,98 2,74 2,26" fill="none" stroke="rgb(var(--accent-rgb) / 0.6)" stroke-width="1.5" />
                       <image href={getRewardIcon(reward.rewards)} x="25" y="25" width="50" height="50" clip-path="url(#hex-clip)" preserveAspectRatio="xMidYMid meet" />
                     </svg>
                   </div>
@@ -681,46 +532,12 @@
         </div>
       </section>
 
-      <!-- Pending Unlock Choices -->
-      {#if pendingUnlocks.length > 0}
-        <div class="card-cyber mb-8" style="border-color: rgb(var(--accent-rgb) / 0.3)">
-          <div class="card-cyber-body">
-            <h3 class="font-heading text-lg font-semibold text-obsidian-text-primary mb-1">Claim a Milestone Reward</h3>
-            <p class="text-sm text-obsidian-text-muted mb-3">
-              You have unclaimed rewards from your Learner Pass milestone days. Days whose
-              scenario you already own can be swapped for coins or AI helps.
-            </p>
-            <div class="flex flex-wrap gap-2">
-              {#each pendingUnlocks as pending (pending.day)}
-                {#if pending.available.length > 0}
-                  {#each pending.available as scenarioId}
-                    <button
-                      on:click={() => openPicker(pending)}
-                      class="font-label text-xs uppercase tracking-wide px-3 py-1.5 rounded bg-cyber-cyan/10 hover:bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/20 hover:border-cyber-cyan/40 transition-colors"
-                    >
-                      {SCENARIO_NAMES[scenarioId] ?? scenarioId}
-                    </button>
-                  {/each}
-                {:else if pending.fallback}
-                  <button
-                    on:click={() => openPicker(pending)}
-                    class="font-label text-xs uppercase tracking-wide px-3 py-1.5 rounded bg-cyber-warn/10 hover:bg-cyber-warn/20 text-cyber-warn border border-cyber-warn/20 hover:border-cyber-warn/40 transition-colors"
-                  >
-                    Day {pending.day} — Choose a Reward
-                  </button>
-                {/if}
-              {/each}
-            </div>
-          </div>
-        </div>
-      {/if}
-
       <!-- Completion Banner -->
       {#if enrollment && enrollment.status === "COMPLETED"}
         <div class="card-cyber text-center" style="border-color: rgb(var(--success-rgb) / 0.3)">
           <div class="card-cyber-body">
             <h3 class="font-heading text-2xl font-bold text-cyber-success mb-2">Pass Completed!</h3>
-            <p class="text-sm text-obsidian-text-muted">You've claimed all 30 days and unlocked all rewards.</p>
+            <p class="text-sm text-obsidian-text-muted">You've claimed all 30 days of rewards.</p>
           </div>
         </div>
       {/if}
@@ -747,90 +564,6 @@
       }}
     />
   {/if}
-
-  <!-- Unlock Picker Modal -->
-  {#if showUnlockPicker}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--bg-rgb)/0.6)] backdrop-blur-sm" on:click={() => showUnlockPicker = false}>
-      <div class="w-full max-w-md mx-4 p-6 rounded-card bg-obsidian-bg-light border border-cyber-cyan/30" on:click|stopPropagation>
-        <h3 class="font-heading text-lg font-bold text-cyber-cyan mb-2">Choose Your Reward</h3>
-        {#if pickerAvailable.length > 0}
-          <p class="text-sm text-obsidian-text-muted mb-4">
-            Pick a scenario to unlock. This choice is permanent for this reward day.
-          </p>
-          <div class="space-y-2">
-            {#each pickerAvailable as scenarioId}
-              <button
-                on:click={() => handleChooseUnlock(scenarioId)}
-                disabled={isChoosing}
-                class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyber-cyan/20 bg-cyber-cyan/5 hover:bg-cyber-cyan/10 hover:border-cyber-cyan/40 transition-colors disabled:opacity-50 text-left"
-              >
-                <Zap class="w-4 h-4 text-cyber-cyan flex-shrink-0" />
-                <div>
-                  <p class="text-sm font-heading text-obsidian-text-primary">{SCENARIO_NAMES[scenarioId] ?? scenarioId}</p>
-                  <p class="text-xs font-label text-obsidian-text-muted">{scenarioId}</p>
-                </div>
-              </button>
-            {/each}
-          </div>
-        {:else if pickerFallback}
-          <p class="text-sm text-obsidian-text-muted mb-4">
-            You already own {pickerOwnedScenario ? SCENARIO_NAMES[pickerOwnedScenario] ?? pickerOwnedScenario : "this scenario"}.
-            Take a reward instead — this choice is permanent for this reward day.
-          </p>
-          <div class="space-y-2">
-            <button
-              on:click={() => handleChooseFallback("COINS")}
-              disabled={isChoosing}
-              class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyber-warn/20 bg-cyber-warn/5 hover:bg-cyber-warn/10 hover:border-cyber-warn/40 transition-colors disabled:opacity-50 text-left"
-            >
-              <Coins class="w-4 h-4 text-cyber-warn flex-shrink-0" />
-              <div>
-                <p class="text-sm font-heading text-obsidian-text-primary">{pickerFallback.coins} Coins</p>
-                <p class="text-xs font-label text-obsidian-text-muted">Spend them in the marketplace</p>
-              </div>
-            </button>
-            <button
-              on:click={() => handleChooseFallback("AI_HELPS")}
-              disabled={isChoosing}
-              class="w-full flex items-center gap-3 px-4 py-3 rounded border border-cyber-purple/20 bg-cyber-purple/5 hover:bg-cyber-purple/10 hover:border-cyber-purple/40 transition-colors disabled:opacity-50 text-left"
-            >
-              <Bot class="w-4 h-4 text-cyber-purple flex-shrink-0" />
-              <div>
-                <p class="text-sm font-heading text-obsidian-text-primary">+{pickerFallback.aiHelps} AI Helps</p>
-                <p class="text-xs font-label text-obsidian-text-muted">Used in the workspace AI helper</p>
-              </div>
-            </button>
-          </div>
-        {/if}
-        {#if chooseUnlockError}
-          <p class="mt-3 font-label text-sm text-cyber-danger">{chooseUnlockError}</p>
-        {/if}
-        <button
-          on:click={() => showUnlockPicker = false}
-          class="mt-4 w-full font-label text-xs uppercase tracking-wide text-obsidian-text-muted hover:text-obsidian-text-primary transition-colors py-2"
-        >
-          Skip for now
-        </button>
-      </div>
-    </div>
-  {/if}
-
-  <!-- Scenario Unlocked confirmation (milestone days) -->
-  <ConfirmationModal
-    bind:open={showUnlockedScenarioModal}
-    icon="🔓"
-    iconVariant="success"
-    variant="success"
-    title="Scenario Unlocked"
-    subtitle="Learner Pass reward"
-    description={`${unlockedScenarioName} unlocked. Go to scenario details?`}
-    confirmLabel="Go now"
-    cancelLabel="Maybe later"
-    on:confirm={handleGoToUnlockedScenario}
-    on:cancel={handleDismissUnlockedScenario}
-  />
 
   <!-- Ambient Background Effects -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">

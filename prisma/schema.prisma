@@ -24,7 +24,6 @@ model user {
   updated_at                    DateTime                  @updatedAt @map("updated_at")
   last_seen_at                  DateTime?                 @map("last_seen_at")
   role                          String                    @default("USER") @map("role")
-  titles                        String[]                  @default([]) @map("titles")
   has_completed_tutorial        Boolean                   @default(false) @map("has_completed_tutorial")
   trivia_correct_count          Int                       @default(0) @map("trivia_correct_count")
   has_seen_dashboard_onboarding Boolean                   @default(false) @map("has_seen_dashboard_onboarding")
@@ -84,7 +83,6 @@ model scenario {
   is_paywalled Boolean     @default(false) @map("is_paywalled")
   levels       level[]
   workspaces   workspace[]
-  unlocked_claims learner_pass_claim[] @relation("learner_pass_unlocks")
   created_at       DateTime @default(now()) @map("created_at")
   updated_at       DateTime @updatedAt @map("updated_at")
 
@@ -291,16 +289,11 @@ model learner_pass_claim {
   coins_awarded     Int      @map("coins_awarded")
   xp_awarded        Int      @map("xp_awarded")
   ai_helps_awarded  Int      @map("ai_helps_awarded")
-  unlocked_scenario String?   @map("unlocked_scenario")
-  unlocked_at       DateTime? @map("unlocked_at")
-  fallback_reward   String?   @map("fallback_reward")
 
   enrollment learner_pass_enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
-  scenario   scenario?               @relation("learner_pass_unlocks", fields: [unlocked_scenario], references: [id], onDelete: Restrict)
 
   @@unique([enrollment_id, day_number])
   @@index([enrollment_id, claimed_at])
-  @@index([unlocked_scenario])
   @@map("learner_pass_claims")
 }
 

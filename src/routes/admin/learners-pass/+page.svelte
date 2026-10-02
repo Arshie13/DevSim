@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import { Loader2, Settings, Gift, Coins, Zap, HelpCircle, Lock } from "lucide-svelte";
+  import { Loader2, Settings, Gift, Coins, Zap, HelpCircle } from "lucide-svelte";
 
   interface Reward {
     id: string;
@@ -8,7 +8,6 @@
     coins: number;
     xp: number;
     aiHelps: number;
-    unlockedScenario: string[];
     displayType: string;
     displayValue: string;
   }
@@ -20,16 +19,12 @@
 
   export let data: {
     rewards: Reward[];
-    specialUnlockDays: number[];
-    dayToScenario: Record<string, string>;
     config: Config;
   };
 
   let isSubmitting = false;
   let message: { type: "success" | "error"; text: string } | null = null;
   let showConfig = false;
-
-  $: isSpecialDay = (day: number) => data.specialUnlockDays.includes(day);
 </script>
 
 <div class="page-container py-6">
@@ -137,17 +132,14 @@
   <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
     {#each data.rewards as reward}
       <div
-        class="card-cyber {isSpecialDay(reward.rewardIndex) ? 'bg-[rgb(var(--gold-rgb)/0.05)]' : ''}"
-        style="border-color: rgb(var({isSpecialDay(reward.rewardIndex) ? 'gold' : 'accent'}-rgb) / {isSpecialDay(reward.rewardIndex) ? 0.3 : 0.15})"
+        class="card-cyber"
+        style="border-color: rgb(var(--accent-rgb) / 0.15)"
       >
         <div class="card-cyber-body !p-4">
           <div class="mb-2 flex items-center justify-between">
             <span class="font-heading text-lg font-bold text-obsidian-text-primary">
               Day {reward.rewardIndex}
             </span>
-            {#if isSpecialDay(reward.rewardIndex)}
-              <span class="tag-cyber tag-warn">★ Special</span>
-            {/if}
           </div>
 
           <div class="space-y-1 text-base">
@@ -160,10 +152,7 @@
             {#if reward.aiHelps > 0}
               <div class="flex items-center gap-1"><HelpCircle class="h-3.5 w-3.5 text-cyber-cyan" /> <span class="text-obsidian-text-primary tabular-nums">{reward.aiHelps} AI Helps</span></div>
             {/if}
-            {#if reward.unlockedScenario.length > 0}
-              <div class="flex items-center gap-1"><Lock class="h-3.5 w-3.5 text-cyber-gold" /> <span class="truncate text-obsidian-text-primary">{reward.displayValue}</span></div>
-            {/if}
-            {#if !reward.coins && !reward.xp && !reward.aiHelps && reward.unlockedScenario.length === 0}
+            {#if !reward.coins && !reward.xp && !reward.aiHelps}
               <span class="italic text-obsidian-text-muted">No rewards set</span>
             {/if}
           </div>
