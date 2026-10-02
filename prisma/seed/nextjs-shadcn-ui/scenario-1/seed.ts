@@ -142,7 +142,7 @@ export const levels = [
           task_name: "Update UI Text",
           test_type: "both",
           user_story:
-            "As a visitor, I want the signup button to read Register so that the page uses the wording the library standardised on.",
+            "As a visitor, I want the signup button to read Login so that the page uses the wording the library standardised on.",
           learning_sections: {
             create: [
               {
@@ -170,9 +170,9 @@ export const levels = [
                 order: 4,
               },
               {
-                title: "JSX Text Content",
-                content:
-                  "Changing text in JSX is straightforward — it's just like editing HTML:\n// Before\n<Button>Sign Up</Button>\n// After\n<Button>Register</Button>\n\nThe text has to change everywhere it appears in the file, because a leftover copy inside a comment is stripped before the check and any copy left in live JSX is what a reader still sees.",
+title: "JSX Text Content",
+                  content:
+                    "Changing text in JSX is straightforward — it's just like editing HTML:\n// Before\n<Button>Sign Up</Button>\n// After\n<Button>Login</Button>\n\nThe text has to change everywhere it appears in the file, because a leftover copy inside a comment is stripped before the check and any copy left in live JSX is what a reader still sees.",
                 order: 5,
               },
               {
@@ -231,11 +231,11 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "Change that label to 'Register', then replace every other 'Sign Up' left in the file outside comments so no occurrence survives.",
+                description: "Change that label to 'Login', then replace every other 'Sign Up' left in the file outside comments so no occurrence survives.",
                 order: 2,
               },
               {
-                description: "Save and reload `/signup`; the page should show 'Register' and no 'Sign Up' outside a comment.",
+                description: "Save and reload `/signup`; the page should show 'Login' and no 'Sign Up' outside a comment.",
                 order: 3,
               },
             ],
@@ -245,7 +245,7 @@ export const levels = [
             create: [
               {
                 description:
-                  "Update the signup page button label from 'Sign Up' to 'Register'",
+                  "Update the signup page button label from 'Sign Up' to 'Login'",
                 is_required: true,
                 order: 1,
               },
@@ -257,7 +257,7 @@ export const levels = [
               },
               {
                 description:
-                  "Verify the signup page displays 'Register' and no 'Sign Up' text is visible",
+                  "Verify the signup page displays 'Login' and no 'Sign Up' text is visible",
                 is_required: true,
                 order: 3,
               },
