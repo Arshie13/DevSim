@@ -127,7 +127,38 @@ export class WorkspaceService {
       }
     };
 
+    // Wait before touching Docker so the create response and the subsequent
+    // navigation to the new workspace can finish first. The new workspace uses
+    // a unique container name, so the tutorial can remain alive briefly.
+    const scheduleTutorialCleanup = () => {
+      if (tutorialCleanup.size === 0) return;
+      setTimeout(() => {
+        void Promise.all(
+          [...tutorialCleanup.values()].map(async ({ id, containerId }) => {
+            await this.container.stopAndRemove(containerId);
+            await this.workspace.deleteWorkspace(id);
+          }),
+        ).catch((error) => {
+          console.error("Tutorial workspace cleanup failed:", error);
+        });
+      }, 30_000);
+    };
+
     if (existing) queueTutorialCleanup(existing);
+
+    // Creating a real workspace must destroy *every* tutorial workspace for
+    // this stack/level — even if the container we end up reusing is a separate
+    // (non-tutorial) row, or the tutorial row isn't the one returned above.
+    if (mode === "workspace") {
+      const tutorialWorkspaces = await this.workspace.findTutorialWorkspacesByStacks(
+        userId,
+        level,
+        stacksArray,
+      );
+      for (const tutorialWorkspace of tutorialWorkspaces) {
+        queueTutorialCleanup(tutorialWorkspace);
+      }
+    }
 
     if (existingIsReusable) {
       try {
@@ -141,6 +172,7 @@ export class WorkspaceService {
           );
         }
 
+        scheduleTutorialCleanup();
         return {
           alreadyExists: true,
           containerId: existing.containerId,
@@ -177,6 +209,7 @@ export class WorkspaceService {
           status: workspaceStatus,
         });
 
+        scheduleTutorialCleanup();
         return {
           alreadyExists: true,
           containerId: dockerMatch.Id,
@@ -212,18 +245,7 @@ export class WorkspaceService {
     // Give the create response and subsequent page navigation time to finish
     // before Docker changes the local network. The new workspace uses a unique
     // container name, so the tutorial can remain alive briefly.
-    if (tutorialCleanup.size > 0) {
-      setTimeout(() => {
-        void Promise.all(
-          [...tutorialCleanup.values()].map(async ({ id, containerId }) => {
-            await this.container.stopAndRemove(containerId);
-            await this.workspace.deleteWorkspace(id);
-          }),
-        ).catch((error) => {
-          console.error("Tutorial workspace cleanup failed:", error);
-        });
-      }, 30_000);
-    }
+    scheduleTutorialCleanup();
 
     return {
       containerId: created.id,

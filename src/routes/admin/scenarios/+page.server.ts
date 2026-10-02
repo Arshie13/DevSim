@@ -5,7 +5,7 @@ import { Prisma } from '$prismaclient';
 import prisma from '$lib/server/client';
 import { resolveStackName, resolveScenarioId } from '$lib/utils/scenario-mapping';
 import { parseInteractiveConfig } from '$lib/utils/interactive-config';
-import { docker } from '$lib/server/docker/client';
+import { listDevsimProjectImageTags } from '$lib/server/docker/images';
 
 function getMappedId(imageTag: string): string | null {
   const parts = imageTag.split("-scenario-");
@@ -15,23 +15,6 @@ function getMappedId(imageTag: string): string | null {
   const folderId = `scenario-${scenarioNum}`;
   const resolved = resolveScenarioId(stackName, folderId);
   return resolved !== folderId ? resolved : null;
-}
-
-async function listDevsimImages(): Promise<string[]> {
-  try {
-    const images = await docker.listImages({ filters: { reference: ["devsim-project:*"] } });
-    const tags: string[] = [];
-    for (const img of images) {
-      for (const tag of img.RepoTags ?? []) {
-        if (tag.startsWith("devsim-project:")) {
-          tags.push(tag.replace("devsim-project:", ""));
-        }
-      }
-    }
-    return tags.sort();
-  } catch {
-    return [];
-  }
 }
 
 /** Split a "one per line" textarea into trimmed, non-empty entries. */
@@ -59,7 +42,7 @@ export const load: PageServerLoad = async () => {
       },
       orderBy: { name: 'asc' }
     }),
-    listDevsimImages()
+    listDevsimProjectImageTags().catch(() => [] as string[])
   ]);
 
   const existingIds = new Set(scenarios.map(s => s.id));
@@ -81,7 +64,6 @@ export const load: PageServerLoad = async () => {
         subtitle: l.subtitle,
         order: l.order,
         sprintNumber: l.sprint_number,
-        deadline: l.deadline.toISOString().split('T')[0],
         levelDescription: l.level_description,
         xpReward: l.xp_reward,
         coinReward: l.coin_reward,
@@ -130,12 +112,44 @@ export const actions: Actions = {
     const difficulty = formData.get('difficulty') as string;
     const id = formData.get('id') as string;
 
+    // A scenario must own at least one level (enforced in the DB by a deferred
+    // constraint trigger), so its first level is created as a nested write — Prisma
+    // wraps this in one transaction, so the trigger only fires once both rows exist.
+    const levelTitle = formData.get('levelTitle') as string;
+    const levelSubtitle = formData.get('levelSubtitle') as string;
+    const order = parseInt(formData.get('order') as string) || 1;
+    const sprintNumber = parseInt(formData.get('sprintNumber') as string) || 1;
+    const levelDescription = formData.get('levelDescription') as string;
+    const xpReward = parseInt(formData.get('xpReward') as string) || 100;
+    const coinReward = parseInt(formData.get('coinReward') as string) || 50;
+    const keyTakeaways = formData.get('keyTakeaways') as string;
+
     if (!name || !description) {
       return fail(400, { message: 'Name and description are required' });
     }
+    if (!levelTitle) {
+      return fail(400, { message: 'A title for the first level is required' });
+    }
 
     await prisma.scenario.create({
-      data: { id: id || undefined, name, description, difficulty: difficulty || 'Easy' }
+      data: {
+        id: id || undefined,
+        name,
+        description,
+        difficulty: difficulty || 'Easy',
+        levels: {
+          create: {
+            title: levelTitle,
+            subtitle: levelSubtitle || '',
+            order,
+            sprint_number: sprintNumber,
+            level_description: levelDescription || '',
+            xp_reward: xpReward,
+            coin_reward: coinReward,
+            key_takeaways: keyTakeaways || ''
+          }
+        }
+      }
     });
 
     return { success: true };
@@ -180,7 +194,6 @@ export const actions: Actions = {
     const subtitle = formData.get('subtitle') as string;
     const order = parseInt(formData.get('order') as string) || 1;
     const sprintNumber = parseInt(formData.get('sprintNumber') as string) || 1;
-    const deadline = formData.get('deadline') as string;
     const levelDescription = formData.get('levelDescription') as string;
     const xpReward = parseInt(formData.get('xpReward') as string) || 100;
     const coinReward = parseInt(formData.get('coinReward') as string) || 50;
@@ -196,7 +209,6 @@ export const actions: Actions = {
         subtitle: subtitle || '',
         order,
         sprint_number: sprintNumber,
-        deadline: deadline ? new Date(deadline) : new Date(),
         level_description: levelDescription || '',
         xp_reward: xpReward,
         coin_reward: coinReward,
@@ -215,7 +227,6 @@ export const actions: Actions = {
     const subtitle = formData.get('subtitle') as string;
     const order = parseInt(formData.get('order') as string) || 1;
     const sprintNumber = parseInt(formData.get('sprintNumber') as string) || 1;
-    const deadline = formData.get('deadline') as string;
     const levelDescription = formData.get('levelDescription') as string;
     const xpReward = parseInt(formData.get('xpReward') as string) || 100;
     const coinReward = parseInt(formData.get('coinReward') as string) || 50;
@@ -232,7 +243,6 @@ export const actions: Actions = {
         subtitle: subtitle ?? undefined,
         order: order || undefined,
         sprint_number: sprintNumber || undefined,
-        deadline: deadline ? new Date(deadline) : undefined,
         level_description: levelDescription ?? undefined,
         xp_reward: xpReward || undefined,
         coin_reward: coinReward || undefined,
@@ -251,7 +261,15 @@ export const actions: Actions = {
       return fail(400, { message: 'Missing level ID' });
     }
 
-    await prisma.level.delete({ where: { id } });
+    try {
+      await prisma.level.delete({ where: { id } });
+    } catch (err) {
+      // The DB blocks deleting a scenario's last level (deferred constraint trigger).
+      if (err instanceof Error && err.message.includes('must have at least one level')) {
+        return fail(400, { message: 'A scenario must keep at least one level — add another level first' });
+      }
+      throw err;
+    }
     return { success: true };
   },
 

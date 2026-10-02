@@ -99,60 +99,68 @@ async function main() {
   // in code — see `src/lib/server/achievements/definitions.ts`. The database only
   // stores unlock records (`user_achievements`), so there is nothing to insert.
 
-  // Insert scenarios first
-  console.log("\n📦 Creating scenarios...\n");
-  for (const scenario of scenarios) {
-    const existing = await prisma.scenario.findUnique({ where: { id: scenario.id } });
-    if (existing) {
-      console.log(`⏭️  Skipped scenario: ${scenario.name} (already exists)`);
-      continue;
-    }
-    await prisma.scenario.create({ data: scenario });
-    console.log(`✅ Created scenario: ${scenario.name}`);
-  }
-
-  // Insert levels
-  console.log("\n🎯 Creating levels...\n");
-  for (const level of levels) {
-    const existing = await prisma.level.findUnique({ where: { id: level.id } });
-    if (existing) {
-      // Upsert tasks by (level_id, task_name).  Nested relations
-      // (learning_sections, acceptance_criteria, hints) are cycled only
-      // when new data is present so existing rows are preserved when the
-      // seed omits them (e.g. a task with no learning_sections block).
-      const { tasks, ...levelData } = level;
-      await prisma.level.update({ where: { id: level.id }, data: levelData });
-      for (const task of tasks.create) {
-        const { acceptance_criteria, hints, ...taskData } = task;
-        const learning_sections = (task as any).learning_sections;
-        const updateData: any = { ...taskData };
-        if (learning_sections?.create?.length) {
-          updateData.learning_sections = { deleteMany: {}, create: learning_sections.create };
+  // A scenario must own at least one level (deferred constraint trigger), and that check
+  // only runs at COMMIT — so the scenario and its levels must be written in the SAME
+  // transaction. `tx` replaces `prisma` for the rest of this block.
+  await prisma.$transaction(
+    async (tx) => {
+      // Insert scenarios first
+      console.log("\n📦 Creating scenarios...\n");
+      for (const scenario of scenarios) {
+        const existing = await tx.scenario.findUnique({ where: { id: scenario.id } });
+        if (existing) {
+          console.log(`⏭️  Skipped scenario: ${scenario.name} (already exists)`);
+          continue;
         }
-        if (acceptance_criteria?.create?.length) {
-          updateData.acceptance_criteria = { deleteMany: {}, create: acceptance_criteria.create };
-        }
-        if (hints?.create?.length) {
-          updateData.hints = { deleteMany: {}, create: hints.create };
-        }
-        await prisma.level_task.upsert({
-          where: { level_id_task_name: { level_id: level.id, task_name: taskData.task_name } },
-          update: updateData,
-          create: {
-            ...taskData,
-            level_id: level.id,
-            learning_sections: learning_sections ?? {},
-            acceptance_criteria: acceptance_criteria ?? {},
-            hints: hints ?? {},
-          },
-        });
+        await tx.scenario.create({ data: scenario });
+        console.log(`✅ Created scenario: ${scenario.name}`);
       }
-      console.log(`🔄 Updated level: ${level.title}`);
-      continue;
-    }
-    await prisma.level.create({ data: level });
-    console.log(`✅ Created level: ${level.title}`);
-  }
+
+      // Insert levels
+      console.log("\n🎯 Creating levels...\n");
+      for (const level of levels) {
+        const existing = await tx.level.findUnique({ where: { id: level.id } });
+        if (existing) {
+          // Upsert tasks by (level_id, task_name).  Nested relations
+          // (learning_sections, acceptance_criteria, hints) are cycled only
+          // when new data is present so existing rows are preserved when the
+          // seed omits them (e.g. a task with no learning_sections block).
+          const { tasks, ...levelData } = level;
+          await tx.level.update({ where: { id: level.id }, data: levelData });
+          for (const task of tasks.create) {
+            const { acceptance_criteria, hints, ...taskData } = task;
+            const learning_sections = (task as any).learning_sections;
+            const updateData: any = { ...taskData };
+            if (learning_sections?.create?.length) {
+              updateData.learning_sections = { deleteMany: {}, create: learning_sections.create };
+            }
+            if (acceptance_criteria?.create?.length) {
+              updateData.acceptance_criteria = { deleteMany: {}, create: acceptance_criteria.create };
+            }
+            if (hints?.create?.length) {
+              updateData.hints = { deleteMany: {}, create: hints.create };
+            }
+            await tx.level_task.upsert({
+              where: { level_id_task_name: { level_id: level.id, task_name: taskData.task_name } },
+              update: updateData,
+              create: {
+                ...taskData,
+                level_id: level.id,
+                learning_sections: learning_sections ?? {},
+                acceptance_criteria: acceptance_criteria ?? {},
+                hints: hints ?? {},
+              },
+            });
+          }
+          console.log(`🔄 Updated level: ${level.title}`);
+          continue;
+        }
+        await tx.level.create({ data: level });
+        console.log(`✅ Created level: ${level.title}`);
+      }
+    },
+    { timeout: 600_000 }
+  );
 
   // Learner pass rewards are no longer seeded.
   //

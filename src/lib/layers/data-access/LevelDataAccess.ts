@@ -53,7 +53,6 @@ export class LevelDataAccess {
         subtitle: data?.subtitle,
         order: data?.order,
         sprintNumber: data?.sprint_number,
-        deadline: data?.deadline,
         levelDescription: data?.level_description,
         xpReward: data?.xp_reward,
         coinReward: data?.coin_reward,

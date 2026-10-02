@@ -15,7 +15,6 @@ export const levels = [
       subtitle:
         "Set up the development environment and make a minor UI change.",
       order: 1,
-      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in a local development environment.",
       xp_reward: 100,
@@ -343,7 +342,6 @@ export const levels = [
       title: "Client-Side Exploration",
       subtitle: "Investigate Client-Side Borrowing Logic and UI Helpers",
       order: 2,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Members report they cannot borrow books even when copies are available. Your task is to investigate the client-side availability logic and create a reusable helper function to ensure consistent borrow decisions across the React UI.",
       xp_reward: 25,
@@ -709,7 +707,6 @@ export const levels = [
       subtitle:
         "Trace return-flow issues and enforce transactional consistency.",
       order: 3,
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Returning books occasionally causes negative available copy counts. Your mission is to debug the return flow, identify why the copy counts are going negative, and implement a fix to ensure the library's inventory stays accurate.",
       xp_reward: 40,
@@ -1054,7 +1051,6 @@ export const levels = [
       title: "Starting my Full-Stack Journey",
       subtitle: "Implement Reservation Queue and Lifecycle Management",
       order: 4,
-      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The Library is implementing a reservation system for popular books. Your task is to build a reservation feature that allows users to reserve a book when all copies are borrowed and receive notifications when the book becomes available.",
       xp_reward: 60,
@@ -1468,7 +1464,6 @@ export const levels = [
       title: "The Production Struggle",
       subtitle: "Investigate and fix a critical production issue.",
       order: 5,
-      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Congratulations! The project is in production, but a critical issue has been reported by the client. Your mission is to investigate the problem, identify the root cause, and deliver a fix as soon as possible to maintain system reliability.",
       xp_reward: 75,

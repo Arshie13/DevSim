@@ -15,7 +15,6 @@ export const levels = [
     title: "Onboarding the Student Portal",
     subtitle: "Install dependencies, add four shadcn/ui primitives, and fix the login button copy",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Riverside University has onboarded a new developer and the student portal has to run on their machine before any feature work starts. Install the project dependencies with `pnpm install` and confirm `pnpm dev` prints `ready` or `Local:`. Then add four shadcn/ui components to the project source: `src/components/ui/alert.tsx` naming `Alert`, `AlertTitle` and `AlertDescription`; `src/components/ui/dropdown-menu.tsx` naming `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuSeparator`, `DropdownMenuLabel` and `DropdownMenuGroup`; `src/components/ui/collapsible.tsx` naming `Collapsible`, `CollapsibleTrigger` and `CollapsibleContent`; and `src/components/ui/dialog.tsx` naming `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` and `DialogFooter`. Finally update `src/app/login/page.tsx` so the submit button reads `Log In` and the old `Sign In` copy is gone.",
     xp_reward: 10,
@@ -297,7 +296,6 @@ export const levels = [
     title: "Warning the Student and Collapsing the Grades Table",
     subtitle: "Add an academic probation `Alert` banner to the standing page, and a `SemesterGroup` accordion for the grades page",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: the standing page prints a `Good Standing` badge with no warning about what the three tiers mean and no way to act on them. Put a shadcn/ui `Alert` banner at the top of `src/app/dashboard/standing/page.tsx`, carrying a level 5 title, the GPA threshold the student has to clear, and a link to an advisor meeting. Then build `src/components/SemesterGroup.tsx` on the shadcn/ui `Collapsible` component added in level one and use it in the All Semesters tab of `src/app/dashboard/grades/page.tsx` to render one group per unique `(semester, academicYear)` pair, with the first group open.",
     xp_reward: 25,
@@ -615,7 +613,6 @@ export const levels = [
     title: "Per-Semester GPA and a Reusable Progress Bar",
     subtitle: "Add `computeGPABySemester` with a `GPA by Semester` card, and ship `src/components/ui/progress.tsx`",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: students want to see how their GPA moved term by term, and the standing and dashboard pages each hand-roll a progress bar out of nested `div` elements with an inline width. Export `computeGPABySemester` from `src/lib/mockData.ts`, returning one weighted GPA per unique `(semester, academicYear)` pair in chronological order, and render those rows in a `GPA by Semester` card on `src/app/dashboard/standing/page.tsx`. Then create `src/components/ui/progress.tsx` exporting `Progress`, which exposes the full `progressbar` ARIA contract, clamps its fill between 0% and 100%, and is used by the `Degree Progress` card on both the standing page and `src/app/dashboard/page.tsx`.",
     xp_reward: 40,
@@ -931,7 +928,6 @@ export const levels = [
     title: "Course Details and Document Requests",
     subtitle: "Add `/dashboard/courses/[courseCode]`, plus a shadcn `Dialog` and a three-step `RequestDocumentDialog`",
     order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: the grades table has no way into a single course, and there is no way for a student to ask the registrar for a document. Create `src/app/dashboard/courses/[courseCode]/page.tsx` as a dynamic route that decodes the `courseCode` segment, merges the matching entry from `grades` in `src/lib/mockData.ts` with the matching entry from `schedule` for the professor, and falls back to a `Course not found` state with a link back to `/dashboard/grades`. Add a `View Details` link per grade row pointing at the URL-encoded route. Then build `src/components/RequestDocumentDialog.tsx`, a three-step request flow rendered inside the shadcn/ui `Dialog` component installed in level one, and put a `Request Document` trigger on the dashboard.",
     xp_reward: 60,
@@ -1261,7 +1257,6 @@ export const levels = [
     title: "Derived Aggregates and an Accessibility Sweep",
     subtitle: "Compute units and earned credits from `grades`, then fix the skip link, landmarks, labels and user menu in the dashboard layout",
     order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: the standing and dashboard pages both read `currentStanding.totalUnits` and `currentStanding.earnedCredits`, which are stale numbers that disagree with the eight-row `grades` array. Export `computeCurrentSemesterUnits` and `computeEarnedCredits` from `src/lib/mockData.ts`, use them on `src/app/dashboard/standing/page.tsx` and `src/app/dashboard/page.tsx`, and remove every `currentStanding.totalUnits` and `currentStanding.earnedCredits` read from those two files. Then sweep `src/app/dashboard/layout.tsx` for accessibility: a `Skip to main content` link as the very first focusable element targeting `#main-content`, a `main` landmark with `id='main-content'` and `tabindex='-1'`, a `nav` named `Primary`, exactly one `aria-current='page'` on the active sidebar item, `aria-label` on the two icon-only buttons, an `sr-only` `h1` reading `Riverside University` inside the `header`, and a user `DropdownMenu` in the `header` built on the shadcn/ui `dropdown-menu` component installed in level one.",
     xp_reward: 75,

@@ -20,12 +20,14 @@ Run `pnpm check:design` before opening a UI pull request.
 
 `/` · `/login` · `/dashboard` · `/projects` · `/stacks` · `/scenario` · `/leaderboards` ·
 `/rivals` · `/profile` · `/achievements` · `/pretest` · `/postassessment` ·
-`/workspace/[containerId]` · `/tutorial/[containerId]` · `landing/*` · shared components in
-`src/lib/components/**`
+`/workspace/[containerId]` · `/tutorial/[containerId]` · `/admin/*` · `landing/*` · shared
+components in `src/lib/components/**`
 
-**Out of scope for sweeps**: `/admin/*`. Admin keeps its own layout and is not swept in this
-pass. Note that changes to `app.css` and `tailwind.config.ts` are global, so admin inherits
-tokens, the fluid scale and the grid regardless.
+**Admin**: `/admin/*` was swept (2026-10-01) and is in scope. It keeps its own sidebar layout —
+no `Header` chrome — but uses the tokens, cards, buttons, tags, `.page-container` inside its
+scroll column and the shared shell textures. Note that changes to `app.css` and
+`tailwind.config.ts` are global, so admin inherits tokens, the fluid scale and the grid
+regardless.
 
 **Dark theme only.** There is no light theme, no `[data-theme]`, no theme toggle and no
 theme persistence. Do not introduce them. Do not write `prefers-color-scheme` branches.
@@ -54,7 +56,7 @@ in a component.
 | `--warn` | `#ffb400` | Warnings, streaks, attention |
 | `--danger` | `#ff3860` | Errors, destructive actions |
 | `--purple` | `#a855f7` | Activity, AI, tertiary category |
-| `--gold` | `#ffd700` | Rank / first place / leaderboard only |
+| `--gold` | `#ffd700` | Rank / first place / leaderboard / pass milestone rewards only |
 | `--text-bright` | `#ffffff` | Hero gradients and wordmark highlight only |
 | `--terminal-bg` | `#05070f` | Terminal, code and editor surfaces |
 
@@ -82,7 +84,8 @@ Each colour also has a channel triplet for alpha-aware utilities:
 ```
 
 **Never** use `--gold` or `--cyan-bright` as a general-purpose accent. `--gold` means rank,
-`--cyan-bright` means emphasis on hover.
+first place / leaderboard and Learner-Pass milestone rewards; `--cyan-bright` means emphasis
+on hover.
 
 ### Derived tokens
 
@@ -339,7 +342,7 @@ single shared container class `.page-container` defined in `src/app.css` (`@laye
 ```css
 .page-container {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1280px;
   margin-inline: auto;
   padding-inline: 1.5rem; /* px-6 — scales with the fluid root */
 }
@@ -359,7 +362,7 @@ max-w-3xl"`) — the utilities layer beats the components layer, so only the wid
 overridden and the centring and `1.5rem` padding still come from `.page-container`.
 
 This is the **one deliberate exception** to "layout is `rem`" above. The container is a fixed
-`1440px` in both the nav and the pages, so the two stay locked together; only the padding is
+`1280px` in both the nav and the pages, so the two stay locked together; only the padding is
 `rem`, which scales the offset proportionally. Do not convert the container to `rem` in
 isolation — that desynchronises it from the nav.
 
@@ -367,8 +370,8 @@ The `landing/*` sections use `.page-container` too (hero, features and footer at
 container width; about/how-it-works at `max-w-5xl`, CTA at `max-w-4xl`, FAQ at `max-w-3xl`
 via the override above); `TechMarquee` is a deliberate full-bleed band. `/pretest` and
 `/postassessment` (centred assessment flows) and the full-bleed IDE shells (`/workspace/*`,
-`/tutorial/*`) do not use `.page-container` by design. `/admin/*` is excluded from sweeps by
-decision. Reference implementation: `/dashboard`.
+`/tutorial/*`) do not use `.page-container` by design. Admin pages use it inside their sidebar
+layout's scroll column. Reference implementation: `/dashboard`.
 
 ### Banned
 
@@ -429,9 +432,13 @@ the number.
 
 | Rule | Baseline |
 | --- | --- |
-| Raw hex colours in `src/**/*.{svelte,ts}` | 881 |
-| Literal `rgb()` / `rgba()` in `src/**/*.{svelte,ts}` | 1664 |
-| `font-family` naming a real family in `src/**/*.svelte` | 274 |
+| Raw hex colours in `src/**/*.{svelte,ts}` | 815 |
+| Literal `rgb()` / `rgba()` in `src/**/*.{svelte,ts}` | 1088 |
+| `font-family` naming a real family in `src/**/*.svelte` | 271 |
+
+The live counts are in [`scripts/design-baseline.json`](../scripts/design-baseline.json) —
+the values above are a snapshot (2026-10-01, after the admin sweep). Numbers in docs go
+stale; trust the json, and lower both together when a commit removes debt.
 
 To intentionally lower a baseline after a cleanup, or to accept a one-off exception:
 
@@ -447,11 +454,12 @@ baseline in the same commit — never raise it.
 
 ## 11. Known debt
 
-- **~2545 hardcoded colour literals** across 117 files. Convert opportunistically.
-- **274 `font-family` declarations name a real family** instead of `var(--font-*)`.
+- **~1,900 hardcoded colour literals** (815 hex + 1,088 rgba — see
+  `scripts/design-baseline.json`). Convert opportunistically.
+- **271 `font-family` declarations name a real family** instead of `var(--font-*)`.
 - Textures are still redeclared locally in the files listed in §3.
-- `/admin/*` has never been swept and uses its own ad-hoc styling and ~300 type utilities.
-  It is excluded from the current scope by decision, not by oversight.
+- `/admin/*` has been swept (2026-10-01): its sidebar shell and five pages, plus the
+  admin-only `InteractiveConfigEditor`, are tokenised and use the shared `Scrollbar` wrapper.
 - The type-scale step-up in §4 has **not** yet been applied across the app; it is the
   target for the component sweep. Until then, treat §4 as the specification.
 
@@ -474,9 +482,11 @@ editor surfaces are touched. A stage is complete only when `pnpm check:design`,
 | 5b | Nav & container alignment | `.page-container` in `app.css` (1440px); nav + all `Header` routes + landing sections migrated; `/stacks` 1320→1440, `/rivals/[username]` 1400→1440 | **Done** |
 | 6 | Workspace & tutorial | `/workspace/[containerId]`, `/tutorial/[containerId]` | Pending |
 | 7 | Commerce | `/marketplace/coins`, `/pass` | Pending |
+| 8 | Admin console | `/admin/*` (own sidebar shell + `InteractiveConfigEditor`) | **Done** |
 
-**Excluded:** `/admin/*` is not swept by decision. It inherits global tokens, the fluid
-scale and the grid, but keeps its own layout.
+**Admin:** `/admin/*` was swept on 2026-10-01 as stage 8. It keeps its own sidebar layout with
+a manual collapse toggle and a back-to-app link, but now uses the shared tokens, cards,
+controls, `.page-container` and textures.
 
 Stage 1 covered: navbar matched to `Header` (container, padding, logo lockup with subtitle,
 border and background tokens) and made `sticky` in normal flow like every other page

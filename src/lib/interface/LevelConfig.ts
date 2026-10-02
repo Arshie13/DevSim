@@ -10,7 +10,6 @@ export interface LevelConfig {
   title: string;
   stack: string;
   difficulty: string;
-  deadline: number;
   tasks: Task[];
   scenario: string;
   hints: string[];

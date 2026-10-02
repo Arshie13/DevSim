@@ -5,7 +5,6 @@ import type { PassState } from '$lib/server/learnerPass/schedule';
 import {
   PASS_LADDER,
   derivePassState,
-  derivePendingUnlocks,
   toClaimRefs,
   toRewardPayload,
 } from '$lib/server/learnerPass/schedule';
@@ -18,6 +17,7 @@ export const load: PageServerLoad = async (event) => {
       user: null,
       enrollment: null,
       rewards: [],
+      currentAvatar: null,
     };
   }
 
@@ -49,24 +49,17 @@ export const load: PageServerLoad = async (event) => {
   const rewards = PASS_LADDER.map(toRewardPayload);
 
   let state: PassState | null = null;
-  let pendingUnlocks: { day: number; available: string[] }[] = [];
 
   if (enrollment) {
     const claims = await prisma.learner_pass_claim.findMany({
       where: { enrollment_id: enrollment.id },
-      select: { day_number: true, claimed_at: true, unlocked_scenario: true },
+      select: {
+        day_number: true,
+        claimed_at: true,
+      },
     });
 
     state = derivePassState(enrollment, toClaimRefs(claims), new Date());
-
-    // The claim's choice IS the grant now that `user_project_access` is gone.
-    const alreadyUnlocked = new Set(
-      claims
-        .map((c) => c.unlocked_scenario)
-        .filter((id): id is string => typeof id === 'string'),
-    );
-
-    pendingUnlocks = derivePendingUnlocks(state.claimedDays, alreadyUnlocked);
   }
 
   return {
@@ -101,6 +94,5 @@ export const load: PageServerLoad = async (event) => {
         : null,
     rewards,
     currentAvatar: dbUser?.image ?? null,
-    pendingUnlocks,
   };
 };

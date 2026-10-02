@@ -99,13 +99,6 @@ export const POST: RequestHandler = async (event) => {
         select: { coins: true, xp: true, ai_help_credits: true },
       });
 
-      // A scenario-granting reward is always a CHOICE, resolved later by choose-unlock:
-      // claiming only makes the choice available. `unlockChoices` is by construction a subset
-      // of `SCENARIO_3_IDS` (that set is derived from it), so there is no "grant outright"
-      // path left to take and no access row to write — the claim itself becomes the grant.
-      const pendingUnlocks =
-        reward.unlockChoices.length > 0 ? [{ day: dayNumber, available: reward.unlockChoices }] : [];
-
       const updatedState = derivePassState(
         enrollment,
         [...toClaimRefs(claims), { dayNumber, claimedAt: now }],
@@ -116,7 +109,6 @@ export const POST: RequestHandler = async (event) => {
         updatedUser,
         updatedState,
         reward,
-        pendingUnlocks,
       };
     });
 
@@ -127,11 +119,7 @@ export const POST: RequestHandler = async (event) => {
         coins: result.reward.coins,
         xp: result.reward.xp,
         aiHelps: result.reward.aiHelps,
-        // Always empty: a scenario-granting reward is a choice, never an immediate grant.
-        // Kept in the payload so the response shape is unchanged.
-        unlocks: [] as string[],
       },
-      pendingUnlocks: result.pendingUnlocks,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,

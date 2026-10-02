@@ -14,7 +14,6 @@ export const levels = [
     title: "Booting the Support Portal",
     subtitle: "Install dependencies, add four shadcn/ui components, and fix the login wording",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new developer starts on the City Hall support portal and needs a working baseline before any feature work. Install the project dependencies, confirm `pnpm dev` prints a ready line, add the shadcn/ui Alert, Toast, ScrollArea and Badge components, and fix the wording on the agent login page.",
     xp_reward: 10,
@@ -296,7 +295,6 @@ export const levels = [
     title: "Escalate Unmatched Chat and Add Quick Replies",
     subtitle: "Offer a handoff to a human when the helper cannot answer, and give agents one-click reply snippets",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The citizen chat on `/support` answers with the first keyword it finds, and when nothing matches the citizen gets a generic line with no route to a human. Replace that silence with a shadcn/ui Alert banner offering an escalation, then add a `src/lib/quickReplies.ts` snippet library rendered inside a shadcn/ui ScrollArea on the agent dashboard.",
     xp_reward: 25,
@@ -614,7 +612,6 @@ export const levels = [
     title: "Triage: Priority Order and First-Reply Tracking",
     subtitle: "Sort the queue by priority score and badge conversations waiting on an agent",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Conversations pile up in the dashboard in seed order, so an agent cannot tell which case needs attention first, and there is no signal for cases where a citizen is still waiting on a first human reply. Score each conversation in `src/lib/priority.ts`, render the list highest score first, then classify each conversation in `src/lib/sla.ts` and badge the ones still awaiting a first reply.",
     xp_reward: 40,
@@ -967,7 +964,6 @@ export const levels = [
     title: "Queue Times and Keyboard-First Triage",
     subtitle: "Show citizens an estimated wait and drive the dashboard from the keyboard",
     order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The support page tells citizens they are connecting but never how long the wait is, and agents juggling three conversations lose time to the mouse. Build `src/lib/queue.ts` with `estimateWaitMinutes` and `formatWait`, show an estimated wait after the request form is submitted, then add ArrowUp and ArrowDown conversation selection plus Ctrl+Enter to send and Escape to clear on `src/app/agent/page.tsx`.",
     xp_reward: 60,
@@ -1276,7 +1272,6 @@ export const levels = [
     title: "Ship-Ready Dashboard and Documentation",
     subtitle: "Gate replies on agent status, reset unread badges, and export transcripts",
     order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: QA found two dashboard bugs that only show up in use. An agent set to offline can still type and send, and the unread badge never clears when a conversation is opened, which also leaves the priority sort stale. Fix both in `src/app/agent/page.tsx`, then add `src/lib/transcript.ts` with an export button that confirms itself with a toast, and replace the boilerplate `README.md` with real project docs.",
     xp_reward: 75,

@@ -34,7 +34,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and update the brand tagline.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: PulseLabs just onboarded a new developer on FitTrackr. The first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms understanding of how the codebase is organized.",
     xp_reward: 100,
@@ -322,7 +321,6 @@ export const levels = [
     title: "Client-Side Exploration",
     subtitle: "Build the WorkoutCard component and add category filtering to the feed.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Users are frustrated — the workout feed is blank and there is no way to filter by training category. The tasks are to implement the WorkoutCard presentational component and wire up category filter chips so members can browse workouts by type.",
     xp_reward: 150,
@@ -689,7 +687,6 @@ export const levels = [
     title: "Backend / MongoDB",
     subtitle: "Fix the leaderboard aggregation and harden the endpoint.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The weekly leaderboard is returning empty results and bad data. Two backend tasks await: fix the broken MongoDB aggregation pipeline in the leaderboard controller, then wrap it in proper Express error handling and query-param validation so the endpoint is production-ready.",
     xp_reward: 200,
@@ -1014,7 +1011,6 @@ export const levels = [
     title: "Full-Stack Feature: Cheer + Streak",
     subtitle: "Implement the cheer toggle and personal workout streak page end-to-end.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: PulseLabs wants two social features shipped before the next sprint review: a cheer (like) system where members can cheer each other's workouts with a count that never drifts, and a personal streak page showing how many consecutive days a member has trained. Both features require server routes, Mongoose logic, client services, and UI wiring.",
     xp_reward: 250,
@@ -1402,7 +1398,6 @@ export const levels = [
     title: "Production Bug Fixes",
     subtitle: "Fix cheer counter drift and timezone-naive streak grouping.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Two critical bugs have been reported by PulseLabs users. First, some workouts show inflated cheer counts because concurrent requests create duplicate Cheer documents. Second, users in UTC+8 see their late-night workouts appear on the wrong day, breaking their streak. Diagnose and fix both production bugs.",
     xp_reward: 300,

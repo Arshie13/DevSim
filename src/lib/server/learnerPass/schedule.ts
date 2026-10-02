@@ -13,10 +13,13 @@
  *
  * Rationale for living in code rather than the `learner_pass_rewards` table it
  * replaced: this is static reference data, so the table bought only an admin editor
- * while costing a join, per-environment drift, and a three-way duplication of the
- * special-day → scenario mapping (here, in `learner_pass_reward.unlocked_scenario`, and
- * in the `app_settings.learner_pass_day_to_scenario` key that nothing ever read).
- * Same call as the achievements catalog and the daily-login ladder.
+ * while costing a join and per-environment drift. Same call as the achievements
+ * catalog and the daily-login ladder.
+ *
+ * Every slot pays coins or AI helps. The ladder used to reserve days 6/12/18/24/30 for
+ * permanently unlocking a locked scenario; that is gone. Scenario access is now a property
+ * of holding an *active* pass (see `access/hasProjectAccess.ts`), so it is revoked when the
+ * pass expires instead of outliving it.
  */
 
 import { MS_PER_DAY, nextResetAt, rewardDayNumber } from '$lib/server/rewards/reset';
@@ -29,8 +32,6 @@ export interface PassReward {
   coins: number;
   xp: number;
   aiHelps: number;
-  /** Scenario ids this slot offers to unlock. Empty for ordinary days. */
-  unlockChoices: string[];
   /**
    * Display metadata, consumed verbatim by `pass/+page.svelte`'s `getRewardIcon()`,
    * which switches on `displayType` ("coins" | "help" | "avatar" | "badge" | …).
@@ -41,36 +42,36 @@ export interface PassReward {
 }
 
 export const PASS_LADDER: readonly PassReward[] = [
-  { day: 1, coins: 100, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '100 Coins' },
-  { day: 2, coins: 0, xp: 0, aiHelps: 3, unlockChoices: [], displayType: 'help', displayValue: '+3 AI Helps' },
-  { day: 3, coins: 150, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '150 Coins' },
-  { day: 4, coins: 0, xp: 0, aiHelps: 5, unlockChoices: [], displayType: 'help', displayValue: '+5 AI Helps' },
-  { day: 5, coins: 200, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '200 Coins' },
-  { day: 6, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['pern-pos-scenario-3'], displayType: 'scenario_unlock', displayValue: 'PERN Scenario 3' },
-  { day: 7, coins: 0, xp: 0, aiHelps: 7, unlockChoices: [], displayType: 'help', displayValue: '+7 AI Helps' },
-  { day: 8, coins: 250, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '250 Coins' },
-  { day: 9, coins: 0, xp: 0, aiHelps: 9, unlockChoices: [], displayType: 'help', displayValue: '+9 AI Helps' },
-  { day: 10, coins: 300, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '300 Coins' },
-  { day: 11, coins: 0, xp: 0, aiHelps: 11, unlockChoices: [], displayType: 'help', displayValue: '+11 AI Helps' },
-  { day: 12, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['mern-tw-scenario-3'], displayType: 'scenario_unlock', displayValue: 'MERN Scenario 3' },
-  { day: 13, coins: 400, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '400 Coins' },
-  { day: 14, coins: 0, xp: 0, aiHelps: 13, unlockChoices: [], displayType: 'help', displayValue: '+13 AI Helps' },
-  { day: 15, coins: 500, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '500 Coins' },
-  { day: 16, coins: 0, xp: 0, aiHelps: 16, unlockChoices: [], displayType: 'help', displayValue: '+16 AI Helps' },
-  { day: 17, coins: 600, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '600 Coins' },
-  { day: 18, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nestjs-pos-scenario-3'], displayType: 'scenario_unlock', displayValue: 'NestJS Scenario 3' },
-  { day: 19, coins: 0, xp: 0, aiHelps: 20, unlockChoices: [], displayType: 'help', displayValue: '+20 AI Helps' },
-  { day: 20, coins: 700, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '700 Coins' },
-  { day: 21, coins: 0, xp: 0, aiHelps: 24, unlockChoices: [], displayType: 'help', displayValue: '+24 AI Helps' },
-  { day: 22, coins: 750, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '750 Coins' },
-  { day: 23, coins: 0, xp: 0, aiHelps: 28, unlockChoices: [], displayType: 'help', displayValue: '+28 AI Helps' },
-  { day: 24, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nextjs-postgres-prisma-3'], displayType: 'scenario_unlock', displayValue: 'Next.js + Prisma Scenario 3' },
-  { day: 25, coins: 800, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '800 Coins' },
-  { day: 26, coins: 0, xp: 0, aiHelps: 32, unlockChoices: [], displayType: 'help', displayValue: '+32 AI Helps' },
-  { day: 27, coins: 900, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '900 Coins' },
-  { day: 28, coins: 0, xp: 0, aiHelps: 35, unlockChoices: [], displayType: 'help', displayValue: '+35 AI Helps' },
-  { day: 29, coins: 950, xp: 0, aiHelps: 0, unlockChoices: [], displayType: 'coins', displayValue: '950 Coins' },
-  { day: 30, coins: 0, xp: 0, aiHelps: 0, unlockChoices: ['nextjs-shadcn-ui-scenario-3'], displayType: 'scenario_unlock', displayValue: 'Next.js Shadcn Scenario 3' },
+  { day: 1, coins: 100, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '100 Coins' },
+  { day: 2, coins: 0, xp: 0, aiHelps: 3, displayType: 'help', displayValue: '+3 AI Helps' },
+  { day: 3, coins: 150, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '150 Coins' },
+  { day: 4, coins: 0, xp: 0, aiHelps: 5, displayType: 'help', displayValue: '+5 AI Helps' },
+  { day: 5, coins: 200, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '200 Coins' },
+  { day: 6, coins: 300, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '300 Coins' },
+  { day: 7, coins: 0, xp: 0, aiHelps: 7, displayType: 'help', displayValue: '+7 AI Helps' },
+  { day: 8, coins: 250, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '250 Coins' },
+  { day: 9, coins: 0, xp: 0, aiHelps: 9, displayType: 'help', displayValue: '+9 AI Helps' },
+  { day: 10, coins: 300, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '300 Coins' },
+  { day: 11, coins: 0, xp: 0, aiHelps: 11, displayType: 'help', displayValue: '+11 AI Helps' },
+  { day: 12, coins: 0, xp: 0, aiHelps: 16, displayType: 'help', displayValue: '+16 AI Helps' },
+  { day: 13, coins: 400, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '400 Coins' },
+  { day: 14, coins: 0, xp: 0, aiHelps: 13, displayType: 'help', displayValue: '+13 AI Helps' },
+  { day: 15, coins: 500, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '500 Coins' },
+  { day: 16, coins: 0, xp: 0, aiHelps: 16, displayType: 'help', displayValue: '+16 AI Helps' },
+  { day: 17, coins: 600, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '600 Coins' },
+  { day: 18, coins: 550, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '550 Coins' },
+  { day: 19, coins: 0, xp: 0, aiHelps: 20, displayType: 'help', displayValue: '+20 AI Helps' },
+  { day: 20, coins: 700, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '700 Coins' },
+  { day: 21, coins: 0, xp: 0, aiHelps: 24, displayType: 'help', displayValue: '+24 AI Helps' },
+  { day: 22, coins: 750, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '750 Coins' },
+  { day: 23, coins: 0, xp: 0, aiHelps: 28, displayType: 'help', displayValue: '+28 AI Helps' },
+  { day: 24, coins: 0, xp: 0, aiHelps: 28, displayType: 'help', displayValue: '+28 AI Helps' },
+  { day: 25, coins: 800, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '800 Coins' },
+  { day: 26, coins: 0, xp: 0, aiHelps: 32, displayType: 'help', displayValue: '+32 AI Helps' },
+  { day: 27, coins: 900, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '900 Coins' },
+  { day: 28, coins: 0, xp: 0, aiHelps: 35, displayType: 'help', displayValue: '+35 AI Helps' },
+  { day: 29, coins: 950, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '950 Coins' },
+  { day: 30, coins: 900, xp: 0, aiHelps: 0, displayType: 'coins', displayValue: '900 Coins' },
 ];
 
 /** Number of allowance days in one pass. */
@@ -84,20 +85,6 @@ const REWARD_BY_DAY = new Map(PASS_LADDER.map((r) => [r.day, r]));
 /** Reward for a 1-based allowance day, or `undefined` if out of range. */
 export function rewardFor(dayNumber: number): PassReward | undefined {
   return REWARD_BY_DAY.get(dayNumber);
-}
-
-/** Days that grant a scenario unlock instead of (or as well as) currency. */
-export const SPECIAL_UNLOCK_DAYS: readonly number[] = PASS_LADDER
-  .filter((r) => r.unlockChoices.length > 0)
-  .map((r) => r.day);
-
-/** Every scenario reachable via the pass. */
-export const SCENARIO_3_IDS: ReadonlySet<string> = new Set(
-  PASS_LADDER.flatMap((r) => r.unlockChoices),
-);
-
-export function getSpecialUnlocksForDay(day: number): string[] {
-  return rewardFor(day)?.unlockChoices ?? [];
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -137,7 +124,6 @@ export function toRewardPayload(reward: PassReward) {
     coins: reward.coins,
     xp: reward.xp,
     ai_helps: reward.aiHelps,
-    unlocked_scenario: reward.unlockChoices,
     display_type: reward.displayType,
     display_value: reward.displayValue,
   };
@@ -271,22 +257,4 @@ export function derivePassState(
   };
 }
 
-/**
- * Pending scenario choices: claimed special days whose unlock has not been taken yet.
- * `alreadyUnlocked` comes from the claims' `unlocked_scenario` — which is itself the grant,
- * now that `user_project_access` is gone — so this stays a derived view, not a stored one.
- */
-export function derivePendingUnlocks(
-  claimedDays: number[],
-  alreadyUnlocked: ReadonlySet<string>,
-): { day: number; available: string[] }[] {
-  const pending: { day: number; available: string[] }[] = [];
 
-  for (const day of claimedDays) {
-    if (!SPECIAL_UNLOCK_DAYS.includes(day)) continue;
-    const available = getSpecialUnlocksForDay(day).filter((id) => !alreadyUnlocked.has(id));
-    if (available.length > 0) pending.push({ day, available });
-  }
-
-  return pending;
-}

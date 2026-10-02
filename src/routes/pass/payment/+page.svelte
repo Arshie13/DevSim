@@ -89,7 +89,7 @@
   let errorMessage = "";
   let stripeInitialized = false;
   let modalTitle = "PASS ACTIVATED";
-  let modalMessage = "Your Learner Pass is now active — premium rewards are unlocked!";
+  let modalMessage = "Your Learner Pass is now active — every locked scenario is unlocked!";
   // Shows the success popup; closing it heads to the pass rewards page.
   let purchaseComplete = false;
 
@@ -206,7 +206,7 @@
             modalMessage = "Your payment is confirmed. We are activating your Learner Pass now.";
           } else {
             modalTitle = "PASS ACTIVATED";
-            modalMessage = "Your Learner Pass is now active — premium rewards are unlocked!";
+            modalMessage = "Your Learner Pass is now active — every locked scenario is unlocked!";
           }
 
           purchaseComplete = true;
@@ -255,7 +255,7 @@
               Learner Pass Checkout
             </p>
             <h1 class="mt-2 font-heading font-bold text-3xl tracking-tight text-obsidian-text-primary">
-              Unlock Premium Rewards
+              Unlock Every Premium Scenario
             </h1>
             <p class="mt-2 text-sm text-obsidian-text-muted">
               One-time payment. No auto-renew. Instant activation after successful charge.
@@ -272,10 +272,10 @@
           <div class="mt-5 grid gap-2" aria-label="Premium pass benefits">
             <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">
               <p class="font-heading text-xs font-semibold uppercase tracking-[0.05em] text-obsidian-text-primary">
-                Daily Premium Rewards
+                Daily Rewards
               </p>
               <p class="mt-1 text-xs leading-relaxed text-obsidian-text-muted">
-                Claim boosted rewards across all 30 days of your pass.
+                Claim coins and AI helps across all 30 days of your pass.
               </p>
             </div>
             <div class="rounded-card border border-[var(--card-border)] bg-obsidian-bg/40 p-3">

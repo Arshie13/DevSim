@@ -4,7 +4,6 @@ import prisma from '$lib/server/client';
 import {
   PASS_LADDER,
   derivePassState,
-  derivePendingUnlocks,
   rewardFor,
   toClaimRefs,
   toRewardPayload,
@@ -38,8 +37,6 @@ export const GET: RequestHandler = async (event) => {
     select: {
       day_number: true,
       claimed_at: true,
-      unlocked_scenario: true,
-      unlocked_at: true,
     },
   });
 
@@ -49,21 +46,6 @@ export const GET: RequestHandler = async (event) => {
   const upcomingRewards = PASS_LADDER.filter(
     (r) => r.day > state.currentDay && r.day <= state.currentDay + 3,
   ).slice(0, 3);
-
-  // Unlocks come straight from the claims — the claim IS the grant now that
-  // `user_project_access` is gone. `unlocked_at` is when the choice was made, which can be
-  // well after `claimed_at`: a day is claimed, then its reward is spent later.
-  const unlockedProjects = claims
-    .filter((c) => typeof c.unlocked_scenario === 'string')
-    .map((c) => ({
-      scenarioId: c.unlocked_scenario as string,
-      grantedAt: c.unlocked_at ?? c.claimed_at,
-    }));
-
-  // A special day stops being "pending" once a choice is recorded for it. Scoping that check
-  // per day is the fix: the old flat `unlock_choices` array was checked globally, so a single
-  // choice silently suppressed the prompt for every other special day.
-  const alreadyUnlocked = new Set(unlockedProjects.map((p) => p.scenarioId));
 
   return Response.json({
     status: state.status,
@@ -80,10 +62,5 @@ export const GET: RequestHandler = async (event) => {
       current: currentDayReward ? toRewardPayload(currentDayReward) : undefined,
       upcoming: upcomingRewards.map(toRewardPayload),
     },
-    unlockedProjects: unlockedProjects.map((p) => ({
-      projectId: p.scenarioId,
-      grantedAt: p.grantedAt.toISOString(),
-    })),
-    pendingUnlocks: derivePendingUnlocks(state.claimedDays, alreadyUnlocked),
   });
 };

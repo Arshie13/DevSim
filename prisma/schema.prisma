@@ -24,7 +24,6 @@ model user {
   updated_at                    DateTime                  @updatedAt @map("updated_at")
   last_seen_at                  DateTime?                 @map("last_seen_at")
   role                          String                    @default("USER") @map("role")
-  titles                        String[]                  @default([]) @map("titles")
   has_completed_tutorial        Boolean                   @default(false) @map("has_completed_tutorial")
   trivia_correct_count          Int                       @default(0) @map("trivia_correct_count")
   has_seen_dashboard_onboarding Boolean                   @default(false) @map("has_seen_dashboard_onboarding")
@@ -61,9 +60,6 @@ model workspace {
   updated_at          DateTime  @updatedAt @map("updated_at")
   stack_name          String?   @map("stack_name")
   stack_version       String?   @map("stack_version")
-
-  /// Board state: task names completed in the current level. Cleared on level
-  /// advance. Replaces the old completed_task table.
   completed_tasks String[] @default([]) @map("completed_tasks")
 
   file_changes file_changes[]
@@ -87,8 +83,8 @@ model scenario {
   is_paywalled Boolean     @default(false) @map("is_paywalled")
   levels       level[]
   workspaces   workspace[]
-  task_activities task_activity[]
-  unlocked_claims learner_pass_claim[] @relation("learner_pass_unlocks")
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
 
   @@map("scenarios")
 }
@@ -99,7 +95,6 @@ model level {
   subtitle          String       @map("subtitle")
   order             Int          @default(0) @map("order")
   sprint_number     Int          @default(1) @map("sprint_number")
-  deadline          DateTime     @map("deadline")
   level_description String       @map("level_description")
   xp_reward         Int          @map("xp_reward")
   coin_reward       Int          @map("coin_reward")
@@ -107,6 +102,8 @@ model level {
   scenario_id       String       @map("scenario_id")
   scenario          scenario     @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
   tasks             level_task[]
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
 
   @@index([id])
   @@index([scenario_id])
@@ -124,7 +121,10 @@ model level_task {
   acceptance_criteria acceptance_criteria[] @relation("TaskAcceptanceCriteria")
   hints               hint[]                @relation("TaskHints")
   learning_sections   learning_section[]
+  task_activities     task_activity[]
   level               level                 @relation(fields: [level_id], references: [id], onDelete: Cascade)
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
 
   @@unique([level_id, task_name])
   @@index([level_id])
@@ -139,13 +139,11 @@ model learning_section {
   order            Int     @default(0) @map("order")
   section_type     String  @default("PLAIN_TEXT") @map("section_type")
   interactive_mode String? @map("interactive_mode")
-
-  /// Expected shape when interactive_mode is "QUIZ":
-  /// { questions: { question: string; options: string[]; correct: number }[] }
-  /// For "STORY": { branches: { id: string; text: string; choices: { text: string; nextId: string }[] }[] }
   interactive_config Json? @map("interactive_config")
 
   task level_task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
 
   @@index([task_id])
   @@map("learning_sections")
@@ -158,6 +156,8 @@ model acceptance_criteria {
   is_required Boolean    @default(false) @map("is_required")
   order       Int        @default(0) @map("order")
   task        level_task @relation("TaskAcceptanceCriteria", fields: [task_id], references: [id], onDelete: Cascade)
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
 
   @@index([task_id])
   @@map("acceptance_criteria")
@@ -169,72 +169,25 @@ model hint {
   description String     @map("description")
   order       Int        @default(0) @map("order")
   task        level_task @relation("TaskHints", fields: [task_id], references: [id], onDelete: Cascade)
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
 
   @@index([task_id])
   @@map("hints")
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Daily Login Rewards
-// ────────────────────────────────────────────────────────────────────────────
-
-/// One reward claim, at most one per reward day.
-///
-/// Availability is a **fixed daily reset** (16:00 UTC+8 == 08:00 UTC), not a rolling
-/// 24h window. `claimed_on` stores the *reset-shifted* reward day, so the unique
-/// constraint on `(user_id, claimed_on)` literally IS the "one reward per day" rule —
-/// the database enforces it rather than the application. A rolling window couldn't
-/// express "a day" at all, which is why the old rule allowed skipping a whole
-/// calendar day while still incrementing the streak.
-///
-/// There is deliberately NO parent `daily_logins` table: its `streak` and
-/// `last_claimed_at` columns were both derivable from these rows, so it was pure
-/// denormalisation held together by convention. Streak is now a run of consecutive
-/// `claimed_on` days (`deriveStreak` in `dailyRewards/schedule.ts`).
-///
-/// `claimed_at` records the exact instant of the claim, for audit/display. It is
-/// informational only: availability and the streak are date-based and never read it.
-///
-/// The two columns are not interchangeable. Enforcement needs equality on the *day*,
-/// which is why `claimed_on` is the one in the unique constraint — a timestamp
-/// cannot provide that, since any two distinct instants pass a uniqueness check. So
-/// `claimed_at` is deliberately not part of any key.
-/// The primary key is a surrogate `id`, kept for consistency with every other model
-/// in this schema. `(user_id, claimed_on)` remains the **natural** key and is what
-/// actually enforces "one reward per day" — it is declared `@@unique` rather than
-/// `@@id`. The trade is one additional index; the benefit is a uniform shape and a
-/// stable single-column handle if anything ever needs to reference a claim.
 model daily_login_claim {
   id               String   @id @default(cuid()) @map("id")
   user_id          String   @map("user_id")
-  /// The reward day this claim belongs to, already reset-shifted. A reward day
-  /// runs 08:00 UTC → 08:00 UTC, i.e. 16:00 → 16:00 at UTC+8.
   claimed_on       DateTime @db.Date @map("claimed_on")
-  /// Ladder position, kept STORED rather than derived from the claim ordinal so
-  /// that changing `CYCLE_LENGTH` cannot retroactively remap earned history.
-  ///
-  /// Deliberately NO `@default`: every insert sets it from the derived state, and a
-  /// default would let a forgetful write path persist a plausible-looking cycle 0
-  /// instead of failing loudly on NOT NULL. The default only ever existed to add
-  /// this column to an already-populated table, and to feed the old primary key —
-  /// neither applies now. `day_index` has no default either.
   cycle_index      Int      @map("cycle_index")
-  /// 0-based position in the ladder. Validated against the code ladder
-  /// (`REWARD_LADDER`), not by the schema — the ladder is content, so this stays a
-  /// plain int. Contrast `achievement_tier`, which IS an enum because it is a
-  /// schema-owned domain concept.
   day_index        Int      @map("day_index")
-  /// Payout snapshot. Unlike `streak`, this CANNOT be recomputed — the ladder
-  /// constants may change, so editing them must not rewrite history.
   coins_awarded    Int      @map("coins_awarded")
   xp_awarded       Int      @map("xp_awarded")
   ai_helps_awarded Int      @map("ai_helps_awarded")
-  /// Exact instant of the claim. Informational — never read by the availability
-  /// rule or the streak, both of which are date-based.
   claimed_at       DateTime @default(now()) @map("claimed_at")
   user             user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  /// Supports the streak fold and today's-claim lookup.
   @@unique([user_id, claimed_on])
   @@map("daily_login_claims")
 }
@@ -243,49 +196,17 @@ model daily_login_claim {
 // Achievements
 // ────────────────────────────────────────────────────────────────────────────
 
-/// Closed, ordered set of achievement tiers. Declared here so the *database*
-/// rejects anything outside this set, and so tier comparisons / GROUP BY work in
-/// SQL without the app resolving an IN-list. Adding a tier is a schema change.
-///
-/// NOTE: Postgres cannot *use* a newly added enum label inside the same
-/// transaction that adds it, and Prisma wraps migrations in a transaction — so a
-/// future `ALTER TYPE ... ADD VALUE` must be its own migration file.
-enum achievement_tier {
-  ROOKIE
-  AMATEUR
-  PRO
-}
-
-/// Unlock record for one achievement tier.
-///
-/// The achievement *catalog* lives in code — see
-/// `src/lib/server/achievements/definitions.ts`. There is deliberately no
-/// `achievements` table: the definitions are static reference data, so keeping
-/// them in the DB only bought an admin UI at the cost of joins, drift between
-/// environments, unvalidated JSON criteria, and a cascade that destroyed unlock
-/// history whenever a catalog row was removed.
-///
-/// The key is split into its two parts rather than one delimited string:
-///   * `family` is an open identity owned by the code catalog, so it stays TEXT
-///     (no foreign key — the code catalog is the referent, and an enum would
-///     force a migration for every new achievement).
-///   * `tier` is a closed ordinal domain owned by the schema, so it is a native
-///     enum: the DB enforces it and it is directly comparable/groupable.
-/// Splitting also drops the old delimiter invariant (a family containing `:`
-/// used to silently break lookups).
-///
-/// `xp_awarded` / `coins_awarded` snapshot the payout at grant time, so editing a
-/// reward constant in code never silently rewrites what a user was given.
 model user_achievement {
-  user_id       String           @map("user_id")
-  family        String           @map("family")
-  tier          achievement_tier @map("tier")
-  xp_awarded    Int              @map("xp_awarded")
-  coins_awarded Int              @map("coins_awarded")
-  earned_at     DateTime         @default(now()) @map("earned_at")
-  user          user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid()) @map("id")
+  user_id       String   @map("user_id")
+  family        String   @map("family")
+  tier          String   @map("tier")
+  xp_awarded    Int      @map("xp_awarded")
+  coins_awarded Int      @map("coins_awarded")
+  earned_at     DateTime @default(now()) @map("earned_at")
+  user          user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@id([user_id, family, tier])
+  @@unique([user_id, family, tier])
   @@index([family, tier])
   @@map("user_achievements")
 }
@@ -307,42 +228,17 @@ model file_changes {
   @@map("file_changes")
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Task Activity (durable append-only log + per-workspace board state)
-// ────────────────────────────────────────────────────────────────────────────
-
-/// Durable log of the tasks a user completes, scoped to the scenario they were working in.
-/// Source of truth for the dashboard weekly chart, the activity feed, and the lifetime
-/// tasks-completed stat. Per-workspace board state is tracked via workspace.completed_tasks.
-///
-/// `scenario_id` used to be absent, and `level` is a per-scenario ordinal (`levels` has no
-/// global level number: just `order` within its scenario), so a row could not be resolved
-/// back to a real level at all. The scenario was available at the write site the whole time
-/// — `submitWork` already held `currentScenarioId` — it was simply never passed.
-///
-/// The old de-duplication guard keyed on `(user_id, task_name)` alone. Task names are NOT
-/// globally unique: "Prepare Development Environment" occurs in 12 of the 15 scenarios, so
-/// completing that task in a second scenario silently recorded nothing and the lifetime
-/// count under-reported. The key below mirrors the task's own identity instead.
 model task_activity {
-  id           String   @id @default(cuid()) @map("id")
-  user_id      String   @map("user_id")
-  scenario_id  String   @map("scenario_id")
-  task_name    String   @map("task_name")
-  /// The level's `order` WITHIN its scenario; resolve via `(scenario_id, level)`.
-  level        Int      @map("level")
-  completed_at DateTime @default(now()) @map("completed_at")
+  id            String   @id @default(cuid()) @map("id")
+  user_id       String   @map("user_id")
+  level_task_id String   @map("level_task_id")
+  completed_at  DateTime @default(now()) @map("completed_at")
+  user       user       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  level_task level_task @relation(fields: [level_task_id], references: [id], onDelete: Restrict)
 
-  user     user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  scenario scenario @relation(fields: [scenario_id], references: [id], onDelete: Restrict)
-
-  /// One completion per task, per scenario. `level` is included because it mirrors how the
-  /// task itself is identified (`level_task` is unique on `(level_id, task_name)`), so a
-  /// future data change that repeats a task name inside one scenario cannot silently drop a
-  /// completion the way the old global key did.
-  @@unique([user_id, scenario_id, level, task_name])
+  @@unique([user_id, level_task_id])
   @@index([user_id, completed_at])
-  @@index([scenario_id])
+  @@index([level_task_id])
   @@map("task_activities")
 }
 
@@ -368,24 +264,12 @@ model assessment_topic_score {
 // Learner Pass
 // ────────────────────────────────────────────────────────────────────────────
 
-/// One purchased Learner Pass — the ENTITLEMENT.
-///
-/// Note this breaks the pattern used for achievements and daily login: this table holds
-/// facts that genuinely cannot be derived (a payment, a provider, an expiry), so unlike
-/// `daily_logins` it is a real entity and stays. What it *used* to hold in addition was
-/// four unrelated jobs in one row: progress (a `claimed_days` int array), two cached
-/// aggregates (`streak`, `last_claimed_at`), and a choice log (`unlock_choices` JSON).
-/// Progress now lives in `learner_pass_claim`; the aggregates are derived from it.
 model learner_pass_enrollment {
   id               String   @id @default(cuid()) @map("id")
   user_id          String   @map("user_id")
-  /// Stripe PaymentIntent id (`pi_…`). Required: every pass is created with a payment.
-  /// The unique constraint is the webhook idempotency key.
   payment_id       String   @unique @map("payment_id")
   payment_provider String   @default("stripe") @map("payment_provider")
   created_at       DateTime @default(now()) @map("created_at")
-  /// Required: a pass always has an end date, so there is no "never expires" case to
-  /// represent — and no code path may create a pass that never runs out.
   expires_at       DateTime @map("expires_at")
   updated_at       DateTime @updatedAt @map("updated_at")
 
@@ -397,63 +281,21 @@ model learner_pass_enrollment {
   @@map("learner_pass_enrollments")
 }
 
-/// One claimed allowance day.
-///
-/// `day_number` is a SLOT IN THE PREPAID ALLOWANCE (1..PASS_LENGTH), NOT a date. The
-/// pass grants 30 redeemable days that accrue from `learner_pass_enrollment.created_at`
-/// whether or not they are claimed, so the natural key is `(enrollment_id, day_number)`
-/// and back-filling a missed day is just `day_number <= elapsed days`.
-///
-/// This replaces the `claimed_days` int array, with two concrete wins: the unique
-/// constraint makes a duplicate claim impossible at the database level (the array's
-/// read-modify-write could lose a day under concurrency and let it be claimed twice),
-/// and each claim now records when it happened and what it paid.
 model learner_pass_claim {
   id                String   @id @default(cuid()) @map("id")
   enrollment_id     String   @map("enrollment_id")
   day_number        Int      @map("day_number")
   claimed_at        DateTime @default(now()) @map("claimed_at")
-  /// Payout snapshot, so editing the ladder never rewrites history.
   coins_awarded     Int      @map("coins_awarded")
   xp_awarded        Int      @map("xp_awarded")
   ai_helps_awarded  Int      @map("ai_helps_awarded")
-  /// The scenario chosen on a special day (6/12/18/24/30). Replaces the
-  /// `unlock_choices` JSON array, which could not record which day a choice was for.
-  /// This column IS the access grant now that `user_project_access` is gone.
-  unlocked_scenario String?   @map("unlocked_scenario")
-  /// When the choice was made: a day can be claimed long before its reward is spent.
-  /// Preserves `user_project_access.granted_at`, which dropping that table would lose.
-  unlocked_at       DateTime? @map("unlocked_at")
 
   enrollment learner_pass_enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
-  /// `Restrict`: once a user has unlocked a scenario, that scenario cannot be deleted out from
-  /// under the grant. Same convention as `workspace` and the access table this replaced.
-  scenario   scenario?               @relation("learner_pass_unlocks", fields: [unlocked_scenario], references: [id], onDelete: Restrict)
 
   @@unique([enrollment_id, day_number])
   @@index([enrollment_id, claimed_at])
-  /// Access checks ask "who has unlocked this scenario".
-  @@index([unlocked_scenario])
   @@map("learner_pass_claims")
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-// Project Access — REMOVED (was: user_project_access)
-// ────────────────────────────────────────────────────────────────────────────
-//
-// `user_project_access` held one fact: "this user may open this scenario". Every row came
-// from the Learner Pass — `LEARNER_PASS` was the only `source` ever written, while
-// `COIN_PURCHASE` and `ADMIN_GRANT` had no writer or reader anywhere in the codebase — and
-// a pass unlock is exactly `learner_pass_claim.unlocked_scenario`. The table was therefore
-// a projection of the claims, and is now read as one.
-//
-// The only fact a claim did not already hold was WHEN the choice was made, which is why
-// `learner_pass_claim.unlocked_at` exists. Grants remain permanent: the pass expires, the
-// unlock does not.
-//
-// Consequence: premium access can now come only from a Learner Pass. If a second grant path
-// is ever needed (coin purchase, support grant), give it its own table — do not reintroduce
-// a polymorphic `source` column with a single populated value.
 
 // ────────────────────────────────────────────────────────────────────────────
 // Coin Purchases

@@ -15,7 +15,6 @@ export const levels = [
     subtitle:
       "Set up the FitTech member portal and add member-name / short-date formatters.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new full-stack developer has joined FitTech Systems. The team maintains a member portal built with Next.js, PostgreSQL, and Prisma where members view their membership, book classes, and check attendance. The first tasks are to get the portal running against a local database and add two small formatting helpers so the header and membership card display data consistently.",
     xp_reward: 100,
@@ -295,7 +294,6 @@ export const levels = [
     subtitle:
       "Two Prisma-backed server actions: membership status and days-until-expiry.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The portal needs an authoritative membership badge and an 'expires in N days' line. Today both are computed on the client from whichever fields the API happened to return. Both must be moved behind server actions backed by Prisma so the database is the source of truth. The graders mock `@/lib/prisma`, so real Prisma queries are written — no DB calls execute during the test.",
     xp_reward: 150,
@@ -530,7 +528,6 @@ export const levels = [
     subtitle:
       "Render two React components: a clamped spots indicator and a smart booking button.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Members see negative 'spots left' counters on popular classes and the Book button stays clickable after they've already booked. Replace the ad-hoc inline math with two presentational React components — a `<ClassSpotsIndicator />` and a `<BookingButton />` — graded with `@testing-library/react` in jsdom.",
     xp_reward: 200,
@@ -813,7 +810,6 @@ export const levels = [
     subtitle:
       "Render a Bookings-By-Class list (client) and a month-bucketed attendance server action.",
     order: 4,
-    deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Studio managers want a Class Insights panel that shows bookings per class and a Member Insights panel that shows attendance bucketed by month. Build one presentational component for the per-class list and one Prisma-backed server action for the monthly attendance aggregation.",
     xp_reward: 250,
@@ -1078,7 +1074,6 @@ export const levels = [
     subtitle:
       "Render a Member Stats card (client) and an active-members ranking server action.",
     order: 5,
-    deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The owner wants a 'Member Insights' page with two pieces — a per-member stats card showing bookings, attendance, rate, and favourite class, plus a leaderboard of the most active members across the gym. The card is a presentational React component; the leaderboard is a Prisma-backed server action that has to include members with zero attendance.",
     xp_reward: 300,

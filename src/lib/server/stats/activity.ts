@@ -9,10 +9,13 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
       where: { user_id: userId },
       select: {
         id: true,
-        task_name: true,
-        level: true,
         completed_at: true,
-        scenario: { select: { name: true } },
+        level_task: {
+          select: {
+            task_name: true,
+            level: { select: { order: true, scenario: { select: { name: true } } } },
+          },
+        },
       },
       orderBy: { completed_at: "desc" },
       take: limit,
@@ -27,8 +30,8 @@ export async function getRecentActivity(userId: string, limit = 8): Promise<Acti
   const taskItems: ActivityItem[] = tasks.map((t) => ({
     id: t.id,
     type: "challenge" as const,
-    title: t.task_name,
-    description: `Level ${t.level} · ${t.scenario.name}`,
+    title: t.level_task.task_name,
+    description: `Level ${t.level_task.level.order} · ${t.level_task.level.scenario.name}`,
     timestamp: formatRelativeTime(new Date(t.completed_at)),
     icon: "🐛",
   }));

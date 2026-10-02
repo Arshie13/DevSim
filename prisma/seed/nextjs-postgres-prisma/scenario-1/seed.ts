@@ -15,7 +15,6 @@ export const levels = [
     subtitle:
       "Set up the Next.js + PostgreSQL + Prisma POS environment and add a peso-formatting helper.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new full-stack developer has just been hired at NOVO Enterprises Inc. The team maintains a Point-of-Sale system built with Next.js, PostgreSQL, and Prisma. The first task is to get the project running against a local database, then add a small peso-formatting helper to confirm where the code lives.",
     xp_reward: 100,
@@ -274,7 +273,6 @@ export const levels = [
     subtitle:
       "Write two Prisma-backed server actions: one to classify stock, one to compute cart totals from DB prices.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Cashiers cannot tell at a glance which products are low on stock, and the cart summary recomputes totals inline using whatever price the client happens to send. Both must be replaced with server actions backed by Prisma so the database is the source of truth. The graders mock `@/lib/prisma`, so real Prisma queries are written — no DB calls execute during the test.",
     xp_reward: 150,
@@ -530,7 +528,6 @@ export const levels = [
     subtitle:
       "Render two React components — an errors banner and a live order summary.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Cashiers cannot tell whether the cart is safe to submit, and the on-screen order summary is duplicated across two pages with slightly different markup. Build two presentational React components — one that surfaces every checkout error at once, and one that renders the live order summary with totals. Both are graded with `@testing-library/react` in jsdom.",
     xp_reward: 200,
@@ -817,7 +814,6 @@ export const levels = [
     subtitle:
       "Add an expiry column, build a Coupon Input component, and pick the best valid coupon on the server.",
     order: 4,
-    deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Coupons need an `expires_at` column on the `Coupon` model so flash sales can self-terminate. The cashier needs a small input component that normalizes whatever they type, and the POS needs a server action that picks the coupon yielding the largest valid discount. One client task (React component), one server task (Prisma-backed action), one schema migration in between.",
     xp_reward: 250,
@@ -1111,7 +1107,6 @@ export const levels = [
     subtitle:
       "Build a Sales Summary component and a Top Selling server action, then surface both on /admin/reports.",
     order: 5,
-    deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The owner wants a `/admin/reports` page with two pieces — a live summary card (revenue, discounts, order count, average order value) and a leaderboard of the top-selling products. The summary is a presentational React component; the leaderboard is a Prisma-backed server action that aggregates `OrderItem` rows.",
     xp_reward: 300,

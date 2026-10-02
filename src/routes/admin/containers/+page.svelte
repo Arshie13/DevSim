@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Loader2, RefreshCw, Container, User, Monitor, Activity, Play, Square } from "lucide-svelte";
+  import { Loader2, RefreshCw, Boxes, User, Activity, Play, Square } from "lucide-svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
+  import Scrollbar from "$lib/components/ui/Scrollbar.svelte";
   import type { PageData } from "./$types";
 
   export let data: PageData;
@@ -15,15 +16,14 @@
   }
 </script>
 
-<div class="p-6">
-  <div class="mb-6 flex items-center justify-between">
+<div class="page-container py-6">
+  <div class="mb-8 flex items-center justify-between">
     <div>
-      <h1
-        class="[font-family:var(--font-heading)] text-2xl font-medium text-[var(--text-primary)]"
-      >
+      <h1 class="font-heading text-3xl font-bold tracking-tight text-obsidian-text-primary">
+       <Boxes class="inline h-6 w-6 mr-2" />
         Container Overview
       </h1>
-      <p class="mt-1 [font-family:var(--font-mono)] text-sm text-[var(--text-muted)]">
+      <p class="mt-1 font-body text-md text-obsidian-text-muted">
         Stop containers for inactive users. Presence updates only while a user is on a
         workspace or tutorial page.
       </p>
@@ -32,7 +32,7 @@
     <button
       type="button"
       on:click={() => invalidateAll()}
-      class="flex items-center gap-2 rounded border border-[rgba(7,165,201,0.2)] bg-[rgba(10,14,26,0.72)] px-3 py-2 [font-family:var(--font-mono)] text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)] hover:border-[rgba(7,165,201,0.4)]"
+      class="btn-cyber btn-cyber-outline !px-3 !py-2 flex items-center gap-2"
     >
       <RefreshCw class="h-4 w-4" />
       Refresh
@@ -41,77 +41,80 @@
 
   {#if message}
     <div
-      class="mb-4 p-3 rounded border {message.type === 'success'
-        ? 'border-[rgba(0,229,160,0.3)] bg-[rgba(0,229,160,0.1)] text-[var(--success)]'
-        : 'border-[rgba(255,68,68,0.3)] bg-[rgba(255,68,68,0.1)] text-[var(--danger)]'}"
+      class="mb-4 rounded-card border p-3 {message.type === 'success'
+        ? 'border-cyber-success/30 bg-cyber-success/10 text-cyber-success'
+        : 'border-cyber-danger/30 bg-cyber-danger/10 text-cyber-danger'}"
     >
-      <p class="[font-family:var(--font-mono)] text-sm">{message.text}</p>
+      <p class="font-label text-sm">{message.text}</p>
     </div>
   {/if}
 
   {#if data.dockerError}
-    <div
-      class="mb-4 p-3 rounded border border-[rgba(255,68,68,0.3)] bg-[rgba(255,68,68,0.1)] text-[var(--danger)]"
-    >
-      <p class="[font-family:var(--font-mono)] text-sm">
+    <div class="mb-4 rounded-card border border-cyber-danger/30 bg-cyber-danger/10 p-3 text-cyber-danger">
+      <p class="font-label text-md  ">
         Docker daemon unreachable — states shown as stopped.
       </p>
     </div>
   {/if}
 
-  <div class="rounded border border-[rgba(7,165,201,0.12)] bg-[rgba(10,14,26,0.72)] overflow-hidden">
-    <div class="overflow-x-auto">
+  <div
+    class="card-cyber overflow-hidden"
+    style="border-color: rgb(var(--accent-rgb) / 0.15)"
+  >
+    <Scrollbar horizontal>
       <table class="w-full text-left">
         <thead>
-          <tr class="border-b border-[rgba(7,165,201,0.12)]">
-            <th class="px-4 py-3 [font-family:var(--font-mono)] text-xs uppercase tracking-wider text-[var(--text-muted)]">User</th>
-            <th class="px-4 py-3 [font-family:var(--font-mono)] text-xs uppercase tracking-wider text-[var(--text-muted)]">Stack</th>
-            <th class="px-4 py-3 [font-family:var(--font-mono)] text-xs uppercase tracking-wider text-[var(--text-muted)]">Scenario / Level</th>
-            <th class="px-4 py-3 [font-family:var(--font-mono)] text-xs uppercase tracking-wider text-[var(--text-muted)]">Workspace</th>
-            <th class="px-4 py-3 [font-family:var(--font-mono)] text-xs uppercase tracking-wider text-[var(--text-muted)]">Docker</th>
-            <th class="px-4 py-3 [font-family:var(--font-mono)] text-xs uppercase tracking-wider text-[var(--text-muted)]">Presence</th>
-            <th class="px-4 py-3 [font-family:var(--font-mono)] text-xs uppercase tracking-wider text-[var(--text-muted)]">Action</th>
+          <tr class="border-b border-obsidian-accent/15">
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">User</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Stack</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Scenario / Level</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Workspace</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Docker</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Presence</th>
+            <th class="px-4 py-3 font-label text-sm uppercase tracking-[0.04em] text-obsidian-text-muted">Action</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-[rgba(7,165,201,0.08)]">
+        <tbody class="divide-y divide-obsidian-accent/10">
           {#each data.rows as row}
-            <tr class="hover:bg-[rgba(7,165,201,0.04)]">
+            <tr class="hover:bg-obsidian-accent/5">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <User class="h-4 w-4 text-[var(--text-muted)]" />
+                  <User class="h-4 w-4 text-obsidian-text-muted" />
                   <div>
-                    <p class="[font-family:var(--font-mono)] text-sm text-[var(--text-primary)]">
+                    <p class="font-mono text-base text-obsidian-text-primary">
                       {row.user.name}
                     </p>
-                    <p class="[font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">
+                    <p class="font-mono text-sm text-obsidian-text-muted">
                       {row.user.email}
                     </p>
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-3 [font-family:var(--font-mono)] text-sm text-[var(--text-primary)]">
+              <td class="px-4 py-3 font-mono text-base text-obsidian-text-primary">
                 {row.stackName ?? '—'}
               </td>
-              <td class="px-4 py-3 [font-family:var(--font-mono)] text-sm text-[var(--text-primary)]">
+              <td class="px-4 py-3 font-mono text-base text-obsidian-text-primary">
                 <div>{row.scenarioName}</div>
-                <div class="text-xs text-[var(--text-muted)]">Level {row.level}</div>
+                <div class="text-sm text-obsidian-text-muted">Level {row.level}</div>
               </td>
-              <td class="px-4 py-3 [font-family:var(--font-mono)] text-sm text-[var(--text-primary)]">
+              <td class="px-4 py-3 font-mono text-base text-obsidian-text-primary">
                 {row.status}
               </td>
               <td class="px-4 py-3">
                 {#if row.dockerRunning}
-                  <span class="inline-flex items-center gap-1.5 rounded-full border border-[rgba(0,229,160,0.3)] bg-[rgba(0,229,160,0.1)] px-2 py-0.5 [font-family:var(--font-mono)] text-xs text-[var(--success)]">
+                  <span class="tag-cyber tag-green inline-flex items-center gap-1.5">
                     <Play class="h-3 w-3" />
                     Running
                   </span>
                   {#if row.dockerState}
-                    <span class="ml-2 [font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">
+                    <span class="ml-2 font-mono text-sm text-obsidian-text-muted">
                       {row.dockerState.replace(/^Up\s+/, '').replace(/^Exited\s+/, '')}
                     </span>
                   {/if}
                 {:else}
-                  <span class="inline-flex items-center gap-1.5 rounded-full border border-[rgba(136,146,160,0.2)] bg-[rgba(136,146,160,0.08)] px-2 py-0.5 [font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">
+                  <span
+                    class="tag-cyber inline-flex items-center gap-1.5 border border-obsidian-text-muted/20 bg-obsidian-text-muted/10 text-obsidian-text-muted"
+                  >
                     <Square class="h-3 w-3" />
                     Stopped
                   </span>
@@ -120,14 +123,14 @@
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <span
-                    class="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 [font-family:var(--font-mono)] text-xs {row.isInactive
-                      ? 'border-[rgba(255,68,68,0.3)] bg-[rgba(255,68,68,0.1)] text-[var(--danger)]'
-                      : 'border-[rgba(0,229,160,0.3)] bg-[rgba(0,229,160,0.1)] text-[var(--success)]'}"
+                    class="tag-cyber inline-flex items-center gap-1.5 {row.isInactive
+                      ? 'border border-cyber-danger/30 bg-cyber-danger/10 text-cyber-danger'
+                      : 'tag-green'}"
                   >
                     <Activity class="h-3 w-3" />
                     {row.presenceLabel}
                   </span>
-                  <span class="[font-family:var(--font-mono)] text-xs text-[var(--text-muted)]">
+                  <span class="font-mono text-sm text-obsidian-text-muted">
                     {row.lastSeenLabel}
                   </span>
                 </div>
@@ -155,7 +158,7 @@
                   <button
                     type="submit"
                     disabled={!row.dockerRunning || !row.isInactive || stoppingId === row.containerId}
-                    class="flex items-center gap-1.5 rounded border border-[rgba(255,68,68,0.2)] bg-[rgba(255,68,68,0.08)] px-3 py-1.5 [font-family:var(--font-mono)] text-xs font-medium text-[var(--danger)] transition-colors hover:bg-[rgba(255,68,68,0.18)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,68,68,0.4)] disabled:cursor-not-allowed disabled:opacity-40"
+                    class="btn-cyber btn-cyber-danger !px-3 !py-1.5 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-cyber-danger/40 disabled:cursor-not-allowed disabled:opacity-40"
                     title={!row.dockerRunning
                       ? 'Container is not running'
                       : !row.isInactive
@@ -175,13 +178,13 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="px-4 py-8 text-center [font-family:var(--font-mono)] text-sm text-[var(--text-muted)]">
+              <td colspan="7" class="px-4 py-8 text-center font-label text-sm text-obsidian-text-muted">
                 No active containers found.
               </td>
             </tr>
           {/each}
         </tbody>
       </table>
-    </div>
+    </Scrollbar>
   </div>
 </div>
