@@ -7,6 +7,10 @@ import type { ScenarioMeta, StackSelection, EpicMeta } from '$lib/types/techstac
 import { resolveScenarioId } from '$lib/utils/scenario-mapping';
 import { hasProjectAccess } from '$lib/server/access/hasProjectAccess';
 import { stackNameToFolder } from '$lib/server/stacks/tech-registry';
+import {
+	listDevsimProjectImageTags,
+	scenarioImageTagCandidates
+} from '$lib/server/docker/images';
 
 const BASE_DIR = path.resolve('submodules/projects/tech-stacks');
 
@@ -183,6 +187,16 @@ export const load: PageServerLoad = async (event) => {
 
 	const scenarios: ScenarioMeta[] = [];
 
+	// A scenario is only selectable when BOTH the on-disk folder and a built
+	// Docker image exist. Docker being unreachable disables the image gate
+	// rather than hiding every scenario.
+	let imageTags: Set<string> | null = null;
+	try {
+		imageTags = new Set(await listDevsimProjectImageTags());
+	} catch {
+		imageTags = null;
+	}
+
 	// Resolve folder IDs to DB IDs for paywall check
 	const folderIdToDbId: Record<string, string> = {};
 	for (const dir of scenarioDirs) {
@@ -204,6 +218,20 @@ export const load: PageServerLoad = async (event) => {
 		if (!projectEntry) continue;
 
 		const projectFolder = projectEntry.name;
+
+		// AND gate: the folder must exist (we're already here) and a matching
+		// image must have been built. `previews` is never a project folder.
+		if (imageTags) {
+			const projectFolders = subEntries
+				.filter((e) => e.isDirectory() && e.name !== 'previews')
+				.map((e) => e.name);
+			const hasImage = scenarioImageTagCandidates(
+				folderStackName,
+				dir.name,
+				projectFolders
+			).some((tag) => imageTags.has(tag));
+			if (!hasImage) continue;
+		}
 
 		// project.md: check at scenario-N/ root first, then inside the project folder
 		const projectMdAtRoot = path.join(scenarioPath, 'project.md');

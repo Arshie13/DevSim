@@ -1,5 +1,21 @@
 import prisma from '$lib/server/client';
 import type { WorkspaceRow } from '$lib/interface/Workspace';
+import { TECH_TO_FOLDER } from '$lib/server/stacks/tech-registry';
+
+/**
+ * Build the persisted stack_name for a stack selection.
+ *
+ * Must mirror `saveUserContainer` exactly: each tech id is mapped to its
+ * folder segment before joining. Tech ids and folder segments differ (e.g.
+ * `postgresql` → `postgres`, `shadcn-ui` → `shadcn_ui`), so joining the raw
+ * ids produces a key that never matches what was stored.
+ */
+function buildStackName(stacks: Array<{ stackName: string }>) {
+  return stacks
+    .map((s) => TECH_TO_FOLDER[s.stackName] ?? s.stackName)
+    .filter(Boolean)
+    .join('-');
+}
 
 function mapWorkspace(row: WorkspaceRow) {
   return {
@@ -57,7 +73,7 @@ export class WorkspaceDataAccess {
   }
 
   async findActiveWorkspaceByStacks(userId: string, level: number, stacks: Array<{ stackName: string }>) {
-    const stackName = stacks.map(s => s.stackName).join('-');
+    const stackName = buildStackName(stacks);
     const activeWorkspaces = await prisma.workspace.findMany({
       where: {
         user_id: userId,
@@ -72,6 +88,25 @@ export class WorkspaceDataAccess {
       return mapWorkspace(activeWorkspaces[0] as unknown as WorkspaceRow);
     }
     return null;
+  }
+
+  /**
+   * Returns every non-archived tutorial workspace for the given stack/level.
+   * Used to guarantee tutorial containers are destroyed when a real workspace
+   * is created, even when the reuse candidate happens to be another row.
+   */
+  async findTutorialWorkspacesByStacks(userId: string, level: number, stacks: Array<{ stackName: string }>) {
+    const stackName = buildStackName(stacks);
+    const rows = await prisma.workspace.findMany({
+      where: {
+        user_id: userId,
+        level,
+        is_archived: false,
+        stack_name: stackName,
+        status: 'tutorial',
+      }
+    });
+    return rows.map((row) => mapWorkspace(row as unknown as WorkspaceRow));
   }
 
   async findWorkspaceById(id: string) {

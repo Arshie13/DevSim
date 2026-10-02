@@ -5,7 +5,7 @@ import { Prisma } from '$prismaclient';
 import prisma from '$lib/server/client';
 import { resolveStackName, resolveScenarioId } from '$lib/utils/scenario-mapping';
 import { parseInteractiveConfig } from '$lib/utils/interactive-config';
-import { docker } from '$lib/server/docker/client';
+import { listDevsimProjectImageTags } from '$lib/server/docker/images';
 
 function getMappedId(imageTag: string): string | null {
   const parts = imageTag.split("-scenario-");
@@ -15,23 +15,6 @@ function getMappedId(imageTag: string): string | null {
   const folderId = `scenario-${scenarioNum}`;
   const resolved = resolveScenarioId(stackName, folderId);
   return resolved !== folderId ? resolved : null;
-}
-
-async function listDevsimImages(): Promise<string[]> {
-  try {
-    const images = await docker.listImages({ filters: { reference: ["devsim-project:*"] } });
-    const tags: string[] = [];
-    for (const img of images) {
-      for (const tag of img.RepoTags ?? []) {
-        if (tag.startsWith("devsim-project:")) {
-          tags.push(tag.replace("devsim-project:", ""));
-        }
-      }
-    }
-    return tags.sort();
-  } catch {
-    return [];
-  }
 }
 
 /** Split a "one per line" textarea into trimmed, non-empty entries. */
@@ -59,7 +42,7 @@ export const load: PageServerLoad = async () => {
       },
       orderBy: { name: 'asc' }
     }),
-    listDevsimImages()
+    listDevsimProjectImageTags().catch(() => [] as string[])
   ]);
 
   const existingIds = new Set(scenarios.map(s => s.id));
