@@ -23,7 +23,6 @@
     subtitle: string;
     order: number;
     sprintNumber: number;
-    deadline: string;
     levelDescription: string;
     xpReward: number;
     coinReward: number;
@@ -247,11 +246,6 @@
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
           </div>
           <div>
-            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="deadline">Deadline</label>
-            <input id="deadline" type="date" name="deadline"
-              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
-          </div>
-          <div>
             <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="xp">XP</label>
             <input id="xp" type="number" name="xpReward" value="100"
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
@@ -430,11 +424,6 @@
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div>
-                      <label class="text-obsidian-text-muted text-sm" for="deadline">Deadline</label>
-                      <input id="deadline" type="date" name="deadline"
-                        class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
-                    </div>
-                    <div>
                       <label class="text-obsidian-text-muted text-sm" for="xp">XP</label>
                       <input id="xp" type="number" name="xpReward" value="100"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
@@ -509,11 +498,6 @@
                           <div>
                             <label class="text-obsidian-text-muted text-sm" for="sprint">Sprint</label>
                             <input id="sprint" type="number" name="sprintNumber" value={level.sprintNumber}
-                              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
-                          </div>
-                          <div>
-                            <label class="text-obsidian-text-muted text-sm" for="deadline">Deadline</label>
-                            <input id="deadline" type="date" name="deadline" value={level.deadline}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div>

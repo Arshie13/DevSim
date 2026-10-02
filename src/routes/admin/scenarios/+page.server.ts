@@ -64,7 +64,6 @@ export const load: PageServerLoad = async () => {
         subtitle: l.subtitle,
         order: l.order,
         sprintNumber: l.sprint_number,
-        deadline: l.deadline.toISOString().split('T')[0],
         levelDescription: l.level_description,
         xpReward: l.xp_reward,
         coinReward: l.coin_reward,
@@ -120,7 +119,6 @@ export const actions: Actions = {
     const levelSubtitle = formData.get('levelSubtitle') as string;
     const order = parseInt(formData.get('order') as string) || 1;
     const sprintNumber = parseInt(formData.get('sprintNumber') as string) || 1;
-    const deadline = formData.get('deadline') as string;
     const levelDescription = formData.get('levelDescription') as string;
     const xpReward = parseInt(formData.get('xpReward') as string) || 100;
     const coinReward = parseInt(formData.get('coinReward') as string) || 50;
@@ -145,7 +143,6 @@ export const actions: Actions = {
             subtitle: levelSubtitle || '',
             order,
             sprint_number: sprintNumber,
-            deadline: deadline ? new Date(deadline) : new Date(),
             level_description: levelDescription || '',
             xp_reward: xpReward,
             coin_reward: coinReward,
@@ -197,7 +194,6 @@ export const actions: Actions = {
     const subtitle = formData.get('subtitle') as string;
     const order = parseInt(formData.get('order') as string) || 1;
     const sprintNumber = parseInt(formData.get('sprintNumber') as string) || 1;
-    const deadline = formData.get('deadline') as string;
     const levelDescription = formData.get('levelDescription') as string;
     const xpReward = parseInt(formData.get('xpReward') as string) || 100;
     const coinReward = parseInt(formData.get('coinReward') as string) || 50;
@@ -213,7 +209,6 @@ export const actions: Actions = {
         subtitle: subtitle || '',
         order,
         sprint_number: sprintNumber,
-        deadline: deadline ? new Date(deadline) : new Date(),
         level_description: levelDescription || '',
         xp_reward: xpReward,
         coin_reward: coinReward,
@@ -232,7 +227,6 @@ export const actions: Actions = {
     const subtitle = formData.get('subtitle') as string;
     const order = parseInt(formData.get('order') as string) || 1;
     const sprintNumber = parseInt(formData.get('sprintNumber') as string) || 1;
-    const deadline = formData.get('deadline') as string;
     const levelDescription = formData.get('levelDescription') as string;
     const xpReward = parseInt(formData.get('xpReward') as string) || 100;
     const coinReward = parseInt(formData.get('coinReward') as string) || 50;
@@ -249,7 +243,6 @@ export const actions: Actions = {
         subtitle: subtitle ?? undefined,
         order: order || undefined,
         sprint_number: sprintNumber || undefined,
-        deadline: deadline ? new Date(deadline) : undefined,
         level_description: levelDescription ?? undefined,
         xp_reward: xpReward || undefined,
         coin_reward: coinReward || undefined,

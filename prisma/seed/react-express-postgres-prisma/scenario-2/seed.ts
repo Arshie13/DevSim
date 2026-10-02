@@ -15,7 +15,6 @@ export const levels = [
       subtitle:
         "Set up the development environment and make a minor brand UI change.",
       order: 1,
-      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: UrbanPottery has just onboarded a new developer. Get the PERN stack running locally — install dependencies in all three package roots, run Prisma migrations, start both dev servers, and update the brand name in the Navbar to match the official style guide.",
       xp_reward: 100,
@@ -280,7 +279,6 @@ export const levels = [
       title: "Client-Side Exploration",
       subtitle: "Build a stock status helper and adopt it across the UI.",
       order: 2,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The shop page uses duplicate inline stock checks scattered across components. Your job is to create a shared getStockStatus helper that returns a 3-state enum, then refactor ProductCard to use it and add a 'Hide out-of-stock' toggle on the Shop page.",
       xp_reward: 25,
@@ -605,7 +603,6 @@ export const levels = [
       subtitle:
         "Diagnose the cancel-flow stock leak and enforce atomic operations.",
       order: 3,
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Finance reports that cancelled orders are not restoring product stock — meaning the warehouse counts are wrong. Diagnose the missing restore in the PATCH /orders/:id/status route, then implement an atomic cancelOrder function with a new cancelledAt timestamp field and a concurrency guard at checkout.",
       xp_reward: 40,
@@ -916,7 +913,6 @@ export const levels = [
       title: "Starting my Full-Stack Journey",
       subtitle: "Implement Coupon / Discount Codes end-to-end.",
       order: 4,
-      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Marketing wants a coupon system. Build the Coupon model, a validate endpoint, extend order creation to apply discounts, add coupon input UI to Checkout, and enforce usage limits + expiry atomically — including decrementing usedCount on order cancellation.",
       xp_reward: 60,
@@ -1283,7 +1279,6 @@ export const levels = [
       title: "The Production Struggle: Sales Revenue Bug",
       subtitle: "Fix the inflated revenue dashboard and write a postmortem.",
       order: 5,
-      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Finance cannot close the books. The admin Dashboard's total revenue includes cancelled orders, inflating figures. Worse, if an admin manually flips a cancelled order's status back to PENDING, the status field becomes stale — but cancelledAt still holds the truth. Fix the revenue query to use cancelledAt IS NULL as the source of truth, extract it into a shared utility, and write a postmortem.",
       xp_reward: 75,

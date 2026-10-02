@@ -37,7 +37,6 @@ export const levels = [
     subtitle:
       "Set up the MERN stack, run MongoDB locally, seed the recipe DB, and ship a tiny brand tweak.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Skillet & Stack Studios has just onboarded a new developer and needs RecipeNest running locally. Set up the MERN (MongoDB, Express, React, Node.js) stack, configure the environment, seed the recipe database, and make a small UI tweak so the brand identity reads correctly.",
     xp_reward: 100,
@@ -294,7 +293,6 @@ export const levels = [
     title: "Client-Side Exploration",
     subtitle: "Make recipe cards navigable and wire a live search filter into the feed.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The product team wants the recipe feed to feel like a real app — clicking a card should navigate to the full recipe, and a search bar should filter results in real time. React Router's <Link> is wired up for client-side navigation, then state is lifted up to connect a controlled search input to the feed.",
     xp_reward: 150,
@@ -596,7 +594,6 @@ export const levels = [
     subtitle:
       "Fix a broken Mongoose aggregation for trending recipes and expose it as a clean endpoint.",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The home feed needs a trending section, and the existing /trending endpoint is shipping wrong data. Investigate the aggregation pipeline, fix the stages, and wire up a properly-validated, properly-typed endpoint that the client can rely on.",
     xp_reward: 200,
@@ -898,7 +895,6 @@ export const levels = [
     subtitle:
       "Implement Save Recipe end-to-end, then build the Saved Recipes page.",
     order: 4,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Users want to bookmark recipes they like. The full Save feature is implemented end-to-end — model, idempotent endpoint, optimistic UI button — culminating in a Saved Recipes page where users can browse and unsave their favorites.",
     xp_reward: 300,
@@ -1206,7 +1202,6 @@ export const levels = [
     subtitle:
       "Real client-reported bugs in production. Reproduce, fix, and write a regression test for each.",
     order: 5,
-    deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Congratulations — RecipeNest is live. Two production issues have been reported by users: inflated save counts and confusing 'posted X days ago' labels. The mission is to investigate each, identify the root cause, deliver a fix backed by a regression test, and write a short postmortem.",
     xp_reward: 400,

@@ -21,7 +21,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and make a first schema change.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new developer has joined the IPPO POS engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change â€” adding a phoneNumber field to store settings â€” so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
@@ -316,7 +315,6 @@ export const levels = [
     title: "Product Catalog & Inventory",
     subtitle: "Implement inventory guards and paginated product listings.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: IPPO customers need to browse the product catalog efficiently, and inventory guards must prevent invalid stock states. The job is to fix low-stock comparison logic, prevent negative inventory updates, and build a paginated product listing.",
     xp_reward: 150,
@@ -571,7 +569,6 @@ export const levels = [
     title: "Transactional Checkout",
     subtitle: "Implement a transactional checkout with tax, discount, inventory deduction, and payment validation.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: IPPO customers need a reliable checkout experience. An order must deduct stock atomically, calculate tax and discount correctly, validate payment methods, and never leave the database in an inconsistent state.",
     xp_reward: 200,
@@ -858,7 +855,6 @@ export const levels = [
     title: "Reporting",
     subtitle: "Build admin-only daily and weekly sales reports with product breakdowns.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: IPPO management needs visibility into sales performance. The job is to build daily and weekly sales reports, aggregating order data and showing top-selling products.",
     xp_reward: 250,
@@ -1119,7 +1115,6 @@ export const levels = [
     title: "Production Hardening",
     subtitle: "Fix race conditions, decimal precision issues, timezone inconsistencies, and document everything in a postmortem.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Three critical bugs have been reported by IPPO users. First, concurrent checkouts can oversell a product with only 1 item in stock. Second, order totals occasionally show more than 2 decimal places due to floating-point drift. Third, daily reports show inconsistent order counts depending on when they are queried. These are production-grade issues that require database-level fixes and defensive coding.",
     xp_reward: 300,

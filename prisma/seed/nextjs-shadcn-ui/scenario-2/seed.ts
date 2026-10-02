@@ -14,7 +14,6 @@ export const levels = [
     title: "Onboarding the Support Portal",
     subtitle: "Bootstrap the dev environment",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: City Hall has onboarded a new developer and needs the customer support portal running locally. Set up the Next.js development environment by installing dependencies, adding the required shadcn/ui components, and verifying the dev server starts cleanly.",
     xp_reward: 10,
@@ -222,7 +221,6 @@ export const levels = [
     title: "Polishing the Agent Dashboard",
     subtitle: "Fix badge palette and extract a reusable MessageBubble",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Agents report that conversation status badges are visually noisy and that similar messaging components are duplicated across the citizen and agent pages. Fix the badge palette for accessibility and refactor the duplicated message JSX into a reusable component.",
     xp_reward: 25,
@@ -472,7 +470,6 @@ export const levels = [
     title: "Empowering Agents and Citizens",
     subtitle: "Add conversation search and a citizen complaint history page",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Volume is up — agents need to find conversations quickly, and citizens want to revisit complaints they previously filed. Add real-time search with status filters to the agent dashboard, and build a /support/history page that reads complaints back from localStorage.",
     xp_reward: 40,
@@ -703,7 +700,6 @@ export const levels = [
     title: "Hardening the Citizen Experience",
     subtitle: "Validate the citizen form and persist state across reload",
     order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: QA flagged that the citizen form accepts garbage input and that messages and conversations vanish on page reload. Add inline field validation, prevent whitespace-only chat sends, and build a `useLocalStorage` hook that persists conversations, agent status, and chat messages across reloads.",
     xp_reward: 60,
@@ -978,7 +974,6 @@ export const levels = [
     title: "The Unread Badge Crisis",
     subtitle: "Fix the unread badge bug and ship date utilities + docs",
     order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Agents report the unread badge stays red after they click into a conversation, and that the count doesn't match the underlying messages. They also want timestamps shown as 'Just now' / '5m ago' instead of raw times. Fix the unread state drift, build a reusable `dateUtils` module, and update the README so the next developer can onboard quickly.",
     xp_reward: 75,

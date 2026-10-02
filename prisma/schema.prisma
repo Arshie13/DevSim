@@ -95,7 +95,6 @@ model level {
   subtitle          String       @map("subtitle")
   order             Int          @default(0) @map("order")
   sprint_number     Int          @default(1) @map("sprint_number")
-  deadline          DateTime     @map("deadline")
   level_description String       @map("level_description")
   xp_reward         Int          @map("xp_reward")
   coin_reward       Int          @map("coin_reward")
@@ -198,6 +197,7 @@ model daily_login_claim {
 // ────────────────────────────────────────────────────────────────────────────
 
 model user_achievement {
+  id               String   @id @default(cuid()) @map("id")
   user_id       String           @map("user_id")
   family        String           @map("family")
   tier          String           @map("tier")
@@ -206,7 +206,7 @@ model user_achievement {
   earned_at     DateTime         @default(now()) @map("earned_at")
   user          user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@id([user_id, family, tier])
+  @@unique([user_id, family, tier])
   @@index([family, tier])
   @@map("user_achievements")
 }

@@ -45,7 +45,6 @@ export interface TechStack {
     description: string;
     difficulty: string;
     estimatedTime: string;
-    deadline: number;
     tasks: string[];
     rewards: Record<string, number>;
   }>;

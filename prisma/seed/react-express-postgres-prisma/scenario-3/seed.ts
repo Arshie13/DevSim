@@ -15,7 +15,6 @@ export const levels = [
       title: "Getting Familiar with the Codebase",
       subtitle: "Set up the POS environment and align the sidebar brand.",
       order: 1,
-      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: IPPO has just onboarded a new cashier-support engineer. Get the PERN POS stack running locally — install in all three package roots, run Prisma migrations, start both dev servers, and update the sidebar subtitle to match the company's official style guide.",
       xp_reward: 100,
@@ -281,7 +280,6 @@ export const levels = [
       subtitle:
         "Build a per-product stock classifier and adopt it across POS + Inventory pages.",
       order: 2,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: POS and Inventory pages each repeat inline stock checks. Create a pure getStockLevel(quantity, threshold) helper that returns a 3-state union, refactor both pages to use it, and add a cashier-facing 'Hide out-of-stock items' toggle on the POS page.",
       xp_reward: 150,
@@ -618,7 +616,6 @@ export const levels = [
       subtitle:
         "Diagnose the oversell race, then ship an atomic void endpoint and oversell-safe checkout.",
       order: 3,
-      deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The POS has two structural gaps — the existing checkout reads inventory then decrements later (two cashiers can both sell the last unit), and there is no way to void a mistaken sale. Diagnose both, then add an OrderStatus enum + voidedAt column, an atomic voidOrder controller, and an oversell-safe checkout using updateMany + gte guard.",
       xp_reward: 200,
@@ -935,7 +932,6 @@ export const levels = [
       subtitle:
         "Ship end-to-end validate-apply-redeem promo code flow with admin observability.",
       order: 4,
-      deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Marketing wants reusable promo codes the cashier can apply at checkout. Add a PromoCode model, POST /api/promos/validate, GET /api/promos (admin), wire the order create path to apply + atomically increment usedCount, hook voidOrder to decrement on reversal, and build the cashier UI + admin observability panel.",
       xp_reward: 250,
@@ -1306,7 +1302,6 @@ export const levels = [
       subtitle:
         "Voided sales are inflating the Reports page — fix the source-of-truth predicate and centralize it.",
       order: 5,
-      deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Finance escalated — the Reports page total revenue doesn't match the cash drawer. Voided orders are still being counted, and worse, admins with edit access can flip status back to COMPLETED while voidedAt still holds the truth. Fix the predicate, centralize it, and write a postmortem so this never happens again.",
       xp_reward: 300,

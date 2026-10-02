@@ -35,7 +35,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and update the brand tagline.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: WanderMint Studios just onboarded a new developer on TripWeaver. The first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms understanding of how the codebase is organized.",
     xp_reward: 100,
@@ -309,7 +308,6 @@ export const levels = [
     title: "Client-Side Exploration",
     subtitle: "Build the StopCard component and add day filtering to the itinerary.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The TripWeaver itinerary page is barely functional — stops are not displaying and there is no way to filter by day. The tasks are to build the StopCard presentational component from a stub and then wire up the DayFilter so travelers can focus on a single day of their trip.",
     xp_reward: 150,
@@ -638,7 +636,6 @@ export const levels = [
     title: "Backend / MongoDB",
     subtitle: "Fix the Trip Stats aggregation and harden the endpoint.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The product team wants a Trip Stats endpoint that returns the top-voted stops and total spend for a trip. The aggregation pipeline was written in a hurry — it has four bugs that produce wrong or empty results. After fixing the pipeline, hardening the endpoint with query validation, a consistent response envelope, and proper error handling is also needed.",
     xp_reward: 200,
@@ -951,7 +948,6 @@ export const levels = [
     title: "Full-Stack Feature: Vote + Expense Splitting",
     subtitle: "Implement the vote toggle and expense splitting end-to-end.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: WanderMint wants two collaborative features shipped before the next sprint review: a vote system where members can upvote activity suggestions with a count that never drifts, and an expense splitter where one member logs what they paid and the system computes who owes what. Both features require server routes, Mongoose logic, client services, and UI wiring.",
     xp_reward: 250,
@@ -1298,7 +1294,6 @@ export const levels = [
     title: "Production Bug Fixes",
     subtitle: "Fix vote counter drift and trip-timezone-naive day grouping.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Two critical bugs have been reported by WanderMint users. First, stop vote counts are inflating — some stops show more votes than there are voters. Second, travelers planning trips to foreign destinations see stops grouped on the wrong day in the timeline. Both bugs are production-grade issues that require database-level fixes and timezone-aware date handling.",
     xp_reward: 300,

@@ -23,7 +23,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and extend the Transaction model with a note field.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new developer has joined the FlexiSpend engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change — adding a note field to transactions — so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
@@ -330,7 +329,6 @@ export const levels = [
     title: "Data Modeling & API Foundations",
     subtitle: "Build paginated transaction lists and guard visibility with soft-delete categories.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. The job is to implement cursor-based pagination with filters and enforce soft-delete visibility rules across the API.",
     xp_reward: 150,
@@ -621,7 +619,6 @@ export const levels = [
     title: "Business Logic & Validation",
     subtitle: "Guard account balances with atomic updates and track budgets against actual spending.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: FlexiSpend handles real money — incorrect balance calculations or overspent budgets erode user trust. The job is to implement atomic balance updates (so concurrent transactions never drift), enforce funds guards (prevent overspending), and build a budget tracker that compares monthly limits against real transaction totals.",
     xp_reward: 200,
@@ -928,7 +925,6 @@ export const levels = [
     title: "Reporting & Analytics",
     subtitle: "Build monthly summaries, trend reports, category breakdowns, and budget alerts.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: FlexiSpend users need insights into their spending habits. The product team wants a monthly summary dashboard, a multi-month trend line, a category breakdown pie chart, and proactive budget alerts when users approach their limits. These endpoints aggregate large datasets — correctness and performance are equally important.",
     xp_reward: 250,
@@ -1220,7 +1216,6 @@ export const levels = [
     title: "Production Hardening",
     subtitle: "Fix balance drift, timezone inconsistency, and division-by-zero bugs under load.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Three critical bugs have been reported by FlexiSpend users. First, account balances occasionally drift after rapid transaction creation and deletion. Second, monthly reports show inconsistent totals depending on the server's timezone. Third, setting a budget to zero causes the dashboard to display NaN. These are production-grade issues that require database-level fixes and defensive coding.",
     xp_reward: 300,

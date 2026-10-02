@@ -15,7 +15,6 @@ export const levels = [
     title: "Onboarding the Student Portal",
     subtitle: "Bootstrap the dev environment",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Riverside University has onboarded a new developer and needs the student portal running locally. Set up the Next.js development environment by installing dependencies, adding the required shadcn/ui components, and verifying the dev server starts cleanly.",
     xp_reward: 10,
@@ -223,7 +222,6 @@ export const levels = [
     title: "Polishing the Academic Dashboard",
     subtitle: "Fix grade badge palette and extract a reusable StatCard",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The dean's office reports that grade badges are visually noisy and inconsistent across pages, and that similar stat-card components are duplicated in nearly every dashboard view. Replace the default shadcn variant palette with explicit, accessible Tailwind classes per grade tier, extract the duplicated stat-card JSX into a reusable component, and consolidate the fees page filter calls into a single useMemo.",
     xp_reward: 25,
@@ -483,7 +481,6 @@ export const levels = [
     title: "Empowering Students",
     subtitle: "Add grade search, semester filters, and a personal notes page",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Students are asking for two things â€” a faster way to find an old grade, and a way to write down personal study notes per course without leaving the portal. Add real-time search with semester filter chips to the grades page, then build a notes page that reads and writes from localStorage.",
     xp_reward: 40,
@@ -720,7 +717,6 @@ export const levels = [
     title: "Hardening the Login Experience",
     subtitle: "Validate the login form and persist preferences across reload",
     order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: QA flagged that the login screen accepts garbage input and that the sidebar collapses back to its default state every page reload, which annoys students who prefer a compact view. Add inline field validation to the login form, build a `useLocalStorage` hook, and wire it up to persist sidebar state, notes, and the last successful student ID.",
     xp_reward: 60,
@@ -1000,7 +996,6 @@ export const levels = [
     title: "The GPA Drift Crisis",
     subtitle: "Fix the cumulative GPA mismatch and ship date utilities + docs",
     order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Students complain that their cumulative GPA on the dashboard never matches the one on the grades page, and the academic standing page is showing a hard-coded 3.67 even after grades are updated. They also want fee due dates rendered as 'Due in 5 days' / 'Overdue by 2 days' / 'Due Today' rather than raw ISO strings. The GPA calculation must be centralized, a reusable dateUtils module built, and the README updated so the next developer can onboard quickly.",
     xp_reward: 75,

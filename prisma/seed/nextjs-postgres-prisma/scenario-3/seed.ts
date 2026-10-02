@@ -16,7 +16,6 @@ export const levels = [
     subtitle:
       "Set up the WorkPulse manager dashboard and add hour / currency formatters.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new full-stack developer has joined WorkPulse Inc. to work on the manager dashboard of the time-tracking product, built with Next.js, PostgreSQL, and Prisma. The first tasks are to get the dashboard running against a local database and add two formatting helpers so hour columns and payroll columns display consistently.",
     xp_reward: 100,
@@ -242,7 +241,6 @@ export const levels = [
     subtitle:
       "Two Prisma-backed server actions: employee clock state and a sum of completed hours.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The attendance table re-checks clock-in/out fields in every row, and the 'hours this week' total is computed on the client. Both must be moved behind server actions backed by Prisma so the dashboard agrees with the database. The graders mock `@/lib/prisma`, so real Prisma queries are written — no DB calls execute during the test.",
     xp_reward: 150,
@@ -431,7 +429,6 @@ export const levels = [
     subtitle:
       "Render two React components: a validated request form and a used/pending/remaining balance panel.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Employees need a request form that rejects bad inputs before they leave the page, and a balance panel that shows used / pending / remaining hours at a glance. Build two presentational React components, graded with `@testing-library/react` in jsdom.",
     xp_reward: 200,
@@ -685,7 +682,6 @@ export const levels = [
     subtitle:
       "Render an Hours Breakdown component and a Prisma-backed Gross Pay server action.",
     order: 4,
-    deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Payroll currently mixes hours-display logic and pay computation in a single 60-line server function with no tests. Split it into one presentational React component (Hours Breakdown) and one Prisma-backed server action (Gross Pay). The dashboard composes them; each is graded independently.",
     xp_reward: 250,
@@ -938,7 +934,6 @@ export const levels = [
     subtitle:
       "Render a Payroll Summary component and a Department Report server action.",
     order: 5,
-    deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Leadership wants a 'Department Report' view on the payroll tab with two pieces — a presentational summary card (totals + averages) and a Prisma-backed leaderboard that groups payroll records by department. The summary is a React component; the report is a server action that joins `payrollRecord` with `employee` and groups by a derived department key.",
     xp_reward: 300,

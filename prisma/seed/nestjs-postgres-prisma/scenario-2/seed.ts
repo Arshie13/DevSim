@@ -20,7 +20,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and extend the Product model with a roastLevel field.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new developer has joined the BrewHaven engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change - adding a roastLevel field to products - so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
@@ -322,7 +321,6 @@ export const levels = [
     title: "Product Catalog & Visibility",
     subtitle: "Build paginated product listings with filters and guard visibility with soft-deleted categories.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: BrewHaven customers need to browse the coffee catalog efficiently, and inactive categories should be hidden from the storefront while preserving historical product data. The job is to implement offset-based pagination with filters and enforce soft-delete visibility rules across the API.",
     xp_reward: 150,
@@ -608,7 +606,6 @@ export const levels = [
     title: "Transactional Checkout",
     subtitle: "Implement stock-aware checkout with tax calculation and order lifecycle management.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: BrewHaven customers need a reliable checkout experience. An order must deduct stock atomically, calculate tax correctly, validate payment methods, and move through a controlled state machine from PENDING to DELIVERED. The job is to build the transactional checkout and the order lifecycle endpoints.",
     xp_reward: 200,
@@ -919,7 +916,6 @@ export const levels = [
     title: "Reporting & Inventory",
     subtitle: "Build daily/weekly sales reports and a low-stock alert endpoint.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: BrewHaven management needs visibility into sales performance and inventory health. The job is to build daily and weekly sales reports, plus a low-stock alert endpoint that proactively warns when products are running low.",
     xp_reward: 250,
@@ -1215,7 +1211,6 @@ export const levels = [
     title: "Production Hardening",
     subtitle: "Fix overselling, decimal drift, and timezone inconsistency under load.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Three critical bugs have been reported by BrewHaven users. First, concurrent checkouts can oversell a product with only 1 item in stock. Second, order totals occasionally show more than 2 decimal places due to floating-point drift. Third, daily reports show inconsistent order counts depending on when they are queried. These are production-grade issues that require database-level fixes and defensive coding.",
     xp_reward: 300,

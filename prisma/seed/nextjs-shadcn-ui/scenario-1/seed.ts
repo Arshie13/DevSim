@@ -14,7 +14,6 @@ export const levels = [
     title: "Setup & Simple UI Fixes",
     subtitle: "Configure environment and make minor UI updates",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The library has onboarded a new developer and needs the system running locally with minor UI tweaks. Set up the Next.js development environment, install dependencies, add the required shadcn/ui components, and verify the dev server starts cleanly.",
     xp_reward: 10,
@@ -234,7 +233,6 @@ export const levels = [
     title: "Bug Fixing & Refactoring",
     subtitle: "Fix status display issues and refactor code",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Users report that the book status display is inconsistent and the code needs cleanup. Fix the status badge colors and refactor the book filtering logic to use proper React patterns.",
     xp_reward: 25,
@@ -490,7 +488,6 @@ export const levels = [
     title: "Feature Development",
     subtitle: "Add search and borrow functionality",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The library wants to expand functionality with new features for better book management. Implement search functionality and a borrow system with modal dialogs.",
     xp_reward: 40,
@@ -707,7 +704,6 @@ export const levels = [
     title: "Integration & Edge Cases",
     subtitle: "Handle validation and data persistence",
     order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Edge cases and data integrity issues arise when multiple operations happen. Add validation, confirmation dialogs, and data persistence to ensure a robust application.",
     xp_reward: 60,
@@ -907,7 +903,6 @@ export const levels = [
     title: "Real Client Issue",
     subtitle: "Fix overdue bug and create utilities",
     order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Fix a critical overdue status bug reported by clients and create reusable date utilities while updating documentation for maintainability.",
     xp_reward: 75,
