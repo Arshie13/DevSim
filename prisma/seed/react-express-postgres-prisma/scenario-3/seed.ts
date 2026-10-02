@@ -136,43 +136,43 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Root workspace is installed: node_modules/ exists at the project root and contains the concurrently package",
+                    "Install dependencies in the project root.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Client workspace is installed: client/node_modules/ exists and contains the react package",
+                    "Install dependencies in the client folder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Server workspace is installed: server/node_modules/ exists and contains both express and @prisma/client",
+                    "Install dependencies in the server folder.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Database is reachable: `pnpm exec tsx scripts/db-check.ts` in server/ exits with code 0 and its stdout contains DB_OK",
+                    "Run the database connectivity check from the server folder.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Migrations are applied: `prisma migrate deploy --schema prisma/schema.prisma` in server/ exits 0, and `prisma migrate status` exits 0 with output containing \"Database schema is up to date\"",
+                    "Apply database migrations from the server folder.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Backend starts with `pnpm run dev` in server/ and GET /api/health returns HTTP 200 with a body containing ok",
+                    "Start the backend server and verify it responds at /api/health with HTTP 200 and ok.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "Frontend starts with `pnpm run dev` in client/ and GET / on the dev server returns HTTP 200 with HTML containing the literal <div id=\"root\"> mount point",
+                    "Start the frontend development server and verify the served HTML contains <div id=\"root\">.",
                   is_required: true,
                   order: 7,
                 },
@@ -293,25 +293,25 @@ export const levels = [
               create: [
                 {
                   description:
-                    "client/src/components/layout/Sidebar.tsx exists",
+                    "The Sidebar component file exists at client/src/components/layout/Sidebar.tsx.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "The file text contains the exact brand subtitle IPPO Software Solutions",
+                    "The Sidebar file contains the exact brand subtitle 'IPPO Software Solutions'.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "IPPO Software Solutions still appears after all `//` line comments and all `/* ... */` block comments are stripped from Sidebar.tsx",
+                    "The brand subtitle appears in live JSX (not hidden in comments) and survives comment stripping.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "After every occurrence of IPPO Software Solutions is removed from Sidebar.tsx, the remaining text no longer contains the string IPPO Solutions",
+                    "After removing all occurrences of 'IPPO Software Solutions', the remaining text no longer contains 'IPPO Solutions'.",
                   is_required: true,
                   order: 4,
                 },
@@ -457,49 +457,49 @@ export const levels = [
               create: [
                 {
                   description:
-                    "client/src/utils/formatters.ts exports getStockLevel as a named export, and importing that module yields a function",
+                    "Export a getStockLevel function from client/src/utils/formatters.ts as a named export.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "getStockLevel(0, 10) returns the string 'OUT_OF_STOCK'",
+                    "getStockLevel(0, 10) returns the string 'OUT_OF_STOCK'.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Negative quantities are also out of stock: getStockLevel(-1, 10) and getStockLevel(-100, 10) both return 'OUT_OF_STOCK'",
+                    "Negative quantities are also out of stock: getStockLevel(-1, 10) and getStockLevel(-100, 10) both return 'OUT_OF_STOCK'.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "getStockLevel(1, 10) returns 'LOW_STOCK' — the smallest quantity above zero is low stock, not in stock",
+                    "getStockLevel(1, 10) returns 'LOW_STOCK' — the smallest quantity above zero is low stock.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "The threshold boundary is inclusive: getStockLevel(10, 10) and getStockLevel(5, 5) both return 'LOW_STOCK'",
+                    "The threshold boundary is inclusive: getStockLevel(10, 10) and getStockLevel(5, 5) both return 'LOW_STOCK'.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "getStockLevel(11, 10) and getStockLevel(100, 10) return 'IN_STOCK' — only quantities strictly greater than the threshold are in stock",
+                    "getStockLevel(11, 10) and getStockLevel(100, 10) return 'IN_STOCK' — only quantities strictly greater than the threshold are in stock.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "The threshold is honoured per product: getStockLevel(8, 10) returns 'LOW_STOCK' while getStockLevel(8, 5) returns 'IN_STOCK' — the same quantity classifies differently under different thresholds",
+                    "The threshold is honored per product: getStockLevel(8, 10) returns 'LOW_STOCK' while getStockLevel(8, 5) returns 'IN_STOCK' — the same quantity classifies differently under different thresholds.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "The function is pure — repeated calls with identical arguments (0,10), (3,10) and (50,10) each return an identical result",
+                    "The function is pure — repeated calls with identical arguments each return an identical result.",
                   is_required: true,
                   order: 8,
                 },
@@ -645,55 +645,55 @@ export const levels = [
               create: [
                 {
                   description:
-                    "client/src/pages/pos/POSPage.tsx contains an import statement that pulls in getStockLevel from the formatters utils module",
+                    "POSPage.tsx imports getStockLevel from the formatters utils module.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "POSPage.tsx calls getStockLevel and uses its result to drive the product badge and the disabled state of the add-to-cart button",
+                    "POSPage.tsx calls getStockLevel and uses its result to drive the product badge and the disabled state of the add-to-cart button.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "POSPage.tsx declares an out-of-stock toggle state named hideOutOfStock or showOutOfStock",
+                    "POSPage.tsx declares an out-of-stock toggle state named hideOutOfStock or showOutOfStock.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "POSPage.tsx filters the product grid using getStockLevel and the literal string OUT_OF_STOCK, so toggling removes out-of-stock products from the visible list",
+                    "POSPage.tsx filters the product grid using getStockLevel and the literal string OUT_OF_STOCK, so toggling removes out-of-stock products from the visible list.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "POSPage.tsx renders a visible label containing the words \"hide out-of-stock\" next to the toggle control",
+                    "POSPage.tsx renders a visible label containing the words 'hide out-of-stock' next to the toggle control.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "client/src/pages/inventory/InventoryPage.tsx contains an import statement that pulls in getStockLevel from the formatters utils module",
+                    "InventoryPage.tsx imports getStockLevel from the formatters utils module.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "InventoryPage.tsx calls getStockLevel to determine the Out of Stock / Low Stock / In Stock badge shown in the Stock Status column",
+                    "InventoryPage.tsx calls getStockLevel to determine the Out of Stock / Low Stock / In Stock badge shown in the Stock Status column.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "InventoryPage.tsx contains no raw inline comparison of the form `quantity === 0` — including the Remove button's disabled prop, which must be driven by the helper result instead",
+                    "InventoryPage.tsx contains no raw inline comparison of the form 'quantity === 0' — including the Remove button's disabled prop, which must be driven by the helper result instead.",
                   is_required: true,
                   order: 8,
                 },
                 {
                   description:
-                    "InventoryPage.tsx contains no raw inline comparison of the form `quantity <= lowStock && quantity > 0` — that classification must come from getStockLevel",
+                    "InventoryPage.tsx contains no raw inline comparison of the form 'quantity <= lowStock && quantity > 0' — that classification must come from getStockLevel.",
                   is_required: true,
                   order: 9,
                 },
@@ -844,31 +844,31 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/src/controllers/order.controller.ts exists and can be imported",
+                    "Create server/src/controllers/order.controller.ts that can be imported.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "order.controller.ts exports a function named voidOrder",
+                    "The order controller exports a function named voidOrder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "order.controller.ts references the field name voidedAt to record when the order was voided",
+                    "The order controller references the field name voidedAt to record when the order was voided.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "server/prisma/schema.prisma declares the voidedAt field inside the Order model",
+                    "The Order model in server/prisma/schema.prisma declares the voidedAt field.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "server/src/routes/orders.ts registers the void endpoint on the literal path /:id/void (POST), served as POST /api/orders/:id/void",
+                    "The orders route registers the void endpoint on the literal path /:id/void (POST), served as POST /api/orders/:id/void.",
                   is_required: true,
                   order: 5,
                 },
@@ -1002,61 +1002,61 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/prisma/schema.prisma declares `voidedAt DateTime?` inside the Order model — optional DateTime, so the exact `voidedAt` + `DateTime?` pairing must be present",
+                    "The Order model in server/prisma/schema.prisma declares voidedAt DateTime? — optional DateTime field.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "server/prisma/schema.prisma declares `enum OrderStatus` and that enum contains both COMPLETED and VOIDED",
+                    "The schema.prisma declares enum OrderStatus containing both COMPLETED and VOIDED.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "The Order model in schema.prisma declares `status OrderStatus` with the attribute `@default(COMPLETED)`",
+                    "The Order model declares status OrderStatus with @default(COMPLETED).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "server/src/controllers/order.controller.ts exists and exports a function named voidOrder",
+                    "The order controller exists and exports a function named voidOrder.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "voidOrder performs its writes inside prisma.$transaction so the status flip, the voidedAt stamp and the stock restore are atomic",
+                    "voidOrder performs its writes inside a Prisma transaction so the status flip, the voidedAt stamp, and the stock restore are atomic.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "voidOrder writes the void timestamp as `voidedAt: new Date()`",
+                    "voidOrder writes the void timestamp as voidedAt: new Date().",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "voidOrder restores stock by using an increment operation against the inventory records for each OrderItem on the order",
+                    "voidOrder restores stock by using an increment operation against the inventory records for each OrderItem on the order.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "voidOrder guards on the COMPLETED status so an order that is not COMPLETED cannot be voided",
+                    "voidOrder guards on the COMPLETED status so an order that is not COMPLETED cannot be voided.",
                   is_required: true,
                   order: 8,
                 },
                 {
                   description:
-                    "The checkout handler in server/src/routes/orders.ts uses prisma's updateMany with a `gte` stock guard instead of read-then-write",
+                    "The checkout handler uses Prisma's updateMany with a gte stock guard instead of read-then-write.",
                   is_required: true,
                   order: 9,
                 },
                 {
                   description:
-                    "The checkout handler checks the updateMany result count (for example `if (result.count !== 1)`) and throws so the transaction rolls back when the stock guard fails",
+                    "The checkout handler checks the updateMany result count and throws so the transaction rolls back when the stock guard fails.",
                   is_required: true,
                   order: 10,
                 },
@@ -1254,85 +1254,85 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/prisma/schema.prisma declares `model PromoCode`",
+                    "The schema.prisma declares a PromoCode model.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "PromoCode declares `code String @unique`",
+                    "PromoCode declares code String @unique.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "PromoCode declares discountPercent as Int, maxUses as Int, usedCount as Int with @default(0), expiresAt as DateTime, and isActive as Boolean with @default(true)",
+                    "PromoCode declares discountPercent as Int, maxUses as Int, usedCount as Int with @default(0), expiresAt as DateTime, and isActive as Boolean with @default(true).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "server/src/controllers/promo.controller.ts exists and exports both a function named validatePromo and a function named validatePromoHandler",
+                    "Create server/src/controllers/promo.controller.ts that exports both validatePromo and validatePromoHandler functions.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "validatePromo returns a discriminated union: the source contains both an `ok: true` branch and an `ok: false` branch, and the failure branch uses one of the reason codes NOT_FOUND, INACTIVE, EXPIRED or EXHAUSTED",
+                    "validatePromo returns a discriminated union with ok: true and ok: false branches, and the failure branch uses one of the reason codes: NOT_FOUND, INACTIVE, EXPIRED, or EXHAUSTED.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "server/src/routes/promos.ts exists and registers the literal route `router.post('/validate', ...)`",
+                    "Create server/src/routes/promos.ts that registers the literal route router.post('/validate', ...).",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "server/src/index.ts mounts the promo router at the path /api/promos",
+                    "The server/src/index.ts mounts the promo router at the path /api/promos.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "The checkout handler in server/src/routes/orders.ts accepts an optional promoCode from the request body",
+                    "The checkout handler in server/src/routes/orders.ts accepts an optional promoCode from the request body.",
                   is_required: true,
                   order: 8,
                 },
                 {
                   description:
-                    "Inside the checkout transaction, PromoCode.usedCount is raised with an increment operation",
+                    "Inside the checkout transaction, PromoCode.usedCount is incremented.",
                   is_required: true,
                   order: 9,
                 },
                 {
                   description:
-                    "client/src/services/promoService.ts exists and exposes a validatePromo function",
+                    "Create client/src/services/promoService.ts that exposes a validatePromo function.",
                   is_required: true,
                   order: 10,
                 },
                 {
                   description:
-                    "promoService posts the code to the /promos/validate endpoint path",
+                    "The promo service posts the code to the /promos/validate endpoint path.",
                   is_required: true,
                   order: 11,
                 },
                 {
                   description:
-                    "client/src/pages/pos/POSPage.tsx imports from a module path ending in promoService and uses promoService or validatePromo",
+                    "POSPage.tsx imports from a module path ending in promoService and uses the promo service or validatePromo.",
                   is_required: true,
                   order: 12,
                 },
                 {
                   description:
-                    "The POSPage checkout modal renders a Promo Code labelled input together with an Apply control",
+                    "The POSPage checkout modal renders a Promo Code labeled input together with an Apply control.",
                   is_required: true,
                   order: 13,
                 },
                 {
                   description:
-                    "POSPage renders the applied-discount state using the returned discountPercent value",
+                    "POSPage renders the applied-discount state using the returned discountPercent value.",
                   is_required: true,
                   order: 14,
                 },
@@ -1467,49 +1467,49 @@ export const levels = [
               create: [
                 {
                   description:
-                    "The checkout handler in server/src/routes/orders.ts enforces the usage ceiling atomically: the source references usedCount together with maxUses or an `lt` guard in the same conditional update",
+                    "The checkout handler enforces the usage ceiling atomically: the source references usedCount together with maxUses or an lt guard in the same conditional update.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "The checkout handler validates the promo's expiry inside the redemption path by comparing expiresAt against the current time (expiresAt must be greater than now, not less)",
+                    "The checkout handler validates the promo's expiry inside the redemption path by comparing expiresAt against the current time (expiresAt must be greater than now).",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "server/src/routes/promos.ts exposes an admin listing route registered on the literal path '/' and guarded by authorize('ADMIN')",
+                    "The promos route exposes an admin listing route registered on the literal path '/' and guarded by authorize('ADMIN').",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "server/src/controllers/promo.controller.ts contains listPromosHandler and that handler's response exposes a remainingUses value per promo",
+                    "The promo controller contains listPromosHandler and that handler's response exposes a remainingUses value per promo.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "voidOrder in server/src/controllers/order.controller.ts checks the order's promoCode / promoCodeId and decrements PromoCode.usedCount when a promo was applied",
+                    "voidOrder in the order controller checks the order's promoCode/promoCodeId and decrements PromoCode.usedCount when a promo was applied.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "client/src/services/promoService.ts exists and exposes a listPromos function that calls the /promos endpoint",
+                    "The promo service exposes a listPromos function that calls the /promos endpoint.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "client/src/pages/settings/SettingsPage.tsx imports from a module path ending in promoService",
+                    "SettingsPage.tsx imports from a module path ending in promoService.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "SettingsPage renders an admin promo panel that shows code, discountPercent, remainingUses and expiresAt for each promo",
+                    "SettingsPage renders an admin promo panel that shows code, discountPercent, remainingUses, and expiresAt for each promo.",
                   is_required: true,
                   order: 8,
                 },
@@ -1667,43 +1667,43 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/src/utils/revenueUtils.ts exists",
+                    "Create server/src/utils/revenueUtils.ts.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "revenueUtils exports a function named isRevenueEligibleOrder",
+                    "The revenueUtils exports a function named isRevenueEligibleOrder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "isRevenueEligibleOrder returns false for a stale-status voided order — an order with status COMPLETED but voidedAt set to a Date must be excluded",
+                    "isRevenueEligibleOrder returns false for a stale-status voided order — an order with status COMPLETED but voidedAt set to a Date must be excluded.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "isRevenueEligibleOrder returns true for a genuine completed order — status COMPLETED with voidedAt null must still count as revenue",
+                    "isRevenueEligibleOrder returns true for a genuine completed order — status COMPLETED with voidedAt null must still count as revenue.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "isRevenueEligibleOrder returns false for an order with status VOIDED and voidedAt set to a Date",
+                    "isRevenueEligibleOrder returns false for an order with status VOIDED and voidedAt set to a Date.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "The daily revenue query in server/src/routes/orders.ts filters on the literal predicate `voidedAt: null`",
+                    "The daily revenue query in server/src/routes/orders.ts filters on the literal predicate voidedAt: null.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "The revenue filter in orders.ts is not a status-only filter — there must be no `status: 'COMPLETED'` line marked as the revenue filter",
+                    "The revenue filter in orders.ts is not a status-only filter — there must be no 'status: COMPLETED' line marked as the revenue filter.",
                   is_required: true,
                   order: 7,
                 },
@@ -1845,49 +1845,49 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/src/utils/revenueUtils.ts exports a function named revenueWhereClause alongside isRevenueEligibleOrder",
+                    "The revenueUtils exports a function named revenueWhereClause alongside isRevenueEligibleOrder.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "revenueWhereClause() called with no arguments returns an object whose voidedAt property is null",
+                    "revenueWhereClause() called with no arguments returns an object whose voidedAt property is null.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "revenueWhereClause(extra) merges the caller's predicates into the result while still keeping voidedAt: null — passing { createdAt: { gte: <date> } } must return both a voidedAt and a createdAt key",
+                    "revenueWhereClause(extra) merges the caller's predicates into the result while still keeping voidedAt: null — passing { createdAt: { gte: <date> } } must return both a voidedAt and a createdAt key.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "server/src/routes/orders.ts contains an import statement whose module path ends in revenueUtils and binds revenueWhereClause",
+                    "The orders route contains an import statement whose module path ends in revenueUtils and binds revenueWhereClause.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "orders.ts actually uses revenueWhereClause in its stats/reports queries instead of duplicating the predicate inline",
+                    "The orders route actually uses revenueWhereClause in its stats/reports queries instead of duplicating the predicate inline.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Regression holds after centralisation: isRevenueEligibleOrder returns false for an order with status COMPLETED and voidedAt set (the stale-status voided order)",
+                    "Regression holds after centralization: isRevenueEligibleOrder returns false for an order with status COMPLETED and voidedAt set (the stale-status voided order).",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "server/POSTMORTEM_REVENUE.md exists at that exact path",
+                    "Create server/POSTMORTEM_REVENUE.md at that exact path.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "POSTMORTEM_REVENUE.md contains the four level-2 headings `## Symptom`, `## Root Cause`, `## Fix` and `## Prevention` (case-insensitive heading match)",
+                    "POSTMORTEM_REVENUE.md contains the four level-2 headings: Symptom, Root Cause, Fix, and Prevention.",
                   is_required: true,
                   order: 8,
                 },

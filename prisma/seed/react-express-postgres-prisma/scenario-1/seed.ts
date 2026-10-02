@@ -141,43 +141,43 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`<projectRoot>/node_modules` exists and contains the `concurrently` package",
+                    "Install dependencies in the project root.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "`client/node_modules` exists and contains the `react` package",
+                    "Install dependencies in the client folder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "`server/node_modules` exists and contains both `express` and `@prisma/client`",
+                    "Install dependencies in the server folder.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "`pnpm exec tsx scripts/db-check.ts` run from `server` exits with code 0 and its stdout contains `DB_OK`",
+                    "Run the database connectivity check from the server folder..",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "`pnpm exec prisma migrate deploy --schema prisma/schema.prisma` exits with code 0 and a follow-up `prisma migrate status` exits 0 with output containing `Database schema is up to date`",
+                    "Apply database migrations from the server folder.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "`pnpm run dev` in `server` with `PORT=5051` serves `GET /health`, which returns HTTP 200 with `ok` in the response body",
+                    "Start the backend server on port 5051.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "`pnpm run dev` in `client` with `PORT=3000` serves `GET http://127.0.0.1:3000`, which returns HTTP 200 with an HTML body containing `<div id=\"root\">`",
+                    "Start the frontend development server on port 3000.",
                   is_required: true,
                   order: 7,
                 },
@@ -304,31 +304,31 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`client/src/components/layout/Sidebar.tsx` exports `Sidebar`, and rendering it displays the exact text `BookWise Public Library` (exact casing, single space between the words)",
+                    "Update the sidebar subtitle to display \"BookWise Public Library\".",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "The old subtitle `Library Management System` does not appear anywhere in the rendered `Sidebar` output",
+                    "Remove the old subtitle \"Library Management System\" from the sidebar.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "The `BookWise Public Library` element is visible when rendered (`toBeVisible()`) - not `hidden`, `display:none`, `visibility:hidden`, `opacity:0`, or visually clipped",
+                    "Ensure the new subtitle is visible and not hidden, transparent, or clipped.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "`Sidebar` renders without throwing when wrapped only in `MemoryRouter` and `AuthProvider`, with no layout or route wrapper and no props",
+                    "The subtitle appears once as its own text element, not concatenated with other words.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "The new subtitle lives on its own element, so `getByText('BookWise Public Library')` matches exactly one node",
+                    "The sidebar component loads without errors when rendered.",
                   is_required: true,
                   order: 5,
                 },
@@ -472,37 +472,37 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Importing `client/src/utils/helpers` yields a module whose `isBookAvailable` property is a function (named export, exact name and casing)",
+                    "Create a shared helpers file in the frontend that exports an isBookAvailable function for checking book availability.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "`isBookAvailable(0)` and `isBookAvailable(-1)` both return `false`",
+                    "The isBookAvailable function returns false when given 0 or a negative number of available copies.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "`isBookAvailable(1)` and `isBookAvailable(2)` both return `true`",
+                    "The isBookAvailable function returns true when given 1 or more available copies.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Mapping the mixed list `[3, 1, 0, -2]` through the helper yields exactly `[true, true, false, false]`",
+                    "When checking a list of books with mixed availability (3, 1, 0, -2), the function correctly identifies which are available and which are not.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Repeated calls with the same input return the same value (`0`, `1`, `-5` and `5` are each checked twice and must agree) - the helper is pure",
+                    "The function is pure - calling it multiple times with the same input always returns the same result.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "`isBookAvailable(Number.EPSILON)` returns `true` and `isBookAvailable(0.0001)` returns `true`, so no rounding, truncation, or `>= 1` threshold is used",
+                    "Very small positive amounts (like 0.0001) count as available, while 0 does not - no rounding of the input.",
                   is_required: true,
                   order: 6,
                 },
@@ -645,55 +645,55 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`client/src/pages/BorrowRecords.tsx` exports `BorrowRecords` and renders an Issue Book button whose accessible name matches `/\\+ Issue Book/i`; clicking it opens a modal containing a `<select>`",
+                    "On the borrow records page, clicking the '+ Issue Book' button opens a dialog with a book picker.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "That `<select>` always contains a first option labelled exactly `Select a book` as the placeholder",
+                    "The book picker always starts with a 'Select a book' placeholder option.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "`isBookAvailable` from `client/src/utils/helpers` is invoked once per candidate book with that book's `availableCopies` - for a book list with `availableCopies` of 1, 0 and 2 the helper is called with `1`, `0` and `2` (asserted via `toHaveBeenCalledWith`); no inline `availableCopies > 0` check may replace the call",
+                    "Each book in the picker shows its title and available copies (e.g., 'Available A (2 available)' or 'Boundary Above (0.0001 available)').",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Every non-placeholder `<option>` label is exactly `\"<book title> (<availableCopies> available)\"`, e.g. `Available A (2 available)`, `Boundary Above (0.0001 available)`",
+                    "Only books that pass the shared isBookAvailable check appear in the picker - books with 0 or negative available copies are excluded.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Only books the helper approves are offered: a book with 0 or negative copies never appears as `Unavailable Zero (0 available)` or `Negative (-1 available)`",
+                    "Each candidate book is evaluated using the isBookAvailable helper with its own available copies count.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "The offered list follows the helper's verdict rather than a hard-coded `> 0` rule - when the helper is stubbed to approve only even copy counts, only the even books are listed, and when it is stubbed as `> Number.EPSILON`, `0.0001` is listed while `Number.EPSILON` is not",
+                    "The picker list follows the helper's decision - if the helper changes, the list updates automatically.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "When the helper returns `false` for every book, the select's only option is the `Select a book` placeholder",
+                    "When no books are available, the picker shows only the 'Select a book' placeholder.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "The option list is identical across repeated open -> `Cancel` -> open cycles of the Issue Book modal (no accumulating options and no residual selection)",
+                    "A book with 3 available copies appears as 'Positive (3 available)', while books with 0 or -1 available copies are not listed.",
                   is_required: true,
                   order: 8,
                 },
                 {
                   description:
-                    "`BorrowRecords` reads its data from `useLibrary()` in `client/src/context/LibraryContext` and issues borrows through the context's `borrowBookMember`",
+                    "Opening the dialog, closing with Cancel, and opening again shows the same list with no leftover state.",
                   is_required: true,
                   order: 9,
                 },
@@ -848,31 +848,31 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`PUT /api/borrow-records/:id/return` responds HTTP 200 for a valid unreturned record, and the return mutation runs inside `prisma.$transaction` called exactly once",
+                    "The PUT /api/borrow-records/:id/return endpoint returns HTTP 200 for a valid unreturned record, and the return operation runs inside a Prisma transaction.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Sending the same return request twice in a row never leaves `Book.availableCopies` greater than `Book.totalCopies`",
+                    "Sending the same return request twice never leaves Book.availableCopies greater than Book.totalCopies.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "When the `Book` update fails, the endpoint responds HTTP 500 and the `BorrowRecord` is unchanged - `status` is still `BORROWED` and `returnedAt` is still `null`",
+                    "When the Book update fails, the endpoint returns HTTP 500 and the BorrowRecord remains unchanged (status is still BORROWED, returnedAt is still null).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "The first return for a record succeeds with HTTP 200 and the second return of that same record is rejected with HTTP 400",
+                    "The first return for a record succeeds with HTTP 200, and a second return of the same record is rejected with HTTP 400.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Both the `BorrowRecord` update and the `Book.availableCopies` increment are issued through the transaction client, so the two writes commit or roll back together",
+                    "Both the BorrowRecord update and the Book.availableCopies increment are executed through the transaction client, so they commit or roll back together.",
                   is_required: true,
                   order: 5,
                 },
@@ -1015,31 +1015,31 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Two concurrent `PUT /api/borrow-records/:id/return` requests on the same record produce exactly one HTTP 200 and one HTTP status between 400 and 499, and `Book.availableCopies` goes from 0 to exactly 1 (incremented once, not twice)",
+                    "Two concurrent return requests on the same record produce exactly one HTTP 200 and one client error (400-499), and Book.availableCopies goes from 0 to exactly 1 (incremented once, not twice).",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Two concurrent `POST /api/borrow-records/member` requests for a book with one available copy produce exactly one HTTP 201, exactly one `BorrowRecord` row for that book, and `availableCopies` never drops below 0",
+                    "Two concurrent borrow requests for a book with one available copy produce exactly one HTTP 201, exactly one BorrowRecord row, and availableCopies never drops below 0.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "The return flow executes through `prisma.$transaction`, called exactly once for a successful return (verified by spying on the method)",
+                    "The return flow executes through Prisma's transaction function, called exactly once for a successful return.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "A second sequential return of the same record returns HTTP 400 and leaves `availableCopies` unchanged at 1 - no double increment",
+                    "A second sequential return of the same record returns HTTP 400 and leaves availableCopies unchanged at 1 - no double increment.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Both the borrow decrement and the return increment use a conditional update whose `where` clause prevents the write when `availableCopies` has already reached 0 (or `totalCopies`), and a zero-row result is treated as a rejection",
+                    "Both the borrow decrement and the return increment use a conditional update that prevents the write when availableCopies has reached 0 (or totalCopies), and a zero-row result is treated as a rejection.",
                   is_required: true,
                   order: 5,
                 },
@@ -1217,69 +1217,51 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`client/src/services/libraryService.ts` defines `async createReservation(...)` taking `bookId` and `memberId` and targeting the `'/reservations'` endpoint",
+                    "Add a createReservation function to the library service that takes bookId and memberId and targets the '/reservations' endpoint.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "`client/src/services/libraryService.ts` defines `async getReservationQueue(bookId)` and builds its request with the literal query `` ?bookId=${bookId} ``",
+                    "Add a getReservationQueue function to the library service that takes bookId and builds the query with ?bookId=${bookId}.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "`client/src/pages/Books.tsx` renders a `Reserve Book` action guarded by `availableCopies === 0` and calls `createReservation(...)` from the library service",
+                    "In the Books page, show a 'Reserve Book' action only when availableCopies is 0, and call createReservation when clicked.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "`client/src/pages/Books.tsx` outputs a queue-position confirmation (matching `You are #`, `in line`, or `queue position`) and the exact empty-state string `No active reservations.`",
+                    "Display a queue-position confirmation matching 'You are #', 'in line', or 'queue position', and the exact empty state 'No active reservations.'.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "`client/src/pages/Books.tsx` handles the duplicate-reservation failure case, matching `already reserved`, `duplicate reservation`, or `already has an active reservation`",
+                    "Show the server's duplicate-reservation error ('already reserved', 'duplicate reservation', or 'already has an active reservation') to the member.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "`server/src/routes/reservation.routes.ts` exports a router containing `createReservation` in `server/src/controllers/reservation.controller.ts`, and `POST /api/reservations` with `{ bookId, memberId }` returns HTTP 201 with `{ success: true, data }` where `data` includes `queuePosition`",
+                    "On the server, create a reservation controller with createReservation returning 201 with queuePosition, and 400 on duplicate active reservation.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "A second `POST /api/reservations` for the same member and book is rejected with HTTP 400",
+                    "The queue endpoint GET /api/reservations?bookId=<id> returns rows with queuePosition, nested member, and nested book, sorted by position. Validate bookId: empty or unknown returns 400; valid with no reservations returns 200 with empty array.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "`GET /api/reservations?bookId=<id>` returns HTTP 200 with `{ success: true, data: [...] }` where each row has `queuePosition`, a nested `member` object, and a nested `book` object, and the rows are ordered by `queuePosition` ascending",
+                    "Reserve is only offered for books with availableCopies === 0.",
                   is_required: true,
                   order: 8,
-                },
-                {
-                  description:
-                    "`GET /api/reservations?bookId=<validId>` for a book with no reservations returns HTTP 200 with `success: true` and `data` equal to an empty array",
-                  is_required: true,
-                  order: 9,
-                },
-                {
-                  description:
-                    "An invalid queue query (`?bookId=` empty, or an id that does not exist) returns HTTP 400",
-                  is_required: true,
-                  order: 10,
-                },
-                {
-                  description:
-                    "Reserving a book whose `availableCopies` is `0` is accepted; the reserve entry point in `Books.tsx` is only offered for those books",
-                  is_required: true,
-                  order: 11,
                 },
               ],
             },
@@ -1423,55 +1405,55 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`server/src/controllers/borrow.controller.ts` contains `returnBook` and `server/src/controllers/reservation.controller.ts` contains `promoteNextReservation` and `cancelReservation` (exact names, case-sensitive)",
+                    "The borrow controller contains a returnBook function and the reservation controller contains promoteNextReservation and cancelReservation functions.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "After `PUT /api/borrow-records/:id/return` returns HTTP 200 on a book that has queued reservations, the first row of `GET /api/reservations?bookId=<id>` has `status: 'READY_FOR_PICKUP'`",
+                    "After a successful book return (PUT /api/borrow-records/:id/return), the first reservation in the queue is promoted to READY_FOR_PICKUP status.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "The promotion happens in the same transactional unit as the return's record update and stock increment, so a failure leaves neither applied",
+                    "The promotion happens in the same transaction as the return, so a failure leaves neither applied.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "`DELETE /api/reservations/<id>` returns HTTP 200 and cancels the reservation, and the first row of the subsequent `GET /api/reservations?bookId=<id>` has `queuePosition` 1 (remaining queue reindexed to continuous positions)",
+                    "Cancelling a reservation (DELETE /api/reservations/<id>) returns HTTP 200, cancels the reservation, and reindexes the remaining queue to continuous positions starting from 1.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Cancelling a reservation that is not active (including a non-existent id) returns HTTP 400",
+                    "Cancelling a non-active reservation (including non-existent ID) returns HTTP 400.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "`GET /api/reservations?bookId=missing-id` (an invalid or unknown bookId) returns HTTP 400",
+                    "An invalid bookId in the queue query returns HTTP 400.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "`client/src/services/libraryService.ts` defines `async cancelReservation(reservationId)` targeting `/reservations`, and the same file still defines `createReservation` and `getReservationQueue`",
+                    "Add a cancelReservation function to the library service targeting /reservations, while keeping createReservation and getReservationQueue.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "The client source (`client/src/pages/Books.tsx`, `client/src/pages/Reservations.tsx`, `client/src/App.tsx`) contains the lifecycle statuses `RESERVED`, `READY_FOR_PICKUP` and `CANCELLED`, reads `queuePosition`, renders the exact empty state `No reservations found.`, and confirms a successful cancel with the exact text `Reservation cancelled.`",
+                    "The client displays reservation lifecycle statuses (RESERVED, READY_FOR_PICKUP, CANCELLED), queuePosition, the exact empty state 'No reservations found.', and confirms cancellation with 'Reservation cancelled.'.",
                   is_required: true,
                   order: 8,
                 },
                 {
                   description:
-                    "The member reservation view is reachable from the client (a `Reservations` page wired into `client/src/App.tsx` or another client source file the test reads) and shows `queuePosition` and the server-provided `status` for each entry",
+                    "The member reservation view is reachable and shows queuePosition and server-provided status for each entry.",
                   is_required: true,
                   order: 9,
                 },
@@ -1635,49 +1617,49 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`GET /api/borrow-records/overdue` returns HTTP 200 with a body of `{ success: true, data: [...] }` where each row is a `BorrowRecord` carrying its `id`",
+                    "GET /api/borrow-records/overdue returns HTTP 200 with a response body containing success: true and a data array of BorrowRecords with their id.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "A record with `returnedAt` set is excluded from `data` even when its stored `status` is `BORROWED`",
+                    "A record with returnedAt set is excluded from the data even when its stored status is BORROWED.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "A record with `returnedAt` set is excluded from `data` even when its stored `status` is `OVERDUE` (the stale-status case)",
+                    "A record with returnedAt set is excluded from the data even when its stored status is OVERDUE (the stale-status case).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "A record that is past its `dueDate` with `returnedAt == null` is included, even when its stored `status` is still `BORROWED`",
+                    "A record that is past its dueDate with returnedAt == null is included, even when its stored status is still BORROWED.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Classification is driven by `returnedAt` and `dueDate` only; the stored `status` value is never used as the filter condition",
+                    "Classification is driven by returnedAt and dueDate only; the stored status value is never used as the filter condition.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "With the clock fixed at `2025-03-02T00:00:01Z`, a record due `2025-03-01T23:59:59Z` and unreturned is included",
+                    "With the clock fixed at 2025-03-02T00:00:01Z, a record due 2025-03-01T23:59:59Z and unreturned is included.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "With the same frozen clock, a record due `2025-03-02T00:00:05Z` and unreturned is excluded (not yet due), and a record returned at exactly `2025-03-02T00:00:00Z` is excluded",
+                    "With the same frozen clock, a record due 2025-03-02T00:00:05Z and unreturned is excluded (not yet due), and a record returned at exactly 2025-03-02T00:00:00Z is excluded.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "The overdue comparison reads the current time inside the request handler (respecting the frozen system clock) and evaluates the boundary in UTC",
+                    "The overdue comparison reads the current time inside the request handler (respecting the frozen system clock) and evaluates the boundary in UTC.",
                   is_required: true,
                   order: 8,
                 },
@@ -1817,55 +1799,55 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`GET /api/borrow-records/overdue` returns HTTP 200 with `{ success: true, data: [...] }`",
+                    "GET /api/borrow-records/overdue returns HTTP 200 with { success: true, data: [...] }.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "A record with `returnedAt` set and a stale `status: 'OVERDUE'` is not in the response",
+                    "A record with returnedAt set and a stale status 'OVERDUE' is not in the response.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "A record that is past due, unreturned, and stored as `status: 'OVERDUE'` is in the response",
+                    "A record that is past due, unreturned, and stored as status 'OVERDUE' is in the response.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "A record that is past due and unreturned but still stored as `status: 'BORROWED'` is in the response",
+                    "A record that is past due and unreturned but still stored as status 'BORROWED' is in the response.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "A record that is unreturned and not yet due (due date in the future) is not in the response",
+                    "A record that is unreturned and not yet due (due date in the future) is not in the response.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "No record whose `returnedAt` is non-null appears in the report, regardless of its stored `status`",
+                    "No record whose returnedAt is non-null appears in the report, regardless of its stored status.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "After the request, the past-due unreturned record's stored `status` is `OVERDUE` in the database",
+                    "After the request, the past-due unreturned record's stored status is 'OVERDUE' in the database.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "After the request, a returned record still has `status: 'RETURNED'` and a non-null `returnedAt` - the fix never rewrites a returned record",
+                    "After the request, a returned record still has status 'RETURNED' and a non-null returnedAt - the fix never rewrites a returned record.",
                   is_required: true,
                   order: 8,
                 },
                 {
                   description:
-                    "The overdue condition is centralized in a single shared helper keyed on `returnedAt` and `dueDate`, and the controller calls it rather than duplicating the comparison inline",
+                    "The overdue condition is centralized in a single shared helper keyed on returnedAt and dueDate, and the controller calls it rather than duplicating the comparison inline.",
                   is_required: true,
                   order: 9,
                 },

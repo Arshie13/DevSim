@@ -139,15 +139,11 @@ export const levels = [
                   "After installing, check `client/node_modules` for `react` and `axios`, and `server/node_modules` for `express` and `mongoose`.",
                 order: 2,
               },
-              {
-                description:
-                  "Put `MONGO_URI` in `server/.env`, then write a short script in `server/` that loads `dotenv/config` and connects mongoose to `process.env.MONGO_URI`. It has to print `DB_OK` and exit 0, so make sure MongoDB is actually running first.",
-                order: 3,
-              },
+              
               {
                 description:
                   "Start the API with `pnpm run dev` in `server/` and request `GET http://127.0.0.1:5000/api/health`, which must answer 200 with a body containing `ok`. Then start the frontend with `pnpm run dev -- --port 3000` in `client/` and request `http://127.0.0.1:3000`, whose body must contain `<div id=\"root\">`. That mount node lives in `client/index.html`.",
-                order: 4,
+                order: 3,
               },
             ],
           },
@@ -155,35 +151,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Root `node_modules` exists and contains `concurrently`",
+                description: "Install project dependencies at the root, client, and server folders",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`client/node_modules` contains both `react` and `axios`",
+                description: "Install client dependencies including React and Axios",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`server/node_modules` contains both `express` and `mongoose`",
+                description: "Install server dependencies including Express and Mongoose",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "A mongoose connectivity check run from `server/` using `MONGO_URI` exits 0 and prints `DB_OK`",
+                description: "Verify the database connection works with a script that prints DB_OK",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "`pnpm run dev` in `server/` starts and `GET http://127.0.0.1:5000/api/health` returns status 200 with a body containing `ok`",
+                description: "Start the server and verify the health endpoint responds successfully",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "`pnpm run dev` in `client/` serves the app on `http://127.0.0.1:3000` with a body containing `<div id=\"root\">`",
+                description: "Start the client and verify the React app loads with the root div",
                 is_required: true,
                 order: 6,
               },
@@ -305,14 +298,12 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  'Rendering `Header` from `client/src/components/layout/Header.tsx` puts the exact string "Train. Log. Level Up." in the document (query: `getByText("Train. Log. Level Up.")`)',
+                description: "Update the brand tagline to exactly \"Train. Log. Level Up.\"",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "The tagline is a descendant of the `banner` role element — `within(screen.getByRole(\"banner\")).getByText(\"Train. Log. Level Up.\")` resolves (query: `getByRole(\"banner\")`)",
+                description: "Verify the tagline appears inside the page header (banner role)",
                 is_required: true,
                 order: 2,
               },
@@ -466,50 +457,42 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "The workout title is rendered and matches the text query `/heavy squat day/i` (`getByText`)",
+                description: "Render workout card and verify title appears",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "The author username is rendered with a leading `@` and matches the text query `/@coachjules/i` (`getByText`)",
+                description: "Verify author username appears with @ symbol",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "An element with `data-testid=\"category-badge\"` exists and its text content contains \"strength\" (case-insensitive) (`getByTestId`)",
+                description: "Verify category badge exists and shows 'strength'",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "An element with `data-testid=\"exercise-count\"` exists and its text contains `3` for a workout with 3 exercises (`getByTestId`)",
+                description: "Verify exercise count shows 3 for workout with 3 exercises",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "An element with `data-testid=\"duration\"` exists and has non-empty text content (`getByTestId`)",
+                description: "Verify duration is displayed",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "An element with `data-testid=\"cheer-count\"` exists and, after non-digit characters are stripped, its text equals the workout's `cheerCount` of 18 (`getByTestId`)",
+                description: "Verify cheer count shows 18",
                 is_required: true,
                 order: 6,
               },
               {
-                description:
-                  'A Cheer control resolves `getByRole("button", { name: /cheer/i })` — a real `button` element (or `role="button"`) whose accessible name contains \"cheer\"',
+                description: "Verify cheer button exists with accessible name containing 'cheer'",
                 is_required: true,
                 order: 7,
               },
               {
-                description:
-                  "Rendering the same card with `exercises: []` does not throw, and `data-testid=\"exercise-count\"` still exists with text matching `0`",
+                description: "Render card with empty exercises and verify exercise count shows 0",
                 is_required: true,
                 order: 8,
               },
@@ -657,43 +640,37 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "`filterByCategory(workouts, \"all\")` returns the full list — the result has the same length (5) as the input",
+                description: "Filter with 'all' category returns all workouts",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  '`filterByCategory(workouts, "strength")` returns exactly 2 items and every returned item has `category === "strength"`',
+                description: "Filter by 'strength' returns exactly 2 strength workouts",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  '`filterByCategory(workouts, "cardio")` returns exactly 1 item and that item is the one with `_id === "w2"`',
+                description: "Filter by 'cardio' returns exactly 1 cardio workout",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "When nothing matches the requested category, the helper returns an empty array (length 0) rather than the input or `null`/`undefined`",
+                description: "Filter with no matches returns empty array",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "The returned array is a different reference from the input array, and the input array is not mutated — it still has its original 5 items after the call",
+                description: "Filter returns new array without mutating original",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "`filterByCategory([], \"strength\")` on an empty input returns an empty array without throwing",
+                description: "Filter on empty input returns empty array",
                 is_required: true,
                 order: 6,
               },
               {
-                description:
-                  "Calling the helper twice with identical arguments returns deep-equal results — it is a pure function with no hidden state or ordering side effect",
+                description: "Filter is pure - calling twice with same args returns equal results",
                 is_required: true,
                 order: 7,
               },
@@ -841,38 +818,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Only workouts from the last 7 days are aggregated: a 10-day-old workout with `cheerCount: 100` never contributes, so no returned entry has `totalCheers` of 100 while a 2-day-old workout with 5 cheers is present",
+                description: "Only workouts from the last 7 days are included in the leaderboard",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "The leaderboard returns at most 10 entries — seeding 12 authors with one recent workout each still yields a result of length 10 or less",
+                description: "Leaderboard returns at most 10 entries",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "Entries are ordered by `totalCheers` descending, so `data[0].totalCheers >= data[1].totalCheers` for a 20-cheer user ahead of a 2-cheer user",
+                description: "Entries are ordered by total cheers descending",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "Every entry has the four properties `userId`, `username`, `totalCheers`, and `workoutCount` (checked with `toHaveProperty` on the first entry)",
+                description: "Every entry has userId, username, totalCheers, and workoutCount",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "No entry contains a `workouts` property — the raw `$lookup` array is projected away (`entry.workouts` is `undefined`)",
+                description: "No entry contains the raw workouts array from the join",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "When no workout falls within the last 7 days, the leaderboard is an empty array (length 0) rather than `null` or an error",
+                description: "Empty leaderboard returns empty array (not null or error)",
                 is_required: true,
                 order: 6,
               },
@@ -999,35 +970,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "An unauthenticated `GET /api/workouts/leaderboard` with recent workouts returns status 200, `body.success === true`, and `body.data` is an array",
+                description: "Call leaderboard endpoint without auth and verify successful response with data array",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "`GET /api/workouts/leaderboard?limit=3` returns status 200 with at most 3 entries in `body.data`",
+                description: "Request with limit=3 and verify at most 3 entries returned",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`?limit=999` is rejected with status 400 and `body.success === false`",
+                description: "Request with limit=999 and verify validation rejects it",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "`?limit=0` is rejected with status 400",
+                description: "Request with limit=0 and verify validation rejects it",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "`?limit=abc` is rejected with status 400",
+                description: "Request with limit=abc and verify validation rejects it",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "With no workouts in the database at all, the endpoint still returns status 200 with `success: true` and an array (empty) in `body.data`",
+                description: "Call with no workouts in database and verify returns empty array",
                 is_required: true,
                 order: 6,
               },
@@ -1192,55 +1160,47 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Server — the first `POST /api/workouts/:id/cheer` returns status 200 or 201 with `body.success === true`, and the reloaded `workout.cheerCount` is exactly 1",
+                description: "Cheer a workout and verify it succeeds with cheerCount becoming 1",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Server — a second cheer from the same user returns a success status between 200 and 299 and `workout.cheerCount` is still exactly 1",
+                description: "Cheer the same workout again and verify cheerCount stays at 1 (idempotent)",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "Server — a cheer from a second, different user brings `workout.cheerCount` to exactly 2",
+                description: "Cheer from a different user and verify cheerCount increments to 2",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "Server — `DELETE /api/workouts/:id/cheer` returns status 200, `workout.cheerCount` returns to 0, and `Cheer.countDocuments({ userId, workoutId })` is 0",
+                description: "Uncheer and verify cheerCount returns to 0 and cheer document is removed",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "Server — a DELETE on a workout that was never cheered leaves `workout.cheerCount >= 0` (the counter never goes negative)",
+                description: "Uncheer on never-cheered workout and verify cheerCount never goes negative",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Server — `POST /api/workouts/:id/cheer` with no `Authorization` header returns status 401",
+                description: "Try to cheer without authentication and verify it's rejected",
                 is_required: true,
                 order: 6,
               },
               {
-                description:
-                  "Server — `POST` with a well-formed but non-existent workout id returns a client error status between 400 and 499",
+                description: "Try to cheer non-existent workout and verify it's rejected",
                 is_required: true,
                 order: 7,
               },
               {
-                description:
-                  "Client — `client/src/components/workout/WorkoutCard.tsx` exports `WorkoutCard` (or a default) that is a function, and rendering it yields an element matching `getByRole(\"button\", { name: /cheer/i })`",
+                description: "Verify WorkoutCard component has a cheer button with accessible name",
                 is_required: true,
                 order: 8,
               },
               {
-                description:
-                  "Client — `cheerWorkout` is exported from `client/src/services/workout.service.ts` and is a function, not the permanently-throwing stub",
+                description: "Verify cheerWorkout service function exists and is not a stub",
                 is_required: true,
                 order: 9,
               },
@@ -1378,60 +1338,52 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Server — an authenticated `GET /api/users/me/streak` returns status 200 with `body.success === true`, and `body.data` has the properties `currentStreak`, `longestStreak`, and `lastWorkoutDate`",
+                description: "Get personal streak as authenticated user and verify response has currentStreak, longestStreak, and lastWorkoutDate",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Server — workouts on the last 5 consecutive days give `data.currentStreak === 5` and `data.longestStreak >= 5`",
+                description: "With workouts on 5 consecutive days, verify currentStreak is 5 and longestStreak >= 5",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "Server — 3 recent days, then a 4-day gap, then 5 older days gives `data.currentStreak === 3` and `data.longestStreak >= 3`, so the gap splits the runs rather than joining them",
+                description: "With a gap in workouts, verify currentStreak only counts recent streak and longestStreak is correct",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "Server — a user with no workouts gets `data.currentStreak === 0`, `data.longestStreak === 0`, and `data.lastWorkoutDate === null`",
+                description: "With no workouts, verify currentStreak=0, longestStreak=0, lastWorkoutDate=null",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Server — three workouts logged on the same day give `data.currentStreak === 1`",
+                description: "Multiple workouts on same day count as 1 for streak",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "Server — `data.longestStreak` is always greater than or equal to `data.currentStreak` (asserted against a 3-day run)",
+                description: "Verify longestStreak is always >= currentStreak",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "Server — `GET /api/users/me/streak` with no `Authorization` header returns status 401",
+                description: "Try to get streak without authentication and verify it's rejected",
                 is_required: true,
                 order: 7,
               },
               {
-                description:
-                  "Client — rendering the named export `MyStreak` from `client/src/pages/MyStreak.tsx` with a mocked service that resolves `currentStreak: 5, longestStreak: 12` shows a `data-testid=\"current-streak\"` element containing 5 and a `data-testid=\"longest-streak\"` element containing 12",
+                description: "Render MyStreak page with streak data and verify current and longest streak display",
                 is_required: true,
                 order: 8,
               },
               {
-                description:
-                  "Client — when the service resolves `currentStreak: 0, longestStreak: 0, lastWorkoutDate: null`, the page still renders an element whose test id matches `/empty-streak|current-streak/`",
+                description: "Render MyStreak page with zero streak and verify empty state or current streak shows",
                 is_required: true,
                 order: 9,
               },
               {
-                description:
-                  "Client — the page calls `getMyStreak` from `client/src/services/workout.service` exactly once on mount",
+                description: "Verify page calls getMyStreak service exactly once on mount",
                 is_required: true,
                 order: 10,
               },
@@ -1590,20 +1542,17 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "`Cheer.collection.indexes()` contains an index whose key includes both `userId` and `workoutId` and whose `unique` flag is `true`",
+                description: "Add a compound unique index on userId and workoutId to prevent duplicate cheers",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "After 100 concurrent `POST /api/workouts/:id/cheer` requests from the same authenticated user, exactly 1 Cheer document exists for that (`userId`, `workoutId`) pair",
+                description: "Test 100 concurrent cheer requests from same user and verify only 1 cheer document exists",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "After that same 100-request race, the reloaded `workout.cheerCount` is exactly 1 — no counter drift",
+                description: "After 100 concurrent requests, verify cheerCount is exactly 1 (no drift)",
                 is_required: true,
                 order: 3,
               },
@@ -1725,14 +1674,12 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Streak groups workouts by user's local calendar day using their IANA timezone (not UTC date)",
+                description: "Fix streak to group workouts by user's local calendar day using their timezone",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Two workouts at 15:30Z on consecutive UTC dates produce streak: 2 for a UTC+8 user (both are 23:30 on consecutive local days)",
+                description: "For UTC+8 user, late-night workouts on consecutive UTC dates both count as consecutive local days",
                 is_required: true,
                 order: 2,
               },
@@ -1742,8 +1689,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description:
-                  "Implementation works with either Intl.DateTimeFormat or a tz-aware date library",
+                description: "Implementation uses Intl.DateTimeFormat or timezone-aware date library",
                 is_required: true,
                 order: 4,
               },

@@ -157,37 +157,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "Root dependencies are installed: `node_modules/` exists at the project root and contains the `concurrently` package",
+                  "Install root dependencies using pnpm install from the project root",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Client dependencies are installed: `client/node_modules/` exists and contains both `react` and `axios`",
+                  "Install client dependencies using pnpm install from the client directory",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Server dependencies are installed: `server/node_modules/` exists and contains both `express` and `mongoose`",
+                  "Install server dependencies using pnpm install from the server directory",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A `MONGO_URI` value is available to the server and `mongoose.connect()` against it succeeds",
+                  "Verify the database connection works from the server",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "`pnpm run dev` in `server/` starts the API and `GET /api/health` answers 200 with `ok` in the body",
+                  "Start the server from the server directory and verify the health endpoint responds",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  '`pnpm run dev` in `client/` serves the app on the requested port and the returned HTML contains a `<div id="root">` mount point',
+                  "Start the client from the client directory and verify the app loads",
                 is_required: true,
                 order: 6,
               },
@@ -306,19 +306,19 @@ export const levels = [
             create: [
               {
                 description:
-                  'Header renders the exact text "Plan Together. Travel Smarter."',
+                  'Update the Header component to display "Plan Together. Travel Smarter." as the tagline',
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  'The placeholder string "Your Tagline Here" is no longer rendered anywhere in the Header',
+                  'Remove the placeholder text "Your Tagline Here" from the Header',
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "The tagline element is present in the DOM and visible (not hidden by CSS)",
+                  "Verify the tagline is visible in the header when viewing the app",
                 is_required: true,
                 order: 3,
               },
@@ -468,36 +468,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "The stop title is rendered inside a heading element (<h3>) with the title as its accessible name",
+                  "Build the StopCard component in client/src/components/trip/StopCard.tsx to display the stop title as an h3 heading",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The stop location is rendered as visible text",
+                description:
+                  "Display the stop location as visible text in the StopCard",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  'An element with data-testid="category-badge" showing the stop category is rendered',
+                  'Add a category badge with data-testid="category-badge" showing the stop category',
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  'An element with data-testid="day-label" showing the formatted stop.dayDate is rendered',
+                  'Add a day label with data-testid="day-label" showing the formatted stop.dayDate',
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  'An element with data-testid="vote-count" containing the stop voteCount value is rendered',
+                  'Add a vote count element with data-testid="vote-count" containing the stop voteCount value',
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "A button whose accessible name matches /vote/i is rendered, and clicking it calls the onVote prop exactly once",
+                  "Add a Vote button that calls the onVote prop when clicked",
                 is_required: true,
                 order: 6,
               },
@@ -652,31 +653,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "DayFilter renders an 'All' chip — a button whose accessible name matches /all/i",
+                  "Add an 'All' filter chip button to the DayFilter component",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "DayFilter renders exactly one button per day in the days prop, plus the All chip",
+                  "Add one filter chip button for each day in the trip duration",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Clicking a day chip calls onDayChange with that day's key (for example '2026-04-11')",
+                  "Wire up clicking a day chip to call onDayChange with that day's key (e.g., '2026-04-11')",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Clicking the 'All' chip calls onDayChange with 'all'",
+                  "Wire up clicking the 'All' chip to call onDayChange with 'all'",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  'The chip whose key equals activeDay has aria-pressed="true"',
+                  'Set aria-pressed="true" on the chip that matches the currently active day',
                 is_required: true,
                 order: 5,
               },
@@ -825,36 +826,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "GET /api/trips/:tripId/stats responds 200 with success: true for an authenticated request",
+                  "Call GET /api/trips/:tripId/stats with authentication and verify it responds successfully",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "data.topStops is ordered by voteCount descending, and ?topN=3 returns exactly 3 entries",
+                  "Verify the topStops list is ordered by voteCount descending and the ?topN parameter limits results",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?topN=2 returns exactly 2 entries — the cap is applied",
+                description:
+                  "Verify the ?topN parameter correctly caps the number of returned entries",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "No entry in data.topStops has a 'votes' property (the raw lookup array is not exposed)",
+                  "Verify the raw votes array is not exposed in the topStops response",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "data.totalSpent equals the sum of the trip's expense amounts (150 for a trip with expenses of 100 and 50)",
+                  "Verify totalSpent equals the sum of all expense amounts for the trip",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "The same request without a bearer token responds 401",
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
                 is_required: true,
                 order: 6,
               },
@@ -992,36 +994,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/trips/:tripId/stats?topN=0 responds 400",
+                description:
+                  "Verify that passing ?topN=0 returns a 400 error",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "?topN=999 responds 400 (above the allowed maximum)",
+                  "Verify that passing ?topN=999 returns a 400 error (above maximum)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?topN=abc responds 400 (not a valid integer)",
+                description:
+                  "Verify that passing ?topN=abc returns a 400 error (not a valid integer)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A successful request responds 200 with a body containing both success: true and a data property",
+                  "Verify a successful request returns 200 with success: true and a data property",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "data.topStops is an array and data.totalSpent is a number",
+                  "Verify the response data contains topStops as an array and totalSpent as a number",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "An unknown tripId responds 400 or 404 — never an unhandled 500 crash",
+                  "Verify an unknown tripId returns 400 or 404 instead of a 500 error",
                 is_required: true,
                 order: 6,
               },
@@ -1192,55 +1196,55 @@ export const levels = [
             create: [
               {
                 description:
-                  "POST /api/trips/:tripId/stops/:stopId/vote responds 200 and the stop's voteCount becomes 1",
+                  "Implement POST /api/trips/:tripId/stops/:stopId/vote to vote on a stop and verify it responds successfully",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "A second vote request from the same user leaves voteCount at 1 (idempotent — no double count)",
+                  "Verify voting twice from the same user does not double-count (idempotent)",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "A vote from a second, different user brings voteCount to 2",
+                  "Verify a vote from a different user increments the voteCount",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "DELETE /api/trips/:tripId/stops/:stopId/vote removes that user's vote and brings voteCount back to 0",
+                  "Implement DELETE /api/trips/:tripId/stops/:stopId/vote to remove a vote and verify it decrements voteCount",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "A DELETE vote against a stop with no votes leaves voteCount at 0 or higher — never negative",
+                  "Verify removing a vote from a stop with no votes does not make voteCount negative",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "POST .../vote without a bearer token responds 401",
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  'Clicking the StopCard Vote button calls the onVote prop exactly once, and the data-testid="vote-count" element then shows the updated count',
+                  "Wire up the StopCard Vote button to call the onVote prop and update the displayed vote count",
                 is_required: true,
                 order: 7,
               },
               {
                 description:
-                  'StopCard renders the data-testid="vote-count" element whenever a stop is rendered, including when no vote handler is supplied',
+                  "Ensure StopCard always renders the vote count element even when no vote handler is provided",
                 is_required: true,
                 order: 8,
               },
               {
                 description:
-                  "The Vote button is visible and not disabled",
+                  "Ensure the Vote button is visible and enabled",
                 is_required: true,
                 order: 9,
               },
@@ -1385,31 +1389,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "POST /api/trips/:tripId/expenses responds 201 with success: true and a data object holding the created expense (it carries an _id)",
+                  "Implement POST /api/trips/:tripId/expenses to create an expense and verify it responds successfully with the created expense",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Creating an expense increases the trip's totalSpent by exactly the expense amount",
+                  "Verify creating an expense increases the trip's totalSpent by the expense amount",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "When the response data includes balances, the net values sum to 0 within a cent-level tolerance (0.02)",
+                  "Verify the balance summary in the response has net values that sum to zero",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A splitBetween array containing a user who is neither the trip owner nor a collaborator responds 400",
+                  "Verify passing a splitBetween array with a non-member user returns 400",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "POST /api/trips/:tripId/expenses without a bearer token responds 401",
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
                 is_required: true,
                 order: 5,
               },
@@ -1569,25 +1573,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "The Vote collection has a unique index that covers both userId and stopId",
+                  "Add a unique index on the Vote collection covering both userId and stopId",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "100 concurrent vote requests from the same user leave exactly 1 Vote document for that userId/stopId pair",
+                  "Verify that concurrent vote requests from the same user create only one Vote document",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "After those 100 concurrent same-user votes, the stop's voteCount is 1 — no counter drift",
+                  "Verify that after concurrent same-user votes, the stop's voteCount is 1 (no counter drift)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Five different users voting on the same stop produce a voteCount of 5",
+                  "Verify that five different users voting on the same stop produce a voteCount of 5",
                 is_required: true,
                 order: 4,
               },
@@ -1732,37 +1736,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "GET /api/trips/:tripId/timeline responds 200 with data as an array of day groups shaped { date, stops }, where date is a YYYY-MM-DD string",
+                  "Call GET /api/trips/:tripId/timeline and verify it returns day groups with date and stops arrays",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  'For a trip with destinationTimezone "Asia/Tokyo", two stops at 15:30Z on consecutive UTC dates group under the Tokyo local dates "2026-04-13" and "2026-04-14" — the raw UTC date "2026-04-12" must not appear',
+                  "Verify stops are grouped by the trip's destination timezone (e.g., Asia/Tokyo), not UTC",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  'The stop scheduled at 2026-04-12T15:30:00Z is listed in the group whose date is "2026-04-13"',
+                  "Verify a stop at 2026-04-12T15:30:00Z appears in the Tokyo local date group for 2026-04-13",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Requesting the same trip as a Tokyo-timezone user yields exactly the same group dates as its Manila-timezone owner",
+                  "Verify the same trip returns identical day groups regardless of the requesting user's timezone",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  'A trip with destinationTimezone "UTC" still groups a stop at 2026-04-12T09:00:00Z under the date "2026-04-12"',
+                  "Verify a trip with destinationTimezone UTC still groups stops by UTC date correctly",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Requesting the timeline without a bearer token responds 401",
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
                 is_required: true,
                 order: 6,
               },

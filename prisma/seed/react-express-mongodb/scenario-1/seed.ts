@@ -135,18 +135,13 @@ export const levels = [
               },
               {
                 description:
-                  "Create `server/.env` and put `MONGO_URI` in it, for example `MONGO_URI=\"mongodb://localhost:27017/app\"`. Then write a short script in `server/` that loads `dotenv/config`, connects mongoose to `process.env.MONGO_URI`, disconnects again, prints `DB_OK` and exits 0.",
+                  "Start the API by running `pnpm run dev` in `server/`, then request `GET http://127.0.0.1:5000/api/health`. You should get a 200 and a body containing `ok`.",
                 order: 2,
               },
               {
                 description:
-                  "Start the API by running `pnpm run dev` in `server/`, then request `GET http://127.0.0.1:5000/api/health`. You should get a 200 and a body containing `ok`.",
-                order: 3,
-              },
-              {
-                description:
                   "Finally start the frontend with `pnpm run dev -- --port 3000` in `client/` and request `http://127.0.0.1:3000`. The body must contain `<div id=\"root\">`. That div is the React mount point in `client/index.html`.",
-                order: 4,
+                order: 3,
               },
             ],
           },
@@ -154,38 +149,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Root `node_modules` exists and contains `concurrently`",
+                description: "Install project dependencies at the root, client, and server folders",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Client `node_modules` exists and contains `react` and `axios`",
+                description: "Install client dependencies including React and Axios",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "Server `node_modules` exists and contains `express` and `mongoose`",
+                description: "Install server dependencies including Express and Mongoose",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "A Mongoose connect/disconnect script using `process.env.MONGO_URI` exits 0 and prints `DB_OK`",
+                description: "Verify the database connection works with a script that prints DB_OK",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "The server starts via `pnpm run dev` and `GET http://127.0.0.1:5000/api/health` returns 200 with a body containing `ok`",
+                description: "Start the server and verify the health endpoint responds successfully",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "The client starts via `pnpm run dev -- --port 3000` and `GET http://127.0.0.1:3000` returns a body containing `<div id=\"root\">`",
+                description: "Start the client and verify the React app loads with the root div",
                 is_required: true,
                 order: 6,
               },
@@ -300,32 +289,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "The subtitle text is exactly `Cook. Share. Inspire.` (case- and punctuation-sensitive)",
+                description: "Update the brand subtitle to exactly \"Cook. Share. Inspire.\"",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "The placeholder `Your Tagline Here` is no longer present anywhere in the rendered header",
+                description: "Remove the old placeholder text \"Your Tagline Here\" from the header",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "The subtitle renders inside the page header (the `role=\"banner\"` element)",
+                description: "Verify the subtitle appears inside the page header",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "The subtitle is visible (passes the testing-library visibility check)",
+                description: "Verify the subtitle is visible on the page",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "The brand area is exported as a named `Header` component and renders inside a router context",
+                description: "Verify the Header component is exported and renders inside a router",
                 is_required: true,
                 order: 5,
               },
@@ -467,23 +451,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "The card contains exactly one link (`role=\"link\"`) with `href` equal to `/recipes/<recipe._id>`",
+                description: "Each recipe card has exactly one link pointing to /recipes/<recipe-id>",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The link wraps the card title (`<h3>`) so the whole card is the click target",
+                description: "The link wraps the card title so the whole card is clickable",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "RecipeCard still renders the title in `<h3>`, author `@handle`, cover `<img alt={title}>`, tag chips, avg rating, and saved count",
+                description: "Recipe cards still show title, author, image, tags, rating, and save count",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Clicking the card in the browser navigates to `/recipes/:id` without a full page reload",
+                description: "Clicking a card navigates to the recipe detail page without a full page reload",
                 is_required: true,
                 order: 4,
               },
@@ -608,32 +591,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "`filterRecipes('', recipes)` returns the full list unchanged in length",
+                description: "Search with empty query returns all recipes unchanged",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "`filterRecipes('PASTA', recipes)` returns recipes whose title or tag matches case-insensitively",
+                description: "Search by title (case-insensitive) returns matching recipes",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "`filterRecipes('DESSERT', recipes)` returns only recipes whose tags match case-insensitively",
+                description: "Search by tag (case-insensitive) returns matching recipes",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "`filterRecipes('xyzzz', recipes)` returns an empty array when nothing matches",
+                description: "Search with no matches returns empty array",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "`filterRecipes` returns a NEW array — it does not mutate the input list",
+                description: "Search returns a new array without mutating the original list",
                 is_required: true,
                 order: 5,
               },
@@ -791,13 +769,12 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The aggregation returns at most 10 documents",
+                description: "Aggregation returns at most 10 recipes",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Returned documents are sorted by descending savedCount, breaking ties by newer createdAt",
+                description: "Recipes sorted by save count (highest first), then by creation date (newest first)",
                 is_required: true,
                 order: 2,
               },
@@ -807,8 +784,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description:
-                  "Each returned document excludes the heavy `saves` array",
+                description: "Returned recipes do not include the heavy saves array",
                 is_required: true,
                 order: 4,
               },
@@ -918,32 +894,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "GET /api/recipes/trending returns 200 with `res.body.success === true` and `res.body.data` an array",
+                description: "Get trending recipes and verify successful response with data array",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "GET /api/recipes/trending?limit=3 returns 200 with at most 3 documents in `data`",
+                description: "Request trending with limit=3 and verify at most 3 recipes returned",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "GET /api/recipes/trending?limit=999 returns 400 with `res.body.success === false` (validation error)",
+                description: "Request with limit=999 and verify validation rejects it",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "GET /api/recipes/trending?limit=0 returns 400 (out-of-range rejected)",
+                description: "Request with limit=0 and verify validation rejects it",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "GET /api/recipes/trending?limit=abc returns 400 (non-numeric rejected)",
+                description: "Request with limit=abc and verify validation rejects it",
                 is_required: true,
                 order: 5,
               },
@@ -1098,44 +1069,37 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "First save: `POST /api/recipes/:id/save` returns a success status (200 or 201) with `res.body.success === true` and `recipe.savedCount` becomes 1",
+                description: "Save a recipe for the first time and verify it succeeds with savedCount becoming 1",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "A duplicate save by the same user returns a success status, leaves `recipe.savedCount` at 1, and leaves at least one Save document for that (userId, recipeId)",
+                description: "Save the same recipe again and verify savedCount stays at 1 (idempotent)",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "A save by a DIFFERENT user increments `recipe.savedCount` by exactly 1 (so two users → savedCount === 2)",
+                description: "Save the same recipe as a different user and verify savedCount increments to 2",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "An unauthenticated `POST /api/recipes/:id/save` returns 401",
+                description: "Try to save without authentication and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "A save for a nonexistent recipe id returns a client error status between 400 and 499",
+                description: "Try to save a non-existent recipe and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "`SaveButton` is exported as a function component from `client/src/components/recipe/SaveButton.tsx` and renders a `<button>` with an `aria-label`",
+                description: "Verify SaveButton component exists and renders a button with aria-label",
                 is_required: true,
                 order: 6,
               },
               {
-                description:
-                  "Clicking `SaveButton` toggles its `aria-pressed` attribute (the value changes, i.e. it is not static)",
+                description: "Click SaveButton and verify aria-pressed toggles",
                 is_required: true,
                 order: 7,
               },
@@ -1249,44 +1213,37 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "GET /api/recipes/saved returns 200 with `res.body.data` an array containing exactly the user's saved recipes",
+                description: "View saved recipes page and verify it shows only your saved recipes",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "The saved list is sorted by `savedAt` descending — the recipe saved last appears first in `res.body.data`",
+                description: "Verify saved recipes are sorted by save date (newest first)",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "DELETE /api/recipes/:id/save returns 200, removes the Save document, and decrements `recipe.savedCount` by 1",
+                description: "Unsave a recipe and verify it's removed and savedCount decreases by 1",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "`recipe.savedCount` never goes below 0 — extra unsaves leave it at `>= 0`",
+                description: "Verify savedCount never goes below 0 even with extra unsaves",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "An unauthenticated `GET /api/recipes/saved` returns 401",
+                description: "Try to view saved recipes without authentication and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "`SavedRecipesPage` (exported from `client/src/pages/SavedRecipes.tsx`) renders an element with `data-testid=\"empty-state\"` when `getSaved` resolves to `[]`",
+                description: "View saved recipes page when empty and verify empty state is shown",
                 is_required: true,
                 order: 6,
               },
               {
-                description:
-                  "`SavedRecipesPage` renders exactly one card per saved recipe — the title of every recipe returned by `getSaved` appears in the document",
+                description: "View saved recipes page and verify one card appears per saved recipe",
                 is_required: true,
                 order: 7,
               },
@@ -1430,31 +1387,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "The Save collection has a compound unique index on { userId, recipeId }",
+                description: "Add a compound unique index on userId and recipeId to prevent duplicate saves",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Two concurrent saves by the same user for the same recipe result in exactly one Save document",
+                description: "Test concurrent saves by same user for same recipe and verify only one save document created",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "After 100 concurrent save attempts for the same (user, recipe), recipe.savedCount increases by exactly 1",
+                description: "Test 100 concurrent save attempts and verify savedCount increases by exactly 1",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "A regression test reproduces the bug on the broken code and passes on the fix",
+                description: "Write a regression test that fails on broken code and passes on fixed code",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "getSaved no longer returns duplicate recipes for any user",
+                description: "Verify getSaved no longer returns duplicate recipes for any user",
                 is_required: true,
                 order: 5,
               },
@@ -1597,31 +1550,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Elapsed < 24h returns `Posted today`",
+                description: "Verify elapsed time under 24 hours shows \"Posted today\"",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Elapsed >= 24h returns `Posted N day(s) ago` with N = Math.floor(diffMs/86400000)",
+                description: "Verify elapsed time 24+ hours shows \"Posted N day(s) ago\" with N = floor(diffMs/86400000)",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "Boundary deterministic: 23h59m → today, 24h00m → 1 day, 24h01m → 1 day",
+                description: "Verify boundary: 23h59m shows today, 24h00m shows 1 day, 24h01m shows 1 day",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "DST transitions don't introduce off-by-one errors in tests using fixed UTC Date instances",
+                description: "Verify DST transitions don't cause off-by-one errors",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "A regression test reproduces the original incorrect output on the broken code",
+                description: "Write a regression test that reproduces the original bug on broken code",
                 is_required: true,
                 order: 5,
               },
