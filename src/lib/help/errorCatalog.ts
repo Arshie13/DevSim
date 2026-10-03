@@ -4,7 +4,6 @@ export interface HelpEntry {
 	title: string;
 	description: string;
 	steps: string[];
-	actions?: { label: string; handler: string }[];
 	image?: string;
 	stepAttachments?: StepAttachment[];
 }
@@ -24,7 +23,6 @@ export const errorCatalog: HelpEntry[] = [
 			'Check available disk space by running `df -h` in the terminal. Large dependency installs can fill up space quickly.',
 			'Try saving again (Ctrl+S) — transient API errors sometimes resolve on their own.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
 		image: '/images/limitations/files/save/failedtosave.png',
 		stepAttachments: [
 			{
@@ -45,7 +43,6 @@ export const errorCatalog: HelpEntry[] = [
 			'Clear unnecessary cache folders (node_modules, .next, dist) to free up space.',
 			'Try refreshing the file tree to sync with the workspace filesystem.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
 		image: '/images/limitations/files/create/file.png'
 	},
 	{
@@ -58,7 +55,6 @@ export const errorCatalog: HelpEntry[] = [
 			'If you\'re sure you want to delete a non-protected file, try refreshing the file tree first.',
 			'Use the terminal (rm command) as an alternative way to delete files.'
 		],
-		actions: [{ label: 'Refresh Files', handler: 'refreshFiles' }],
 		image: '/images/limitations/files/delete/fail.png'
 	},
 	{
@@ -72,7 +68,6 @@ export const errorCatalog: HelpEntry[] = [
 			'Long-running processes may have been interrupted — you\'ll need to restart them.',
 			'You can have up to 3 terminal sessions. Close unused ones if you hit the limit.'
 		],
-		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }],
 		image: '/images/limitations/terminal/disconnected/disconnect.png'
 	},
 	{
@@ -99,7 +94,6 @@ export const errorCatalog: HelpEntry[] = [
 			'Click the Refresh button in the preview panel toolbar to retry the connection.',
 			'Check the terminal output for errors if the server fails to start.'
 		],
-		actions: [{ label: 'Open Terminal', handler: 'openTerminal' }],
 		image: '/images/limitations/preview/loading.png'
 	},
 	{
@@ -190,7 +184,6 @@ export const errorCatalog: HelpEntry[] = [
 			'Make sure your code demonstrates the skills taught in this level.',
 			'Run all tests before submitting — failing tests block mastery verification.'
 		],
-		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }]
 	},
 	{
 		id: 'submit-workspace-missing',
@@ -225,7 +218,6 @@ export const errorCatalog: HelpEntry[] = [
 			'Ask about the concept or approach rather than the implementation.',
 			'Read the crash course section — it covers the concepts you need for the task.'
 		],
-		actions: [{ label: 'Open Crash Course', handler: 'openCrashCourse' }],
 		image: '/images/limitations/ai_credits/out_of_scope.png'
 	},
 	{

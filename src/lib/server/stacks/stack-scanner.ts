@@ -59,6 +59,9 @@ function techMetaToOption(meta: TechMeta): TechOption {
 function classifyStack(techIds: Record<string, string | null>): 'fullstack' | 'backend' | 'frontend' {
   if (techIds.frontend && techIds.backend) return 'fullstack';
   if (techIds.backend) return 'backend';
+  // Frontend-only stacks with a database (e.g. nextjs-postgres-prisma) serve
+  // server requests too, so they are fullstack rather than frontend.
+  if (techIds.database) return 'fullstack';
   return 'frontend';
 }
 
