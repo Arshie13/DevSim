@@ -16,7 +16,6 @@ export const levels = [
     subtitle:
       "Set up the WorkPulse manager dashboard and add hour / currency formatters.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new full-stack developer has joined WorkPulse Inc. to work on the manager dashboard of the time-tracking product, built with Next.js, PostgreSQL, and Prisma. The first tasks are to get the dashboard running against a local database and add two formatting helpers so hour columns and payroll columns display consistently.",
     xp_reward: 100,
@@ -42,7 +41,7 @@ export const levels = [
               {
                 title: "Serverless Architecture Context",
                 content:
-                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/app/actions/ as server actions.",
+                  "Next.js on Vercel deploys as a serverless application. API routes and server components run as on-demand functions that spin up per request, then spin down. There is no persistent server process running 24/7. This means the stack handles traffic bursts by scaling horizontally, but cold starts can occur when no function instance is warm. Prisma handles this via connection pooling in serverless environments — a Prisma Accelerator or a DB-side pooler manages the PostgreSQL connection pool across ephemeral function instances.\n\nIn the local development environment, Next.js runs a standard Node.js dev server — the serverless distinction only matters at deployment. Architecturally, the project has no server/ directory; backend logic lives in src/app/api/ as route handlers or in src/lib/actions/ as server actions.",
                 order: 2,
               },
               {
@@ -96,21 +95,27 @@ export const levels = [
             create: [
               {
                 description:
-                  "Dependencies installed cleanly via `pnpm install`",
+                  "Install all dependencies at the project root.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Prisma migrations applied and seed data inserted",
+                  "Generate the Prisma Client.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`pnpm dev` boots the dashboard on http://localhost:3000",
+                  "Apply database migrations.",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Verify database connectivity (prints DB_OK with ROWS count > 0).",
+                is_required: true,
+                order: 4,
               },
             ],
           },
@@ -208,25 +213,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`formatHours` and `formatCurrency` are exported from `src/lib/format.ts`",
+                  "Create a file exported from src/lib and export a formatHours function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "formatHours always shows one decimal place with a trailing `h`",
+                  "formatHours always returns one decimal place followed by h: formatHours(8) → \"8.0h\" and formatHours(8.5) → \"8.5h\".",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "formatCurrency renders `$`, two decimals, and comma thousands separators",
+                  "formatHours rounds to one decimal place: formatHours(8.46) → \"8.5h\".",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Both helpers are used in the dashboard's hour and payroll columns",
+                  "Create a file exported from src/lib and export a formatCurrency function that returns $ with two decimals and comma separators: 1234 → \"$1,234.00\", 0 → \"$0.00\", 2750000 → \"$2,750,000.00\".",
                 is_required: true,
                 order: 4,
               },
@@ -242,13 +247,12 @@ export const levels = [
     subtitle:
       "Two Prisma-backed server actions: employee clock state and a sum of completed hours.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The attendance table re-checks clock-in/out fields in every row, and the 'hours this week' total is computed on the client. Both must be moved behind server actions backed by Prisma so the dashboard agrees with the database. The graders mock `@/lib/prisma`, so real Prisma queries are written — no DB calls execute during the test.",
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
-      "Server actions in the App Router live under `src/app/actions/` and run only on the server. They can read `@/lib/prisma` directly and return typed shapes that client components consume like any other async function. Putting status and hour-sum logic behind them keeps every screen consistent with the source of truth.\n\nSumming durations: skip incomplete records explicitly, parse with `new Date(...)`, subtract, divide by 3_600_000, and round once at the end. Open entries (no `clock_out`) are excluded — they aren't payable hours yet.",
+      "Server actions in the App Router live under `src/lib/actions/` and run only on the server. They can read `@/lib/prisma` directly and return typed shapes that client components consume like any other async function. Putting status and hour-sum logic behind them keeps every screen consistent with the source of truth.\n\nSumming durations: skip incomplete records explicitly, parse with `new Date(...)`, subtract, divide by 3_600_000, and round once at the end. Open entries (no `clock_out`) are excluded — they aren't payable hours yet.",
     scenario_id: "nextjs-postgres-prisma-3",
     tasks: {
       create: [
@@ -268,7 +272,7 @@ export const levels = [
               {
                 title: "The getEmployeeStatusForId Contract",
                 content:
-                  "Create `src/app/actions/time.ts` and export:\n\nexport async function getEmployeeStatusForId(\n  employeeId: number,\n): Promise<'off' | 'clocked-in' | 'clocked-out'>\n\nUse `prisma.timeEntry.findFirst({ where: { employee_id: employeeId } })`. Apply the rules:\n  • `null` row → `'off'`.\n  • Row with no `clock_out` → `'clocked-in'`.\n  • Row with a `clock_out` → `'clocked-out'`.",
+                  "Create `src/lib/actions/time.ts` and export:\n\nexport async function getEmployeeStatusForId(\n  employeeId: number,\n): Promise<'off' | 'clocked-in' | 'clocked-out'>\n\nUse `prisma.timeEntry.findFirst({ where: { employee_id: employeeId } })`. Apply the rules:\n  • `null` row → `'off'`.\n  • Row with no `clock_out` → `'clocked-in'`.\n  • Row with a `clock_out` → `'clocked-out'`.",
                 order: 2,
               },
               {
@@ -315,19 +319,19 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getEmployeeStatusForId` is exported as an async function from `src/app/actions/time.ts`",
+                  "Create a file exported from src/lib/actions and export an async getEmployeeStatusForId(employeeId) function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Uses `prisma.timeEntry.findFirst` keyed by `employee_id`",
+                  "The function calls prisma.timeEntry.findFirst with an options object whose where is { employee_id: employeeId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Returns `'off'` when the row is null, `'clocked-in'` when `clock_out` is null, `'clocked-out'` otherwise",
+                  "Returns 'off' when findFirst resolves to null, 'clocked-in' when the entry's clock_out is null, and 'clocked-out' when the entry has a clock_out value.",
                 is_required: true,
                 order: 3,
               },
@@ -350,7 +354,7 @@ export const levels = [
               {
                 title: "The sumHoursForEmployee Contract",
                 content:
-                  "Add to `src/app/actions/time.ts`:\n\nexport async function sumHoursForEmployee(employeeId: number): Promise<number>\n\nUse `prisma.timeEntry.findMany({ where: { employee_id: employeeId } })`. Sum the duration in hours of every entry with a `clock_out`. Ignore open entries. Round the total to 2 decimals. Empty result → `0`.",
+                  "Add to `src/lib/actions/time.ts`:\n\nexport async function sumHoursForEmployee(employeeId: number): Promise<number>\n\nUse `prisma.timeEntry.findMany({ where: { employee_id: employeeId } })`. Sum the duration in hours of every entry with a `clock_out`. Ignore open entries. Round the total to 2 decimals. Empty result → `0`.",
                 order: 2,
               },
               {
@@ -397,25 +401,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`sumHoursForEmployee` is exported as an async function from `src/app/actions/time.ts`",
+                  "Create a file exported from src/lib/actions and export a sumHoursForEmployee function.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Uses `prisma.timeEntry.findMany` keyed by `employee_id`",
+                  "The function calls prisma.timeEntry.findMany with an options object whose where is { employee_id: employeeId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Ignores entries where `clock_out` is null",
+                  "Returns the summed duration in hours of every completed entry — an 8-hour and a 4.5-hour shift total 12.5.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Returns the total hours rounded to 2 decimals; empty input returns `0`",
+                  "Ignores entries whose clock_out is null — an 8-hour shift alongside an open shift still returns 8; returns 0 when the employee has no time entries.",
                 is_required: true,
                 order: 4,
               },
@@ -431,7 +435,6 @@ export const levels = [
     subtitle:
       "Render two React components: a validated request form and a used/pending/remaining balance panel.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Employees need a request form that rejects bad inputs before they leave the page, and a balance panel that shows used / pending / remaining hours at a glance. Build two presentational React components, graded with `@testing-library/react` in jsdom.",
     xp_reward: 200,
@@ -534,25 +537,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`TimeOffRequestForm` is the default export of `src/components/TimeOffRequestForm.tsx`",
+                  "Create TimeOffRequestForm as the default export of a component from src/components.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Renders labelled \"Start date\", \"End date\", \"Hours\" inputs and a \"Type\" select with `vacation` / `sick` / `personal` / `unpaid`",
+                  "Renders inputs labelled \"Start date\", \"End date\" and \"Hours\" plus a select labelled \"Type\", each findable by its label text.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Submitting valid input calls `onSubmit` with the typed request payload",
+                  "Renders a submit button whose accessible name matches /submit/i; submitting valid values calls onSubmit with an object containing start_date, end_date, numeric hours, and request_type set to the selected Type value.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Submitting invalid input (`end_date < start_date` OR `hours <= 0`) does NOT call `onSubmit` and renders `data-testid=\"form-error\"`",
+                  "Submitting an end_date earlier than start_date does NOT call onSubmit and renders an element with data-testid=\"form-error\"; submitting hours of 0 does NOT call onSubmit and renders an element with data-testid=\"form-error\".",
                 is_required: true,
                 order: 4,
               },
@@ -651,25 +654,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`TimeOffBalance` is the default export of `src/components/TimeOffBalance.tsx`",
+                  "Create TimeOffBalance as the default export of the Time Off Balance component.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`used-hours` sums approved, non-unpaid request hours",
+                  "data-testid=\"used-hours\" shows the sum of hours for requests with status approved and request_type other than unpaid.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`pending-hours` sums pending request hours",
+                  "data-testid=\"pending-hours\" shows the sum of hours for requests with status pending.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "`remaining-hours` equals `allowance − used`",
+                  "data-testid=\"remaining-hours\" shows allowance minus used; pending hours are not subtracted; given an empty requests array, used-hours and pending-hours show 0 and remaining-hours shows the full allowance.",
                 is_required: true,
                 order: 4,
               },
@@ -685,7 +688,6 @@ export const levels = [
     subtitle:
       "Render an Hours Breakdown component and a Prisma-backed Gross Pay server action.",
     order: 4,
-    deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Payroll currently mixes hours-display logic and pay computation in a single 60-line server function with no tests. Split it into one presentational React component (Hours Breakdown) and one Prisma-backed server action (Gross Pay). The dashboard composes them; each is graded independently.",
     xp_reward: 250,
@@ -787,25 +789,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`HoursBreakdown` is the default export of `src/components/HoursBreakdown.tsx`",
+                  "Create HoursBreakdown as the default export of the HoursBreakdown component.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`data-testid=\"regular-hours\"` shows `Math.min(totalHours, threshold)` with `threshold` defaulting to `40`",
+                  "data-testid=\"regular-hours\" and data-testid=\"overtime-hours\" are always rendered.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`data-testid=\"overtime-hours\"` shows `Math.max(0, totalHours - threshold)`",
+                  "With the default 40-hour threshold, totalHours of 35 renders regular 35 and overtime 0; totalHours of 48 renders regular 40 and overtime 8; totalHours of exactly 40 renders regular 40 and overtime 0.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Passing an explicit `threshold` overrides the default",
+                  "An explicit threshold overrides the default: totalHours of 45 with threshold={35} renders regular 35 and overtime 10.",
                 is_required: true,
                 order: 4,
               },
@@ -904,25 +906,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`computeGrossPayForEmployee` is exported as an async function from `src/app/actions/payroll.ts`",
+                  "Create computeGrossPayForEmployee(employeeId, regularHours, overtimeHours) as an async export from src/lib/actions/payroll.ts.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Reads `hourly_rate` via `prisma.employee.findUnique` keyed by `id`",
+                  "The function calls prisma.employee.findUnique with an options object whose where is { id: employeeId }.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Throws when the employee is missing or has no `hourly_rate`",
+                  "Regular hours are paid at the stored hourly_rate: 40 regular hours at a rate of 25 returns 1000; overtime hours are paid at 1.5× the rate: 40 regular and 8 overtime hours at a rate of 25 return 1300; the result is rounded to two decimals: 40 regular and 2 overtime hours at a rate of 18.33 return 788.19.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Returns `regular × rate + overtime × rate × 1.5`, rounded to 2 decimals",
+                  "Throws when the employee record has no hourly_rate.",
                 is_required: true,
                 order: 4,
               },
@@ -938,7 +940,6 @@ export const levels = [
     subtitle:
       "Render a Payroll Summary component and a Department Report server action.",
     order: 5,
-    deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Leadership wants a 'Department Report' view on the payroll tab with two pieces — a presentational summary card (totals + averages) and a Prisma-backed leaderboard that groups payroll records by department. The summary is a React component; the report is a server action that joins `payrollRecord` with `employee` and groups by a derived department key.",
     xp_reward: 300,
@@ -1034,19 +1035,19 @@ export const levels = [
             create: [
               {
                 description:
-                  "`PayrollSummary` is the default export of `src/components/PayrollSummary.tsx`",
+                  "Create PayrollSummary as the default export of a component from src/components/.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "`total-regular`, `total-overtime`, and `total-hours` are correct sums",
+                  "total-regular, total-overtime and total-hours show the sums of regular_hours, overtime_hours and total_hours; total-gross shows the sum of gross_pay dollar-formatted with a $ and two decimals (e.g., \"$8,450.00\").",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "`total-gross` and `average-gross` are dollar-formatted via `formatCurrency`; `average-gross` is `$0.00` (not `NaN`) on empty records",
+                  "average-gross shows total gross divided by the record count, rounded to two decimals and dollar-formatted (e.g., \"$2,816.67\" from $8,450.00 over 3 records); given an empty records array, the three hour totals render 0 and both total-gross and average-gross render \"$0.00\" — never NaN.",
                 is_required: true,
                 order: 3,
               },
@@ -1145,25 +1146,25 @@ export const levels = [
             create: [
               {
                 description:
-                  "`getDepartmentReport` is exported as an async function from `src/app/actions/reports.ts`",
+                  "Create getDepartmentReport as an async export from a file in src/lib/actions/.",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Uses `prisma.payrollRecord.findMany({ include: { employee: true } })`",
+                  "The function calls prisma.payrollRecord.findMany with an options object whose include contains employee.",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Department mapping matches the spec: Sarah/Robert → Engineering, Michael → Design, Emily → Marketing, James → Sales, else → HR",
+                  "Department is derived from employee.first_name: Sarah/Robert → Engineering, Michael → Design, Emily → Marketing, James → Sales, anyone else → HR.",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Per-department `headcount` counts distinct employees; `totalHours` and `totalGross` are correct sums; departments are sorted alphabetically",
+                  "Each entry is exactly { department, headcount, totalHours, totalGross }, where headcount counts distinct employees, totalHours sums total_hours, and totalGross sums gross_pay; the returned array is sorted alphabetically by department; returns [] when Prisma returns no payroll records.",
                 is_required: true,
                 order: 4,
               },

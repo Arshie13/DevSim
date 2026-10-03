@@ -34,7 +34,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and update the brand tagline.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: PulseLabs just onboarded a new developer on FitTrackr. The first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms understanding of how the codebase is organized.",
     xp_reward: 100,
@@ -96,7 +95,7 @@ export const levels = [
                   directory_tree: {
                     "/workspace": ["client", "server", "README.md", "package.json"],
                     "/workspace/client": ["src", "package.json", "vite.config.ts"],
-                    "/workspace/server": ["src", "package.json", ".env.example"],
+                    "/workspace/server": ["src", "package.json"],
                   },
                 },
                 order: 6,
@@ -104,7 +103,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/fittrackr\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGO_URI=mongodb://localhost:27017/fittrackr\nPORT=5000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGO_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
                 order: 7,
               },
               {
@@ -116,7 +115,7 @@ export const levels = [
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The FitTrackr seed creates 8 users, 18 workouts, 20 cheers, and 15 comments.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The FitTrackr seed creates 8 users, 18 workouts, 20 cheers, and 15 comments.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via tsx.",
                 order: 9,
               },
               {
@@ -131,13 +130,19 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has three separate folders that each need their own dependencies installed — check which folders contain a `package.json` file.",
+                  "Work from the project root and run `pnpm install` three times: once in the root folder, once in `client/`, once in `server/`. Each of those has its own `package.json` and its own `node_modules`. The root `package.json` must list `concurrently`.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions — look for sections about environment configuration, the `.env` file, and the seed command.",
+                  "After installing, check `client/node_modules` for `react` and `axios`, and `server/node_modules` for `express` and `mongoose`.",
                 order: 2,
+              },
+              
+              {
+                description:
+                  "Start the API with `pnpm run dev` in `server/` and request `GET http://127.0.0.1:5000/api/health`, which must answer 200 with a body containing `ok`. Then start the frontend with `pnpm run dev -- --port 3000` in `client/` and request `http://127.0.0.1:3000`, whose body must contain `<div id=\"root\">`. That mount node lives in `client/index.html`.",
+                order: 3,
               },
             ],
           },
@@ -145,24 +150,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Dependencies installed in root, client, and server without errors",
+                description: "Install project dependencies at the root, client, and server folders",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description: "Install client dependencies including React and Axios",
+                is_required: true,
+                order: 2,
+              },
+              {
+                description: "Install server dependencies including Express and Mongoose",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Client dev server starts without errors",
+                description: "Verify the database connection works with a script that prints DB_OK",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Express API server starts without errors",
+                description: "Start the server and verify the health endpoint responds successfully",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description: "Start the client and verify the React app loads with the root div",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -172,7 +187,7 @@ export const levels = [
           task_name: "Update Brand Tagline",
           test_type: "client",
           user_story:
-            'As a user, I want to see the correct brand tagline "Train. Log. Level Up." in the header so that the app reflects FitTrackr\'s identity.',
+            "As a user, I want to see the correct brand tagline \"Train. Log. Level Up.\" in the header so that the app reflects FitTrackr's identity.",
           learning_sections: {
             create: [
               {
@@ -258,18 +273,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The tagline is a layout-level element — look inside `client/src/components/layout/` for a file that renders the top navigation or brand area.",
+                  "Open `client/src/components/layout/Header.tsx`. The tagline is the `<span>Your Tagline Here</span>` rendered under the `FitTrackr` brand `<Link>`. Replace just that span's text content and leave the surrounding `<header>` element where it is.",
                 order: 1,
               },
               {
                 description:
-                  "After saving the change, open the running client in the browser to confirm the tagline updated correctly in the header.",
+                  "The new text has to be exactly `Train. Log. Level Up.`, character for character: capital letters, three periods, single spaces, trailing period included. The lookup is an exact string match, not a pattern, so an extra space will not do.",
                 order: 2,
               },
               {
                 description:
-                  'The acceptance criteria specifies the exact tagline text — the change must match "Train. Log. Level Up." character for character, including the periods.',
+                  "Keep `Header` a named export. It is rendered on its own inside `MemoryRouter` and `AuthProvider`, so it must not need any provider it does not already get. Save the file and check the change appears in the browser, Vite reloads it on save.",
                 order: 3,
+              },
+              {
+                description:
+                  "That `<header>` already carries `role=\"banner\"`, and the tagline has to stay a descendant of it and stay visible. The check looks inside the banner element for the text, so moving the tagline out of the `<header>` or hiding it breaks the match.",
+                order: 4,
               },
             ],
           },
@@ -277,12 +297,12 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: 'Header tagline reads exactly "Train. Log. Level Up."',
+                description: "Update the brand tagline to exactly \"Train. Log. Level Up.\"",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Tagline is visible on both desktop and mobile screen widths",
+                description: "Verify the tagline appears inside the page header (banner role)",
                 is_required: true,
                 order: 2,
               },
@@ -301,7 +321,6 @@ export const levels = [
     title: "Client-Side Exploration",
     subtitle: "Build the WorkoutCard component and add category filtering to the feed.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Users are frustrated — the workout feed is blank and there is no way to filter by training category. The tasks are to implement the WorkoutCard presentational component and wire up category filter chips so members can browse workouts by type.",
     xp_reward: 150,
@@ -407,18 +426,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "The component file already exists at `client/src/components/workout/WorkoutCard.tsx` — it is a stub that returns null. The job is to replace the return statement with real JSX.",
+                  "Build the card in `client/src/components/workout/WorkoutCard.tsx`, which exports a named `WorkoutCard` and currently returns `null`. It takes a single `workout: Workout` prop and is rendered with no router and no auth provider, so it must not depend on either.",
                 order: 1,
               },
               {
                 description:
-                  "Check `client/src/components/ui/` for existing primitives like `<Card>`, `<Badge>`, and `<Button>` — import and reuse them instead of writing raw divs.",
+                  "Put `data-testid=\"category-badge\"`, `data-testid=\"exercise-count\"`, `data-testid=\"duration\"` and `data-testid=\"cheer-count\"` on the exact elements that hold those values.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks that the title, author username, category badge text, exercise count, durationMin, cheerCount, and a Cheer button are all rendered. Use React Testing Library's `getByText` or `getByRole` to understand what the test is looking for.",
+                  "`exercise-count` has to contain `workout.exercises.length` (the fixture has 3 exercises, and the empty one has to show 0) and `cheer-count` has to contain the raw `workout.cheerCount` of 18. An icon glyph next to the digits is fine, the digits have to be there.",
                 order: 3,
+              },
+              {
+                description:
+                  "The title and author are matched as text against `/heavy squat day/i` and `/@coachjules/i`, so render the `@` explicitly with `@{workout.author.username}` rather than relying on CSS. The Cheer control has to be a real `<button>` whose accessible name contains `cheer`, which `aria-label=\"Cheer workout\"` gives you.",
+                order: 4,
+              },
+              {
+                description:
+                  "Reuse the primitives already in `client/src/components/ui/`, namely `Card`, `Badge`, `Avatar` and `Button`, but check that each one actually forwards `data-testid` and `aria-label`.",
+                order: 5,
               },
             ],
           },
@@ -426,39 +455,44 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "WorkoutCard renders the workout title",
+                description: "Render workout card and verify title appears",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "WorkoutCard renders the author's username",
+                description: "Verify author username appears with @ symbol",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "WorkoutCard renders a category badge",
+                description: "Verify category badge exists and shows 'strength'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: 'WorkoutCard renders the exercise count (e.g., "3 exercises")',
+                description: "Verify exercise count shows 3 for workout with 3 exercises",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "WorkoutCard renders the duration in minutes",
+                description: "Verify duration is displayed",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "WorkoutCard renders the cheerCount",
+                description: "Verify cheer count shows 18",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "WorkoutCard renders a Cheer button with accessible name matching /cheer/i",
+                description: "Verify cheer button exists with accessible name containing 'cheer'",
                 is_required: true,
                 order: 7,
+              },
+              {
+                description: "Render card with empty exercises and verify exercise count shows 0",
+                is_required: true,
+                order: 8,
               },
             ],
           },
@@ -575,18 +609,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "`CategoryFilter.tsx` is a stub — implement it as a row of clickable chip buttons. The parent `Feed.tsx` should hold the `activeCategory` state and pass it down via props.",
+                  "The behaviour belongs in `filterByCategory` in `client/src/utils/helpers.ts`, with the signature `filterByCategory(workouts: Workout[], category: WorkoutCategory | \"all\"): Workout[]`.",
                 order: 1,
               },
               {
                 description:
-                  "The `filterByCategory` helper in `client/src/utils/helpers.ts` is intentionally unimplemented — complete it first, then use it inside `Feed.tsx` to filter the workout list before passing it to `WorkoutFeed`.",
+                  "Return the input unchanged when `category === \"all\"`, otherwise return `workouts.filter((w) => w.category === category)`.",
                 order: 2,
               },
               {
                 description:
-                  "The test clicks a category chip and then checks that only workouts of that category remain visible in the list. Make sure the chip `onClick` triggers a state update that causes the feed to re-render with filtered data.",
+                  "`Array.prototype.filter` already hands back a new array. Do not sort in place or push into the input.",
                 order: 3,
+              },
+              {
+                description:
+                  "Compare with strict equality against the exact lowercase strings `strength`, `cardio`, `mobility` and `hiit`, with no case folding, pluralisation or aliasing.",
+                order: 4,
+              },
+              {
+                description:
+                  "Wire `CategoryFilter.tsx` chip state and `Feed.tsx` helper call as normal.",
+                order: 5,
               },
             ],
           },
@@ -594,31 +638,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "CategoryFilter renders chips for: all, strength, cardio, mobility, hiit",
+                description: "Filter with 'all' category returns all workouts",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Clicking a category chip filters the feed to show only that category",
+                description: "Filter by 'strength' returns exactly 2 strength workouts",
                 is_required: true,
                 order: 2,
               },
               {
-                description: 'Clicking "all" shows all workouts regardless of category',
+                description: "Filter by 'cardio' returns exactly 1 cardio workout",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  'filterByCategory in utils/helpers.ts returns workouts unchanged when category is "all"',
+                description: "Filter with no matches returns empty array",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Active category chip is visually distinguishable from inactive chips",
+                description: "Filter returns new array without mutating original",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description: "Filter on empty input returns empty array",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "Filter is pure - calling twice with same args returns equal results",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -635,7 +687,6 @@ export const levels = [
     title: "Backend / MongoDB",
     subtitle: "Fix the leaderboard aggregation and harden the endpoint.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The weekly leaderboard is returning empty results and bad data. Two backend tasks await: fix the broken MongoDB aggregation pipeline in the leaderboard controller, then wrap it in proper Express error handling and query-param validation so the endpoint is production-ready.",
     xp_reward: 200,
@@ -735,18 +786,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Look at `server/src/controllers/workout.controller.ts` in the `getLeaderboard` function. There are at least 4 distinct bugs in the aggregation pipeline — read the comments labeled `// BUG` for hints on what needs fixing.",
+                  "Match on the last 7 days before the `$lookup`, so the join only processes recent workouts. The date filter is currently `const sevenDaysAgo = new Date();`, which nothing in the last week can match. It needs `new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)`.",
                 order: 1,
               },
               {
                 description:
-                  "The date filter is computing the wrong cutoff — `new Date()` without any subtraction means only documents from the current millisecond match. Subtract 7 days in milliseconds.",
+                  "`totalCheers` has to accumulate `$cheerCount`, not `$cheers`, and `workoutCount` stays `$sum: 1`. Confirm the field name against the `Workout` model.",
                 order: 2,
               },
               {
                 description:
-                  "After fixing the date math, check the $group stage's $sum field reference — it references a field name that does not exist on Workout documents. Also ensure $sort and $limit are present.",
+                  "Each entry needs `userId`, `username`, `totalCheers` and `workoutCount`. A `$lookup` into the `users` collection for `username`, since `Workout` only stores `authorId`, and a `$project` that keeps those four fields while dropping the raw joined array with `{ workouts: 0 }`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Add `{ $sort: { totalCheers: -1 } }` and `{ $limit: 10 }` after the `$group`.",
+                order: 4,
+              },
+              {
+                description:
+                  "The array you return has to be what ends up in `res.body?.data ?? res.body` once the endpoint wraps it.",
+                order: 5,
               },
             ],
           },
@@ -754,31 +815,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Leaderboard only includes users with at least one workout in the last 7 days",
+                description: "Only workouts from the last 7 days are included in the leaderboard",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Results are sorted by totalCheers descending",
+                description: "Leaderboard returns at most 10 entries",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Results are capped at 10 entries",
+                description: "Entries are ordered by total cheers descending",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "Each entry has fields: userId, username, totalCheers, workoutCount",
+                description: "Every entry has userId, username, totalCheers, and workoutCount",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Response does not include a raw workouts array",
+                description: "No entry contains the raw workouts array from the join",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description: "Empty leaderboard returns empty array (not null or error)",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -812,7 +876,7 @@ export const levels = [
               {
                 title: "Response Envelopes",
                 content:
-                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, message: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
+                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, error: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
                 order: 4,
               },
               {
@@ -879,18 +943,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The `validateRequest` middleware already exists in `server/src/middleware/validateRequest.ts`. Create a `leaderboardQuerySchema` with Zod in the validators file and wire it to the route.",
+                  "The leaderboard route already exists as a static `router.get(\"/leaderboard\", ...)` line. Attach `validateRequest({ query: leaderboardQuerySchema })` to it, with a `leaderboardQuerySchema` in `server/src/validators/workout.schema.ts` that covers the limit. Keep that line above `router.get(\"/:id\", ...)` so `leaderboard` is not swallowed as an id.",
                 order: 1,
               },
               {
                 description:
-                  "The controller currently uses `res.send(data)` with no status code and no `{ success, data }` envelope. Fix it to use `res.status(200).json({ success: true, data })` and wrap the whole thing in try/catch with `next(err)`.",
+                  "One schema handles all three rejected cases: `?limit=999` is above the maximum, `?limit=0` is below the minimum, and `?limit=abc` is not coercible to an integer. A coerced number with `.int().min(1).max(50)` handles all of them and `validateRequest` turns each into a 400 with `{ success: false }`.",
                 order: 2,
               },
               {
                 description:
-                  "For `?limit=999`, the Zod schema should fail validation because 999 > 50. For `?limit=abc`, it should fail because Number('abc') is NaN which fails the `.int()` check. Test both cases after wiring up the schema.",
+                  "Replace `res.send(leaderboard)` with `res.status(200).json({ success: true, data: leaderboard })`, and read the validated limit from the request instead of hardcoding 10 in the pipeline.",
                 order: 3,
+              },
+              {
+                description:
+                  "Type the handler with `Request`, `Response` and `NextFunction` (or Express's `RequestHandler`) so `req.query` is not `any`, and wrap the body in `try/catch` forwarding to `next(err)`.",
+                order: 4,
               },
             ],
           },
@@ -898,33 +967,32 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "GET /api/workouts/leaderboard returns 200 with { success: true, data: [...] }",
+                description: "Call leaderboard endpoint without auth and verify successful response with data array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "?limit=5 returns at most 5 entries",
+                description: "Request with limit=3 and verify at most 3 entries returned",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?limit=999 returns 400 with success: false",
+                description: "Request with limit=999 and verify validation rejects it",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "?limit=0 returns 400",
+                description: "Request with limit=0 and verify validation rejects it",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "?limit=abc returns 400",
+                description: "Request with limit=abc and verify validation rejects it",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Thrown errors are forwarded to next(err) and handled by the global error handler",
+                description: "Call with no workouts in database and verify returns empty array",
                 is_required: true,
                 order: 6,
               },
@@ -943,7 +1011,6 @@ export const levels = [
     title: "Full-Stack Feature: Cheer + Streak",
     subtitle: "Implement the cheer toggle and personal workout streak page end-to-end.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: PulseLabs wants two social features shipped before the next sprint review: a cheer (like) system where members can cheer each other's workouts with a count that never drifts, and a personal streak page showing how many consecutive days a member has trained. Both features require server routes, Mongoose logic, client services, and UI wiring.",
     xp_reward: 250,
@@ -1060,18 +1127,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller stub in `workout.controller.ts` returns 501 for cheer/uncheer. Implement it: use `Cheer.findOne({ workoutId, userId })` to check for an existing cheer, then create or skip accordingly, and use `$inc` to adjust the counter.",
+                  "The cheer and uncheer handlers in `server/src/controllers/workout.controller.ts` are both stubs that end in `next(new HttpError(501, ...))`. The routes in `server/src/routes/workout.routes.ts` are already wired with `requireAuth`, which is what produces the 401, and `validateRequest({ params: workoutIdParamSchema })`.",
                 order: 1,
               },
               {
                 description:
-                  "The client service `cheerWorkout` in `workout.service.ts` throws an error instead of calling the API. Implement it using the `api` axios instance with `POST /workouts/:id/cheer`.",
+                  "Take the acting user from `req.user`, which `server/src/middleware/auth.ts` sets, never from the request body. Check for an existing `Cheer.findOne({ workoutId, userId })` before inserting.",
                 order: 2,
               },
               {
                 description:
-                  "The WorkoutCard Cheer button is a no-op. Wire it to call `cheerWorkout(workout._id)` and update local state optimistically, reverting on error.",
+                  "Adjust the counter with `Workout.updateOne({ _id }, { $inc: { cheerCount: 1 } })` on the create path and `{ $inc: { cheerCount: -1 } }` on the uncheer path, clamped so that uncheering with no Cheer document can never push `cheerCount` below 0.",
                 order: 3,
+              },
+              {
+                description:
+                  "For a well-formed id that matches no workout, throw `new HttpError(404, \"Workout not found\")` from `server/src/middleware/errorHandler.ts`, where any status in the 400 to 499 range is accepted. The first cheer may answer 200 or 201, but the DELETE must answer exactly 200.",
+                order: 4,
+              },
+              {
+                description:
+                  "On the client, the card only has to export a function component whose Cheer button has an accessible name matching `/cheer/i`, and `cheerWorkout` in `client/src/services/workout.service.ts` only has to be a function.",
+                order: 5,
               },
             ],
           },
@@ -1079,39 +1156,49 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "First cheer returns 2xx and increments workout cheerCount by 1",
+                description: "Cheer a workout and verify it succeeds with cheerCount becoming 1",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Duplicate cheer by same user does not increment cheerCount again",
+                description: "Cheer the same workout again and verify cheerCount stays at 1 (idempotent)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Cheer by a different user increments cheerCount by 1 more",
+                description: "Cheer from a different user and verify cheerCount increments to 2",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "DELETE uncheer removes the Cheer doc and decrements cheerCount",
+                description: "Uncheer and verify cheerCount returns to 0 and cheer document is removed",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Uncheer on a workout never cheered does not cause negative cheerCount",
+                description: "Uncheer on never-cheered workout and verify cheerCount never goes negative",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Unauthenticated cheer request returns 401",
+                description: "Try to cheer without authentication and verify it's rejected",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "WorkoutCard Cheer button updates the displayed count optimistically",
+                description: "Try to cheer non-existent workout and verify it's rejected",
                 is_required: true,
                 order: 7,
+              },
+              {
+                description: "Verify WorkoutCard component has a cheer button with accessible name",
+                is_required: true,
+                order: 8,
+              },
+              {
+                description: "Verify cheerWorkout service function exists",
+                is_required: true,
+                order: 9,
               },
             ],
           },
@@ -1218,18 +1305,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller stub `getMyStreak` in `user.controller.ts` returns 501. Implement it: fetch all workouts for `req.user._id`, deduplicate by UTC date string, then count consecutive days.",
+                  "The streak calculation is about turning a pile of timestamps into one number the user recognises as correct. Consecutive means consecutive calendar days, and today and yesterday both count as a live streak.",
                 order: 1,
               },
               {
                 description:
-                  "The client service `getMyStreak` in `workout.service.ts` throws an error. Implement it with `GET /users/me/streak` using the `api` axios instance.",
+                  "A gap of more than one day has to end the run. Watch the boundaries: `longestStreak` can never come out lower than `currentStreak`, and with no workouts at all `lastWorkoutDate` has to be exactly `null`, not `\"\"` and not `undefined`.",
                 order: 2,
               },
               {
                 description:
-                  "The `MyStreak.tsx` page is empty — add a `useEffect` to call `getMyStreak()` on mount and display `currentStreak`, `longestStreak`, and `lastWorkoutDate`. Handle the zero-workout case with a friendly empty state.",
+                  "Grouping timestamps by their raw date produces streaks that are off by one depending on where the server thinks it is.",
                 order: 3,
+              },
+              {
+                description:
+                  "Call `getMyStreak` once on mount inside a `useEffect`, because the mocked call is counted.",
+                order: 4,
+              },
+              {
+                description:
+                  "Expose the two numbers on `data-testid=\"current-streak\"` and `data-testid=\"longest-streak\"`. For the zero case either keep rendering `current-streak` or add a `data-testid=\"empty-streak\"` empty state.",
+                order: 5,
               },
             ],
           },
@@ -1237,47 +1334,54 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "GET /api/users/me/streak returns 200 with { success: true, data: { currentStreak, longestStreak, lastWorkoutDate } }",
+                description: "Get personal streak as authenticated user and verify response has currentStreak, longestStreak, and lastWorkoutDate",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "5 consecutive daily workouts produce currentStreak === 5",
+                description: "With workouts on 5 consecutive days, verify currentStreak is 5 and longestStreak >= 5",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Multiple workouts on the same day count as 1 streak day",
+                description: "With a gap in workouts, verify currentStreak only counts recent streak and longestStreak is correct",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "A gap of more than 1 day breaks the streak (currentStreak resets to the recent run)",
+                description: "With no workouts, verify currentStreak=0, longestStreak=0, lastWorkoutDate=null",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "longestStreak is always >= currentStreak",
+                description: "Multiple workouts on same day count as 1 for streak",
                 is_required: true,
                 order: 5,
               },
               {
-                description:
-                  "User with no workouts → currentStreak: 0, longestStreak: 0, lastWorkoutDate: null",
+                description: "Verify longestStreak is always >= currentStreak",
                 is_required: true,
                 order: 6,
               },
               {
-                description: "MyStreak page renders currentStreak and longestStreak values from the API",
+                description: "Try to get streak without authentication and verify it's rejected",
                 is_required: true,
                 order: 7,
               },
               {
-                description: "Unauthenticated request returns 401",
+                description: "Render MyStreak page with streak data and verify current and longest streak display",
                 is_required: true,
                 order: 8,
+              },
+              {
+                description: "Render MyStreak page with zero streak and verify empty state or current streak shows",
+                is_required: true,
+                order: 9,
+              },
+              {
+                description: "Verify page calls getMyStreak service exactly once on mount",
+                is_required: true,
+                order: 10,
               },
             ],
           },
@@ -1294,13 +1398,12 @@ export const levels = [
     title: "Production Bug Fixes",
     subtitle: "Fix cheer counter drift and timezone-naive streak grouping.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Two critical bugs have been reported by PulseLabs users. First, some workouts show inflated cheer counts because concurrent requests create duplicate Cheer documents. Second, users in UTC+8 see their late-night workouts appear on the wrong day, breaking their streak. Diagnose and fix both production bugs.",
     xp_reward: 300,
     coin_reward: 150,
     key_takeaways:
-      "Database-level unique indexes are the only reliable way to enforce uniqueness under concurrent load. Application-level checks (findOne then create) have a race window — two requests can both find no existing document and both insert. The MongoDB unique index catches the second insert and returns E11000, which the application handles as an idempotent no-op.\n\nDate objects in JavaScript are always UTC instants. Converting a UTC timestamp to a local calendar day requires timezone-aware formatting. Naive toISOString().slice(0,10) gives the UTC date — for a UTC+8 user this assigns late-night workouts to the next UTC calendar day, which is actually the same local day. Always use Intl.DateTimeFormat or a tz-aware library when grouping by user-local date.",
+      "Database-level unique indexes are the only reliable way to enforce uniqueness under concurrent load. Application-level checks (findOne then create) have a race window — two requests can both find no existing document and both insert. The MongoDB unique index catches the second insert and returns E11000, which the application handles as an idempotent no-op.\n\nDate objects in JavaScript are always UTC instants. Converting a UTC timestamp to a local calendar day requires timezone-aware formatting. Naive toISOString().slice(0,10) gives the UTC date — for a UTC+8 user a workout just after local midnight is still the previous UTC day, so it is grouped under the wrong local date. Always use Intl.DateTimeFormat or a tz-aware library when grouping by user-local date.",
     scenario_id: "mern-ft-scenario-2",
     tasks: {
       create: [
@@ -1405,18 +1508,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `server/src/models/Cheer.ts` and look for the comment labeled `// L5-T1 BUG`. Add `CheerSchema.index({ userId: 1, workoutId: 1 }, { unique: true })` below the schema definition.",
+                  "One user can cheer a given workout once, and the database has to be what guarantees it.",
                 order: 1,
               },
               {
                 description:
-                  "After adding the index, update the cheer controller to wrap `Cheer.create()` in a try/catch that catches `err.code === 11000` and returns 200 without incrementing the counter again.",
+                  "A uniqueness rule over the user and workout pair is the fix. It has to reach the actual collection rather than sitting only in the model definition.",
                 order: 2,
               },
               {
                 description:
-                  "Run `Cheer.syncIndexes()` in the controller or test setup to ensure MongoDB applies the new index to the existing collection. Without this, the index only applies to new collections.",
+                  "Counting every request instead of counting new cheers inflates `cheerCount` on every retry. A rejected duplicate still means the cheer is there, so it has to succeed without moving the counter again.",
                 order: 3,
+              },
+              {
+                description:
+                  "Only the documents and the counter afterwards are checked. Everything else that fails still goes to the central error handler.",
+                order: 4,
+              },
+              {
+                description:
+                  "Records that predate the fix still have to be dealt with. Until the duplicates are gone the constraint cannot be added, so clean the collection first, keeping the oldest cheer per pair and recomputing the count from what is left.",
+                order: 5,
               },
             ],
           },
@@ -1424,33 +1537,19 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Cheer schema has a compound unique index on { userId: 1, workoutId: 1 } with unique: true",
+                description: "Add a compound unique index on userId and workoutId to prevent duplicate cheers",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "100 concurrent cheer requests from the same user produce exactly 1 Cheer document",
+                description: "Test 100 concurrent cheer requests from same user and verify only 1 cheer document exists",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "After the concurrency race, workout.cheerCount === 1 (no counter drift)",
+                description: "After 100 concurrent requests, verify cheerCount is exactly 1 (no drift)",
                 is_required: true,
                 order: 3,
-              },
-              {
-                description:
-                  "The duplicate-key error (E11000) is caught and treated as an idempotent success — not a 500 error",
-                is_required: true,
-                order: 4,
-              },
-              {
-                description: "Existing cheer and uncheer tests from Level 4 still pass",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -1472,7 +1571,7 @@ export const levels = [
               {
                 title: "The Bug: Wrong Day Assignment",
                 content:
-                  'Client Report: "I log a workout at 11:30 PM on Monday (I\'m in Manila, UTC+8) but my streak page says it counts as Tuesday and breaks my streak."\n\nRoot cause: the streak controller uses performedAt.toISOString().slice(0, 10), which always returns the UTC date. For a user in UTC+8, a workout timestamp that is 00:30 local the next day gets assigned to the wrong calendar day. The problem only affects users in timezones with positive offsets where late-night workouts cross the UTC date boundary.',
+                  'Client Report: "I log a workout at 12:30 AM on Tuesday (I\'m in Manila, UTC+8) but my streak page counts it as Monday and breaks my streak."\n\nRoot cause: the streak controller uses performedAt.toISOString().slice(0, 10), which always returns the UTC date. For a user in UTC+8, a workout at 00:30 local on Tuesday is 16:30Z on Monday, so the UTC slice assigns it to Monday. The problem only affects timezones with positive offsets, where a workout just after local midnight belongs to the previous UTC date.',
                 order: 2,
               },
               {
@@ -1551,17 +1650,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Find where the streak controller groups workouts by date. It uses `performedAt.toISOString().slice(0,10)` — replace this call with a timezone-aware helper that reads `req.user.timezone`.",
+                  "A streak is counted in the user's own calendar, not the server's.",
                 order: 1,
               },
               {
                 description:
-                  "Implement a `localDateKey(date: Date, tz: string): string` helper using `new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)`. The `en-CA` locale produces `YYYY-MM-DD` output directly.",
+                  "The timezone has to come from the user rather than being assumed. With the conversion in place, a UTC user must be unaffected.",
                 order: 2,
               },
               {
                 description:
-                  "The test seeds two workouts at 15:30Z on consecutive UTC dates for a Manila user (UTC+8). After the fix, both should group to their correct local calendar days (consecutive) and produce streak: 2. Verify UTC-timezone users are still unaffected.",
+                  "The grouping key still has to be a `YYYY-MM-DD` string, because the response is built on a `lastWorkoutDate` property holding a local calendar day, not an instant. Two workouts at 15:30Z on consecutive UTC dates are 23:30 on consecutive local days for a Manila user, so they have to produce a streak of 2.",
                 order: 3,
               },
             ],
@@ -1570,14 +1669,12 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Streak groups workouts by user's local calendar day using their IANA timezone (not UTC date)",
+                description: "Fix streak to group workouts by user's local calendar day using their timezone",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Two workouts at 15:30Z on consecutive UTC dates produce streak: 2 for a UTC+8 user (both are 23:30 on consecutive local days)",
+                description: "For UTC+8 user, late-night workouts on consecutive UTC dates both count as consecutive local days",
                 is_required: true,
                 order: 2,
               },
@@ -1587,8 +1684,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description:
-                  "Implementation works with either Intl.DateTimeFormat or a tz-aware date library",
+                description: "Implementation uses Intl.DateTimeFormat or timezone-aware date library",
                 is_required: true,
                 order: 4,
               },

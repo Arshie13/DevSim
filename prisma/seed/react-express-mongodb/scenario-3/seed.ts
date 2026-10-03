@@ -35,7 +35,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and update the brand tagline.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: WanderMint Studios just onboarded a new developer on TripWeaver. The first tasks are to get the MERN (MongoDB, Express, React, Node.js) stack running locally and make a small but visible UI change that confirms understanding of how the codebase is organized.",
     xp_reward: 100,
@@ -48,7 +47,7 @@ export const levels = [
         // ── L1-T1: Prepare Development Environment ──────────────
         {
           task_name: "Prepare Development Environment",
-          test_type: "none",
+          test_type: "client",
           user_story:
             "As a developer, I want to set up my local development environment so that I can run and modify the TripWeaver application.",
           learning_sections: {
@@ -97,7 +96,7 @@ export const levels = [
                   directory_tree: {
                     "/workspace": ["client", "server", "README.md", "package.json"],
                     "/workspace/client": ["src", "package.json", "vite.config.ts"],
-                    "/workspace/server": ["src", "package.json", ".env.example"],
+                    "/workspace/server": ["src", "package.json"],
                   },
                 },
                 order: 6,
@@ -105,7 +104,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGODB_URI=mongodb://localhost:27017/tripweaver\nPORT=4000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGODB_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nMONGO_URI=mongodb://localhost:27017/tripweaver\nPORT=5000\nJWT_SECRET=changeme\n\nThe dotenv package reads these files and makes them available as process.env.MONGO_URI in the application code. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided, so no need to set them up manually.",
                 order: 7,
               },
               {
@@ -117,7 +116,7 @@ export const levels = [
               {
                 title: "Seeding the Database",
                 content:
-                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The TripWeaver seed creates 8 users, 4 trips, ~20 stops, ~12 expenses, and ~10 votes.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via ts-node.",
+                  "A seed script populates the database with realistic sample data so that development can proceed against a real dataset instead of an empty one. The TripWeaver seed creates 8 users, 4 trips, ~20 stops, ~12 expenses, and ~10 votes.\n\nRun the seed with:\npnpm run db:seed\n\nThis command is defined in the root package.json and calls server/src/seed/seed.ts via tsx.",
                 order: 9,
               },
               {
@@ -132,18 +131,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has three separate folders that each need their own dependencies installed — check which folders contain a `package.json` file.",
+                  "Run `pnpm install` three times: once in the project root, once in `client/`, once in `server/`. Each folder has its own `package.json` and its own `node_modules`, and the root one is what supplies `concurrently`.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions.",
+                  "The connection string is read from `MONGO_URI`, which `server/src/env.ts` expects. Put `MONGO_URI` in `server/.env`, and make sure MongoDB is running and reachable before a connect/disconnect script that prints `DB_OK` can exit 0.",
                 order: 2,
               },
               {
                 description:
-                  "Run the seed script to insert data into the database.",
+                  "From `server/`, run `pnpm run dev`, which runs `tsx watch src/index.ts`. The health route is mounted at `GET /api/health` in `server/src/routes/index.ts` and answers with `{ status: \"ok\" }`, so request it and confirm a 200.",
                 order: 3,
+              },
+              {
+                description:
+                  "From `client/`, run `pnpm run dev -- --port 3000` to start Vite. The HTML it serves must still contain the `<div id=\"root\">` mount point from `client/index.html`.",
+                order: 4,
               },
             ],
           },
@@ -151,24 +155,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Dependencies installed in root, client, and server without errors",
+                description:
+                  "Install root dependencies using pnpm install from the project root",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description:
+                  "Install client dependencies using pnpm install from the client directory",
+                is_required: true,
+                order: 2,
+              },
+              {
+                description:
+                  "Install server dependencies using pnpm install from the server directory",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Client dev server starts without errors",
+                description:
+                  "Verify the database connection works from the server",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Server starts without errors",
+                description:
+                  "Start the server from the server directory and verify the health endpoint responds",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "Start the client from the client directory and verify the app loads",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -265,17 +285,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The tagline is in `client/src/components/layout/Header.tsx` — look for the text that says `Your Tagline Here`.",
+                  "Open `client/src/components/layout/Header.tsx`. The tagline is the small muted `<span>` directly under the `TripWeaver` wordmark, and it currently reads `Your Tagline Here`. Replace the text inside that span only, and leave the surrounding `<header>` element alone.",
                 order: 1,
               },
               {
                 description:
-                  'Replace the placeholder text with exactly `Plan Together. Travel Smarter.` — the test checks for an exact string match including the period at the end.',
+                  "Set the text to exactly `Plan Together. Travel Smarter.`. The whole string is matched including the trailing period, so an extra space or a missing period will not do.",
                 order: 2,
               },
               {
                 description:
-                  "Save the file and check the browser — Vite's HMR will update the header instantly. If the test still fails, check for extra spaces or typos.",
+                  "Leave the element visible. Hiding it with `hidden`, `sr-only` or `display: none` is treated as a failure, and it has to stay inside the `<header>` element that carries the `banner` role.",
                 order: 3,
               },
             ],
@@ -285,14 +305,21 @@ export const levels = [
             create: [
               {
                 description:
-                  'Header displays the exact text "Plan Together. Travel Smarter." (including the period)',
+                  'Update the Header component to display "Plan Together. Travel Smarter." as the tagline',
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Tagline is visible on both desktop and mobile viewport sizes",
+                description:
+                  'Remove the placeholder text "Your Tagline Here" from the Header',
                 is_required: true,
                 order: 2,
+              },
+              {
+                description:
+                  "Verify the tagline is visible in the header when viewing the app",
+                is_required: true,
+                order: 3,
               },
             ],
           },
@@ -309,7 +336,6 @@ export const levels = [
     title: "Client-Side Exploration",
     subtitle: "Build the StopCard component and add day filtering to the itinerary.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The TripWeaver itinerary page is barely functional — stops are not displaying and there is no way to filter by day. The tasks are to build the StopCard presentational component from a stub and then wire up the DayFilter so travelers can focus on a single day of their trip.",
     xp_reward: 150,
@@ -415,18 +441,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The stub is at `client/src/components/trip/StopCard.tsx` and currently returns `null`. Replace the return value with JSX that renders each field of the `stop` prop.",
+                  "Build the card in `client/src/components/trip/StopCard.tsx`, which currently returns `null`. Replace the return value with JSX, and the file's header comment lists the exact elements, attributes and test ids expected. Take the field names from the `Stop` interface in `client/src/types/stop.ts`, and reuse `Card`, `Badge` and `Button` from `../ui/` along with `formatDate` from `../../utils/formatters`.",
                 order: 1,
               },
               {
                 description:
-                  "Import `Card`, `Badge`, and `Button` from `../ui/` to avoid writing custom styles. Use `formatDate` from `../../utils/formatters` to display `stop.dayDate` as a readable string.",
+                  "The three test ids must be exactly `category-badge`, `day-label` and `vote-count`. The title, location and Vote button are matched as text and by accessible role, so those have to be real text content rather than attributes.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks for `data-testid=\"category-badge\"`, `data-testid=\"day-label\"`, `data-testid=\"vote-count\"`, a title in an `<h3>`, and a button with accessible name matching `/vote/i`. Add all of these or the tests will fail.",
+                  "Put the title in an `<h3>` so it exposes the `heading` role with the title as its accessible name, and make the Vote control a real `<button>` whose accessible name contains `Vote`. Wire its `onClick` straight to the `onVote` prop.",
                 order: 3,
+              },
+              {
+                description:
+                  "If the shared `Card`, `Badge` and `Button` primitives do not forward `data-testid`, none of the three lookups will resolve even though the markup looks right.",
+                order: 4,
               },
             ],
           },
@@ -434,32 +465,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Stop title renders inside an <h3> element",
+                description:
+                  "Build the StopCard component in client/src/components/trip/StopCard.tsx to display the stop title as an h3 heading",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Stop location renders as visible text",
+                description:
+                  "Display the stop location as visible text in the StopCard",
                 is_required: true,
                 order: 2,
               },
               {
-                description: 'Category badge renders with data-testid="category-badge"',
+                description:
+                  'Add a category badge with data-testid="category-badge" showing the stop category',
                 is_required: true,
                 order: 3,
               },
               {
-                description: 'Formatted day label renders with data-testid="day-label"',
+                description:
+                  'Add a day label with data-testid="day-label" showing the formatted stop.dayDate',
                 is_required: true,
                 order: 4,
               },
               {
-                description: 'Vote count renders with data-testid="vote-count"',
+                description:
+                  'Add a vote count element with data-testid="vote-count" containing the stop voteCount value',
                 is_required: true,
                 order: 5,
               },
               {
-                description: "A Vote button is present with accessible name matching /vote/i",
+                description:
+                  "Add a Vote button that calls the onVote prop when clicked",
                 is_required: true,
                 order: 6,
               },
@@ -579,18 +616,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "Start by implementing `filterByDay` in `client/src/utils/helpers.ts` — it is currently a stub that returns the input unchanged. Once that is correct, the rest of the wiring will make sense.",
+                  "The chip row in `client/src/components/trip/DayFilter.tsx` already renders. The only intentional bug is the empty `onClick={() => {}}`, so wire each day chip to `onClick={() => onDayChange(day)}` and the All chip to `onClick={() => onDayChange(\"all\")}`.",
                 order: 1,
               },
               {
                 description:
-                  "`TripDetail.tsx` already holds `activeDay` state and passes it down. Fix `DayFilter.tsx` — the chip buttons currently have an empty `onClick`. Wire them to call `onDayChange(day)` when clicked.",
+                  "Each day chip has to expose the raw day key as its accessible name, for example `2026-04-11`, so leave the label as the key itself rather than reformatting it into a friendlier date string. The All chip label has to contain `all` case-insensitively, which the existing `{day === \"all\" ? \"All\" : day}` label already gives you.",
                 order: 2,
               },
               {
                 description:
-                  "The test clicks a day chip and then checks that only stops matching that day are visible in the list. If all stops are still visible after clicking, the `filterByDay` function or the `onDayChange` wiring is still broken.",
+                  "Keep `aria-pressed={activeDay === day}` in place so the selected chip reports itself as pressed.",
                 order: 3,
+              },
+              {
+                description:
+                  "DayFilter stays a controlled component and must not hold its own `activeDay` state. `TripDetail.tsx` owns that value and passes it down together with the `onDayChange` callback.",
+                order: 4,
+              },
+              {
+                description:
+                  "Make `filterByDay` in `client/src/utils/helpers.ts` return all stops for `\"all\"` and otherwise match on the stop's day key.",
+                order: 5,
+              },
+              {
+                description:
+                  "The empty click handler being left in place renders a filter bar that looks finished and does nothing at all.",
+                order: 6,
               },
             ],
           },
@@ -599,27 +651,31 @@ export const levels = [
             create: [
               {
                 description:
-                  "DayFilter renders an 'All' chip plus one chip per day in the trip's date range",
+                  "Wire the existing 'All' filter chip button to select every day",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Clicking a day chip filters the itinerary to only that day's stops",
+                description:
+                  "Add one filter chip button for each day in the trip duration",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Clicking the 'All' chip shows all stops again",
+                description:
+                  "Wire up clicking a day chip to call onDayChange with that day's key (e.g., '2026-04-11')",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "filterByDay returns all stops unchanged when dayKey is 'all'",
+                description:
+                  "Wire up clicking the 'All' chip to call onDayChange with 'all'",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The active chip is visually distinct from inactive chips",
+                description:
+                  'Set aria-pressed="true" on the chip that matches the currently active day',
                 is_required: true,
                 order: 5,
               },
@@ -638,7 +694,6 @@ export const levels = [
     title: "Backend / MongoDB",
     subtitle: "Fix the Trip Stats aggregation and harden the endpoint.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The product team wants a Trip Stats endpoint that returns the top-voted stops and total spend for a trip. The aggregation pipeline was written in a hurry — it has four bugs that produce wrong or empty results. After fixing the pipeline, hardening the endpoint with query validation, a consistent response envelope, and proper error handling is also needed.",
     xp_reward: 200,
@@ -738,18 +793,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Look at `server/src/controllers/trip.controller.ts` in the `getTripStats` function. There are 4 distinct bugs in the aggregation pipeline — read the comments labeled `// L3-T1 BUG` for clues on what needs fixing.",
+                  "The pipeline in `getTripStats` in `server/src/controllers/trip.controller.ts` carries four labelled defects, marked `// L3-T1 BUG 1` through `// L3-T1 BUG 4`, each sitting directly above the offending stage. Move the `$match` on `tripId` plus `dayDate` between `trip.startDate` and `trip.endDate` ahead of the `$lookup`, so the join only processes this trip's own stops.",
                 order: 1,
               },
               {
                 description:
-                  "The $lookup stage is running before $match — swap the order so $match (filter by tripId and date range) comes first. Also fix the date boundary: replace `new Date()` with `trip.startDate`.",
+                  "The lower bound of that `$match` is `new Date()`, which is a 'now' cutoff that silently drops every stop already in the past. It has to be `trip.startDate` instead.",
                 order: 2,
               },
               {
                 description:
-                  "After fixing stage order and dates, check the $group accumulator — it references `$votes` (the raw lookup array) instead of the stop's `$voteCount` field. Also add `$sort: { voteCount: -1 }` and `$limit: topN` at the end.",
+                  "The vote total has to be accumulated as `voteCount: { $sum: \"$voteCount\" }` rather than `$size: \"$votes\"`. Then append `{ $sort: { voteCount: -1 } }` and `{ $limit: topN }` after the `$project` stage so the ranking is ordered and bounded.",
                 order: 3,
+              },
+              {
+                description:
+                  "Keep `_id: 0` in the projection and map `_id` to `stopId`. That is what stops the raw joined `votes` array from leaking into the response, and a `votes` key anywhere in `topStops` is treated as a failure.",
+                order: 4,
+              },
+              {
+                description:
+                  "The separate `Expense.aggregate()` that sums `totalSpent` is already correct.",
+                order: 5,
               },
             ],
           },
@@ -757,32 +822,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Stats only includes stops within the trip's startDate–endDate range",
+                description:
+                  "Call GET /api/trips/:tripId/stats with authentication and verify it responds successfully",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "topStops are sorted by voteCount descending",
+                description:
+                  "Verify the topStops list is ordered by voteCount descending and the ?topN parameter limits results",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "topStops are capped at topN entries (default 5)",
+                description:
+                  "Verify the ?topN parameter correctly caps the number of returned entries",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Each entry in topStops has fields: stopId, title, voteCount, dayDate",
+                description:
+                  "Verify the raw votes array is not exposed in the topStops response",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Response includes totalSpent summed from Expense documents",
+                description:
+                  "Verify totalSpent equals the sum of all expense amounts for the trip",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Response does NOT include a raw votes lookup array",
+                description:
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
                 is_required: true,
                 order: 6,
               },
@@ -819,7 +890,7 @@ export const levels = [
               {
                 title: "Response Envelopes",
                 content:
-                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, message: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
+                  "Consistent response shapes make client code simpler. A standard envelope uses `{ success: true, data: payload }` for success and `{ success: false, error: '...' }` for errors. Clients only need to check `body.success` to decide how to handle the response.",
                 order: 4,
               },
               {
@@ -886,18 +957,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "The `validateRequest` middleware already exists in `server/src/middleware/validateRequest.ts`. Create a `statsQuerySchema` with Zod in the validators file and wire it to the route.",
+                  "`statsQuerySchema` already exists in `server/src/validators/trip.schema.ts`, with `topN` an optional string transformed to a number and piped through `.int().min(1).max(25)` defaulting to 5, so it only needs wiring.",
                 order: 1,
               },
               {
                 description:
-                  "The controller currently uses `res.send(data)` with no status code and no `{ success, data }` envelope. Fix it to use `res.status(200).json({ success: true, data })` and wrap the whole function body in try/catch with `next(err)`.",
+                  "In `server/src/routes/trip.routes.ts`, insert `validateRequest({ query: statsQuerySchema })` between `requireAuth` and `getTripStats` on the `/:tripId/stats` route.",
                 order: 2,
               },
               {
                 description:
-                  "For `?topN=999`, the Zod schema should fail validation because 999 > 25. For `?topN=abc`, it should fail because Number('abc') is NaN which fails the `.int()` check. Test both cases after wiring up the schema.",
+                  "`validateRequest` in `server/src/middleware/validateRequest.ts` already answers 400 with `{ success: false, error, issues }` on a Zod failure, so `topN=0` (below the minimum), `topN=999` (above the maximum) and `topN=abc` (not an integer) are all rejected before the controller ever runs.",
                 order: 3,
+              },
+              {
+                description:
+                  "In `getTripStats`, replace `res.send(data)` with `res.status(200).json({ success: true, data })` and type the parameters as `Request` and `Response` instead of `any`.",
+                order: 4,
+              },
+              {
+                description:
+                  "Wrap the aggregation work in `try/catch` and forward failures with `next(err)`. A well-formed but unknown `tripId` has to resolve to a 404 through the not-found branch rather than crashing to a 500.",
+                order: 5,
+              },
+              {
+                description:
+                  "Once the schema is wired, `req.query.topN` is already a number, so drop the manual `Number(req.query.topN ?? 5)` coercion and let the default of 5 come from the schema in one place.",
+                order: 6,
               },
             ],
           },
@@ -906,33 +992,37 @@ export const levels = [
             create: [
               {
                 description:
-                  "GET /api/trips/:tripId/stats returns 200 with { success: true, data: { topStops, totalSpent } }",
+                  "Verify that passing ?topN=0 returns a 400 error",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "?topN=3 returns at most 3 entries",
+                description:
+                  "Verify that passing ?topN=999 returns a 400 error (above maximum)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?topN=999 returns 400 with success: false",
+                description:
+                  "Verify that passing ?topN=abc returns a 400 error (not a valid integer)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "?topN=0 returns 400",
+                description:
+                  "Verify a successful request returns 200 with success: true and a data property",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "?topN=abc returns 400",
+                description:
+                  "Verify the response data contains topStops as an array and totalSpent as a number",
                 is_required: true,
                 order: 5,
               },
               {
                 description:
-                  "Thrown errors are forwarded to next(err) and handled by the global error handler",
+                  "Verify an unknown tripId returns 400 or 404 instead of a 500 error",
                 is_required: true,
                 order: 6,
               },
@@ -951,7 +1041,6 @@ export const levels = [
     title: "Full-Stack Feature: Vote + Expense Splitting",
     subtitle: "Implement the vote toggle and expense splitting end-to-end.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: WanderMint wants two collaborative features shipped before the next sprint review: a vote system where members can upvote activity suggestions with a count that never drifts, and an expense splitter where one member logs what they paid and the system computes who owes what. Both features require server routes, Mongoose logic, client services, and UI wiring.",
     xp_reward: 250,
@@ -1068,18 +1157,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller stub in `stop.controller.ts` returns 501 for vote/unvote. Implement it: use `Vote.findOne({ stopId, userId })` to check for an existing vote, then create or skip accordingly, and use `$inc` to adjust the voteCount.",
+                  "`vote` and `unvote` in `server/src/controllers/stop.controller.ts` currently raise a 501. Voting has to be scoped to the authenticated user, so the id always comes from the token (`req.user!.userId`) and never from the request body.",
                 order: 1,
               },
               {
                 description:
-                  "The client service `voteStop` in `stop.service.ts` throws an error instead of calling the API. Implement it using the `api` axios instance with `POST /trips/:tripId/stops/:stopId/vote`.",
+                  "Look for `Vote.findOne({ stopId, userId })` first. If one already exists, return 200 without touching the counter, otherwise `Vote.create(...)` and then `Stop.findByIdAndUpdate(stopId, { $inc: { voteCount: 1 } })`.",
                 order: 2,
               },
               {
                 description:
-                  "The StopCard Vote button is a no-op. Wire it to call `voteStop(tripId, stopId)` and update local state optimistically, reverting on error.",
+                  "Make `unvote` delete the Vote document and only then run `$inc: { voteCount: -1 }`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Both routes already sit behind `requireAuth` in `server/src/routes/stop.routes.ts`. Do not add a second auth check inside the controller.",
+                order: 4,
+              },
+              {
+                description:
+                  "Implement `voteStop` and `unvoteStop` in `client/src/services/stop.service.ts` with the shared `api` axios instance against `POST` and `DELETE /trips/:tripId/stops/:stopId/vote`.",
+                order: 5,
+              },
+              {
+                description:
+                  "`StopCard` only has to hand the click up through its `onVote` prop. Keep the card presentational and update the displayed `voteCount` in `TripDetail`.",
+                order: 6,
               },
             ],
           },
@@ -1087,40 +1191,58 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "First vote returns 2xx and increments stop voteCount by 1",
+                description:
+                  "Implement POST /api/trips/:tripId/stops/:stopId/vote to vote on a stop and verify it responds successfully",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Duplicate vote by same user does not increment voteCount again",
+                description:
+                  "Verify voting twice from the same user does not double-count (idempotent)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Vote by a different user increments voteCount by 1 more",
+                description:
+                  "Verify a vote from a different user increments the voteCount",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "DELETE vote removes the Vote doc and decrements voteCount",
+                description:
+                  "Implement DELETE /api/trips/:tripId/stops/:stopId/vote to remove a vote and verify it decrements voteCount",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Unvoting on a stop never-voted does not produce a negative count",
+                description:
+                  "Verify removing a vote from a stop with no votes does not make voteCount negative",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Unauthenticated request returns 401",
+                description:
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
                 is_required: true,
                 order: 6,
               },
               {
                 description:
-                  "StopCard vote count updates optimistically without waiting for server response",
+                  "Wire up the StopCard Vote button to call the onVote prop and update the displayed vote count",
                 is_required: true,
                 order: 7,
+              },
+              {
+                description:
+                  "Ensure StopCard always renders the vote count element even when no vote handler is provided",
+                is_required: true,
+                order: 8,
+              },
+              {
+                description:
+                  "Ensure the Vote button is visible and enabled",
+                is_required: true,
+                order: 9,
               },
             ],
           },
@@ -1233,18 +1355,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "The stub at `expense.controller.ts → createExpense` returns hardcoded `{ ok: true }`. Replace it: load the trip, validate that every userId in `splitBetween` is in `[trip.ownerId, ...trip.collaboratorIds]`, then create the Expense document.",
+                  "`createExpense` currently answers with a hardcoded `{ ok: true }`. A new expense has to leave the trip's `totalSpent` and the per-member balances consistent, and the payer has to be whoever is actually logged in. The schema stores the payer in `paidById`, so default it to `req.user!.userId` when the body omits it.",
                 order: 1,
               },
               {
                 description:
-                  "After creating the Expense, use `Trip.findByIdAndUpdate(tripId, { $inc: { totalSpent: amount } })` to keep the cached total in sync.",
+                  "Only trip members can be in the split. Build the member set from `[trip.ownerId, ...trip.collaboratorIds]` and answer 400 if any id in `splitBetween` is missing from it.",
                 order: 2,
               },
               {
                 description:
-                  "Build the balances array by iterating over all trip members. For each member: `net = (member === paidBy ? amount : 0) - computeShare(amount, splitBetween.length)`. Return `{ success: true, data: { expense, balances } }`.",
+                  "Add the amount to the trip with `Trip.findByIdAndUpdate(tripId, { $inc: { totalSpent: amount } })` rather than a read-modify-write.",
                 order: 3,
+              },
+              {
+                description:
+                  "The response is 201 with `{ success: true, data: { ...expense, balances } }`, and the created expense has to be readable on `data` itself with `balances` alongside it rather than one level deeper. The route already runs `validateRequest({ body: createExpenseSchema })` behind `requireAuth`, so the 401 and the body shape are handled.",
+                order: 4,
+              },
+              {
+                description:
+                  "Each share is `Math.round(amount * 100 / splitBetween.length) / 100`, and the payer's net is the full amount minus their own share, which is what makes the nets sum to zero.",
+                order: 5,
               },
             ],
           },
@@ -1253,35 +1385,33 @@ export const levels = [
             create: [
               {
                 description:
-                  "Returns 201 with { success: true, data: { expense, balances } }",
+                  "Implement POST /api/trips/:tripId/expenses to create an expense and verify it responds successfully with the created expense",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Expense.amount equals body.amount and is persisted to the database",
+                description:
+                  "Verify creating an expense increases the trip's totalSpent by the expense amount",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Trip.totalSpent increases by exactly the expense amount",
+                description:
+                  "Verify the balance summary in the response has net values that sum to zero",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "A user not in [ownerId, ...collaboratorIds] cannot appear in splitBetween — returns 400",
+                  "Verify passing a splitBetween array with a non-member user returns 400",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "The sum of all net balances equals 0 (or within 1 cent due to rounding)",
+                description:
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
                 is_required: true,
                 order: 5,
-              },
-              {
-                description: "Unauthenticated request returns 401",
-                is_required: true,
-                order: 6,
               },
             ],
           },
@@ -1298,7 +1428,6 @@ export const levels = [
     title: "Production Bug Fixes",
     subtitle: "Fix vote counter drift and trip-timezone-naive day grouping.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Two critical bugs have been reported by WanderMint users. First, stop vote counts are inflating — some stops show more votes than there are voters. Second, travelers planning trips to foreign destinations see stops grouped on the wrong day in the timeline. Both bugs are production-grade issues that require database-level fixes and timezone-aware date handling.",
     xp_reward: 300,
@@ -1409,18 +1538,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `server/src/models/Vote.ts` and look for the comment labeled `// L5-T1 BUG`. Add `VoteSchema.index({ userId: 1, stopId: 1 }, { unique: true })` below the schema definition.",
+                  "One user gets one vote per stop, and the database has to be what guarantees it.",
                 order: 1,
               },
               {
                 description:
-                  "After adding the index, update the vote controller to wrap `Vote.create()` in a try/catch that catches `err.code === 11000` and returns 200 without incrementing the counter again.",
+                  "A uniqueness rule over the user and stop pair is the fix, and it has to reach the actual collection rather than sitting only in the model definition.",
                 order: 2,
               },
               {
                 description:
-                  "Run `Vote.syncIndexes()` in the controller or test setup to ensure MongoDB applies the new index to the existing collection. Without this, the index only applies to new collections.",
+                  "Counting every request instead of counting new votes inflates `voteCount` on every retry. A rejected duplicate still means the vote is there, so it has to succeed without moving the counter again.",
                 order: 3,
+              },
+              {
+                description:
+                  "The existing lookup can stay as a fast path, but it is the constraint that makes the write safe. The second insert is rejected by the database, not by your code.",
+                order: 4,
+              },
+              {
+                description:
+                  "Votes recorded before the fix have to be cleaned up first, keeping the oldest per pair and recomputing each count from what is left, or the constraint cannot be added at all.",
+                order: 5,
               },
             ],
           },
@@ -1429,32 +1568,27 @@ export const levels = [
             create: [
               {
                 description:
-                  "Vote schema has a compound unique index on { userId: 1, stopId: 1 } with unique: true",
+                  "Add a unique index on the Vote collection covering both userId and stopId",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "100 concurrent vote requests from the same user produce exactly 1 Vote document",
+                  "Verify that concurrent vote requests from the same user create only one Vote document",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "After the concurrency race, stop.voteCount === 1 (no counter drift)",
+                  "Verify that after concurrent same-user votes, the stop's voteCount is 1 (no counter drift)",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "The duplicate-key error (E11000) is caught and treated as an idempotent success — not a 500 error",
+                  "Verify that five different users voting on the same stop produce a voteCount of 5",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description: "Existing vote and unvote tests from Level 4 still pass",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -1567,18 +1701,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Find where the timeline controller groups stops by date. It uses `stop.dayDate.toISOString().slice(0,10)` (marked `// L5-T2 BUG`) — replace this with a call to a timezone-aware helper that reads `trip.destinationTimezone`.",
+                  "Stops have to be grouped by the calendar day at the destination, not by UTC.",
                 order: 1,
               },
               {
                 description:
-                  "Implement a `localDateKeyForTrip(date: Date, tz: string): string` helper in `server/src/utils/tz.ts` using `new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)`. The `en-CA` locale produces `YYYY-MM-DD` output directly.",
+                  "The timezone belongs to the trip rather than to whoever is asking, so a Manila owner and a Tokyo collaborator hitting the same trip have to see the same grouping. Default to `\"UTC\"` when the trip has none.",
                 order: 2,
               },
               {
                 description:
-                  "The test seeds a Tokyo trip with two stops at 15:30Z on consecutive UTC dates. After the fix, both stops should group to their correct Tokyo local days (Apr 13 and Apr 14). The test also verifies that a Manila user signing in does NOT change the grouping — the timezone comes from the trip, not the user.",
+                  "Each group has to be emitted as `{ date, stops }` — the grouping key must be exposed under the property name `date` (the starter currently names it `day`) as a `YYYY-MM-DD` string. A UTC trip with a single stop at `2026-04-12T09:00:00Z` still has to produce the group `2026-04-12`.",
                 order: 3,
+              },
+              {
+                description:
+                  "For a trip with `destinationTimezone` `Asia/Tokyo`, two stops at 15:30Z on consecutive UTC dates group under `2026-04-13` and `2026-04-14`, and the raw UTC date `2026-04-12` must not appear at all.",
+                order: 4,
+              },
+              {
+                description:
+                  "A timezone helper for this already exists and formats straight to `YYYY-MM-DD`. Import it rather than hand-rolling offset maths.",
+                order: 5,
               },
             ],
           },
@@ -1587,33 +1731,39 @@ export const levels = [
             create: [
               {
                 description:
-                  "Timeline groups stops by the trip's destinationTimezone local calendar day (not UTC date)",
+                  "Call GET /api/trips/:tripId/timeline and verify it returns day groups with date and stops arrays",
                 is_required: true,
                 order: 1,
               },
               {
                 description:
-                  "Two stops at 15:30Z on consecutive UTC dates group to consecutive Tokyo local days (Apr 13 and Apr 14) for a Tokyo trip",
+                  "Verify stops are grouped by the trip's destination timezone (e.g., Asia/Tokyo), not UTC",
                 is_required: true,
                 order: 2,
               },
               {
                 description:
-                  "Changing the requesting user's timezone does NOT affect the timeline grouping",
+                  "Verify a stop at 2026-04-12T15:30:00Z appears in the Tokyo local date group for 2026-04-13",
                 is_required: true,
                 order: 3,
               },
               {
                 description:
-                  "Implementation works with Intl.DateTimeFormat or any IANA-aware date library",
+                  "Verify the same trip returns identical day groups regardless of the requesting user's timezone",
                 is_required: true,
                 order: 4,
               },
               {
                 description:
-                  "Falls back to 'UTC' grouping when trip.destinationTimezone is missing",
+                  "Verify a trip with destinationTimezone UTC still groups stops by UTC date correctly",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "Verify the endpoint requires authentication and returns 401 without a bearer token",
+                is_required: true,
+                order: 6,
               },
             ],
           },

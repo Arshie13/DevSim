@@ -31,10 +31,10 @@
       
       <div class="flex-1">
         <h3 class="text-lg font-orbitron font-bold text-cyber-bright">
-          Premium Pass Active
+          Learner Pass Active
         </h3>
         <p class="text-sm text-obsidian-text-muted">
-          Enjoy exclusive rewards and boosted AI help limits!
+          Enjoy daily rewards — every locked scenario is now accessible!
         </p>
       </div>
       
@@ -60,7 +60,7 @@
         <div class="flex-1">
           <div class="flex items-center gap-2">
             <h3 class="text-lg font-orbitron font-bold text-cyber-warn">
-              Unlock Premium Pass
+              Unlock the Learner Pass
             </h3>
             <span class="px-2 py-0.5 text-xs font-bold bg-cyber-warn/20 text-cyber-warn rounded-full border border-cyber-warn/30">
               ₱299
@@ -68,25 +68,25 @@
           </div>
           
           <p class="text-sm text-obsidian-text-primary mt-1 mb-3">
-            Get exclusive rewards, extra AI help credits, and premium cosmetics!
+            Get daily coins and AI helps, plus access to every locked scenario!
           </p>
           
           <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-obsidian-text-muted mb-4">
             <li class="flex items-center gap-2">
               <Sparkles class="w-3.5 h-3.5 text-obsidian-accent" />
-              +5 extra AI helps daily
+              Daily coin rewards
             </li>
             <li class="flex items-center gap-2">
               <Zap class="w-3.5 h-3.5 text-cyber-success" />
-              XP boost rewards
+              Daily AI helps
             </li>
             <li class="flex items-center gap-2">
               <Crown class="w-3.5 h-3.5 text-purple-400" />
-              premium avatars
+              Every locked scenario
             </li>
             <li class="flex items-center gap-2">
               <Coins class="w-3.5 h-3.5 text-cyber-warn" />
-              +2000 bonus coins
+              One-time payment
             </li>
           </ul>
         </div>
@@ -97,11 +97,11 @@
         class="w-full mt-2 py-3 px-6 rounded-card bg-gradient-to-r from-cyber-warn via-cyber-bright to-obsidian-accent text-obsidian-bg font-orbitron font-bold text-sm shadow-lg hover:shadow-cyber-warn/40 transition-all active:scale-95 hover:scale-[1.02] flex items-center justify-center gap-2"
       >
         <Crown class="w-5 h-5" />
-        Upgrade to Premium — ₱299
+        Upgrade to Learner Pass — ₱299
       </button>
       
       <p class="text-xs text-center text-obsidian-text-muted mt-2">
-        60-day access • One-time payment • No auto-renew
+        30-day access • One-time payment • No auto-renew
       </p>
     </div>
   </div>

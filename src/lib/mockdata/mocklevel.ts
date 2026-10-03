@@ -5,7 +5,6 @@ export const LEVEL_CONFIG: LevelConfig = {
   title: "Setup & First API Route",
   stack: "Next.js + Prisma",
   difficulty: "Beginner",
-  deadline: 4 * 60 * 60, // 4 hours in seconds
   tasks: [
     {
       id: 1,

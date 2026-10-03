@@ -15,7 +15,6 @@ export const levels = [
       subtitle:
         "Set up the development environment and make a minor UI change.",
       order: 1,
-      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The library has onboarded a new developer and needs the system running locally. Set up the PERN (Postgres, Express, React, NodeJs) stack, configure the database, and make minor UI tweaks to get the application running properly in a local development environment.",
       xp_reward: 100,
@@ -111,18 +110,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "The project has three separate folders that each need their own dependencies installed — check which folders contain a `package.json` file.",
+                    "Run `pnpm install` three times, one per directory that has a `package.json`: first at the project root, then inside `client/`, then inside `server/`. The root `node_modules` must contain `concurrently`, `client/node_modules` must contain `react`, and `server/node_modules` must contain both `express` and `@prisma/client`. Run each install from the correct directory.",
                   order: 1,
                 },
                 {
                   description:
-                    "The README contains setup instructions specific to this project — look for sections about environment configuration and required files.",
+                    "From the `server` directory, run `pnpm exec tsx scripts/db-check.ts`. It runs `SELECT 1` through Prisma, prints `DB_OK`, and must exit 0.",
                   order: 2,
                 },
                 {
                   description:
-                    "Prisma needs a migration command to create your database tables — look for a Prisma CLI command that applies schema changes to a local database.",
+                    "Apply the schema with `pnpm exec prisma migrate deploy --schema prisma/schema.prisma`, then run `prisma migrate status` and confirm the output says `Database schema is up to date`.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Start the backend and confirm the health endpoint responds. The `/health` route (not `/api/health`) must return HTTP 200 with `ok` in the body.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "The frontend must render its React root into an element whose id is exactly `root` — the served HTML must contain `<div id=\"root\">`.",
+                  order: 5,
                 },
               ],
             },
@@ -131,19 +140,45 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Dependencies installed for the root, client, and server without errors",
+                    "Install dependencies in the project root.",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Prisma migrations executed successfully",
+                  description:
+                    "Install dependencies in the client folder.",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "Both client and server running without errors",
+                  description:
+                    "Install dependencies in the server folder.",
                   is_required: true,
                   order: 3,
+                },
+                {
+                  description:
+                    "Run the database connectivity check from the server folder..",
+                  is_required: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "Apply database migrations from the server folder.",
+                  is_required: true,
+                  order: 5,
+                },
+                {
+                  description:
+                    "Start the backend server on port 5051.",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "Start the frontend development server on port 3000.",
+                  is_required: true,
+                  order: 7,
                 },
               ],
             },
@@ -176,7 +211,7 @@ export const levels = [
                 {
                   title: "How to Find What to Change",
                   content:
-                    "To locate the source of a UI element visible in the browser:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the header, the hardcoded string is located inside the layout's header component, such as \"Public Library\" or a similar label.",
+                    "To locate the source of a UI element visible in the browser:\nWhat element is it? (header, footer, sidebar?)\nWhich component renders it? (trace it to a file)\nIs the text hardcoded or coming from props/state? For a subtitle in the sidebar, the hardcoded string is located inside the layout's sidebar component (`Sidebar.tsx`), such as \"Public Library\" or a similar label.",
                   order: 4,
                 },
                 {
@@ -238,18 +273,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "The header is a layout-level element — look inside the layout components folder for a file that renders the top navigation or brand area.",
+                    "The subtitle lives in the `Sidebar` component, which is a **named** export (`export function Sidebar`) rendered on its own with no props — the component itself must render the new brand text. Keep it a named export; do not convert it to a default export.",
                   order: 1,
                 },
                 {
                   description:
-                    "After saving your change, open the running client in the browser to visually confirm the subtitle updated correctly on both desktop and mobile widths.",
+                    "Put `BookWise Public Library` on its own element rather than concatenating it with other words.",
                   order: 2,
                 },
                 {
                   description:
-                    "The acceptance criteria specifies the exact subtitle text — make sure your change matches it character for character, including spacing and capitalization.",
+                    "The old `Library Management System` text must be gone from the rendered output — remove it entirely rather than leaving it as a comment.",
                   order: 3,
+                },
+                {
+                  description:
+                    "The element must be visible — do not hide it with `hidden`, `display: none`, `visibility: hidden`, `opacity: 0`, or an `sr-only` clip.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "The component is already wrapped in `MemoryRouter` and `AuthProvider`, so do not add a second `BrowserRouter` inside it.",
+                  order: 5,
                 },
               ],
             },
@@ -258,15 +303,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    'Header subtitle is exactly "BookWise Public Library"',
+                    "Update the sidebar subtitle to display \"BookWise Public Library\".",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Subtitle renders correctly on desktop and mobile layouts",
+                    "Remove the old subtitle \"Library Management System\" from the sidebar.",
                   is_required: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "Ensure the new subtitle is visible and not hidden, transparent, or clipped.",
+                  is_required: true,
+                  order: 3,
+                },
+                {
+                  description:
+                    "The subtitle appears once as its own text element, not concatenated with other words.",
+                  is_required: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "The sidebar component loads without errors when rendered.",
+                  is_required: true,
+                  order: 5,
                 },
               ],
             },
@@ -279,7 +342,6 @@ export const levels = [
       title: "Client-Side Exploration",
       subtitle: "Investigate Client-Side Borrowing Logic and UI Helpers",
       order: 2,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Members report they cannot borrow books even when copies are available. Your task is to investigate the client-side availability logic and create a reusable helper function to ensure consistent borrow decisions across the React UI.",
       xp_reward: 25,
@@ -378,18 +440,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "The function must be exported from a specific file path — check the acceptance criteria for the exact filename and export name you need to use.",
+                    "Create `client/src/utils/helpers.ts` and export a named `isBookAvailable` function — a default export or unexported const will not work.",
                   order: 1,
                 },
                 {
                   description:
-                    "Think carefully about what value of `availableCopies` represents the exact boundary between available and unavailable — test your logic at that exact value.",
+                    "Return `true` when `availableCopies > 0`, `false` otherwise. The boundary is `0`: `isBookAvailable(0)` and `isBookAvailable(-1)` must be `false`; `isBookAvailable(1)` and `isBookAvailable(2)` must be `true`.",
                   order: 2,
                 },
                 {
                   description:
-                    "The helper should do one thing only: receive a number and return a boolean. Keep it simple and avoid adding any logic unrelated to availability.",
+                    "Do not round the input. Values like `0.0001` must return `true`.",
                   order: 3,
+                },
+                {
+                  description:
+                    "The function must be pure: same input always returns the same output, with no caching or side effects.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "The function takes a single `number` argument and returns `boolean`.",
+                  order: 5,
                 },
               ],
             },
@@ -398,37 +470,37 @@ export const levels = [
               create: [
                 {
                   description:
-                    "A helper is implemented and exported as `isBookAvailable` from `client/src/utils/helpers.ts`",
+                    "Create a shared helpers file in the frontend that exports an isBookAvailable function for checking book availability.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "The helper returns `false` when `availableCopies <= 0`",
+                    "The isBookAvailable function returns false when given 0 or a negative number of available copies.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "The helper returns `true` when `availableCopies > 0`",
+                    "The isBookAvailable function returns true when given 1 or more available copies.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Borrow-availability decisions remain consistent for mixed copy counts (positive, zero, negative)",
+                    "When checking a list of books with mixed availability (3, 1, 0, -2), the function correctly identifies which are available and which are not.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Repeated calls with the same input return the same output",
+                    "The function is pure - calling it multiple times with the same input always returns the same result.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Tests validate behavior and contract rather than enforcing one exact implementation style",
+                    "Very small positive amounts (like 0.0001) count as available, while 0 does not - no rounding of the input.",
                   is_required: true,
                   order: 6,
                 },
@@ -536,18 +608,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Search `BorrowRecords.tsx` for any condition that checks copy count or availability — that's the inline logic you need to replace with the helper.",
+                    "In `BorrowRecords`, keep reading every field you already read from the single `useLibrary()` call, and import `isBookAvailable` from the shared helper module rather than writing a local copy of the check.",
                   order: 1,
                 },
                 {
                   description:
-                    "After importing the helper, pass the book's available copy count into it — the helper handles the decision, so the component just uses the returned boolean.",
+                    "Import `isBookAvailable` from `client/src/utils/helpers` (not a local copy) and keep any other exports in `helpers.ts` intact.",
                   order: 2,
                 },
                 {
                   description:
-                    "Manually test the borrow flow after your refactor — the UI should behave identically to before, just driven by the shared helper now.",
+                    "Call `isBookAvailable` for each book when filtering — an inline `availableCopies > 0` check will not invoke the helper.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Option labels must be exactly `` `${book.title} (${book.availableCopies} available)` `` — use `availableCopies`, not `totalCopies`, and avoid extra words.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "The select must have a placeholder option `Select a book` and an accessible name (label or aria-label).",
+                  order: 5,
+                },
+                {
+                  description:
+                    "The trigger button must be reachable by `+ Issue Book` and the dismiss by `Cancel`. Closing the modal must clear the selected book.",
+                  order: 6,
                 },
               ],
             },
@@ -556,51 +643,57 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`BorrowRecords.tsx` uses `isBookAvailable` from `client/src/utils/helpers.ts` for availability filtering",
+                    "On the borrow records page, clicking the '+ Issue Book' button opens a dialog with a book picker.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Inline availability checks in `BorrowRecords.tsx` are replaced by helper usage",
+                    "The book picker always starts with a 'Select a book' placeholder option.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Availability filtering follows helper output, even when helper logic changes",
+                    "Each book in the picker shows its title and available copies (e.g., 'Available A (2 available)' or 'Boundary Above (0.0001 available)').",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Validation is outcome-based and allows different coding styles, as long as requirements are met",
+                    "Only books that pass the shared isBookAvailable check appear in the picker - books with 0 or negative available copies are excluded.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Borrow/Issue behavior remains correct after refactor",
+                    "Each candidate book is evaluated using the isBookAvailable helper with its own available copies count.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Only books with available copies are selectable in Issue Book flow after refactor",
+                    "The picker list follows the helper's decision - if the helper changes, the list updates automatically.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "No regressions appear in related components using borrow flow",
+                    "When no books are available, the picker shows only the 'Select a book' placeholder.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "Tests should verify behavior/contract, not enforce one exact line-by-line implementation",
+                    "A book with 3 available copies appears as 'Positive (3 available)', while books with 0 or -1 available copies are not listed.",
                   is_required: true,
                   order: 8,
+                },
+                {
+                  description:
+                    "Opening the dialog, closing with Cancel, and opening again shows the same list with no leftover state.",
+                  is_required: true,
+                  order: 9,
                 },
               ],
             },
@@ -614,7 +707,6 @@ export const levels = [
       subtitle:
         "Trace return-flow issues and enforce transactional consistency.",
       order: 3,
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Returning books occasionally causes negative available copy counts. Your mission is to debug the return flow, identify why the copy counts are going negative, and implement a fix to ensure the library's inventory stays accurate.",
       xp_reward: 40,
@@ -723,18 +815,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Open the borrow controller and locate the `returnBook` function — read through every database write it makes and note the order they happen in.",
+                    "Start at the `PUT /api/borrow-records/:id/return` route and trace every Prisma call the handler makes.",
                   order: 1,
                 },
                 {
                   description:
-                    "Count the number of separate `prisma.` calls inside the return flow — if there's more than one, consider what would happen if the process stopped between them.",
+                    "The negative-stock bug is a two-write flow with no transaction: the `BorrowRecord` is marked returned and `Book.availableCopies` is incremented. Sending the same return request twice increments again, pushing `availableCopies` past `totalCopies`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Write down a concrete scenario: what sequence of events (e.g., a crash, a timeout, a concurrent request) could cause one write to succeed while the other doesn't?",
+                    "Wrap both writes in a single `prisma.$transaction` callback so they commit or roll back together.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Inside the transaction, re-read the record and reject with HTTP 400 if it is already returned",
+                  order: 4,
+                },
+                {
+                  description:
+                    "If the `Book` update fails, the `BorrowRecord` write must roll back with it — let the rejection propagate so the error handler returns 500.",
+                  order: 5,
                 },
               ],
             },
@@ -743,25 +845,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "A reproducible case for negative stock is documented",
+                    "The PUT /api/borrow-records/:id/return endpoint returns HTTP 200 for a valid unreturned record, and the return operation runs inside a Prisma transaction.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Problematic backend logic path is identified with evidence",
+                    "Sending the same return request twice never leaves Book.availableCopies greater than Book.totalCopies.",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "Backend controller/service flow is validated",
+                  description:
+                    "When the Book update fails, the endpoint returns HTTP 500 and the BorrowRecord remains unchanged (status is still BORROWED, returnedAt is still null).",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "Prisma query sequence is validated",
+                  description:
+                    "The first return for a record succeeds with HTTP 200, and a second return of the same record is rejected with HTTP 400.",
                   is_required: true,
                   order: 4,
+                },
+                {
+                  description:
+                    "Both the BorrowRecord update and the Book.availableCopies increment are executed through the transaction client, so they commit or roll back together.",
+                  is_required: true,
+                  order: 5,
                 },
               ],
             },
@@ -872,18 +982,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Look up Prisma's `$transaction` API — it accepts an array of Prisma operations and runs them as a single atomic unit.",
+                    "Both the return and member borrow flows live in the borrow controller. The return route is `PUT /api/borrow-records/:id/return`; the member borrow route is `POST /api/borrow-records/member` with body `{ bookId, memberId, dueDate }`.",
                   order: 1,
                 },
                 {
                   description:
-                    "For the borrow decrement, consider adding a `where` condition that prevents the update from running if `availableCopies` is already at or below zero.",
+                    "Concurrent return requests must produce exactly one success and one client error (400–499). Re-read the record inside the transaction and throw if already returned so the second request rolls back.",
                   order: 2,
                 },
                 {
                   description:
-                    "After implementing the transaction, write a test that simulates two simultaneous borrow requests for a book with one copy — only one should succeed.",
+                    "Guard the increment with a conditional update (e.g. `updateMany` where `availableCopies < totalCopies`) and treat zero affected rows as a rejection.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Concurrent borrow requests must produce exactly one 201 and never drop `availableCopies` below zero. Guard the decrement the same way: conditional update where `availableCopies > 0`.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "Use the interactive `prisma.$transaction(async (tx) => ...)` form.",
+                  order: 5,
                 },
               ],
             },
@@ -892,27 +1012,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Return flow updates (`BorrowRecord` + `Book.availableCopies`) run in one Prisma transaction",
+                    "Two concurrent return requests on the same record produce exactly one HTTP 200 and one client error (400-499), and Book.availableCopies goes from 0 to exactly 1 (incremented once, not twice).",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "If one write fails, no partial state is persisted",
+                    "Two concurrent borrow requests for a book with one available copy produce exactly one HTTP 201, exactly one BorrowRecord row, and availableCopies never drops below 0.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Concurrent borrow requests never reduce `availableCopies` below zero",
+                    "The return flow executes through Prisma's transaction function, called exactly once for a successful return.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Only valid borrow/return outcomes are committed under concurrent access",
+                    "A second sequential return of the same record returns HTTP 400 and leaves availableCopies unchanged at 1 - no double increment.",
                   is_required: true,
                   order: 4,
+                },
+                {
+                  description:
+                    "Both the borrow decrement and the return increment use a conditional update that prevents the write when availableCopies has reached 0 (or totalCopies), and a zero-row result is treated as a rejection.",
+                  is_required: true,
+                  order: 5,
                 },
               ],
             },
@@ -925,7 +1051,6 @@ export const levels = [
       title: "Starting my Full-Stack Journey",
       subtitle: "Implement Reservation Queue and Lifecycle Management",
       order: 4,
-      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The Library is implementing a reservation system for popular books. Your task is to build a reservation feature that allows users to reserve a book when all copies are borrowed and receive notifications when the book becomes available.",
       xp_reward: 60,
@@ -1048,23 +1173,38 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Before inserting a reservation, query the database to check the book's `availableCopies` — the reservation should only be allowed when that value is exactly `0`.",
+                    "Add `createReservation` and `getReservationQueue` to the library service. `createReservation` takes `bookId` and `memberId` and posts to `/reservations`. `getReservationQueue` takes `bookId` and builds the query `?bookId=${bookId}`.",
                   order: 1,
                 },
                 {
                   description:
-                    "Queue position should be calculated by counting how many active reservations already exist for that book, then adding 1 — do this in the server before the insert.",
+                    "In the Books page, show a `Reserve Book` action only when `availableCopies === 0` and call `createReservation`.",
                   order: 2,
                 },
                 {
                   description:
-                    "The GET queue endpoint needs to include related `member` and `book` fields in the response — use Prisma's `include` option to join those relations.",
+                    "Display a queue-position confirmation matching `You are #`, `in line`, or `queue position`, and the exact empty state `No active reservations.`.",
                   order: 3,
                 },
                 {
                   description:
-                    "In `Books.tsx`, check `availableCopies` to decide which button to show — the Reserve button should only appear when copies are `0`, and it should call the service function, not the API directly.",
+                    "Surface the server's duplicate-reservation error (`already reserved`, `duplicate reservation`, or `already has an active reservation`) to the member.",
                   order: 4,
+                },
+                {
+                  description:
+                    "On the server, create a reservation controller with `createReservation` returning 201 with `queuePosition`, and 400 on duplicate active reservation.",
+                  order: 5,
+                },
+                {
+                  description:
+                    "The queue endpoint `GET /api/reservations?bookId=<id>` returns rows with `queuePosition`, nested `member`, and nested `book`, sorted by position. Validate `bookId`: empty or unknown returns 400; valid with no reservations returns 200 with empty array.",
+                  order: 6,
+                },
+                {
+                  description:
+                    "Reserve is only offered for books with `availableCopies === 0`.",
+                  order: 7,
                 },
               ],
             },
@@ -1073,98 +1213,51 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`POST /api/reservations` returns HTTP `201` with `{ success: true, data: Reservation }` for valid requests",
+                    "Add a createReservation function to the library service that takes bookId and memberId and targets the '/reservations' endpoint.",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Request body includes `bookId` and `memberId`",
+                  description:
+                    "Add a getReservationQueue function to the library service that takes bookId and builds the query with ?bookId=${bookId}.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Reservation create is allowed only when target book has `availableCopies === 0`",
+                    "In the Books page, show a 'Reserve Book' action only when availableCopies is 0, and call createReservation when clicked.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Duplicate active reservation for the same member and book returns HTTP `400`",
+                    "Display a queue-position confirmation matching 'You are #', 'in line', or 'queue position', and the exact empty state 'No active reservations.'.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Required implementation names are exact and case-sensitive: `createReservation` in `server/src/controllers/reservation.controller.ts`, `createReservation` in `client/src/services/libraryService.ts`, Route path is `/api/reservations` in `server/src/routes/reservation.routes.ts`",
+                    "Show the server's duplicate-reservation error ('already reserved', 'duplicate reservation', or 'already has an active reservation') to the member.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "`GET /api/reservations?bookId=<id>` returns HTTP `200` with `{ success: true, data: ReservationQueueRow[] }`",
+                    "On the server, create a reservation controller with createReservation returning 201 with queuePosition, and 400 on duplicate active reservation.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "Each queue row includes `id`, `bookId`, `memberId`, `queuePosition`, `status`, `createdAt`",
+                    "The queue endpoint GET /api/reservations?bookId=<id> returns rows with queuePosition, nested member, and nested book, sorted by position. Validate bookId: empty or unknown returns 400; valid with no reservations returns 200 with empty array.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "Each queue row includes display-ready relation data: `member.name` and `book.title`",
+                    "Reserve is only offered for books with availableCopies === 0.",
                   is_required: true,
                   order: 8,
-                },
-                {
-                  description:
-                    "Queue response is ordered by `queuePosition` ascending",
-                  is_required: true,
-                  order: 9,
-                },
-                {
-                  description:
-                    "`client/src/pages/Books.tsx` renders `Reserve Book` only when `availableCopies` is `0`",
-                  is_required: true,
-                  order: 10,
-                },
-                {
-                  description:
-                    "Borrow action stays primary when `availableCopies` is greater than `0`",
-                  is_required: true,
-                  order: 11,
-                },
-                {
-                  description:
-                    "Reserve action triggers `createReservation(...)` from `client/src/services/libraryService.ts`",
-                  is_required: true,
-                  order: 12,
-                },
-                {
-                  description:
-                    "Reservation errors (book available, duplicate reservation, invalid member) are shown in UI",
-                  is_required: true,
-                  order: 13,
-                },
-                {
-                  description:
-                    "After successful reservation, UI confirms queue position (for example: `You are #3 in line.`)",
-                  is_required: true,
-                  order: 14,
-                },
-                {
-                  description:
-                    "Queue length and position display are based on backend response, not hard-coded client math",
-                  is_required: true,
-                  order: 15,
-                },
-                {
-                  description:
-                    "Empty queue state for a book displays `No active reservations.`",
-                  is_required: true,
-                  order: 16,
                 },
               ],
             },
@@ -1273,23 +1366,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Inside the `returnBook` function, after incrementing `availableCopies`, query for the reservation with the lowest `queuePosition` and status `RESERVED` — that's the one to promote.",
+                    "The borrow controller must have `returnBook`; the reservation controller must have `promoteNextReservation` and `cancelReservation` — keep these exact names.",
                   order: 1,
                 },
                 {
                   description:
-                    "The promotion and return updates should all be inside the same `prisma.$transaction` — if any part fails, none of the changes should persist.",
+                    "After a successful return, promote the first active reservation (lowest `queuePosition`) to `READY_FOR_PICKUP` inside the same transaction.",
                   order: 2,
                 },
                 {
                   description:
-                    "After cancelling a reservation, fetch the remaining active reservations for that book ordered by `createdAt`, then loop through them and reassign positions starting from 1.",
+                    "Cancelling a reservation marks it cancelled and renumbers the remaining active reservations from 1 in order.",
                   order: 3,
                 },
                 {
                   description:
-                    "In the reservation list UI, use the `status` field from the API response to decide how to style each row — don't derive or guess status on the client side.",
+                    "Invalid IDs (non-existent reservation or unknown `bookId`) must return 400 — validate up front rather than letting Prisma throw 500.",
                   order: 4,
+                },
+                {
+                  description:
+                    "Add `cancelReservation(reservationId)` to the library service, keeping `createReservation` and `getReservationQueue`.",
+                  order: 5,
+                },
+                {
+                  description:
+                    "The member view must display `RESERVED`, `READY_FOR_PICKUP`, `CANCELLED`, `queuePosition`, the empty state `No reservations found.`, and the confirmation `Reservation cancelled.`. Wire the Reservations page into the app.",
+                  order: 6,
                 },
               ],
             },
@@ -1298,80 +1401,57 @@ export const levels = [
               create: [
                 {
                   description:
-                    "In `returnBook` flow, when a returned book has active reservations and stock becomes available, first queue entry is updated to `READY_FOR_PICKUP`",
+                    "The borrow controller contains a returnBook function and the reservation controller contains promoteNextReservation and cancelReservation functions.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Queue progression updates happen in the same transactional boundary as return updates",
+                    "After a successful book return (PUT /api/borrow-records/:id/return), the first reservation in the queue is promoted to READY_FOR_PICKUP status.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Required implementation names are exact and case-sensitive: `returnBook` in `server/src/controllers/borrow.controller.ts`, `promoteNextReservation` in `server/src/controllers/reservation.controller.ts`",
+                    "The promotion happens in the same transaction as the return, so a failure leaves neither applied.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "`DELETE /api/reservations/:id` (or equivalent cancel endpoint) marks reservation as `CANCELLED`",
+                    "Cancelling a reservation (DELETE /api/reservations/<id>) returns HTTP 200, cancels the reservation, and reindexes the remaining queue to continuous positions starting from 1.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Cancellation triggers queue reindex so remaining active reservations have continuous positions (`1..n`)",
+                    "Cancelling a non-active reservation (including non-existent ID) returns HTTP 400.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Cancelling an already cancelled or fulfilled reservation returns HTTP `400`",
+                    "An invalid bookId in the queue query returns HTTP 400.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "Required implementation names are exact and case-sensitive: `cancelReservation` in `server/src/controllers/reservation.controller.ts`, `cancelReservation` in `client/src/services/libraryService.ts`",
+                    "Add a cancelReservation function to the library service targeting /reservations, while keeping createReservation and getReservationQueue.",
                   is_required: true,
                   order: 7,
                 },
                 {
                   description:
-                    "Client provides a reservation list view for the member showing `book.title`, `queuePosition`, and `status`",
+                    "The client displays reservation lifecycle statuses (RESERVED, READY_FOR_PICKUP, CANCELLED), queuePosition, the exact empty state 'No reservations found.', and confirms cancellation with 'Reservation cancelled.'.",
                   is_required: true,
                   order: 8,
                 },
                 {
                   description:
-                    "Rows with `READY_FOR_PICKUP` are visually distinct from `RESERVED`",
+                    "The member reservation view is reachable and shows queuePosition and server-provided status for each entry.",
                   is_required: true,
                   order: 9,
-                },
-                {
-                  description: "Empty state displays `No reservations found.`",
-                  is_required: true,
-                  order: 10,
-                },
-                {
-                  description:
-                    "On successful cancellation, UI confirms: `Reservation cancelled.`",
-                  is_required: true,
-                  order: 11,
-                },
-                {
-                  description:
-                    "On queue updates, affected members see updated position values from backend response",
-                  is_required: true,
-                  order: 12,
-                },
-                {
-                  description:
-                    "UI never computes lifecycle status from local assumptions; it uses server status output",
-                  is_required: true,
-                  order: 13,
                 },
               ],
             },
@@ -1384,7 +1464,6 @@ export const levels = [
       title: "The Production Struggle",
       subtitle: "Investigate and fix a critical production issue.",
       order: 5,
-      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Congratulations! The project is in production, but a critical issue has been reported by the client. Your mission is to investigate the problem, identify the root cause, and deliver a fix as soon as possible to maintain system reliability.",
       xp_reward: 75,
@@ -1498,18 +1577,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Look at the overdue query in the borrow controller — check whether it filters by `status` or by `returnedAt` and `dueDate`, and think about which is more reliable.",
+                    "The overdue endpoint must return only unreturned records past their due date.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create a test record that has `returnedAt` set to a real date but `status` still showing as `OVERDUE` — this is your stale-status reproduction case.",
+                    "Filter on source-of-truth fields: `returnedAt` is null and `dueDate` is before now. A record with `returnedAt` set is never overdue, regardless of its status.",
                   order: 2,
                 },
                 {
                   description:
-                    "Use fixed UTC timestamps close to midnight in your test data to ensure the boundary between overdue and not-overdue is deterministic and reproducible.",
+                    "A returned record with a stale `OVERDUE` status must not appear in the report. Only genuinely unreturned, past-due records belong there.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Read the current time inside the request handler so the boundary respects a frozen clock.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "At the boundary, a record due one second before the clock is overdue; one due five seconds after is not. A record returned exactly at the clock is not overdue. Compare as UTC instants.",
+                  order: 5,
+                },
+                {
+                  description:
+                    "The response must include each record's `id`. Include `book` and `member` for the report but keep the flat `id` intact.",
+                  order: 6,
                 },
               ],
             },
@@ -1518,49 +1612,73 @@ export const levels = [
               create: [
                 {
                   description:
-                    "`/api/borrow-records/overdue` excludes any record with `returnedAt != null` regardless of status value",
+                    "GET /api/borrow-records/overdue returns HTTP 200 with a response body containing success: true and a data array of BorrowRecords with their id.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "`/api/borrow-records/overdue` includes past-due unreturned records",
+                    "A record with returnedAt set is excluded from the data even when its stored status is BORROWED.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "A stale-status discrepancy case is reproducible and covered by tests",
+                    "A record with returnedAt set is excluded from the data even when its stored status is OVERDUE (the stale-status case).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "A UTC midnight boundary case is covered by deterministic test data",
+                    "A record that is past its dueDate with returnedAt == null is included, even when its stored status is still BORROWED.",
                   is_required: true,
                   order: 4,
+                },
+                {
+                  description:
+                    "Classification is driven by returnedAt and dueDate only; the stored status value is never used as the filter condition.",
+                  is_required: true,
+                  order: 5,
+                },
+                {
+                  description:
+                    "With the clock fixed at 2025-03-02T00:00:01Z, a record due 2025-03-01T23:59:59Z and unreturned is included.",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "With the same frozen clock, a record due 2025-03-02T00:00:05Z and unreturned is excluded (not yet due), and a record returned at exactly 2025-03-02T00:00:00Z is excluded.",
+                  is_required: true,
+                  order: 7,
+                },
+                {
+                  description:
+                    "The overdue comparison reads the current time inside the request handler (respecting the frozen system clock) and evaluates the boundary in UTC.",
+                  is_required: true,
+                  order: 8,
                 },
               ],
             },
           },
           {
-            task_name: "Deliver Permanent Fix and Documentation",
+            task_name: "Deliver the Permanent Overdue Fix",
             test_type: "server",
             user_story:
-              "As a developer, I want to fix overdue mismatches and document the root cause, So that the client can trust overdue reports.",
+              "As a developer, I want to fix the overdue classification at its root cause so that the client can trust overdue reports.",
             learning_sections: {
               create: [
                 {
                   title:
                     "Overview\nDurable Production Fixes",
                   content:
-                    "Fixing a production bug involves more than patching the immediate symptom. A durable fix follows three phases: a regression test that reproduces the bug, a code change that addresses the root cause, and documentation that prevents recurrence. This pattern applies across all software domains — e-commerce, logistics, finance, and booking systems alike.",
+                    "Fixing a production bug involves more than patching the immediate symptom. A durable fix addresses the root cause rather than the surface symptom, and leaves a regression guard behind so the same bug cannot return unnoticed. This pattern applies across all software domains — e-commerce, logistics, finance, and booking systems alike.",
                   order: 1,
                 },
                 {
                   title: "The Fix Workflow",
                   content:
-                    "A production fix follows a sequence of four steps. First, a regression test is written that reproduces the bug — the test fails, confirming the issue exists in the current code. Second, the root cause is addressed in the code. Third, the test is run again — a pass confirms the fix works. Fourth, the corrected logic is centralized into a shared utility so the same pattern is used everywhere, preventing future drift. This workflow ensures the fix is verifiable and permanent rather than a one-off patch.",
+                    "A production fix follows a sequence of three steps. First, a regression test reproduces the bug — the test fails, confirming the issue exists in the current code. Second, the root cause is addressed in the code. Third, the test is run again — a pass confirms the fix works. This workflow ensures the fix is verifiable and permanent rather than a one-off patch.",
                   order: 2,
                 },
                 {
@@ -1570,70 +1688,10 @@ export const levels = [
                   order: 3,
                 },
                 {
-                  title: "Centralizing Shared Logic",
-                  content:
-                    "When the same classification logic appears in multiple places — a query filter, a display helper, a notification trigger — each copy can drift independently. A shared utility function that encapsulates the condition ensures every part of the system makes the same decision. The function takes the relevant source-of-truth fields as parameters and returns a boolean. All code paths that need the classification call this single function instead of reimplementing the condition. This prevents the original class of bug — where one code path used source fields while another used derived status — from recurring.",
-                  order: 4,
-                },
-                {
-                  title: "Incident Postmortem Structure",
-                  content:
-                    "A postmortem is a short document written after a production incident. It is not about assigning responsibility — it is a technical record that captures what happened and how to prevent it from happening again. A postmortem has four sections. Symptom describes what the user or system observed. Root Cause identifies the technical reason — for example, a query filtering by derived status instead of source-of-truth timestamp. Fix documents what was changed and where. Prevention describes what guardrails — regression tests, centralized utilities, or process changes — now exist to stop the same issue from recurring.",
-                  order: 5,
-                },
-                {
-                  title: "Practice Lab: Incident Timeline Note",
-                  content:
-                    "Practice drafting a concise incident timeline separate from the full postmortem.",
-                  section_type: "INTERACTIVE" as const,
-                  interactive_mode: "CODE_EDITOR" as const,
-                  interactive_config: {
-                    instructions:
-                      "Implement formatIncidentTimeline() returning a 4-line timeline string. Each line: \"- Section: detail\" joined by \\n.",
-                    language: "javascript",
-                    starter_code:
-                      'export function formatIncidentTimeline() {\n  return [\n    "- Detection: [detection detail]",\n    "- Impact Window: [impact window]",\n    "- Mitigation: [mitigation step]",\n    "- Verification: [verification result]",\n  ].join("\\n");\n}\n',
-                    editable_regions: [
-                      {
-                        placeholder: "[detection detail]",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "[impact window]",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "[mitigation step]",
-                        case_sensitive: false,
-                      },
-                      {
-                        placeholder: "[verification result]",
-                        case_sensitive: false,
-                      },
-                    ],
-                    entry_point: "formatIncidentTimeline",
-                    test_cases: [
-                      {
-                        input: [],
-                        expected:
-                          "- Detection: Alert from overdue report\n- Impact Window: 09:00-11:00 UTC\n- Mitigation: query patched\n- Verification: regression test passed",
-                        label: "required incident timeline output",
-                      },
-                    ],
-                  
-                    hints: [
-                      "Build 4 strings, join with \\n.",
-                      "[\"- Detection: ...\", \"- Impact Window: ...\", \"- Mitigation: ...\", \"- Verification: ...\"].join(\"\\n\");",
-                      "return [\"- Detection: ___\", \"- Impact Window: ___\", \"- Mitigation: ___\", \"- Verification: ___\"].join(\"___\");"
-                    ],
-                  },
-                  order: 6,
-                },
-                {
                   title: "Key Takeaway",
                   content:
-                    "A durable production fix combines three elements: a regression test that reproduces and guards against the bug, a centralized utility that ensures consistent classification logic across all code paths, and a postmortem that documents the root cause and prevention measures. This triad prevents the same issue from recurring regardless of which developer touches the code in the future.",
-                  order: 7,
+                    "A durable production fix addresses the root cause instead of the symptom: classify overdue records from the source-of-truth fields (`returnedAt` and `dueDate`) rather than the derived `status`, and never rewrite an already-returned record.",
+                  order: 4,
                 },
               ],
             },
@@ -1641,18 +1699,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Write your test to create a record with \`returnedAt\` set but \`status\` still as \`OVERDUE\`, then assert it does NOT appear in the overdue endpoint response — this confirms the bug exists before you fix it.",
+                    "A returned record with a stale `OVERDUE` status must not appear in the report. Only genuinely unreturned, past-due records belong there.",
                   order: 1,
                 },
                 {
                   description:
-                    "Extract the overdue check condition into a standalone utility function — the controller should call that function rather than duplicating the logic inline.",
+                    "The endpoint must also correct stale `BORROWED` status to `OVERDUE` for past-due unreturned records, but never rewrite a returned record's status.",
                   order: 2,
                 },
                 {
                   description:
-                    "Your postmortem should be a short markdown or text file covering: what the symptom was, what caused it technically, what you changed, and what would prevent similar bugs in the future.",
+                    "Returned records must stay untouched — `status: 'RETURNED'` and `returnedAt` non-null must persist unchanged.",
                   order: 3,
+                },
+                {
+                  description:
+                    "A record that is unreturned but not yet due (due date in the future) must stay out of the report. Overdue means `dueDate` strictly in the past, evaluated at request time.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "Root cause: the query filtered on the derived `status` field instead of the source-of-truth `returnedAt`/`dueDate` fields, so a return that did not update `status` left the record permanently reported as overdue.",
+                  order: 5,
                 },
               ],
             },
@@ -1660,36 +1728,52 @@ export const levels = [
             acceptance_criteria: {
               create: [
                 {
-                  description: "Incorrect overdue markings are resolved",
+                  description:
+                    "GET /api/borrow-records/overdue returns HTTP 200 with { success: true, data: [...] }.",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Returned items are no longer listed overdue",
+                  description:
+                    "A record with returnedAt set and a stale status 'OVERDUE' is not in the response.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Overdue reports match source borrowing and return records",
+                    "A record that is past due, unreturned, and stored as status 'OVERDUE' is in the response.",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "Spot checks confirm data consistency",
+                  description:
+                    "A record that is past due and unreturned but still stored as status 'BORROWED' is in the response.",
                   is_required: true,
                   order: 4,
                 },
                 {
-                  description: "Root cause is documented",
+                  description:
+                    "A record that is unreturned and not yet due (due date in the future) is not in the response.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Fix approach and validation steps are documented",
+                    "No record whose returnedAt is non-null appears in the report, regardless of its stored status.",
                   is_required: true,
                   order: 6,
+                },
+                {
+                  description:
+                    "After the request, the past-due unreturned record's stored status is 'OVERDUE' in the database.",
+                  is_required: true,
+                  order: 7,
+                },
+                {
+                  description:
+                    "After the request, a returned record still has status 'RETURNED' and a non-null returnedAt - the fix never rewrites a returned record.",
+                  is_required: true,
+                  order: 8,
                 },
               ],
             },

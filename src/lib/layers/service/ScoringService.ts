@@ -538,9 +538,8 @@ Respond ONLY using this exact format:
 
   private async callOmniRouteAPI(apiKey: string, prompt: string, model?: string): Promise<string> {
     const models = model ? [model] : [
-      // 'oc/muse-spark-1.3-contributor-free',
-      // 'oc/muse-spark-1.2-contributor-free',
-      // 'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
+      'oc/muse-spark-1.3-contributor-free',
+      'oc/muse-spark-1.2-contributor-free',
       'ollama/gpt-oss:120b',
     ];
 

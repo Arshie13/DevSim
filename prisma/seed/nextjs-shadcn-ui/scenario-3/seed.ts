@@ -1,4 +1,4 @@
-﻿export const scenarios = [
+export const scenarios = [
   {
     id: "nextjs-shadcn-ui-scenario-3",
     name: "Riverside University Student Portal",
@@ -13,91 +13,112 @@ export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-3-level-1",
     title: "Onboarding the Student Portal",
-    subtitle: "Bootstrap the dev environment",
+    subtitle: "Install dependencies, add the shadcn/ui Alert component, and fix the login button copy",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Riverside University has onboarded a new developer and needs the student portal running locally. Set up the Next.js development environment by installing dependencies, adding the required shadcn/ui components, and verifying the dev server starts cleanly.",
+      "Mission Briefing: Riverside University has onboarded a new developer and the student portal has to run on their machine before any feature work starts. Install the project dependencies with `pnpm install` and confirm `pnpm dev` prints `ready` or `Local:`. Then add the shadcn/ui Alert component to the project source: `src/components/ui/alert.tsx` naming `Alert`, `AlertTitle` and `AlertDescription`. Finally update `src/app/login/page.tsx` so the submit button reads `Log In` and the old `Sign In` copy is gone.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Installing project dependencies with pnpm install ensures all required libraries are available. Adding shadcn/ui components via the CLI copies them into the project source for full ownership. Verifying the dev server boots without errors establishes a reliable baseline before any feature work begins.",
+      "A project only counts as set up once `node_modules/next` and `node_modules/react` exist on disk and `pnpm dev` prints `ready` or `Local:`. shadcn/ui components are copied into `src/components/ui/`, so the graded check is that `alert.tsx` exists and names `Alert`, `AlertTitle` and `AlertDescription`. Branding copy is graded from source: `src/app/login/page.tsx` must contain `Log In` and must not contain `Sign In` once comments are stripped.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
-          task_name: "Environment Setup",
+          task_name: "Dependencies and the shadcn/ui Alert Component",
           test_type: "both",
           user_story:
-            "As a developer, I want to install dependencies and add required shadcn/ui components so that the student portal runs locally.",
+            "As a developer, I want the portal dependencies installed, the shadcn/ui Alert component copied into `src/components/ui/`, and `pnpm dev` booting so that the rest of the levels have a project that actually runs.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nBooting a Next.js + shadcn/ui Portal",
+                title: "Overview\nGetting the Portal Running Locally",
                 content:
-                  "This section walks through getting a Next.js student portal running locally. The flow is the same on every Next.js project: install dependencies, add required UI components, then verify the dev server starts cleanly.",
+                  "This level works on three things, all checked from the command line and the filesystem: dependencies are installed, the shadcn/ui Alert component is present in the project source, and the Next.js dev server starts. Nothing here touches application features.",
                 order: 1,
               },
               {
-                title: "What Lives Where",
+                title: "Installing Dependencies",
                 content:
-                  "A typical Next.js + shadcn/ui project is structured like:\nproject/\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     ├── components/ ← shadcn/ui components and custom ones\n    │     ├── lib/ ← shared helpers and mock data\n    │     └── hooks/ ← custom React hooks\n    ├── package.json ← scripts and dependencies\n\nKnowing where files live makes navigating the codebase productive from day one.",
+                  "The project ships a `package.json` and a `pnpm-lock.yaml`. Running `pnpm install` at the project root downloads every listed dependency into a `node_modules` directory at that same root.\n\nThe graded check is that three paths exist:\nnode_modules\nnode_modules/next\nnode_modules/react\n\nIf `node_modules/next` is missing, the install did not finish.",
                 order: 2,
               },
               {
-                title: "What is shadcn/ui?",
+                title: "Adding the shadcn/ui Alert Component",
                 content:
-                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.",
+                  "shadcn/ui components are copied into your own source instead of installed as a package. This level's graded component is the Alert primitive, checked by reading its file from disk and looking for the names below.\n\nsrc/components/ui/alert.tsx names `Alert`, `AlertTitle` and `AlertDescription`.\n\nOne command adds it:\npnpm dlx shadcn@latest add alert",
                 order: 3,
               },
               {
-                title: "Package Management 101",
+                title: "Starting the Dev Server",
                 content:
-                  "Package management is the process of managing external code dependencies a project relies on. A package manager such as pnpm handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. The package.json lists all the libraries the app needs (React, Next.js, shadcn/ui components, Tailwind CSS). pnpm install downloads them into node_modules.",
+                  "`pnpm dev` starts the Next.js development server. The graded check spawns it in the project root and watches both stdout and stderr for text matching `/ready|Local:/i`. It gives the process 30 seconds to print that text.\n\nIf the process exits with a non-zero code before printing it, the check fails. A server that crashes on boot does not count as started.",
                 order: 4,
               },
               {
-                title: "The Development Server",
+                title: "Practice Lab: Installed Dependency Check",
                 content:
-                  "Next.js includes a built-in development server that provides hot module replacement and Fast Refresh. Running pnpm run dev starts the server, watches for file changes, and instantly updates the browser without a full page reload.\n\nBefore writing any feature code, always verify the dev server starts without errors — this confirms the project setup is complete and establishes a known-good baseline.",
-                order: 5,
-              },
-              {
-                title: "Practice Lab: Adding shadcn/ui Components",
-                content:
-                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn@latest add avatar",
+                  "Practice the small pure function you would use to check an install manifest before spawning anything.",
                 section_type: "INTERACTIVE" as const,
-                interactive_mode: "TERMINAL_CMD" as const,
+                interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Run the shadcn/ui CLI command to add the Avatar component. Type the exact command and click Check to verify.",
-                  expected_commands: [
-                    "pnpm dlx shadcn@latest add avatar",
+                    "Implement `hasDependency(deps, name)` returning `true` when the object `deps` has its own key `name`, otherwise `false`.",
+                  language: "typescript",
+                  starter_code:
+                    "export function hasDependency(deps: Record<string, string>, name: string): boolean {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "hasDependency",
+                  test_cases: [
+                    {
+                      input: [{ next: "15.0.0", react: "19.0.0" }, "next"],
+                      expected: true,
+                      label: "next is listed",
+                    },
+                    {
+                      input: [{ next: "15.0.0" }, "react"],
+                      expected: false,
+                      label: "react is missing",
+                    },
+                  ],
+                  hints: [
+                    "Use Object.prototype.hasOwnProperty.",
+                    "return Object.prototype.hasOwnProperty.call(deps, name);",
+                    "return Object.prototype.hasOwnProperty.call(___, ___);",
                   ],
                 },
-                order: 6,
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a Next.js project means installing dependencies, adding required UI components, and confirming the dev server starts cleanly — this establishes a reliable baseline before any feature work.",
-                order: 7,
+                  "The checks in this level are: `node_modules` with `next` and `react` inside it, a dev server that prints `ready` or `Local:` within 30 seconds without a non-zero exit, and `src/components/ui/alert.tsx` whose source names `Alert`, `AlertTitle` and `AlertDescription`.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Install dependencies using pnpm install at the project root",
+                description: "Run `pnpm install` in the project root so `node_modules/`, `node_modules/next` and `node_modules/react` all exist.",
                 order: 1,
               },
               {
-                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
+                description: "Run `pnpm dlx shadcn@latest add alert` so `src/components/ui/alert.tsx` is written.",
                 order: 2,
               },
               {
-                description: "Start the development server and verify it loads",
+                description: "Run `pnpm dev` in the project root and leave it running until the output matches `/ready|Local:/i` within 30 seconds.",
                 order: 3,
+              },
+              {
+                description: "Work through them in that order from the project root: install, add the Alert component, then start the server and leave it up.",
+                order: 4,
               },
             ],
           },
@@ -105,17 +126,20 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on pnpm run dev",
+                description:
+                  "Install project dependencies in the project root",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Required shadcn/components/ui/alert component is installed",
+                description:
+                  "Run the development server and verify it starts successfully (prints 'ready' or 'Local:')",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "All project dependencies are installed",
+                description:
+                  "Add the alert shadcn/ui component using the CLI and verify it exports Alert, AlertTitle, and AlertDescription",
                 is_required: true,
                 order: 3,
               },
@@ -123,67 +147,71 @@ export const levels = [
           },
         },
         {
-          task_name: "UI Text Updates",
+          task_name: "Login Button Branding",
           test_type: "both",
           user_story:
-            "As a user, I want consistent login copy and an environment-driven academic year so that the portal feels polished and accurate.",
+            "As a student, I want the login page to say `Log In` so that the portal wording matches the rest of the product.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nConsistency in UI Copy",
+                title: "Overview\nOne Verb, Two States",
                 content:
-                  "This section introduces the crash course for maintaining consistent UI text. It covers finding labels, understanding loading states, and keeping copy aligned across the app.",
+                  "A submit button has an idle state and a loading state, and both use the same verb. This level changes the login page copy so the idle label is `Log In` and the loading label is built from the same verb.",
                 order: 1,
               },
               {
-                title: "Button Labels and Loading States",
+                title: "Where the Copy Lives",
                 content:
-                  "A button often has two states: idle and loading. Both should use the same verb:\n\n// Before\n<button>Submit</button>\n<button>Submitting...</button>\n\n// After\n<button>Save</button>\n<button>Saving...</button>\n\nConsistency reduces cognitive load and makes the UI feel professional.",
+                  "The login form is a client component at `src/app/login/page.tsx`. The submit button currently renders a ternary:\n\n{isLoading ? 'Signing in...' : 'Sign In'}\n\nThe check reads this file for `Log In` and for the absence of `Sign In`; only the idle branch contains `Sign In`, so that is the one the check depends on.",
                 order: 2,
               },
               {
-                title: "Page Descriptions and Environment Variables",
+                title: "How the Check Reads the File",
                 content:
-                  "Page descriptions and subtitles should use environment variables when they reference tenant-specific data. This ensures the text stays accurate when the portal is rebranded for a different institution.\n\n// Before\n<p>Sign in to access the portal</p>\n<p>Summary for 2025-2026</p>\n// After\n<p>Log in to access the portal</p>\n<p>Summary for {process.env.NEXT_PUBLIC_ACADEMIC_YEAR}</p>\n\nThis keeps the portal accurate and easy to rebrand.",
+                  "The check reads `src/app/login/page.tsx` as text, strips `//` line comments and `/* */` block comments, then asserts two things on the remaining source: it contains `Log In`, and it does not contain `Sign In`.\n\n`Sign in to access your academic information` is a different string and is not matched, because the comparison is case sensitive.",
                 order: 3,
               },
               {
-                title: "Verifying Copy Changes",
+                title: "Deriving the Loading Label",
                 content:
-                  "After editing, every page that might share the component should be checked. A layout change affects all pages that use it. A page-specific change only affects that route. Browser dev tools can be used to verify each route.",
+                  "Building both labels from one constant keeps them from drifting again:\n\nconst LOGIN_VERB = 'Log In';\nconst loadingLabel = `Logging In...`;\n\nOnce the literal `Sign In` is gone from the file, the check passes.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Update Login Label",
+                title: "Practice Lab: Login Button Label",
                 content:
-                  "Practice updating login labels to maintain consistency across the academic portal.",
+                  "Practice deriving both button states from a single verb.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Update function to return \"Log In\" instead of \"Sign In\".",
+                    "Implement `getLoginButtonLabel(isLoading)` returning `Log In` when `isLoading` is `false` and `Logging In...` when it is `true`.",
                   language: "typescript",
                   starter_code:
-                    'export function getLoginButtonLabel() {\n  return "Sign In";\n}\n',
+                    "export function getLoginButtonLabel(isLoading: boolean): string {\n  // TODO\n}\n",
                   editable_regions: [
                     {
-                      placeholder: "Sign In",
+                      placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
                   entry_point: "getLoginButtonLabel",
                   test_cases: [
                     {
-                      input: [],
+                      input: [false],
                       expected: "Log In",
-                      label: "updated login label",
+                      label: "idle label",
+                    },
+                    {
+                      input: [true],
+                      expected: "Logging In...",
+                      label: "loading label",
                     },
                   ],
-                
                   hints: [
-                    "Simple text replacement.",
-                    "Replace \"Sign In\" with \"Log In\".",
-                    "return \"___\";"
+                    "Branch on the boolean argument.",
+                    "return isLoading ? 'Logging In...' : 'Log In';",
+                    "return isLoading ? '___' : '___';",
                   ],
                 },
                 order: 5,
@@ -191,7 +219,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Consistent copy is a sign of a polished product. Button labels, loading states, and headings should be aligned with the environment variables so the portal feels cohesive.",
+                  "The graded contract is a single file: `src/app/login/page.tsx` contains `Log In` and no longer contains `Sign In` once comments are removed.",
                 order: 6,
               },
             ],
@@ -199,8 +227,16 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Change the login button label from 'Sign In' to 'Log In' in `src/app/login/page.tsx`",
+                description: "In `src/app/login/page.tsx`, replace the submit button label `Sign In` with `Log In` in the `isLoading ? ... : ...` expression.",
                 order: 1,
+              },
+              {
+                description: "Change the loading label `Signing in...` to `Logging In...` so both states use the same verb.",
+                order: 2,
+              },
+              {
+                description: "Search `src/app/login/page.tsx` for any remaining capitalised `Sign In` outside comments and remove it.",
+                order: 3,
               },
             ],
           },
@@ -208,9 +244,16 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Login button reads 'Log In'",
+                description:
+                  "Update the login page submit button label from 'Sign In' to 'Log In'",
                 is_required: true,
                 order: 1,
+              },
+              {
+                description:
+                  "Confirm the login page source (with `//` and `/* */` comments stripped) contains 'Log In' and no remaining 'Sign In'",
+                is_required: true,
+                order: 2,
               },
             ],
           },
@@ -220,96 +263,94 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-3-level-2",
-    title: "Polishing the Academic Dashboard",
-    subtitle: "Fix grade badge palette and extract a reusable StatCard",
+    title: "Explaining Standing Badges and Collapsing the Grades Table",
+    subtitle: "Add an `InfoTooltip` to the standing status badges, and a `SemesterGroup` accordion for the grades page",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: The dean's office reports that grade badges are visually noisy and inconsistent across pages, and that similar stat-card components are duplicated in nearly every dashboard view. Replace the default shadcn variant palette with explicit, accessible Tailwind classes per grade tier, extract the duplicated stat-card JSX into a reusable component, and consolidate the fees page filter calls into a single useMemo.",
+      "Mission Briefing: the standing page prints a `Good Standing` badge with no explanation of what the three tiers mean. Wrap each academic-status badge on `src/app/dashboard/standing/page.tsx` in a new `InfoTooltip` so hovering it explains the GPA rule for that tier. Then create `src/components/SemesterGroup.tsx`, an accordion section that shows its title on a real button and reveals its children only when open, and use it in the All Semesters tab of `src/app/dashboard/grades/page.tsx` to render one group per unique `(semester, academicYear)` pair, with the first group open.",
     xp_reward: 25,
     coin_reward: 50,
     key_takeaways:
-      "Mapping grade tiers (A, B, C, D/F) to explicit *-100 background and *-800 text classes guarantees accessible contrast across the dashboard. Distinct color tiers help students scan their grades at a glance without re-reading each badge.\n\nExtracting repeated stat-card JSX into a single reusable component prevents drift across multiple dashboard pages. Replacing three back-to-back `.filter()` calls with a single `useMemo` returning all derived totals avoids redundant work on every render and keeps related derived state co-located.",
+      "A tooltip is a labelled surface: `InfoTooltip` renders an element with the `tooltip` role whose accessible name is its `label` prop, and it stays out of the way until hover by combining `opacity-0` and `pointer-events-none` on the tooltip with `group` on the wrapper and `group-hover:opacity-100` on the tooltip. The three tier strings the standing page has to include are the source of truth for what each badge means. A `SemesterGroup` is a real `button` whose accessible name is its `title` prop and whose `aria-expanded` flips from `false` to `true` on click, or starts `true` when `defaultOpen` is passed; the children are unmounted while collapsed rather than merely hidden. Grouping the All Semesters tab by the pair `(semester, academicYear)` produces exactly two triggers for the shipped mock data, `1st Semester — 2025-2026` and `2nd Semester — 2024-2025`.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
-          task_name: "Fix Grade Badge Colors",
+          task_name: "InfoTooltip on the Standing Status Badges",
           test_type: "both",
           user_story:
-            "As a student, I want grade badges to use distinct, accessible colors so that I can quickly identify how I'm doing in each course.",
+            "As a student, I want each academic-status badge on the standing page to explain what that status means, so that I know how the GPA tiers are defined.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nAccessible Grade Badges",
+                title: "Overview\nExplaining a Badge",
                 content:
-                  "This section introduces the crash course for styling grade badges with accessible color palettes. It explains why contrast matters and how to map grade tiers to Tailwind classes.",
+                  "The standing page at `src/app/dashboard/standing/page.tsx` renders one status badge per academic tier through its `getStatusBadge` helper, and nothing explains what the tiers mean. This task adds a small `InfoTooltip` component and wraps each badge with it.",
                 order: 1,
               },
               {
-                title: "Grade Tier Mapping",
+                title: "The InfoTooltip Component",
                 content:
-                  "Each grade tier is mapped to a high-contrast palette:\n\n- A-tier (A, A-) -> bg-green-100 text-green-800\n- B-tier (B+, B, B-) -> bg-blue-100 text-blue-800\n- C-tier (C+, C, C-) -> bg-yellow-100 text-yellow-800\n- D/F-tier -> bg-red-100 text-red-800\n\nThese combinations pass WCAG contrast guidelines and make grades scannable.",
+                  "Create `src/components/InfoTooltip.tsx` exporting `InfoTooltip`, which takes a `label` string and the `children` it wraps:\n\n<InfoTooltip label='Good Standing — cumulative GPA of 3.0 or higher'>\n  <Badge>Good Standing</Badge>\n</InfoTooltip>\n\nIt renders a wrapper around `children` and, inside it, an element with the `tooltip` role whose accessible name is the `label`. The check imports the component and renders it directly, so the export has to be named `InfoTooltip`.",
                 order: 2,
               },
               {
-                title: "Replacing Variant-Driven Styles",
+                title: "Hidden Until Hover",
                 content:
-                  "Instead of relying on shadcn/ui Badge variants, pass explicit className strings:\n\n// Before\n<Badge variant={getGradeVariant(grade)}>\n\n// After\n<Badge className={getGradeClass(grade)}>\n\nThis gives full control over the color and ensures consistency across themes.",
+                  "The tooltip is always in the document but visually out of the way until the wrapper is hovered. Four class names carry that behaviour, and the check reads them off the rendered elements:\n\nthe wrapper carries `group`\nthe tooltip carries `opacity-0`\nthe tooltip carries `pointer-events-none`\nthe tooltip carries `group-hover:opacity-100`\n\nMissing any one of them fails the check: `opacity-0` hides it, `pointer-events-none` keeps it from intercepting the pointer, `group` opts the wrapper into group-hover, and `group-hover:opacity-100` is what reveals it.",
                 order: 3,
               },
               {
-                title: "Verifying Accessibility",
+                title: "The Three Tier Strings",
                 content:
-                  "Browser dev tools can be used to check contrast ratios. The *-100 / *-800 combinations typically exceed 7:1, which is AAA. Distinct colors also help students scan quickly - a green badge means 'A' at a glance.",
+                  "The standing page has to state what each tier means. The check reads `src/app/dashboard/standing/page.tsx` as source and matches three strings, so they have to appear literally in the file:\n\ngood standing ... cumulative gpa ... 3.0\nwarning ... gpa ... 2.0 ... 2.99\nprobation ... gpa below 2.0 ... advisor\n\nThat gives three concrete labels, for example:\n\nGood Standing — cumulative GPA of 3.0 or higher\nWarning — cumulative GPA between 2.0 and 2.99\nProbation — cumulative GPA below 2.0, book a meeting with your advisor\n\nThe rendered `good` tooltip is also queried by its accessible name, so the good label has to be attached to the badge shown for `currentStanding.academicStatus`, which is `good`.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Grade Classifier",
+                title: "Practice Lab: Status Tooltip Copy",
                 content:
-                  "Practice mapping grade strings to Tailwind classes.",
+                  "Practice the pure lookup behind the three tier labels.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getGradeClass(grade) returning Tailwind classes by tier: A→green, B→blue, C→yellow, D/F→red.\n\nExamples: getGradeClass(\"A\")→\"bg-green-100 text-green-800\", getGradeClass(\"B+\")→\"bg-blue-100 text-blue-800\".",
-                  language: "javascript",
+                    "Implement `tooltipForStatus(status)` returning the tooltip copy for a tier: `'Good Standing — cumulative GPA of 3.0 or higher'` for `good`, `'Warning — cumulative GPA between 2.0 and 2.99'` for `warning`, `'Probation — cumulative GPA below 2.0, book a meeting with your advisor'` for `probation`, and `null` for anything else.",
+                  language: "typescript",
                   starter_code:
-                    "export function getGradeClass(grade) {\n  // TODO\n}\n",
+                    "export function tooltipForStatus(status: string): string | null {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getGradeClass",
+                  entry_point: "tooltipForStatus",
                   test_cases: [
                     {
-                      input: ["A"],
-                      expected: "bg-green-100 text-green-800",
-                      label: "A grade",
+                      input: ["good"],
+                      expected: "Good Standing — cumulative GPA of 3.0 or higher",
+                      label: "good standing copy",
                     },
                     {
-                      input: ["B+"],
-                      expected: "bg-blue-100 text-blue-800",
-                      label: "B+ grade",
+                      input: ["warning"],
+                      expected: "Warning — cumulative GPA between 2.0 and 2.99",
+                      label: "warning copy",
                     },
                     {
-                      input: ["C-"],
-                      expected: "bg-yellow-100 text-yellow-800",
-                      label: "C- grade",
+                      input: ["probation"],
+                      expected: "Probation — cumulative GPA below 2.0, book a meeting with your advisor",
+                      label: "probation copy",
                     },
                     {
-                      input: ["D"],
-                      expected: "bg-red-100 text-red-800",
-                      label: "D grade",
+                      input: ["unknown"],
+                      expected: null,
+                      label: "unknown status",
                     },
                   ],
-                
                   hints: [
-                    "Check first character of grade.",
-                    "const t=grade[0]; if(t===\"A\")return\"bg-green-100 text-green-800\"; else if(t===\"B\")return\"bg-blue-100 text-blue-800\"; else if(t===\"C\")return\"bg-yellow-100 text-yellow-800\"; else return\"bg-red-100 text-red-800\";",
-                    "const t=grade[___]; if(t===\"A\")return\"___\"; else if(t===\"B\")return\"___\"; else if(t===\"C\")return\"___\"; else return\"___\";"
+                    "Use a plain object keyed by status.",
+                    "const table: Record<string, string> = { good: '…', warning: '…', probation: '…' }; return table[status] ?? null;",
+                    "const table: Record<string, string> = { good: ___, warning: ___, probation: ___ }; return table[status] ?? ___;",
                   ],
                 },
                 order: 5,
@@ -317,7 +358,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Grade badges are a critical UI element. Every tier should be mapped to a tested, high-contrast combination and applied via className for full control.",
+                  "`InfoTooltip` renders a `tooltip`-role element named by its `label`, hidden with `opacity-0` and `pointer-events-none` and revealed with `group` + `group-hover:opacity-100`, and the standing page wraps each status badge with it and carries the three tier strings in its source.",
                 order: 6,
               },
             ],
@@ -325,15 +366,15 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Update `getGradeColor` in `src/app/dashboard/grades/page.tsx` to return a `className` string per grade tier instead of a shadcn variant.",
+                description: "Create `src/components/InfoTooltip.tsx` exporting `InfoTooltip`, rendering an element with `role='tooltip'` whose accessible name is the `label` prop.",
                 order: 1,
               },
               {
-                description: "Map A-tier (A, A-) â†’ bg-green-100 text-green-800; B-tier (B+, B, B-) â†’ bg-blue-100 text-blue-800; C-tier (C+, C, C-) â†’ bg-yellow-100 text-yellow-800; D/F-tier â†’ bg-red-100 text-red-800.",
+                description: "Put `group` on the wrapper, and `opacity-0`, `pointer-events-none` and `group-hover:opacity-100` on the tooltip, so it is hidden until hover.",
                 order: 2,
               },
               {
-                description: "Apply the className via the existing `Badge` component and verify each tier renders distinctly.",
+                description: "In `getStatusBadge` on the standing page, wrap each badge in `InfoTooltip` with the matching tier copy, and make sure all three strings appear literally in the page source.",
                 order: 3,
               },
             ],
@@ -342,114 +383,140 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "A-tier badges (A, A-) use bg-green-100 and text-green-800",
+                description:
+                  "Create src/components/InfoTooltip.tsx exporting InfoTooltip that renders an element with role='tooltip' whose text is the label prop",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "B-tier badges (B+, B, B-) use bg-blue-100 and text-blue-800",
+                description:
+                  "Verify the tooltip is hidden by default with the classes opacity-0 and pointer-events-none",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "C-tier badges (C+, C, C-) use bg-yellow-100 and text-yellow-800",
+                description:
+                  "Verify the wrapper carries the `group` class and the tooltip reveals on hover via group-hover:opacity-100",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "D/F-tier badges use bg-red-100 and text-red-800",
+                description:
+                  "Wrap the academic status badge on the standing page in InfoTooltip with a label matching 'good standing ... cumulative GPA ... 3.0'",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Include the Warning tier tooltip copy in standing/page.tsx (matches 'warning ... GPA ... 2.0 ... 2.99')",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Include the Probation tier tooltip copy in standing/page.tsx (matches 'probation ... GPA below 2.0 ... advisor')",
+                is_required: true,
+                order: 6,
               },
             ],
           },
         },
         {
-          task_name: "Refactor & Extract StatCard",
+          task_name: "SemesterGroup Accordion on the Grades Page",
           test_type: "both",
           user_story:
-            "As a developer, I want a single reusable StatCard component and a single useMemo for fee totals so that the codebase stays consistent and maintainable.",
+            "As a student, I want the All Semesters tab collapsed into one expandable group per term so that I can open only the term I care about.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nComponent Extraction and useMemo",
+                title: "Overview\nAn Expandable Section",
                 content:
-                  "This section introduces the crash course for extracting duplicated stat-card JSX into a reusable component and consolidating derived state with useMemo.",
+                  "Create `src/components/SemesterGroup.tsx` exporting `SemesterGroup`, which takes a `title` string, an optional `defaultOpen` boolean, and `children`. It renders one `button` for the title and a body that holds the children, and the body is only in the document while the group is open.",
                 order: 1,
               },
               {
-                title: "The Duplication Problem",
+                title: "The Trigger Button",
                 content:
-                  "When the same stat-card markup appears across four pages, any style change requires editing four files. Over time, they drift apart and become inconsistent.\n\n// Page A\n<Card><CardHeader>...</CardHeader><CardContent>...</CardContent></Card>\n// Page B â€” same structure, different content\n<Card><CardHeader>...</CardHeader><CardContent>...</CardContent></Card>\n\nThese blocks should be one component.",
+                  "The trigger is a real `button` element, not a `div` with an onClick. Its accessible name is the `title` prop, so `<SemesterGroup title='Section A'>` is queried with the name `Section A`.\n\nIt also reports the expansion state through `aria-expanded`, which is `true` while the body is showing and `false` while it is not:\n\n<button type='button' aria-expanded={open} onClick={() => setOpen((value) => !value)}>\n  {title}\n</button>\n\nWithout `defaultOpen`, the expanded state starts `false`, so `aria-expanded` starts `false`.",
                 order: 2,
               },
               {
-                title: "Extracting a StatCard",
+                title: "Conditional Body",
                 content:
-                  "A component that accepts title, value, subtitle, icon, and optional valueClassName can be created:\n\n// components/StatCard.tsx\nimport { LucideIcon } from 'lucide-react';\n\nexport function StatCard({ title, value, subtitle, icon: Icon, valueClassName }: { ... }) {\n  return (\n    <Card>\n      <CardHeader className=\"flex flex-row items-center justify-between\">\n        <CardTitle>{title}</CardTitle>\n        <Icon />\n      </CardHeader>\n      <CardContent>\n        <div className={valueClassName}>{value}</div>\n        <p className=\"text-xs text-muted-foreground\">{subtitle}</p>\n      </CardContent>\n    </Card>\n  );\n}\n\nThis single component replaces every inline stat card.",
+                  "The body is not rendered at all while collapsed, so the children are returned only when the group is open:\n\n{open && <div>{children}</div>}\n\nThat is why the child text is absent from the document before the click and present after it. Hiding with a class alone would leave the text queryable, so the content has to be unmounted while collapsed.",
                 order: 3,
               },
               {
-                title: "Consolidating Fee Totals with useMemo",
+                title: "The defaultOpen Prop",
                 content:
-                  "A single useMemo can return all derived totals:\n\nconst { paid, pending, overdue, totals } = useMemo(() => {\n  const paid = tuitionFees.filter(f => f.status === 'paid');\n  const pending = tuitionFees.filter(f => f.status === 'pending');\n  const overdue = tuitionFees.filter(f => f.status === 'overdue');\n  const grand = paid.reduce((s, f) => s + f.amount, 0);\n  return { paid, pending, overdue, totals: { paid, pending, overdue, grand } };\n}, [tuitionFees]);\n\nThis reduces multiple passes through the same array to a single computation.",
+                  "`defaultOpen` seeds the initial state instead of forcing it. `<SemesterGroup title='Default Open' defaultOpen>` renders its children on the first paint and its button starts with `aria-expanded='true'`.\n\nThe initial state is `useState(defaultOpen)`, so passing nothing means `undefined`, which is falsy.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Extract StatCard",
+                title: "Grouping the Grades Table",
                 content:
-                  "Practice extracting inline JSX into a component call.",
+                  "In `src/app/dashboard/grades/page.tsx`, the All Semesters `TabsContent` is replaced by a map over the unique `(semester, academicYear)` pairs in the `grades` array from `src/lib/mockData.ts`. Each group title is the semester name, an em dash, then the academic year.\n\nThe first group is the only one that gets `defaultOpen`, so exactly one trigger starts expanded and the rest start collapsed. Both triggers have to land in the content of the `All Semesters` `tab`, because the check switches to that tab before it queries the buttons.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Semester Group Title",
+                content:
+                  "Practice the pure function that builds the group title and the grouping key.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Refactor to use StatCard component instead of inline rendering.",
-                  language: "tsx",
+                    "Implement `formatSemesterTitle(semester, academicYear)` returning the semester name, a single em dash surrounded by spaces, then the academic year. Example: `formatSemesterTitle('1st Semester', '2025-2026')` returns `1st Semester — 2025-2026`.",
+                  language: "typescript",
                   starter_code:
-                    "import { StatCard } from '../components/StatCard';\nimport { DollarSign } from 'lucide-react';\n\nexport function renderTotalCard(value) {\n  return (\n    <div>\n      <h3>Total</h3>\n      <DollarSign />\n      <p>{value}</p>\n      <p>All fees</p>\n    </div>\n  );\n}\n",
+                    "export function formatSemesterTitle(semester: string, academicYear: string): string {\n  // TODO\n}\n",
                   editable_regions: [
                     {
-                      placeholder: "return (\n    <div>\n      <h3>Total</h3>\n      <DollarSign />\n      <p>{value}</p>\n      <p>All fees</p>\n    </div>\n  );",
+                      placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "renderTotalCard",
+                  entry_point: "formatSemesterTitle",
                   test_cases: [
                     {
-                      input: [1000],
-                      expected: "StatCard",
-                      label: "uses StatCard",
+                      input: ["1st Semester", "2025-2026"],
+                      expected: "1st Semester — 2025-2026",
+                      label: "first term title",
+                    },
+                    {
+                      input: ["2nd Semester", "2024-2025"],
+                      expected: "2nd Semester — 2024-2025",
+                      label: "second term title",
                     },
                   ],
-                
                   hints: [
-                    "Delegate to StatCard.",
-                    "Call StatCard.",
-                    "return ___;"
+                    "Use a template literal with U+2014 between the two values.",
+                    "return `${semester} \\u2014 ${academicYear}`;",
+                    "return `${___} ___ ${___}`;",
                   ],
                 },
-                order: 5,
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Duplication is a maintenance tax. Shared markup should be extracted into components and derived state consolidated into useMemo. The codebase becomes smaller, faster, and more consistent.",
-                order: 6,
+                  "The trigger is a `button` named by its `title` prop, the body is absent from the document while collapsed, and `aria-expanded` reports the current state with `defaultOpen` seeding it.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Create `src/components/StatCard.tsx` accepting `title`, `value`, `subtitle`, `icon` (LucideIcon), and optional `valueClassName` props.",
+                description: "Create `src/components/SemesterGroup.tsx` exporting `SemesterGroup` with `title`, an optional `defaultOpen` and `children`.",
                 order: 1,
               },
               {
-                description: "Replace the inline stat-card JSX in `src/app/dashboard/page.tsx`, `src/app/dashboard/fees/page.tsx`, `src/app/dashboard/schedule/page.tsx`, and `src/app/dashboard/standing/page.tsx` with the new component.",
+                description: "Render `title` on a real `button` that toggles `aria-expanded`, and render `{children}` only while it is open so they are absent from the document when collapsed.",
                 order: 2,
               },
               {
-                description: "Replace the three back-to-back `tuitionFees.filter(...)` calls in `src/app/dashboard/fees/page.tsx` with a single `useMemo` returning `{ paid, pending, overdue, totals: { paid, pending, overdue, grand } }`.",
+                description: "In the grades page render one group per unique `semester` and `academicYear` pair from `grades`, title each as semester, em dash, academic year, and open only the first.",
                 order: 3,
               },
             ],
@@ -458,19 +525,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/components/StatCard.tsx` exists and is used by dashboard, fees, schedule, and standing pages",
+                description:
+                  "Create src/components/SemesterGroup.tsx exporting SemesterGroup that renders a button named by its `title` prop with aria-expanded",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "StatCard accepts title, value, subtitle, icon, and optional valueClassName props",
+                description:
+                  "Render SemesterGroup without defaultOpen and verify the button's aria-expanded is 'false'",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Fees page derives all fee tallies from a single `useMemo`",
+                description:
+                  "Verify children are not in the document when collapsed, and clicking the button shows children and sets aria-expanded='true'",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Render SemesterGroup with defaultOpen and verify children are visible on first render with aria-expanded='true'",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "Switch to All Semesters tab and verify two buttons exist for '1st semester — 2025-2026' and '2nd semester — 2024-2025'",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Verify the first semester group has aria-expanded='true' by default",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -480,123 +568,125 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-3-level-3",
-    title: "Empowering Students",
-    subtitle: "Add grade search, semester filters, and a personal notes page",
+    title: "Per-Semester GPA and a Reusable Progress Bar",
+    subtitle: "Add `computeGPABySemester` with a `GPA by Semester` card, and ship `src/components/ui/progress.tsx`",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Students are asking for two things â€” a faster way to find an old grade, and a way to write down personal study notes per course without leaving the portal. Add real-time search with semester filter chips to the grades page, then build a notes page that reads and writes from localStorage.",
+      "Mission Briefing: students want to see how their GPA moved term by term, and the standing and dashboard pages each hand-roll a progress bar out of nested `div` elements with an inline width. Export `computeGPABySemester` from `src/lib/mockData.ts`, returning one weighted GPA per unique `(semester, academicYear)` pair in chronological order, and render those rows in a `GPA by Semester` card on `src/app/dashboard/standing/page.tsx`. Then create `src/components/ui/progress.tsx` exporting `Progress`, which exposes the full `progressbar` ARIA contract, clamps its fill between 0% and 100%, and is used by the `Degree Progress` card on both the standing page and `src/app/dashboard/page.tsx`.",
     xp_reward: 40,
     coin_reward: 100,
     key_takeaways:
-      "Real-time client-side filtering (search input + semester chips) gives students an immediate, responsive way to slice their academic history without round-tripping to a server. Combining text search with discrete filters keeps both intents independent yet composable.\n\nUsing `localStorage` as a lightweight notes store demonstrates how client-only persistence can ship before a backend exists. Reading and writing JSON arrays under a stable key teaches state hydration patterns that scale up to a real API later without restructuring the UI.",
+      "Grouping by the pair `(semester, academicYear)` rather than by semester name alone keeps two terms from the same year apart, and each entry carries its own `units` total alongside its units-weighted `gpa`. Sorting by `academicYear` first and by `1st Semester` before `2nd Semester` inside a year gives a chronological list without needing a date parser. A progress bar has to be a real widget: the `progressbar` role with `aria-valuenow`, `aria-valuemin` and `aria-valuemax` on the outer element, a single child element whose inline width is `(value / max) * 100` clamped to the 0-100 range, and a `max` of 90 for the credit bars so the same component serves every progress card.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
-          task_name: "Grade Search & Semester Filter",
+          task_name: "computeGPABySemester and the GPA by Semester Card",
           test_type: "both",
           user_story:
-            "As a student, I want to search my grades by course code or name and filter by semester so that I can locate an old grade quickly.",
+            "As a student, I want one weighted GPA per term listed in date order so that I can see how my average moved across the year.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nReal-Time Filtering in React",
+                title: "Overview\nGrouping, Weighting and Sorting",
                 content:
-                  "This section introduces the crash course for building real-time search and filter interfaces. It covers controlled inputs, combining multiple filter dimensions, and empty states.",
+                  "`computeGPABySemester` is a pure function over the `grades` array. It returns an array of entries shaped `{ semester, academicYear, units, gpa }`, one entry per unique `(semester, academicYear)` pair, already sorted.",
                 order: 1,
               },
               {
-                title: "Text Search + Filter Chips",
+                title: "The Group Key",
                 content:
-                  "A combined filter approach pairs a free-text search input with discrete category chips. Both filters work independently and can be combined:\n\nconst filtered = useMemo(() => {\n  return items\n    .filter(item =>\n      item.title.toLowerCase().includes(query.toLowerCase()) ||\n      item.author.toLowerCase().includes(query.toLowerCase())\n    )\n    .filter(item => categoryFilter === 'all' || item.category === categoryFilter);\n}, [items, query, categoryFilter]);\n\nUsers can search by text, filter by category, or use both at the same time.",
+                  "Both fields are needed in the key. `semester` alone would merge `1st Semester` 2025-2026 with `1st Semester` 2024-2025, so the key is the pair:\n\nconst key = `${g.semester}|${g.academicYear}`;\n\nEvery grade in the shipped `grades` array is either `1st Semester` / `2025-2026` or `2nd Semester` / `2024-2025`, so the shipped data produces exactly two entries with two distinct keys.",
                 order: 2,
               },
               {
-                title: "Filter Chips UI",
+                title: "Units-Weighted GPA",
                 content:
-                  "shadcn/ui Badge or Button components can be used for filter chips. The active chip should be highlighted so the user knows which filter is applied:\n\nconst chips = ['all', 'Category A', 'Category B'];\n{chips.map(chip => (\n  <button\n    key={chip}\n    className={filter === chip ? 'bg-primary' : 'bg-secondary'}\n    onClick={() => setFilter(chip)}\n  >\n    {chip}\n  </button>\n))}\n\nThis pattern is reusable for any filterable list.",
+                  "A GPA is not the mean of the letter grades. Each grade letter is converted to points, multiplied by that course's `units`, and divided by the total units in the group.\n\nconst points = { 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0 };\n\nThree units of `A` plus three units of `B` gives `(4.0 * 3 + 3.0 * 3) / 6 = 3.5` over 6 units. A lone four-unit `C` gives 2.0 over 4 units.",
                 order: 3,
               },
               {
-                title: "Empty States",
+                title: "Chronological Sorting",
                 content:
-                  "When combined filters yield no results, a clear message should be shown inside the list container:\n\n{filtered.length === 0 && (\n  <p>No items found</p>\n)}\n\nThis prevents the UI from looking broken and tells the user their filters are too restrictive.",
+                  "The academic year strings are `YYYY-YYYY` and sort correctly as plain strings. Within one year, `1st Semester` has to come before `2nd Semester`, so a second sort key is the leading digit of the semester name:\n\nreturn groups.sort((a, b) =>\n  a.academicYear.localeCompare(b.academicYear) || Number(a.semester) - Number(b.semester);\n);\n\nFor the four-term sample the resulting labels are `2024-2025 1st Semester`, `2024-2025 2nd Semester`, `2025-2026 1st Semester`, `2025-2026 2nd Semester`.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Combined Filter",
+                title: "Rendering the Card",
                 content:
-                  "Practice writing a filter that combines text search and semester.",
+                  "`src/app/dashboard/standing/page.tsx` imports `computeGPABySemester` and `grades` from `@/lib/mockData`, calls the helper, and renders one row per entry. The card needs a heading that matches `/gpa by semester/i`, and the rows need to show both the `1st Semester` and `2nd Semester` labels plus a numeric GPA.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Group GPA",
+                content:
+                  "Practice the single-group half of the helper, which is the part that does the weighting.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement filterGrades(grades, query, semester) filtering by code/name text and semester. \"all\" skips semester. Case-insensitive.",
-                  language: "javascript",
+                    "Implement `gpaForGroup(grades)` returning `{ units, gpa }` for one term, where `units` is the sum of the `units` fields and `gpa` is the units-weighted mean of the grade points rounded to two decimals. Use A = 4.0, A- = 3.7, B+ = 3.3, B = 3.0, B- = 2.7, C+ = 2.3, C = 2.0, C- = 1.7, D+ = 1.3, D = 1.0, F = 0.0.",
+                  language: "typescript",
                   starter_code:
-                    "export function filterGrades(grades, query, semester) {\n  // TODO\n}\n",
+                    "export function gpaForGroup(grades: { units: number; grade: string }[]): { units: number; gpa: number } {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "filterGrades",
+                  entry_point: "gpaForGroup",
                   test_cases: [
                     {
                       input: [
-                        [{ courseCode: "CS101", courseName: "Intro to CS", semester: "1st Semester" }],
-                        "cs",
-                        "all",
+                        [
+                          { units: 3, grade: "A" },
+                          { units: 3, grade: "B" },
+                        ],
                       ],
-                      expected: [{ courseCode: "CS101", courseName: "Intro to CS", semester: "1st Semester" }],
-                      label: "finds by code",
+                      expected: { units: 6, gpa: 3.5 },
+                      label: "three units of A plus three units of B",
                     },
                     {
-                      input: [
-                        [{ courseCode: "CS101", courseName: "Intro to CS", semester: "1st Semester" }],
-                        "",
-                        "2nd Semester",
-                      ],
-                      expected: [],
-                      label: "filters by semester",
+                      input: [[{ units: 4, grade: "C" }]],
+                      expected: { units: 4, gpa: 2.0 },
+                      label: "one four-unit C",
+                    },
+                    {
+                      input: [[]],
+                      expected: { units: 0, gpa: 0 },
+                      label: "empty group",
                     },
                   ],
-                
                   hints: [
-                    "Chain two filters.",
-                    "let r=grades; if(query) r=r.filter(g=>g.courseCode.toLowerCase().includes(query.toLowerCase())); if(semester!==\"all\") r=r.filter(g=>g.semester===semester); return r;",
-                    "if (___) r = r.filter(...); if (semester !== \"___\") r = r.filter(g => g.semester === semester);"
+                    "Reduce twice: once for total units, once for total points.",
+                    "const units = grades.reduce((s, g) => s + g.units, 0); if (units === 0) return { units: 0, gpa: 0 }; const pts = grades.reduce((s, g) => s + (points[g.grade] ?? 0) * g.units, 0); return { units, gpa: Math.round((pts / units) * 100) / 100 };",
+                    "const units = grades.reduce((s, g) => s + g.___, 0); const pts = grades.reduce((s, g) => s + (points[g.grade] ?? 0) * g.___, 0); return { units, gpa: ___ };",
                   ],
                 },
-                order: 5,
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Real-time filtering is a combination of controlled state, useMemo, and thoughtful UI. Users should be given both text search and discrete chips, and the empty state should always be handled as a first-class UI concern.",
-                order: 6,
+                  "One entry per unique `(semester, academicYear)` pair, a units-weighted `gpa` per entry, and a sort by `academicYear` then by the semester number.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Add a search input above the 'Course Grades' card in `src/app/dashboard/grades/page.tsx` with placeholder 'Search grades...'.",
+                description: "In `src/lib/mockData.ts`, add `computeGPABySemester` that groups `grades` by the `(semester, academicYear)` pair and returns units and weighted GPA per group.",
                 order: 1,
               },
               {
-                description: "Filter rows in the All Semesters tab by `courseCode` OR `courseName` (both case-insensitive).",
+                description: "Sort the groups by `academicYear` then semester number so the rendered order is chronological, not alphabetical.",
                 order: 2,
               },
               {
-                description: "Add a row of filter chips (All / 1st Semester / 2nd Semester) that combines with the search.",
+                description: "Self-check: the helper returns two groups (6 units at 3.5, 4 units at 2.0) and the standing page shows a `GPA by Semester` card with both semester labels.",
                 order: 3,
-              },
-              {
-                description: "Render 'No grades found' inside the table card body when no rows match.",
-                order: 4,
               },
             ],
           },
@@ -604,85 +694,145 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Search input filters grade rows in real-time by course code or name",
+                description:
+                  "Export computeGPABySemester from src/lib/mockData.ts and verify it returns exactly 2 entries with distinct keys for the shipped grades array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Semester filter chips (All / 1st Semester / 2nd Semester) combine with the search input",
+                description:
+                  "Verify the function reports correct units and GPA: 6 units at 3.5 GPA for 'A' + 'B' group, 4 units at 2.0 GPA for lone 'C' group",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "'No grades found' message renders when filters yield zero results",
+                description:
+                  "Verify the returned labels are in chronological order: 2024-2025 1st Semester, 2024-2025 2nd Semester, 2025-2026 1st Semester, 2025-2026 2nd Semester",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Add a 'GPA by Semester' card to the standing page with heading matching 'gpa by semester'",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "Verify the standing page shows both 1st Semester and 2nd Semester labels",
+                is_required: true,
+                order: 5,
               },
             ],
           },
         },
         {
-          task_name: "Student Notes Page",
+          task_name: "Progress Primitive and Degree Progress Cards",
           test_type: "both",
           user_story:
-            "As a student, I want to write and revisit personal study notes per course so that I can track ideas without leaving the portal.",
+            "As a student, I want the degree progress bars on the standing and dashboard pages to be real progress widgets so that screen readers announce them and out-of-range values cannot overflow.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nClient-Side Persistence with localStorage",
+                title: "Overview\nA Progress Bar With an ARIA Contract",
                 content:
-                  "This section introduces the crash course for persisting data to localStorage and reading it back on a new page. It covers hydration, JSON serialization, page creation, and sidebar navigation.",
+                  "`src/components/ui/progress.tsx` exports a `Progress` component taking `value` and `max`. It replaces the hand-rolled `div` bars that the standing and dashboard pages currently build by hand.",
                 order: 1,
               },
               {
-                title: "Writing to localStorage",
+                title: "The Outer Element",
                 content:
-                  "When a user adds an entry, it can be pushed into an array and stored:\n\nconst entries = JSON.parse(localStorage.getItem('userEntries') || '[]');\nentries.push({\n  id: crypto.randomUUID(),\n  category,\n  content,\n  createdAt: new Date().toISOString(),\n});\nlocalStorage.setItem('userEntries', JSON.stringify(entries));\n\nThis persists the data across page reloads.",
+                  "The outer element carries the `progressbar` role and the three value attributes, derived from the props:\n\n<div\n  role='progressbar'\n  aria-valuenow={value}\n  aria-valuemin={0}\n  aria-valuemax={max}\n>\n\nWith `value={42}` and `max={100}` those attributes read `42`, `0` and `100`.",
                 order: 2,
               },
               {
-                title: "Reading and Hydrating",
+                title: "The Inner Fill Element",
                 content:
-                  "The stored array should be read and rendered on the notes page. A useEffect or an initial state function can be used to avoid hydration mismatches:\n\nconst [notes, setNotes] = useState(() => {\n  if (typeof window === 'undefined') return [];\n  return JSON.parse(localStorage.getItem('userEntries') || '[]');\n});\n\nThe typeof window check prevents server-side rendering issues.",
+                  "The fill is the single child of the `progressbar` element, and its width is an inline style computed from the ratio:\n\nconst percent = (value / max) * 100;\n\n<div style={{ width: `${percent}%` }} className='h-full bg-primary' />\n\nThe inner element is found with `[role=progressbar] > *`, so there must be exactly one child and it must carry the width.",
                 order: 3,
               },
               {
-                title: "Creating a New Route",
+                title: "Clamping",
                 content:
-                  "A new route is added by creating a page file in the appropriate subfolder of the app directory. A nested route inherits its parent layout, so placing a notes page inside the dashboard folder gives it the same sidebar and header as other dashboard pages.\n\napp/dashboard/\n    layout.tsx      - wraps all dashboard pages\n    page.tsx        - /dashboard\n    notes/page.tsx  - /dashboard/notes\n\nThe new page should be linked from the sidebar so users can navigate to it.",
+                  "The ratio has to be clamped before it becomes a width, otherwise `value={250}` with `max={100}` produces a 250% wide bar that spills out of the track:\n\nconst percent = Math.min(100, Math.max(0, (value / max) * 100));\n\n`value={30}` with `max={60}` still gives 50% because the clamp only bites outside the range.",
                 order: 4,
               },
               {
-                title: "Adding Sidebar Navigation",
+                title: "Wiring the Degree Progress Cards",
                 content:
-                  "The sidebar in the layout file determines what navigation links are available. Adding a new entry to the links array with a label, icon, and href makes the new route discoverable:\n\n{ label: 'Notes', icon: StickyNote, href: '/dashboard/notes' }\n\nThis keeps the navigation consistent with the existing sidebar pattern.",
+                  "The standing page Degree Progress card and the dashboard Degree Progress card both render `<Progress value={earnedCredits} max={currentStanding.totalCredits} />`. `currentStanding.totalCredits` is `90`, so the rendered `aria-valuemax` is the string `90`, and that exact value is what is looked for on both pages.",
                 order: 5,
+              },
+              {
+                title: "Practice Lab: Percent With Clamping",
+                content:
+                  "Practice the pure function that turns a value and a max into a clamped percentage.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Implement `toPercent(value, max)` returning `(value / max) * 100` clamped to the range 0 to 100, and rounded to two decimals. A `max` of 0 returns 0.",
+                  language: "typescript",
+                  starter_code:
+                    "export function toPercent(value: number, max: number): number {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "toPercent",
+                  test_cases: [
+                    {
+                      input: [30, 60],
+                      expected: 50,
+                      label: "half of max",
+                    },
+                    {
+                      input: [42, 100],
+                      expected: 42,
+                      label: "in range",
+                    },
+                    {
+                      input: [250, 100],
+                      expected: 100,
+                      label: "clamped to max",
+                    },
+                    {
+                      input: [-50, 100],
+                      expected: 0,
+                      label: "clamped to zero",
+                    },
+                  ],
+                  hints: [
+                    "Use Math.min and Math.max around the ratio.",
+                    "if (max <= 0) return 0; const raw = (value / max) * 100; return Math.round(Math.min(100, Math.max(0, raw)) * 100) / 100;",
+                    "const raw = (value / max) * ___; return Math.min(___, Math.max(___, raw));",
+                  ],
+                },
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "localStorage is a lightweight database for the browser. It can store user-generated data before a backend exists. Data should be serialized to JSON, the empty state should always be handled, and navigation should always be provided.",
-                order: 6,
+                  "`role=progressbar` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax` on the outer element, one child element whose inline width is the clamped percentage, and `max={currentStanding.totalCredits}` for every credit bar.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Create `src/app/dashboard/notes/page.tsx` reading from `localStorage` key `studentNotes` (array of `{ id, courseCode, content, createdAt }`).",
+                description: "Create `src/components/ui/progress.tsx` exporting `Progress` with `role='progressbar'`, `aria-valuenow/min/max`, and a single clamped-width child.",
                 order: 1,
               },
               {
-                description: "Display notes in a card list with course code, content, and formatted createdAt; show 'No notes yet' when empty.",
+                description: "Clamp the percentage with `Math.min(100, Math.max(0, (value / max) * 100))` before it becomes the inline width — out-of-range values are the easiest failure.",
                 order: 2,
               },
               {
-                description: "Add a textarea + 'Add Note' button at the top that pushes a new entry with generated `id` and `createdAt = new Date().toISOString()`.",
+                description: "Self-check: `value={42}` with `max={100}` gives `aria-valuenow=42` and 42% width; `value={250}` caps at 100%; the dashboard shows a `Degree Progress` card.",
                 order: 3,
-              },
-              {
-                description: "Add a 'Notes' link to the dashboard sidebar in `src/app/dashboard/layout.tsx` (icon: `StickyNote` from `lucide-react`, href: `/dashboard/notes`).",
-                order: 4,
               },
             ],
           },
@@ -690,24 +840,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "/dashboard/notes reads notes from localStorage key `studentNotes`",
+                description:
+                  "Create src/components/ui/progress.tsx exporting Progress component with progressbar role, aria-valuenow, aria-valuemin, aria-valuemax",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Empty state shows 'No notes yet'",
+                description:
+                  "Verify the Progress component shows correct width (50% for value=30, max=60)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Submitting the new-note form persists a new entry with id and createdAt",
+                description:
+                  "Verify width is clamped to 100% for out-of-range values (value=250, max=100)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Sidebar exposes a 'Notes' link to `/dashboard/notes`",
+                description:
+                  "Verify width is clamped to 0% for negative values (value=-50, max=100)",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Verify the standing page renders a progressbar with aria-valuemax='90'",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Verify the dashboard page shows 'Degree Progress' text and a progressbar with aria-valuemax='90'",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -717,105 +883,109 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-3-level-4",
-    title: "Hardening the Login Experience",
-    subtitle: "Validate the login form and persist preferences across reload",
+    title: "Course Details and Document Requests",
+    subtitle: "Add `/dashboard/courses/[courseCode]`, plus a `Modal` primitive and a three-step `RequestDocumentDialog`",
     order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: QA flagged that the login screen accepts garbage input and that the sidebar collapses back to its default state every page reload, which annoys students who prefer a compact view. Add inline field validation to the login form, build a `useLocalStorage` hook, and wire it up to persist sidebar state, notes, and the last successful student ID.",
+      "Mission Briefing: the grades table has no way into a single course, and there is no way for a student to ask the registrar for a document. Create `src/app/dashboard/courses/[courseCode]/page.tsx` as a dynamic route that decodes the `courseCode` segment, merges the matching entry from `grades` in `src/lib/mockData.ts` with the matching entry from `schedule` for the professor, and falls back to a `Course not found` state with a link back to `/dashboard/grades`. Add a `View Details` link per grade row pointing at the URL-encoded route. Then create `src/components/ui/modal.tsx` exporting a `Modal` primitive and build `src/components/RequestDocumentDialog.tsx`, a three-step request flow rendered inside it, and put a `Request Document` trigger on the dashboard.",
     xp_reward: 60,
     coin_reward: 150,
     key_takeaways:
-      "Inline field validation with disabled submit buttons prevents bad credentials from ever reaching the auth check, which is far cheaper than handling the failure later in the flow. Per-field error messages give users immediate, actionable feedback like 'Student ID must be in format XX-XXX-XX'.\n\nA reusable `useLocalStorage` hook abstracts the hydrate-on-mount + persist-on-set pattern so the sidebar, notes page, and login form can share the same persistence logic without duplicating effects. This is the kind of small infrastructure investment that pays back immediately on the second use site.",
+      "A dynamic route segment arrives percent-encoded, so `CS 301` reaches the page as `params.courseCode === 'CS%20301'` and has to be decoded before it is matched against `grade.courseCode`. A course detail view needs two mock arrays: `grades` for the code, name, units and grade, and `schedule` for the professor, because `CS 301` is a `3` unit `A` taught by `Dr. Sarah Johnson`. A modal that is closed must render nothing at all rather than a hidden container, so the `Modal` primitive returns nothing while `open` is false, and while it is open it renders `role='dialog'` with `aria-modal='true'`. A multi-step form has to gate each step: `Next` waits for a document type, `Submit` waits for a purpose of at least 10 characters, and the confirmation step prints the chosen type, the purpose text and a reference number matching `/REQ-[A-Z0-9]{6}/`.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
-          task_name: "Login Form Validation",
+          task_name: "Dynamic Course Detail Route and View Details Links",
           test_type: "both",
           user_story:
-            "As a user, I want the login form to reject invalid input with clear inline errors so that I know exactly what to fix before submitting.",
+            "As a student, I want a page for a single course with its grade and professor, and a `View Details` link in every grade row, so that I can go deeper on one result without leaving the portal.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nInline Validation in React Forms",
+                title: "Overview\nA Dynamic Route Segment",
                 content:
-                  "This section introduces the crash course for adding inline validation to React forms. It covers regex validation, error messages, disabled submit buttons, and server error handling.",
+                  "Next.js names a dynamic route segment with square brackets. `src/app/dashboard/courses/[courseCode]/page.tsx` becomes `/dashboard/courses/<anything>`, and the segment arrives on the page component as `params.courseCode`.",
                 order: 1,
               },
               {
-                title: "Regex Validation",
+                title: "The Segment Is Encoded",
                 content:
-                  "Regex patterns are well-suited for structured input like employee IDs or order codes:\n\nconst orderCodeRegex = /^\\d{3}-[A-Z]{2}-\\d{4}$/;\nconst isValid = orderCodeRegex.test(orderCode);\n\nThis checks exactly 3 digits, a dash, 2 uppercase letters, a dash, and 4 digits. Regex provides precise validation without complex conditional logic.",
+                  "A course code contains a space, and a space is not legal in a URL path. The link has to be built with `encodeURIComponent` and the page has to reverse it with `decodeURIComponent` before matching.\n\nparams.courseCode === 'CS%20301'\ndecodeURIComponent('CS%20301') === 'CS 301'\n\nSkipping the decode is the most common failure here: nothing matches and the page falls through to the not-found state for a code that does exist.",
                 order: 2,
               },
               {
-                title: "Inline Error Messages",
+                title: "Joining grades and schedule",
                 content:
-                  "An error message should be shown directly under the invalid field. Validation should not wait for the user to submit — it runs on every keystroke or on blur:\n\n{errors.orderCode && (\n  <p className=\"text-red-600 text-sm\">Order code must be in format XXX-XX-XXXX</p>\n)}\n\nThis gives immediate feedback and tells the user exactly what to fix.",
+                  "The two mock arrays in `src/lib/mockData.ts` hold different facts about the same course. `grades` has `courseCode`, `courseName`, `units` and `grade`. `schedule` has `courseCode`, `room`, `day`, `time` and `professor`.\n\nFor `CS 301` the detail page needs the code, the name `Data Structures and Algorithms`, the grade `A`, and the professor `Dr. Sarah Johnson` from the `schedule` entry with the same `courseCode`.",
                 order: 3,
               },
               {
-                title: "Disabling Submit",
+                title: "The Not-Found State",
                 content:
-                  "The submit button should be disabled until all fields are valid. This prevents the user from sending invalid data:\n\nconst isValid = orderCodeRegex.test(orderCode) && password.length >= 6;\n<button disabled={!isValid}>Submit</button>\n\nThis is a simple but effective guard.",
+                  "When the decoded code matches nothing, render a single `Course not found` message and a `Link` back to the grades page. The link's `href` is exactly `/dashboard/grades`, and its accessible name contains `grades`.\n\n<Link href='/dashboard/grades'>Back to grades</Link>",
                 order: 4,
               },
               {
-                title: "Handling Server Errors",
+                title: "The View Details Link",
                 content:
-                  "After client-side validation passes, the server may still reject the credentials. A clear error can be shown above the form:\n\n{serverError && (\n  <p className=\"text-red-600\">Invalid credentials</p>\n)}\n\nThis covers the case where the format is correct but the values don't match.",
+                  "Every row of the grades table in `src/app/dashboard/grades/page.tsx` gets a link whose accessible name contains `View Details` and whose `href` starts with `/dashboard/courses/`, built as:\n\n<Link href={`/dashboard/courses/${encodeURIComponent(grade.courseCode)}`}>View Details</Link>\n\nFor `CS 301` that produces `href='/dashboard/courses/CS%20301'`.",
                 order: 5,
               },
               {
-                title: "Practice Lab: Validate ID",
+                title: "Practice Lab: Decoded Course Lookup",
                 content:
-                  "Practice writing regex validation for a student ID.",
+                  "Practice the pure lookup that sits at the centre of the route.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement isValidStudentId(id) returning true for pattern XX-XXX-XX (digits only).\n\nExamples: isValidStudentId(\"12-346-78\")→true, isValidStudentId(\"123-46-78\")→false.",
-                  language: "javascript",
+                    "Implement `findCourseByCode(grades, rawCourseCode)` decoding `rawCourseCode` with `decodeURIComponent` and returning the entry whose `courseCode` matches exactly, or `null` when nothing matches.",
+                  language: "typescript",
                   starter_code:
-                    "export function isValidStudentId(id) {\n  // TODO\n}\n",
+                    "export function findCourseByCode<T extends { courseCode: string }>(grades: T[], rawCourseCode: string): T | null {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "isValidStudentId",
+                  entry_point: "findCourseByCode",
                   test_cases: [
                     {
-                      input: ["12-346-78"],
-                      expected: true,
-                      label: "valid ID",
+                      input: [
+                        [{ courseCode: "CS 301", courseName: "Data Structures and Algorithms", units: 3, grade: "A" }],
+                        "CS%20301",
+                      ],
+                      expected: { courseCode: "CS 301", courseName: "Data Structures and Algorithms", units: 3, grade: "A" },
+                      label: "encoded CS 301 resolves",
                     },
                     {
-                      input: ["123-46-78"],
-                      expected: false,
-                      label: "invalid ID",
+                      input: [
+                        [{ courseCode: "CS 301", courseName: "Data Structures and Algorithms", units: 3, grade: "A" }],
+                        "BOGUS%20999",
+                      ],
+                      expected: null,
+                      label: "unknown code returns null",
                     },
                     {
-                      input: ["12-346-789"],
-                      expected: false,
-                      label: "too long",
+                      input: [[{ courseCode: "CS 301" }], "CS 301"],
+                      expected: { courseCode: "CS 301" },
+                      label: "already decoded code still matches",
                     },
                   ],
-                
                   hints: [
-                    "Use regex.",
-                    "Think step by step about what operation transforms your input into the output you need. Break it down into smaller sub-problems and solve each one.",
-                    "return /^___/.test(id);"
-                    ],
+                    "Decode first, then compare with ===.",
+                    "const wanted = decodeURIComponent(rawCourseCode); return grades.find((g) => g.courseCode === wanted) ?? null;",
+                    "const wanted = decodeURIComponent(___); return grades.find((g) => g.___ === wanted) ?? ___;",
+                  ],
                 },
                 order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Validation is a frontline defense. Inline errors, disabled buttons, and regex patterns prevent bad data from ever entering the system.",
+                  "Decode the segment, look the course up in `grades` and `schedule`, and fall back to `Course not found` with a `/dashboard/grades` link when the lookup misses.",
                 order: 7,
               },
             ],
@@ -823,20 +993,16 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Validate `studentId` against the regex `^\\d{2}-\\d{3}-\\d{2}$` in `src/app/login/page.tsx`.",
+                description: "Create `src/app/dashboard/courses/[courseCode]/page.tsx`; decode `params.courseCode` with `decodeURIComponent` before matching against `grades` and `schedule`.",
                 order: 1,
               },
               {
-                description: "Validate `password` to be at least 6 characters.",
+                description: "Forgetting to decode the segment is the most common failure — `CS%20301` will not match `CS 301` unless decoded.",
                 order: 2,
               },
               {
-                description: "Show an inline error message under each invalid field (e.g. 'Student ID must be in format XX-XXX-XX') and disable the Log In button until both are valid.",
+                description: "Self-check: `CS%20301` renders grade `A` and professor `Dr. Sarah Johnson`; `BOGUS%20999` shows `Course not found` with a link back to `/dashboard/grades`.",
                 order: 3,
-              },
-              {
-                description: "On submit, if credentials don't match the demo (`12-346-78` / `sample`), show 'Invalid student ID or password' above the form and stay on the login page.",
-                order: 4,
               },
             ],
           },
@@ -844,104 +1010,117 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Log In button is disabled until both studentId (XX-XXX-XX) and password (>= 6 chars) are valid",
+                description:
+                  "Create the dynamic course detail route at /dashboard/courses/[courseCode] and verify it shows course code, name, and grade for CS 301",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Inline error messages appear under each failing field",
+                description:
+                  "Verify the course detail page shows the professor name (Dr. Sarah Johnson) from the schedule array",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Wrong credentials show 'Invalid student ID or password' above the form",
+                description:
+                  "Verify the page shows 'Course not found' with a link back to /dashboard/grades for invalid course codes",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Add 'View Details' links to each grade row pointing to the encoded course detail route (e.g., /dashboard/courses/CS%20301)",
+                is_required: true,
+                order: 4,
               },
             ],
           },
         },
         {
-          task_name: "localStorage Persistence",
+          task_name: "Multi-Step Request Document Flow on a Modal Primitive",
           test_type: "both",
           user_story:
-            "As a user, I want the sidebar state, my notes, and my last successful student ID to survive a page reload so that I don't have to reconfigure the portal every visit.",
+            "As a student, I want a `Request Document` dialog that walks me through picking a document and writing a purpose, so that I can send the registrar a valid request.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nThe useLocalStorage Hook",
+                title: "Overview\nA Modal Primitive and a Three-Step Flow",
                 content:
-                  "This section introduces the crash course for building a reusable useLocalStorage hook. It covers hydration, persistence, and sharing the hook across multiple pages.",
+                  "Two files. First `src/components/ui/modal.tsx` exporting a `Modal` primitive that takes `open`, `onClose` and `children`. Then `src/components/RequestDocumentDialog.tsx` exporting `RequestDocumentDialog`, which takes the same `open` and `onClose`, owns the three steps, and renders its body inside `Modal`.",
                 order: 1,
               },
               {
-                title: "The Hook Signature",
+                title: "The Modal Contract",
                 content:
-                  "A reusable hook should have a clean signature:\n\nfunction useLocalStorage<T>(key: string, initialValue: T): [T, (v: T) => void]\n\nThis mirrors useState but adds persistence. The key identifies the storage slot, and the generic T makes it type-safe.",
+                  "When `open` is true the modal renders an element with `role='dialog'` and `aria-modal='true'`. When `open` is false it renders nothing at all, so the container has no first child:\n\nif (!open) return null;\n\nReturning nothing is graded directly: the check renders `Modal` with `open={false}` and requires `container.firstChild` to be `null`. A hidden wrapper would leave an empty element in the document and fail.",
                 order: 2,
               },
               {
-                title: "Hydrate on Mount",
+                title: "Step 1: Document Type",
                 content:
-                  "Data should be read from localStorage when the component first mounts, not during render. This avoids hydration mismatches in SSR:\n\nconst [value, setValue] = useState<T>(initialValue);\n\nuseEffect(() => {\n  const stored = localStorage.getItem(key);\n  if (stored) setValue(JSON.parse(stored));\n}, [key]);\n\nThis ensures the server render matches the client render on first paint.",
+                  "Step 1 is a radio group. Each option is a real `input` with `type='radio'` and a `value` such as `Transcript` or `Enrollment Certificate`, wrapped in a `label`, so the option is found by its accessible label text. The `Next` button starts `disabled` and only becomes enabled once a type is selected.",
                 order: 3,
               },
               {
-                title: "Persist on Change",
+                title: "Step 2: Purpose",
                 content:
-                  "Data should be written back to localStorage whenever the value changes:\n\nuseEffect(() => {\n  localStorage.setItem(key, JSON.stringify(value));\n}, [key, value]);\n\nThis keeps the browser storage in sync with React state.",
+                  "Step 2 is a single textbox plus `Submit` and `Back`. `Submit` starts `disabled`, stays `disabled` for the nine-character string `too short`, and becomes enabled at ten characters, for example `For my job application portfolio.`.\n\nconst purposeOk = purpose.trim().length >= 10;\n\n`Back` returns to step 1, which is verified by the `Next` button being back on screen.",
                 order: 4,
               },
               {
-                title: "Using the Hook Across Pages",
+                title: "Step 3: Confirmation and the Dashboard Trigger",
                 content:
-                  "Once the hook exists, it can be used across any component:\n\n// Layout\nconst [sidebarOpen, setSidebarOpen] = useLocalStorage('sidebarOpen', true);\n\n// Notes page\nconst [entries, setEntries] = useLocalStorage('userEntries', []);\n\n// Login page\nconst [lastId, setLastId] = useLocalStorage('lastUserId', '');\n\nEach page gets its own isolated key, so data doesn't collide.",
+                  "Step 3 replaces the form with a confirmation: the text `Request submitted!`, the chosen document type, the purpose string the student typed, and a generated reference number. The reference is built from `REQ-` plus six uppercase letters or digits, so it matches `/REQ-[A-Z0-9]{6}/`.\n\nconst ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';\n\nA `Done` button closes the dialog. The whole step is reached by choosing `Enrollment Certificate` on step 1, entering `Visa application requirement.` on step 2, and clicking `Submit`.\n\n`src/app/dashboard/page.tsx` holds the dialog's `open` state and renders a trigger whose accessible name contains `Request Document`, and clicking that trigger puts the dialog on screen. A `Button` with the label `Request Document` and an `onClick` that sets the state to `true` is enough.",
                 order: 5,
               },
               {
-                title: "Practice Lab: Safe Storage Reader",
+                title: "Practice Lab: Purpose Validation",
                 content:
-                  "Practice writing a function that returns a stored value or a safe default.",
+                  "Practice the small pure function that gates the `Submit` button.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getStoredOrDefault(key, initialValue) returning initialValue.",
-                  language: "javascript",
+                    "Implement `isPurposeValid(purpose)` returning `true` only when the trimmed string is at least 10 characters long.",
+                  language: "typescript",
                   starter_code:
-                    "export function getStoredOrDefault(key, initialValue) {\n  // TODO\n}\n",
+                    "export function isPurposeValid(purpose: string): boolean {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getStoredOrDefault",
+                  entry_point: "isPurposeValid",
                   test_cases: [
                     {
-                      input: ["myCounter", 0],
-                      expected: 0,
-                      label: "returns initial value",
+                      input: [""],
+                      expected: false,
+                      label: "empty purpose",
                     },
                     {
-                      input: ["myCounter", 5],
-                      expected: 5,
-                      label: "returns custom initial value",
+                      input: ["too short"],
+                      expected: false,
+                      label: "nine characters",
+                    },
+                    {
+                      input: ["For my job application portfolio."],
+                      expected: true,
+                      label: "thirty-four characters",
                     },
                   ],
-                
                   hints: [
-    "Return parameter as-is.",
-    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-    "return ___;"
-  ],
+                    "Trim, then compare the length against 10.",
+                    "return purpose.trim().length >= 10;",
+                    "return purpose.trim().length >= ___;",
+                  ],
                 },
                 order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "A reusable useLocalStorage hook is a small infrastructure investment with immediate payoff. Every page that needs persistence can share the same logic, and data survives reloads.",
+                  "`Modal` renders `role='dialog'` with `aria-modal='true'` while open and nothing while closed; `RequestDocumentDialog` builds on it, gates `Next` on a chosen type and `Submit` on a 10-character purpose, and prints the type, the purpose and a `REQ-` reference on the confirmation step.",
                 order: 7,
               },
             ],
@@ -949,20 +1128,16 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/hooks/useLocalStorage.ts` exporting `useLocalStorage<T>(key, initialValue): [T, (v: T) => void]` that hydrates on mount and persists on every set.",
+                description: "Create `src/components/ui/modal.tsx` exporting `Modal({ open, onClose, children })` that returns `null` when closed and otherwise renders `role='dialog'` with `aria-modal='true'`.",
                 order: 1,
               },
               {
-                description: "Persist the `sidebarOpen` boolean under key `sidebarOpen` in `src/app/dashboard/layout.tsx`.",
+                description: "Create `src/components/RequestDocumentDialog.tsx` rendering inside `Modal`; rendering a hidden wrapper instead of nothing when closed is the easiest failure.",
                 order: 2,
               },
               {
-                description: "Replace the direct `localStorage.getItem`/`setItem` calls in the notes page with `useLocalStorage('studentNotes', [])`.",
+                description: "Self-check: step 1 `Next` disabled until chosen; step 2 `Submit` at 10+ chars and `Back` returns to step 1; step 3 shows 'Request submitted!', the type, the purpose and a `REQ-` ref with a `Done` button; the dashboard shows a `Request Document` trigger.",
                 order: 3,
-              },
-              {
-                description: "Persist the last successfully entered `studentId` under key `lastStudentId` in `src/app/login/page.tsx` so it pre-fills on next visit.",
-                order: 4,
               },
             ],
           },
@@ -970,24 +1145,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/hooks/useLocalStorage.ts` exists and matches the documented signature",
+                description:
+                  "Create src/components/ui/modal.tsx exporting Modal that renders role='dialog' with aria-modal='true' when open and nothing when closed",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Sidebar open/closed preference is persisted under `sidebarOpen` and survives reload",
+                description:
+                  "Render Modal with open=false and verify the container's first child is null",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Notes page uses `useLocalStorage('studentNotes', [])` and notes survive reload",
+                description:
+                  "Verify step 1 shows a disabled 'Next' button, and selecting a document type (e.g., Transcript) enables it",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Last successful studentId is persisted under `lastStudentId` and pre-fills the login form on next visit",
+                description:
+                  "Verify step 2 shows a purpose textbox with a disabled 'Submit' button and a 'Back' button; 'Submit' enables at 10+ chars; clicking 'Back' returns to step 1",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Complete the flow: choose 'Enrollment Certificate', enter 'Visa application requirement.', click 'Submit', and verify the confirmation shows 'Request submitted!', the document type, the purpose, and a reference matching REQ-[A-Z0-9]{6}, plus a 'Done' button",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Add a 'Request Document' trigger button on the dashboard that opens the dialog",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -997,75 +1188,136 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-3-level-5",
-    title: "The GPA Drift Crisis",
-    subtitle: "Fix the cumulative GPA mismatch and ship date utilities + docs",
+    title: "Derived Aggregates and an Accessibility Sweep",
+    subtitle: "Compute units and earned credits from `grades`, then fix the skip link, landmarks and labels in the dashboard layout",
     order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Students complain that their cumulative GPA on the dashboard never matches the one on the grades page, and the academic standing page is showing a hard-coded 3.67 even after grades are updated. They also want fee due dates rendered as 'Due in 5 days' / 'Overdue by 2 days' / 'Due Today' rather than raw ISO strings. The GPA calculation must be centralized, a reusable dateUtils module built, and the README updated so the next developer can onboard quickly.",
+      "Mission Briefing: the standing and dashboard pages both read `currentStanding.totalUnits` and `currentStanding.earnedCredits`, which are stale numbers that disagree with the eight-row `grades` array. Export `computeCurrentSemesterUnits` and `computeEarnedCredits` from `src/lib/mockData.ts`, use them on `src/app/dashboard/standing/page.tsx` and `src/app/dashboard/page.tsx`, and remove every `currentStanding.totalUnits` and `currentStanding.earnedCredits` read from those two files. Then sweep `src/app/dashboard/layout.tsx` for accessibility: a `Skip to main content` link as the very first focusable element targeting `#main-content`, a `main` landmark with `id='main-content'` and `tabindex='-1'`, a `nav` named `Primary`, exactly one `aria-current='page'` on the active sidebar item, `aria-label` on the two icon-only buttons, and an `sr-only` `h1` reading `Riverside University` inside the `header`.",
     xp_reward: 75,
     coin_reward: 200,
     key_takeaways:
-      "When the same value (cumulative GPA) is duplicated across multiple pages, each copy can drift independently and produce 'phantom' inconsistencies that look like rendering bugs but are really a single-source-of-truth problem. The fix is to compute it once in a shared utility and have every page read from that helper.\n\nCentralizing date formatting in a `dateUtils` module makes due-date behavior consistent across pages and provides a single place to handle invalid input safely. Keeping the README current with project overview, demo credentials, dev commands, and routes is what makes a codebase actually onboardable to the next developer.",
+      "Aggregate numbers that live in a hand-maintained object drift from the rows they describe, so they get derived instead: `computeCurrentSemesterUnits(grades)` sums only the current `(semester, academicYear)` rows and returns 12, and `computeEarnedCredits(grades)` sums `units` for every grade that is not `F` and returns 24. The two pages are then checked as source, not just as render output, so a leftover `currentStanding.totalUnits` reference fails even when the rendered number happens to look right. The layout sweep is the same shape: each fix is a specific attribute on a specific element, the skip link has to be the first element matching `a, button, [tabindex]`, exactly one element may carry `aria-current='page'`, and the visually hidden page title is an `h1` with the `sr-only` class inside the `header` landmark rather than a second visible heading.",
     scenario_id: "nextjs-shadcn-ui-scenario-3",
     tasks: {
       create: [
         {
-          task_name: "Fix GPA + Standing Sync Bug",
+          task_name: "Derive Standing Aggregates from the grades Array",
           test_type: "both",
           user_story:
-            "As a student, I want the cumulative GPA on the dashboard, grades page, and standing page to always match so that I can trust what the portal tells me.",
+            "As a student, I want the units and earned credits on the standing and dashboard pages computed from my actual grades so that the numbers agree with the grade list.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nSingle Source of Truth",
+                title: "Overview\nTwo Pure Helpers",
                 content:
-                  "This section introduces the crash course for fixing phantom UI bugs caused by duplicated state. It explains why a single source of truth is essential and how to implement it.",
+                  "Two new exports in `src/lib/mockData.ts` replace the two stale fields. Both take the `grades` array and return a number, and neither reads `currentStanding`.",
                 order: 1,
               },
               {
-                title: "The Duplication Problem",
+                title: "Current Semester Units",
                 content:
-                  "When the same value lives in multiple places, they can drift:\n\n// Page A\nconst value = sourceA.value;\n\n// Page B\nconst value = computeFromRaw(data);\n\n// Page C\nconst value = 3.67; // hard-coded!\n\nThese three sources can disagree. The fix is to compute the value in one place and import it everywhere.",
+                  "Only the rows whose `semester` and `academicYear` both match `currentStanding` count toward the current-term total:\n\nexport function computeCurrentSemesterUnits(grades: Grade[]): number {\n  return grades\n    .filter((g) => g.semester === currentStanding.semester && g.academicYear === currentStanding.academicYear)\n    .reduce((sum, g) => sum + g.units, 0);\n}\n\n`currentStanding.semester` is `1st Semester` and `currentStanding.academicYear` is `2025-2026`, which is four rows of three units, so the helper returns 12 rather than the stored 21.",
                 order: 2,
               },
               {
-                title: "Centralizing the Calculation",
+                title: "Earned Credits",
                 content:
-                  "A pure function that computes a value from an array can be created in a shared library module:\n\nexport function computeCumulativeGPA(grades: Grade[]): number {\n  const points = { 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0 };\n  const totalPoints = grades.reduce((sum, g) => sum + (points[g.grade] || 0) * g.units, 0);\n  const totalUnits = grades.reduce((sum, g) => sum + g.units, 0);\n  return totalUnits > 0 ? totalPoints / totalUnits : 0;\n}\n\nThis is the single source of truth.",
+                  "Earned credits count every row whose grade is not `F`:\n\nexport function computeEarnedCredits(grades: Grade[]): number {\n  return grades\n    .filter((g) => g.grade !== 'F')\n    .reduce((sum, g) => sum + g.units, 0);\n}\n\nThe shipped `grades` array has eight rows of three units and no `F`, so the helper returns 24. On a mixed sample of 3-unit `A`, 4-unit `F` and 2-unit `C-` it returns 5, because the `F` is filtered out before the sum.",
                 order: 3,
               },
               {
-                title: "Replacing Duplicated Sources",
+                title: "Removing the Stale Reads",
                 content:
-                  "Every inline calculation should be replaced with the shared helper:\n\n// Before\nconst gpa = currentStanding.gpa;\n\n// After\nimport { computeCumulativeGPA } from '@/lib/mockData';\nconst gpa = computeCumulativeGPA(grades);\n\nThis ensures every page that shows the value stays in sync.",
+                  "Both pages are also read as source, and two patterns are rejected outright:\n\ncurrentStanding.totalUnits\ncurrentStanding.earnedCredits\n\nOn the standing page, the `Current Units` card, the `In Progress` block and the `Earned Credits` card all switch to the helpers. `currentStanding.gpa` and `currentStanding.totalCredits` stay, because they are not derived from `grades`.",
                 order: 4,
+              },
+              {
+                title: "Where the Numbers Land",
+                content:
+                  "The standing page renders 12 for units and 24 for earned credits, and the dashboard renders 12 for its `Total Units` stat. Both values are checked as exact text nodes, so a formatted string like `12 units` in the same element would not count: the numeric text has to be its own element.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Earned Credits",
+                content:
+                  "Practice the second helper, which is where the exclusion rule lives.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Implement `computeEarnedCredits(grades)` returning the sum of the `units` fields over every entry whose `grade` is not `F`.",
+                  language: "typescript",
+                  starter_code:
+                    "export function computeEarnedCredits(grades: { units: number; grade: string }[]): number {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "computeEarnedCredits",
+                  test_cases: [
+                    {
+                      input: [
+                        [
+                          { units: 3, grade: "A" },
+                          { units: 4, grade: "F" },
+                          { units: 2, grade: "C-" },
+                        ],
+                      ],
+                      expected: 5,
+                      label: "F is excluded",
+                    },
+                    {
+                      input: [
+                        [
+                          { units: 3, grade: "A" },
+                          { units: 3, grade: "B" },
+                        ],
+                      ],
+                      expected: 6,
+                      label: "all non-F rows count",
+                    },
+                    {
+                      input: [[{ units: 4, grade: "F" }]],
+                      expected: 0,
+                      label: "only an F",
+                    },
+                    {
+                      input: [[]],
+                      expected: 0,
+                      label: "empty array",
+                    },
+                  ],
+                  hints: [
+                    "Filter first, then reduce over units.",
+                    "return grades.filter((g) => g.grade !== 'F').reduce((sum, g) => sum + g.units, 0);",
+                    "return grades.filter((g) => g.grade !== '___').reduce((sum, g) => sum + g.___, 0);",
+                  ],
+                },
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Phantom UI bugs are usually state-sync bugs. When the same value appears in multiple places, it should be computed once and imported everywhere. Copies should never be allowed to drift.",
-                order: 5,
+                  "12 units for the current term, 24 earned credits across all terms, and no `currentStanding.totalUnits` or `currentStanding.earnedCredits` left in either page.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "In `src/lib/mockData.ts`, export `computeCumulativeGPA(grades: Grade[]): number` using the grade-points map (A=4.0, A-=3.7, B+=3.3, B=3.0, B-=2.7, C+=2.3, C=2.0, C-=1.7, D+=1.3, D=1.0, F=0.0) weighted by `units`.",
+                description: "In `src/lib/mockData.ts`, export `computeCurrentSemesterUnits` (current term only) and `computeEarnedCredits` (non-`F` grades) from `grades`.",
                 order: 1,
               },
               {
-                description: "In `src/app/dashboard/standing/page.tsx`, replace every hard-coded `currentStanding.gpa` (standing card, GPA stat card, GPA-status helper input) with `computeCumulativeGPA(grades)`.",
+                description: "In the standing and dashboard pages, replace `currentStanding.totalUnits` and `currentStanding.earnedCredits` with the new helpers.",
                 order: 2,
               },
               {
-                description: "In `src/app/dashboard/page.tsx`, replace the `currentStanding.gpa` reference in the 'Current GPA' stat with the computed cumulative GPA.",
+                description: "Self-check: standing shows exact `12` and `24`; dashboard shows exact `12`; no stale `currentStanding` fields remain in either page source.",
                 order: 3,
-              },
-              {
-                description: "On the grades page, delete the inline `getAllTimeGPA` helper and read the 'Cumulative GPA' card from `computeCumulativeGPA` instead.",
-                order: 4,
               },
             ],
           },
@@ -1073,129 +1325,148 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`computeCumulativeGPA` is exported from `src/lib/mockData.ts` and weights grade points by units",
+                description:
+                  "Export computeCurrentSemesterUnits from the mock data file and verify it returns exactly 12 for the shipped grades array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Standing page uses computeCumulativeGPA in the standing card, GPA stat card, and GPA-status helper",
+                description:
+                  "Export computeEarnedCredits from the mock data file and verify it returns exactly 24 for the shipped grades array",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Dashboard page 'Current GPA' stat uses computeCumulativeGPA instead of currentStanding.gpa",
+                description:
+                  "Verify computeEarnedCredits excludes F grades (returns 5 for 3-unit A, 4-unit F, 2-unit C-)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Grades page 'Cumulative GPA' card uses computeCumulativeGPA and the duplicated `getAllTimeGPA` helper is removed",
+                description:
+                  "Remove all currentStanding.totalUnits and currentStanding.earnedCredits references from the standing page source",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Verify the standing page renders exact text '12' and '24' as separate elements",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Remove currentStanding.totalUnits reference from the dashboard page source",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Verify the dashboard page renders exact text '12' as a separate element",
+                is_required: true,
+                order: 7,
               },
             ],
           },
         },
         {
-          task_name: "Date Utilities & Documentation",
+          task_name: "Dashboard Layout Accessibility Sweep",
           test_type: "both",
           user_story:
-            "As a developer, I want reusable date utilities and a current README so that future contributors can onboard quickly and fee due dates render in human-friendly form.",
+            "As a keyboard or screen reader user, I want a skip link, real landmarks and named icon buttons in the dashboard shell so that I can navigate the portal without seeing it.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nDate Utilities and Documentation",
+                title: "Overview\nWhat the Shell Renders",
                 content:
-                  "This section introduces the crash course for building reusable date utilities and keeping documentation current. It covers due-date formatting, safe defaults, and README structure.",
+                  "`src/app/dashboard/layout.tsx` renders the `header`, the `aside` with its `nav`, and a `main`. The sweep adds seven things to that shell, and each one is checked on a specific element.",
                 order: 1,
               },
               {
-                title: "Due-Date Formatting",
+                title: "The Skip Link",
                 content:
-                  "A helper that converts a due date to a human-friendly string makes deadlines scannable:\n\nexport function formatDueDate(dueDate: string): string {\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  const due = new Date(dueDate);\n  due.setHours(0, 0, 0, 0);\n  const diff = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));\n  if (diff === 0) return 'Due Today';\n  if (diff === 1) return 'Due Tomorrow';\n  if (diff > 1 && diff <= 7) return `Due in ${diff} days`;\n  if (diff < 0) return `Overdue by ${Math.abs(diff)} days`;\n  return due.toLocaleDateString();\n}\n\nThis makes due dates scannable.",
+                  "The skip link is an `a` with `href='#main-content'` whose text matches `/skip to main content/i`. It has to be the first element matching `a, button, [tabindex]` in document order, which means it is rendered before the header, not inside it.\n\n<a href='#main-content' className='sr-only focus:not-sr-only ...'>Skip to main content</a>\n\n`sr-only` hides it until `focus:not-sr-only` reveals it.",
                 order: 2,
               },
               {
-                title: "Safe Defaults",
+                title: "The Main Landmark",
                 content:
-                  "Safe values should always be returned for invalid input:\n\nexport function formatDueDate(dueDate: string): string {\n  if (!dueDate) return '';\n  ...\n}\n\nexport function isOverdue(dueDate: string): boolean {\n  if (!dueDate) return false;\n  ...\n}\n\nexport function daysUntilDue(dueDate: string): number {\n  if (!dueDate) return 0;\n  ...\n}\n\nThis prevents crashes when the input is missing or malformed.",
+                  "The content area becomes a real landmark with the id the skip link targets and a negative tabindex so focus can land on it:\n\n<main id='main-content' tabIndex={-1} className='flex-1 p-6 overflow-auto'>{children}</main>\n\n`tabindex='-1'` is what lets the browser move focus here; it is not in the tab order.",
                 order: 3,
               },
               {
-                title: "README Structure",
+                title: "Primary Navigation and Icon-Only Buttons",
                 content:
-                  "A good README should include:\n\nâ€¢ Project overview (what it does, who it's for)\nâ€¢ Demo credentials (if any)\nâ€¢ Dev workflow (pnpm install, pnpm run dev)\nâ€¢ Route list (what pages exist)\n\nKeeping it current matters â€” outdated documentation is worse than no documentation.",
+                  "The `nav` inside the `aside` needs an accessible name, otherwise it is an unnamed landmark:\n\n<nav aria-label='Primary' className='p-4 space-y-2'>\n\nThe active item is marked with `aria-current='page'` and only the active one:\n\n<Link href={item.href} aria-current={isActive ? 'page' : undefined}>\n\nWith `usePathname()` returning `/dashboard/grades`, exactly one element in the shell carries `aria-current='page'` and its text contains `grades`.\n\nThe sidebar toggle and the sign-out control in the `header` render nothing but a `lucide-react` icon, so each needs an `aria-label` that becomes its accessible name:\n\n<Button aria-label='Toggle sidebar' ...><Menu /></Button>\n<Button aria-label='Sign out' ...><LogOut /></Button>",
                 order: 4,
               },
               {
-                title: "Practice Lab: Due Date Formatter",
+                title: "The Screen-Reader Heading",
                 content:
-                  "Practice writing a due-date formatter.",
+                  "The `header` needs an `h1`, but the visible brand text is a `span`, so the heading is added as a visually hidden duplicate with the `sr-only` class:\n\n<header ...><h1 className='sr-only'>Riverside University</h1>...</header>\n\nThe `h1` has to be inside the `header` element, which is why it cannot live in the `layout.tsx` of the app root. The two icon buttons are looked up by accessible name matching `/toggle sidebar/i` and `/sign out/i`.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Active Sidebar Item",
+                content:
+                  "Practice the pure function that decides which sidebar link is the current page.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatDueDate(dueDate): today→\"Due Today\", tomorrow→\"Due Tomorrow\", future→\"Due in N days\", past→\"Overdue by N days\".\n\nExample: dueDate 5 days ahead→\"Due in 5 days\".",
-                  language: "javascript",
+                    "Implement `getSidebarLinkState(pathname, href)` returning `{ active: true }` when `pathname` equals `href` exactly, and `{ active: false }` otherwise. It is used to set `aria-current` to `page` or to leave it off.",
+                  language: "typescript",
                   starter_code:
-                    "export function formatDueDate(dueDate) {\n  // TODO\n}\n",
+                    "export function getSidebarLinkState(pathname: string, href: string): { active: boolean } {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "formatDueDate",
+                  entry_point: "getSidebarLinkState",
                   test_cases: [
                     {
-                      input: [new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()],
-                      expected: "Due in 5 days",
-                      label: "five days ahead",
+                      input: ["/dashboard/grades", "/dashboard/grades"],
+                      expected: { active: true },
+                      label: "current route is active",
                     },
                     {
-                      input: [new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()],
-                      expected: "Overdue by 2 days",
-                      label: "two days overdue",
+                      input: ["/dashboard/grades", "/dashboard"],
+                      expected: { active: false },
+                      label: "other route is not active",
                     },
                     {
-                      input: [new Date().toISOString()],
-                      expected: "Due Today",
-                      label: "due today",
+                      input: ["/dashboard/standing", "/dashboard/standing"],
+                      expected: { active: true },
+                      label: "standing route is active",
                     },
                   ],
-                
                   hints: [
-                    "Compute day diff with Math.ceil, return appropriate string.",
-                    "const diff=Math.ceil((new Date(dueDate)-new Date())/86400000); if(diff===0)return\"Due Today\"; if(diff===1)return\"Due Tomorrow\"; if(diff>0)return`Due in ${diff} days`; return`Overdue by ${Math.abs(diff)} days`;",
-                    "const diff=Math.ceil((new Date(dueDate)-new Date())/___); if(diff===___)return\"Due Today\"; if(diff===___)return\"Due Tomorrow\"; ..."
+                    "Compare the two strings with ===.",
+                    "return { active: pathname === href };",
+                    "return { active: pathname ___ href };",
                   ],
                 },
-                order: 5,
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Human-friendly date formatting makes deadlines scannable at a glance. Safe defaults prevent crashes. A current README is the fastest way to onboard the next developer.",
-                order: 6,
+                  "Skip link first, `main` with the id it targets, a nav named `Primary`, one `aria-current='page'`, two `aria-label`led icon buttons, and an `sr-only` `h1` reading `Riverside University` inside the `header`.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Create `src/lib/dateUtils.ts` exporting `formatDueDate`, `isOverdue`, and `daysUntilDue`.",
+                description: "`src/app/dashboard/layout.tsx`: skip link first; focusable `main`; `nav` named; `aria-current=page`; `aria-label` icons; `sr-only` h1.",
                 order: 1,
               },
               {
-                description: "`formatDueDate` returns 'Due Today' (same calendar day), 'Due Tomorrow' (1 day ahead), 'Due in N days' (2..7 days ahead), 'Overdue by N days' (any past date), otherwise the locale date string.",
+                description: "Self-check: skip link first focusable; `main` `tabIndex={-1}`; one `aria-current=page`; icons named; hidden h1 inside the header.",
                 order: 2,
-              },
-              {
-                description: "All three functions must return safe values for invalid input ('' for the string, false for `isOverdue`, 0 for `daysUntilDue`).",
-                order: 3,
-              },
-              {
-                description: "Replace the inline `formatDate` helper in `src/app/dashboard/fees/page.tsx` with `formatDueDate`, and update README.md with project overview, demo credentials (12-346-78 / sample), dev workflow, and route list.",
-                order: 4,
               },
             ],
           },
@@ -1203,24 +1474,46 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/lib/dateUtils.ts` exports `formatDueDate`, `isOverdue`, `daysUntilDue` with the documented behavior",
+                description:
+                  "Add a skip link as the first focusable element (a with href='#main-content', text 'Skip to main content', with sr-only and focus:not-sr-only classes)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "All three functions return safe values for invalid input",
+                description:
+                  "Add a main element with id='main-content' and tabindex='-1'",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Fees page uses `formatDueDate` instead of the local `formatDate` helper; pending and overdue rows read 'Due in N days' / 'Overdue by N days'",
+                description:
+                  "Add a nav element with accessible name 'Primary'",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "README documents project overview, demo credentials, dev workflow, and routes (`/`, `/login`, `/dashboard`, `/dashboard/grades`, `/dashboard/schedule`, `/dashboard/fees`, `/dashboard/standing`, `/dashboard/notes`)",
+                description:
+                  "Add exactly one aria-current='page' on the active sidebar item (matching 'grades' when on /dashboard/grades)",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Add aria-label='Toggle sidebar' to the sidebar toggle button",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Add aria-label='Sign out' to the sign out button",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Add an sr-only h1 with text 'Riverside University' inside the header element",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1229,5 +1522,3 @@ export const levels = [
     },
   },
 ];
-
-

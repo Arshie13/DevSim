@@ -8,6 +8,9 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { ShieldCheck, Search, UserPlus, UserMinus, Loader2, Crown } from "lucide-svelte";
+  import AdminFilterBar from "$lib/components/admin/AdminFilterBar.svelte";
+  import AdminFilterTabs from "$lib/components/admin/AdminFilterTabs.svelte";
+  import AdminSearchInput from "$lib/components/admin/AdminSearchInput.svelte";
 
   interface AdminRow {
     id: string;
@@ -30,6 +33,29 @@
   export let form: { success?: boolean; message?: string } | null = null;
 
   let pendingId: string | null = null;
+
+  // Client-side filters for the "Current admins" list (the promote search above
+  // round-trips to the server via ?q= because it queries the whole user table).
+  let adminSearch = "";
+  let roleFilter = "all";
+
+  $: adminQuery = adminSearch.trim().toLowerCase();
+  $: superAdminCount = data.admins.filter((a) => a.role === "SUPERADMIN").length;
+  $: plainAdminCount = data.admins.length - superAdminCount;
+  $: hasAdminFilters = adminQuery !== "" || roleFilter !== "all";
+  $: filteredAdmins = data.admins.filter((admin) => {
+    if (roleFilter === "ADMIN" && admin.role !== "ADMIN") return false;
+    if (roleFilter === "SUPERADMIN" && admin.role !== "SUPERADMIN") return false;
+    if (!adminQuery) return true;
+    return [admin.name, admin.email, admin.username]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(adminQuery));
+  });
+
+  function clearAdminFilters() {
+    adminSearch = "";
+    roleFilter = "all";
+  }
 
   function initial(name: string, username: string) {
     return (name || username || "?").charAt(0).toUpperCase();
@@ -174,8 +200,33 @@
           Superadmins can’t be revoked here.
         </p>
 
+        <div class="mt-4">
+          <AdminFilterBar
+            count={filteredAdmins.length}
+            total={data.admins.length}
+            noun="admin"
+            active={hasAdminFilters}
+            onClear={clearAdminFilters}
+          >
+            <AdminSearchInput
+              bind:value={adminSearch}
+              label="Search admins"
+              placeholder="Search name or email…"
+            />
+            <AdminFilterTabs
+              label="Role filter"
+              bind:value={roleFilter}
+              options={[
+                { value: "all", label: "All", count: data.admins.length },
+                { value: "ADMIN", label: "Admins", count: plainAdminCount },
+                { value: "SUPERADMIN", label: "Superadmins", count: superAdminCount }
+              ]}
+            />
+          </AdminFilterBar>
+        </div>
+
         <div class="mt-4 space-y-2">
-          {#each data.admins as user (user.id)}
+          {#each filteredAdmins as user (user.id)}
             <div
               class="flex items-center justify-between gap-3 rounded-card border border-[var(--card-border)] bg-obsidian-surface/40 px-3 py-2"
             >
@@ -241,6 +292,12 @@
                 </form>
               {/if}
             </div>
+          {:else}
+            <p class="font-body text-sm text-obsidian-text-muted">
+              {hasAdminFilters
+                ? "No admins match the current filters."
+                : "No admins yet."}
+            </p>
           {/each}
         </div>
       </div>

@@ -14,7 +14,6 @@ export const levels = [
     title: "Environment Setup & Database Exploration",
     subtitle: "Configure the environment and explore the existing schema",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The project has been scaffolded but not yet configured. Set up the environment, verify the database connection, and explore the existing schema.",
     xp_reward: 100,
@@ -93,7 +92,6 @@ export const levels = [
     title: "Member Listing & Search",
     subtitle: "Build a member directory with search capabilities",
     order: 2,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The organization needs a proper member directory. Build a table view that lists all members with search functionality.",
     xp_reward: 150,
@@ -165,7 +163,6 @@ export const levels = [
     title: "Add & Edit Members",
     subtitle: "Implement full CRUD for the member directory",
     order: 3,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The member directory needs full CRUD functionality. Add forms to create new members and edit existing ones.",
     xp_reward: 200,

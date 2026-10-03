@@ -8,6 +8,9 @@
 -->
 <script lang="ts">
   import { ChevronDown, ChevronRight, FileCode2, Trophy } from "lucide-svelte";
+  import AdminFilterBar from "$lib/components/admin/AdminFilterBar.svelte";
+  import AdminFilterTabs from "$lib/components/admin/AdminFilterTabs.svelte";
+  import AdminSearchInput from "$lib/components/admin/AdminSearchInput.svelte";
 
   interface Tier {
     tier: string;
@@ -30,6 +33,43 @@
   export let data: { families: Family[]; totalTiers: number };
 
   let expanded: string | null = null;
+
+  // Client-side filters over the code-defined catalog.
+  let search = "";
+  let category = "all";
+  let status = "all";
+
+  $: query = search.trim().toLowerCase();
+  $: categories = [...new Set(data.families.map((f) => f.category))].sort();
+  $: activeFamilies = data.families.filter((f) => !f.retired).length;
+  $: retiredFamilies = data.families.filter((f) => f.retired).length;
+  $: hasFilters = query !== "" || category !== "all" || status !== "all";
+
+  $: filteredFamilies = data.families.filter((family) => {
+    if (status === "active" && family.retired) return false;
+    if (status === "retired" && !family.retired) return false;
+    if (category !== "all" && family.category !== category) return false;
+    if (!query) return true;
+    return [
+      family.name,
+      family.key,
+      family.description,
+      family.category,
+      ...family.tiers.map((t) => t.tier),
+      ...family.tiers.map((t) => t.description),
+      ...family.tiers.map((t) => t.criteria)
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
+
+  $: visibleTiers = filteredFamilies.reduce((sum, f) => sum + f.tiers.length, 0);
+
+  function clearFilters() {
+    search = "";
+    category = "all";
+    status = "all";
+  }
 
   function toggle(key: string) {
     expanded = expanded === key ? null : key;
@@ -71,8 +111,50 @@
     </p>
   </div>
 
+  <AdminFilterBar
+    count={filteredFamilies.length}
+    total={data.families.length}
+    noun="family"
+    active={hasFilters}
+    onClear={clearFilters}
+  >
+    <AdminSearchInput
+      bind:value={search}
+      label="Search achievements"
+      placeholder="Search family, tier or criteria…"
+    />
+    {#if categories.length > 1}
+      <AdminFilterTabs
+        label="Category filter"
+        bind:value={category}
+        options={[
+          { value: "all", label: "All categories" },
+          ...categories.map((c) => ({
+            value: c,
+            label: c,
+            count: data.families.filter((f) => f.category === c).length
+          }))
+        ]}
+      />
+    {/if}
+    <AdminFilterTabs
+      label="Status filter"
+      bind:value={status}
+      options={[
+        { value: "all", label: "All", count: data.families.length },
+        { value: "active", label: "Active", count: activeFamilies },
+        { value: "retired", label: "Retired", count: retiredFamilies }
+      ]}
+    />
+  </AdminFilterBar>
+
+  <p class="mb-3 font-mono text-sm tabular-nums text-obsidian-text-muted">
+    {filteredFamilies.length} famil{filteredFamilies.length === 1 ? "y" : "ies"} ·
+    {visibleTiers} tier{visibleTiers === 1 ? "" : "s"} shown
+  </p>
+
   <div class="space-y-5">
-    {#each data.families as family (family.key)}
+    {#each filteredFamilies as family (family.key)}
       <div
         class="card-cyber"
         style="border-color: rgb(var(--accent-rgb) / 0.15)"
@@ -134,6 +216,12 @@
             {/each}
           </div>
         {/if}
+      </div>
+    {:else}
+      <div class="card-cyber" style="border-color: rgb(var(--accent-rgb) / 0.15)">
+        <div class="card-cyber-body text-center font-body text-md text-obsidian-text-muted">
+          No achievements match the current filters.
+        </div>
       </div>
     {/each}
   </div>

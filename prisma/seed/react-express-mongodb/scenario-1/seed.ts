@@ -37,7 +37,6 @@ export const levels = [
     subtitle:
       "Set up the MERN stack, run MongoDB locally, seed the recipe DB, and ship a tiny brand tweak.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Skillet & Stack Studios has just onboarded a new developer and needs RecipeNest running locally. Set up the MERN (MongoDB, Express, React, Node.js) stack, configure the environment, seed the recipe database, and make a small UI tweak so the brand identity reads correctly.",
     xp_reward: 100,
@@ -109,7 +108,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  'Sensitive config (like database connection strings) is stored in `.env` files — never hardcoded in source code.\n\nMONGO_URI="mongodb://localhost:27017/app"\nPORT=4000\nJWT_SECRET="some-long-random-string"\n\nThe `dotenv` package reads these files and makes them available as `process.env.MONGO_URI` in the code. ⚠️ `.env` files are listed in `.gitignore` intentionally — they contain secrets that should never be committed to version control.',
+                  'Sensitive config (like database connection strings) is stored in `.env` files — never hardcoded in source code.\n\nMONGO_URI="mongodb://localhost:27017/recipenest"\nPORT=5000\nJWT_SECRET="some-long-random-string"\n\nThe `dotenv` package reads these files and makes them available as `process.env.MONGO_URI` in the code. ⚠️ `.env` files are listed in `.gitignore` intentionally — they contain secrets that should never be committed to version control.',
                 order: 7,
               },
               {
@@ -130,13 +129,18 @@ export const levels = [
             create: [
               {
                 description:
-                  "Three folders contain a `package.json` — install in each. ",
+                  "Work from the repo root and run `pnpm install` three times: once in the root folder, once in `client/`, once in `server/`. Each of those folders has its own `package.json` and its own `node_modules`. The root `package.json` must list `concurrently`, `client/package.json` must list `react` and `axios`, and `server/package.json` must list `express` and `mongoose`.",
                 order: 1,
               },
               {
                 description:
-                  "Run `pnpm run db:seed` inside `server/` after Mongo is up; the dev server will fetch zero recipes until the DB has data.",
+                  "Start the API by running `pnpm run dev` in `server/`, then request `GET http://127.0.0.1:5000/api/health`. You should get a 200 and a body containing `ok`.",
                 order: 2,
+              },
+              {
+                description:
+                  "Finally start the frontend with `pnpm run dev -- --port 3000` in `client/` and request `http://127.0.0.1:3000`. The body must contain `<div id=\"root\">`. That div is the React mount point in `client/index.html`.",
+                order: 3,
               },
             ],
           },
@@ -144,20 +148,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "Dependencies installed for the root, client, and server without errors",
+                description: "Install project dependencies at the root, client, and server folders",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "App seed script populates at least 10 recipes and 5 users",
+                description: "Install client dependencies including React and Axios",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Both client and server start via `pnpm run dev` without crashes",
+                description: "Install server dependencies including Express and Mongoose",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description: "Verify the database connection works with a script that prints DB_OK",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "Start the server and verify the health endpoint responds successfully",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "Start the client and verify the React app loads with the root div",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -251,17 +269,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The header is a layout-level element — look inside the `components/layout/` folder for the file that renders the brand area.",
+                  "Open `client/src/components/layout/Header.tsx`. The brand area is the `<p className=\"brand-subtitle\">Your kitchen, online</p>` rendered under the RecipeNest heading. Replace only that element's text and leave the surrounding `<header>` element exactly as it is.",
                 order: 1,
               },
               {
                 description:
-                  "After saving the change, open the running client in the browser to visually confirm the subtitle updated correctly on both desktop and mobile widths.",
+                  "Keep `Header` a named export. It gets rendered on its own inside a router, so it must not need any provider it does not already receive. Save the file, then confirm the new text shows up inside the `role=\"banner\"` element.",
                 order: 2,
               },
               {
                 description:
-                  "The acceptance criteria specifies the exact subtitle text — the change must match it character for character, including punctuation and capitalization.",
+                  "The new text has to be exactly `Cook. Share. Inspire.`, character for character, with capitals, periods and single spaces. The old placeholder `Your kitchen, online` must be gone from the rendered header, and the subtitle has to stay visible inside the `<header>` element.",
                 order: 3,
               },
             ],
@@ -270,14 +288,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: 'Header subtitle is exactly "Cook. Share. Inspire."',
+                description: "Update the brand subtitle to exactly \"Cook. Share. Inspire.\"",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Subtitle renders correctly on desktop and mobile breakpoints",
+                description: "Remove the old placeholder text \"Your kitchen, online\" from the header",
                 is_required: true,
                 order: 2,
+              },
+              {
+                description: "Verify the subtitle appears inside the page header",
+                is_required: true,
+                order: 3,
+              },
+              {
+                description: "Verify the subtitle is visible on the page",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description: "Verify the Header component is exported and renders inside a router",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -294,7 +327,6 @@ export const levels = [
     title: "Client-Side Exploration",
     subtitle: "Make recipe cards navigable and wire a live search filter into the feed.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The product team wants the recipe feed to feel like a real app — clicking a card should navigate to the full recipe, and a search bar should filter results in real time. React Router's <Link> is wired up for client-side navigation, then state is lifted up to connect a controlled search input to the feed.",
     xp_reward: 150,
@@ -398,17 +430,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Import `Link` from `react-router-dom` and wrap the entire `<article>` (or `<Card>`) in `<Link to={\\`/recipes/${recipe._id}\\`}>`. The test checks for a single `role=\"link\"` element.",
+                  "In `RecipeCard`, import `Link` from `react-router-dom` and wrap the whole card in `<Link to={\`/recipes/${recipe._id}\`}>`.",
                 order: 1,
               },
               {
                 description:
-                  "The `<Link>` must contain the `<h3>` title — the test asserts that the link wraps the heading, making the whole card the click target.",
+                  "The `<Link>` has to wrap the `<h3>` title too, and the card should end up with exactly one `role=\"link\"` element.",
                 order: 2,
               },
               {
                 description:
-                  "In tests the component is wrapped in `<MemoryRouter>` — if a 'useHref outside Router' error appears when running locally, make sure the app's root already provides a `<BrowserRouter>` in `main.tsx`.",
+                  "If a `useHref outside Router` error turns up, make sure `main.tsx` already provides a `<BrowserRouter>`.",
                 order: 3,
               },
             ],
@@ -417,23 +449,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "The card contains exactly one link (`role=\"link\"`) with `href` equal to `/recipes/<recipe._id>`",
+                description: "Each recipe card has exactly one link pointing to /recipes/<recipe-id>",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "The link wraps the card title (`<h3>`) so the whole card is the click target",
+                description: "The link wraps the card title so the whole card is clickable",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "RecipeCard still renders the title in `<h3>`, author `@handle`, cover `<img alt={title}>`, tag chips, avg rating, and saved count",
+                description: "Recipe cards still show title, author, image, tags, rating, and save count",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Clicking the card in the browser navigates to `/recipes/:id` without a full page reload",
+                description: "Clicking a card navigates to the recipe detail page without a full page reload",
                 is_required: true,
                 order: 4,
               },
@@ -480,7 +511,7 @@ export const levels = [
               {
                 title: "Empty States",
                 content:
-                  'When the filter returns nothing, an empty-state element should be rendered. Tests look for `data-testid="empty-state"`. A good empty state explains why and suggests a next action: "No recipes match the search. Try a different keyword."',
+                  'When the filter returns nothing, an empty-state element should be rendered. A good empty state explains why and suggests a next action: "No recipes match the search. Try a different keyword."',
                 order: 6,
               },
               {
@@ -539,17 +570,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "`filterRecipes` should be a pure function returning a NEW array — do not mutate the input. Lower-case both sides before `includes`.",
+                  "Make `filterRecipes` a pure function that returns a new array and lower-cases both sides before matching, so a query for `PASTA` still finds a recipe tagged `pasta`.",
                 order: 1,
               },
               {
                 description:
-                  "`SearchBar` should accept `value` and `onChange` props so the parent owns the query state.",
+                  "Give `SearchBar` `value` and `onChange` props so the parent feed component owns the query state and the input stays controlled.",
                 order: 2,
               },
               {
                 description:
-                  "Wrap the derived list in `useMemo` so the filter doesn't re-run on every unrelated render.",
+                  "Wrap the filtered list in `useMemo`.",
                 order: 3,
               },
             ],
@@ -558,27 +589,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "`filterRecipes('', recipes)` returns the full list unchanged in length",
+                description: "Search with empty query returns all recipes unchanged",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "`filterRecipes('PASTA', recipes)` returns recipes whose title or tag matches case-insensitively",
+                description: "Search by title (case-insensitive) returns matching recipes",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "Typing in the search input updates the rendered card count without a page reload",
+                description: "Search by tag (case-insensitive) returns matching recipes",
                 is_required: true,
                 order: 3,
               },
               {
-                description: 'Empty matches show an empty-state element with `data-testid="empty-state"`',
+                description: "Search with no matches returns empty array",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "Search returns a new array without mutating the original list",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -596,7 +629,6 @@ export const levels = [
     subtitle:
       "Fix a broken Mongoose aggregation for trending recipes and expose it as a clean endpoint.",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: The home feed needs a trending section, and the existing /trending endpoint is shipping wrong data. Investigate the aggregation pipeline, fix the stages, and wire up a properly-validated, properly-typed endpoint that the client can rely on.",
     xp_reward: 200,
@@ -715,17 +747,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "$match should run BEFORE $lookup to keep the pipeline cheap and let MongoDB use its indexes.",
+                  "The trending pipeline needs a `$match` on `createdAt` for the last 7 days before the `$lookup` into `saves`.",
                 order: 1,
               },
               {
                 description:
-                  "After $lookup the result is an array — $addFields with $size computes a number for sorting.",
+                  "A `$lookup` leaves an array behind, so derive a numeric `savedCount` from it before sorting.",
                 order: 2,
               },
               {
                 description:
-                  "End the pipeline with $limit and $project so the response is bounded and doesn't include the heavy joined array.",
+                  "Close the pipeline with a `$limit` of 10 and a `$project` that drops the joined `saves` array, so documents come back ordered by `savedCount` and then `createdAt`, newest first, without the heavy field.",
                 order: 3,
               },
             ],
@@ -734,13 +766,12 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "The aggregation returns at most 10 documents",
+                description: "Aggregation returns at most 10 recipes",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Returned documents are sorted by descending savedCount, breaking ties by newer createdAt",
+                description: "Recipes sorted by save count (highest first), then by creation date (newest first)",
                 is_required: true,
                 order: 2,
               },
@@ -750,8 +781,7 @@ export const levels = [
                 order: 3,
               },
               {
-                description:
-                  "Each returned document excludes the heavy `saves` array",
+                description: "Returned recipes do not include the heavy saves array",
                 is_required: true,
                 order: 4,
               },
@@ -842,17 +872,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Use the existing `validateRequest(zodSchema)` middleware — define a query schema for `limit` and wire it before the controller.",
+                  "Wire `validateRequest(zodSchema)` onto `GET /api/recipes/trending` with a query schema that coerces `limit` to an integer between 1 and 50, so `?limit=999`, `?limit=0` and `?limit=abc` are all turned away with 400.",
                 order: 1,
               },
               {
                 description:
-                  "Wrap the controller body in `try/catch` and pass any error to `next(err)` so the central error handler runs.",
+                  "Type the controller handler as `(req: Request, res: Response, next: NextFunction)` and wrap the body in `try/catch` that calls `next(err)`.",
                 order: 2,
               },
               {
                 description:
-                  "Return `{ success: true, data: [...] }` with `res.status(200).json(...)` — match the shape every other endpoint uses.",
+                  "Answer with `res.status(200).json({ success: true, data: [...] })`.",
                 order: 3,
               },
             ],
@@ -861,26 +891,29 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "GET /api/recipes/trending returns 200 with `{ success: true, data: [...] }`",
+                description: "Get trending recipes and verify successful response with data array",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "GET /api/recipes/trending?limit=3 returns at most 3 documents",
+                description: "Request trending with limit=3 and verify at most 3 recipes returned",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "GET /api/recipes/trending?limit=999 returns 400 with a validation error",
+                description: "Request with limit=999 and verify validation rejects it",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "Route is registered before any catch-all 404 handler so it actually resolves",
+                description: "Request with limit=0 and verify validation rejects it",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "Request with limit=abc and verify validation rejects it",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -898,7 +931,6 @@ export const levels = [
     subtitle:
       "Implement Save Recipe end-to-end, then build the Saved Recipes page.",
     order: 4,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Users want to bookmark recipes they like. The full Save feature is implemented end-to-end — model, idempotent endpoint, optimistic UI button — culminating in a Saved Recipes page where users can browse and unsave their favorites.",
     xp_reward: 300,
@@ -960,7 +992,7 @@ export const levels = [
               {
                 title: "curl/Postman Walkthrough",
                 content:
-                  "Test the endpoint independent of the UI:\n\ncurl -X POST http://localhost:4000/api/recipes/<id>/save \\\n  -H 'Authorization: Bearer <token>'\n\nThe second call should return the same logical 'saved' state without inflating savedCount.",
+                  "Test the endpoint independent of the UI:\n\ncurl -X POST http://localhost:5000/api/recipes/<id>/save \\\n  -H 'Authorization: Bearer <token>'\n\nThe second call should return the same logical 'saved' state without inflating savedCount.",
                 order: 8,
               },
               {
@@ -1014,17 +1046,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "On the server, `findOneAndUpdate({userId, recipeId}, { $setOnInsert: {...} }, { upsert: true, new: true, rawResult: true })` distinguishes first-save from re-save.",
+                  "Saving has to be idempotent on the server. One insert-or-update call does that.",
                 order: 1,
               },
               {
                 description:
-                  "Increment `recipe.savedCount` only when `rawResult.lastErrorObject.updatedExisting === false` (i.e. a new document was inserted).",
+                  "Only bump `recipe.savedCount` when a Save document was really created. The raw result tells you which of the two happened.",
                 order: 2,
               },
               {
                 description:
-                  "On the client, store `isSaved` in component state and toggle it optimistically; revert on API error.",
+                  "The client toggle is optimistic: flip it immediately, send the request, and revert the button if the call fails.",
                 order: 3,
               },
             ],
@@ -1033,26 +1065,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "POST /api/recipes/:id/save returns 201 (first save) or 200 (idempotent re-save) with `{ success, data }`",
+                description: "Save a recipe for the first time and verify it succeeds with savedCount becoming 1",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Recipe `savedCount` increments by exactly 1 per unique user, never more on repeated saves by the same user",
+                description: "Save the same recipe again and verify savedCount stays at 1 (idempotent)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`SaveButton` toggles its visual state immediately on click",
+                description: "Save the same recipe as a different user and verify savedCount increments to 2",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Unauthenticated POST returns 401",
+                description: "Try to save without authentication and verify it's rejected",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description: "Try to save a non-existent recipe and verify it's rejected",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description: "Verify SaveButton component exists and renders a button with aria-label",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "Click SaveButton and verify aria-pressed toggles",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1145,16 +1190,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Decrementing must clamp at 0 — use `$inc: { savedCount: -1 }` plus a `where: { savedCount: { $gt: 0 } }` guard with findOneAndUpdate.",
+                  "Unsave must never push `recipe.savedCount` below zero, so clamp the decrement at 0 with an atomic update that only applies when the count is currently above 0.",
                 order: 1,
               },
               {
                 description:
-                  "`Save.find({userId}).populate('recipeId')` or an aggregation `$lookup` are both fine — tests assert observable behaviour.",
+                  "`getSaved` can bring the recipes back however you like, populating the reference or using a `$lookup`. The only hard requirement is that the list holds exactly this user's saves, newest first.",
                 order: 2,
               },
               {
-                description: "Sort by `savedAt: -1` so the newest save appears first.",
+                description:
+                  "Ordering matters: sort by `savedAt` descending and render a real empty state carrying `data-testid=\"empty-state\"` when the user has saved nothing.",
                 order: 3,
               },
             ],
@@ -1163,32 +1209,39 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "GET /api/recipes/saved returns 200 with the user's saved recipes sorted by savedAt descending",
+                description: "View saved recipes page and verify it shows only your saved recipes",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "DELETE /api/recipes/:id/save returns 200 and removes the Save document",
+                description: "Verify saved recipes are sorted by save date (newest first)",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "After unsave, `savedCount` decreases by 1 (never below 0)",
+                description: "Unsave a recipe and verify it's removed and savedCount decreases by 1",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "SavedRecipes page renders an empty state when the user has no saves",
+                description: "Verify savedCount never goes below 0 even with extra unsaves",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Unauthenticated requests return 401",
+                description: "Try to view saved recipes without authentication and verify it's rejected",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description: "View saved recipes page when empty and verify empty state is shown",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description: "View saved recipes page and verify one card appears per saved recipe",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1206,7 +1259,6 @@ export const levels = [
     subtitle:
       "Real client-reported bugs in production. Reproduce, fix, and write a regression test for each.",
     order: 5,
-    deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Congratulations — RecipeNest is live. Two production issues have been reported by users: inflated save counts and confusing 'posted X days ago' labels. The mission is to investigate each, identify the root cause, deliver a fix backed by a regression test, and write a short postmortem.",
     xp_reward: 400,
@@ -1311,17 +1363,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "The data model is the first place to enforce invariants — a compound unique index on { userId, recipeId } makes duplicates impossible at the DB level.",
+                  "One save per `userId` and `recipeId` has to be impossible, and a uniqueness rule in the database is the only thing that survives two requests arriving at the same moment.",
                 order: 1,
               },
               {
                 description:
-                  "Read-modify-write on a counter is unsafe under concurrency. Use the atomic `$inc` operator instead.",
+                  "Move the counter in a single atomic step so the database does the arithmetic.",
                 order: 2,
               },
               {
                 description:
-                  "Only increment the counter when the upsert actually inserted a new document — otherwise the counter drifts upward on every retry.",
+                  "Count saves, not requests. Bumping the counter every time a save is attempted means a retry inflates the count.",
                 order: 3,
               },
             ],
@@ -1330,31 +1382,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description:
-                  "The Save collection has a compound unique index on { userId, recipeId }",
+                description: "Add a compound unique index on userId and recipeId to prevent duplicate saves",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Two concurrent saves by the same user for the same recipe result in exactly one Save document",
+                description: "Test concurrent saves by same user for same recipe and verify only one save document created",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "After 100 concurrent save attempts for the same (user, recipe), recipe.savedCount increases by exactly 1",
+                description: "Test 100 concurrent save attempts and verify savedCount increases by exactly 1",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "A regression test reproduces the bug on the broken code and passes on the fix",
+                description: "Write a regression test that fails on broken code and passes on fixed code",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "getSaved no longer returns duplicate recipes for any user",
+                description: "Verify getSaved no longer returns duplicate recipes for any user",
                 is_required: true,
                 order: 5,
               },
@@ -1365,7 +1413,7 @@ export const levels = [
           task_name: "Fix Posted-At Timezone Bug",
           test_type: "server",
           user_story:
-            'As a user, I want "Posted X days ago" labels to be accurate regardless of my timezone or DST so I trust how recent a recipe is.',
+            "As a user, I want \"Posted X days ago\" labels to be accurate regardless of my timezone or DST so I trust how recent a recipe is.",
           learning_sections: {
             create: [
               {
@@ -1424,7 +1472,7 @@ export const levels = [
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement daysAgo(postedAt, now) returning \"Posted today\" when < 24h, or \"Posted N day(s) ago\". N = Math.floor(elapsedMs/86400000).\n\nExamples: daysAgo(sameInstant)→\"Posted today\", daysAgo(24h)→\"Posted 1 day ago\".",
+                    "Implement daysAgo(now, iso) returning \"Posted today\" when < 24h, or \"Posted N day(s) ago\". N = Math.floor(elapsedMs/86400000).\n\nExamples: daysAgo(sameInstant)→\"Posted today\", daysAgo(24h)→\"Posted 1 day ago\".",
                   language: "javascript",
                   starter_code:
                     "export function daysAgo(now, iso) {\n  // TODO — accept now (Date or ISO string) and iso (post timestamp)\n}\n",
@@ -1478,17 +1526,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Compute the diff from raw timestamps (`Date.parse(iso)` or `new Date(iso).getTime()`), not from formatted date strings.",
+                  "Elapsed time has to be measured from the raw timestamps, not from a date string that has already been cut down to a calendar day.",
                 order: 1,
               },
               {
                 description:
-                  "Use `Math.floor` so labels only move forward after a full 24-hour window has passed; rounding flips the label at 12 hours.",
+                  "A day has to be complete before the label moves on, so round down.",
                 order: 2,
               },
               {
                 description:
-                  "Make the helper accept an explicit `now` parameter — that makes timezone and DST cases trivial to test deterministically.",
+                  "The helper has to take the current instant as an input rather than read the clock itself.",
                 order: 3,
               },
             ],
@@ -1497,31 +1545,27 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Elapsed < 24h returns `Posted today`",
+                description: "Verify elapsed time under 24 hours shows \"Posted today\"",
                 is_required: true,
                 order: 1,
               },
               {
-                description:
-                  "Elapsed >= 24h returns `Posted N day(s) ago` with N = Math.floor(diffMs/86400000)",
+                description: "Verify elapsed time 24+ hours shows \"Posted N day(s) ago\" with N = floor(diffMs/86400000)",
                 is_required: true,
                 order: 2,
               },
               {
-                description:
-                  "Boundary deterministic: 23h59m → today, 24h00m → 1 day, 24h01m → 1 day",
+                description: "Verify boundary: 23h59m shows today, 24h00m shows 1 day, 24h01m shows 1 day",
                 is_required: true,
                 order: 3,
               },
               {
-                description:
-                  "DST transitions don't introduce off-by-one errors in tests using fixed UTC Date instances",
+                description: "Verify DST transitions don't cause off-by-one errors",
                 is_required: true,
                 order: 4,
               },
               {
-                description:
-                  "A regression test reproduces the original incorrect output on the broken code",
+                description: "Write a regression test that reproduces the original bug on broken code",
                 is_required: true,
                 order: 5,
               },

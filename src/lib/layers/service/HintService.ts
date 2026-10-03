@@ -381,7 +381,7 @@ Example of CORRECT answer (based on actual file content):
     const defaultModels = [
       'oc/muse-spark-1.3-contributor-free',
       'oc/muse-spark-1.2-contributor-free',
-      'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
+      'ollama/gpt-oss:120b',
     ];
 
     const models = model ? [model, ...defaultModels.filter((m) => m !== model)] : defaultModels;

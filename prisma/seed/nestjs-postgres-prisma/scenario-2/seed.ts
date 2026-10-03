@@ -20,7 +20,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and extend the Product model with a roastLevel field.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new developer has joined the BrewHaven engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change - adding a roastLevel field to products - so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
@@ -58,7 +57,7 @@ export const levels = [
               {
                 title: "Package Management in a NestJS Project",
                 content:
-                  "When a project is cloned, no dependencies are installed yet - node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common - framework runtime\n- @nestjs/platform-express - HTTP server adapter\n- @prisma/client - type-safe database client\n- prisma - CLI for migrations and schema management\n- bcrypt - password hashing\n- class-validator, class-transformer - DTO validation\n- supertest - HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
+                  "When a project is cloned, no dependencies are installed yet - node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common - framework runtime\n- @nestjs/platform-express - HTTP server adapter\n- @prisma/client - type-safe database client\n- prisma - CLI for migrations and schema management\n- bcrypt - password hashing\n- zod - request-body validation through Zod schemas and ZodValidationPipe\n- supertest - HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
                 order: 4,
               },
               {
@@ -109,7 +108,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files - never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/brewhaven\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. Warning: .env files are listed in .gitignore intentionally - they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
+                  "Sensitive config (like database URIs) is stored in .env files - never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/brewhaven\nJWT_SECRET=changeme\nPORT=3000\n\nThe app reads these values straight from `process.env`, and `src/main.ts` falls back to port 3000 when `PORT` is unset. Prisma reads DATABASE_URL directly from .env. Warning: .env files are listed in .gitignore intentionally - they contain secrets that should never be committed to version control.\n\nNote: In this project, some environment variables will be provided by us, so no need to set them up manually.",
                 order: 8,
               },
               {
@@ -130,13 +129,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has a single root package.json - run pnpm install from the project root, not from any subfolder.",
+                  "The app is built in `tests/server/setup.ts` with `Test.createTestingModule({ imports: [AppModule] })` and then `app.setGlobalPrefix('api')`. `AppModule` lives in `src/app.module.ts` and has to export itself, and every module it imports has to `providers` and `exports` what its own files inject.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions, follow them carefully.",
+                  "`SELECT 1` runs through `getPrisma().$queryRaw`, and `getPrisma()` returns the instance from `src/prisma/prisma.service.ts`. That file needs an exported `PrismaService` class that extends `PrismaClient` and calls `$connect()` on init. `DATABASE_URL` comes from the environment (see `tests/server/setup.ts`), so do not hardcode a connection string in the service.",
                 order: 2,
+              },
+              {
+                description:
+                  "`GET /api` only has to answer with a status below 500. NestJS's default 404 already does that, so you do not need a root controller. A server error (500 or higher) is not allowed.",
+                order: 3,
+              },
+              {
+                description:
+                  "Build `POST /api/auth/login` under `src/auth/`, taking an email and a password in the body. In `AuthService.login` in `src/auth/auth.service.ts` look the user up with `prisma.user.findUnique` and, when no user comes back, throw `new UnauthorizedException('Invalid credentials')`. An unknown email and a wrong password has to answer exactly 401.",
+                order: 4,
               },
             ],
           },
@@ -144,22 +153,25 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Dependencies installed in root without errors",
+                description:
+                  "Build and start the application without errors",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Prisma migrations applied successfully (pnpm exec prisma migrate dev)",
+                description:
+                  "Verify the database connection works by running a test query",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description: "Access the API root endpoint and verify it responds successfully",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "NestJS dev server starts without errors",
+                description:
+                  "Attempt login with invalid credentials and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
@@ -195,7 +207,7 @@ export const levels = [
               {
                 title: "DTOs: Data Transfer Objects",
                 content:
-                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateProductDto tells NestJS what fields to expect when someone POSTs to /api/products:\n\nexport class CreateProductDto {\n  @IsString()\n  name: string;\n\n  @IsNumber()\n  price: number;\n\n  @IsUUID()\n  categoryId: string;\n}\n\nUse class-validator decorators (@IsString, @IsOptional, etc.) to enforce rules before the data reaches the service layer.",
+                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateProductDto tells NestJS what fields to expect when someone POSTs to /api/products:\n\nexport const createProductSchema = z.object({\n  name: z.string().min(1),\n  price: z.number().positive(),\n  categoryId: z.string().min(1),\n  // ...description, image, sku, weight, stock\n});\n\nDTOs in this project are Zod schemas (like `createProductSchema` in `src/products/dto/create-product.dto.ts`), not class-validator classes. `ZodValidationPipe` runs `schema.parse()` before the data reaches the service layer, and only keys declared in the schema survive.",
                 order: 4,
               },
               {
@@ -267,18 +279,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `prisma/schema.prisma` and find the `Product` model. Add `roastLevel String?` after the `isActive` field.",
+                  "In `prisma/schema.prisma`, find the `Product` model and add `roastLevel String?` to it. Then run `pnpm exec prisma migrate dev --name add_product_roast_level` and, once that finishes, `pnpm exec prisma generate`.",
                 order: 1,
               },
               {
                 description:
-                  "Run `pnpm exec prisma migrate dev --name add_product_roast_level` to apply the schema change to PostgreSQL, then `pnpm exec prisma generate` to update the TypeScript types.",
+                  "DTOs in this project are Zod schemas, not class-validator classes. In `src/products/dto/create-product.dto.ts`, add `roastLevel: z.string().optional()` to `createProductSchema`. `ZodValidationPipe` in `src/common/pipes/zod-validation.pipe.ts` runs `schema.parse()` and quietly strips any key the schema does not declare.",
                 order: 2,
               },
               {
                 description:
-                  "Add `@IsOptional()` and `@IsString()` decorators for the `roastLevel` field in `CreateProductDto`. The controller already spreads the DTO into the service call, so no controller changes are needed.",
+                  "In `ProductsService.create` in `src/products/products.service.ts`, the Prisma `data` object is built field by field, so add `roastLevel: dto.roastLevel` there. `findAll` returns whole rows, so `GET /api/products` picks the field up automatically. The product is created with an ADMIN token because the route is `@Roles(UserRole.ADMIN)` guarded.",
                 order: 3,
+              },
+              {
+                description:
+                  "The stored value matters, not just the response from the create handler. The product is found by `name` in the list at `res.body.data ?? res.body`, and `product.roastLevel` is then read. A bare array and a `{ data: [...] }` envelope both work there.",
+                order: 4,
               },
             ],
           },
@@ -286,29 +303,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Product model in schema.prisma includes `roastLevel String?`",
+                description:
+                  "Create a product with roast level as admin and verify it's saved correctly",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Migration file is created and applied to the database",
+                description:
+                  "Create a product without roast level as admin and verify it succeeds without one",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "CreateProductDto includes an optional roastLevel field with validation decorators",
+                description:
+                  "Create a product with a roast level and verify the product list returns that value for it",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "POST /api/products accepts and persists a roastLevel value",
+                description:
+                  "Verify a product stored with roast level \"Dark\" shows exactly that value",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description: "GET /api/products returns the roastLevel field in each product object",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -322,7 +338,6 @@ export const levels = [
     title: "Product Catalog & Visibility",
     subtitle: "Build paginated product listings with filters and guard visibility with soft-deleted categories.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: BrewHaven customers need to browse the coffee catalog efficiently, and inactive categories should be hidden from the storefront while preserving historical product data. The job is to implement offset-based pagination with filters and enforce soft-delete visibility rules across the API.",
     xp_reward: 150,
@@ -427,18 +442,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller already receives query params via `@Query()`. Use `parseInt` with a fallback (e.g., `page = 1`, `limit = 10`) to ensure integers.",
+                  "The list is built in `ProductsController.findAll` in `src/products/products.controller.ts`, which only binds `@Query('search')`. It has to take `@Query() query` instead and read `page`, `limit`, `categoryId` and `search` from that object, parsed with `parseInt(query.page ?? '1', 10)` and `parseInt(query.limit ?? '10', 10)` so a call with no query params really reports page 1 and limit 10.",
                 order: 1,
               },
               {
                 description:
-                  "Build a `where` object that conditionally includes `categoryId` and a `name` search filter with `mode: 'insensitive'`. Pass the same `where` object to both `findMany` and `count`.",
+                  "In `ProductsService.findAll` (`src/products/products.service.ts`) the list query skips `(page - 1) * limit` rows and takes `limit`, and a second call on the *same* `where` object produces the total. The body is `{ data, total, page, limit, totalPages: Math.ceil(total / limit) }`, and all five keys have to be present.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks for `res.body.data`, `res.body.total`, `res.body.page`, `res.body.limit`, and `res.body.totalPages`. Make sure all five keys are present in the response.",
+                  "Build `where` by spreading conditionals onto the base filter: `...(categoryId && { categoryId })` plus an `OR` array of `{ name: { contains: search, mode: 'insensitive' } }`. Include description/sku too if you want a wider match.",
                 order: 3,
+              },
+              {
+                description:
+                  "`Product` has a plain `categoryId` column. Every returned item's `categoryId` must equal the requested id, so do not return the category relation in place of the column.",
+                order: 4,
               },
             ],
           },
@@ -446,29 +466,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/products returns a paginated envelope with data, total, page, limit, totalPages",
+                description:
+                  "View page 1 with 5 items per page and verify the paginated response includes all required fields",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Defaults to page=1, limit=10 when no query params are provided",
+                description:
+                  "With 13 products seeded, page 1 with limit 5 returns 5 items and total of 13",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?categoryId=<id> filters to products in that category",
+                description:
+                  "View products without filters and verify default pagination (page 1, 10 items)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "?search=term filters products by name (case-insensitive)",
+                description:
+                  "Filter products by category and verify correct count and all items have that category",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Combines categoryId and search filters correctly",
+                description:
+                  "Search products by name (case-insensitive) and verify matching results",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "Combine category and search filters and verify results match both criteria",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -496,7 +527,7 @@ export const levels = [
               {
                 title: "Filtering Active Categories",
                 content:
-                  "Every list query must explicitly filter for active records:\n\nconst categories = await prisma.category.findMany({\n  where: { isActive: true },\n});\n\nWithout this, inactive categories leak into the storefront. The test specifically checks that `Inactive Category` does NOT appear in GET /api/categories.",
+                  "Every list query must explicitly filter for active records:\n\nconst categories = await prisma.category.findMany({\n  where: { isActive: true },\n});\n\nWithout this, inactive categories leak into the storefront. The test checks that the inactive category's id is absent from GET /api/categories.",
                 order: 3,
               },
               {
@@ -563,17 +594,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Update the `findAll` method in `categories.service.ts` to add `where: { isActive: true }` to the `prisma.category.findMany` call.",
+                  "In `findAll()` in `src/categories/categories.service.ts` the query needs to skip inactive categories, so add `where: { isActive: true }` to the `prisma.category.findMany` call. The `Category` model already has `isActive Boolean @default(true)`, so no schema change is needed.",
                 order: 1,
               },
               {
                 description:
-                  "In `products.service.ts -> findAll()`, add a relation filter `category: { isActive: true }` to the `where` object.",
+                  "The product list in `findAll()` in `src/products/products.service.ts` only checks the product's own `isActive`, so it needs the relation filter `category: { isActive: true }` in the same `where` object.",
                 order: 2,
               },
               {
                 description:
-                  "The test expects `GET /api/categories` to NOT contain an inactive category ID, and expects `GET /api/products` to NOT contain products under inactive categories.",
+                  "Both routes are public and are called without an `Authorization` header. `CategoriesController.findAll` has no guard, so do not add authentication to either list endpoint. The category list is read as `res.body.data ?? res.body`, so either a bare array or an envelope works.",
                 order: 3,
               },
             ],
@@ -582,19 +613,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Inactive categories do not appear in GET /api/categories",
+                description:
+                  "View categories list and verify active categories appear",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Products under an inactive category are excluded from public listing",
+                description:
+                  "View categories list and verify inactive categories are hidden",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Active category products remain visible in public listing",
+                description:
+                  "View products list and verify products from inactive categories are hidden",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "View products list and verify products from active categories still appear",
+                is_required: true,
+                order: 4,
               },
             ],
           },
@@ -608,7 +648,6 @@ export const levels = [
     title: "Transactional Checkout",
     subtitle: "Implement stock-aware checkout with tax calculation and order lifecycle management.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: BrewHaven customers need a reliable checkout experience. An order must deduct stock atomically, calculate tax correctly, validate payment methods, and move through a controlled state machine from PENDING to DELIVERED. The job is to build the transactional checkout and the order lifecycle endpoints.",
     xp_reward: 200,
@@ -658,7 +697,7 @@ export const levels = [
               {
                 title: "Payment Method Validation",
                 content:
-                  "Validate the payment method against an allowed enum before creating the order:\n\nconst allowedMethods = ['CASH', 'CARD'];\nif (!allowedMethods.includes(paymentMethod)) {\n  throw new BadRequestException('Invalid payment method');\n}\n\nUse a Zod schema or class-validator `@IsEnum()` to enforce this at the DTO level as well.",
+                  "Validate the payment method against an allowed enum before creating the order:\n\nconst allowedMethods = ['CASH', 'CARD'];\nif (!allowedMethods.includes(paymentMethod)) {\n  throw new BadRequestException('Invalid payment method');\n}\n\nThis is already enforced at the DTO level: `createOrderSchema` declares `paymentMethod: z.nativeEnum(PaymentMethod)`, so `ZodValidationPipe` rejects anything outside the enum.",
                 order: 6,
               },
               {
@@ -713,18 +752,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `orders.service.ts -> create()`, wrap the entire checkout logic in `prisma.$transaction(async (tx) => { ... })`.",
+                  "`OrdersService.create(userId, dto)` in `src/orders/orders.service.ts` currently hardcodes `const tax = 0` and never touches stock. Wrap the whole method body in `this.prisma.$transaction(async (tx) => { ... })` and issue every query through `tx`.",
                 order: 1,
               },
               {
                 description:
-                  "Use `tx.product.update({ where: { id }, data: { stock: { decrement: quantity } } })` for atomic stock deduction inside the transaction.",
+                  "Inside the transaction: read the product, turn the order away when `product.stock < quantity`, then deduct with `tx.product.update({ where: { id }, data: { stock: { decrement: quantity } } })`, then `tx.order.create`.",
                 order: 2,
               },
               {
                 description:
-                  "Validate `paymentMethod` against the `PaymentMethod` enum. Reject unsupported methods like 'CRYPTO' with a 400 error.",
+                  "Tax: define `const round2 = (v: number) => Math.round(v * 100) / 100;`, then use `tax = round2(subtotal * 0.08)` and `total = round2(subtotal + tax)`. `subtotal`, `tax` and `total` are Prisma `Decimal` columns, so the returned values are wrapped in `Number(...)`. `Number(res.body.tax)` must be greater than 0 and `String(res.body.total)` must have at most 2 decimal places.",
                 order: 3,
+              },
+              {
+                description:
+                  "No per-item `price` is sent in the request body, so subtotal must fall back to the product's price with `item.price ?? product.price`.",
+                order: 4,
+              },
+              {
+                description:
+                  "Payment validation is already covered. `createOrderSchema` uses `z.nativeEnum(PaymentMethod)`, and the enum only has `CASH` and `CARD`, so `ZodValidationPipe` rejects `\"CRYPTO\"` with 400. Keep that pipe on the route. Only a client error between 400 and 499 is accepted.",
+                order: 5,
               },
             ],
           },
@@ -732,32 +781,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Order creation deducts stock atomically",
+                description:
+                  "Place an order for 2 items of a product with 5 in stock and verify stock reduces to 3",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Tax is calculated and stored on the order record",
+                description:
+                  "Verify the order response includes tax greater than 0 and total close to 27 for a $25 item",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Order total is rounded to 2 decimal places",
+                description:
+                  "Verify the order total has at most 2 decimal places",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Rejects order when stock is insufficient (400)",
+                description:
+                  "Try to order 10 items when only 5 in stock and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rejects unsupported payment methods (400)",
+                description:
+                  "Try to order with invalid payment method and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Rolls back stock deduction when order fails mid-transaction",
+                description:
+                  "Verify a rejected order leaves stock unchanged",
                 is_required: true,
                 order: 6,
               },
@@ -793,7 +848,7 @@ export const levels = [
               {
                 title: "Admin-Only Endpoints",
                 content:
-                  "Order status updates should be restricted to admin users. Use NestJS guards and decorators:\n\n@Patch(':id/status')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles('ADMIN')\nasync updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {\n  return this.ordersService.updateStatus(id, dto.status);\n}\n\nThe RolesGuard checks the user's role from the JWT token. Customers should get a 401 or 403 when trying to update order status.",
+                  "Order status updates should be restricted to admin users. Use NestJS guards and decorators:\n\n@Patch(':id/status')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles(UserRole.ADMIN)\nasync updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {\n  return this.ordersService.updateStatus(id, dto.status);\n}\n\nThe RolesGuard checks the user's role from the JWT token. Customers should get a 401 or 403 when trying to update order status.",
                 order: 4,
               },
               {
@@ -859,18 +914,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Create a `validTransitions` mapping in `orders.service.ts` and use it in `updateStatus()` to reject invalid transitions with BadRequestException.",
+                  "The status update in `src/orders/orders.service.ts` writes `data: { status: dto.status }` with no validation. It has to read the current row first with `prisma.order.findUnique({ where: { id } })` and refuse the change when the move is not one of the allowed ones.",
                 order: 1,
               },
               {
                 description:
-                  "Add `@UseGuards(JwtAuthGuard, RolesGuard)` and `@Roles('ADMIN')` to the `updateStatus` controller method. The test verifies that customers get 401-403.",
+                  "Use an explicit transition map: `PENDING: ['PROCESSING', 'CANCELLED']`, `PROCESSING: ['SHIPPED', 'CANCELLED']`, `SHIPPED: ['DELIVERED', 'CANCELLED']`, `DELIVERED: []`, `CANCELLED: []`. If the requested status is not in the current status's list, `throw new BadRequestException(...)`. Rejected transitions must come back as exactly 400.",
                 order: 2,
               },
               {
                 description:
-                  "The test specifically checks: PENDING->PROCESSING (200), PROCESSING->SHIPPED (200), PENDING->DELIVERED (400), DELIVERED->CANCELLED (400), and customer access (401-403).",
+                  "`DELIVERED: []` is what makes the last case fail. The row is forced to `status: 'DELIVERED'` straight into the database with `prisma.order.update` to bypass the guard, and a later CANCELLED patch has to be refused. A DELIVERED order must not be listed as cancellable from any other state either.",
                 order: 3,
+              },
+              {
+                description:
+                  "The controller is already protected, with a class-level `@UseGuards(JwtAuthGuard)` and a `@UseGuards(RolesGuard)` + `@Roles(UserRole.ADMIN)` on the `@Patch(':id/status')` handler. A CUSTOMER token therefore gets 403 from RolesGuard, or 401 when unauthenticated. Keep those decorators while you add the transition guard.",
+                order: 4,
+              },
+              {
+                description:
+                  "The updated order goes back in the response. On success `res.body.status` must equal the new value, so the response has to carry the new `status` field.",
+                order: 5,
               },
             ],
           },
@@ -878,32 +943,38 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "PENDING -> PROCESSING succeeds (200)",
+                description:
+                  "As admin, move a PENDING order to PROCESSING and verify it updates",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "PROCESSING -> SHIPPED succeeds (200)",
+                description:
+                  "As admin, move a PROCESSING order to SHIPPED and verify it updates",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "PENDING -> DELIVERED is rejected (400)",
+                description:
+                  "As admin, try to move PENDING directly to DELIVERED and verify it's rejected",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Non-DELIVERED order can be CANCELLED",
+                description:
+                  "As admin, move a PENDING order to CANCELLED and verify it updates",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "DELIVERED order cannot be CANCELLED (400)",
+                description:
+                  "Try to cancel a DELIVERED order and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Customer cannot update order status (401-403)",
+                description:
+                  "As a customer, try to update order status and verify it's refused",
                 is_required: true,
                 order: 6,
               },
@@ -919,7 +990,6 @@ export const levels = [
     title: "Reporting & Inventory",
     subtitle: "Build daily/weekly sales reports and a low-stock alert endpoint.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: BrewHaven management needs visibility into sales performance and inventory health. The job is to build daily and weekly sales reports, plus a low-stock alert endpoint that proactively warns when products are running low.",
     xp_reward: 250,
@@ -951,7 +1021,7 @@ export const levels = [
               {
                 title: "Top Products Ranking",
                 content:
-                  "To find the top 5 best-selling products, aggregate order items by productId and sum the quantities:\n\nconst topProducts = await prisma.orderItem.groupBy({\n  by: ['productId'],\n  _sum: { quantity: true },\n  where: {\n    order: { createdAt: { gte: today, lt: tomorrow } },\n  },\n  orderBy: { _sum: { quantity: 'desc' } },\n  take: 5,\n});\n\nThen join with the Product model to get names. The test checks for `productName` and `quantitySold` in each entry.",
+                  "To find the top 5 best-selling products, aggregate order items by productId and sum the quantities:\n\nconst topProducts = await prisma.orderItem.groupBy({\n  by: ['productId'],\n  _sum: { quantity: true },\n  where: {\n    order: { createdAt: { gte: today, lt: tomorrow } },\n  },\n  orderBy: { _sum: { quantity: 'desc' } },\n  take: 5,\n});\n\nThen join with the Product model to get names. The test only checks that `topProducts` is an array of at most 5 entries — each entry's name and quantity are read as `productName ?? name` and `quantitySold ?? quantity`.",
                 order: 3,
               },
               {
@@ -963,7 +1033,7 @@ export const levels = [
               {
                 title: "Admin-Only Routes",
                 content:
-                  "Sales reports contain sensitive business data. Protect them with admin guards:\n\n@Get('daily')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles('ADMIN')\nasync dailyReport() { ... }\n\nThe test verifies that non-admin users (customers) receive 401-403.",
+                  "Sales reports contain sensitive business data. Protect them with admin guards:\n\n@Get('daily')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles(UserRole.ADMIN)\nasync dailyReport() { ... }\n\nThe test verifies that non-admin users (customers) receive 401-403.",
                 order: 5,
               },
               {
@@ -1018,18 +1088,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `reports.service.ts`, implement `daily()` with `prisma.order.aggregate` for revenue and `prisma.order.count` for order count, both filtered by `createdAt`.",
+                  "The daily report comes back as hard-coded zeros. It sums order revenue and counts orders over the same window and the same filter, and reports them as `totalRevenue` and `orderCount`.",
                 order: 1,
               },
               {
                 description:
-                  "For `weekly()`, loop from 6 days ago to today, creating 7 date buckets. Query revenue and order count for each bucket.",
+                  "Revenue comes back as a Decimal object, so it is converted with `Number(...)` before it goes into the response. `orderCount` is read directly and `Number(res.body.orderCount)` is applied to it.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks: `totalRevenue`, `orderCount` for daily; `dailyBreakdown` array of length 7 with `date`, `revenue`, `orderCount` for weekly; and admin-only access (401-403 for customers).",
+                  "`topProducts` is a ranking of the best sellers by summed quantity, grouped on the order items within the same window. The key only has to exist, it has to be an array, and it may hold at most 5 entries.",
                 order: 3,
+              },
+              {
+                description:
+                  "The weekly report exposes `totalRevenue` and `totalOrders` at the top level. Note it is `totalOrders` there, not `orderCount`. It also needs a `dailyBreakdown` array of exactly 7 entries, one per day for the last 7 days, and every entry is walked so all three of `date`, `revenue` and `orderCount` are required on each one.",
+                order: 4,
+              },
+              {
+                description:
+                  "The controller already declares the daily and weekly aliases and carries the class-level admin guards, so both routes are already admin-only. Leave those decorators in place. A CUSTOMER call must land on 401/403, not 200.",
+                order: 5,
               },
             ],
           },
@@ -1037,34 +1117,46 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/reports/daily returns totalRevenue and orderCount",
+                description:
+                  "As admin, view daily sales report and verify it shows total revenue and order count",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Daily report returns top 5 best-selling products",
+                description:
+                  "After placing two orders, verify daily report shows order count of 2",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "GET /api/reports/weekly returns totalRevenue and totalOrders",
+                description:
+                  "Verify daily report includes top products list (up to 5 items)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Weekly report returns dailyBreakdown array with exactly 7 entries",
+                description:
+                  "As a customer, try to view daily report and verify it's refused",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Each dailyBreakdown entry has date, revenue, and orderCount",
+                description:
+                  "As admin, view weekly sales report and verify it shows total revenue and total orders",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Reports are admin-only (customer gets 401-403)",
+                description:
+                  "Verify weekly report includes daily breakdown with exactly 7 entries",
                 is_required: true,
                 order: 6,
+              },
+              {
+                description:
+                  "Verify each daily breakdown entry has date, revenue, and order count",
+                is_required: true,
+                order: 7,
               },
             ],
           },
@@ -1086,7 +1178,7 @@ export const levels = [
               {
                 title: "Filtering by Stock Threshold",
                 content:
-                  "A low-stock alert returns products where `stock <= threshold`. The default threshold is 10:\n\nconst threshold = parseInt(query.threshold ?? '10', 10);\n\nconst alerts = await prisma.product.findMany({\n  where: {\n    stock: { lte: threshold },\n    isActive: true,\n  },\n  include: { category: true },\n  orderBy: { stock: 'asc' },\n});\n\nUse `lte` (less than or equal) not just `lt`. The test verifies that a product with `stock === threshold` is included.",
+                  "A low-stock alert returns products where `stock <= threshold`. The default threshold is 10:\n\nconst threshold = parseInt(query.threshold ?? '10', 10);\n\nconst alerts = await prisma.product.findMany({\n  where: {\n    stock: { lte: threshold },\n    isActive: true,\n  },\n  include: { category: true },\n  orderBy: { stock: 'asc' },\n});\n\nUse `lte` (less than or equal), not `lt`, so a product whose stock matches the threshold is still reported.",
                 order: 2,
               },
               {
@@ -1098,7 +1190,7 @@ export const levels = [
               {
                 title: "Response Shape",
                 content:
-                  "The alert endpoint should return an array of objects with:\n\n{\n  productName: string;\n  sku: string;\n  currentStock: number;\n  categoryName: string;\n}\n\nInclude `categoryName` (not just `categoryId`) so the admin knows which supplier to contact. Use `include: { category: true }` in Prisma to join the category data.",
+                  "The alert endpoint should return an array of objects. Only `sku` and a stock value are strictly required by the test — the rest is recommended naming:\n\n{\n  productName: string;\n  sku: string;\n  currentStock: number;\n  categoryName: string;\n}\n\nThe test reads the name as `productName ?? name` and the stock as `currentStock ?? stock`, so a raw Prisma row already passes. Adding `categoryName` (via `include: { category: true }`) is optional but useful for the admin.",
                 order: 4,
               },
               {
@@ -1110,7 +1202,7 @@ export const levels = [
               {
                 title: "Admin-Only Access",
                 content:
-                  "Like sales reports, low-stock alerts are admin-only. Use the same RolesGuard pattern:\n\n@Get('low-stock')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles('ADMIN')\nasync lowStock(@Query() query) { ... }\n\nThe test verifies that non-admin users receive 401-403.",
+                  "Like sales reports, low-stock alerts are admin-only. Use the same RolesGuard pattern:\n\n@Get('low-stock')\n@UseGuards(JwtAuthGuard, RolesGuard)\n@Roles(UserRole.ADMIN)\nasync lowStock(@Query() query) { ... }\n\nThe test verifies that non-admin users receive 401-403.",
                 order: 6,
               },
               {
@@ -1160,18 +1252,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Implement `low-stock` in `reports.service.ts` using `prisma.product.findMany` with `where: { stock: { lte: threshold } }`.",
+                  "The controller already parses the query param (`parseInt(threshold, 10) : 10`) and calls `ReportsService.getLowStock(threshold)` in `src/reports/reports.service.ts`, which currently returns `[]`. It has to return the products at or under that threshold, joined with the category, in ascending stock order.",
                 order: 1,
               },
               {
                 description:
-                  "Use `parseInt(query.threshold ?? '10', 10)` for the threshold. The default is 10.",
+                  "The result list is read as `res.body.data ?? res.body`, so a bare array works, but each element must expose a name as `productName` or the raw `name`, a `sku`, and a stock value as `currentStock` or the raw `stock`. The raw Prisma row already has `name`, `sku` and `stock`, so map them only if you want the documented `productName` / `currentStock` naming. `categoryName` is not required.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks: default threshold includes stock=3 and stock=0 but excludes stock=15; custom threshold=5 excludes stock=3 (wait, no - stock=3 IS <= 5, so it should be included). Make sure `lte` is inclusive.",
+                  "Sorting is separate from filtering, and it belongs in the query. Each item's stock must be <= the next item's stock.",
                 order: 3,
+              },
+              {
+                description:
+                  "With the default threshold of 10 the response must contain the stock=3 and stock=0 products and not the stock=15 one. The `?threshold=5` case is stricter than `lte`: the stock=3 product must also be absent at threshold=5.",
+                order: 4,
+              },
+              {
+                description:
+                  "Admin-only access comes from the class-level guards on `ReportsController`. Keep them, so a CUSTOMER token lands on 401/403.",
+                order: 5,
               },
             ],
           },
@@ -1179,29 +1281,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Returns products below the default threshold of 10",
+                description:
+                  "As admin, view low-stock alerts with default threshold and verify it applies threshold of 10",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Respects a custom ?threshold query parameter",
+                description:
+                  "At default threshold, verify list includes products with stock 3 and 0, excludes stock 15",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Results include productName, sku, currentStock, categoryName",
+                description:
+                  "View low-stock alerts with threshold=5 and verify it excludes stock 15 and stock 3 products",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Results are sorted by stock ascending (lowest first)",
+                description:
+                  "Verify each alert item shows SKU, stock value, and product name",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Is admin-only (customer gets 401-403)",
+                description:
+                  "Verify list is sorted by stock ascending (lowest stock first)",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "As a customer, try to view low-stock alerts and verify it's refused",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -1215,7 +1328,6 @@ export const levels = [
     title: "Production Hardening",
     subtitle: "Fix overselling, decimal drift, and timezone inconsistency under load.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Three critical bugs have been reported by BrewHaven users. First, concurrent checkouts can oversell a product with only 1 item in stock. Second, order totals occasionally show more than 2 decimal places due to floating-point drift. Third, daily reports show inconsistent order counts depending on when they are queried. These are production-grade issues that require database-level fixes and defensive coding.",
     xp_reward: 300,
@@ -1241,7 +1353,7 @@ export const levels = [
               {
                 title: "Bug #1: Race Condition / Oversell",
                 content:
-                  "Client Report: 'Two customers both successfully bought the last Ethiopian Yirgacheffe!'\n\nRoot cause: The checkout reads stock, checks if stock >= quantity, then deducts stock. If two requests read stock=1 simultaneously, both pass the check and both deduct, resulting in stock=-1.\n\nFix: Use `SELECT ... FOR UPDATE` (pessimistic locking) inside a Prisma interactive transaction. Prisma's `$transaction` with raw query or the native `update` with `decrement` both work:\n\nawait prisma.$transaction(async (tx) => {\n  const product = await tx.product.findUnique({\n    where: { id: productId },\n  });\n\n  if (product.stock < quantity) {\n    throw new BadRequestException('Out of stock');\n  }\n\n  await tx.product.update({\n    where: { id: productId },\n    data: { stock: { decrement: quantity } },\n  });\n});\n\nThe transaction serializes concurrent requests. Only one can deduct stock at a time.",
+                  "Client Report: 'Two customers both successfully bought the last Ethiopian Yirgacheffe!'\n\nRoot cause: The checkout reads stock, checks if stock >= quantity, then deducts stock. If two requests read stock=1 simultaneously, both pass the check and both deduct, resulting in stock=-1.\n\nFix: Use `SELECT ... FOR UPDATE` (pessimistic locking) inside a Prisma interactive transaction. Prisma's `$transaction` with raw query or the native `update` with `decrement` both work:\n\nawait prisma.$transaction(async (tx) => {\n  const product = await tx.product.findUnique({\n    where: { id: productId },\n  });\n\n  if (product.stock < quantity) {\n    throw new BadRequestException('Out of stock');\n  }\n\n  await tx.product.update({\n    where: { id: productId },\n    data: { stock: { decrement: quantity } },\n  });\n});\n\nWrapping the check and the decrement in `$transaction` is necessary but not sufficient: under PostgreSQL's default READ COMMITTED isolation both requests can still read `stock=1` before either writes, so both pass the check and stock lands at -1. To genuinely serialise them, fold the guard into an atomic conditional write (see the locking section below) or take an explicit row lock.",
                 order: 2,
               },
               {
@@ -1259,13 +1371,13 @@ export const levels = [
               {
                 title: "Prisma Interactive Transactions with Locking",
                 content:
-                  "For the oversell fix, wrap the stock check and deduction in a transaction. Prisma handles the locking automatically when `$transaction` is used with related queries on the same rows. The key insight is that the stock check and the decrement must happen in the same transaction - not as separate queries.\n\nIf explicit row-level locking is needed, a raw query can be used:\n\nawait prisma.$executeRaw`SELECT * FROM products WHERE id = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
+                  "For the oversell fix, wrap the stock check and deduction in a transaction — and make the check atomic. Prisma does not take row locks automatically inside an interactive transaction; under READ COMMITTED two overlapping transactions can each read the same stock before either writes. Fold the guard into the write instead:\n\nconst updated = await tx.product.updateMany({\n  where: { id: productId, stock: { gte: quantity } },\n  data: { stock: { decrement: quantity } },\n});\n\nif (updated.count === 0) {\n  throw new BadRequestException('Out of stock');\n}\n\nIf you prefer an explicit lock, run it with `tx.$queryRaw` *inside* the transaction (note `$queryRaw`, not `$executeRaw`, since `$executeRaw` cannot run a `SELECT`):\n\nawait tx.$queryRaw`SELECT * FROM products WHERE id = ${productId} FOR UPDATE`;\n\nThen proceed with the update inside the same transaction.",
                 order: 5,
               },
               {
                 title: "Consistent Report Totals",
                 content:
-                  "The test verifies that calling the same report twice returns the same total. This catches non-deterministic queries caused by:\n- Missing `ORDER BY` clauses\n- Using `new Date()` inside the query instead of fixed boundaries\n- Timezone-dependent date truncation\n\nAlways pass explicit `start` and `end` dates from the controller, and use them consistently in both `aggregate` and `count` calls.",
+                  "The test verifies that calling the same report twice returns the same order count. This catches non-deterministic queries caused by:\n- Missing `ORDER BY` clauses\n- Using `new Date()` inside the query instead of fixed boundaries\n- Timezone-dependent date truncation\n\nAlways pass explicit `start` and `end` dates from the controller, and use them consistently in both `aggregate` and `count` calls.",
                 order: 6,
               },
               {
@@ -1320,18 +1432,28 @@ export const levels = [
             create: [
               {
                 description:
-                  "Wrap the stock check and deduction in `prisma.$transaction(async (tx) => { ...  concurrent checkout can pass the stock check at a time.",
+                  "Two checkouts fired at the same instant against a product with `stock: 1`: exactly one returns 201 and the other a status >= 400. The stock check and the deduction belong to the same `prisma.$transaction(async (tx) => { ... })`, and a `this.prisma` query inside that callback reopens the race.",
                 order: 1,
               },
               {
                 description:
-                  "Add `Math.round(value * 100) / 100` to every financial value before returning it: subtotal, tax, total, and discount.",
+                  "To guarantee stock can never go negative, make the deduction conditional with `tx.product.updateMany({ where: { id, stock: { gte: quantity } }, data: { stock: { decrement: quantity } } })`, and turn a returned `count` of 0 into a client error. The row is read again afterwards and `stock >= 0` is required.",
                 order: 2,
               },
               {
                 description:
-                  "For timezone consistency, construct the day start/end as UTC Dates in the controller: `new Date()` then `setUTCHours(0,0,0,0)`. Pass these exact values to every query.",
+                  "Decimals: `Math.round(v * 100) / 100` on `subtotal`, `tax` and `total` before both persisting and returning them. For a 3 x $10.01 order the digits after the decimal point in `String(res.body.total)` are counted, and a third digit breaks it. The Prisma Decimal is converted with `Number(...)`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Report stability: `ReportsService.getDailySales()` builds its window from fixed boundaries, `start.setUTCHours(0, 0, 0, 0)` and `end` at the next UTC midnight, and uses that one `where` clause for both the `aggregate` and the `count`. Recomputing a window relative to the current moment on each call is the trap.",
+                order: 4,
+              },
+              {
+                description:
+                  "The daily report is fetched with an ADMIN token here, so the admin decorators on `ReportsController` stay while you change the date boundaries. Both report calls must still return 200.",
+                order: 5,
               },
             ],
           },
@@ -1339,22 +1461,26 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Only one of two concurrent checkouts succeeds for a 1-stock product",
+                description:
+                  "Simulate two concurrent checkouts for a product with 1 in stock: verify exactly one succeeds and one fails",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Stock never goes negative after concurrent checkouts",
+                description:
+                  "After concurrent checkouts, verify product stock is never negative",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Order total has at most 2 decimal places",
+                description:
+                  "Place an order for 3 units of a $10.01 product and verify total has at most 2 decimal places",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Daily report returns consistent orderCount on repeated calls",
+                description:
+                  "View daily report twice as admin and verify both show the same order count",
                 is_required: true,
                 order: 4,
               },
@@ -1446,18 +1572,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Create a file named `POSTMORTEM.md` at the project root (same level as `package.json`).",
+                  "The file is read with `readFileSync(resolve(__dirname, '../../../../POSTMORTEM.md'), 'utf-8')`, which resolves to the project root. That is the same directory that holds `package.json`. Putting the file in `src/` or `docs/` will not be found.",
                 order: 1,
               },
               {
                 description:
-                  "The test checks for lowercase mentions of 'race condition', 'concurrency', 'oversell', 'decimal', 'precision', 'rounding', 'timezone', 'utc', and 'date boundary'. Make sure each concept appears at least once.",
+                  "The content is lower-cased before matching, so capitalisation does not matter, but each bug area needs one of its terms. For the race condition or oversell that is `race condition`, `concurren` (which covers concurrency and concurrent), `oversell` or `locking`.",
                 order: 2,
               },
               {
                 description:
-                  "Structure the document with clear headings for each bug, followed by symptom, root cause, fix, and action items.",
+                  "Decimal precision: any one of `decimal`, `precision`, `rounding` or `float`, where the last also covers `floating`. Timezone: any one of `timezone`, `utc`, `date boundary` or `midnight`. Note `date boundary` is matched as one phrase, so write it exactly that way or use `utc`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Structure the document by bug, and under each one write symptom, root cause, fix and action items.",
+                order: 4,
               },
             ],
           },
@@ -1465,22 +1596,26 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "POSTMORTEM.md exists at the project root",
+                description:
+                  "Create a POSTMORTEM.md file at the project root (same folder as package.json)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Document mentions race condition / concurrency / oversell root cause",
+                description:
+                  "Document the oversell bug: include terms about race condition, concurrency, oversell, or locking",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Document mentions decimal / precision / rounding root cause",
+                description:
+                  "Document the decimal precision bug: include terms about decimal, precision, rounding, or float",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Document mentions timezone / UTC / date boundary root cause",
+                description:
+                  "Document the timezone bug: include terms about timezone, UTC, date boundary, or midnight",
                 is_required: true,
                 order: 4,
               },

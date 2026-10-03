@@ -1,14 +1,17 @@
 import prisma from "$lib/server/client";
-import { SCENARIO_3_IDS } from "$lib/server/learnerPass/schedule";
 
 /**
  * Check whether a user has access to a given scenario (by DB scenario ID).
  *
- * Access is granted if any of the following are true:
+ * Access is granted if either:
  *   1. The scenario is not paywalled.
- *   2. The scenario is not a SCENARIO_3 project and the user has an active
- *      Learner Pass enrollment (fast path — no per-row lookup needed).
- *   3. The user has unlocked the scenario by spending a Learner Pass special day on it.
+ *   2. The user holds an *active* Learner Pass.
+ *
+ * There is no permanent, per-scenario unlock any more. Access to a locked scenario is a
+ * property of the pass's lifetime: it is granted while a pass is active and revoked once
+ * `expires_at` passes, until the user buys another pass. The "latest" enrollment is what
+ * matters, because a user can hold several (one per payment) and an older expired row must
+ * not shadow a newer active one.
  *
  * @param userId   - The authenticated user's ID.
  * @param scenarioDbId - The resolved database scenario ID (not the folder name).
@@ -27,46 +30,26 @@ export async function hasProjectAccess(
     return true;
   }
 
-  const now = new Date();
-
-  // 2. Learner Pass fast path (not applicable to SCENARIO_3 projects, which
-  //    require an explicit per-scenario unlock even for pass holders).
-  if (!SCENARIO_3_IDS.has(scenarioDbId)) {
-    const enrollment = await prisma.learner_pass_enrollment.findFirst({
-      where: { user_id: userId },
-    });
-
-    if (enrollment && now <= enrollment.expires_at) {
-      return true;
-    }
-  }
-
-  // 3. An explicit unlock. The grant IS the Learner Pass choice now that
-  //    `user_project_access` is gone: spending a special day on a scenario is what unlocks
-  //    it, and the unlock outlives the pass (old rows were written with `expires_at = NULL`).
-  const unlock = await prisma.learner_pass_claim.findFirst({
-    where: {
-      unlocked_scenario: scenarioDbId,
-      enrollment: { user_id: userId },
-    },
-    select: { id: true },
-  });
-
-  return !!unlock;
+  // 2. An active Learner Pass unlocks every paywalled scenario, SCENARIO_3 projects
+  //    included. Access is time-bounded by the pass, not recorded per scenario.
+  return hasActiveLearnerPass(userId);
 }
 
+/**
+ * Whether the user currently holds a Learner Pass that has not expired.
+ *
+ * Picks the enrollment with the furthest `expires_at`, so overlapping or repeat purchases
+ * are handled correctly and an older expired row cannot shadow an active one.
+ */
 export async function hasActiveLearnerPass(userId: string): Promise<boolean> {
   const enrollment = await prisma.learner_pass_enrollment.findFirst({
     where: {
       user_id: userId,
     },
+    orderBy: { expires_at: 'desc' },
   });
 
   if (!enrollment) return false;
 
-  if (new Date() > enrollment.expires_at) {
-    return false;
-  }
-
-  return true;
+  return new Date() <= enrollment.expires_at;
 }

@@ -31,26 +31,34 @@ export class StackDescriptionService {
     const models = [
       'oc/muse-spark-1.3-contributor-free',
       'oc/muse-spark-1.2-contributor-free',
-      'nvidia/nvidia/nemotron-3-ultra-550b-a55b',
+      'ollama/gpt-oss:120b',
     ];
 
-    const openRouterKey = process.env.OMNIROUTE_KEY;
-    if (!openRouterKey) {
+    const omnirouteKey = process.env.OMNIROUTE_KEY;
+    if (!omnirouteKey) {
       return { success: false, error: 'OMNIROUTE_KEY is not configured. Please add it to your .env file.' };
     }
 
-    let lastError = null;
+    let lastError: unknown = null;
 
     for (const modelName of models) {
-      try {
-        const result = await this.tryOpenRouterModel(prompt, modelName);
-        if (result.success) {
-          return { success: true, description: result.description };
-        }
-        lastError = result.error;
-      } catch (error) {
-        console.log(`Model ${modelName} failed:`, error);
-        lastError = error;
+      console.log(`Trying model: ${modelName}`);
+
+      // These model slugs are served by the 9Router gateway, not OpenRouter.
+      // Use the same provider path as HintService so both stay in sync.
+      const result = await this.tryOmniroute(prompt, omnirouteKey, modelName);
+      if (result.success && result.description) {
+        return { success: true, description: result.description };
+      }
+      lastError = result.error;
+
+      // Bad credentials won't be fixed by trying another model — fail fast
+      // with the real reason so it doesn't masquerade as "all models failed".
+      if (result.status === 401 || result.status === 403) {
+        return {
+          success: false,
+          error: `AI gateway rejected the request (model: ${modelName}): ${this.getErrorMessage(lastError)}`
+        };
       }
     }
 
@@ -58,7 +66,7 @@ export class StackDescriptionService {
     console.error('All AI models failed:', errorMessage);
     return {
       success: false,
-      error: `OpenRouter unavailable: ${errorMessage}`
+      error: `AI gateway unavailable: ${errorMessage}`
     };
   }
 
@@ -75,84 +83,6 @@ export class StackDescriptionService {
       return JSON.stringify(error);
     }
     return 'No response from the gateway';
-  }
-
-  private async tryGeminiModel(prompt: string): Promise<{ success: boolean; description?: string; error?: any }> {
-    const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
-    if (!geminiApiKey) {
-      return { success: false, error: 'Google Gemini API key not configured' };
-    }
-
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              maxOutputTokens: 1000,
-              temperature: 0.7,
-              topP: 0.8,
-              topK: 10
-            }
-          })
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const description = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        if (description) {
-          return { success: true, description };
-        }
-      }
-      const errorData = await response.json().catch(() => ({}));
-      return { success: false, error: errorData };
-    } catch (error) {
-      return { success: false, error };
-    }
-  }
-
-  private async tryOpenRouterModel(
-    prompt: string,
-    modelName: string
-  ): Promise<{ success: boolean; description?: string; error?: any }> {
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (!openRouterKey) {
-      return { success: false, error: 'OpenRouter API key not configured' };
-    }
-
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${openRouterKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://devsim.app',
-          'X-Title': 'DevSim'
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 300,
-          temperature: 0.7
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const description = data.choices?.[0]?.message?.content?.trim();
-        if (description) {
-          return { success: true, description };
-        }
-      }
-      const errorData = await response.json().catch(() => ({}));
-      return { success: false, error: errorData };
-    } catch (error) {
-      return { success: false, error };
-    }
   }
 
   private async tryOmniroute(

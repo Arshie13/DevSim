@@ -15,7 +15,6 @@ export const levels = [
       title: "Getting Familiar with the Codebase",
       subtitle: "Set up the POS environment and align the sidebar brand.",
       order: 1,
-      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: IPPO has just onboarded a new cashier-support engineer. Get the PERN POS stack running locally — install in all three package roots, run Prisma migrations, start both dev servers, and update the sidebar subtitle to match the company's official style guide.",
       xp_reward: 100,
@@ -111,18 +110,23 @@ export const levels = [
               create: [
                 {
                   description:
-                    "There are three directories that each contain a package.json — you must run pnpm install in all three (root, client/, server/).",
+                    "Run `pnpm install` in the project root, then in `client/`, then in `server/`. Each directory has its own `node_modules`.",
                   order: 1,
                 },
                 {
                   description:
-                    "Check the README for the required environment variables and create a .env file inside server/ before running migrations.",
+                    "`cd server && pnpm exec tsx scripts/db-check.ts` runs `SELECT 1` and prints `DB_OK`. If it exits non-zero, your `DATABASE_URL` is wrong or Postgres is not running.",
                   order: 2,
                 },
                 {
                   description:
-                    "After installing server dependencies, run `pnpm db:migrate` inside the server/ directory to apply the schema.",
+                    "Migration verification uses `pnpm exec prisma migrate deploy --schema prisma/schema.prisma` followed by `pnpm exec prisma migrate status`. Status must print `Database schema is up to date`.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Health is checked at `/api/health` (not `/health`) — it must return HTTP 200 with a JSON body containing `ok`. The client is checked at the site root, whose HTML must contain `<div id=\"root\">`.",
+                  order: 4,
                 },
               ],
             },
@@ -131,21 +135,45 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Dependencies installed in root, client/, and server/ without errors",
+                    "Install dependencies in the project root.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Prisma migrations applied successfully to PostgreSQL",
+                    "Install dependencies in the client folder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Client (port 5173) and server (port 5000) start without errors",
+                    "Install dependencies in the server folder.",
                   is_required: true,
                   order: 3,
+                },
+                {
+                  description:
+                    "Run the database connectivity check from the server folder.",
+                  is_required: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "Apply database migrations from the server folder.",
+                  is_required: true,
+                  order: 5,
+                },
+                {
+                  description:
+                    "Start the backend server and verify it responds at /api/health with HTTP 200 and ok.",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "Start the frontend development server and verify the served HTML contains <div id=\"root\">.",
+                  is_required: true,
+                  order: 7,
                 },
               ],
             },
@@ -239,18 +267,23 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Open client/src/components/layout/Sidebar.tsx and search for the current subtitle — it is a hardcoded string inside a <span> element near the brand logo.",
+                    "Open `client/src/components/layout/Sidebar.tsx` and find the subtitle string rendered directly under the brand heading in the JSX.",
                   order: 1,
                 },
                 {
                   description:
-                    "Copy the exact string from the acceptance criteria — including spaces and capitalisation.",
+                    "The exact new string is `IPPO Software Solutions` — capital I and P, capital S in Software and Solutions, single spaces.",
                   order: 2,
                 },
                 {
                   description:
-                    "After saving, confirm the change appears in the running browser on both expanded and collapsed sidebar states.",
+                    "Put the string in live JSX (for example inside the `<p>` under the `<h1>`). A commented-out line does not count.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Replace the old subtitle rather than keeping it in a comment — the test removes every occurrence of the new string and then fails if `IPPO Solutions` is still present anywhere in the file.",
+                  order: 4,
                 },
               ],
             },
@@ -259,15 +292,27 @@ export const levels = [
               create: [
                 {
                   description:
-                    'Sidebar subtitle is exactly "IPPO Software Solutions"',
+                    "The Sidebar component file exists at client/src/components/layout/Sidebar.tsx.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Subtitle renders correctly across sidebar states",
+                    "The Sidebar file contains the exact brand subtitle 'IPPO Software Solutions'.",
                   is_required: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "The brand subtitle appears in live JSX (not hidden in comments) and survives comment stripping.",
+                  is_required: true,
+                  order: 3,
+                },
+                {
+                  description:
+                    "After removing all occurrences of 'IPPO Software Solutions', the remaining text no longer contains 'IPPO Solutions'.",
+                  is_required: true,
+                  order: 4,
                 },
               ],
             },
@@ -281,7 +326,6 @@ export const levels = [
       subtitle:
         "Build a per-product stock classifier and adopt it across POS + Inventory pages.",
       order: 2,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: POS and Inventory pages each repeat inline stock checks. Create a pure getStockLevel(quantity, threshold) helper that returns a 3-state union, refactor both pages to use it, and add a cashier-facing 'Hide out-of-stock items' toggle on the POS page.",
       xp_reward: 150,
@@ -391,17 +435,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Create client/src/utils/formatters.ts and export getStockLevel(quantity: number, threshold: number).",
+                    "Add `export function getStockLevel(quantity: number, threshold: number)` to `client/src/utils/formatters.ts` (create or extend).",
                   order: 1,
                 },
                 {
                   description:
-                    "Handle quantity <= 0 first — otherwise an OUT_OF_STOCK item with a threshold of 0 is misclassified as LOW_STOCK.",
+                    "Check `quantity <= 0` first — otherwise `getStockLevel(0, 0)` falls into `LOW_STOCK`. The threshold is inclusive: `getStockLevel(10, 10)` is `LOW_STOCK`; only strictly greater is `IN_STOCK`.",
                   order: 2,
                 },
                 {
                   description:
-                    "The function must be pure — no imports, no DOM, no network. Just two numbers in, a string out.",
+                    "The function takes the threshold as its second parameter — never read a module-level constant. Keep it pure: no imports, DOM, network, or caching.",
                   order: 3,
                 },
               ],
@@ -411,30 +455,51 @@ export const levels = [
               create: [
                 {
                   description:
-                    "formatters.ts exists at client/src/utils/formatters.ts",
+                    "Export a getStockLevel function from client/src/utils/formatters.ts as a named export.",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "getStockLevel is exported as a named export",
+                  description:
+                    "getStockLevel(0, 10) returns the string 'OUT_OF_STOCK'.",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "Returns 'OUT_OF_STOCK' when quantity <= 0",
+                  description:
+                    "Negative quantities are also out of stock: getStockLevel(-1, 10) and getStockLevel(-100, 10) both return 'OUT_OF_STOCK'.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Returns 'LOW_STOCK' when 0 < quantity <= threshold",
+                    "getStockLevel(1, 10) returns 'LOW_STOCK' — the smallest quantity above zero is low stock.",
                   is_required: true,
                   order: 4,
                 },
                 {
-                  description: "Returns 'IN_STOCK' when quantity > threshold",
+                  description:
+                    "The threshold boundary is inclusive: getStockLevel(10, 10) and getStockLevel(5, 5) both return 'LOW_STOCK'.",
                   is_required: true,
                   order: 5,
+                },
+                {
+                  description:
+                    "getStockLevel(11, 10) and getStockLevel(100, 10) return 'IN_STOCK' — only quantities strictly greater than the threshold are in stock.",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "The threshold is honored per product: getStockLevel(8, 10) returns 'LOW_STOCK' while getStockLevel(8, 5) returns 'IN_STOCK' — the same quantity classifies differently under different thresholds.",
+                  is_required: true,
+                  order: 7,
+                },
+                {
+                  description:
+                    "The function is pure — repeated calls with identical arguments each return an identical result.",
+                  is_required: true,
+                  order: 8,
                 },
               ],
             },
@@ -553,22 +618,22 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Import getStockLevel in POSPage.tsx and InventoryPage.tsx, then replace inline stock checks with the helper.",
+                    "In `POSPage.tsx`, import `getStockLevel` from `'../../utils/formatters'`, add a `hideOutOfStock` boolean state, and derive the stock level per product with `getStockLevel(product.inventory.quantity, product.inventory.lowStock)`.",
                   order: 1,
                 },
                 {
                   description:
-                    "Add a boolean state (hideOutOfStock) to POSPage and a checkbox labelled 'Hide out-of-stock items' that toggles it.",
+                    "Render a visible control with the words `Hide out-of-stock items` in the markup.",
                   order: 2,
                 },
                 {
                   description:
-                    "When hideOutOfStock is true, filter OUT_OF_STOCK products out of the grid — don't just hide them with CSS.",
+                    "Filter products using the helper's return value — e.g. keep where `hideOutOfStock ? level !== 'OUT_OF_STOCK' : true` — not by comparing raw quantities.",
                   order: 3,
                 },
                 {
                   description:
-                    "Always disable the add-to-cart button for OUT_OF_STOCK items so the cashier can't accidentally ring them up.",
+                    "In `InventoryPage.tsx`, replace all `quantity === 0` and `quantity <= lowStock` comparisons (including the Remove button's `disabled` prop) with `getStockLevel(quantity, lowStock)` calls.",
                   order: 4,
                 },
               ],
@@ -578,33 +643,57 @@ export const levels = [
               create: [
                 {
                   description:
-                    "POSPage.tsx imports getStockLevel from formatters",
+                    "POSPage.tsx imports getStockLevel from the formatters utils module.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "InventoryPage.tsx imports getStockLevel from formatters",
+                    "POSPage.tsx calls getStockLevel and uses its result to drive the product badge and the disabled state of the add-to-cart button.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "POSPage renders a 'Hide out-of-stock items' checkbox",
+                    "POSPage.tsx declares an out-of-stock toggle state named hideOutOfStock or showOutOfStock.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Toggling the checkbox filters OUT_OF_STOCK items out of the product grid",
+                    "POSPage.tsx filters the product grid using getStockLevel and the literal string OUT_OF_STOCK, so toggling removes out-of-stock products from the visible list.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "OUT_OF_STOCK products are disabled (cannot be added to cart)",
+                    "POSPage.tsx renders a visible label containing the words 'hide out-of-stock' next to the toggle control.",
                   is_required: true,
                   order: 5,
+                },
+                {
+                  description:
+                    "InventoryPage.tsx imports getStockLevel from the formatters utils module.",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "InventoryPage.tsx calls getStockLevel to determine the Out of Stock / Low Stock / In Stock badge shown in the Stock Status column.",
+                  is_required: true,
+                  order: 7,
+                },
+                {
+                  description:
+                    "InventoryPage.tsx contains no raw inline comparison of the form 'quantity === 0' — including the Remove button's disabled prop, which must be driven by the helper result instead.",
+                  is_required: true,
+                  order: 8,
+                },
+                {
+                  description:
+                    "InventoryPage.tsx contains no raw inline comparison of the form 'quantity <= lowStock && quantity > 0' — that classification must come from getStockLevel.",
+                  is_required: true,
+                  order: 9,
                 },
               ],
             },
@@ -618,7 +707,6 @@ export const levels = [
       subtitle:
         "Diagnose the oversell race, then ship an atomic void endpoint and oversell-safe checkout.",
       order: 3,
-      deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The POS has two structural gaps — the existing checkout reads inventory then decrements later (two cashiers can both sell the last unit), and there is no way to void a mistaken sale. Diagnose both, then add an OrderStatus enum + voidedAt column, an atomic voidOrder controller, and an oversell-safe checkout using updateMany + gte guard.",
       xp_reward: 200,
@@ -723,18 +811,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Open server/src/routes/orders.ts and locate the checkout handler — look for where inventory is read before it is decremented.",
+                    "Create `server/src/controllers/order.controller.ts` exporting a `voidOrder` function.",
                   order: 1,
                 },
                 {
                   description:
-                    "Open server/prisma/schema.prisma and confirm that the Order model has no status or voidedAt columns today.",
+                    "Inside `voidOrder`, read the order with its items, guard that its status is `COMPLETED`, and stamp `voidedAt: new Date()` on the update.",
                   order: 2,
                 },
                 {
                   description:
-                    "Your test must exercise the schema and route as they exist today — the tests in tests/server/level-3/task-1 document the gaps that Level 3 Task 2 will fix.",
+                    "Restore stock by looping the order's items and running an inventory update with `quantity: { increment: item.quantity }`.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Add the route in `server/src/routes/orders.ts` as `router.post('/:id/void', authenticate, voidOrderHandler)` — the literal path segment `/:id/void` must appear in the file.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "Wrap every write in a single `prisma.$transaction` callback so the status flip, the `voidedAt` stamp, and the stock restore commit or roll back together.",
+                  order: 5,
                 },
               ],
             },
@@ -743,21 +841,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "tests/server/level-3/task-1 tests assert the current schema lacks OrderStatus + voidedAt",
+                    "Create server/src/controllers/order.controller.ts that can be imported.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Tests assert that there is no voidOrder export today (it will be introduced in Task 2)",
+                    "The order controller exports a function named voidOrder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Tests assert that no POST /:id/void route is registered yet",
+                    "The order controller references the field name voidedAt to record when the order was voided.",
                   is_required: true,
                   order: 3,
+                },
+                {
+                  description:
+                    "The Order model in server/prisma/schema.prisma declares the voidedAt field.",
+                  is_required: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "The orders route registers the void endpoint on the literal path /:id/void (POST), served as POST /api/orders/:id/void.",
+                  is_required: true,
+                  order: 5,
                 },
               ],
             },
@@ -859,23 +969,28 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Add `enum OrderStatus { COMPLETED VOIDED }`, `status OrderStatus @default(COMPLETED)`, and `voidedAt DateTime?` to server/prisma/schema.prisma.",
+                    "In `schema.prisma`, add `enum OrderStatus { COMPLETED VOIDED }`, then on the Order model add `status OrderStatus @default(COMPLETED)` and `voidedAt DateTime?`.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create server/src/controllers/order.controller.ts exporting voidOrder(orderId). Wrap every DB touch in prisma.$transaction.",
+                    "Create `server/src/controllers/order.controller.ts` and export `voidOrder(orderId)`. Wrap the body in `prisma.$transaction(async (tx) => { ... })`.",
                   order: 2,
                 },
                 {
                   description:
-                    "In checkout, replace the read-then-decrement pattern with `tx.inventory.updateMany({ where: { productId, quantity: { gte: item.quantity } }, data: { quantity: { decrement: item.quantity } } })` and throw when count !== 1.",
+                    "Inside the transaction: reject unless `order.status === 'COMPLETED'`, loop items restoring stock with `tx.inventory.update({ ..., data: { quantity: { increment: item.quantity } } })`, then update the order with `status: 'VOIDED'` and `voidedAt: new Date()`.",
                   order: 3,
                 },
                 {
                   description:
-                    "Wire POST /api/orders/:id/void to voidOrderHandler inside server/src/routes/orders.ts.",
+                    "In the checkout route, replace read-then-decrement with a guarded update: `tx.inventory.updateMany({ where: { productId, quantity: { gte: item.quantity } }, data: { quantity: { decrement: item.quantity } } })`, then throw when `result.count !== 1` so the transaction rolls back.",
                   order: 4,
+                },
+                {
+                  description:
+                    "Wire the endpoint in `server/src/routes/orders.ts` as `router.post('/:id/void', authenticate, voidOrderHandler)`.",
+                  order: 5,
                 },
               ],
             },
@@ -884,44 +999,63 @@ export const levels = [
               create: [
                 {
                   description:
-                    "schema.prisma has OrderStatus enum with COMPLETED and VOIDED",
+                    "The Order model in server/prisma/schema.prisma declares voidedAt DateTime? — optional DateTime field.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "schema.prisma Order model has voidedAt DateTime? field",
+                    "The schema.prisma declares enum OrderStatus containing both COMPLETED and VOIDED.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "order.controller.ts exports voidOrder which uses prisma.$transaction",
+                    "The Order model declares status OrderStatus with @default(COMPLETED).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "voidOrder restores inventory via increment on each OrderItem",
+                    "The order controller exists and exports a function named voidOrder.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "voidOrder stamps voidedAt = new Date() and flips status to VOIDED",
+                    "voidOrder performs its writes inside a Prisma transaction so the status flip, the voidedAt stamp, and the stock restore are atomic.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Checkout uses updateMany with gte guard and throws when count !== 1",
+                    "voidOrder writes the void timestamp as voidedAt: new Date().",
                   is_required: true,
                   order: 6,
                 },
                 {
-                  description: "POST /api/orders/:id/void route is registered",
+                  description:
+                    "voidOrder restores stock by using an increment operation against the inventory records for each OrderItem on the order.",
                   is_required: true,
                   order: 7,
+                },
+                {
+                  description:
+                    "voidOrder guards on the COMPLETED status so an order that is not COMPLETED cannot be voided.",
+                  is_required: true,
+                  order: 8,
+                },
+                {
+                  description:
+                    "The checkout handler uses Prisma's updateMany with a gte stock guard instead of read-then-write.",
+                  is_required: true,
+                  order: 9,
+                },
+                {
+                  description:
+                    "The checkout handler checks the updateMany result count and throws so the transaction rolls back when the stock guard fails.",
+                  is_required: true,
+                  order: 10,
                 },
               ],
             },
@@ -935,7 +1069,6 @@ export const levels = [
       subtitle:
         "Ship end-to-end validate-apply-redeem promo code flow with admin observability.",
       order: 4,
-      deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Marketing wants reusable promo codes the cashier can apply at checkout. Add a PromoCode model, POST /api/promos/validate, GET /api/promos (admin), wire the order create path to apply + atomically increment usedCount, hook voidOrder to decrement on reversal, and build the cashier UI + admin observability panel.",
       xp_reward: 250,
@@ -1082,23 +1215,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Add the PromoCode model to schema.prisma and add optional promoCodeId to Order, then run pnpm db:migrate.",
+                    "Add `model PromoCode` to `schema.prisma` with fields: `code String @unique`, `discountPercent Int`, `maxUses Int`, `usedCount Int @default(0)`, `expiresAt DateTime`, `isActive Boolean @default(true)`. Add optional `promoCodeId Int?` + relation to Order, then migrate.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create server/src/controllers/promo.controller.ts with validatePromo (helper) + validatePromoHandler (Express handler).",
+                    "Create a promo controller exporting `validatePromo` (helper) and `validatePromoHandler` (Express handler). `validatePromo` returns a discriminated union with `ok: true`/`ok: false` branches and reason codes `NOT_FOUND | INACTIVE | EXPIRED | EXHAUSTED`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Create server/src/routes/promos.ts and mount it at /api/promos in server/src/index.ts.",
+                    "Create a promos route with `router.post('/validate', authenticate, validatePromoHandler)` and mount it in `index.ts` as `app.use('/api/promos', promoRoutes)`.",
                   order: 3,
                 },
                 {
                   description:
-                    "Create client/src/services/promoService.ts and call it from POSPage.tsx's checkout modal.",
+                    "In the `POST /api/orders` handler, destructure an optional `promoCode`, apply the discount, and inside the transaction bump the counter with `updateMany` using `usedCount: { increment: 1 }`.",
                   order: 4,
+                },
+                {
+                  description:
+                    "Create a promo service with `validatePromo` that calls `api.post('/promos/validate', ...)`.",
+                  order: 5,
+                },
+                {
+                  description:
+                    "In `POSPage.tsx`, import the promo service, add a Promo Code input and Apply button in the checkout modal, and render the applied state using the returned `discountPercent`.",
+                  order: 6,
                 },
               ],
             },
@@ -1107,39 +1250,87 @@ export const levels = [
               create: [
                 {
                   description:
-                    "schema.prisma has PromoCode model with unique code field",
+                    "The schema.prisma declares a PromoCode model.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "POST /api/promos/validate returns discountPercent + finalTotal on success",
+                    "PromoCode declares code String @unique.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "POST /api/orders accepts optional promoCode and applies the discount",
+                    "PromoCode declares discountPercent as Int, maxUses as Int, usedCount as Int with @default(0), expiresAt as DateTime, and isActive as Boolean with @default(true).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Order transaction increments PromoCode.usedCount atomically",
+                    "Create server/src/controllers/promo.controller.ts that exports both validatePromo and validatePromoHandler functions.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "POSPage checkout modal renders a Promo Code input + Apply button",
+                    "validatePromo returns a discriminated union with ok: true and ok: false branches, and the failure branch uses one of the reason codes: NOT_FOUND, INACTIVE, EXPIRED, or EXHAUSTED.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "POSPage renders applied / invalid / expired / exhausted states clearly",
+                    "Create server/src/routes/promos.ts that registers the literal route router.post('/validate', ...).",
                   is_required: true,
                   order: 6,
+                },
+                {
+                  description:
+                    "The server/src/index.ts mounts the promo router at the path /api/promos.",
+                  is_required: true,
+                  order: 7,
+                },
+                {
+                  description:
+                    "The checkout handler in server/src/routes/orders.ts accepts an optional promoCode from the request body.",
+                  is_required: true,
+                  order: 8,
+                },
+                {
+                  description:
+                    "Inside the checkout transaction, PromoCode.usedCount is incremented.",
+                  is_required: true,
+                  order: 9,
+                },
+                {
+                  description:
+                    "Create client/src/services/promoService.ts that exposes a validatePromo function.",
+                  is_required: true,
+                  order: 10,
+                },
+                {
+                  description:
+                    "The promo service posts the code to the /promos/validate endpoint path.",
+                  is_required: true,
+                  order: 11,
+                },
+                {
+                  description:
+                    "POSPage.tsx imports from a module path ending in promoService and uses the promo service or validatePromo.",
+                  is_required: true,
+                  order: 12,
+                },
+                {
+                  description:
+                    "The POSPage checkout modal renders a Promo Code labeled input together with an Apply control.",
+                  is_required: true,
+                  order: 13,
+                },
+                {
+                  description:
+                    "POSPage renders the applied-discount state using the returned discountPercent value.",
+                  is_required: true,
+                  order: 14,
                 },
               ],
             },
@@ -1237,23 +1428,33 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Inside POST /api/orders, after findUnique(promo), use updateMany with a usedCount: { lt: appliedPromo.maxUses } guard and check count === 1.",
+                    "In the checkout handler, make the redemption counter a single conditional `updateMany` inside the transaction with `where: { id, isActive: true, expiresAt: { gt: new Date() }, usedCount: { lt: promo.maxUses } }` and `data: { usedCount: { increment: 1 } }`, then throw when `promoUpdate.count !== 1`.",
                   order: 1,
                 },
                 {
                   description:
-                    "In voidOrder, after flipping status, check if order.promoCodeId is set and decrement that row's usedCount inside the same transaction.",
+                    "Do not rely on a pre-read of `usedCount`/`maxUses`. The ceiling belongs in the `where` clause.",
                   order: 2,
                 },
                 {
                   description:
-                    "GET /api/promos should be protected by authorize('ADMIN') and include remainingUses in the response shape.",
+                    "Add `router.get('/', authenticate, authorize('ADMIN'), listPromosHandler)` to the promos route — the literal path is `/`.",
                   order: 3,
                 },
                 {
                   description:
-                    "SettingsPage.tsx should load promoService.listPromos() on mount and render a table with code, discount, remainingUses, expiresAt, and isActive.",
+                    "In the promo controller, add `listPromosHandler` and map each row to include a derived `remainingUses` field (e.g. `maxUses - usedCount`).",
                   order: 4,
+                },
+                {
+                  description:
+                    "In `voidOrder`, inside the same transaction as the stock restore, guard on `order.promoCodeId` and issue a `usedCount: { decrement: 1 }` update to return the use to the pool.",
+                  order: 5,
+                },
+                {
+                  description:
+                    "Add `listPromos` to the promo service calling the `/promos` endpoint, then load it in `SettingsPage.tsx` and render a table with `code`, `discountPercent`, `remainingUses`, and `expiresAt` columns.",
+                  order: 6,
                 },
               ],
             },
@@ -1262,37 +1463,51 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Order creation uses updateMany with usedCount: { lt: maxUses } guard",
+                    "The checkout handler enforces the usage ceiling atomically: the source references usedCount together with maxUses or an lt guard in the same conditional update.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Order creation validates expiresAt and isActive inside the same transaction",
+                    "The checkout handler validates the promo's expiry inside the redemption path by comparing expiresAt against the current time (expiresAt must be greater than now).",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "voidOrder decrements PromoCode.usedCount when promoCodeId is set",
+                    "The promos route exposes an admin listing route registered on the literal path '/' and guarded by authorize('ADMIN').",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "GET /api/promos is ADMIN-only",
+                  description:
+                    "The promo controller contains listPromosHandler and that handler's response exposes a remainingUses value per promo.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "GET /api/promos returns remainingUses for each promo",
+                    "voidOrder in the order controller checks the order's promoCode/promoCodeId and decrements PromoCode.usedCount when a promo was applied.",
                   is_required: true,
                   order: 5,
                 },
                 {
-                  description: "SettingsPage renders an admin promo-list panel",
+                  description:
+                    "The promo service exposes a listPromos function that calls the /promos endpoint.",
                   is_required: true,
                   order: 6,
+                },
+                {
+                  description:
+                    "SettingsPage.tsx imports from a module path ending in promoService.",
+                  is_required: true,
+                  order: 7,
+                },
+                {
+                  description:
+                    "SettingsPage renders an admin promo panel that shows code, discountPercent, remainingUses, and expiresAt for each promo.",
+                  is_required: true,
+                  order: 8,
                 },
               ],
             },
@@ -1306,7 +1521,6 @@ export const levels = [
       subtitle:
         "Voided sales are inflating the Reports page — fix the source-of-truth predicate and centralize it.",
       order: 5,
-      deadline: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Finance escalated — the Reports page total revenue doesn't match the cash drawer. Voided orders are still being counted, and worse, admins with edit access can flip status back to COMPLETED while voidedAt still holds the truth. Fix the predicate, centralize it, and write a postmortem so this never happens again.",
       xp_reward: 300,
@@ -1423,18 +1637,23 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Open server/src/routes/orders.ts and locate GET /reports/daily. Replace status-based filtering with voidedAt: null.",
+                    "The revenue predicate must check `voidedAt === null` and ignore `status` entirely — a stale COMPLETED order with `voidedAt` set must be excluded.",
                   order: 1,
                 },
                 {
                   description:
-                    "Write a regression test at tests/server/level-5/task-1/revenue-classification.test.ts that asserts a stale-status order is excluded.",
+                    "The predicate is called with plain objects `{ id, status, voidedAt }` — accept a loose type and read only `voidedAt`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Do not filter by status === 'COMPLETED' as a substitute — the bug is that status can be flipped back.",
+                    "In the daily revenue query, add `voidedAt: null` to the where clause alongside the `createdAt` range.",
                   order: 3,
+                },
+                {
+                  description:
+                    "A stale-status regression case is a voided order whose status was flipped back to COMPLETED. Only the `voidedAt` timestamp distinguishes it.",
+                  order: 4,
                 },
               ],
             },
@@ -1442,21 +1661,46 @@ export const levels = [
             acceptance_criteria: {
               create: [
                 {
-                  description: "Daily revenue query filters by voidedAt: null",
+                  description:
+                    "Create server/src/utils/revenueUtils.ts.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Stale-status test (status COMPLETED, voidedAt set) fails without the fix and passes with it",
+                    "The revenueUtils exports a function named isRevenueEligibleOrder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Normal completed order (voidedAt null) is still included",
+                    "isRevenueEligibleOrder returns false for a stale-status voided order — an order with status COMPLETED but voidedAt set to a Date must be excluded.",
                   is_required: true,
                   order: 3,
+                },
+                {
+                  description:
+                    "isRevenueEligibleOrder returns true for a genuine completed order — status COMPLETED with voidedAt null must still count as revenue.",
+                  is_required: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "isRevenueEligibleOrder returns false for an order with status VOIDED and voidedAt set to a Date.",
+                  is_required: true,
+                  order: 5,
+                },
+                {
+                  description:
+                    "The daily revenue query in server/src/routes/orders.ts filters on the literal predicate voidedAt: null.",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "The revenue filter in orders.ts is not a status-only filter — there must be no 'status: COMPLETED' line marked as the revenue filter.",
+                  is_required: true,
+                  order: 7,
                 },
               ],
             },
@@ -1478,7 +1722,7 @@ export const levels = [
                 {
                   title: "Why Centralise the Revenue Predicate?",
                   content:
-                    "If the same canceledAt: null filter is copied into three report endpoints and one of them is updated while the others are forgotten, the bug returns. A single isEligibleForRevenue function is the single point of change.",
+                    "If the same canceledAt: null filter is copied into three report endpoints and one of them is updated while the others are forgotten, the bug returns. In this POS the equivalent shared predicate is `revenueWhereClause` (and the per-order check is `isRevenueEligibleOrder`) — a single point of change.",
                   order: 2,
                 },
                 {
@@ -1571,18 +1815,23 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Create server/src/utils/revenueUtils.ts exporting isRevenueEligibleOrder and revenueWhereClause.",
+                    "Add a `revenueWhereClause` utility that returns `{ voidedAt: null, ...extra }`.",
                   order: 1,
                 },
                 {
                   description:
-                    "Replace the ad-hoc `voidedAt: null` spreads in orders.ts with imports from revenueUtils.",
+                    "Import `revenueWhereClause` in the orders route and replace every hand-written `{ voidedAt: null }` where clause with a call to it.",
                   order: 2,
                 },
                 {
                   description:
-                    "Create server/POSTMORTEM_REVENUE.md with the four required sections: Symptom, Root Cause, Fix, Prevention.",
+                    "Confirm the regression case still holds: a voided order with status COMPLETED must be excluded after the refactor.",
                   order: 3,
+                },
+                {
+                  description:
+                    "Write a postmortem with level-2 headings: Symptom, Root Cause, Fix, Prevention.",
+                  order: 4,
                 },
               ],
             },
@@ -1591,33 +1840,51 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/src/utils/revenueUtils.ts exists and exports isRevenueEligibleOrder + revenueWhereClause",
+                    "The revenueUtils exports a function named revenueWhereClause alongside isRevenueEligibleOrder.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "revenueWhereClause() returns { voidedAt: null }",
+                    "revenueWhereClause() called with no arguments returns an object whose voidedAt property is null.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "isRevenueEligibleOrder returns false for stale-status voided orders",
+                    "revenueWhereClause(extra) merges the caller's predicates into the result while still keeping voidedAt: null — passing { createdAt: { gte: <date> } } must return both a voidedAt and a createdAt key.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "orders.ts stats/reports endpoints import revenueWhereClause",
+                    "The orders route contains an import statement whose module path ends in revenueUtils and binds revenueWhereClause.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "POSTMORTEM_REVENUE.md exists with Symptom, Root Cause, Fix, and Prevention sections",
+                    "The orders route actually uses revenueWhereClause in its stats/reports queries instead of duplicating the predicate inline.",
                   is_required: true,
                   order: 5,
+                },
+                {
+                  description:
+                    "Regression holds after centralization: isRevenueEligibleOrder returns false for an order with status COMPLETED and voidedAt set (the stale-status voided order).",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "Create server/POSTMORTEM_REVENUE.md at that exact path.",
+                  is_required: true,
+                  order: 7,
+                },
+                {
+                  description:
+                    "POSTMORTEM_REVENUE.md contains the four level-2 headings: Symptom, Root Cause, Fix, and Prevention.",
+                  is_required: true,
+                  order: 8,
                 },
               ],
             },

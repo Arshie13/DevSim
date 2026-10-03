@@ -13,7 +13,8 @@ import {
     notifyAchievementUnlocks,
     type UnlockedAchievement,
   } from "$lib/stores/achievementToast";
-  import { toast } from "$lib/stores/toast";
+   import { toast } from "$lib/stores/toast";
+  import type { StackType } from "$lib/utils/stacks";
 
   // -- Props --------------------------------------------------------------------
   export let dbContainerId: string | null;
@@ -31,6 +32,7 @@ import {
   export let levelCoinReward: number = 0;
   export let tutorialMode: boolean = false;
   export let masteryCheckpointEnabled: boolean = true;
+  export let stackType: StackType = 'fullstack';
   export let onSubmitted: ((data: { xp: number; coins: number; advanceToNextLevel: boolean; nextLevel: number | null }) => void) | undefined = undefined;
 
   // -- State --------------------------------------------------------------------
@@ -130,41 +132,170 @@ import {
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
-  function inferExpectedLayerCount() {
-    const corpus = tasks
-      .flatMap((task) => [
-        task.taskName,
-        ...(task.acceptanceCriteria?.map((criteria) => criteria.description) ?? []),
-      ])
-      .join(" ")
-      .toLowerCase();
+   function inferLayersFromText(st: StackType = 'fullstack') {
+     const corpus = tasks
+       .flatMap((task) => [
+         task.taskName,
+         ...(task.acceptanceCriteria?.map((criteria) => criteria.description) ?? []),
+       ])
+       .join(" ")
+       .toLowerCase();
 
-    const frontendSignals =
-      /\b(ui|ux|frontend|component|page|layout|css|style|responsive|button|form)\b/.test(
-        corpus,
-      );
-    const backendSignals =
-      /\b(api|endpoint|route|controller|service|backend|server|auth|middleware)\b/.test(
-        corpus,
-      );
-    const databaseSignals =
-      /\b(database|db|sql|schema|migration|model|prisma|query|table)\b/.test(
-        corpus,
-      );
-    const infraSignals =
-      /\b(test|testing|integration|e2e|ci|pipeline|docker|deploy|lint)\b/.test(
-        corpus,
-      );
+     const frontendSignals =
+       /\b(ui|ux|frontend|component|page|layout|css|style|responsive|button|form)\b/.test(
+         corpus,
+       );
+     const backendSignals =
+       /\b(api|endpoint|route|controller|service|backend|server|auth|middleware)\b/.test(
+         corpus,
+       );
+     const databaseSignals =
+       /\b(database|db|sql|schema|migration|model|prisma|query|table)\b/.test(
+         corpus,
+       );
+     const infraSignals =
+       /\b(test|testing|integration|e2e|ci|pipeline|docker|deploy|lint)\b/.test(
+         corpus,
+       );
 
-    const signalCount = [
-      frontendSignals,
-      backendSignals,
-      databaseSignals,
-      infraSignals,
-    ].filter(Boolean).length;
+     // Only count signals from layers that the stack actually provides.
+     // For a frontend-only or backend-only stack, keyword signals that mention
+     // the "other" layer (e.g. "API" in a frontend-only task) should NOT
+     // inflate the required layer count, because the user can only edit within
+     // their stack's category.
+     const relevantSignals = st === 'frontend'
+       ? [frontendSignals, infraSignals]
+       : st === 'backend'
+         ? [backendSignals, infraSignals]
+         : [frontendSignals, backendSignals, databaseSignals, infraSignals];
 
-    return signalCount >= 2 ? 2 : 1;
-  }
+     const signalCount = relevantSignals.filter(Boolean).length;
+
+     return signalCount >= 2 ? 2 : 1;
+   }
+
+   // Categorize a file path into one or more layers based on the path
+   // and the stack type. Used to track what the user actually edited.
+   function categorizeFile(filePath: string): string[] {
+     const lower = filePath.toLowerCase();
+
+     // Skip vendor / build artifacts
+     if (
+       lower.includes('node_modules') ||
+       lower.includes('/.git/') ||
+       lower.includes('/.next/') ||
+       lower.includes('/dist/') ||
+       lower.endsWith('.lock') ||
+       lower.endsWith('.log') ||
+       lower.match(/\.(png|jpg|jpeg|gif|ico|svg|mp4|zip|tar|gz)$/)
+     ) {
+       return [];
+     }
+
+     const layers: string[] = [];
+
+     // ── Database / schema files ──────────────────────────────────────────
+     if (
+       lower.includes('schema.prisma') ||
+       lower.endsWith('.sql') ||
+       lower.includes('/migrations/') ||
+       lower.includes('/prisma/') ||
+       lower.includes('database') ||
+       lower.match(/\.(db|sqlite)$/)
+     ) {
+       layers.push('database');
+     }
+
+     // ── Test / infra files ───────────────────────────────────────────────
+     if (
+       lower.match(/\.(test|spec)\./) ||
+       lower.includes('__tests__/') ||
+       lower.includes('dockerfile') ||
+       lower.includes('docker-compose') ||
+       lower.includes('/ci/') ||
+       lower.includes('.github/') ||
+       lower.includes('jest.config') ||
+       lower.includes('vitest.config') ||
+       lower.includes('vitest.workspace') ||
+       lower.endsWith('.e2e-spec.ts')
+     ) {
+       layers.push('infra/testing');
+     }
+
+     // ── Source-code files ────────────────────────────────────────────────
+     const isSource = lower.match(/\.(ts|tsx|js|jsx|vue|svelte|css|scss|sass)$/);
+     if (isSource && !layers.includes('database')) {
+       if (stackType === 'frontend') {
+         layers.push('frontend');
+       } else if (stackType === 'backend') {
+         const isBackend =
+           lower.includes('controller') ||
+           lower.includes('service') ||
+           lower.includes('module') ||
+           lower.includes('resolver') ||
+           lower.includes('app.module') ||
+           lower.includes('main.ts');
+         if (isBackend) {
+           layers.push('backend');
+         }
+       } else {
+         // Fullstack — distinguish by path convention
+         if (
+           lower.includes('/client/') ||
+           lower.includes('/src/app/') ||
+           lower.includes('/src/components/') ||
+           lower.includes('/src/pages/')
+         ) {
+           layers.push('frontend');
+         }
+         if (
+           lower.includes('/server/') ||
+           (lower.includes('/src/') &&
+             (lower.includes('controller') ||
+               lower.includes('service') ||
+               lower.includes('module') ||
+               lower.includes('resolver')))
+         ) {
+           layers.push('backend');
+         }
+       }
+     }
+
+     return layers;
+   }
+
+   // Derive the layers the user actually edited from the fetched file changes.
+   // Falls back to the task-text inference when file changes are not yet loaded.
+   let inferredLayers: string[] = [];
+
+   function recomputeExpectedLayerCount() {
+     const textBased = inferLayersFromText(stackType);
+
+     if (fileChanges) {
+       const allFiles = [
+         ...(fileChanges.modified ?? []),
+         ...(fileChanges.created ?? []),
+         ...(fileChanges.renamed ?? []).map((r) => r.to || r.from),
+       ];
+
+       const layerSet = new Set<string>();
+       for (const file of allFiles) {
+         for (const layer of categorizeFile(file)) {
+           layerSet.add(layer);
+         }
+       }
+
+       inferredLayers = [...layerSet];
+
+       // The expected count is the number of distinct layers the user actually
+       // touched — but never less than 1, and never more than the text-based
+       // estimate (so a genuine multi-layer sprint still requires 2).
+       return Math.min(Math.max(layerSet.size, 1), textBased);
+     }
+
+     // No file changes yet — use the stack-aware text inference.
+     return textBased;
+   }
 
   function normalizeTakeawayText(value: unknown): string {
     if (typeof value === "string") return value.trim();
@@ -203,7 +334,13 @@ import {
     Math.max(submitStep, 0),
     SUBMIT_STEPS.length - 1,
   );
-  $: expectedLayerCount = inferExpectedLayerCount();
+   $: expectedLayerCount = recomputeExpectedLayerCount();
+   // Auto-populate impactedLayers from actual edits once file changes are loaded,
+   // so the user isn't forced to manually tag layers for a stack that only has
+   // one editable area. Only prefill when the user hasn't selected anything yet.
+   $: if (fileChanges && impactedLayers.length === 0 && inferredLayers.length > 0) {
+     impactedLayers = inferredLayers.slice();
+   }
   $: totalConfirmSteps = masteryCheckpointEnabled ? 3 : 2;
   $: activeConfirmStepIndex =
     masteryCheckpointEnabled ? confirmStep - 1 : confirmStep === 3 ? 1 : 0;
@@ -293,7 +430,7 @@ import {
     masteryError = "";
     layersError = "";
 
-    if (!tutorialMode) fetchFileChanges();
+    if (dbContainerId) fetchFileChanges();
   }
 
   function close() {
@@ -1112,11 +1249,11 @@ improvements: "",
          error={masteryError}
        />
      {:else}
-       <SubmitSprintLayersPart
-         bind:impactedLayers
-         expectedLayerCount={expectedLayerCount}
-         error={layersError}
-       />
+         <SubmitSprintLayersPart
+           bind:impactedLayers
+           expectedLayerCount={expectedLayerCount}
+           error={layersError}
+         />
      {/if}
    {/if}
 

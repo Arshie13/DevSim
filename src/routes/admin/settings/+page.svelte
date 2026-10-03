@@ -2,6 +2,9 @@
   import { onMount } from "svelte";
   import { Loader2, Trash2, AlertTriangle, Crown, Lock, Settings } from "lucide-svelte";
   import { enhance } from "$app/forms";
+  import AdminFilterBar from "$lib/components/admin/AdminFilterBar.svelte";
+  import AdminFilterTabs from "$lib/components/admin/AdminFilterTabs.svelte";
+  import AdminSearchInput from "$lib/components/admin/AdminSearchInput.svelte";
 
   type SettingKey = "mastery_checkpoint_enabled";
 
@@ -30,6 +33,28 @@
   let isResettingDocker = false;
   let togglingScenario: string | null = null;
   let message: { type: "success" | "error"; text: string } | null = null;
+
+  // Client-side filters for the Scenario Paywall list.
+  let scenarioSearch = "";
+  let paywallFilter = "all";
+
+  $: scenarioQuery = scenarioSearch.trim().toLowerCase();
+  $: paywalledScenarioCount = scenarios.filter((s) => s.isPaywalled).length;
+  $: freeScenarioCount = scenarios.length - paywalledScenarioCount;
+  $: hasScenarioFilters = scenarioQuery !== "" || paywallFilter !== "all";
+  $: filteredScenarios = scenarios.filter((scenario) => {
+    if (paywallFilter === "paywalled" && !scenario.isPaywalled) return false;
+    if (paywallFilter === "free" && scenario.isPaywalled) return false;
+    if (!scenarioQuery) return true;
+    return [scenario.name, scenario.description, scenario.stackName]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(scenarioQuery));
+  });
+
+  function clearScenarioFilters() {
+    scenarioSearch = "";
+    paywallFilter = "all";
+  }
 
   async function toggleSetting(key: SettingKey) {
     isLoading = true;
@@ -152,8 +177,31 @@
           </div>
         </div>
 
+        <AdminFilterBar
+          count={filteredScenarios.length}
+          total={scenarios.length}
+          noun="scenario"
+          active={hasScenarioFilters}
+          onClear={clearScenarioFilters}
+        >
+          <AdminSearchInput
+            bind:value={scenarioSearch}
+            label="Search scenarios"
+            placeholder="Search scenario or stack…"
+          />
+          <AdminFilterTabs
+            label="Paywall filter"
+            bind:value={paywallFilter}
+            options={[
+              { value: "all", label: "All", count: scenarios.length },
+              { value: "paywalled", label: "Paywalled", count: paywalledScenarioCount },
+              { value: "free", label: "Free", count: freeScenarioCount }
+            ]}
+          />
+        </AdminFilterBar>
+
         <div class="space-y-2">
-          {#each scenarios as scenario}
+          {#each filteredScenarios as scenario (scenario.id)}
             <div
               class="flex items-center justify-between rounded-card border border-[var(--card-border)] bg-obsidian-surface/40 px-3 py-2"
             >
@@ -205,6 +253,12 @@
                 </button>
               </form>
             </div>
+          {:else}
+            <p class="px-3 py-6 text-center font-body text-sm text-obsidian-text-muted">
+              {hasScenarioFilters
+                ? "No scenarios match the current filters."
+                : "No scenarios available."}
+            </p>
           {/each}
         </div>
       </div>

@@ -32,7 +32,6 @@ export interface ILevel {
   id: string;
   title: string;
   order: number;
-  deadline: Date | null;
   levelDescription: string;
   xpReward: number;
   coinReward: number;

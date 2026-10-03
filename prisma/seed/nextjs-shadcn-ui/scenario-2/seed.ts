@@ -11,92 +11,122 @@ export const scenarios = [
 export const levels = [
   {
     id: "nextjs-shadcn-ui-scenario-2-level-1",
-    title: "Onboarding the Support Portal",
-    subtitle: "Bootstrap the dev environment",
+    title: "Booting the Support Portal",
+    subtitle: "Install dependencies, add the shadcn/ui Alert component, and fix the login wording",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: City Hall has onboarded a new developer and needs the customer support portal running locally. Set up the Next.js development environment by installing dependencies, adding the required shadcn/ui components, and verifying the dev server starts cleanly.",
+      "Mission Briefing: A new developer starts on the City Hall support portal and needs a working baseline before any feature work. Install the project dependencies, confirm `pnpm dev` prints a ready line, add the shadcn/ui Alert component, and fix the wording on the agent login page.",
     xp_reward: 10,
     coin_reward: 20,
     key_takeaways:
-      "Installing project dependencies with pnpm install ensures all required libraries are available. Adding shadcn/ui components via the CLI copies them into the project source for full ownership. Verifying the dev server boots without errors establishes a reliable baseline before any feature work begins.",
+      "`pnpm install` creates a `node_modules` directory containing both `next` and `react`, which is what the project check looks for.\n\n`pnpm dev` printing `ready` or `Local:` is the signal that the dev server actually started.\n\nshadcn/ui components are copied into `src/components/ui/`, and the file this level grades is `alert.tsx`, which must name `Alert`, `AlertTitle` and `AlertDescription`. `badge.tsx` already ships with the starter and does not need to be added.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
         {
-          task_name: "Environment Setup",
+          task_name: "Project Setup and the shadcn/ui Alert Component",
           test_type: "both",
           user_story:
-            "As a developer, I want to install dependencies and add required shadcn/ui components so that the support portal runs locally.",
+            "As a developer, I want dependencies installed and the shadcn/ui Alert component in the project source so that the portal runs locally from a clean checkout.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nBooting a Next.js + shadcn/ui Portal",
+                title: "Overview\nBooting the Support Portal",
                 content:
-                  "This section walks through getting a Next.js support portal running locally. The flow is the same on every Next.js project: install dependencies, add required UI components, then verify the dev server starts cleanly.",
+                  "This level has two short tasks. The first installs dependencies, adds the shadcn/ui Alert component, and confirms `pnpm dev` starts. The second fixes the submit wording on the agent login page.",
                 order: 1,
               },
               {
                 title: "What Lives Where",
                 content:
-                  "A typical Next.js + shadcn/ui project is structured like:\nproject/\n    ├── src/\n    │     ├── app/ ← Next.js routes and pages\n    │     ├── components/ ← shadcn/ui components and custom ones\n    │     └── lib/ ← shared helpers\n    ├── package.json ← scripts and dependencies\n\nKnowing where files live makes navigating the codebase productive from day one.",
+                  "A Next.js App Router project is structured like:\n\nproject/\n  src/\n    app/          routes and pages\n      agent/login/  /agent/login\n      agent/        /agent\n      support/       /support\n    components/ui/  shadcn/ui components\n    lib/            shared helpers\n  package.json      scripts and dependencies\n\n`pnpm install` reads `package.json` and writes `node_modules`. Nothing is added to `src` by the install step.",
                 order: 2,
               },
               {
-                title: "What is shadcn/ui?",
+                title: "Adding a shadcn/ui Component",
                 content:
-                  "shadcn/ui is a collection of reusable, accessible UI components built on top of Radix UI and Tailwind CSS. The components are copied directly into the project source, giving full ownership and easy customization.",
+                  "shadcn/ui components are copied into the project source instead of being imported from a package, one file per component. This level needs the Alert component:\n\npnpm dlx shadcn@latest add alert\n\nThe check reads `src/components/ui/alert.tsx` from disk and looks for the names `Alert`, `AlertTitle` and `AlertDescription`. It does not grade a ref-forwarding implementation. `src/components/ui/badge.tsx` already ships with the starter and does not need to be added.",
                 order: 3,
               },
               {
-                title: "Package Management 101",
+                title: "Checking the Dev Server",
                 content:
-                  "Package management is the process of managing external code dependencies a project relies on. A package manager such as pnpm handles installing, updating, and removing dependencies, ensuring the correct versions are available.\n\nIn an existing project with a package.json file, running pnpm install downloads all listed dependencies. The package.json lists all the libraries the app needs (React, Next.js, shadcn/ui components, Tailwind CSS). pnpm install downloads them into node_modules.",
+                  "`pnpm dev` starts the Next.js development server. The run is treated as successful once its output matches `/ready|Local:/i`, and it is given 30 seconds to print that. A non-zero exit before the ready line is a failure.",
                 order: 4,
               },
               {
-                title: "The Development Server",
+                title: "Practice Lab: Check the Installed Tree",
                 content:
-                  "Next.js includes a built-in development server that provides hot module replacement and Fast Refresh. Running pnpm run dev starts the server, watches for file changes, and instantly updates the browser without a full page reload.\n\nBefore writing any feature code, always verify the dev server starts without errors — this confirms the project setup is complete and establishes a known-good baseline.",
-                order: 5,
-              },
-              {
-                title: "Practice Lab: Adding shadcn/ui Components",
-                content:
-                  "Practice adding a shadcn/ui component using the CLI. Running the command below downloads the component source into the project's components/ui folder, where it can be customized.\n\npnpm dlx shadcn@latest add textarea",
+                  "Practice the small pure check behind the dependency assertion.",
                 section_type: "INTERACTIVE" as const,
-                interactive_mode: "TERMINAL_CMD" as const,
+                interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Run the shadcn/ui CLI command to add the Textarea component. Type the exact command and click Check to verify.",
-                  expected_commands: [
-                    "pnpm dlx shadcn@latest add textarea",
+                    "Implement hasPackage(dir, name) returning true when the directory listing contains an entry exactly equal to name. Do not match on a prefix.\n\nExamples: hasPackage(['next', 'react'], 'react') -> true.",
+                  language: "javascript",
+                  starter_code:
+                    "export function hasPackage(dir, name) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "hasPackage",
+                  test_cases: [
+                    {
+                      input: [["next", "react"], "react"],
+                      expected: true,
+                      label: "react is present",
+                    },
+                    {
+                      input: [["next", "react"], "vite"],
+                      expected: false,
+                      label: "missing package",
+                    },
+                    {
+                      input: [["next"], "nextjs"],
+                      expected: false,
+                      label: "no prefix matching",
+                    },
+                  ],
+                  hints: [
+                    "Compare entries for equality, not with startsWith.",
+                    "return dir.some((entry) => entry === name);",
+                    "return dir.some((entry) => entry === ___);",
                   ],
                 },
-                order: 6,
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Setting up a Next.js project means installing dependencies, adding required UI components, and confirming the dev server starts cleanly — this establishes a reliable baseline before any feature work.",
-                order: 7,
+                  "The baseline is three things: `node_modules` holding `next` and `react`, a dev server that prints `ready` or `Local:`, and `src/components/ui/alert.tsx` naming `Alert`, `AlertTitle` and `AlertDescription`.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Install dependencies using pnpm install at the project root",
+                description:
+                  "Run `pnpm install` in the project root, then confirm `node_modules` holds both `next` and `react`",
                 order: 1,
               },
               {
-                description: "Add the shadcn Alert component using pnpm dlx shadcn@latest add alert",
+                description:
+                  "Run `pnpm dlx shadcn@latest add alert`, which copies the component into your own source rather than a package; `badge.tsx` already ships with the starter",
                 order: 2,
               },
               {
-                description: "Start the development server and verify it loads",
+                description:
+                  "Open `src/components/ui/alert.tsx` and check it names `Alert`, `AlertTitle` and `AlertDescription`",
                 order: 3,
+              },
+              {
+                description:
+                  "Run `pnpm dev` at the project root and confirm its output prints `ready` or `Local:` within 30 seconds",
+                order: 4,
               },
             ],
           },
@@ -104,17 +134,20 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "App runs without errors on pnpm run dev",
+                description:
+                  "Install project dependencies in the project root",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Required shadcn/components/ui/alert component is installed",
+                description:
+                  "Run the development server and verify it starts successfully (prints 'ready' or 'Local:')",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "All project dependencies are installed",
+                description:
+                  "Add the alert shadcn/ui component using the CLI and verify it exports Alert, AlertTitle, and AlertDescription",
                 is_required: true,
                 order: 3,
               },
@@ -122,48 +155,47 @@ export const levels = [
           },
         },
         {
-          task_name: "UI Text Updates",
+          task_name: "Rebrand the Agent Login Button",
           test_type: "both",
           user_story:
-            "As a user, I want consistent button labels and a configurable app heading so that the portal feels polished and identifiable.",
+            "As an agent, I want the login button to read Login instead of Sign In so that the wording matches the rest of the portal.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nConsistency in UI Copy",
+                title: "Overview\nConsistent Wording on the Login Page",
                 content:
-                  "This section introduces the crash course for maintaining consistent UI text. It covers finding labels, understanding loading states, and keeping copy aligned across the app.",
+                  "This section walks through the one-word change on `src/app/agent/login/page.tsx` and how it is checked. The check reads the file as text with `//` and `/* */` comments removed, then looks for `Login` and for the absence of `Sign In`.",
                 order: 1,
               },
               {
-                title: "Button Labels and Loading States",
+                title: "Where the Label Lives",
                 content:
-                  "A button often has two states: idle and loading. Both should use the same verb:\n\n// Before\n<button>Sign In</button>\n<button>Signing in...</button>\n\n// After\n<button>Login</button>\n<button>Logging in...</button>\n\nConsistency reduces cognitive load and makes the UI feel professional.",
+                  "The submit button has an idle label and a loading label:\n\n// Before\nidle     -> Sign In\nloading  -> Signing in...\n\n// After\nidle     -> Login\nloading  -> Signing in...\n\nThe idle label is the `Button` child rendered when `isLoading` is false. The loading label `Signing in...` does not contain the string `Sign In`, so it is safe to leave as it is.",
                 order: 2,
               },
               {
-                title: "Page Headings and Environment Variables",
+                title: "Comments Are Stripped Before Checking",
                 content:
-                  "The home page heading is often the first thing a user sees. Rendering it from NEXT_PUBLIC_APP_NAME keeps the brand consistent and makes white-labelling trivial.\n\n<h1>{process.env.NEXT_PUBLIC_APP_NAME}</h1>\n\nThis single line adapts to any deployment without a code change.",
+                  "The check removes line comments and block comments before it looks for the text. So a leftover `Sign In` inside a comment is harmless:\n\n// TODO: keep Sign In wording for the SSO button\n\nThat comment is deleted before the comparison, so only JSX and string literals are searched. The header `Agent Login` is fine too, because it contains `Login` and not `Sign In`.",
                 order: 3,
               },
               {
-                title: "Verifying Copy Changes",
+                title: "The Working Tree is the Contract",
                 content:
-                  "After editing, every page that might share the component should be checked. A layout change affects all pages that use it. A page-specific change only affects that route. Browser dev tools can be used to verify each route.",
+                  "The check reads the file on disk, not the rendered page. That means the label has to be in the source, not injected at runtime.",
                 order: 4,
               },
               {
                 title: "Practice Lab: Update Button Label",
                 content:
-                  "Practice updating button labels to maintain consistency across the portal.",
+                  "Practice the label change in isolation before applying it to the page.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
-                  instructions:
-                    "Update function to return \"Login\" instead of \"Sign In\".",
+                  instructions: "Update `getAgentButtonLabel()` to return `Login` instead of `Sign In`.",
                   language: "typescript",
                   starter_code:
-                    'export function getAgentButtonLabel() {\n  return "Sign In";\n}\n',
+                    "export function getAgentButtonLabel() {\n  return `Sign In`;\n}\n",
                   editable_regions: [
                     {
                       placeholder: "Sign In",
@@ -178,11 +210,10 @@ export const levels = [
                       label: "updated button label",
                     },
                   ],
-                
                   hints: [
-                    "Simple text replacement.",
-                    "Replace \"Sign In\" with \"Login\".",
-                    "return \"___\";"
+                    "Replace the returned string.",
+                    "Return `Login`.",
+                    "return `___`;",
                   ],
                 },
                 order: 5,
@@ -190,7 +221,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Consistent copy is a sign of a polished product. Button labels, loading states, and headings should be aligned with the environment variables so the portal feels cohesive.",
+                  "Wording is part of the product. Keeping the label in the source rather than a constant elsewhere keeps the page checkable and consistent.",
                 order: 6,
               },
             ],
@@ -198,8 +229,19 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Change the agent login button label from 'Sign In' to 'Login' in `src/app/agent/login/page.tsx`",
+                description:
+                  "Open `src/app/agent/login/page.tsx` and find the submit `Button` whose idle child text is `Sign In`",
                 order: 1,
+              },
+              {
+                description:
+                  "Change that idle child to `Login`; the loading branch reads `Signing in...`, which is not the string `Sign In` and can stay as it is",
+                order: 2,
+              },
+              {
+                description:
+                  "Save and reread the file: with comments stripped it must contain `Login` and no `Sign In` left",
+                order: 3,
               },
             ],
           },
@@ -207,9 +249,16 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Agent login button reads 'Login'",
+                description:
+                  "Update the agent login page submit button label from 'Sign In' to 'Login'",
                 is_required: true,
                 order: 1,
+              },
+              {
+                description:
+                  "Confirm the login page source (with `//` and `/* */` comments stripped) contains 'Login' and no remaining 'Sign In'",
+                is_required: true,
+                order: 2,
               },
             ],
           },
@@ -219,115 +268,125 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-2-level-2",
-    title: "Polishing the Agent Dashboard",
-    subtitle: "Fix badge palette and extract a reusable MessageBubble",
+    title: "Score Chat Intents and Add Quick Replies",
+    subtitle: "Match each message to the right city service, then give agents one-click reply snippets",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Agents report that conversation status badges are visually noisy and that similar messaging components are duplicated across the citizen and agent pages. Fix the badge palette for accessibility and refactor the duplicated message JSX into a reusable component.",
+      "Mission Briefing: The citizen chat on `/support` answers with the first keyword it finds, so a message that mentions more than one city service can get the wrong reply and there is no route to a human when nothing matches. Replace that lookup with a scored intent matcher in `src/lib/intentMatcher.ts` that returns the best-matching intent plus a `fallback` intent whose reply names a human, then add a `src/lib/quickReplies.ts` snippet library rendered on the agent dashboard.",
     xp_reward: 25,
     coin_reward: 50,
     key_takeaways:
-      "Choosing accessible badge palettes (e.g. *-100 background with *-800 text) ensures status indicators stay legible for users with low-contrast vision. Distinct colors per status help operators scan dashboards quickly without re-reading labels.\n\nExtracting duplicated JSX into a shared component (`MessageBubble`) reduces drift between two pages that should look the same. Centralizing derivations into a single `useMemo` instead of multiple `.filter()` calls avoids redundant work on every render and keeps related state co-located.",
+      "Scoring keyword hits instead of returning the first matching key makes the reply depend on the message rather than the order of the `aiResponses` map; the intent with the most hits wins.\n\n`matchIntent` returns `{ intent, score }`, and a message with no keyword hits resolves to the sentinel `'fallback'` intent with a score of `0`, whose reply copy has to name a human agent (it matches `/agent/i`).\n\nSnippet data as `{ id, label, text }` lets the dashboard render one button per snippet, use `label` as the accessible name, and append `text` to whatever the agent already typed.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
         {
-          task_name: "Fix Conversation Status Badge Colors",
+          task_name: "Scored Intent Matching for Support Chat",
           test_type: "both",
           user_story:
-            "As an agent, I want status badges to use distinct, accessible colors so that I can scan the conversations list quickly.",
+            "As a citizen, I want the assistant to pick the best-matching city service for my message and to offer a human when nothing matches so that I am not stuck with the wrong automated reply.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nAccessible Badge Palettes",
+                title: "Overview\nScored Intent Matching",
                 content:
-                  "This section introduces the crash course for styling status badges with accessible color palettes. It explains why contrast matters and how to map semantic states to Tailwind classes.",
+                  "This section walks through replacing the first-keyword lookup on `src/app/support/page.tsx` with a scored intent matcher in `src/lib/intentMatcher.ts`. The starter `getAIResponse` loops over its `aiResponses` map and returns the first key found anywhere in the message, so the reply depends on the order of the map rather than on what the citizen actually asked. The new module exports `matchIntent` and `getAssistantReply`, and the support page routes its chat replies through `getAssistantReply`.",
                 order: 1,
               },
               {
-                title: "The Contrast Problem",
+                title: "The Intent Module",
                 content:
-                  "Default badge colors often fail accessibility standards. A bg-blue-500 text-white badge might look fine but be unreadable for someone with low-contrast vision. The *-100 / *-800 pairing guarantees enough contrast:\n\n• bg-green-100 + text-green-800 → Active\n• bg-yellow-100 + text-yellow-800 → Waiting\n• bg-gray-100 + text-gray-800 → Resolved",
+                  "Everything for this task lives in one new file, `src/lib/intentMatcher.ts`, and it exports two functions:\n\nmatchIntent(input) -> { intent, score }\ngetAssistantReply(input) -> string\n\n`matchIntent` reports which service the message is about and how strongly it matched; `getAssistantReply` turns that into the reply copy. The check imports both from `@/lib/intentMatcher` and calls them directly, so they have to be real exported functions rather than helpers buried inside the page.",
                 order: 2,
               },
               {
-                title: "Mapping Status to Color",
+                title: "Scoring Keyword Hits",
                 content:
-                  "A helper that maps each status to its palette should be created. Classes should not be inlined in every render — they should be centralized:\n\nconst statusPalette = {\n  active: 'bg-green-100 text-green-800',\n  waiting: 'bg-yellow-100 text-yellow-800',\n  resolved: 'bg-gray-100 text-gray-800',\n};\n\nfunction getStatusBadge(status: string) {\n  return statusPalette[status] || 'bg-gray-100 text-gray-800';\n}",
+                  "Each intent owns a list of keywords. `matchIntent` lowercases the input, counts how many of an intent's keywords appear anywhere in it, and returns the intent with the most hits together with that count. The intended set covers at least `permits`, `taxes`, `trash` and `parking`.\n\nThree examples from the check:\n\nmatchIntent('How do I apply for a building permit license?')\n// -> { intent: 'permits', score: > 0 }\n\nmatchIntent('I need to pay my property tax bill')\n// -> { intent: 'taxes' }\n\nmatchIntent('my trash and garbage pickup was missed, also a permit question')\n// -> { intent: 'trash' }  // trash + garbage + pickup beats permit\n\nThe last example is the point of scoring: the message mentions both trash and permits, and counting hits picks `trash`.",
                 order: 3,
               },
               {
-                title: "Verifying Accessibility",
+                title: "The Fallback Path",
                 content:
-                  "Browser dev tools can be used to check contrast ratios. The goal is WCAG AA (4.5:1 for normal text). The *-100 / *-800 combinations typically exceed 7:1, which is AAA. Distinct colors also help users scan quickly — a green badge means 'active' at a glance.",
+                  "When no keyword matches, `matchIntent` returns the sentinel intent `'fallback'` with a score of `0`:\n\nmatchIntent('zxcvbnm qwerty asdfgh')\n// -> { intent: 'fallback', score: 0 }\n\n`getAssistantReply` returns non-empty copy for every intent, and the fallback copy has to name a human: the check requires it to match `/agent/i`. That is what gives a citizen a route to a person when the automated answer cannot help.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Badge Palette",
+                title: "Practice Lab: Count the Keyword Hits",
                 content:
-                  "Practice mapping status strings to accessible Tailwind classes.",
+                  "Practice the scoring step that decides which intent wins.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getStatusPalette(status) returning Tailwind classes: active→green, waiting→yellow, resolved→gray.\n\nExamples: getStatusPalette(\"active\")→\"bg-green-100 text-green-800\".",
+                    "Implement countKeywordHits(input, keywords) returning how many of the keywords appear in the input, case-insensitively. Count each keyword once.\n\nExamples: countKeywordHits('my trash and garbage pickup was missed', ['trash', 'garbage', 'pickup', 'permit']) -> 3.",
                   language: "javascript",
                   starter_code:
-                    "export function getStatusPalette(status) {\n  // TODO\n}\n",
+                    "export function countKeywordHits(input, keywords) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getStatusPalette",
+                  entry_point: "countKeywordHits",
                   test_cases: [
                     {
-                      input: ["active"],
-                      expected: "bg-green-100 text-green-800",
-                      label: "active badge",
+                      input: [
+                        "my trash and garbage pickup was missed",
+                        ["trash", "garbage", "pickup", "permit"],
+                      ],
+                      expected: 3,
+                      label: "three trash keywords beat one permit keyword",
                     },
                     {
-                      input: ["waiting"],
-                      expected: "bg-yellow-100 text-yellow-800",
-                      label: "waiting badge",
+                      input: ["how do I apply for a permit", ["trash", "permit"]],
+                      expected: 1,
+                      label: "one keyword hit",
                     },
                     {
-                      input: ["resolved"],
-                      expected: "bg-gray-100 text-gray-800",
-                      label: "resolved badge",
+                      input: ["hello, is anyone there", ["trash"]],
+                      expected: 0,
+                      label: "no keyword hits",
                     },
                   ],
-                
                   hints: [
-                    "Map status to classes.",
-                    "return {active:\"bg-green-100 text-green-800\",waiting:\"bg-yellow-100 text-yellow-800\",resolved:\"bg-gray-100 text-gray-800\"}[status];",
-                    "return {active:\"___\",waiting:\"___\",resolved:\"___\"}[___];"
+                    "Lowercase the input once, then test each keyword with includes.",
+                    "const text = input.toLowerCase(); return keywords.filter((k) => text.includes(k)).length;",
+                    "const text = input.toLowerCase(); return keywords.filter((k) => text.___(k)).length;",
                   ],
                 },
                 order: 5,
               },
               {
+                title: "Wiring the Support Page",
+                content:
+                  "The support page stops calling its local `getAIResponse` and imports the module instead:\n\nimport { getAssistantReply } from '@/lib/intentMatcher';\n\nThe check reads `src/app/support/page.tsx` as text and requires an import path ending in `intentMatcher` plus a use of `getAssistantReply`, so the reply shown in the transcript has to come from the module rather than a copy inside the page.",
+                order: 6,
+              },
+              {
                 title: "Key Takeaway",
                 content:
-                  "Accessible palettes are not just nice-to-have — they are required for usability. Every status should be mapped to a tested, high-contrast combination and reused across the app.",
-                order: 6,
+                  "Scoring keyword hits instead of returning the first key makes the reply depend on the message rather than the order of a map. Keeping the intent list and the reply copy in one module means `matchIntent` and `getAssistantReply` cannot drift, and returning the `'fallback'` intent with a score of 0 is what lets the fallback reply hand the citizen to a human.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Update `getStatusBadge` in `src/app/agent/page.tsx` to map each status to a *-100 background and *-800 text.",
+                description:
+                  "Create `src/lib/intentMatcher.ts` exporting `matchIntent(input)` and `getAssistantReply(input)`, then import them into `src/app/support/page.tsx`",
                 order: 1,
               },
               {
-                description: "Map: active → green-100/green-800, waiting → yellow-100/yellow-800, resolved → gray-100/gray-800.",
+                description:
+                  "Give each service (permits, taxes, trash, parking, …) a keyword list, lowercase the input, and score an intent by how many of its keywords it contains; the highest score wins",
                 order: 2,
               },
               {
-                description: "Verify each status renders distinctly on the agent dashboard.",
+                description:
+                  "Self-check: `'my trash and garbage pickup was missed, also a permit question'` resolves to `trash`, `'zxcvbnm qwerty asdfgh'` resolves to `{ intent: 'fallback', score: 0 }`, and the fallback reply names a human agent",
                 order: 3,
               },
             ],
@@ -336,85 +395,127 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`active` badge uses bg-green-100 and text-green-800",
+                description:
+                  "Create src/lib/intentMatcher.ts exporting matchIntent and getAssistantReply",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`waiting` badge uses bg-yellow-100 and text-yellow-800",
+                description:
+                  "Verify matchIntent detects the permits intent for 'How do I apply for a building permit license?' with a score above 0",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "`resolved` badge uses bg-gray-100 and text-gray-800",
+                description:
+                  "Verify matchIntent detects the taxes intent for 'I need to pay my property tax bill'",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Verify matchIntent returns the intent with the most keyword hits ('my trash and garbage pickup was missed, also a permit question' resolves to trash)",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "Verify matchIntent returns intent 'fallback' with score 0 when no keyword matches",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Verify getAssistantReply returns a non-empty reply for a known intent",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Verify getAssistantReply offers a human agent on the fallback path (reply matches /agent/i)",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description:
+                  "Import from a path ending in 'intentMatcher' in the support page and route chat replies through getAssistantReply",
+                is_required: true,
+                order: 8,
               },
             ],
           },
         },
         {
-          task_name: "Refactor & Extract MessageBubble",
+          task_name: "Quick Reply Snippets on the Agent Dashboard",
           test_type: "both",
           user_story:
-            "As a developer, I want a single reusable MessageBubble component and a single useMemo for conversation counts so that the codebase is consistent and maintainable.",
+            "As an agent, I want canned replies I can drop into the message box with one click so that I do not retype the same sentences every day.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nComponent Extraction and useMemo",
+                title: "Overview\nQuick Reply Snippets",
                 content:
-                  "This section introduces the crash course for extracting duplicated JSX into reusable components and consolidating derived state with useMemo.",
+                  "This section walks through building a snippet library in `src/lib/quickReplies.ts` and rendering a row of one-click buttons on `src/app/agent/page.tsx`. Each snippet is `{ id, label, text }`: `label` is the button text, `text` is what gets inserted.",
                 order: 1,
               },
               {
-                title: "The Duplication Problem",
+                title: "The Snippet Shape",
                 content:
-                  "When the same message markup appears in two pages, any style change requires editing both files. Over time, they drift apart and become inconsistent.\n\n// In support page\n<div className=\"flex ...\">...citizen message...</div>\n\n// In agent page\n<div className=\"flex ...\">...agent message...</div>\n\nThese two blocks should be one component.",
+                  "A snippet needs three string fields. `id` is a stable React key, `label` is what the agent reads on the button, and `text` is the message body:\n\nexport interface QuickReply {\n  id: string;\n  label: string;\n  text: string;\n}\n\nexport const quickReplies: QuickReply[] = [\n  {\n    id: 'greeting',\n    label: 'Greeting',\n    text: 'Hello, thank you for contacting City Hall support. How can I help you today?',\n  },\n];\n\nThe array must not be empty and every `text` must have at least one character.",
                 order: 2,
               },
               {
-                title: "Extracting a MessageBubble",
+                title: "Rendering One Button Per Snippet",
                 content:
-                  "A component that accepts a message and a viewer prop to control alignment can be created:\n\n// components/MessageBubble.tsx\nexport function MessageBubble({ message, viewer }: { message: string; viewer: 'customer' | 'agent' }) {\n  const align = viewer === 'customer' ? 'justify-start' : 'justify-end';\n  return (\n    <div className={`flex ${align}`}>\n      <div className=\"rounded p-2\">{message}</div>\n    </div>\n  );\n}\n\nThis single component replaces both inline versions.",
+                  "Map the snippet array to buttons on the dashboard so each snippet is reachable by its label alone:\n\n{quickReplies.map((reply) => (\n  <Button key={reply.id} variant='outline' onClick={() => insertSnippet(reply)}>\n    {reply.label}\n  </Button>\n))}\n\nGive each button `reply.label` as its only child. The label becomes the button's accessible name, so keep it short and unique: anything else inside the button would change its accessible name and break the match.",
                 order: 3,
               },
               {
-                title: "Consolidating Filters with useMemo",
+                title: "Inserting Without Losing Typed Text",
                 content:
-                  "Instead of three separate .filter() calls on every render, use one useMemo that returns all counts:\n\nconst counts = useMemo(() => {\n  return {\n    active: conversations.filter(c => c.status === 'active').length,\n    waiting: conversations.filter(c => c.status === 'waiting').length,\n    resolved: conversations.filter(c => c.status === 'resolved').length,\n  };\n}, [conversations]);\n\nThis is cleaner, faster, and easier to debug.",
+                  "Appending beats overwriting. The agent may have half-written a reply, so concatenate instead of replacing:\n\nconst insertSnippet = (reply: QuickReply) => {\n  setMessageInput((current) => (current ? `${current} ${reply.text}` : reply.text));\n};\n\nThe input controlled by `messageInput` has the placeholder `Type your response...`, and after a click it holds both the draft and the snippet text.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Extract Component",
+                title: "Practice Lab: Append a Snippet",
                 content:
-                  "Practice extracting inline JSX into a component call.",
+                  "Practice the pure string step behind the insert handler: joining what is already typed with the snippet text.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Refactor to use MessageBubble component instead of reimplementing.",
-                  language: "tsx",
+                    "Implement appendSnippet(current, text) returning the current text with the snippet text appended after it. Use a single space between the two when `current` is not empty, and return just the snippet text when `current` is empty.\n\nExamples: appendSnippet('Hi there.', 'How can I help?') -> 'Hi there. How can I help?'.",
+                  language: "javascript",
                   starter_code:
-                    "import { MessageBubble } from '../components/MessageBubble';\n\nexport function renderMessage(text, viewer) {\n  return (\n    <div className={`flex ${viewer === 'customer' ? 'justify-start' : 'justify-end'}`}>\n      <div className='rounded p-2'>{text}</div>\n    </div>\n  );\n}\n",
+                    "export function appendSnippet(current, text) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
-                      placeholder: "return (\n    <div className={`flex ${viewer === 'customer' ? 'justify-start' : 'justify-end'}`}>\n      <div className='rounded p-2'>{text}</div>\n    </div>\n  );",
+                      placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "renderMessage",
+                  entry_point: "appendSnippet",
                   test_cases: [
                     {
-                      input: ["hello", "customer"],
-                      expected: "customer:hello",
-                      label: "renders customer message",
+                      input: ["", "How can I help?"],
+                      expected: "How can I help?",
+                      label: "empty input returns the snippet alone",
+                    },
+                    {
+                      input: ["Hi there.", "How can I help?"],
+                      expected: "Hi there. How can I help?",
+                      label: "typed text is preserved",
+                    },
+                    {
+                      input: ["Checking now. ", "Any other details?"],
+                      expected: "Checking now. Any other details?",
+                      label: "no extra space after a trailing space",
                     },
                   ],
-                
                   hints: [
-                    "Delegate to existing component.",
-                    "Call MessageBubble.",
-                    "return ___;"
+                    "Trim the end of the current text, then decide on the separator.",
+                    "const left = current.trimEnd(); return left ? `${left} ${text}` : text;",
+                    "const left = current.trimEnd(); return left ? `${left} ___` : ___;",
                   ],
                 },
                 order: 5,
@@ -422,7 +523,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Duplication is a maintenance tax. Shared markup should be extracted into components and derived state should be consolidated into useMemo. The codebase becomes smaller, faster, and more consistent.",
+                  "Keeping snippets as data in `src/lib/quickReplies.ts` means the dashboard stays a renderer with no hardcoded copy. Insertion appends to the input, so a snippet never discards a draft the agent already wrote.",
                 order: 6,
               },
             ],
@@ -430,15 +531,18 @@ export const levels = [
           hints: {
             create: [
               {
-                description: "Create `src/components/MessageBubble.tsx` accepting a `message` prop and a `viewer` prop ('customer' | 'agent').",
+                description:
+                  "Export the snippet array from `src/lib/quickReplies.ts` with a string `id`, `label`, and non-empty `text`",
                 order: 1,
               },
               {
-                description: "Replace the inline message JSX in `src/app/support/page.tsx` and `src/app/agent/page.tsx` with the new component.",
+                description:
+                  "On the dashboard, render one button per snippet and give each button `reply.label` as its only child so the accessible name matches the label exactly",
                 order: 2,
               },
               {
-                description: "Replace the three inline `.filter()` count derivations on the agent page with a single `useMemo` returning `{ active, waiting, resolved }`.",
+                description:
+                  "The rule to get right: a click appends `reply.text` to what the agent already typed, never replacing the draft",
                 order: 3,
               },
             ],
@@ -447,19 +551,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/components/MessageBubble.tsx` exists and is used by both support and agent pages",
+                description:
+                  "Create a Quick Replies file exporting a quickReplies array with at least one snippet",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "`MessageBubble` aligns correctly based on the `viewer` prop",
+                description:
+                  "Ensure each snippet has a string id, label, and non-empty text",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Agent page derives active/waiting/resolved counts via a single `useMemo`",
+                description:
+                  "Render one button per snippet on the agent dashboard with the button's accessible name matching the snippet's label",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Click a snippet button and verify its text is appended to the input (placeholder 'Type your response...')",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "Click a snippet button and verify existing typed text in the input is preserved",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -469,123 +588,128 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-2-level-3",
-    title: "Empowering Agents and Citizens",
-    subtitle: "Add conversation search and a citizen complaint history page",
+    title: "Triage: Priority Order and First-Reply Tracking",
+    subtitle: "Sort the queue by priority score and badge conversations waiting on an agent",
     order: 3,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Volume is up — agents need to find conversations quickly, and citizens want to revisit complaints they previously filed. Add real-time search with status filters to the agent dashboard, and build a /support/history page that reads complaints back from localStorage.",
+      "Mission Briefing: Conversations pile up in the dashboard in seed order, so an agent cannot tell which case needs attention first, and there is no signal for cases where a citizen is still waiting on a first human reply. Score each conversation in `src/lib/priority.ts`, render the list highest score first, then classify each conversation in `src/lib/sla.ts` and badge the ones still awaiting a first reply.",
     xp_reward: 40,
     coin_reward: 100,
     key_takeaways:
-      "Real-time client-side filtering (search input + status chips) gives operators an immediate, responsive way to slice large lists without round-tripping to a server. Combining text search with discrete filters keeps both intents independent yet composable.\n\nUsing `localStorage` as a lightweight complaint store demonstrates how client-only persistence can ship before a backend exists. Reading and writing JSON arrays under a stable key teaches state hydration patterns that scale up to a real API later without restructuring the UI.",
+      "A resolved conversation always scores `0` regardless of unread messages, `waiting` outranks `active`, and each unread message adds to the score, so the sort is driven by need rather than arrival.\n\n`getPriorityLevel` turns a score into one of four tiers (`urgent`, `high`, `normal`, `low`) for display.\n\n`getServiceState` reduces a conversation to `resolved`, `awaiting-first-reply` or `in-progress` from its `status` and whether any message has `role: 'agent'`, which is what makes the first-reply badge derivable instead of hand-maintained.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
         {
-          task_name: "Conversation Search & Status Filter",
+          task_name: "Priority Scoring and Sorted Conversation List",
           test_type: "both",
           user_story:
-            "As an agent, I want to search conversations by name or complaint and filter by status so that I can locate the right thread quickly.",
+            "As an agent, I want the conversation list ordered by priority so that the most urgent case is at the top when I open the dashboard.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nReal-Time Filtering in React",
+                title: "Overview\nPriority Scoring",
                 content:
-                  "This section introduces the crash course for building real-time search and filter interfaces. It covers controlled inputs, combining multiple filter dimensions, and empty states.",
+                  "This section walks through building `src/lib/priority.ts` with `getPriorityScore` and `getPriorityLevel`, then sorting the conversation list on `src/app/agent/page.tsx` by that score. A conversation is described by its `status` (`active`, `waiting`, `resolved`), its `unreadCount`, and its `createdAt`.",
                 order: 1,
               },
               {
-                title: "Text Search + Status Chips",
+                title: "Status Weights and the Resolved Shortcut",
                 content:
-                  "A good filter UI combines a free-text search with discrete status chips. Both filters work independently but can be combined:\n\nconst filtered = useMemo(() => {\n  return conversations\n    .filter(c =>\n      c.customer.fullName.toLowerCase().includes(query.toLowerCase()) ||\n      c.customer.complaint.toLowerCase().includes(query.toLowerCase())\n    )\n    .filter(c => statusFilter === 'all' || c.status === statusFilter);\n}, [conversations, query, statusFilter]);\n\nThis gives users two ways to slice the list.",
+                  "Status is the dominant term. Waiting on an agent outranks active, and resolved conversations drop out of the queue entirely:\n\nresolved -> 0\nactive   -> 10\nwaiting  -> 40\n\nA resolved conversation must return `0` even when it has unread messages, so return early on `status === 'resolved'` instead of adding the unread bonus.",
                 order: 2,
               },
               {
-                title: "Filter Chips UI",
+                title: "The Unread Bonus",
                 content:
-                  "shadcn/ui Badge or Button components can be used for filter chips. The active chip should be highlighted so the user knows which filter is applied:\n\nconst chips = ['all', 'active', 'waiting', 'resolved'];\n{chips.map(chip => (\n  <button\n    key={chip}\n    className={statusFilter === chip ? 'bg-primary' : 'bg-secondary'}\n    onClick={() => setStatusFilter(chip)}\n  >\n    {chip}\n  </button>\n))}\n\nThis pattern is reusable for any filterable list.",
+                  "Unread messages raise the score so an active thread with five unread messages outranks an untouched one:\n\nconst STATUS_WEIGHT = { resolved: 0, active: 10, waiting: 40 } as const;\nconst UNREAD_WEIGHT = 10;\n\nexport function getPriorityScore(conv) {\n  if (conv.status === 'resolved') return 0;\n  return STATUS_WEIGHT[conv.status] + conv.unreadCount * UNREAD_WEIGHT;\n}\n\nThat gives waiting with 3 unread a score of 70, active with 2 unread 30, and resolved 0.",
                 order: 3,
               },
               {
-                title: "Empty States",
+                title: "Mapping a Score to a Tier",
                 content:
-                  "When combined filters yield no results, a clear message should be shown inside the list container:\n\n{filtered.length === 0 && (\n  <p>No conversations found</p>\n)}\n\nThis prevents the UI from looking broken and tells the user their filters are too restrictive.",
+                  "The dashboard shows a word rather than a number. `getPriorityLevel` maps a conversation to one of four tiers:\n\nlow    -> score 0\nnormal -> below 40\nhigh   -> 40 to 49\nurgent -> 50 and above\n\nIt takes the same conversation object as `getPriorityScore` and calls it internally, so the two functions cannot drift.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Combined Filter",
+                title: "Sorting the List",
                 content:
-                  "Practice writing a filter that combines text search and status.",
+                  "Sort a copy before mapping to rows so the displayed order is deterministic. Comparing scores descending puts Maria Garcia (waiting) first, then John Smith (active with 2 unread), then Robert Johnson (resolved):\n\nconst ordered = [...conversations].sort(\n  (a, b) => getPriorityScore(b) - getPriorityScore(a)\n);",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Tier From a Score",
+                content:
+                  "Practice the tier boundaries used by `getPriorityLevel` as a standalone pure function.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement filterConversations(conversations, query, status) filtering by text and status. \"all\" skips status filter. Case-insensitive.",
+                    "Implement priorityTier(score) returning the tier name for a numeric priority score. Return 'low' for 0, 'normal' for 1 to 39, 'high' for 40 to 49, and 'urgent' for 50 and above.\n\nExamples: priorityTier(70) -> 'urgent'.",
                   language: "javascript",
                   starter_code:
-                    "export function filterConversations(conversations, query, status) {\n  // TODO\n}\n",
+                    "export function priorityTier(score) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "filterConversations",
+                  entry_point: "priorityTier",
                   test_cases: [
                     {
-                      input: [
-                        [{ customer: { fullName: "Alice", complaint: "Noise" }, status: "active" }],
-                        "alice",
-                        "all",
-                      ],
-                      expected: [{ customer: { fullName: "Alice", complaint: "Noise" }, status: "active" }],
-                      label: "finds by name",
+                      input: [0],
+                      expected: "low",
+                      label: "zero is low",
                     },
                     {
-                      input: [
-                        [{ customer: { fullName: "Alice", complaint: "Noise" }, status: "active" }],
-                        "",
-                        "resolved",
-                      ],
-                      expected: [],
-                      label: "filters by status",
+                      input: [30],
+                      expected: "normal",
+                      label: "30 is normal",
+                    },
+                    {
+                      input: [40],
+                      expected: "high",
+                      label: "40 is high",
+                    },
+                    {
+                      input: [70],
+                      expected: "urgent",
+                      label: "70 is urgent",
                     },
                   ],
-                
                   hints: [
-                    "Chain two filters.",
-                    "let r=conversations; if(query) r=r.filter(c=>c.customer.fullName.toLowerCase().includes(query.toLowerCase())); if(status!==\"all\") r=r.filter(c=>c.status===status); return r;",
-                    "if (___) r = r.filter(...); if (status !== \"___\") r = r.filter(c => c.status === status);"
+                    "Check the boundaries from the bottom up.",
+                    "if (score === 0) return 'low'; if (score < 40) return 'normal'; if (score < 50) return 'high'; return 'urgent';",
+                    "if (score === 0) return 'low'; if (score < ___) return 'normal'; if (score < ___) return 'high'; return 'urgent';",
                   ],
                 },
-                order: 5,
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Real-time filtering is a combination of controlled state, useMemo, and thoughtful UI. Users should be given both text search and discrete chips, and the empty state should always be handled as a first-class UI concern.",
-                order: 6,
+                  "Sorting by a computed score instead of seed order makes the queue match need. Keeping the resolved shortcut as an early return is what stops unread messages from pulling a finished case back into view.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Add a search input above the conversation list in `src/app/agent/page.tsx` with placeholder 'Search conversations...'.",
+                description:
+                  "Start in `src/lib/priority.ts`, exporting `getPriorityScore` and `getPriorityLevel`, then import from `src/app/agent/page.tsx`",
                 order: 1,
               },
               {
-                description: "Filter by `customer.fullName` OR `customer.complaint` (both case-insensitive).",
+                description:
+                  "Score each conversation from its `status` and `unreadCount`, then sort a copy of the list by score descending before you map it to rows",
                 order: 2,
               },
               {
-                description: "Add a status filter row (All / Active / Waiting / Resolved) that combines with the search.",
+                description:
+                  "Self-check: the rows read Maria Garcia, then John Smith, then Robert Johnson, and a `resolved` conversation still scores `0`",
                 order: 3,
-              },
-              {
-                description: "Render 'No conversations found' inside the conversations card when no rows match.",
-                order: 4,
               },
             ],
           },
@@ -593,79 +717,149 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Search input filters conversations in real-time by name or complaint text",
+                description:
+                  "Create src/lib/priority.ts exporting getPriorityScore and getPriorityLevel functions",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Status filter chips (All / Active / Waiting / Resolved) combine with the search",
+                description:
+                  "Verify getPriorityScore returns 0 for a resolved conversation regardless of unread count",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "'No conversations found' renders when filters yield zero results",
+                description:
+                  "Verify getPriorityScore gives higher score to 'waiting' status than 'active' status",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Verify getPriorityScore increases with more unread messages for 'active' status",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "Verify getPriorityLevel returns correct tiers: 'urgent' for waiting with 3 unread, 'high' for waiting with 0 unread, 'normal' for active with 0 unread, 'low' for resolved",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Import priority functions from a path ending in 'priority' in the agent dashboard",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Verify conversation rows display in order: Maria Garcia, then John Smith, then Robert Johnson",
+                is_required: true,
+                order: 7,
               },
             ],
           },
         },
         {
-          task_name: "Citizen Complaint History Page",
+          task_name: "First-Reply SLA Badges on the Dashboard",
           test_type: "both",
           user_story:
-            "As a citizen, I want to see complaints I previously submitted so that I can track their status.",
+            "As an agent, I want each conversation row to show whether a citizen is still waiting on a first reply so that I know which cases are breaching.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nClient-Side Persistence with localStorage",
+                title: "Overview\nFirst-Reply Service States",
                 content:
-                  "This section introduces the crash course for persisting data to localStorage and reading it back on a new page. It covers hydration, JSON serialization, and page creation.",
+                  "This section walks through building `src/lib/sla.ts` with `hasAgentReplied` and `getServiceState`, then using `getServiceState` to badge rows on `src/app/agent/page.tsx`. A conversation carries `status` (`active`, `waiting`, `resolved`) and a `messages` array whose entries have a `role` of `system`, `customer` or `agent`.",
                 order: 1,
               },
               {
-                title: "Writing to localStorage",
+                title: "Has an Agent Replied?",
                 content:
-                  "When a citizen submits a complaint, push the new entry into an array and store it:\n\nconst complaints = JSON.parse(localStorage.getItem('customerComplaints') || '[]');\ncomplaints.push({\n  id: crypto.randomUUID(),\n  name,\n  cityZip,\n  complaint,\n  submittedAt: new Date().toISOString(),\n});\nlocalStorage.setItem('customerComplaints', JSON.stringify(complaints));\n\nThis persists the data across page reloads.",
+                  "The first-reply check is a scan over `messages` for a `role` of `agent`. It must not depend on position or count:\n\nexport function hasAgentReplied(conversation) {\n  return conversation.messages.some((message) => message.role === 'agent');\n}\n\nA conversation of only `system` and `customer` messages returns `false`; adding one `agent` message flips it to `true`.",
                 order: 2,
               },
               {
-                title: "Reading and Hydrating",
+                title: "Three Service States",
                 content:
-                  "On the history page, read the stored array and render it. Use a useEffect or an initial state function to avoid hydration mismatches:\n\nconst [complaints, setComplaints] = useState(() => {\n  if (typeof window === 'undefined') return [];\n  return JSON.parse(localStorage.getItem('customerComplaints') || '[]');\n});\n\nThe typeof window check prevents server-side rendering issues.",
+                  "Resolved wins over everything else, then the reply check splits the remaining cases:\n\nexport function getServiceState(conversation) {\n  if (conversation.status === 'resolved') return 'resolved';\n  return hasAgentReplied(conversation) ? 'in-progress' : 'awaiting-first-reply';\n}\n\nThe three returned values are `'resolved'`, `'awaiting-first-reply'` and `'in-progress'`.",
                 order: 3,
               },
               {
-                title: "Creating a New Route",
+                title: "Badging the Rows",
                 content:
-                  "app/support/history/page.tsx should be created to add the /support/history route. The same layout as the support page is used by placing it inside the support folder.\n\napp/support/\n    ├── page.tsx ← /support\n    └── history/page.tsx ← /support/history\n\nA link should be added from the support page to the history page so users can navigate.",
+                  "Only the awaiting case gets a badge, and it goes inside the row button so it travels with the conversation. Render the text `Awaiting first reply` when the state is `awaiting-first-reply`:\n\nimport { Badge } from '@/components/ui/badge';\n\n{getServiceState(conv) === 'awaiting-first-reply' && (\n  <Badge className='rounded-full font-medium'>Awaiting first reply</Badge>\n)}\n\n`Badge` already ships with the starter, so the awaiting state is found by its text rather than by hand-rolled styling. In the seed data John Smith and Maria Garcia have no agent message, and Robert Johnson already has one.",
                 order: 4,
+              },
+              {
+                title: "Practice Lab: Derive the Service State",
+                content:
+                  "Practice the state decision as a pure function of `status` and the message roles.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Implement serviceState(status, roles) returning the service state string for a conversation. Return 'resolved' when status is 'resolved', 'in-progress' when roles includes 'agent', and 'awaiting-first-reply' otherwise.\n\nExamples: serviceState('active', ['system', 'customer']) -> 'awaiting-first-reply'.",
+                  language: "javascript",
+                  starter_code:
+                    "export function serviceState(status, roles) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "serviceState",
+                  test_cases: [
+                    {
+                      input: ["resolved", ["customer", "agent"]],
+                      expected: "resolved",
+                      label: "resolved wins",
+                    },
+                    {
+                      input: ["active", ["system", "customer"]],
+                      expected: "awaiting-first-reply",
+                      label: "no agent message",
+                    },
+                    {
+                      input: ["waiting", ["system", "customer", "agent"]],
+                      expected: "in-progress",
+                      label: "agent has replied",
+                    },
+                  ],
+                  hints: [
+                    "Return the resolved case first, then check the roles array.",
+                    "if (status === 'resolved') return 'resolved'; return roles.includes('agent') ? 'in-progress' : 'awaiting-first-reply';",
+                    "if (status === 'resolved') return 'resolved'; return roles.includes('___') ? 'in-progress' : '___';",
+                  ],
+                },
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "localStorage is a lightweight database for the browser. It can be used to store user-generated data before a backend exists. Data should be serialized to JSON, the empty state should always be handled, and navigation should always be provided.",
-                order: 5,
+                  "Deriving the badge from `status` and the messages means there is no second piece of state to keep in sync. Robert Johnson stays unbadged because his transcript already contains an `agent` message.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Create `src/app/support/history/page.tsx` reading from `localStorage` key `customerComplaints`.",
+                description:
+                  "Create `src/lib/sla.ts` exporting `hasAgentReplied` and `getServiceState`, then call `getServiceState` from `src/app/agent/page.tsx`",
                 order: 1,
               },
               {
-                description: "Display Submitted / Name / City + ZIP / Complaint columns; show 'No complaints submitted yet' when empty.",
+                description:
+                  "Reduce a conversation to `resolved`, `awaiting-first-reply` or `in-progress` from its `status` and whether any message has `role: 'agent'`",
                 order: 2,
               },
               {
-                description: "On submitting the support form, push a new entry to `customerComplaints` with `submittedAt = new Date().toISOString()`.",
+                description:
+                  "Self-check: the John Smith and Maria Garcia rows each carry the text `Awaiting first reply` inside a `Badge` imported from `@/components/ui/badge`, and the Robert Johnson row carries no badge",
                 order: 3,
-              },
-              {
-                description: "Add a 'View History' link on `src/app/support/page.tsx` pointing to `/support/history`.",
-                order: 4,
               },
             ],
           },
@@ -673,24 +867,58 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "/support/history reads complaints from localStorage key `customerComplaints`",
+                description:
+                  "Create a file exporting hasAgentReplied and getServiceState functions",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Empty state shows 'No complaints submitted yet'",
+                description:
+                  "Verify hasAgentReplied returns false for conversations with only system and customer messages",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Submitting the support form persists a new complaint entry with `submittedAt`",
+                description:
+                  "Verify hasAgentReplied returns true when an agent message exists",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Support page exposes a 'View History' link to `/support/history`",
+                description:
+                  "Verify getServiceState returns 'resolved' for resolved conversations even with agent messages",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Verify getServiceState returns 'awaiting-first-reply' for active conversations without agent messages",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Verify getServiceState returns 'in-progress' for waiting conversations with agent messages",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Verify John Smith and Maria Garcia rows show 'Awaiting first reply' badge, but Robert Johnson row does not",
+                is_required: true,
+                order: 7,
+              },
+              {
+                description:
+                  "Verify at least two elements on the dashboard match 'awaiting first reply' text",
+                is_required: true,
+                order: 8,
+              },
+              {
+                description:
+                  "Import Badge from @/components/ui/badge in the agent dashboard and render 'Awaiting first reply' inside it for conversations with no agent message",
+                is_required: true,
+                order: 9,
               },
             ],
           },
@@ -700,125 +928,122 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-2-level-4",
-    title: "Hardening the Citizen Experience",
-    subtitle: "Validate the citizen form and persist state across reload",
+    title: "Queue Times and Keyboard-First Triage",
+    subtitle: "Show citizens an estimated wait and drive the dashboard from the keyboard",
     order: 4,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: QA flagged that the citizen form accepts garbage input and that messages and conversations vanish on page reload. Add inline field validation, prevent whitespace-only chat sends, and build a `useLocalStorage` hook that persists conversations, agent status, and chat messages across reloads.",
+      "Mission Briefing: The support page tells citizens they are connecting but never how long the wait is, and agents juggling three conversations lose time to the mouse. Build `src/lib/queue.ts` with `estimateWaitMinutes` and `formatWait`, show an estimated wait after the request form is submitted, then add ArrowUp and ArrowDown conversation selection plus Ctrl+Enter to send and Escape to clear on `src/app/agent/page.tsx`.",
     xp_reward: 60,
     coin_reward: 150,
     key_takeaways:
-      "Inline field validation with disabled submit buttons prevents bad data from reaching the system in the first place, which is far cheaper than catching it later in the pipeline. Per-field error messages give users immediate, actionable feedback.\n\nA reusable `useLocalStorage` hook abstracts the hydrate-on-mount + persist-on-set pattern so multiple pages can share the same persistence logic without duplicating effects. This is the kind of small infrastructure investment that pays back immediately on the second use site.",
+      "`estimateWaitMinutes(position, avgHandleMinutes)` multiplies the queue position by the average handle time, defaults that average to 4 minutes, and never returns a negative number.\n\n`formatWait` turns minutes into `less than a minute`, `about N minutes` or `over an hour`, and returns an empty string for `NaN` and `Infinity` so bad input never renders `NaN` in the UI.\n\nKeyboard handlers compare `event.key` against `ArrowDown`, `ArrowUp`, `Enter` with `ctrlKey`, and `Escape`, so the selection and the composer can share one `keydown` listener.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
         {
-          task_name: "Form & Message Validation",
+          task_name: "Estimated Wait on the Agent Request Form",
           test_type: "both",
           user_story:
-            "As a user, I want the support form to reject invalid input with clear inline errors so that I know exactly what to fix.",
+            "As a citizen, I want to see how long the wait for an agent is once I submit a request so that I know whether to hold my phone or walk to City Hall.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nInline Validation in React Forms",
+                title: "Overview\nThe Queue Estimator",
                 content:
-                  "This section introduces the crash course for adding inline validation to React forms. It covers validation rules, error messages, and disabled submit buttons.",
+                  "This section walks through building `src/lib/queue.ts` with `estimateWaitMinutes` and `formatWait`, then calling them from `src/app/support/page.tsx` after the request form is submitted. The form is reached by clicking the button whose name matches `/talk to agent/i` and is submitted with the button named `Submit Request`.",
                 order: 1,
               },
               {
-                title: "Validation Rules",
+                title: "Minutes From a Queue Position",
                 content:
-                  "Clear rules should be defined for each field before writing code:\n\n• fullName: at least 2 characters\n• zipCode: exactly 5 digits (/^\\d{5}$/)\n• complaint: at least 10 characters\n\nThese rules are simple to test and easy to explain to users.",
+                  "The estimate is position times average handle time, with a default average of 4 minutes:\n\nconst DEFAULT_AVG_HANDLE_MINUTES = 4;\n\nexport function estimateWaitMinutes(position, avgHandleMinutes = DEFAULT_AVG_HANDLE_MINUTES) {\n  return Math.max(0, position * avgHandleMinutes);\n}\n\nSo position 3 waits 12 minutes, position 2 with a 10 minute average waits 20, and a negative position clamps to 0 instead of showing a negative wait.",
                 order: 2,
               },
               {
-                title: "Inline Error Messages",
+                title: "Turning Minutes into Copy",
                 content:
-                  "An error message should be shown directly under the invalid field. Validation should not wait for the user to submit — it runs on every keystroke or on blur:\n\n{errors.fullName && (\n  <p className=\"text-red-600 text-sm\">{errors.fullName}</p>\n)}\n\nThis gives immediate feedback and tells the user exactly what to fix.",
+                  "Three buckets cover the whole range. The literal text matters because it is what a citizen reads:\n\n0            -> less than a minute\n1 to 59      -> about N minutes\n60 and above -> over an hour\n\nAnything that is not a finite number returns an empty string so nothing renders `NaN minutes`.",
                 order: 3,
               },
               {
-                title: "Disabling Submit",
+                title: "Wiring the Estimate into the Form",
                 content:
-                  "The submit button should be disabled until all fields are valid. This prevents garbage data from being sent:\n\nconst isValid = fullName.length >= 2 && /^\\d{5}$/.test(zipCode) && complaint.length >= 10;\n<button disabled={!isValid}>Submit</button>\n\nThis is a simple but effective guard.",
+                  "The support page already tracks a queue position. Compute the estimate and render one element whose text starts with `Estimated wait`, and keep it the only such element on the page, so the wait and the position appear together:\n\nconst minutes = estimateWaitMinutes(2);\n<p>Estimated wait: {formatWait(minutes)}</p>\n\nThe form inputs it submits are matched by the placeholders `Enter your full name`, `Enter your address`, `City`, `ZIP Code`, and `Describe your issue`.",
                 order: 4,
               },
               {
-                title: "Chat Input Validation",
+                title: "Practice Lab: Format the Wait",
                 content:
-                  "Chat inputs need validation too. Whitespace-only messages should be prevented from being sent:\n\nconst canSend = message.trim().length > 0;\n<button disabled={!canSend}>Send</button>\n\nThis stops accidental empty sends and keeps the chat clean.",
-                order: 5,
-              },
-              {
-                title: "Practice Lab: Validate Form",
-                content:
-                  "Practice writing validation logic for a simple form.",
+                  "Practice the copy function that turns a number of minutes into the three wait descriptions.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement validateForm({fullName,zipCode,complaint}) returning error object. {} when valid. name>=2 chars, zip 5 digits, complaint>=10 chars.",
+                    "Implement waitLabel(minutes) returning 'less than a minute' for 0, 'about N minutes' for 1 to 59, 'over an hour' for 60 and above, and an empty string for a value that is not a finite number.\n\nExamples: waitLabel(12) -> 'about 12 minutes'.",
                   language: "javascript",
                   starter_code:
-                    "export function validateForm({ fullName, zipCode, complaint }) {\n  // TODO\n}\n",
+                    "export function waitLabel(minutes) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "validateForm",
+                  entry_point: "waitLabel",
                   test_cases: [
                     {
-                      input: [{ fullName: "A", zipCode: "1234", complaint: "short" }],
-                      expected: {
-                        fullName: "Name must be at least 2 characters",
-                        zipCode: "ZIP code must be 5 digits",
-                        complaint: "Complaint must be at least 10 characters",
-                      },
-                      label: "returns all errors",
+                      input: [0],
+                      expected: "less than a minute",
+                      label: "zero minutes",
                     },
                     {
-                      input: [{ fullName: "Alice", zipCode: "12345", complaint: "This is a long complaint" }],
-                      expected: {},
-                      label: "returns empty when valid",
+                      input: [12],
+                      expected: "about 12 minutes",
+                      label: "twelve minutes",
+                    },
+                    {
+                      input: [75],
+                      expected: "over an hour",
+                      label: "seventy five minutes",
+                    },
+                    {
+                      input: [null],
+                      expected: "",
+                      label: "not a number",
                     },
                   ],
-                
                   hints: [
-                    "Check each field, collect errors.",
-                    "const e={}; if(fullName.length<2) e.fullName=\"...\"; if(zipCode.length!==5) e.zipCode=\"...\"; if(complaint.length<10) e.complaint=\"...\"; return e;",
-                    "if(fullName.length<___)e.fullName=\"...\"; if(zipCode.length!==___)e.zipCode=\"...\"; if(complaint.length<___)e.complaint=\"...\";"
+                    "Reject non-finite input first, then check the buckets from the bottom up.",
+                    "if (!Number.isFinite(minutes)) return ''; if (minutes === 0) return 'less than a minute'; if (minutes < 60) return `about ${minutes} minutes`; return 'over an hour';",
+                    "if (!Number.isFinite(minutes)) return ''; if (minutes === 0) return 'less than a minute'; if (minutes < ___) return `about ${minutes} ___`; return '___';",
                   ],
                 },
-                order: 6,
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Validation is a frontline defense. Inline errors, disabled buttons, and trimmed inputs prevent bad data from ever entering the system.",
-                order: 7,
+                  "Position times handle time is enough to give a citizen a real answer. Handling `NaN` and `Infinity` inside `formatWait` keeps bad numbers out of the rendered text instead of pushing the check into every caller.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Validate `fullName` (>= 2 chars), `zipCode` (/^\\d{5}$/), and `complaint` (>= 10 chars) in `src/app/support/page.tsx`.",
+                description:
+                  "In `src/lib/queue.ts` export `estimateWaitMinutes` and `formatWait`, then call them from `src/app/support/page.tsx` after the request is submitted",
                 order: 1,
               },
               {
-                description: "Show an inline error under each invalid field (e.g. 'ZIP code must be 5 digits').",
+                description:
+                  "The easy thing to miss at this level: `formatWait` has to return the empty string for `NaN` and `Infinity` so a bad number never reaches the page",
                 order: 2,
               },
               {
-                description: "Disable the Submit Request button while any field is invalid.",
+                description:
+                  "Self-check: submitting the request form shows one element reading `Estimated wait` whose text is `less than a minute`, `about N minutes` or `over an hour`",
                 order: 3,
-              },
-              {
-                description: "Verify the chat input on /support and /agent cannot send whitespace-only messages.",
-                order: 4,
               },
             ],
           },
@@ -826,120 +1051,158 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Submit Request is disabled until fullName (>= 2), zipCode (5 digits), and complaint (>= 10) are all valid",
+                description:
+                  "Create a queue file exporting estimateWaitMinutes and formatWait functions",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Inline error messages appear under each failing field",
+                description:
+                  "Verify estimateWaitMinutes(3) returns 12 using default 4-minute average handle time",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Whitespace-only chat messages cannot be sent on either page",
+                description:
+                  "Verify estimateWaitMinutes(2, 10) returns 20 with custom 10-minute average handle time",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Verify estimateWaitMinutes returns 0 for negative positions (never negative)",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "Verify formatWait returns 'less than a minute' for 0, 'about N minutes' for 1-59, 'over an hour' for 60+",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Verify formatWait returns empty string for NaN and Infinity",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Submit the agent request form on the support page and verify an 'Estimated wait' element appears with correct wait text",
+                is_required: true,
+                order: 7,
               },
             ],
           },
         },
         {
-          task_name: "localStorage Persistence",
+          task_name: "Keyboard Navigation and Composer Shortcuts",
           test_type: "both",
           user_story:
-            "As a user, I want conversations, agent status, and chat messages to survive a page reload so that I don't lose context.",
+            "As an agent, I want to move between conversations with the arrow keys and send or discard my draft from the composer so that I can work without leaving the keyboard.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nThe useLocalStorage Hook",
+                title: "Overview\nShortcuts on the Agent Dashboard",
                 content:
-                  "This section introduces the crash course for building a reusable useLocalStorage hook. It covers hydration, persistence, and sharing the hook across multiple pages.",
+                  "This section walks through two keydown handlers on `src/app/agent/page.tsx`. One listens on `document.body` and moves the selected conversation with `ArrowDown` and `ArrowUp`. The other lives on the message input and handles `Enter` with `ctrlKey` and `Escape`.",
                 order: 1,
               },
               {
-                title: "The Hook Signature",
+                title: "Moving the Selection",
                 content:
-                  "A reusable hook should have a clean signature:\n\nfunction useLocalStorage<T>(key: string, initialValue: T): [T, (v: T) => void]\n\nThis mirrors useState but adds persistence. The key identifies the storage slot, and the generic T makes it type-safe.",
+                  "Keep the selected index in state and move it by one, clamped to the ends of the list. Reading `event.key` rather than `event.code` keeps it working across layouts:\n\nconst moveSelection = (delta: number) => {\n  setSelectedIndex((index) =>\n    Math.min(Math.max(index + delta, 0), conversations.length - 1)\n  );\n};\n\nThe selected customer name is rendered as a heading, so moving the selection is visible immediately.",
                 order: 2,
               },
               {
-                title: "Hydrate on Mount",
+                title: "Enter With Ctrl Sends",
                 content:
-                  "Data should be read from localStorage when the component first mounts, not during render. This avoids hydration mismatches in SSR:\n\nconst [value, setValue] = useState<T>(initialValue);\n\nuseEffect(() => {\n  const stored = localStorage.getItem(key);\n  if (stored) setValue(JSON.parse(stored));\n}, [key]);\n\nThis ensures the server render matches the client render on first paint.",
+                  "The existing send path already refuses empty and whitespace-only input, so Ctrl+Enter only has to call it and clear the box:\n\nconst handleKeyDown = (event: React.KeyboardEvent) => {\n  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {\n    event.preventDefault();\n    handleSendMessage();\n  }\n};\n\nAfter the send, the input value is the empty string and the message text appears in the transcript.",
                 order: 3,
               },
               {
-                title: "Persist on Change",
+                title: "Escape Discards the Draft",
                 content:
-                  "Data should be written back to localStorage whenever the value changes:\n\nuseEffect(() => {\n  localStorage.setItem(key, JSON.stringify(value));\n}, [key, value]);\n\nThis keeps the browser storage in sync with React state.",
+                  "Escape clears without sending, which is the escape hatch for a half-written message:\n\nif (event.key === 'Escape') {\n  event.preventDefault();\n  setMessageInput('');\n}\n\nNo message is appended, and only the input value changes.",
                 order: 4,
               },
               {
-                title: "Using the Hook Across Pages",
+                title: "Practice Lab: Map a Key to an Action",
                 content:
-                  "Once the hook exists, it can be used everywhere:\n\n// Agent page\nconst [conversations, setConversations] = useLocalStorage('agentConversations', []);\nconst [status, setStatus] = useLocalStorage('agentStatus', 'active');\n\n// Support page\nconst [messages, setMessages] = useLocalStorage('supportMessages', []);\n\nEach page gets its own isolated key, so data doesn't collide.",
-                order: 5,
-              },
-              {
-                title: "Practice Lab: Safe Storage Reader",
-                content:
-                  "Practice writing a function that returns a stored value or a safe default.",
+                  "Practice the small pure function that turns a keyboard event into the action the page should take.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement getStoredOrDefault(key, initialValue) returning initialValue. For this lab, return the parameter.",
+                    "Implement shortcutAction(event) returning the action for a keyboard event. Return 'next' for ArrowDown, 'prev' for ArrowUp, 'send' for Enter with ctrlKey true, 'clear' for Escape, and null for anything else.\n\nExamples: shortcutAction({ key: 'ArrowUp' }) -> 'prev'.",
                   language: "javascript",
                   starter_code:
-                    "export function getStoredOrDefault(key, initialValue) {\n  // TODO\n}\n",
+                    "export function shortcutAction(event) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "getStoredOrDefault",
+                  entry_point: "shortcutAction",
                   test_cases: [
                     {
-                      input: ["myCounter", 0],
-                      expected: 0,
-                      label: "returns initial value",
+                      input: [{ key: "ArrowDown" }],
+                      expected: "next",
+                      label: "arrow down selects the next conversation",
                     },
                     {
-                      input: ["myCounter", 5],
-                      expected: 5,
-                      label: "returns custom initial value",
+                      input: [{ key: "ArrowUp" }],
+                      expected: "prev",
+                      label: "arrow up selects the previous conversation",
+                    },
+                    {
+                      input: [{ key: "Enter", ctrlKey: true }],
+                      expected: "send",
+                      label: "ctrl plus enter sends",
+                    },
+                    {
+                      input: [{ key: "Escape" }],
+                      expected: "clear",
+                      label: "escape clears the draft",
+                    },
+                    {
+                      input: [{ key: "Enter" }],
+                      expected: null,
+                      label: "plain enter is not a shortcut",
                     },
                   ],
-                
                   hints: [
-    "Return parameter as-is.",
-    "Break this into smaller steps. What is the first transformation your input needs to become the output? Apply it, then think about the next step.",
-    "return ___;"
-  ],
+                    "Check the navigation keys first, then the composer keys.",
+                    "if (event.key === 'ArrowDown') return 'next'; if (event.key === 'ArrowUp') return 'prev'; if (event.key === 'Enter' && event.ctrlKey) return 'send'; if (event.key === 'Escape') return 'clear'; return null;",
+                    "if (event.key === 'ArrowDown') return 'next'; if (event.key === 'ArrowUp') return 'prev'; if (event.key === 'Enter' && event.___) return 'send'; if (event.key === '___') return 'clear'; return null;",
+                  ],
                 },
-                order: 6,
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "A reusable useLocalStorage hook is a small infrastructure investment with immediate payoff. Every page that needs persistence can share the same logic, and data survives reloads.",
-                order: 7,
+                  "Comparing `event.key` in one handler per surface keeps navigation and composing from interfering with each other. Escape clearing without sending is what makes Ctrl+Enter safe to press by habit.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Create `src/hooks/useLocalStorage.ts` exporting `useLocalStorage<T>(key, initialValue): [T, (v: T) => void]` that hydrates on mount and persists on set.",
+                description:
+                  "Work in `src/app/agent/page.tsx`: one `keydown` handler on `document.body` moves the selection, another on the message input handles the composer",
                 order: 1,
               },
               {
-                description: "Persist `agentConversations` and `agentStatus` in `src/app/agent/page.tsx`.",
+                description:
+                  "The easy mistake here: comparing `event.code` instead of `event.key`, or letting a plain `Enter` send, since only `Enter` with `ctrlKey` counts",
                 order: 2,
               },
               {
-                description: "Persist `supportMessages` in `src/app/support/page.tsx`.",
+                description:
+                  "Self-check: `ArrowDown` then `ArrowUp` brings the heading back to the first name, `Ctrl+Enter` empties the box, and `Escape` adds nothing",
                 order: 3,
               },
             ],
@@ -948,24 +1211,22 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "`src/hooks/useLocalStorage.ts` exists and matches the documented signature",
+                description:
+                  "Press ArrowDown on the page body to change the selected customer heading, then press ArrowUp to return to the original name",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Agent conversations and agent status are persisted under `agentConversations` / `agentStatus`",
+                description:
+                  "Press Ctrl+Enter on the message input (placeholder 'Type your response...') to send a message matching 'looking into it now' and clear the input",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Support chat messages are persisted under `supportMessages`",
+                description:
+                  "Press Escape on the message input to clear a half-written draft to empty string",
                 is_required: true,
                 order: 3,
-              },
-              {
-                description: "All three values survive a page reload",
-                is_required: true,
-                order: 4,
               },
             ],
           },
@@ -975,70 +1236,129 @@ export const levels = [
   },
   {
     id: "nextjs-shadcn-ui-scenario-2-level-5",
-    title: "The Unread Badge Crisis",
-    subtitle: "Fix the unread badge bug and ship date utilities + docs",
+    title: "Ship-Ready Dashboard and Documentation",
+    subtitle: "Gate replies on agent status, reset unread badges, and export transcripts",
     order: 5,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: Agents report the unread badge stays red after they click into a conversation, and that the count doesn't match the underlying messages. They also want timestamps shown as 'Just now' / '5m ago' instead of raw times. Fix the unread state drift, build a reusable `dateUtils` module, and update the README so the next developer can onboard quickly.",
+      "Mission Briefing: QA found two dashboard bugs that only show up in use. An agent set to offline can still type and send, and the unread badge never clears when a conversation is opened, which also leaves the priority sort stale. Fix both in `src/app/agent/page.tsx`, then add `src/lib/transcript.ts` with an export button, and replace the boilerplate `README.md` with real project docs.",
     xp_reward: 75,
     coin_reward: 200,
     key_takeaways:
-      "When the same value is mirrored across two pieces of state (`conversations[i].unreadCount` and `selectedConversation.unreadCount`), forgetting to update both causes 'phantom' UI bugs that look like rendering issues but are really state-sync issues. The fix is to update every copy together — or, better, derive one from the other.\n\nCentralizing date formatting in a `dateUtils` module makes timestamp behavior consistent across pages and provides a single place to handle invalid input safely. Keeping the README current with project overview, credentials, dev commands, and routes is what makes a codebase actually onboardable.",
+      "Mirrored state drifts when only one copy is updated, so clearing `unreadCount` has to write back into the `conversations` array as well as the selected conversation.\n\nGating the input and the send button on `agentStatus` is what makes the status selector real, and the notice tells the agent why the composer is disabled.\n\n`formatTranscript` has to return a string for every conversation, including one with no messages.",
     scenario_id: "nextjs-shadcn-ui-scenario-2",
     tasks: {
       create: [
         {
-          task_name: "Fix Unread Count Bug",
+          task_name: "Fix the Offline Gate and the Stale Unread Badge",
           test_type: "both",
           user_story:
-            "As an agent, I want the unread badge to clear when I click a conversation and the header counts to stay accurate so that the dashboard reflects reality.",
+            "As a team lead, I want an offline agent blocked from replying and unread badges cleared on open so that the dashboard reflects what has actually been handled.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nState Synchronization Bugs",
+                title: "Overview\nTwo Interacting Bugs",
                 content:
-                  "This section introduces the crash course for debugging state synchronization bugs. It explains why mirrored state causes phantom UI issues and how to fix them.",
+                  "This section walks through two fixes in `src/app/agent/page.tsx`. Bug A: the status selector is cosmetic, so an agent set to offline can still type and send. Bug B: clicking a conversation never resets `unreadCount`, so the red badge stays forever. Because unread count feeds the Level 3 priority score, the reset has to update the `conversations` array itself.",
                 order: 1,
               },
               {
-                title: "The Mirrored State Problem",
+                title: "Bug A: Gating the Composer",
                 content:
-                  "When the same value lives in two places, they can drift:\n\nconst [conversations, setConversations] = useState([...]);\nconst [selected, setSelected] = useState(null);\n\n// Clicking a conversation should clear its unread count\n// Both arrays must be kept in sync, or the list badge stays red\n\nThe fix is to update every copy of the value in the same event handler, or derive one from the other.",
+                  "The status selector already stores `online`, `away` or `offline`. Bind `disabled` on the input and on the send button to that state, and explain it instead of leaving the agent guessing:\n\nconst offline = agentStatus === 'offline';\n\n<Input disabled={offline} placeholder=\"Type your response...\" />\n<Button disabled={offline}><Send /></Button>\n{offline && <p>Set your status to online to reply</p>}\n\nSwitching back to online clears both the `disabled` flag and the notice.",
                 order: 2,
               },
               {
-                title: "Updating Both Copies",
+                title: "Bug B: Mirrored State",
                 content:
-                  "When the agent clicks a conversation, clear unreadCount in both the list and the selected item:\n\nconst handleClick = (conversation) => {\n  const cleared = { ...conversation, unreadCount: 0 };\n  setSelected(cleared);\n  setConversations(prev =>\n    prev.map(c => c.id === conversation.id ? cleared : c)\n  );\n};\n\nThis guarantees both UI regions reflect the same truth.",
+                  "`selectedConversation` holds a copy of one object from `conversations`. Resetting `unreadCount` on the copy alone leaves the list row showing the old number. Reset it in the array, then re-derive the selection from the updated array:\n\nconst opened = { ...conv, unreadCount: 0 };\nsetConversations((prev) => prev.map((c) => (c.id === conv.id ? opened : c)));\nsetSelectedConversation(opened);\n\nOnly the clicked conversation changes, so Maria Garcia opening leaves John Smith on 2.",
                 order: 3,
               },
               {
-                title: "Keeping Derived Counts Accurate",
+                title: "Why the Badge Number Matters",
                 content:
-                  "The header counts (active, waiting, resolved) should be derived from the same source of truth. If they are computed from a separate state slice, they can drift too. Use useMemo on the conversations array so the counts always reflect the latest state.",
+                  "The badge is the seeded `unreadCount` rendered as its own text node, so a row for John Smith starts at 2 and a row for Maria Garcia shows nothing at 0. Rendering `{conv.unreadCount}` inside a conditional keeps 0 hidden without hardcoding a value per row.",
                 order: 4,
+              },
+              {
+                title: "Practice Lab: Reset One Count",
+                content:
+                  "Practice the pure update that resets one conversation's unread count and leaves the rest untouched.",
+                section_type: "INTERACTIVE" as const,
+                interactive_mode: "CODE_EDITOR" as const,
+                interactive_config: {
+                  instructions:
+                    "Implement markAsRead(conversations, id) returning a new array where the conversation with that id has unreadCount 0 and every other conversation is unchanged.\n\nExamples: markAsRead([{ id: '1', unreadCount: 2 }], '1') -> [{ id: '1', unreadCount: 0 }].",
+                  language: "javascript",
+                  starter_code:
+                    "export function markAsRead(conversations, id) {\n  // TODO\n}\n",
+                  editable_regions: [
+                    {
+                      placeholder: "// TODO",
+                      case_sensitive: true,
+                    },
+                  ],
+                  entry_point: "markAsRead",
+                  test_cases: [
+                    {
+                      input: [
+                        [
+                          { id: "1", unreadCount: 2 },
+                          { id: "2", unreadCount: 0 },
+                        ],
+                        "1",
+                      ],
+                      expected: [
+                        { id: "1", unreadCount: 0 },
+                        { id: "2", unreadCount: 0 },
+                      ],
+                      label: "resets the clicked conversation",
+                    },
+                    {
+                      input: [
+                        [
+                          { id: "1", unreadCount: 2 },
+                          { id: "2", unreadCount: 0 },
+                        ],
+                        "2",
+                      ],
+                      expected: [
+                        { id: "1", unreadCount: 2 },
+                        { id: "2", unreadCount: 0 },
+                      ],
+                      label: "leaves other counts alone",
+                    },
+                  ],
+                  hints: [
+                    "Map over the array and spread the matching object with a zero count.",
+                    "return conversations.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c));",
+                    "return conversations.map((c) => (c.___ === id ? { ...c, unreadCount: ___ } : c));",
+                  ],
+                },
+                order: 5,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Phantom UI bugs are usually state-sync bugs. When the same value appears in two places, both should be updated in the same handler, or one should be derived from the other. They should never be allowed to drift.",
-                order: 5,
+                  "A control that does not gate anything is worse than no control, because the agent believes it is offline while still sending. Updating the array rather than a snapshot keeps the badge, the priority sort, and the SLA state in agreement.",
+                order: 6,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "When the agent clicks a conversation in `src/app/agent/page.tsx`, set its `unreadCount` to 0 immediately.",
+                description:
+                  "In `src/app/agent/page.tsx`, gate the input and the send button on `agentStatus`, and show a notice while the status is `offline` that says how to reply",
                 order: 1,
               },
               {
-                description: "Update both `conversations` state and `selectedConversation` state so they stay in sync.",
+                description:
+                  "The second bug is in the row click handler: opening a conversation has to clear its unread count, not just re-select it",
                 order: 2,
               },
               {
-                description: "Verify the header active/waiting/resolved counts (from Level 2's useMemo) still update correctly when a conversation is resolved.",
+                description:
+                  "Same file: on open, reset `unreadCount` in the `conversations` array itself, not only on the selected copy, or the John Smith row keeps its `2`",
                 order: 3,
               },
             ],
@@ -1047,144 +1367,191 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Clicking a conversation clears its unread count to 0",
+                description:
+                  "Verify the message input (placeholder 'Type your response...') is enabled by default with no 'Set your status to online to reply' notice",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Conversation list and selectedConversation stay in sync after click and after status change",
+                description:
+                  "Change the status selector to 'offline' and verify the input and send button become disabled",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Header active/waiting/resolved counts update correctly when a conversation is resolved",
+                description:
+                  "Verify the 'Set your status to online to reply' notice appears when status is offline",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "Change the status back to 'online' and verify the input is enabled again and the notice disappears",
+                is_required: true,
+                order: 4,
+              },
+              {
+                description:
+                  "Verify the John Smith row shows unread count '2' before opening any conversation",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Click the John Smith row and verify the unread count '2' is removed from that row",
+                is_required: true,
+                order: 6,
+              },
+              {
+                description:
+                  "Click the Maria Garcia row and verify the John Smith row still shows unread count '2'",
+                is_required: true,
+                order: 7,
               },
             ],
           },
         },
         {
-          task_name: "Date Utilities & Documentation",
+          task_name: "Transcript Export and Project README",
           test_type: "both",
           user_story:
-            "As a developer, I want reusable date utilities and a current README so that future contributors can onboard quickly.",
+            "As an agent, I want to export the open conversation as a readable transcript so that I can attach it to a case, and as a new contributor I want a README that explains how to run the portal.",
           learning_sections: {
             create: [
               {
-                title: "Overview\nDate Utilities and Documentation",
+                title: "Overview\nTranscript Formatting and Docs",
                 content:
-                  "This section introduces the crash course for building reusable date utilities and keeping documentation current. It covers relative time formatting, safe defaults, and README structure.",
+                  "This section walks through building `src/lib/transcript.ts` with `formatTranscript`, adding an `Export Transcript` button to `src/app/agent/page.tsx`, and rewriting `README.md`. A conversation has `customer.fullName`, `status`, and `messages` whose entries carry `role`, `content`, and `timestamp`.",
                 order: 1,
               },
               {
-                title: "Relative Time Formatting",
+                title: "Building the Transcript String",
                 content:
-                  "Users prefer '5m ago' over '2026-06-10T14:30:00Z'. Implement a helper that converts a timestamp to a human-friendly string:\n\nexport function formatRelativeTime(date: string): string {\n  const diff = Date.now() - new Date(date).getTime();\n  const minutes = Math.floor(diff / 60000);\n  if (minutes < 1) return 'Just now';\n  if (minutes < 60) return `${minutes}m ago`;\n  const hours = Math.floor(minutes / 60);\n  if (hours < 24) return `${hours}h ago`;\n  return new Date(date).toLocaleDateString();\n}\n\nThis makes timestamps scannable.",
+                  "The output is one plain string: a header naming the customer, then one line per message with its role and content. Joining with newlines keeps it readable and keeps the function pure:\n\nexport function formatTranscript(conversation) {\n  const lines = [`Transcript for ${conversation.customer.fullName}`];\n  for (const message of conversation.messages) {\n    lines.push(`${message.role}: ${message.content}`);\n  }\n  return lines.join('\\n');\n}\n\nRole names `customer` and `agent` come straight from the message `role`, so both appear in the output.",
                 order: 2,
               },
               {
-                title: "Safe Defaults",
+                title: "Never Throwing on Empty Input",
                 content:
-                  "Safe values should always be returned for invalid input:\n\nexport function formatRelativeTime(date: string): string {\n  if (!date) return '';\n  ...\n}\n\nThis prevents crashes when the input is missing or malformed.",
+                  "A conversation with `messages: []` must still return a string rather than throwing or returning `undefined`. Starting the lines array with the header line guarantees a string in every case:\n\nformatTranscript({ customer: { fullName: 'Empty Case' }, status: 'active', messages: [] })\n// Transcript for Empty Case",
                 order: 3,
               },
               {
-                title: "README Structure",
+                title: "The Export Button",
                 content:
-                  "A good README should include:\n\n• Project overview (what it does, who it's for)\n• Demo credentials (if any)\n• Dev workflow (pnpm install, pnpm run dev)\n• Route list (what pages exist)\n• Key utilities and how to use them\n\nKeep it current — outdated documentation is worse than no documentation.",
+                  "Import `formatTranscript` from `@/lib/transcript` and render one button whose accessible name matches `/export transcript/i`, so the export affordance is found by name alone:\n\n<Button onClick={() => downloadTranscript(selectedConversation)}>\n  Export Transcript\n</Button>\n\nThe button sits with the other conversation actions, so it acts on the open conversation, and the click feeds that conversation through `formatTranscript`.",
                 order: 4,
               },
               {
-                title: "Practice Lab: Relative Time",
+                title: "Writing the README",
                 content:
-                  "Practice writing a relative time formatter.",
+                  "Replace the create-next-app boilerplate with the facts a new contributor needs: what the project is for City Hall, the demo credentials `admin` and `admin123`, the routes `/support` and `/agent`, and the commands to install and run. A README under 400 characters is still boilerplate; the checked content has to name the project, the credentials, and both routes.",
+                order: 5,
+              },
+              {
+                title: "Practice Lab: Format One Line",
+                content:
+                  "Practice the single line formatting that `formatTranscript` repeats for every message.",
                 section_type: "INTERACTIVE" as const,
                 interactive_mode: "CODE_EDITOR" as const,
                 interactive_config: {
                   instructions:
-                    "Implement formatRelativeTime(date): <60s→\"Just now\", <60m→\"Xm ago\", <24h→\"Xh ago\".",
+                    "Implement transcriptLine(role, content) returning one transcript line for a message: the role, a colon, a single space, then the content.\n\nExamples: transcriptLine('customer', 'My streetlight is out.') -> 'customer: My streetlight is out.'.",
                   language: "javascript",
                   starter_code:
-                    "export function formatRelativeTime(date) {\n  // TODO\n}\n",
+                    "export function transcriptLine(role, content) {\n  // TODO\n}\n",
                   editable_regions: [
                     {
                       placeholder: "// TODO",
                       case_sensitive: true,
                     },
                   ],
-                  entry_point: "formatRelativeTime",
+                  entry_point: "transcriptLine",
                   test_cases: [
                     {
-                      input: [new Date(Date.now() - 30 * 1000).toISOString()],
-                      expected: "Just now",
-                      label: "just now",
+                      input: ["customer", "My streetlight is out."],
+                      expected: "customer: My streetlight is out.",
+                      label: "customer line",
                     },
                     {
-                      input: [new Date(Date.now() - 5 * 60 * 1000).toISOString()],
-                      expected: "5m ago",
-                      label: "five minutes ago",
+                      input: ["agent", "I have logged a repair ticket."],
+                      expected: "agent: I have logged a repair ticket.",
+                      label: "agent line",
                     },
                   ],
-                
                   hints: [
-                    "Compute elapsed ms, convert to appropriate unit.",
-                    "const e=Date.now()-new Date(date).getTime(); if(e<60000)return\"Just now\"; if(e<3600000)return`${Math.floor(e/60000)}m ago`; return`${Math.floor(e/3600000)}h ago`;",
-                    "const e=Date.now()-new Date(date).getTime(); if(e<___)return\"Just now\"; ..."
+                    "Concatenate the two parts with a colon and a space.",
+                    "return `${role}: ${content}`;",
+                    "return `${___}: ${___}`;",
                   ],
                 },
-                order: 5,
+                order: 6,
               },
               {
                 title: "Key Takeaway",
                 content:
-                  "Relative time formatting makes UIs feel alive. Safe defaults prevent crashes. A current README is the fastest way to onboard the next developer.",
-                order: 6,
+                  "A transcript is just a formatted string, so it can be logged, copied, or downloaded without a second data model. Handling the empty case is what keeps an export button from throwing on a brand new conversation.",
+                order: 7,
               },
             ],
           },
           hints: {
             create: [
               {
-                description: "Create `src/lib/dateUtils.ts` with `formatRelativeTime`, `isStale`, and `formatTimestamp`.",
+                description:
+                  "In `src/lib/transcript.ts`, export `formatTranscript`: a header naming `customer.fullName`, one line per message, a string even for `messages: []`",
                 order: 1,
               },
               {
-                description: "All three functions must return safe values for invalid input ('' for strings, false for `isStale`).",
+                description:
+                  "On `src/app/agent/page.tsx`, import from a path ending in `transcript` and render one `button` whose accessible name matches `/export transcript/i`",
                 order: 2,
               },
               {
-                description: "Replace the inline `formatTime` in `src/app/agent/page.tsx` with `formatRelativeTime` from the new module.",
+                description:
+                  "Same file: replace `README.md` with real docs over 400 characters naming City Hall, the credentials `admin` and `admin123`, and the routes `/support` and `/agent`",
                 order: 3,
-              },
-              {
-                description: "Update README.md with project overview, demo credentials, dev workflow, and route list.",
-                order: 4,
               },
             ],
           },
           order: 2,
-          acceptance_criteria: {
+acceptance_criteria: {
             create: [
               {
-                description: "`src/lib/dateUtils.ts` exports `formatRelativeTime`, `isStale`, `formatTimestamp` with the documented behavior",
+                description:
+                  "Create src/lib/transcript.ts exporting formatTranscript function",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "All three functions return safe values for invalid input",
+                description:
+                  "Verify formatTranscript includes customer name, message contents, and both 'customer' and 'agent' role labels in output",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Agent page uses `formatRelativeTime` instead of the local `formatTime` helper",
+                description:
+                  "Verify formatTranscript returns a string (does not throw) for a conversation with empty messages array",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "README documents project overview, demo credentials, dev workflow, and routes (`/`, `/support`, `/support/history`, `/agent/login`, `/agent`)",
+                description:
+                  "Import transcript functions from a path ending in 'transcript' in the agent dashboard",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Add an 'Export Transcript' button to the agent dashboard",
+                is_required: true,
+                order: 5,
+              },
+              {
+                description:
+                  "Replace README.md with project documentation over 400 characters naming City Hall, the demo credentials 'admin' and 'admin123', and the routes /support and /agent",
+                is_required: true,
+                order: 6,
               },
             ],
           },

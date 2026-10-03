@@ -124,9 +124,13 @@
     }
   }
 
-  function handleTourOpenTaskModal() {
+  function handleTourOpenTaskModal(event: Event) {
     if (kanbanTasks.length === 0) return;
-    openTaskDetails(kanbanTasks[0].id);
+    const order = (event as CustomEvent<{ order?: number }>).detail?.order;
+    const targetTask = order
+      ? kanbanTasks.find((t) => t.order === order)
+      : undefined;
+    openTaskDetails(targetTask?.id ?? kanbanTasks[0].id);
   }
 
   function handleTourCloseTaskModal() {

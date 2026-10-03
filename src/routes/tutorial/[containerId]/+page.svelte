@@ -36,7 +36,7 @@
   import type { ITask } from "$lib/types";
   import type { TestableTask, TestRunResult } from "$lib/types/test";
   import type { PageData } from "./$types";
-  import { isBackendStack } from "$lib/utils/stacks";
+  import { isBackendStack, getStackType } from "$lib/utils/stacks";
   import { toFriendlyBootError } from "$lib/utils/bootError";
 
   export let data: PageData;
@@ -142,6 +142,8 @@
             : /pern|react|express|postgres|prisma/.test(normalizedTutorialStack)
               ? "pern"
               : "none";
+
+  const stackType = getStackType(tutorialLaunchContext.stackName || data.container?.stackName || null);
 
   let activeTab: "editor" | "terminal" | "preview" | "board" = "editor";
   let isDownloading = false;
@@ -985,6 +987,7 @@
     {fileContents}
     existingFiles={fileTree}
     tutorialMode={true}
+    {stackType}
     on:submitted={handleSubmitted}
   />
 

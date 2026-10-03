@@ -15,7 +15,6 @@ export const levels = [
       subtitle:
         "Set up the development environment and make a minor brand UI change.",
       order: 1,
-      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: UrbanPottery has just onboarded a new developer. Get the PERN stack running locally — install dependencies in all three package roots, run Prisma migrations, start both dev servers, and update the brand name in the Navbar to match the official style guide.",
       xp_reward: 100,
@@ -111,18 +110,24 @@ export const levels = [
               create: [
                 {
                   description:
-                    "There are three directories that each contain a package.json — you must run pnpm install in all three (root, client/, server/).",
+                    "Run `pnpm install` in all three directories that have a `package.json` (root, client/, server/).",
                   order: 1,
                 },
+              
                 {
                   description:
-                    "Check the README for the required environment variables and create a .env file inside server/ before running migrations.",
-                  order: 2,
+                    "From `server/`, run `pnpm exec prisma migrate deploy --schema prisma/schema.prisma` to apply the schema, then run `prisma migrate status` and confirm `Database schema is up to date`.",
+                  order: 3,
                 },
                 {
                   description:
-                    "After installing server dependencies, run `pnpm exec prisma migrate dev` inside the server/ directory to apply the schema.",
-                  order: 3,
+                    "From `server/`, run `pnpm exec tsx scripts/db-check.ts` — it must exit 0 and print `DB_OK`.",
+                  order: 4,
+                },
+                {
+                  description:
+                    "Start the backend with `pnpm run dev` in `server/` (PORT=5052) and confirm `GET /api/health` returns HTTP 200 with `ok` in the body. Start the client with `pnpm run dev` in `client/` (PORT=3000) and confirm the served HTML contains `<div id=\"root\">`.",
+                  order: 5,
                 },
               ],
             },
@@ -131,21 +136,45 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Dependencies installed in root, client/, and server/ without errors",
+                    "Install dependencies in the project root.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Prisma migrations executed successfully (schema applied to PostgreSQL)",
+                    "Install dependencies in the client folder.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Both client (port 5173) and server (port 5000) start without errors",
+                    "Install dependencies in the server folder.",
                   is_required: true,
                   order: 3,
+                },
+                {
+                  description:
+                    "Run the database connectivity check from the server folder.",
+                  is_required: true,
+                  order: 4,
+                },
+                {
+                  description:
+                    "Apply database migrations from the server folder.",
+                  is_required: true,
+                  order: 5,
+                },
+                {
+                  description:
+                    "Start the backend server on port 5052.",
+                  is_required: true,
+                  order: 6,
+                },
+                {
+                  description:
+                    "Start the frontend development server on port 3000 using pnpm run dev.",
+                  is_required: true,
+                  order: 7,
                 },
               ],
             },
@@ -239,12 +268,12 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Open client/src/components/layout/Navbar.tsx and search for the current brand text — it is a hardcoded string inside a <span> element near the logo.",
+                    "Open `client/src/components/layout/Navbar.tsx` and find the hardcoded brand string inside a `<span>` near the logo.",
                   order: 1,
                 },
                 {
                   description:
-                    "The acceptance criteria specifies the exact string — copy it character-for-character including spaces and capitalisation.",
+                    "Replace it with the exact string `UrbanPottery Artisan Ceramics` — copy it character-for-character including spaces and capitalisation.",
                   order: 2,
                 },
                 {
@@ -259,15 +288,21 @@ export const levels = [
               create: [
                 {
                   description:
-                    'Navbar brand text is exactly "UrbanPottery Artisan Ceramics"',
+                    "The Navbar component file exists at client/src/components/layout/Navbar.tsx.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Brand renders correctly on desktop and mobile viewports",
+                    "The Navbar component contains the exact brand string 'UrbanPottery Artisan Ceramics'.",
                   is_required: true,
                   order: 2,
+                },
+                {
+                  description:
+                    "The brand string appears in the JSX markup and is rendered (not hidden in a comment).",
+                  is_required: true,
+                  order: 3,
                 },
               ],
             },
@@ -280,7 +315,6 @@ export const levels = [
       title: "Client-Side Exploration",
       subtitle: "Build a stock status helper and adopt it across the UI.",
       order: 2,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: The shop page uses duplicate inline stock checks scattered across components. Your job is to create a shared getStockStatus helper that returns a 3-state enum, then refactor ProductCard to use it and add a 'Hide out-of-stock' toggle on the Shop page.",
       xp_reward: 25,
@@ -390,17 +424,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Add the function to client/src/utils/formatters.ts and export it — you do not need a new file.",
+                    "Add `getStockStatus` to `client/src/utils/formatters.ts` and export it — no new file needed.",
                   order: 1,
                 },
                 {
                   description:
-                    "Pay close attention to the boundary values: stock === 0 must be OUT_OF_STOCK, stock === 1 must be LOW_STOCK, stock === 5 must be LOW_STOCK, and stock === 6 must be IN_STOCK.",
+                    "The boundaries are: stock ≤ 0 → `OUT_OF_STOCK`; 1–5 → `LOW_STOCK`; > 5 → `IN_STOCK`. Values 0, 1, 5, 6 must return the correct bucket.",
                   order: 2,
                 },
                 {
                   description:
-                    "Make sure the function is also re-exported from client/src/utils/index.ts so other files can import it via '../utils'.",
+                    "Re-export the function from `client/src/utils/index.ts` so it can be imported via `'../utils'`.",
                   order: 3,
                 },
               ],
@@ -410,34 +444,37 @@ export const levels = [
               create: [
                 {
                   description:
-                    "getStockStatus is exported from client/src/utils/formatters.ts",
+                    "Export a getStockStatus function from client/src/utils/formatters.ts.",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "Returns 'OUT_OF_STOCK' for stock <= 0",
+                  description:
+                    "The function returns 'OUT_OF_STOCK' for stock values less than or equal to 0.",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "Returns 'LOW_STOCK' for stock 1..5 (inclusive)",
+                  description:
+                    "The function returns 'LOW_STOCK' for stock values 1 through 5 (inclusive).",
                   is_required: true,
                   order: 3,
                 },
                 {
-                  description: "Returns 'IN_STOCK' for stock > 5",
+                  description:
+                    "The function returns 'IN_STOCK' for stock values greater than 5.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Boundary values 0, 1, 5, 6 all return the correct bucket",
+                    "Boundary values 0, 1, 5, and 6 all return the correct classification.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Function is pure — same input always returns same output",
+                    "The function is pure — calling it multiple times with the same input always returns the same output.",
                   is_required: true,
                   order: 6,
                 },
@@ -545,17 +582,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "In ProductCard.tsx, replace the two isOutOfStock and isLowStock const declarations with a single getStockStatus call, then derive the booleans from the returned status string.",
+                    "In `ProductCard.tsx`, replace the inline `isOutOfStock` and `isLowStock` checks with a single `getStockStatus` call and derive the booleans from the returned status.",
                   order: 1,
                 },
                 {
                   description:
-                    "In Shop.tsx, add a useState for hideOutOfStock (default false), a filter step that calls getStockStatus, and a visible toggle button or checkbox in the filter card.",
+                    "In `Shop.tsx`, add a `hideOutOfStock` state, filter products using `getStockStatus`, and render a visible toggle labeled `Hide out-of-stock`.",
                   order: 2,
                 },
                 {
                   description:
-                    "Make sure importing getStockStatus in Shop.tsx comes from '../utils' (via the re-export) — not directly from '../utils/formatters'.",
+                    "Import `getStockStatus` from `'../utils'` (via the re-export), not directly from `'../utils/formatters'`.",
                   order: 3,
                 },
               ],
@@ -565,31 +602,31 @@ export const levels = [
               create: [
                 {
                   description:
-                    "ProductCard.tsx imports and uses getStockStatus instead of inline comparisons",
+                    "ProductCard.tsx imports getStockStatus and uses it to determine the stock badge.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Shop.tsx imports and uses getStockStatus for the out-of-stock filter",
+                    "ProductCard.tsx contains no raw inline stock comparisons (no 'product.stock === 0' or 'product.stock <= 5').",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "A 'Hide out-of-stock' toggle is visible on the Shop page",
+                    "Shop.tsx imports getStockStatus and uses it for the out-of-stock filter.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Toggle filters OUT_OF_STOCK products from the grid when active",
+                    "Shop.tsx declares a boolean state for hiding out-of-stock items and renders a visible toggle labeled 'Hide out-of-stock'.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "Existing search and category filters still work after refactor",
+                    "When the toggle is active, products whose getStockStatus returns OUT_OF_STOCK are filtered out of the grid.",
                   is_required: true,
                   order: 5,
                 },
@@ -605,7 +642,6 @@ export const levels = [
       subtitle:
         "Diagnose the cancel-flow stock leak and enforce atomic operations.",
       order: 3,
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Finance reports that cancelled orders are not restoring product stock — meaning the warehouse counts are wrong. Diagnose the missing restore in the PATCH /orders/:id/status route, then implement an atomic cancelOrder function with a new cancelledAt timestamp field and a concurrency guard at checkout.",
       xp_reward: 40,
@@ -710,17 +746,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Read the PATCH /:id/status handler in server/src/routes/orders.ts — count the Prisma calls. If there is only one (order.update), that is the bug.",
+                    "Read the `PATCH /:id/status` handler in the orders route — if it only calls `order.update`, the stock restore is missing.",
                   order: 1,
                 },
                 {
                   description:
-                    "Check the POST /orders checkout path — the stock check (findMany) and the stock decrement (update) are in separate steps with no guard condition.",
+                    "Check the `POST /orders` checkout path — the stock check and decrement are separate steps.",
                   order: 2,
                 },
                 {
                   description:
-                    "Create server/src/controllers/order.controller.ts with an exported cancelOrder function to house the fix — the tests import from that exact path.",
+                    "Create an `order.controller.ts` with an exported `cancelOrder` function — the tests import from that exact path.",
                   order: 3,
                 },
               ],
@@ -730,25 +766,25 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/src/controllers/order.controller.ts exists and exports cancelOrder",
+                    "Create server/src/controllers/order.controller.ts that exports a cancelOrder function.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "cancelOrder references cancelledAt (documents where the timestamp will live)",
+                    "The PATCH /orders/:id/status handler in server/src/routes/orders.ts does not skip stock restore — it references cancelOrder or contains stock-restore logic.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "schema.prisma Order model includes cancelledAt field",
+                    "The order.controller.ts file references cancelledAt (the cancellation timestamp the fix will set).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Problematic cancel path (no stock restore) is identified and documented",
+                    "The Order model in server/prisma/schema.prisma includes a cancelledAt field.",
                   is_required: true,
                   order: 4,
                 },
@@ -852,17 +888,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Add cancelledAt DateTime? to the Order model in schema.prisma and run prisma migrate dev before implementing the controller.",
+                    "Add `cancelledAt DateTime?` to the Order model in `schema.prisma` and run `prisma migrate dev` before implementing the controller.",
                   order: 1,
                 },
                 {
                   description:
-                    "Inside the $transaction callback, query for the order's items first, then loop through them calling tx.product.update with { stock: { increment: item.quantity } }.",
+                    "Inside the `$transaction` callback, query the order's items, then loop through them calling `tx.product.update` with `{ stock: { increment: item.quantity } }`.",
                   order: 2,
                 },
                 {
                   description:
-                    "In the POST /orders checkout handler, replace the standalone product.update with product.updateMany and include a where condition: { stock: { gte: item.quantity } }. If count === 0, throw an insufficient-stock error.",
+                    "In the `POST /orders` checkout handler, replace the standalone `product.update` with `product.updateMany` and a `where` condition: `{ stock: { gte: item.quantity } }`. If count === 0, throw an insufficient-stock error.",
                   order: 3,
                 },
               ],
@@ -872,36 +908,37 @@ export const levels = [
               create: [
                 {
                   description:
-                    "schema.prisma Order model has cancelledAt DateTime? field",
+                    "The Order model in server/prisma/schema.prisma declares a nullable cancelledAt DateTime? field.",
                   is_required: true,
                   order: 1,
                 },
                 {
-                  description: "cancelOrder uses prisma.$transaction",
+                  description:
+                    "The cancelOrder function in order.controller.ts wraps its writes in a Prisma transaction.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "cancelOrder sets cancelledAt: new Date() on the order",
+                    "The cancelOrder function sets cancelledAt to the current date/time on the order.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "cancelOrder increments Product.stock for each OrderItem",
+                    "The cancelOrder function restores stock by incrementing Product.stock for each OrderItem.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "cancelOrder only allows cancellation from PENDING or PROCESSING status",
+                    "The cancelOrder function only allows cancellation when the order status is PENDING or PROCESSING.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "POST /api/orders checkout uses updateMany with stock gte guard",
+                    "The POST /api/orders checkout handler uses product.updateMany with a stock guard condition (gte: quantity).",
                   is_required: true,
                   order: 6,
                 },
@@ -916,7 +953,6 @@ export const levels = [
       title: "Starting my Full-Stack Journey",
       subtitle: "Implement Coupon / Discount Codes end-to-end.",
       order: 4,
-      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Marketing wants a coupon system. Build the Coupon model, a validate endpoint, extend order creation to apply discounts, add coupon input UI to Checkout, and enforce usage limits + expiry atomically — including decrementing usedCount on order cancellation.",
       xp_reward: 60,
@@ -1063,17 +1099,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Add the Coupon model to server/prisma/schema.prisma with all six required fields, then run `pnpm exec prisma migrate dev` from the server directory.",
+                    "Add the `Coupon` model to `schema.prisma` with all six required fields, then run `pnpm exec prisma migrate dev` from the server directory.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create server/src/controllers/coupon.controller.ts with a validateCoupon function, and server/src/routes/coupons.ts that registers it at POST /validate. Register the coupons router in server/src/routes/index.ts.",
+                    "Create a coupon controller with `validateCoupon`, a coupons route registering `POST /validate`, and mount the router in `index.ts`.",
                   order: 2,
                 },
                 {
                   description:
-                    "In Checkout.tsx, add a useState for couponCode (string) and appliedDiscount (number | null). Call validateCoupon from couponService and update state on success.",
+                    "In `Checkout.tsx`, add state for `couponCode` and `appliedDiscount`, call `validateCoupon` from the coupon service, and update state on success.",
                   order: 3,
                 },
               ],
@@ -1083,43 +1119,43 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Coupon model exists in schema.prisma with all required fields",
+                    "The Coupon model in server/prisma/schema.prisma has the fields: code, discountPercent, maxUses, usedCount, expiresAt, and isActive.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "server/src/controllers/coupon.controller.ts exports validateCoupon",
+                    "Create server/src/controllers/coupon.controller.ts that exports a validateCoupon function.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "server/src/routes/coupons.ts registers POST /validate",
+                    "Create server/src/routes/coupons.ts that registers POST /validate endpoint.",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "POST /api/orders accepts optional couponCode and increments usedCount inside the transaction",
+                    "The POST /api/orders handler accepts an optional couponCode in the body and increments the coupon's usedCount inside the order transaction.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "client/src/services/couponService.ts exports validateCoupon calling POST /api/coupons/validate",
+                    "Create client/src/services/couponService.ts that exports validateCoupon, which POSTs to /api/coupons/validate sending code and subtotal.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Checkout.tsx renders a coupon input field and displays discounted total",
+                    "In client/src/pages/Checkout.tsx, add a coupon code input field, call validateCoupon from the coupon service, and display the discounted total.",
                   is_required: true,
                   order: 6,
                 },
                 {
                   description:
-                    "Invalid / expired / exhausted coupon states are shown in the UI",
+                    "Checkout.tsx renders error states for invalid, expired, and exhausted coupons.",
                   is_required: true,
                   order: 7,
                 },
@@ -1219,17 +1255,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Update the coupon validation in coupon.controller.ts to use updateMany with a usedCount: { lt: maxUses } guard, so two concurrent requests cannot both pass.",
+                    "Update the coupon validation to use `updateMany` with a `usedCount: { lt: maxUses }` guard.",
                   order: 1,
                 },
                 {
                   description:
-                    "Add GET /api/coupons to coupons.ts protected by requireAdmin middleware, and include all usage stats in the response.",
+                    "Add a `GET /api/coupons` admin route protected by `requireAdmin` middleware, returning usage stats including `usedCount` and `maxUses`.",
                   order: 2,
                 },
                 {
                   description:
-                    "In the cancelOrder transaction in order.controller.ts, check if the order has a couponId and if so, decrement the coupon's usedCount inside the same transaction.",
+                    "In the `cancelOrder` transaction, check if the order has a `couponId` and if so, decrement the coupon's `usedCount` inside the same transaction.",
                   order: 3,
                 },
               ],
@@ -1239,36 +1275,37 @@ export const levels = [
               create: [
                 {
                   description:
-                    "coupon.controller.ts enforces usedCount < maxUses guard",
+                    "The coupon controller enforces usedCount < maxUses (file contains both names with a comparison operator between them).",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "coupon.controller.ts enforces expiresAt > now check",
+                    "The coupon controller enforces expiresAt > now (file references expiresAt and current date/time).",
                   is_required: true,
                   order: 2,
                 },
                 {
-                  description: "coupon.controller.ts enforces isActive check",
+                  description:
+                    "The coupon controller enforces the isActive check (file references isActive).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "GET /api/coupons admin route exists with usage stats",
+                    "The coupons route has a GET / admin route that returns usage stats including usedCount and maxUses.",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "cancelOrder decrements usedCount atomically when a coupon was applied",
+                    "The cancelOrder function decrements the coupon's usedCount inside the SAME transaction as the stock restore.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "Admin coupon panel shows code, remaining uses, and expiry",
+                    "An admin coupon panel displays the coupon code, remaining uses (maxUses/usedCount), and expiry date; Checkout.tsx references coupon/discount so coupon state refreshes after cancellation.",
                   is_required: true,
                   order: 6,
                 },
@@ -1283,7 +1320,6 @@ export const levels = [
       title: "The Production Struggle: Sales Revenue Bug",
       subtitle: "Fix the inflated revenue dashboard and write a postmortem.",
       order: 5,
-      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       level_description:
         "Mission Briefing: Finance cannot close the books. The admin Dashboard's total revenue includes cancelled orders, inflating figures. Worse, if an admin manually flips a cancelled order's status back to PENDING, the status field becomes stale — but cancelledAt still holds the truth. Fix the revenue query to use cancelledAt IS NULL as the source of truth, extract it into a shared utility, and write a postmortem.",
       xp_reward: 75,
@@ -1383,17 +1419,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Find the GET /api/orders/stats handler in server/src/routes/orders.ts and add a where: { cancelledAt: null } clause to the findMany call.",
+                    "The revenue query must exclude cancelled orders using `cancelledAt: null` as the filter.",
                   order: 1,
                 },
                 {
                   description:
-                    "Create a test order with cancelledAt set to a past date but status left as 'PENDING' — verify it is excluded from the revenue total after your fix.",
+                    "A stale-status order with `status: 'PENDING'` but `cancelledAt` set must be excluded from revenue. Verify this case works after your fix.",
                   order: 2,
                 },
                 {
                   description:
-                    "Do NOT filter by status: { not: 'CANCELLED' } — a stale PENDING order with cancelledAt set must also be excluded.",
+                    "Do not filter by `status: { not: 'CANCELLED' }` — a stale PENDING order with `cancelledAt` set must also be excluded.",
                   order: 3,
                 },
               ],
@@ -1402,25 +1438,26 @@ export const levels = [
             acceptance_criteria: {
               create: [
                 {
-                  description: "GET /api/orders/stats exists in orders.ts",
+                  description:
+                    "The orders route registers GET /api/orders/stats endpoint.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "Stats WHERE clause uses cancelledAt: null (source-of-truth filter)",
+                    "The stats query filters on cancelledAt: null and does NOT rely solely on status === 'CANCELLED' for revenue exclusion.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "Stale-status orders (cancelledAt set, status PENDING) are excluded from revenue",
+                    "A stale-status order with status 'PENDING' but cancelledAt set is excluded from the revenue total (the cancelledAt: null filter catches it, not the status field).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "Active PENDING and DELIVERED orders (cancelledAt null) are included",
+                    "Revenue is summed only from orders where cancelledAt is null, so active PENDING and DELIVERED orders are included.",
                   is_required: true,
                   order: 4,
                 },
@@ -1537,17 +1574,17 @@ export const levels = [
               create: [
                 {
                   description:
-                    "Create server/src/utils/revenueUtils.ts with an isRevenueEligibleOrder function that takes an object with cancelledAt and returns cancelledAt === null.",
+                    "Extract the revenue predicate into a shared utility that checks `cancelledAt === null` and ignores status. The utility must be pure and testable without a database.",
                   order: 1,
                 },
                 {
                   description:
-                    "Write four test cases: normal cancelled (false), stale-status cancelled (false), active pending (true), delivered (true).",
+                    "Write four regression cases: normal cancelled (false), stale-status cancelled (false), active pending (true), delivered (true).",
                   order: 2,
                 },
                 {
                   description:
-                    "Create server/POSTMORTEM_REVENUE.md with the four required sections: Symptom, Root Cause, Fix, Prevention.",
+                    "Write a postmortem with four sections: Symptom, Root Cause, Fix, Prevention.",
                   order: 3,
                 },
               ],
@@ -1557,37 +1594,37 @@ export const levels = [
               create: [
                 {
                   description:
-                    "server/src/utils/revenueUtils.ts exists and exports isRevenueEligibleOrder",
+                    "Create server/src/utils/revenueUtils.ts that exports an isRevenueEligibleOrder function.",
                   is_required: true,
                   order: 1,
                 },
                 {
                   description:
-                    "isRevenueEligibleOrder(order) returns false when cancelledAt is set",
+                    "isRevenueEligibleOrder returns false for a cancelled order with status 'CANCELLED'.",
                   is_required: true,
                   order: 2,
                 },
                 {
                   description:
-                    "isRevenueEligibleOrder returns false even when status is PENDING (stale-status case)",
+                    "isRevenueEligibleOrder returns false for a stale-status order where cancelledAt is set but status is 'PENDING' (cancelledAt is the source of truth).",
                   is_required: true,
                   order: 3,
                 },
                 {
                   description:
-                    "isRevenueEligibleOrder returns true for active orders (cancelledAt: null)",
+                    "isRevenueEligibleOrder returns true for active orders (cancelledAt: null, status: 'PENDING') and delivered orders (cancelledAt: null, status: 'DELIVERED').",
                   is_required: true,
                   order: 4,
                 },
                 {
                   description:
-                    "server/POSTMORTEM_REVENUE.md exists with Symptom, Root Cause, Fix, and Prevention sections",
+                    "Create server/POSTMORTEM_REVENUE.md with Symptom, Root Cause, Fix, and Prevention sections.",
                   is_required: true,
                   order: 5,
                 },
                 {
                   description:
-                    "orders.ts stats endpoint references revenueUtils or uses cancelledAt: null consistently",
+                    "The orders stats endpoint references the revenueUtils or inlines the cancelledAt: null filter.",
                   is_required: true,
                   order: 6,
                 },

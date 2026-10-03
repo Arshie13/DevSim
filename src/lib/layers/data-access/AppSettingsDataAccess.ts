@@ -5,11 +5,6 @@ const DEFAULT_SETTINGS: Record<string, { value: SettingValue; type: string }> = 
   mastery_checkpoint_enabled: { value: true, type: 'boolean' },
   learner_pass_price: { value: 999, type: 'number' },
   learner_pass_duration_days: { value: 30, type: 'number' },
-  learner_pass_special_unlock_days: { value: [6, 12, 18, 24, 30], type: 'json' },
-  learner_pass_day_to_scenario: {
-    value: { "6": "pern-pos-scenario-3", "12": "mern-tw-scenario-3", "18": "nestjs-pos-scenario-3", "24": "nextjs-postgres-prisma-3", "30": "nextjs-shadcn-ui-scenario-3" },
-    type: 'json'
-  },
 };
 
 function parseValue(value: string, type: string): SettingValue {

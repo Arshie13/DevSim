@@ -38,7 +38,8 @@
   import type { ILevel, ILearningSection } from "$lib/types";
   import { TerminalInitializer } from "$client/TerminalInitializer";
     import type { IInteractiveConfig } from "$lib/types/IContainer";
-  import { toFriendlyBootError } from "$lib/utils/bootError";
+   import { toFriendlyBootError } from "$lib/utils/bootError";
+   import { getStackType } from "$lib/utils/stacks";
 
   let { data}: { data: PageData } = $props();
 
@@ -61,13 +62,13 @@
     );
   }
 
-  let workspaceScenario = $derived(data.scenario ?? null);
-  let stackNames = $derived([...new Set(data.stackName?.split('-').filter(Boolean) ?? [])]);
-  let currentLevelRecord = $derived(getLevelByOrder(data.currentLevel.map((level) => ({
+   let workspaceScenario = $derived(data.scenario ?? null);
+   let stackNames = $derived([...new Set(data.stackName?.split('-').filter(Boolean) ?? [])]);
+   let stackType = $derived(getStackType(data.stackName));
+   let currentLevelRecord = $derived(getLevelByOrder(data.currentLevel.map((level) => ({
     id: level.id,
     title: level.title,
     order: level.order,
-    deadline: level.deadline,
     levelDescription: level.level_description,
     xpReward: level.xp_reward,
     coinReward: level.coin_reward,
@@ -208,7 +209,6 @@
         title,
         stack: stack,
         difficulty,
-        deadline: LEVEL_CONFIG.deadline,
         scenario: currentLevelRecord?.levelDescription ?? workspaceScenario?.description ?? LEVEL_CONFIG.scenario,
         hints: levelHints.length > 0 ? levelHints : LEVEL_CONFIG.hints,
         starterFiles: LEVEL_CONFIG.starterFiles,
@@ -655,14 +655,17 @@
       .sort((a, b) => a.order - b.order)
       .filter((task) => (task.learningSections?.length ?? 0) > 0);
 
-    // Manual open should allow reviewing finished crash courses first.
+    // Prefer the next incomplete crash course task (in-progress or not started)
+    // so that clicking "Open Crash Course" navigates to the task the user is
+    // actually working on, not a previously-completed one.
+    const nextTask = getNextCrashCourseTask();
+    if (nextTask) return nextTask;
+
+    // Fall back to review mode: open the most recently completed task.
     const completedTask = [...crashCourseTasks]
       .reverse()
       .find((task) => crashCourseCompletedByTask[task.id]);
     if (completedTask) return completedTask;
-
-    const nextTask = getNextCrashCourseTask();
-    if (nextTask) return nextTask;
 
     return crashCourseTasks[0];
   }
@@ -1940,22 +1943,23 @@ $effect(() => {
   </div>
 
    <!-- Submit Sprint modal -->
-   <SubmitSprintModal
-     bind:this={submitSprintModal}
-     dbContainerId={containerId}
-     dbWorkspaceId={page.params.containerId}
-     {containerId}
-     {tasks}
-     level={currentLevel}
-     scenarioId={workspaceScenario?.id ?? null}
-     levelXpReward={currentLevelRecord?.xpReward ?? 0}
-     levelCoinReward={currentLevelRecord?.coinReward ?? 0}
-     {fileContents}
-     existingFiles={fileTree}
+    <SubmitSprintModal
+      bind:this={submitSprintModal}
+      dbContainerId={containerId}
+      dbWorkspaceId={page.params.containerId}
+      {containerId}
+      {tasks}
+      level={currentLevel}
+      scenarioId={workspaceScenario?.id ?? null}
+      levelXpReward={currentLevelRecord?.xpReward ?? 0}
+      levelCoinReward={currentLevelRecord?.coinReward ?? 0}
+      {fileContents}
+      existingFiles={fileTree}
       masteryCheckpointEnabled={data.masteryCheckpointEnabled}
+      {stackType}
       onSubmitted={(detail) => handleSubmitted(undefined, detail)}
       on:submitted={handleSubmitted}
-   />
+    />
 
   <!-- Back confirmation modal -->
   <ConfirmationModal

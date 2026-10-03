@@ -3,6 +3,9 @@
   import { Loader2, Plus, Trash2, Edit3, ChevronDown, ChevronRight, Lock, Unlock, Layers, ListTodo, BookOpen, Code, Terminal, FileCode } from "lucide-svelte";
   import type { IInteractiveConfig } from "$lib/types/IContainer";
   import InteractiveConfigEditor from "$lib/components/admin/InteractiveConfigEditor.svelte";
+  import AdminFilterBar from "$lib/components/admin/AdminFilterBar.svelte";
+  import AdminFilterTabs from "$lib/components/admin/AdminFilterTabs.svelte";
+  import AdminSearchInput from "$lib/components/admin/AdminSearchInput.svelte";
   import type { InteractiveMode } from "$lib/utils/interactive-config";
 
   interface Task {
@@ -23,7 +26,6 @@
     subtitle: string;
     order: number;
     sprintNumber: number;
-    deadline: string;
     levelDescription: string;
     xpReward: number;
     coinReward: number;
@@ -73,6 +75,32 @@
   let showCreateLearningSectionForTask: string | null = null;
   let selectedImage = "";
   let manualId = "";
+
+  // Client-side filters over the loaded scenario hierarchy.
+  let search = "";
+  let difficulty = "all";
+  let paywall = "all";
+
+  $: query = search.trim().toLowerCase();
+  $: difficulties = [...new Set(data.scenarios.map((s) => s.difficulty).filter(Boolean))].sort();
+  $: paywalledCount = data.scenarios.filter((s) => s.isPaywalled).length;
+  $: freeCount = data.scenarios.length - paywalledCount;
+  $: hasFilters = query !== "" || difficulty !== "all" || paywall !== "all";
+  $: filteredScenarios = data.scenarios.filter((s) => {
+    if (difficulty !== "all" && s.difficulty !== difficulty) return false;
+    if (paywall === "paywalled" && !s.isPaywalled) return false;
+    if (paywall === "free" && s.isPaywalled) return false;
+    if (!query) return true;
+    return [s.name, s.description, s.difficulty, s.stackName, ...s.levels.map((l) => l.title)]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
+
+  function clearFilters() {
+    search = "";
+    difficulty = "all";
+    paywall = "all";
+  }
 
   $: selectedImageMappedId = data.availableImages.find(i => i.tag === selectedImage)?.mappedId ?? null;
   $: scenarioIdFromImage = selectedImageMappedId || selectedImage;
@@ -247,11 +275,6 @@
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
           </div>
           <div>
-            <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="deadline">Deadline</label>
-            <input id="deadline" type="date" name="deadline"
-              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
-          </div>
-          <div>
             <label class="block font-label text-sm text-obsidian-text-muted mb-1" for="xp">XP</label>
             <input id="xp" type="number" name="xpReward" value="100"
               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-3 py-2 text-sm text-obsidian-text-primary" />
@@ -288,8 +311,45 @@
     </div>
   {/if}
 
+  <AdminFilterBar
+    count={filteredScenarios.length}
+    total={data.scenarios.length}
+    noun="scenario"
+    active={hasFilters}
+    onClear={clearFilters}
+  >
+    <AdminSearchInput
+      bind:value={search}
+      label="Search scenarios"
+      placeholder="Search scenario, description, stack or level…"
+    />
+    {#if difficulties.length > 1}
+      <AdminFilterTabs
+        label="Difficulty filter"
+        bind:value={difficulty}
+        options={[
+          { value: "all", label: "All levels" },
+          ...difficulties.map((d) => ({
+            value: d,
+            label: d,
+            count: data.scenarios.filter((s) => s.difficulty === d).length
+          }))
+        ]}
+      />
+    {/if}
+    <AdminFilterTabs
+      label="Paywall filter"
+      bind:value={paywall}
+      options={[
+        { value: "all", label: "All", count: data.scenarios.length },
+        { value: "paywalled", label: "Paywalled", count: paywalledCount },
+        { value: "free", label: "Free", count: freeCount }
+      ]}
+    />
+  </AdminFilterBar>
+
   <div class="space-y-5">
-    {#each data.scenarios as scenario}
+    {#each filteredScenarios as scenario (scenario.id)}
       <div class="card-cyber" style="border-color: rgb(var(--accent-rgb) / 0.15)">
         {#if editingScenarioId === scenario.id}
           <div class="card-cyber-body">
@@ -430,11 +490,6 @@
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                     </div>
                     <div>
-                      <label class="text-obsidian-text-muted text-sm" for="deadline">Deadline</label>
-                      <input id="deadline" type="date" name="deadline"
-                        class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
-                    </div>
-                    <div>
                       <label class="text-obsidian-text-muted text-sm" for="xp">XP</label>
                       <input id="xp" type="number" name="xpReward" value="100"
                         class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
@@ -509,11 +564,6 @@
                           <div>
                             <label class="text-obsidian-text-muted text-sm" for="sprint">Sprint</label>
                             <input id="sprint" type="number" name="sprintNumber" value={level.sprintNumber}
-                              class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
-                          </div>
-                          <div>
-                            <label class="text-obsidian-text-muted text-sm" for="deadline">Deadline</label>
-                            <input id="deadline" type="date" name="deadline" value={level.deadline}
                               class="w-full rounded-card border border-obsidian-accent/20 bg-obsidian-surface/60 px-2 py-1 text-sm text-obsidian-text-primary" />
                           </div>
                           <div>
@@ -1025,6 +1075,14 @@
             </div>
           </div>
         {/if}
+      </div>
+    {:else}
+      <div class="card-cyber" style="border-color: rgb(var(--accent-rgb) / 0.15)">
+        <div class="card-cyber-body text-center font-body text-md text-obsidian-text-muted">
+          {hasFilters
+            ? "No scenarios match the current filters."
+            : "No scenarios yet. Create one to get started."}
+        </div>
       </div>
     {/each}
   </div>

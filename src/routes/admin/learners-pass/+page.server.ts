@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { PASS_LADDER, SPECIAL_UNLOCK_DAYS, toRewardPayload } from '$lib/server/learnerPass/schedule';
+import { PASS_LADDER, toRewardPayload } from '$lib/server/learnerPass/schedule';
 import { AppSettingsDataAccess } from '$lib/layers/data-access/AppSettingsDataAccess';
 
 /**
@@ -19,10 +19,6 @@ export const load: PageServerLoad = async () => {
   const appSettings = new AppSettingsDataAccess();
   const settings = await appSettings.getAllAppSettings();
 
-  const dayToScenario = Object.fromEntries(
-    PASS_LADDER.flatMap((r) => r.unlockChoices.map((id) => [String(r.day), id])),
-  );
-
   return {
     rewards: PASS_LADDER.map(toRewardPayload).map((r) => ({
       id: r.id,
@@ -30,12 +26,9 @@ export const load: PageServerLoad = async () => {
       coins: r.coins,
       xp: r.xp,
       aiHelps: r.ai_helps,
-      unlockedScenario: r.unlocked_scenario,
       displayType: r.display_type,
       displayValue: r.display_value,
     })),
-    specialUnlockDays: SPECIAL_UNLOCK_DAYS,
-    dayToScenario,
     config: {
       price: settings.learner_pass_price as number,
       durationDays: settings.learner_pass_duration_days as number,

@@ -4,7 +4,6 @@ import prisma from '$lib/server/client';
 import {
   PASS_LENGTH,
   derivePassState,
-  pendingUnlockForDay,
   requiresCooldown,
   rewardFor,
   toClaimRefs,
@@ -100,19 +99,6 @@ export const POST: RequestHandler = async (event) => {
         select: { coins: true, xp: true, ai_help_credits: true },
       });
 
-      // A scenario-granting reward is always a CHOICE, resolved later by choose-unlock:
-      // claiming only makes the choice available. Priced against everything the user already
-      // owns — every pass, not just this one — so a milestone day they cannot spend offers a
-      // fallback instead of silently granting a scenario they already have.
-      const ownedRows = await tx.learner_pass_claim.findMany({
-        where: { enrollment: { user_id: userId }, unlocked_scenario: { not: null } },
-        select: { unlocked_scenario: true },
-      });
-      const owned = new Set(ownedRows.map((r) => r.unlocked_scenario as string));
-
-      const pending = pendingUnlockForDay(dayNumber, owned);
-      const pendingUnlocks = pending ? [pending] : [];
-
       const updatedState = derivePassState(
         enrollment,
         [...toClaimRefs(claims), { dayNumber, claimedAt: now }],
@@ -123,7 +109,6 @@ export const POST: RequestHandler = async (event) => {
         updatedUser,
         updatedState,
         reward,
-        pendingUnlocks,
       };
     });
 
@@ -134,11 +119,7 @@ export const POST: RequestHandler = async (event) => {
         coins: result.reward.coins,
         xp: result.reward.xp,
         aiHelps: result.reward.aiHelps,
-        // Always empty: a scenario-granting reward is a choice, never an immediate grant.
-        // Kept in the payload so the response shape is unchanged.
-        unlocks: [] as string[],
       },
-      pendingUnlocks: result.pendingUnlocks,
       newCoins: result.updatedUser.coins,
       newXp: result.updatedUser.xp,
       newAiHelpCredits: result.updatedUser.ai_help_credits,

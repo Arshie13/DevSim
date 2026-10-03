@@ -62,18 +62,19 @@
   }
 </script>
 
-<TutorialHelper
-  {steps}
-  stack="Next.js + shadcn/ui"
-  {title}
-  {scenario}
-  {level}
-  {allowSkip}
-  {onSwitchTab}
-  {onRunTests}
-  {onSubmitSprint}
-  {userId}
-  {tutorialKey}
-  onPrepareStep={handlePrepareStep}
-  on:complete
-/>
+  <TutorialHelper
+   {steps}
+   stack="Next.js + shadcn/ui"
+   {title}
+   {scenario}
+   {level}
+   {allowSkip}
+   {onSwitchTab}
+   {onRunTests}
+   {onSubmitSprint}
+   {userId}
+   {tutorialKey}
+   layersMinClicks={1}
+   onPrepareStep={handlePrepareStep}
+   on:complete
+  />

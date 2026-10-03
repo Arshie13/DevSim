@@ -23,7 +23,6 @@ export const levels = [
     title: "Getting Familiar with the Codebase",
     subtitle: "Set up the development environment and extend the Transaction model with a note field.",
     order: 1,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: A new developer has joined the FlexiSpend engineering team. The first tasks are to get the NestJS + PostgreSQL + Prisma stack running locally and make a small but visible schema change — adding a note field to transactions — so the codebase structure becomes clear end-to-end.",
     xp_reward: 100,
@@ -62,7 +61,7 @@ export const levels = [
               {
                 title: "Package Management in a NestJS Project",
                 content:
-                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- class-validator, class-transformer — DTO validation\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
+                  "When a project is cloned, no dependencies are installed yet — node_modules is in .gitignore. Dependencies must be installed by running pnpm install at the project root.\n\nKey packages in this project:\n- @nestjs/core, @nestjs/common — framework runtime\n- @nestjs/platform-express — HTTP server adapter\n- @prisma/client — type-safe database client\n- prisma — CLI for migrations and schema management\n- bcrypt — password hashing\n- zod — request-body validation through Zod schemas and ZodValidationPipe\n- supertest — HTTP assertions in tests\n\nThe Prisma CLI and Prisma Client are separate packages. The CLI handles migrations; the Client is what services import at runtime.",
                 order: 4,
               },
               {
@@ -113,7 +112,7 @@ export const levels = [
               {
                 title: "Environment Variables",
                 content:
-                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/flexispend\nJWT_SECRET=changeme\nPORT=4000\n\nThe @nestjs/config package reads these files and makes them available via ConfigService. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
+                  "Sensitive config (like database URIs) is stored in .env files — never hardcoded in source code.\n\nDATABASE_URL=postgresql://user:password@localhost:5432/flexispend\nJWT_SECRET=changeme\nPORT=3000\n\nThe app reads these values straight from `process.env`, and `src/main.ts` falls back to port 3000 when `PORT` is unset. Prisma reads DATABASE_URL directly from .env. ⚠️ .env files are listed in .gitignore intentionally — they contain secrets that should never be committed to version control.\n\nNote: Environment variables in this project are pre-configured.",
                 order: 8,
               },
               {
@@ -134,13 +133,18 @@ export const levels = [
             create: [
               {
                 description:
-                  "The project has a single root package.json — run pnpm install from the project root, not from any subfolder.",
+                  "Open `src/app.module.ts` and make sure it exports an `AppModule` class that imports every feature module the app needs, each of which `providers` and `exports` what its own files inject. In `src/prisma/prisma.service.ts` add a `PrismaService` class that extends `PrismaClient` and calls `await this.$connect()` from an `onModuleInit` lifecycle method, and export the class.",
                 order: 1,
               },
               {
                 description:
-                  "The README.md contains step-by-step setup instructions, follow them carefully.",
+                  "The server calls `app.setGlobalPrefix('api')`, so every controller has to sit under that prefix for `GET /api` to answer at all. A `@Get()` handler in a module that `AppModule` imports gives you the path `/api`. You do not need a root controller. Any status below 500 counts.",
                 order: 2,
+              },
+              {
+                description:
+                  "Build `POST /api/auth/login` under `src/auth/`, taking an email and a password in the body. Look the user up by email, and when nothing comes back throw `UnauthorizedException`. The status has to be exactly 401.",
+                order: 3,
               },
             ],
           },
@@ -148,22 +152,25 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Dependencies installed in root without errors",
+                description:
+                  "Build and start the application without errors",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Prisma migrations applied successfully",
+                description:
+                  "Verify the database connection works by running a test query",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Seed script runs successfully and populates the database",
+                description: "Access the API root endpoint and verify it responds successfully",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "NestJS dev server starts without errors",
+                description:
+                  "Attempt login with invalid credentials and verify it's rejected",
                 is_required: true,
                 order: 4,
               },
@@ -200,7 +207,7 @@ export const levels = [
               {
                 title: "DTOs: Data Transfer Objects",
                 content:
-                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateTransactionDto tells NestJS what fields to expect when someone POSTs to /api/transactions. Class-validator decorators (@IsString, @IsOptional, etc.) enforce validation rules before the data reaches the service layer.",
+                  "NestJS uses DTOs to define the shape of incoming request bodies. The CreateTransactionDto tells NestJS what fields to expect when someone POSTs to /api/transactions. In this project DTOs are Zod schemas — `CreateTransactionDtoSchema` in `src/transactions/dto/create-transaction.dto.ts` — and the `ZodValidationPipe` on the route runs `schema.parse()` to reject invalid data before the service layer sees it. Only keys declared in the schema survive parsing.",
                 order: 4,
               },
               {
@@ -272,18 +279,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Open `prisma/schema.prisma` and find the `Transaction` model. Add `note String?` after the `description` field.",
+                  "Open `prisma/schema.prisma`, find the `Transaction` model, and add `note String?` as a field on it. Then run `pnpm exec prisma migrate dev --name add_transaction_note` and, once that finishes, `pnpm exec prisma generate`.",
                 order: 1,
               },
               {
                 description:
-                  "Run `pnpm exec prisma migrate dev --name add_transaction_note` to apply the schema change to PostgreSQL, then `pnpm exec prisma generate` to update the TypeScript types.",
+                  "In `src/transactions/dto/create-transaction.dto.ts` add `note: z.string().optional()` to `CreateTransactionDtoSchema` — the schema, not a decorator on a class, because `ZodValidationPipe` strips any key it does not declare. Then in `src/transactions/transactions.service.ts` the `create` method builds an explicit `data` object, so add `note: dto.note` to it. In `src/transactions/transactions.controller.ts` the create handler returns the raw Prisma result, so the saved value comes back in the 201 response body on its own.",
                 order: 2,
               },
               {
                 description:
-                  "Add `@IsOptional()` and `@IsString()` decorators for the `note` field in `CreateTransactionDto`. The controller already spreads the DTO into the service call, so no controller changes are needed.",
+                  "`POST /api/auth/login` returns the JWT in a field named `accessToken`, and it is sent back as `Authorization: Bearer <accessToken>`. The create handler in `src/transactions/transactions.controller.ts` has to read the current user from that token, for example through the auth guard and the request object it decorates.",
                 order: 3,
+              },
+              {
+                description:
+                  "The list handler in `src/transactions/transactions.controller.ts` returns the Prisma result, which already includes every scalar field, so once the model and schema carry `note` it shows up automatically. `GET /api/transactions` may answer with a bare JSON array or with a `{ data: [...] }` envelope, because the list is read as `(listRes.body.data ?? listRes.body).map(t => t.note)`. Make sure a transaction saved with `groceries` shows that exact value on the list.",
+                order: 4,
               },
             ],
           },
@@ -291,29 +303,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Transaction model in schema.prisma includes `note String?`",
+                description:
+                  "Create a transaction with a note and verify it's saved correctly",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Migration file is created and applied to the database",
+                description:
+                  "Create an expense with note \"lunch with team\" and verify the note appears in the response",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "CreateTransactionDto includes an optional note field with validation decorators",
+                description:
+                  "Create a transaction without a note and verify it succeeds without a note",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "POST /api/transactions accepts and persists a note value",
+                description:
+                  "List transactions and verify the saved note \"groceries\" appears in the results",
                 is_required: true,
                 order: 4,
-              },
-              {
-                description: "GET /api/transactions returns the note field in each transaction object",
-                is_required: true,
-                order: 5,
               },
             ],
           },
@@ -330,9 +341,8 @@ export const levels = [
     title: "Data Modeling & API Foundations",
     subtitle: "Build paginated transaction lists and guard visibility with soft-delete categories.",
     order: 2,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     level_description:
-      "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. The job is to implement cursor-based pagination with filters and enforce soft-delete visibility rules across the API.",
+      "Mission Briefing: FlexiSpend users need to browse hundreds of transactions efficiently, and inactive categories should be hidden from daily use while preserving historical data. The job is to implement offset-based pagination (page/limit) with filters and enforce soft-delete visibility rules across the API.",
     xp_reward: 150,
     coin_reward: 75,
     key_takeaways:
@@ -436,18 +446,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "The controller already receives query params via `@Query()`. Use `parseInt` with a fallback (e.g., `page = 1`, `limit = 20`) to ensure integers.",
+                  "The list is assembled in `findAll()` in `src/transactions/transactions.controller.ts`. It needs the whole `@Query()` object, with `page` and `limit` read from it and parsed with `parseInt`, falling back to `page = 1` and `limit = 20`.",
                 order: 1,
               },
               {
                 description:
-                  "Build a `where` object that conditionally includes `type`, `categoryId`, and `date` range. Pass the same `where` object to both `findMany` and `count`.",
+                  "Pagination is offset-based, not cursor-based, so `findAll()` in `src/transactions/transactions.service.ts` skips `(page - 1) * limit` rows and takes `limit`.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks for `res.body.data`, `res.body.total`, `res.body.page`, `res.body.limit`, and `res.body.totalPages`. Make sure all five keys are present in the response.",
+                  "In `findAll()` in `src/transactions/transactions.service.ts` the filter has to be one single object that conditionally spreads in `type`, `categoryId` and a `date` range built from the `startDate` and `endDate` query params (`date: { gte, lte }`), and that same object goes to both `findMany` and `count`.",
                 order: 3,
+              },
+              {
+                description:
+                  "The response body has to carry all five keys: `data`, `total`, `page`, `limit` and `totalPages`. A `?type=EXPENSE` request returns `total` 15 with every row in `data` at `type === \"EXPENSE\"`.",
+                order: 4,
               },
             ],
           },
@@ -455,29 +470,40 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/transactions returns a paginated envelope with data, total, page, limit, totalPages",
+                description:
+                  "View page 1 with 5 items per page and verify the paginated response includes all required fields",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Defaults to page=1, limit=20 when no query params are provided",
+                description:
+                  "Verify pagination uses offset-based approach (page 1 returns first 5 items)",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "?type=EXPENSE filters to only expense transactions",
+                description:
+                  "View transactions without filters and verify default pagination (page 1, 20 items)",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "?categoryId=<id> filters to transactions in that category",
+                description:
+                  "Filter transactions by expense type and verify only expenses are returned with correct total",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "?startDate=2025-01-05&endDate=2025-01-10 filters to transactions within that date range",
+                description:
+                  "Filter transactions by category and verify correct count is returned",
                 is_required: true,
                 order: 5,
+              },
+              {
+                description:
+                  "Filter transactions by date range and verify results match the date filter",
+                is_required: true,
+                order: 6,
               },
             ],
           },
@@ -573,17 +599,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Update the `findAll` method in `categories.service.ts` to add `where: { isActive: true }` to the `prisma.category.findMany` call.",
+                  "The list lives in `findAll()` in `src/categories/categories.service.ts`, and the query needs to skip inactive categories, so add `where: { isActive: true }` to the `prisma.category.findMany` call.",
                 order: 1,
               },
               {
                 description:
-                  "In `transactions.service.ts → create()`, add a check that looks up the category by `categoryId` and throws if `!category || !category.isActive`.",
+                  "The list is read as `(res.body.data ?? res.body).map(c => c.id)`, so a bare array or a `{ data: [...] }` envelope both work. Either way the inactive category's id must be missing from the result.",
                 order: 2,
               },
               {
                 description:
-                  "The test expects `GET /api/categories` to NOT contain an inactive category ID, and expects `POST /api/transactions` with an inactive `categoryId` to return 400. Make sure both endpoints are updated.",
+                  "The transaction guard belongs in `create()` in `src/transactions/transactions.service.ts`, which looks the category up with `prisma.category.findUnique({ where: { id: dto.categoryId } })` and throws when `!category || !category.isActive`. Any status from 400 to 499 is accepted. A success status (200 to 299) is the failure to avoid.",
                 order: 3,
               },
             ],
@@ -592,17 +618,20 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Inactive categories do not appear in GET /api/categories",
+                description:
+                  "View categories list and verify active categories appear while inactive ones are hidden",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Creating a transaction with an inactive categoryId returns 400",
+                description:
+                  "Try to create a transaction with an inactive category and verify it's rejected",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Active categories remain usable for new transactions (201 response)",
+                description:
+                  "Create a transaction with an active category and verify it succeeds",
                 is_required: true,
                 order: 3,
               },
@@ -621,7 +650,6 @@ export const levels = [
     title: "Business Logic & Validation",
     subtitle: "Guard account balances with atomic updates and track budgets against actual spending.",
     order: 3,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: FlexiSpend handles real money — incorrect balance calculations or overspent budgets erode user trust. The job is to implement atomic balance updates (so concurrent transactions never drift), enforce funds guards (prevent overspending), and build a budget tracker that compares monthly limits against real transaction totals.",
     xp_reward: 200,
@@ -642,7 +670,7 @@ export const levels = [
               {
                 title: "Overview\nAtomic Financial Operations in Prisma",
                 content:
-                  "This section introduces the crash course for implementing safe balance updates in a financial application. It covers Prisma atomic operations, funds guards, field validation with class-validator, and the allowNegativeBalance flag.",
+                  "This section introduces the crash course for implementing safe balance updates in a financial application. It covers Prisma atomic operations, funds guards, field validation with Zod schemas, and the allowNegativeBalance flag.",
                 order: 1,
               },
               {
@@ -664,15 +692,15 @@ export const levels = [
                 order: 4,
               },
               {
-                title: "Field Validation with class-validator",
+                title: "Field Validation with Zod Schemas",
                 content:
-                  "Use class-validator decorators to reject bad data before it reaches business logic. class-validator runs automatically when the `ValidationPipe` is applied globally in main.ts. This means negative amounts, invalid dates, and unknown enum values all return 400 before service code executes.",
+                  "Use the Zod schema for each route to reject bad data before it reaches business logic. Routes attach `ZodValidationPipe`, which calls `schema.parse()` and throws a 400 when parsing fails. Rules such as `z.number().positive()` or `z.string().datetime()` on the schema mean negative amounts, invalid dates, and unknown enum values all return 400 before service code executes.",
                 order: 5,
               },
               {
                 title: "Rejecting Future Dates",
                 content:
-                  "For accurate financial records, transactions should not be dated in the future. Add a custom validation in the service or a `@MaxDate(new Date())` decorator in the DTO:\n\nconst transactionDate = new Date(dto.date);\nif (transactionDate > new Date()) {\n  throw new BadRequestException('Transaction date cannot be in the future');\n}\n\nThis prevents users from backloading future budget periods or gaming the trend reports.",
+                  "For accurate financial records, transactions should not be dated in the future. Add a custom validation in the service, or a `.refine()` on the date field of the Zod schema:\n\nconst transactionDate = new Date(dto.date);\nif (transactionDate > new Date()) {\n  throw new BadRequestException('Transaction date cannot be in the future');\n}\n\nThis prevents users from backloading future budget periods or gaming the trend reports.",
                 order: 6,
               },
               {
@@ -718,7 +746,7 @@ export const levels = [
               {
                 title: "Key Takeaway",
                 content:
-                  "Never read-modify-write financial counters. Use Prisma's atomic `increment` / `decrement` operations. Guard expenses with a funds check that respects the `allowNegativeBalance` flag. Validate all inputs with class-validator and custom service checks before touching the database.",
+                  "Never read-modify-write financial counters. Use Prisma's atomic `increment` / `decrement` operations. Guard expenses with a funds check that respects the `allowNegativeBalance` flag. Validate all inputs with Zod schemas and custom service checks before touching the database.",
                 order: 8,
               },
             ],
@@ -727,17 +755,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `transactions.service.ts → create()`, wrap the balance update and transaction creation in a `prisma.$transaction([...])` block for atomicity, or use `prisma.account.update` with `{ balance: { increment: delta } }`.",
+                  "The transactions service has to move the account balance by letting the database apply the delta in one operation, rather than reading the balance, working it out in JavaScript and writing a new value back. The `accounts` row is read straight from the database afterwards, so the delta has to be exact.",
                 order: 1,
               },
               {
                 description:
-                  "The funds guard should query the account first, then throw BadRequestException if the balance is insufficient and `allowNegativeBalance` is false.",
+                  "The funds guard sits with the expense path in the same service. Read the account first, then turn the expense away when `type === 'EXPENSE' && !account.allowNegativeBalance && Number(account.balance) < amount`. The rejected case needs a client error status between 400 and 499, and the `allowNegativeBalance: true` case needs exactly 201.",
                 order: 2,
               },
               {
                 description:
-                  "Add `@IsPositive()` to the amount field in CreateTransactionDto, and add a future-date check in the service. The test expects 400 for negative amounts and future dates.",
+                  "The transaction input is rejected in two more places. A negative amount such as `-50` and a date 24 hours ahead both need a status of 400 or above. There is no upper bound, but any success status is a failure.",
                 order: 3,
               },
             ],
@@ -746,32 +774,37 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "EXPENSE decreases account balance atomically",
+                description:
+                  "Record an expense of 300 on an account with 1000 balance and verify balance becomes 700",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "INCOME increases account balance atomically",
+                description:
+                  "Record income of 500 on an account with 1000 balance and verify balance becomes 1500",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Rejects EXPENSE when balance is insufficient and allowNegativeBalance is false",
+                description:
+                  "Try to spend 2000 from an account with 1000 balance (no negative allowed) and verify it's rejected",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Allows negative balance when allowNegativeBalance is true",
+                description:
+                  "Spend 500 from an account with 100 balance that allows negative and verify it succeeds",
                 is_required: true,
                 order: 4,
               },
               {
-                description: "Rejects transaction with negative amount (400)",
+                description: "Try to record a transaction with a negative amount and verify it's rejected",
                 is_required: true,
                 order: 5,
               },
               {
-                description: "Rejects transaction with a future date (400)",
+                description:
+                  "Try to record a transaction with a future date and verify it's rejected",
                 is_required: true,
                 order: 6,
               },
@@ -875,17 +908,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `budgets.service.ts`, query budgets for the user/month/year, then query transactions with `groupBy` to get the spent amount per category.",
+                  "The budgets service reads `month` and `year` from the query, finds the budgets for the current user, and then works out the spending per category for that month. A category with no spending at all has to report 0 rather than nothing, so the lookup needs a fallback.",
                 order: 1,
               },
               {
                 description:
-                  "Map the groupBy results into a lookup object `{ [categoryId]: spent }` for O(1) lookup when building the response.",
+                  "Map the groupBy output into a lookup keyed by `categoryId`, shaped as `{ [categoryId]: sum }`. Read it with `spentMap[budget.categoryId] ?? 0` so a category with no spending reports 0 instead of `undefined`.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks `spent`, `remaining`, `percentUsed`, and `exceeded` fields in the response. Make sure all four are present and that `exceeded` flips to true when spent > budget.",
+                  "The row is found by `b.category?.name === \"Food\" || b.categoryId === categoryId`. A budget of 500 with 300 spent must report `spent` 300, `remaining` 200, `percentUsed` 60 and `exceeded` false. A small float drift such as 60.0001 is fine. Adding one more 300 expense has to flip `exceeded` to true. All four computed fields belong on every budget row.",
                 order: 3,
               },
             ],
@@ -894,24 +927,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/budgets?month=1&year=2025 returns budgets with spent, remaining, percentUsed, and exceeded fields",
+                description:
+                  "View budgets for January 2025 and verify at least one budget exists",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "spent equals the sum of EXPENSE transactions in that category for the requested month",
+                description:
+                  "With a 500 budget and 300 spent, verify spent shows 300 and remaining shows 200",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "exceeded is true when spent > budget amount",
+                description:
+                  "Verify percent used shows 60%",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "percentUsed is 0 (not NaN/Infinity) when budget amount is 0",
+                description:
+                  "Verify budget shows not exceeded when spending is under limit",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Add more spending to exceed budget and verify it shows as exceeded",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -928,7 +971,6 @@ export const levels = [
     title: "Reporting & Analytics",
     subtitle: "Build monthly summaries, trend reports, category breakdowns, and budget alerts.",
     order: 4,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: FlexiSpend users need insights into their spending habits. The product team wants a monthly summary dashboard, a multi-month trend line, a category breakdown pie chart, and proactive budget alerts when users approach their limits. These endpoints aggregate large datasets — correctness and performance are equally important.",
     xp_reward: 250,
@@ -977,9 +1019,9 @@ export const levels = [
                 order: 5,
               },
               {
-                title: "Admin-Only Routes with Guards",
+                title: "Authenticated Routes with Guards",
                 content:
-                  "Summary and trend endpoints should be protected by an admin or authenticated-user guard. NestJS guards intercept requests before they reach the controller. The JWT strategy extracts the user from the Authorization header; the guard ensures only valid tokens proceed.",
+                  "Summary and trend endpoints are protected by `JwtAuthGuard`, which requires a valid JWT — any authenticated user, not only admins. NestJS guards intercept requests before they reach the controller. The JWT strategy extracts the user from the Authorization header; the guard ensures only valid tokens proceed.",
                 order: 6,
               },
               {
@@ -1034,18 +1076,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "In `reports.controller.ts` and `reports.service.ts`, implement `monthly-summary` with two `prisma.transaction.aggregate` calls (one for INCOME, one for EXPENSE) using the same date range.",
+                  "The monthly summary adds up income and expenses separately over the same window and then subtracts one from the other. A transaction count belongs alongside them as `transactionCount`, with `numberOfTransactions` accepted as an alternative name.",
                 order: 1,
               },
               {
                 description:
-                  "For the `trends` endpoint, query the last N months of data and group by year+month. Prisma `groupBy` with raw date extraction or `$queryRaw` with PostgreSQL `DATE_TRUNC('month', date)` can both be used.",
+                  "The count is read as `res.body.transactionCount ?? res.body.numberOfTransactions` and has to be 4 for a month with four transactions. Counting the rows is the cheapest way to get it.",
                 order: 2,
               },
               {
                 description:
-                  "The test checks that trend entries have `month`, `year`, `totalIncome`, `totalExpense`, and `netSavings`, and that the array is sorted chronologically.",
+                  "The trend report has to answer with a bare JSON array. Wrapping the rows in `{ data: [...] }` fails immediately, because the body is checked with `Array.isArray(res.body)`. The `months` query param caps the row count, so `?months=3` gives 3 or fewer rows and `?months=6` at most 6.",
                 order: 3,
+              },
+              {
+                description:
+                  "The trend rows run oldest to newest, so `year * 100 + month` never decreases as you read the array, and every entry carries `month`, `year`, `totalIncome`, `totalExpense` and `netSavings`.",
+                order: 4,
               },
             ],
           },
@@ -1053,24 +1100,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/reports/monthly-summary?month=1&year=2025 returns totalIncome, totalExpense, and netSavings",
+                description:
+                  "View monthly summary for January 2025 and verify income, expenses, and net savings",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Monthly summary includes transactionCount",
+                description:
+                  "Verify transaction count is shown",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "GET /api/reports/trends?months=3 returns an array sorted chronologically",
+                description:
+                  "View trend report for last 3 months and verify it returns a list of months",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Each trend entry has month, year, totalIncome, totalExpense, and netSavings",
+                description:
+                  "Verify trend data is sorted chronologically (oldest to newest)",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Verify each trend entry has month, year, income, expenses, and net savings",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -1167,18 +1224,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Implement `category-breakdown` in `reports.service.ts` using `prisma.transaction.groupBy` with `_sum` and `_count`, then enrich each entry with the category name.",
+                  "The category breakdown groups spending by category for the period, gives each group its share of the overall total as a percentage, and comes back largest first. Every entry needs `categoryName`, `total`, `percentage` and `transactionCount`.",
                 order: 1,
               },
               {
                 description:
-                  "For `budget-alerts`, reuse the same budget-enrichment logic as the budgets endpoint, then `.filter(b => b.percentUsed >= 80)` and `.sort((a, b) => b.percentUsed - a.percentUsed)`.",
+                  "The `type` query param is optional. The route is called once as `?month=1&year=2025&type=EXPENSE` and once as `?month=1&year=2025` with no type at all, and both must return 200 with the same entry shape. Read it with `@Query('type')` and add it to the filter only when it is present.",
                 order: 2,
               },
               {
                 description:
-                  "The test expects the breakdown to be sorted by total descending, and expects alerts to exclude budgets under 80% used. Verify both orderings.",
+                  "`GET /api/reports/budget-alerts` is called with no query params at all, and the seeded budgets live in January 2025, so the query must not be scoped to the current month and year — return every budget for the user. Enrich each budget with `spent`, `remaining`, `percentUsed` and `exceeded`, keep only `percentUsed >= 80`, and sort descending.",
                 order: 3,
+              },
+              {
+                description:
+                  "The alert list is read as `(res.body.data ?? res.body).map(b => b.categoryName ?? b.category?.name)`, so a bare array or a `{ data: [...] }` envelope both work. Each row must carry the category name under one of those two keys, otherwise `Food` cannot be found.",
+                order: 4,
               },
             ],
           },
@@ -1186,24 +1248,34 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "GET /api/reports/category-breakdown returns entries sorted by total descending",
+                description:
+                  "View spending breakdown by category for January 2025 expenses and verify categories ordered by spending (highest first)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Each breakdown entry has categoryName, total, percentage, and transactionCount",
+                description:
+                  "View spending breakdown without type filter and verify each category shows name, total, percentage, and transaction count",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "GET /api/reports/budget-alerts only returns budgets with percentUsed >= 80",
+                description:
+                  "View budget alerts and verify Food budget at 86% appears in alerts",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Alerts are sorted by percentUsed descending (highest first)",
+                description:
+                  "Verify Transport budget at 40% does not appear in alerts (below 80% threshold)",
                 is_required: true,
                 order: 4,
+              },
+              {
+                description:
+                  "Verify alerts are sorted by percentage used (highest first)",
+                is_required: true,
+                order: 5,
               },
             ],
           },
@@ -1220,7 +1292,6 @@ export const levels = [
     title: "Production Hardening",
     subtitle: "Fix balance drift, timezone inconsistency, and division-by-zero bugs under load.",
     order: 5,
-    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     level_description:
       "Mission Briefing: Three critical bugs have been reported by FlexiSpend users. First, account balances occasionally drift after rapid transaction creation and deletion. Second, monthly reports show inconsistent totals depending on the server's timezone. Third, setting a budget to zero causes the dashboard to display NaN. These are production-grade issues that require database-level fixes and defensive coding.",
     xp_reward: 300,
@@ -1326,18 +1397,23 @@ export const levels = [
             create: [
               {
                 description:
-                  "Wrap the balance update and transaction creation in `prisma.$transaction(async (tx) => { ... })`. This ensures both succeed or both rollback.",
+                  "A created transaction has to be removable again, and `DELETE /api/transactions/:id` has to honour the same `Authorization: Bearer <accessToken>` token as the create. The id it takes is the `id` from the create response body.",
                 order: 1,
               },
               {
                 description:
-                  "For timezone consistency, construct the month start and end as UTC Dates in the controller: `new Date(Date.UTC(year, month - 1, 1))` and `new Date(Date.UTC(year, month, 1))`. Pass these exact values to every query.",
+                  "The delete has to be the exact inverse of the create. Subtract the stored `amount` back onto the account for an EXPENSE, and add it for an INCOME. 10000 in, 500 out, 10000 back.",
                 order: 2,
               },
               {
                 description:
-                  "Add `if (Number(budget.amount) === 0) return 0;` before computing `percentUsed` in both the budgets service and the alerts endpoint.",
+                  "A budget of `amount: 0` is located by a bare `categoryId` with no category relation. Its `percentUsed` must not be NaN, `isFinite(percentUsed) === true` must hold, and `Number(percentUsed) === 0`.",
                 order: 3,
+              },
+              {
+                description:
+                  "Two calls to `GET /api/reports/monthly-summary?month=1&year=2025` carry the same query, so their `totalExpense` must be identical. Build the range from the request parameters with UTC boundaries such as `new Date(Date.UTC(year, month - 1, 1))` and reuse that exact range.",
+                order: 4,
               },
             ],
           },
@@ -1345,19 +1421,28 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "Balance stays consistent after sequential create-delete cycle",
+                description:
+                  "Create a transaction then delete it, verifying both operations work with the same authentication",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "percentUsed is 0 and not NaN/Infinity when budgetAmount is zero",
+                description:
+                  "On account with 10000 balance, add 500 expense then delete it, verify balance returns to exactly 10000",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Monthly summary returns consistent totals on repeated calls",
+                description:
+                  "Set a budget to 0 and verify it shows 0% used (not NaN or infinity)",
                 is_required: true,
                 order: 3,
+              },
+              {
+                description:
+                  "View the same monthly report twice and verify both show identical totals",
+                is_required: true,
+                order: 4,
               },
             ],
           },
@@ -1448,17 +1533,17 @@ export const levels = [
             create: [
               {
                 description:
-                  "Create a file named `POSTMORTEM.md` at the project root (same level as `package.json`).",
+                  "Create `POSTMORTEM.md` at the project root, the directory that contains `package.json`. The file is resolved four levels up from `tests/server/level-5/task-2/`, so `docs/POSTMORTEM.md` or `src/POSTMORTEM.md` will not be found.",
                 order: 1,
               },
               {
                 description:
-                  "The test checks for lowercase mentions of 'balance', 'concurrency', 'race condition', 'timezone', 'utc', 'division', 'nan', 'infinity', and 'zero'. Make sure each concept appears at least once.",
+                  "The file is read and lowercased before matching, and each of the three checks accepts any one term from a keyword group. Take one term from each group. `balance`, `concurren`, `race condition` or `locking` for the first. `timezone`, `utc` or `date boundary` for the second. `division`, `nan`, `infinity`, `zero` or `budget amount` for the third.",
                 order: 2,
               },
               {
                 description:
-                  "Structure the document with clear headings for each bug, followed by symptom, root cause, fix, and action items.",
+                  "Give each bug its own heading, followed by its symptom, root cause, fix and action items. Putting all three concepts into one heading is the most reliable way to cover the three keyword groups.",
                 order: 3,
               },
             ],
@@ -1467,22 +1552,26 @@ export const levels = [
           acceptance_criteria: {
             create: [
               {
-                description: "POSTMORTEM.md exists at the project root",
+                description:
+                  "Create a POSTMORTEM.md file at the project root (same folder as package.json)",
                 is_required: true,
                 order: 1,
               },
               {
-                description: "Document mentions balance drift / race condition / concurrency root cause",
+                description:
+                  "Document the balance drift bug: include terms about balance, concurrency, race condition, or locking",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Document mentions timezone / UTC root cause",
+                description:
+                  "Document the timezone bug: include terms about timezone, UTC, or date boundaries",
                 is_required: true,
                 order: 3,
               },
               {
-                description: "Document mentions division-by-zero / NaN / Infinity root cause",
+                description:
+                  "Document the division by zero bug: include terms about division, NaN, infinity, zero, or budget amount",
                 is_required: true,
                 order: 4,
               },
