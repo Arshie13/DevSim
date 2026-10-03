@@ -4,7 +4,7 @@
     GitCommitHorizontalIcon,
     Award,
     Target,
-    Coins,
+    Sparkles,
   } from "lucide-svelte";
   import type { PageData } from "./$types";
   import type { UserData, ProfileMetricsData, RivalEntry } from "$types";
@@ -47,29 +47,29 @@
       label: "Tasks Completed",
       value: String(metrics.tasksCompleted),
       icon: Target,
-      color: "#07a5c9",
-      bg: "rgba(7,165,201,0.12)",
+      color: "var(--accent)",
+      bg: "rgb(var(--accent-rgb) / 0.12)",
     },
     {
       label: "File Edits",
       value: String(metrics.fileEdits),
       icon: GitCommitHorizontalIcon,
-      color: "#a855f7",
-      bg: "rgba(168,85,247,0.12)",
+      color: "var(--purple)",
+      bg: "rgb(var(--purple-rgb) / 0.12)",
     },
     {
-      label: "Coins Earned",
-      value: String(metrics.coinsEarned),
-      icon: Coins,
-      color: "#ffb400",
-      bg: "rgba(255,180,0,0.12)",
+      label: "AI Credits",
+      value: String(metrics.aiHelpCredits),
+      icon: Sparkles,
+      color: "var(--warn)",
+      bg: "rgb(var(--warn-rgb) / 0.12)",
     },
     {
       label: "Achievements",
       value: String(metrics.achievementsCount),
       icon: Award,
-      color: "#00e5a0",
-      bg: "rgba(0,229,160,0.12)",
+      color: "var(--success)",
+      bg: "rgb(var(--success-rgb) / 0.12)",
     },
   ];
 
