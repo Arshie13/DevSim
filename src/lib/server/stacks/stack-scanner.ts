@@ -57,6 +57,7 @@ function techMetaToOption(meta: TechMeta): TechOption {
 }
 
 function classifyStack(techIds: Record<string, string | null>): 'fullstack' | 'backend' | 'frontend' {
+  if (techIds.frontend === 'nextjs' && techIds.database) return 'fullstack';
   if (techIds.frontend && techIds.backend) return 'fullstack';
   if (techIds.backend) return 'backend';
   return 'frontend';
