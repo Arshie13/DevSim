@@ -17,7 +17,7 @@ export const levels = [
       "Set up the WorkPulse manager dashboard and add hour / currency formatters.",
     order: 1,
     level_description:
-      "Mission Briefing: A new full-stack developer has joined WorkPulse Inc. to work on the manager dashboard of the time-tracking product, built with Next.js, PostgreSQL, and Prisma. The first tasks are to get the dashboard running against a local database and add two formatting helpers so hour columns and payroll columns display consistently.",
+      "Mission Briefing: A new full-stack developer has joined WorkPulse Inc. to work on the manager dashboard of the time-tracking product, built with Next.js, PostgreSQL, and Prisma. The first tasks are to prepare the local database and implement two independently tested formatting helpers for hours and currency; the tests do not verify dashboard call sites.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
@@ -85,7 +85,7 @@ export const levels = [
               },
               {
                 description:
-                  "The setup-check grader verifies that dependencies installed, the Prisma migrations ran, and the seed completed — all three should pass locally.",
+                  "The setup-check grader verifies that dependencies are installed, the Prisma migrations ran, and the database check reports rows. It does not run or verify the seed command itself.",
                 order: 2,
               },
             ],
@@ -124,13 +124,13 @@ export const levels = [
           task_name: "Add Hour and Currency Helpers",
           test_type: "both",
           user_story:
-            "As a manager, I want every hour and dollar column on the dashboard to render the same way so that the numbers I read line up cleanly down the column.",
+            "As a developer, I want pure `formatHours` and `formatCurrency` helpers with consistent output, so numeric formatting rules are reusable and testable independently.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nTwo Tiny Formatters",
                 content:
-                  "Two helpers in src/lib/format.ts — `formatHours` and `formatCurrency`. Together they cover every numeric column on the dashboard. Once they exist, every component imports them; no inline `toFixed` allowed.",
+                  "Two helpers in src/lib/format.ts — `formatHours` and `formatCurrency`. The automated tests import each helper and check its outputs; they do not verify that dashboard components import or call them.",
                 order: 1,
               },
               {
@@ -148,7 +148,7 @@ export const levels = [
               {
                 title: "Wiring Them Into the Dashboard",
                 content:
-                  "Replace inline `${hours.toFixed(1)}h` with `formatHours(hours)`, and any ad-hoc dollar formatting with `formatCurrency(amount)`. Every cell in the hours and payroll columns should now flow through the same two helpers.",
+                  "In a complete UI integration, replace inline hour and dollar formatting with these helpers. The automated tests cover the helper contracts only, not the dashboard cells or their call sites.",
                 order: 4,
               },
               {

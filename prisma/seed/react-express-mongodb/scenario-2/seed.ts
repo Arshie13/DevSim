@@ -39,7 +39,7 @@ export const levels = [
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
-      "Setting up a MERN project requires installing dependencies in three separate locations (root, client, server), configuring environment variables for MongoDB connection strings, and running a seed script to populate realistic data. Understanding this separation of concerns is foundational for every full-stack developer working with Node.js-based projects.\n\nReact components are the building blocks of every UI. Layout components like Header are shared across pages, meaning a single text change affects the entire application consistently. Knowing where to find and edit a component is as important as knowing how to write one.",
+      "Setting up a MERN project requires installing dependencies in three separate locations (root, client, server), configuring environment variables for MongoDB connection strings, and checking that the API and client can start. Seeding realistic data is a useful manual setup step, but the automated setup test does not run or verify the seed script. Understanding this separation of concerns is foundational for every full-stack developer working with Node.js-based projects.\n\nReact components are the building blocks of every UI. Layout components like Header are shared across pages, meaning a single text change affects the entire application consistently. Knowing where to find and edit a component is as important as knowing how to write one.",
     scenario_id: "mern-ft-scenario-2",
     tasks: {
       create: [
@@ -288,7 +288,7 @@ export const levels = [
               },
               {
                 description:
-                  "That `<header>` already carries `role=\"banner\"`, and the tagline has to stay a descendant of it and stay visible. The check looks inside the banner element for the text, so moving the tagline out of the `<header>` or hiding it breaks the match.",
+                  "That `<header>` already carries `role=\"banner\"`, and the tagline has to remain a descendant of it. The check looks inside the banner element for the text; it does not make a CSS visibility assertion.",
                 order: 4,
               },
             ],
@@ -502,13 +502,13 @@ export const levels = [
           task_name: "Filter the WorkoutFeed by Category",
           test_type: "client",
           user_story:
-            "As a member, I want to filter workouts by category so that I can quickly browse training content relevant to my goals.",
+            "As a developer, I want a pure category-filter helper that returns matching workouts without mutating its input, so the filtering logic is predictable and testable.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nState Management and Filtering in React",
                 content:
-                  "This section introduces the crash course for managing shared UI state and filtering lists in React. It gives a high-level view of lifting state up, controlled components, and pure filter functions.",
+                  "This section introduces shared UI state and filtering lists in React. The automated task checks the pure category helper's behavior, not chip interaction or integration with the rendered feed.",
                 order: 1,
               },
               {
@@ -629,7 +629,7 @@ export const levels = [
               },
               {
                 description:
-                  "Wire `CategoryFilter.tsx` chip state and `Feed.tsx` helper call as normal.",
+                  "The automated checks call `filterByCategory` directly; they do not render `CategoryFilter` or verify that `Feed` uses the helper.",
                 order: 5,
               },
             ],

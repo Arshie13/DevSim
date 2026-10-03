@@ -35,10 +35,10 @@ export const levels = [
     id: "mern-rn-level-1",
     title: "Getting Familiar with the Codebase",
     subtitle:
-      "Set up the MERN stack, run MongoDB locally, seed the recipe DB, and ship a tiny brand tweak.",
+      "Set up the MERN stack, verify the API and client start, and ship a tiny brand tweak.",
     order: 1,
     level_description:
-      "Mission Briefing: Skillet & Stack Studios has just onboarded a new developer and needs RecipeNest running locally. Set up the MERN (MongoDB, Express, React, Node.js) stack, configure the environment, seed the recipe database, and make a small UI tweak so the brand identity reads correctly.",
+      "Mission Briefing: Skillet & Stack Studios has just onboarded a new developer and needs RecipeNest running locally. Set up the MERN (MongoDB, Express, React, Node.js) stack, configure the environment, verify the API and client entry point, and make a small UI tweak so the brand identity reads correctly. The setup check does not run or verify database seeding.",
     xp_reward: 100,
     coin_reward: 50,
     key_takeaways:
@@ -279,7 +279,7 @@ export const levels = [
               },
               {
                 description:
-                  "The new text has to be exactly `Cook. Share. Inspire.`, character for character, with capitals, periods and single spaces. The old placeholder `Your kitchen, online` must be gone from the rendered header, and the subtitle has to stay visible inside the `<header>` element.",
+                  "The new text has to be exactly `Cook. Share. Inspire.`, character for character, with capitals, periods and single spaces. The old placeholder `Your kitchen, online` must be gone, and the subtitle must appear inside the rendered `<header>` element. The automated check does not test CSS visibility.",
                 order: 3,
               },
             ],
@@ -325,10 +325,10 @@ export const levels = [
   {
     id: "mern-rn-level-2",
     title: "Client-Side Exploration",
-    subtitle: "Make recipe cards navigable and wire a live search filter into the feed.",
+    subtitle: "Add recipe-card links and implement a pure recipe-search helper.",
     order: 2,
     level_description:
-      "Mission Briefing: The product team wants the recipe feed to feel like a real app — clicking a card should navigate to the full recipe, and a search bar should filter results in real time. React Router's <Link> is wired up for client-side navigation, then state is lifted up to connect a controlled search input to the feed.",
+      "Mission Briefing: The product team wants accessible recipe-card links and reliable search logic. Add React Router links whose hrefs identify each recipe, then implement and test a pure search helper. The automated checks inspect the link and helper behavior; they do not simulate navigation or verify search-input/feed integration.",
     xp_reward: 150,
     coin_reward: 125,
     key_takeaways:
@@ -340,7 +340,7 @@ export const levels = [
           task_name: "Make Recipe Cards Clickable",
           test_type: "client",
           user_story:
-            "As a user, I want to click a recipe card in the feed and be taken to the full recipe page so I can read the details.",
+            "As a developer, I want each recipe card to expose a link to its recipe route, with the title inside the link, so the navigation target is represented accessibly.",
           learning_sections: {
             create: [
               {
@@ -454,19 +454,14 @@ export const levels = [
                 order: 1,
               },
               {
-                description: "The link wraps the card title so the whole card is clickable",
+                description: "The recipe-card link contains the card title",
                 is_required: true,
                 order: 2,
               },
               {
-                description: "Recipe cards still show title, author, image, tags, rating, and save count",
+                description: "Changing the recipe ID changes the link href to the matching /recipes/<recipe-id> route",
                 is_required: true,
                 order: 3,
-              },
-              {
-                description: "Clicking a card navigates to the recipe detail page without a full page reload",
-                is_required: true,
-                order: 4,
               },
             ],
           },
@@ -475,13 +470,13 @@ export const levels = [
           task_name: "Wire Live Search Filter",
           test_type: "client",
           user_story:
-            "As a user, I want to type in the search bar and see the recipe feed filter in real time so I can find recipes by title or tag.",
+            "As a developer, I want a pure recipe-search helper that matches titles and tags case-insensitively, so the search behavior is easy to test and reuse.",
           learning_sections: {
             create: [
               {
                 title: "Overview\nLifting State and Pure Filters",
                 content:
-                  "This section introduces the crash course for connecting a search input to a list. State is lifted up to a parent feed component and a pure helper is used to derive a filtered view.",
+                  "This section introduces connecting a search input to a list. The automated task checks the pure helper's filtering behavior; it does not check input state or rendered-feed integration.",
                 order: 1,
               },
               {
@@ -575,12 +570,12 @@ export const levels = [
               },
               {
                 description:
-                  "Give `SearchBar` `value` and `onChange` props so the parent feed component owns the query state and the input stays controlled.",
+                  "Controlled-input wiring is useful follow-up work, but the automated checks only exercise `filterRecipes` directly; they do not render `SearchBar` or the feed.",
                 order: 2,
               },
               {
                 description:
-                  "Wrap the filtered list in `useMemo`.",
+                  "Memoizing a rendered filtered list is an optional integration step; the automated checks do not inspect `useMemo` or feed rendering.",
                 order: 3,
               },
             ],
