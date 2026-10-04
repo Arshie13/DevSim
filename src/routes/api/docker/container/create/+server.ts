@@ -26,16 +26,25 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
     console.log("[docker create] mode: ", mode);
 
-    // Paywall check — per-scenario
-    if (scenarioId) {
-      const dbId = resolveScenarioId(stackName, scenarioId);
-      const hasAccess = await hasProjectAccess(userId, dbId);
-      if (!hasAccess) {
-        return json(
-          { success: false, error: 'This scenario requires an active Learner Pass.', locked: true },
-          { status: 403 }
-        );
-      }
+    // Paywall check — per-scenario. Resolve the *effective* scenario folder the
+    // same way ContainerService.resolveImageAndVolume does (explicit `scenarioId`,
+    // else the legacy `scenario-${level}` fallback) so the check can't be skipped
+    // by dropping `scenarioId` from the request.
+    const scenarioFolder = scenarioId || (level ? `scenario-${level}` : null);
+    if (!scenarioFolder) {
+      return json(
+        { success: false, error: 'Missing scenarioId and level.' },
+        { status: 400 }
+      );
+    }
+
+    const dbId = resolveScenarioId(stackName, scenarioFolder);
+    const hasAccess = await hasProjectAccess(userId, dbId);
+    if (!hasAccess) {
+      return json(
+        { success: false, error: 'This scenario requires an active Learner Pass.', locked: true },
+        { status: 403 }
+      );
     }
 
     const service = new WorkspaceService();

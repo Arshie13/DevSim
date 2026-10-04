@@ -1,6 +1,8 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import prisma from "$lib/server/client";
+import { triviaQuestions } from "$lib/mocks/trivia";
+import { checkRateLimit } from "$lib/server/ratelimit";
 import { detectNewlyUnlockedAchievements } from "$lib/server/achievements/unlocks";
 
 const TRIVIA_COIN_REWARD = 5;
@@ -11,14 +13,34 @@ export const POST: RequestHandler = async (event) => {
     throw error(401, "Unauthorized");
   }
 
-  const body = await event.request.json().catch(() => null);
-  const isCorrect = body?.correct === true;
+  const userId = session.user.id;
 
-  if (!isCorrect) {
-    return json({ success: true, rewarded: false });
+  // A real user answers trivia occasionally; a burst is farming.
+  if (!checkRateLimit(`trivia:${userId}`, 10, 60_000)) {
+    throw error(429, "Too many trivia submissions. Please wait a moment.");
   }
 
-  const userId = session.user.id;
+  const body = await event.request.json().catch(() => null);
+  const questionId = body?.questionId;
+  const selectedAnswer = body?.selectedAnswer;
+
+  if (typeof questionId !== "string" || !Number.isInteger(selectedAnswer)) {
+    throw error(400, "Missing or invalid trivia answer");
+  }
+
+  // Validate against the server-side catalog — never trust a client `correct` flag.
+  const question = triviaQuestions.find((q) => q.id === questionId);
+  if (!question) {
+    throw error(404, "Unknown trivia question");
+  }
+
+  if (selectedAnswer < 0 || selectedAnswer >= question.options.length) {
+    throw error(400, "Invalid answer index");
+  }
+
+  if (selectedAnswer !== question.correctAnswer) {
+    return json({ success: true, rewarded: false });
+  }
 
   try {
     const updatedUser = await prisma.user.update({

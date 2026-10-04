@@ -357,7 +357,9 @@
 
   const TRIVIA_COIN_REWARD = 5;
 
-  async function handleTriviaAnswer(event: CustomEvent<{ correct: boolean }>) {
+  async function handleTriviaAnswer(
+    event: CustomEvent<{ correct: boolean; question: { id: string }; selectedAnswer: number }>
+  ) {
     triviaTotalCount += 1;
     if (event.detail.correct) {
       triviaCorrectCount += 1;
@@ -369,7 +371,10 @@
         const res = await fetch('/api/user/trivia/answer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ correct: true })
+          body: JSON.stringify({
+            questionId: event.detail.question.id,
+            selectedAnswer: event.detail.selectedAnswer,
+          })
         });
         const data = await res.json();
         if (data?.newlyUnlocked?.length) {

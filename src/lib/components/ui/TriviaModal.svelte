@@ -8,7 +8,7 @@
 
   const dispatch = createEventDispatcher<{
     close: void;
-    answered: { correct: boolean; question: TriviaQuestion };
+    answered: { correct: boolean; question: TriviaQuestion; selectedAnswer: number };
   }>();
 
   let question: TriviaQuestion | null = null;
@@ -45,7 +45,7 @@
     if (selectedAnswer === null || !question) return;
     hasAnswered = true;
     isCorrect = selectedAnswer === question.correctAnswer;
-    dispatch('answered', { correct: isCorrect, question });
+    dispatch('answered', { correct: isCorrect, question, selectedAnswer });
   }
 
   function handleNextQuestion() {
