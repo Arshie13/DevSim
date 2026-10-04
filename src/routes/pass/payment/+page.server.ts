@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import Stripe from 'stripe';
 import { checkRateLimit } from '$lib/server/ratelimit';
-import { ensureLearnerPassEnrollmentForPayment, getLearnerPassConfirmationResult } from '$lib/server/learnerPass';
+import { ensureLearnerPassEnrollmentForPayment, getLearnerPassConfirmationResult } from '$lib/server/transactions';
 import prisma from '$lib/server/client';
 import { hasActiveLearnerPass } from '$lib/server/access/hasProjectAccess';
 

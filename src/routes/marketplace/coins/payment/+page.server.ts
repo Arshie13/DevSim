@@ -5,7 +5,7 @@ import { checkRateLimit } from '$lib/server/ratelimit';
 import {
   ensureCoinPurchaseForPayment,
   getCoinPurchaseConfirmationResult,
-} from '$lib/server/learnerPass';
+} from '$lib/server/transactions';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const COIN_PRICE_CENTAVOS = 50;

@@ -338,20 +338,6 @@
 				</ol>
 			</div>
 
-			{#if error.actions && error.actions.length > 0}
-				<div class="flex flex-wrap gap-2 mb-5">
-					{#each error.actions as action}
-						<button
-							onclick={() => handleAction(action.handler)}
-							class="px-4 py-2 text-xs font-bold bg-[#07a5c9] text-[#0a0e1a] hover:bg-[#00f5ff] transition-all"
-							style="border-radius:var(--radius-card);font-family: var(--font-heading);"
-						>
-							{action.label}
-						</button>
-					{/each}
-				</div>
-			{/if}
-
 			<div class="pt-4 border-t border-slate-700/50">
 				<button
 					onclick={() => openRequestForm(error.category)}

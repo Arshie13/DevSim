@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import {
   ensureLearnerPassEnrollmentForPayment,
   ensureCoinPurchaseForPayment,
-} from "$lib/server/learnerPass";
+} from "$lib/server/transactions";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
