@@ -2,11 +2,10 @@
   import { onMount } from "svelte";
   import { Loader2, Trash2, AlertTriangle, Crown, Lock, Settings } from "lucide-svelte";
   import { enhance } from "$app/forms";
+  import type { SubmitFunction } from "@sveltejs/kit";
   import AdminFilterBar from "$lib/components/admin/AdminFilterBar.svelte";
   import AdminFilterTabs from "$lib/components/admin/AdminFilterTabs.svelte";
   import AdminSearchInput from "$lib/components/admin/AdminSearchInput.svelte";
-
-  type SettingKey = "mastery_checkpoint_enabled";
 
   interface ScenarioItem {
     id: string;
@@ -56,33 +55,31 @@
     paywallFilter = "all";
   }
 
-  async function toggleSetting(key: SettingKey) {
+  const handleSettingSubmit: SubmitFunction = () => {
     isLoading = true;
     message = null;
 
-    try {
-      const newValue = !settings[key];
-
-      const response = await fetch("/api/admin/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, value: newValue }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update setting");
+    return async ({ result, update }) => {
+      isLoading = false;
+      if (result.type === "success") {
+        settings = {
+          ...settings,
+          mastery_checkpoint_enabled: !settings.mastery_checkpoint_enabled,
+        };
+        message = { type: "success", text: "Setting updated successfully" };
+      } else if (result.type === "failure") {
+        message = {
+          type: "error",
+          text: result.data?.message ?? "Failed to update setting",
+        };
+      } else {
+        message = { type: "error", text: "Failed to update setting" };
       }
 
-      settings = { ...settings, [key]: newValue };
-      message = { type: "success", text: "Setting updated successfully" };
-    } catch (error) {
-      console.error("Error updating setting:", error);
-      message = { type: "error", text: "Failed to update setting" };
-    } finally {
-      isLoading = false;
+      await update({ reset: false });
       setTimeout(() => (message = null), 3000);
     }
-  }
+  };
 </script>
 
 <div class="page-container py-6">
@@ -124,27 +121,34 @@
             </p>
           </div>
 
-          <button
-            type="button"
-            on:click={() => toggleSetting("mastery_checkpoint_enabled")}
-            disabled={isLoading}
-            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-obsidian-accent/50 disabled:opacity-50 {settings.mastery_checkpoint_enabled
-              ? 'bg-cyber-success/30'
-              : 'bg-obsidian-text-muted/30'}"
-            role="switch"
-            aria-checked={settings.mastery_checkpoint_enabled}
-          >
-            <span
-              class="inline-block h-4 w-4 transform rounded-full bg-[var(--text-bright)] transition-transform {settings.mastery_checkpoint_enabled
-                ? 'translate-x-6'
-                : 'translate-x-1'}"
-            ></span>
-            {#if isLoading}
-              <div class="absolute inset-0 flex items-center justify-center">
-                <Loader2 class="h-4 w-4 animate-spin text-obsidian-accent" />
-              </div>
-            {/if}
-          </button>
+          <form method="POST" action="?/updateSetting" use:enhance={handleSettingSubmit}>
+            <input type="hidden" name="key" value="mastery_checkpoint_enabled" />
+            <input
+              type="hidden"
+              name="value"
+              value={settings.mastery_checkpoint_enabled ? "false" : "true"}
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-obsidian-accent/50 disabled:opacity-50 {settings.mastery_checkpoint_enabled
+                ? 'bg-cyber-success/30'
+                : 'bg-obsidian-text-muted/30'}"
+              role="switch"
+              aria-checked={settings.mastery_checkpoint_enabled}
+            >
+              <span
+                class="inline-block h-4 w-4 transform rounded-full bg-[var(--text-bright)] transition-transform {settings.mastery_checkpoint_enabled
+                  ? 'translate-x-6'
+                  : 'translate-x-1'}"
+              ></span>
+              {#if isLoading}
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <Loader2 class="h-4 w-4 animate-spin text-obsidian-accent" />
+                </div>
+              {/if}
+            </button>
+          </form>
         </div>
 
         <div class="mt-3 flex items-center gap-2">

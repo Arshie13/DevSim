@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import { deserialize } from "$app/forms";
   import { Loader2 } from "lucide-svelte";
   import { toast } from "$lib/stores/toast";
   import type { UserData } from "$types";
@@ -32,26 +33,26 @@
     saving = true;
     serverError = "";
     try {
-      const res = await fetch("/api/user/username/update", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: normalized }),
+      const formData = new FormData();
+      formData.set("username", normalized);
+      const res = await fetch("?/updateUsername", {
+        method: "POST",
+        headers: { "x-sveltekit-action": "true" },
+        body: formData,
       });
-      const data: { error?: string } | null = await res.json().catch(() => null);
-      if (res.status === 409) {
-        serverError = "Username already taken";
+      const result = deserialize(await res.text());
+      if (result.type === "failure") {
+        const data = result.data as { error?: string } | undefined;
+        serverError = data?.error ?? "Failed to update username";
         return;
       }
-      if (res.status === 400) {
-        serverError = data?.error ?? "Invalid username";
+      if (result.type !== "success" || !result.data) {
+        toast.error("Failed to update username");
         return;
       }
-      if (!res.ok) {
-        toast.error(data?.error ?? "Failed to update username");
-        return;
-      }
+      const data = result.data as { username: string };
       toast.success("Username updated");
-      dispatch("update", { ...user, username: normalized });
+      dispatch("update", { ...user, username: data.username });
     } catch {
       toast.error("Failed to update username");
     } finally {

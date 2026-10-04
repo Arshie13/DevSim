@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import { deserialize } from "$app/forms";
   import { X, Coins, Lock, CheckCircle } from "lucide-svelte";
   import PurchaseSuccessModal from "$components/ui/PurchaseSuccessModal.svelte";
   import {
@@ -71,17 +72,19 @@
     if (purchasingPath) return;
     purchasingPath = avatar.path;
     try {
-      const res = await fetch("/api/user/avatar/purchase", {
+      const formData = new FormData();
+      formData.set("avatarPath", avatar.path);
+      const res = await fetch("?/purchaseAvatar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarPath: avatar.path }),
+        headers: { "x-sveltekit-action": "true" },
+        body: formData,
       });
-      if (!res.ok) {
-        const msg = await res.text().catch(() => "Purchase failed");
-        console.error("Avatar purchase failed:", msg);
+      const result = deserialize(await res.text());
+      if (result.type !== "success" || !result.data) {
+        console.error("Avatar purchase failed:", result);
         return;
       }
-      const data = await res.json();
+      const data = result.data as { newCoins: number; ownedAvatars: string[] };
       dispatch("purchase", {
         newCoins: data.newCoins,
         newOwnedAvatars: data.ownedAvatars,

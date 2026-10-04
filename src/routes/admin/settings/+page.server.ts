@@ -1,8 +1,9 @@
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import { fail, redirect } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
 import { isAdminRole } from '$lib/utils/roles';
 import { resolveStackName } from '$lib/utils/scenario-mapping';
+import { AdminSettingsService } from '$lib/layers/service/AdminSettingsService';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const session = await locals.auth();
@@ -57,15 +58,39 @@ export const load: PageServerLoad = async ({ locals }) => {
   };
 };
 
-import { fail } from '@sveltejs/kit';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
-import type { Actions } from './$types';
 
 const execAsync = promisify(exec);
 
 export const actions: Actions = {
+  updateSetting: async ({ locals, request }) => {
+    const session = await locals.auth();
+    if (!session?.user?.id) throw redirect(303, '/login');
+
+    const formData = await request.formData();
+    const key = formData.get('key');
+    const value = formData.get('value');
+
+    if (key !== 'mastery_checkpoint_enabled' || (value !== 'true' && value !== 'false')) {
+      return fail(400, { message: 'Invalid setting' });
+    }
+
+    const result = await new AdminSettingsService().setAppSetting(
+      session.user.id,
+      key,
+      value === 'true',
+    );
+
+    if (result.error) {
+      const status = result.status === 400 || result.status === 403 ? result.status : 500;
+      return fail(status, { message: result.error });
+    }
+
+    return { success: true };
+  },
+
   toggleScenarioPaywall: async ({ locals, request }) => {
     const session = await locals.auth();
     

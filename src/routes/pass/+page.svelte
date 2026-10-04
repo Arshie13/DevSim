@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { deserialize } from "$app/forms";
   import { ArrowLeft, Lock, Check, Loader2, Zap, Flame, Clock, Coins, Bot, Key, Crown } from "lucide-svelte";
   import type { PageData } from "./$types";
   import type { UserData } from "$types";
@@ -151,13 +152,29 @@
     if (isClaiming) return;
     isClaiming = true;
 
-    fetch("/api/user/learner-pass/claim", {
+    const formData = new FormData();
+    formData.set("dayNumber", String(dayNumber));
+
+    fetch("?/claimReward", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dayNumber }),
+      headers: { "x-sveltekit-action": "true" },
+      body: formData,
     })
-      .then((res) => res.json())
-      .then((claimData) => {
+      .then(async (res) => deserialize(await res.text()))
+      .then((actionResult) => {
+        if (actionResult.type !== "success") {
+          console.error("Pass reward claim failed:", actionResult);
+          return;
+        }
+
+        const claimData = actionResult.data as {
+          success: boolean;
+          totalClaimedDays: number;
+          currentDay: number;
+          streak: number;
+          canClaimNow: boolean;
+          nextAvailableAt: string | null;
+        };
         if (claimData.success) {
           claimedDays = [...claimedDays, dayNumber];
 
