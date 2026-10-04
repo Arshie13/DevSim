@@ -1,21 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
+import { requireAdmin } from '$lib/server/admin';
 import { PASS_LADDER, toRewardPayload } from '$lib/server/learnerPass/schedule';
 import { AppSettingsDataAccess } from '$lib/layers/data-access/AppSettingsDataAccess';
 
-/**
- * Read-only view of the Learner Pass ladder.
- *
- * Reward editing was removed when the ladder moved into
- * `$lib/server/learnerPass/schedule.ts`. The old editor wrote `learner_pass_rewards`
- * rows, and nothing about it was safe: it let an admin empty a day's payout, point a
- * day at an arbitrary scenario, or set a `display_type` the UI has no icon for — all
- * unvalidated, and all invisible to the hardcoded `reward-constants.ts` the server
- * actually used for the day → scenario mapping. The ladder is now reviewed in code.
- *
- * Price and duration remain editable; they are per-environment business settings rather
- * than content.
- */
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  await requireAdmin(locals);
+
   const appSettings = new AppSettingsDataAccess();
   const settings = await appSettings.getAllAppSettings();
 
@@ -37,7 +27,9 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-  updateConfig: async ({ request }) => {
+  updateConfig: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const price = parseInt(formData.get('price') as string) || 999;
     const durationDays = parseInt(formData.get('durationDays') as string) || 30;

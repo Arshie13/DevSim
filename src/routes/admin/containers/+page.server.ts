@@ -1,27 +1,14 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import prisma from '$lib/server/client';
-import { isAdminRole } from '$lib/utils/roles';
+import { requireAdmin } from '$lib/server/admin';
 import { docker } from '$lib/server/docker/client';
 import { WorkspaceService } from '$lib/layers/service/WorkspaceService';
 
 const INACTIVE_AFTER_MS = 5 * 60_000;
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const session = await locals.auth();
-
-  if (!session?.user) {
-    throw redirect(303, '/login');
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-
-  if (!dbUser || !isAdminRole(dbUser.role)) {
-    throw redirect(303, '/');
-  }
+  await requireAdmin(locals);
 
   const [workspaces, dockerResult] = await Promise.all([
     prisma.workspace.findMany({
@@ -110,20 +97,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   stopContainer: async ({ locals, request }) => {
-    const session = await locals.auth();
-
-    if (!session?.user) {
-      throw redirect(303, '/login');
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
-    if (!dbUser || !isAdminRole(dbUser.role)) {
-      throw redirect(303, '/');
-    }
+    await requireAdmin(locals);
 
     const formData = await request.formData();
     const containerId = formData.get('containerId');

@@ -1,25 +1,12 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/client';
-import { isAdminRole } from '$lib/utils/roles';
+import { requireAdmin } from '$lib/server/admin';
 import { resolveStackName } from '$lib/utils/scenario-mapping';
 import { AdminSettingsService } from '$lib/layers/service/AdminSettingsService';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const session = await locals.auth();
-  
-  if (!session?.user) {
-    throw redirect(303, '/login');
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true }
-  });
-
-  if (!dbUser || !isAdminRole(dbUser.role)) {
-    throw redirect(303, '/');
-  }
+  const { session } = await requireAdmin(locals);
 
   // Fetch settings
   const masteryEnabled = await prisma.app_setting.findUnique({
@@ -66,8 +53,7 @@ const execAsync = promisify(exec);
 
 export const actions: Actions = {
   updateSetting: async ({ locals, request }) => {
-    const session = await locals.auth();
-    if (!session?.user?.id) throw redirect(303, '/login');
+    const { session } = await requireAdmin(locals);
 
     const formData = await request.formData();
     const key = formData.get('key');
@@ -92,20 +78,7 @@ export const actions: Actions = {
   },
 
   toggleScenarioPaywall: async ({ locals, request }) => {
-    const session = await locals.auth();
-    
-    if (!session?.user) {
-      throw redirect(303, '/login');
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    });
-
-    if (!dbUser || !isAdminRole(dbUser.role)) {
-      throw redirect(303, '/');
-    }
+    await requireAdmin(locals);
 
     const formData = await request.formData();
     const scenarioId = formData.get('scenarioId') as string;
@@ -131,20 +104,7 @@ export const actions: Actions = {
     return { success: true };
   },
   resetDocker: async ({ locals }) => {
-    const session = await locals.auth();
-    
-    if (!session?.user) {
-      throw redirect(303, '/login');
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    });
-
-    if (!dbUser || !isAdminRole(dbUser.role)) {
-      throw redirect(303, '/');
-    }
+    await requireAdmin(locals);
 
     try {
       const scriptPath = path.resolve('scripts/reset-docker-containers.ts');
@@ -159,14 +119,7 @@ export const actions: Actions = {
     }
   },
   simulateNextDay: async ({ locals }) => {
-    const session = await locals.auth();
-    if (!session?.user) throw redirect(303, '/login');
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    });
-    if (!dbUser || !isAdminRole(dbUser.role)) throw redirect(303, '/');
+    const { session } = await requireAdmin(locals);
 
     const enrollment = await prisma.learner_pass_enrollment.findFirst({
       where: { user_id: session.user.id },

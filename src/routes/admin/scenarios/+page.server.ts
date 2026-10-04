@@ -1,8 +1,8 @@
-import { redirect } from '@sveltejs/kit';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { Prisma } from '$prismaclient';
 import prisma from '$lib/server/client';
+import { requireAdmin } from '$lib/server/admin';
 import { resolveStackName, resolveScenarioId } from '$lib/utils/scenario-mapping';
 import { parseInteractiveConfig } from '$lib/utils/interactive-config';
 import { listDevsimProjectImageTags } from '$lib/server/docker/images';
@@ -22,7 +22,9 @@ function toLines(raw: string): string[] {
   return raw.split('\n').map((line) => line.trim()).filter(Boolean);
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  await requireAdmin(locals);
+
   const [scenarios, availableImages] = await Promise.all([
     prisma.scenario.findMany({
       include: {
@@ -105,16 +107,14 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-  createScenario: async ({ request }) => {
+  createScenario: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
     const difficulty = formData.get('difficulty') as string;
     const id = formData.get('id') as string;
-
-    // A scenario must own at least one level (enforced in the DB by a deferred
-    // constraint trigger), so its first level is created as a nested write — Prisma
-    // wraps this in one transaction, so the trigger only fires once both rows exist.
     const levelTitle = formData.get('levelTitle') as string;
     const levelSubtitle = formData.get('levelSubtitle') as string;
     const order = parseInt(formData.get('order') as string) || 1;
@@ -155,7 +155,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  updateScenario: async ({ request }) => {
+  updateScenario: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
     const name = formData.get('name') as string;
@@ -175,7 +177,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  deleteScenario: async ({ request }) => {
+  deleteScenario: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
 
@@ -187,7 +191,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  createLevel: async ({ request }) => {
+  createLevel: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const scenarioId = formData.get('scenarioId') as string;
     const title = formData.get('title') as string;
@@ -220,7 +226,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  updateLevel: async ({ request }) => {
+  updateLevel: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
     const title = formData.get('title') as string;
@@ -253,7 +261,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  deleteLevel: async ({ request }) => {
+  deleteLevel: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
 
@@ -273,7 +283,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  createTask: async ({ request }) => {
+  createTask: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const levelId = formData.get('levelId') as string;
     const taskName = formData.get('taskName') as string;
@@ -309,7 +321,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  updateTask: async ({ request }) => {
+  updateTask: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
     const taskName = formData.get('taskName') as string;
@@ -352,7 +366,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  deleteTask: async ({ request }) => {
+  deleteTask: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
 
@@ -364,7 +380,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  createLearningSection: async ({ request }) => {
+  createLearningSection: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const taskId = formData.get('taskId') as string;
     const title = formData.get('title') as string;
@@ -409,7 +427,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  updateLearningSection: async ({ request }) => {
+  updateLearningSection: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
     const title = formData.get('title') as string;
@@ -449,7 +469,9 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  deleteLearningSection: async ({ request }) => {
+  deleteLearningSection: async ({ request, locals }) => {
+    await requireAdmin(locals);
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
 

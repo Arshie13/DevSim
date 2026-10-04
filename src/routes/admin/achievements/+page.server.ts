@@ -1,14 +1,10 @@
 import type { PageServerLoad } from './$types';
+import { requireAdmin } from '$lib/server/admin';
 import { getActiveFamilies } from '$lib/server/achievements/definitions';
 
-/**
- * The achievement catalog is code-defined, so this page is read-only.
- *
- * See `src/lib/server/achievements/definitions.ts` — that file is the single
- * source of truth. To add, edit, or retire an achievement, change it and deploy;
- * there is no runtime mutation path and no `achievements` table to write to.
- */
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  await requireAdmin(locals);
+
   return {
     families: getActiveFamilies().map((family) => ({
       key: family.key,
