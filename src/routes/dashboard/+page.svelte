@@ -150,7 +150,9 @@
       const res = await fetch('/api/user/daily-rewards');
       if (!res.ok) return;
       const daily = await res.json();
-      showDailyRewardsBadge = Boolean(daily.canClaimToday && daily.hasRewards);
+      // hasRewards was dropped from the API in the claim-history refactor
+      // (eee3aaa); a claim-available signal is exactly canClaimToday now.
+      showDailyRewardsBadge = Boolean(daily.canClaimToday);
     } catch {
       // Non-critical — keep the badge hidden on failure
     }

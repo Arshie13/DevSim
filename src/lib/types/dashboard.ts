@@ -58,7 +58,7 @@ export interface RivalEntry {
 export interface ProfileMetricsData {
   tasksCompleted: number;
   fileEdits: number;
-  coinsEarned: number;
+  aiHelpCredits: number;
   achievementsCount: number;
   memberSince: Date;
   dayStreak: number;

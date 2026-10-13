@@ -98,7 +98,7 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
     prisma.task_activity.count({ where: { user_id: userId } }),
     prisma.file_changes.count({ where: { workspace: { user_id: userId } } }),
     getAchievementsForUser(userId),
-    prisma.user.findUnique({ where: { id: userId }, select: { xp: true, coins: true, created_at: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { xp: true, ai_help_credits: true, created_at: true } }),
     getLoginStreak(userId),
     prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: sevenDaysAgo } } }),
     prisma.task_activity.count({ where: { user_id: userId, completed_at: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
@@ -122,7 +122,7 @@ export async function getProfileMetrics(userId: string): Promise<ProfileMetricsD
   return {
     tasksCompleted,
     fileEdits,
-    coinsEarned: dbUser?.coins ?? 0,
+    aiHelpCredits: dbUser?.ai_help_credits ?? 0,
     achievementsCount,
     memberSince: dbUser?.created_at ?? new Date(),
     dayStreak,

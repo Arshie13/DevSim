@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowLeft, GitCommitHorizontalIcon, Award, Target, Coins } from "lucide-svelte";
+  import { ArrowLeft, GitCommitHorizontalIcon, Award, Target, Sparkles } from "lucide-svelte";
   import type { PageData } from "./$types";
   import type { UserData, ProfileMetricsData, RivalEntry } from "$types";
 
@@ -61,7 +61,7 @@
   const metricCards = [
     { label: "Tasks Completed", value: String(metrics.tasksCompleted),    icon: Target,                  color: "var(--accent)",  bg: "rgb(var(--accent-rgb) / 0.12)"  },
     { label: "File Edits",      value: String(metrics.fileEdits),         icon: GitCommitHorizontalIcon, color: "var(--purple)",  bg: "rgb(var(--purple-rgb) / 0.12)" },
-    { label: "Coins Earned",    value: String(metrics.coinsEarned),       icon: Coins,                   color: "var(--warn)",    bg: "rgb(var(--warn-rgb) / 0.12)"  },
+    { label: "AI Credits",      value: String(metrics.aiHelpCredits),     icon: Sparkles,                color: "var(--warn)",    bg: "rgb(var(--warn-rgb) / 0.12)"  },
     { label: "Achievements",    value: String(metrics.achievementsCount), icon: Award,                   color: "var(--success)", bg: "rgb(var(--success-rgb) / 0.12)"  },
   ];
 
