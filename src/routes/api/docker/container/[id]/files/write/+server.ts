@@ -1,9 +1,11 @@
 // src/routes/api/container/[id]/files/write/+server.ts
-import { json } from '@sveltejs/kit';
+import { json, isHttpError } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import nodePath from 'node:path';
 import { docker } from '$lib/server/docker/client';
 import { logFileChange } from '$lib/server/fileChangeLogger';
 import { detectNewlyUnlockedAchievements } from '$lib/server/achievements/unlocks';
+import { requireWorkspaceAccess, resolveWorkspacePath } from '$lib/server/docker/workspace-access';
 
 const PROTECTED_PACKAGE_FILES = new Set([
   'package.json',
@@ -41,24 +43,25 @@ function isProtectedRootFilePath(inputPath: string): boolean {
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
   try {
-    // --- Auth check ---
-    const session = await locals.auth();
-    if (!session?.user?.id) {
-      return json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+    // --- Auth + ownership ---
+    const { userId, containerId } = await requireWorkspaceAccess(locals, params.id);
 
-    const userId = session.user.id;
     const { path, content } = await request.json();
-    const containerId = params.id;
 
     if (isProtectedRootFilePath(path)) {
       return json({ success: false, error: 'This root file is protected and cannot be modified.' }, { status: 403 });
     }
 
+    // Absolute, workspace-confined path — also removes any shell metacharacters
+    // from the `mkdir`/`cat` below by resolving `..` first.
+    const resolvedPath = resolveWorkspacePath(path);
+
     const container = docker.getContainer(containerId);
 
+    // argv form: the path and its directory are passed as arguments, never
+    // interpolated into an `sh -c` string.
     const exec = await container.exec({
-      Cmd: ['sh', '-c', `mkdir -p $(dirname ${path}) && cat > ${path}`],
+      Cmd: ['sh', '-c', 'mkdir -p "$1" && cat > "$2"', 'sh', nodePath.posix.dirname(resolvedPath), resolvedPath],
       AttachStdin: true,
       AttachStdout: true,
       AttachStderr: true
@@ -80,6 +83,9 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 
     return json({ success: true, newlyUnlocked });
   } catch (error) {
+    if (isHttpError(error)) {
+      throw error;
+    }
     console.error('Error writing file:', error);
     return json({ success: false, error: String(error) }, { status: 500 });
   }

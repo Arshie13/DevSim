@@ -1,12 +1,14 @@
-import { json } from '@sveltejs/kit';
+import { json, isHttpError } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
+import { requireWorkspaceAccess } from '$lib/server/docker/workspace-access';
 
 // Best-effort test cancel: kill common pnpm/vitest/jest test commands inside the container.
-export const POST: RequestHandler = async ({ params }) => {
-  const containerId = params.id;
-
+export const POST: RequestHandler = async ({ params, locals }) => {
   try {
+    // --- Auth + ownership ---
+    const { containerId } = await requireWorkspaceAccess(locals, params.id);
+
     const container = docker.getContainer(containerId);
 
     const exec = await container.exec({
@@ -26,6 +28,9 @@ export const POST: RequestHandler = async ({ params }) => {
 
     return json({ success: true, canceled: true });
   } catch (error) {
+    if (isHttpError(error)) {
+      throw error;
+    }
     const message = error instanceof Error ? error.message : 'Failed to cancel running tests';
     return json({ success: false, canceled: false, message }, { status: 500 });
   }

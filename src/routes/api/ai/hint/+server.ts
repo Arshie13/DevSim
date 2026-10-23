@@ -1,14 +1,30 @@
-import { json } from '@sveltejs/kit';
+import { json, isHttpError } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { HintService } from '$lib/layers/service/HintService';
+import { requireWorkspaceAccess } from '$lib/server/docker/workspace-access';
 
 const hintService = new HintService();
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
   try {
+    // --- Auth: the billed user is always the session user ---
+    const session = await locals.auth();
+    if (!session?.user?.id) {
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
 
-    const result = await hintService.processHint(body);
+    // Any container the hint reads files from must belong to that same user.
+    if (body?.containerId) {
+      await requireWorkspaceAccess(locals, body.containerId);
+    }
+
+    const result = await hintService.processHint({
+      ...body,
+      // Never trust a client-supplied userId — it decides whose coins are spent.
+      userId: session.user.id,
+    });
 
     if (result.error) {
       const status = result.error.includes('coins') || result.error.includes('credit') ? 400 : 500;
@@ -25,10 +41,14 @@ export const POST: RequestHandler = async ({ request }) => {
       coinsRemaining: result.coinsRemaining,
       aiHelpsRemaining: result.aiHelpsRemaining
     });
-  } catch (error) {
-    console.error('Error in hint endpoint:', error);
+  } catch (caught) {
+    // Ownership/auth failures must surface as 401/404, not 500.
+    if (isHttpError(caught)) {
+      throw caught;
+    }
+    console.error('Error in hint endpoint:', caught);
     return json(
-      { error: error instanceof Error ? error.message : 'Failed to generate hint' },
+      { error: caught instanceof Error ? caught.message : 'Failed to generate hint' },
       { status: 500 }
     );
   }

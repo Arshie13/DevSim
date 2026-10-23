@@ -2,27 +2,49 @@
  * POST /api/docker/container/[id]/tests/run
  */
 
-import { json } from '@sveltejs/kit';
+import { json, isHttpError } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { PassThrough } from 'stream';
 import type { TestResult, TestRunRequest, TestRunResponse, TaskTestResult } from '$lib/types';
 import { getLevelConfig } from '$lib/tests/levels';
 import { docker } from '$lib/server/docker/client';
 import prisma from '$lib/server/client';
+import { requireWorkspaceAccess } from '$lib/server/docker/workspace-access';
 
 const TEST_TIMEOUT = 5 * 60 * 1000;
 
-export const POST: RequestHandler = async ({ params, request }) => {
+/**
+ * Only the test scripts this platform actually defines may be run. Anything
+ * else (shell metacharacters, extra arguments, arbitrary binaries) is rejected
+ * before it reaches `sh -c`. Kept as a pattern rather than a list because task
+ * and level numbers are unbounded.
+ */
+const ALLOWED_TEST_COMMAND = /^(?:pnpm run )?test:(?:tasks:l\d+|task:(?:(?:client|server):)?l\d+:t\d+)$/;
+
+export const POST: RequestHandler = async ({ params, request, locals }) => {
   const containerId = params.id;
-  console.log(`[TEST RUN] Received test run request for container: ${containerId}`);
 
   try {
-    const body = (await request.json()) as TestRunRequest & { testType?: 'task' | 'level' };
-    const { command, level, taskId, taskIds } = body;
+    // --- Auth + ownership ---
+    await requireWorkspaceAccess(locals, containerId);
+
+    console.log(`[TEST RUN] Received test run request for container: ${containerId}`);
+
+    	const body = (await request.json()) as TestRunRequest & { testType?: 'task' | 'level' };
+    const { command, taskId, taskIds } = body;
     const type = body.type ?? body.testType;
 
-    if (!command || !level) {
-      return json({ success: false, passed: false, summary: { total: 0, passed: 0, failed: 0, duration: 0 }, results: [], output: '', message: 'Missing required parameters: command and level' } as TestRunResponse, { status: 400 });
+    // `level` is interpolated into test scripts and into the ground-truth `find`
+    // paths, so it must be a plain integer, not whatever the client sent.
+    const level = Number(body.level);
+
+    if (!command || !Number.isInteger(level) || level < 1 || level > 99) {
+      return json({ success: false, passed: false, summary: { total: 0, passed: 0, failed: 0, duration: 0 }, results: [], output: '', message: 'Missing or invalid parameters: command and level' } as TestRunResponse, { status: 400 });
+    }
+
+    if (!ALLOWED_TEST_COMMAND.test(command)) {
+      console.warn(`[TEST RUN] Rejected disallowed command for container ${containerId}: ${command}`);
+      return json({ success: false, passed: false, summary: { total: 0, passed: 0, failed: 0, duration: 0 }, results: [], output: '', message: 'Unsupported test command' } as TestRunResponse, { status: 400 });
     }
 
     console.log(`[TEST RUN] Container: ${containerId}, Command: ${command}, Level: ${level}, Type: ${type}`);
@@ -166,6 +188,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     return json(response);
   } catch (error) {
+    if (isHttpError(error)) {
+      throw error;
+    }
     console.error('[TEST RUN] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return json({ success: false, passed: false, summary: { total: 0, passed: 0, failed: 0, duration: 0 }, results: [], output: '', errors: [errorMessage], message: errorMessage } as TestRunResponse, { status: 500 });
@@ -438,9 +463,10 @@ function buildPnpmCommand(command: string, level: number, taskId?: string): stri
     [`test:tasks:l${level}`]: `pnpm run test:tasks:l${level}`
   };
   if (commandMap[command]) return commandMap[command];
-  if (command.startsWith('pnpm ')) return command;
-  if (command.startsWith('npm ')) return command.replace('npm ', 'pnpm ');
-  return `pnpm run ${command}`;
+  // The caller's command has already been checked against ALLOWED_TEST_COMMAND,
+  // so it can only be `pnpm run <test script>` or `<test script>`.
+  const script = command.replace(/^pnpm run /, '');
+  return `pnpm run ${script}`;
 }
 
 async function executeTestInContainer(containerId: string, command: string): Promise<{ output: string; exitCode: number; error?: string }> {

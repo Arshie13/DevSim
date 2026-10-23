@@ -1,6 +1,7 @@
 import { docker } from '$lib/server/docker/client';
 import { pickPreviewHostPortWithProbe } from '$lib/server/docker/preview-port';
 import * as crypto from 'crypto';
+import nodePath from 'node:path';
 import { Writable } from 'stream';
 import Dockerode from 'dockerode';
 import { stackNameToFolder } from '$lib/server/stacks/tech-registry';
@@ -706,91 +707,106 @@ export class ContainerService {
     }
   }
 
-  async listFiles(containerId: string, path: string = '/workspace') {
-    const excludedPathExpr =
-      '! -path "*/node_modules" ! -path "*/node_modules/*" ' +
-      '! -path "*/.next" ! -path "*/.next/*" ' +
-      '! -path "*/.git" ! -path "*/.git/*" ' +
-      '! -path "*/tests" ! -path "*/tests/*" ' +
-      '! -path "*/__tests__" ! -path "*/__tests__/*" ' +
-      '! -path "*/levels" ! -path "*/levels/*" ' +
-      '! -name ".dockerignore"';
+  /**
+   * `find` predicate args for the directory trees the editor should not show.
+   * Kept as an argv list (never a shell string) so paths cannot inject commands.
+   */
+  private static readonly FIND_EXCLUDES: string[] = [
+    'node_modules',
+    '.next',
+    '.git',
+    'tests',
+    '__tests__',
+    'levels'
+  ].flatMap((dir) => ['!', '-path', `*/${dir}`, '!', '-path', `*/${dir}/*`]).concat([
+    '!',
+    '-name',
+    '.dockerignore'
+  ]);
 
+  async listFiles(containerId: string, path: string = '/workspace') {
     const container = docker.getContainer(containerId);
     const info = await container.inspect();
     if (!info.State.Running) {
       throw new Error('Container is not running');
     }
 
-    // List files
-    const fileExec = await container.exec({
-      Cmd: ['sh', '-c', `find "${path}" -type f ${excludedPathExpr} 2>/dev/null || echo ""`],
-      AttachStdout: true,
-      AttachStderr: true
-    });
+    const runFind = async (args: string[]): Promise<string> => {
+      const exec = await container.exec({
+        Cmd: ['find', ...args],
+        AttachStdout: true,
+        AttachStderr: true
+      });
 
-    const fileStream = await fileExec.start({});
+      const stream = await exec.start({});
 
-    let output = '';
-    const stdout = new Writable({
-      write(chunk: any, encoding: any, callback: any) {
-        output += chunk.toString();
-        callback();
-      }
-    });
+      let output = '';
+      const stdout = new Writable({
+        write(chunk: any, encoding: any, callback: any) {
+          output += chunk.toString();
+          callback();
+        }
+      });
 
-    container.modem.demuxStream(fileStream, stdout, stdout);
+      // stderr is discarded: a missing directory is not an error the caller needs.
+      container.modem.demuxStream(stream, stdout, new Writable({ write: (_c, _e, cb) => cb() }));
 
-    await new Promise((resolve, reject) => {
-      fileStream.on('end', resolve);
-      fileStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 10000);
-    });
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Timeout')), 10000);
+        stream.on('end', () => {
+          clearTimeout(timer);
+          resolve();
+        });
+        stream.on('error', (err: Error) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+      });
 
-    // List directories
-    const dirExec = await container.exec({
-      Cmd: ['sh', '-c', `find "${path}" -type d ! -path "${path}" ${excludedPathExpr} 2>/dev/null || echo ""`],
-      AttachStdout: true,
-      AttachStderr: true
-    });
+      return output;
+    };
 
-    const dirStream = await dirExec.start({});
+    const output = await runFind([path, '-type', 'f', ...ContainerService.FIND_EXCLUDES]);
 
-    let dirOutput = '';
-    const dirStdout = new Writable({
-      write(chunk: any, encoding: any, callback: any) {
-        dirOutput += chunk.toString();
-        callback();
-      }
-    });
+    // `find` with no action prints matches by default; keep only in-workspace hits.
+    const dirOutput = await runFind([
+      path,
+      '-type',
+      'd',
+      '!',
+      '-path',
+      path,
+      ...ContainerService.FIND_EXCLUDES
+    ]);
 
-    container.modem.demuxStream(dirStream, dirStdout, dirStdout);
+    const toWorkspaceRelative = (raw: string): string[] =>
+      raw
+        .split('\n')
+        .map((line: string) => line.trim())
+        .filter(
+          (line: string) =>
+            line.length > 0 && line.startsWith('/workspace/') && line !== '/workspace'
+        )
+        .map((f: string) => f.replace('/workspace/', ''));
 
-    await new Promise((resolve, reject) => {
-      dirStream.on('end', resolve);
-      dirStream.on('error', reject);
-      setTimeout(() => reject(new Error('Timeout')), 10000);
-    });
-
-    const files = output
-      .split('\n')
-      .map((line: string) => line.trim())
-      .filter((line: string) => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map((f: string) => f.replace('/workspace/', ''));
-
-    const directories = dirOutput
-      .split('\n')
-      .map((line: string) => line.trim())
-      .filter((line: string) => line.length > 0 && line.startsWith('/workspace') && line !== '/workspace')
-      .map((f: string) => f.replace('/workspace/', ''));
-
-    return { files, directories };
+    return { files: toWorkspaceRelative(output), directories: toWorkspaceRelative(dirOutput) };
   }
 
+  /**
+   * Reads a file from the container. `path` must already be resolved to an
+   * absolute `/workspace` path (see `resolveWorkspacePath`); anything else is
+   * rejected so a caller cannot walk out of the workspace root.
+   */
   async readFile(containerId: string, path: string) {
+    const resolved = nodePath.posix.resolve(nodePath.posix.sep, path);
+    if (resolved !== '/workspace' && !resolved.startsWith('/workspace/')) {
+      throw new Error('Path must stay inside /workspace');
+    }
+
     const container = docker.getContainer(containerId);
     const exec = await container.exec({
-      Cmd: ['cat', path],
+      // argv form: no shell, so the path cannot inject additional commands.
+      Cmd: ['cat', resolved],
       AttachStdout: true,
       AttachStderr: true,
       Tty: false

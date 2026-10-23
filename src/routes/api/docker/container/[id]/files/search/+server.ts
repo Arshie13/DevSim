@@ -1,6 +1,7 @@
-import { json } from '@sveltejs/kit';
+import { json, isHttpError } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { docker } from '$lib/server/docker/client';
+import { requireWorkspaceAccess, resolveWorkspacePath } from '$lib/server/docker/workspace-access';
 
 type SearchLineMatch = {
   lineNumber: number;
@@ -63,8 +64,15 @@ function normalizeWorkspaceFiles(files: string[]): string[] {
     files
       .map((filePath) => filePath.trim())
       .filter((filePath) => filePath.length > 0)
-      .map((filePath) => filePath.replace(/^\/+/, ''))
-      .map((filePath) => `/workspace/${filePath}`),
+      // Confined to /workspace so `../../etc` cannot be reached via the file list.
+      .map((filePath) => {
+        try {
+          return resolveWorkspacePath(filePath);
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean),
   );
 }
 
@@ -107,10 +115,13 @@ async function runSearchCommand(
   };
 }
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async ({ params, request, locals }) => {
   const startedAt = Date.now();
 
   try {
+    // --- Auth + ownership ---
+    const { containerId } = await requireWorkspaceAccess(locals, params.id);
+
     const body = await request.json().catch(() => ({}));
     const rawQuery = typeof body?.query === 'string' ? body.query : '';
     const rawFiles: unknown[] = Array.isArray(body?.files) ? body.files : [];
@@ -120,8 +131,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
     if (query.length < 2) {
       return json({ success: true, files: [], totalMatchCount: 0 });
     }
-
-    const containerId = params.id;
     
 
     const container = docker.getContainer(containerId);
@@ -186,6 +195,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     return json({ success: true, files: foundFiles, totalMatchCount });
   } catch (error) {
+    if (isHttpError(error)) {
+      throw error;
+    }
     const elapsedMs = Date.now() - startedAt;
     console.error(`[FILES_SEARCH] failed elapsedMs=${elapsedMs}`, error);
     return json({ success: false, error: String(error), files: [], totalMatchCount: 0 }, { status: 500 });

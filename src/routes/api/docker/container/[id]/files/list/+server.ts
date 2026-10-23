@@ -1,14 +1,15 @@
-// src/routes/api/container/[id]/files/list/+server.ts
-import { json } from '@sveltejs/kit';
-import type { RequestEvent } from '@sveltejs/kit';
+import { json, isHttpError } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 import { ContainerService } from '$lib/layers/service/ContainerService';
+import { requireWorkspaceAccess, resolveWorkspacePath } from '$lib/server/docker/workspace-access';
 
-export async function POST(event: RequestEvent) {
+export const POST: RequestHandler = async (event) => {
   try {
-    const containerId = event.params.id as string;
-    
+    // --- Auth + ownership ---
+    const { containerId } = await requireWorkspaceAccess(event.locals, event.params.id);
+
     // Safely parse JSON with fallback
-    let requestData = { path: '/workspace' };
+    let requestData: { path?: unknown } = {};
     try {
       const body = await event.request.text();
       if (body) {
@@ -17,19 +18,24 @@ export async function POST(event: RequestEvent) {
     } catch (parseError) {
       console.warn('Could not parse request body, using defaults:', parseError);
     }
-    const path = requestData.path || '/workspace';
+
+    // Confined to /workspace and passed to `find` as argv, never a shell string.
+    const path = requestData.path ? resolveWorkspacePath(requestData.path) : '/workspace';
 
     const service = new ContainerService();
     const { files, directories } = await service.listFiles(containerId, path);
 
     return json({ success: true, files, directories });
-  } catch (error) {
-    console.error('Error listing files:', error);
-    return json({ 
-      success: false, 
-      error: String(error),
+  } catch (err) {
+    if (isHttpError(err)) {
+      throw err;
+    }
+    console.error('Error listing files:', err);
+    return json({
+      success: false,
+      error: String(err),
       files: [],
-      directories: [] 
+      directories: []
     }, { status: 500 });
   }
-}
+};
